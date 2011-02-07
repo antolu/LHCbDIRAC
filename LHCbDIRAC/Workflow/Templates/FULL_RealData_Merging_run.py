@@ -41,14 +41,12 @@ from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 ###########################################
 
 testFlag = '{{TemplateTest#GENERAL: A flag to set whether a test script should be generated#False}}'
-#recoTestData = '{{TemplateTestData#A simple mechanism to convey a file for testing#LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81676/081676_0000000510.raw}}'
 publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
 
 # workflow params for all productions
 appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
-#testProduction = '{{WorkflowTestFlag#Workflow testing flag e.g. for certification True/False#False}}'
 
 #reco params
 recoPriority = '{{RecoPriority#Reconstruction production priority#7}}'
@@ -59,7 +57,6 @@ recoDataSE = '{{RecoDataSE#Reconstruction Output Data Storage Element#Tier1-RDST
 recoFilesPerJob = '{{RecoFilesPerJob#Reconstruction Group size or number of files per job#1}}'
 recoFileMask = '{{RecoOutputDataFileMask#Reconstruction file extns to save (comma separated)#DST,ROOT}}'
 recoTransFlag = '{{RecoTransformation#Reconstruction distribute output data True/False (False if merging)#False}}'
-#recoBKPublishing = '{{BKPublishFlag#Reconstruction publish this to the BK#True}}'
 recoStartRun = '{{RecoRunStart#Reconstruction run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#Reconstruction run end, to set the end of the range#0}}'
 recoEvtsPerJob = '{{RecoNumberEvents#Reconstruction number of events per job (set to something small for a test)#-1}}'
@@ -179,8 +176,6 @@ if fourSteps:
 #if not recoBKPublishing:
 #  recoScriptFlag = True
 
-diracProd = DiracProduction() #used to set automatic status
-
 #################################################################################
 # Create the reconstruction production
 #################################################################################
@@ -225,7 +220,7 @@ production.setInputDataPolicy( recoIDPolicy )
 # End of production API script, now what to do with the production object
 #################################################################################
 
-if testFlag:
+if publishFlag == False and testFlag:
   gLogger.info( 'Production test will be launched with number of events set to %s.' % ( recoEvtsPerJob ) )
   try:
     result = production.runLocal()
@@ -238,6 +233,7 @@ if testFlag:
     DIRAC.exit( 2 )
 
 result = production.create( 
+                           publish = publishFlag,
                            bkQuery = recoInputBKQuery,
                            groupSize = recoFilesPerJob,
                            derivedProduction = int( recoAncestorProd ),
@@ -250,9 +246,27 @@ if not result['OK']:
   gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
   DIRAC.exit( 2 )
 
-recoProdID = result['Value']
-diracProd.production( recoProdID, 'automatic', printOutput = True )
-gLogger.info( 'Reconstruction production successfully created with ID %s and started in automatic mode' % ( recoProdID ) )
+
+
+if publishFlag:
+  diracProd = DiracProduction()
+
+  recoProdID = result['Value']
+
+  msg = 'Reconstruction production %s successfully created ' % ( recoProdID )
+
+  if testFlag:
+    diracProd.production( recoProdID, 'manual', printOutput = True )
+    msg = msg + 'and started in manual mode.'
+  else:
+    diracProd.production( recoProdID, 'automatic', printOutput = True )
+    msg = msg + 'and started in automatic mode.'
+  gLogger.info( msg )
+
+else:
+  recoProdID = 1
+  gLogger.info( 'Reconstruction production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, recoProdID ) )
+
 
 #################################################################################
 # Create the merging productions if there are enough workflow steps
@@ -368,6 +382,7 @@ for mergeStream in dstList:
   mergeProd.setProdPlugin( mergePlugin )
 
   result = mergeProd.create( 
+                            publish = publishFlag,
                             bkScript = BKscriptFlag,
                             requestID = currentReqID,
                             reqUsed = 1,
@@ -377,10 +392,27 @@ for mergeStream in dstList:
     gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
     DIRAC.exit( 2 )
 
-  mergeID = result['Value']
-  diracProd.production( mergeID, 'automatic', printOutput = True )
-  gLogger.info( 'Merging production %s for %s successfully created and started in automatic mode.' % ( mergeID, mergeStream ) )
-  productionList.append( int( mergeID ) )
+  if publishFlag:
+    diracProd = DiracProduction()
+
+    prodID = result['Value']
+    msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStream )
+
+    if testFlag:
+      diracProd.production( prodID, 'manual', printOutput = True )
+      msg = msg + 'and started in manual mode.'
+    else:
+      diracProd.production( prodID, 'automatic', printOutput = True )
+      msg = msg + 'and started in automatic mode.'
+    gLogger.info( msg )
+
+    productionList.append( int( prodID ) )
+
+  else:
+    prodID = 1
+    gLogger.info( 'MC production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+
+
 
 #################################################################################
 # Create the transformations explicitly since we need to propagate the types

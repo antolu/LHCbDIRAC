@@ -30,7 +30,7 @@
      
 """
 
-__RCSID__   = "$Id: Certification_Testing_run.py 23248 2010-03-18 07:57:40Z paterson $"
+__RCSID__   = "$Id$"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble

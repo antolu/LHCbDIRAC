@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/ReStripping_RealData_Merging_run.py $
 ########################################################################
 
 """ Template for the re-stripping.
@@ -17,14 +17,14 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
-import sys, os, string, re
+import string, re
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 
 import DIRAC
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gLogger
 #gLogger = gLogger.getSubLogger('FULL_RealData_Merging_run.py')
 
 #################################################################################
@@ -238,7 +238,7 @@ if publishFlag:
   gLogger.info( msg )
 else:
   strippProdID = 1
-  gLogger.info( 'Stripping production completed but not not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, strippProdID ) )
+  gLogger.info( 'Stripping production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, strippProdID ) )
 
 #################################################################################
 # Create the merging productions if there are enough workflow steps
@@ -376,7 +376,7 @@ for mergeStream in dstList:
     gLogger.info( msg )
   else:
     mergeID = mergeID + 1
-    gLogger.info( 'Merging production completed but not not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, mergeID ) )
+    gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, mergeID ) )
 
   productionList.append( int( mergeID ) )
 

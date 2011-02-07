@@ -5,7 +5,7 @@
 """  The MicroDST template for streamed data.
 """
 
-__RCSID__ = "$Id: MicroDST_StreamedData_run.py,v 1.3 2009/09/09 08:57:06 paterson Exp $"
+__RCSID__ = "$Id$"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble
