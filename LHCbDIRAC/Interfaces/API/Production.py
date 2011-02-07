@@ -72,7 +72,7 @@ class Production( LHCbJob ):
     self.plugin = ''
     self.inputFileMask = ''
     self.inputBKSelection = {}
-    self.jobFileGroupSize = 0
+    self.jobFileGroupSize = 5
     self.ancestorProduction = ''
     self.importLine = """
 from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
@@ -329,10 +329,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 0
-    appTypes = ['dst', 'fetc', 'setc', 'rdst', 'davincihist', 'merge', 'mdst']
+
+    #FEDERICO: many stripping cases, could not consider them all
+#    appTypes = ['dst', 'fetc', 'setc', 'rdst', 'davincihist', 'merge', 'mdst']
+#    if not appType.lower() in appTypes:
+#      raise TypeError, 'Application type not currently supported (%s)' % appTypes
     inputDataTypes = ['rdst', 'dst', 'sdst']
-    if not appType.lower() in appTypes:
-      raise TypeError, 'Application type not currently supported (%s)' % appTypes
     if not inputDataType.lower() in inputDataTypes and not appType.lower() in ['merge', 'setc']:
       raise TypeError, 'Only %s input data types supported' % ( string.join( inputDataTypes, ', ' ) )
 
@@ -661,10 +663,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     genBKReport.addParameter( Parameter( "STEP_ID", "", "string", "self", "STEP_ID", True, False, "StepID" ) )
 
     # FEDERICO
-    stepAccounting = ModuleDefinition( 'StepAccounting' )
-    errorLogging.setDescription( 'Step Accounting module' )
-    body = string.replace( self.importLine, '<MODULE>', 'StepAccounting' )
-    errorLogging.setBody( body )
+#    stepAccounting = ModuleDefinition( 'StepAccounting' )
+#    stepAccounting.setDescription( 'Step Accounting module' )
+#    body = string.replace( self.importLine, '<MODULE>', 'StepAccounting' )
+#    stepAccounting.setBody( body )
     # /FEDERICO
 
     gaudiAppDefn = StepDefinition( 'Gaudi_App_Step' )
@@ -677,8 +679,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiAppDefn.addModule( genBKReport )
     gaudiAppDefn.createModuleInstance( 'BookkeepingReport', 'genBKReport' )
     # FEDERICO
-    gaudiAppDefn.addModule( stepAccounting )
-    gaudiAppDefn.createModuleInstance( 'StepAccounting', 'stepAcc' )
+#    gaudiAppDefn.addModule( stepAccounting )
+#    gaudiAppDefn.createModuleInstance( 'StepAccounting', 'stepAcc' )
     # /FEDERICO
     gaudiAppDefn.addParameterLinked( analyseLog.parameters )
     gaudiAppDefn.addParameterLinked( gaudiApp.parameters )
@@ -1546,10 +1548,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self.inputBKSelection = bkQuery
 
   #############################################################################
-  def setJobFileGroupSize( self, files ):
-    """ Sets the number of files to be input to each job created.
+  def setJobFileGroupSize( self, gb ):
+    """ Sets the number of gb to be input to each job created (e.g. for merging productions)
     """
-    self.jobFileGroupSize = files
+    self.jobFileGroupSize = gb
 
   #############################################################################
   def setAncestorProduction( self, prod ):
