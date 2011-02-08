@@ -3075,6 +3075,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
             fileids.remove(file_id)
             if not res["OK"]:
               gLogger.error('Ancestor',res['Message'])
+              if not fileName in logicalFileNames['Failed']:
+                logicalFileNames['Failed']+=[fileName]
             elif len(res['Value']) != 0:
               job_ids = res['Value']              
               for i in job_ids:
@@ -3082,14 +3084,17 @@ class OracleBookkeepingDB(IBookkeepingDB):
                 res = self.dbW_.executeStoredProcedure('BKK_ORACLE.getFNameFiDRepWithJID',[job_id])
                 if not res["OK"]:
                   gLogger.error('Ancestor',res['Message'])
+                  if not fileName in logicalFileNames['Failed']:
+                    logicalFileNames['Failed']+=[fileName]
                 elif len(res['Value']) == 0:
                   logicalFileNames['NotProcessed']+=[fileName]
                 else:
                   dbResult = res['Value']
                   for record in dbResult:
+                    fileids +=[record[1]]
                     if record[2] != 'No':
                       files += [record[0]]
-                      fileids +=[record[1]]
+                                                            
           depth-=1 
         
         ancestorList[fileName]=files    

@@ -207,10 +207,10 @@ class XMLFilesReaderManager:
               dqvalue = retVal['Value']
             else:
               dqvalue = None
-              gLogger.error('The data quality working group did not checked the run!!')
+              gLogger.warn('The data quality working group did not checked the run!!')
           else:
             dqvalue = None
-            gLogger.error('Bkk can not set the quality flag because the processing pass is missing!')
+            gLogger.warn('Bkk can not set the quality flag because the processing pass is missing!')
       
     inputfiles = job.getJobInputFiles()
     sumEventInputStat = 0
