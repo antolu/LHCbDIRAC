@@ -119,7 +119,7 @@ class JobLogUploadAgent( AgentModule, RequestAgentMixIn ):
       if res['OK']:
         gLogger.info( "JobLogUploadAgent.execute: Successfully updated request." )
       else:
-        gLogger.error( "JobLogUploadAgent.execute: Failed to update request to", self.central )
+        gLogger.error( "JobLogUploadAgent.execute: Failed to update request to", self.local )
 
       if modified and jobID:
         result = self.finalizeRequest( requestName, jobID, self.local )
