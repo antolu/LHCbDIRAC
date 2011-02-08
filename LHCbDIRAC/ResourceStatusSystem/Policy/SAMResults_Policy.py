@@ -1,12 +1,18 @@
+########################################################################
+# $HeadURL:
+########################################################################
+
 """ The SAMself.results_Policy class is a policy class that checks 
     the SAM job self.results
 """
 
+__RCSID__ = "$Id: "
+
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class SAMResults_Policy(PolicyBase):
-  
-  def evaluate(self):
+class SAMResults_Policy( PolicyBase ):
+
+  def evaluate( self ):
     """ 
     Evaluate policy on SAM jobs self.results. 
         
@@ -16,18 +22,18 @@ class SAMResults_Policy(PolicyBase):
           'Status':Active|Probing|Banned, 
           'Reason':'SAMRes:ok|down|na|degraded|partial|maint',
         }
-    """ 
-    
-    SAMstatus = super(SAMResults_Policy, self).evaluate()
-    
+    """
+
+    SAMstatus = super( SAMResults_Policy, self ).evaluate()
+
     if SAMstatus is None:
       return {'SAT':None}
-    
+
     if SAMstatus == 'Unknown':
       return {'SAT':'Unknown'}
-    
+
     status = 'ok'
-    
+
     for s in SAMstatus.values():
       if s == 'error':
         status = 'down'
@@ -41,8 +47,8 @@ class SAMResults_Policy(PolicyBase):
       elif s == 'maint':
         status = 'maint'
         break
-    
-    if status == 'ok': 
+
+    if status == 'ok':
       na = True
       for s in SAMstatus.values():
         if s != 'na':
@@ -50,9 +56,9 @@ class SAMResults_Policy(PolicyBase):
           break
       if na == True:
         status = 'na'
-    
+
     self.result['Reason'] = 'SAM status: '
-    
+
     if self.oldStatus == 'Active':
       if status == 'ok':
         self.result['SAT'] = False
@@ -68,7 +74,7 @@ class SAMResults_Policy(PolicyBase):
       elif status == 'maint':
         self.result['SAT'] = True
         self.result['Status'] = 'Bad'
-      
+
     elif self.oldStatus == 'Probing':
       if status == 'ok':
         self.result['SAT'] = True
@@ -84,7 +90,7 @@ class SAMResults_Policy(PolicyBase):
       elif status == 'maint':
         self.result['SAT'] = True
         self.result['Status'] = 'Bad'
-      
+
     elif self.oldStatus == 'Bad':
       if status == 'ok':
         self.result['SAT'] = True
@@ -100,7 +106,7 @@ class SAMResults_Policy(PolicyBase):
       elif status == 'maint':
         self.result['SAT'] = False
         self.result['Status'] = 'Bad'
-      
+
     elif self.oldStatus == 'Banned':
       if status == 'ok':
         self.result['SAT'] = True
@@ -116,10 +122,10 @@ class SAMResults_Policy(PolicyBase):
       elif status == 'maint':
         self.result['SAT'] = True
         self.result['Status'] = 'Bad'
-      
+
     if status != 'na':
       self.result['Reason'] = self.result['Reason'] + status
-    
+
     return self.result
-  
+
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

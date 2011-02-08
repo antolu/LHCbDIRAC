@@ -1,7 +1,13 @@
+########################################################################
+# $HeadURL:
+########################################################################
+
 """ DIRAC.ResourceStatusSystem.Policy.Configurations Module
 
     collects everything needed to configure policies
 """
+
+__RCSID__ = "$Id: "
 
 from DIRAC.ResourceStatusSystem.Utilities.Utils import *
 

@@ -1,17 +1,23 @@
+########################################################################
+# $HeadURL:
+########################################################################
+
 """ The PilotsEfficiency_Policy class is a policy class 
     that checks the efficiency of the pilots
 """
 
+__RCSID__ = "$Id: "
+
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
-from DIRAC.ResourceStatusSystem.Client.Command.ClientsInvoker import ClientsInvoker
+from DIRAC.ResourceStatusSystem.Command.ClientsInvoker import ClientsInvoker
 from DIRAC.ResourceStatusSystem.Utilities.Exceptions import *
 from DIRAC.ResourceStatusSystem.Utilities.Utils import *
-from DIRAC.ResourceStatusSystem.Policy import Configurations
+from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 
-class PilotsEfficiency_Policy(PolicyBase):
-  
-  def evaluate(self, args, knownInfo=None, commandPeriods=None, commandStats=None, 
-               commandEff=None):
+class PilotsEfficiency_Policy( PolicyBase ):
+
+  def evaluate( self, args, knownInfo = None, commandPeriods = None, commandStats = None,
+               commandEff = None ):
     """ evaluate policy on pilots stats, using args (tuple). 
         - args[0] should be a ValidRes
         - args[1] should be the name of the ValidRes
@@ -23,36 +29,36 @@ class PilotsEfficiency_Policy(PolicyBase):
               'Status':Active|Probing|Banned, 
               'Reason':'PilotsEff:low|PilotsEff:med|PilotsEff:good',
             }
-    """ 
+    """
 
-    if not isinstance(args, tuple):
-      raise TypeError, where(self, self.evaluate)
-    
+    if not isinstance( args, tuple ):
+      raise TypeError, where( self, self.evaluate )
+
     if args[0] not in ValidRes:
-      raise InvalidRes, where(self, self.evaluate)
-    
+      raise InvalidRes, where( self, self.evaluate )
+
     if args[2] not in ValidStatus:
-      raise InvalidStatus, where(self, self.evaluate)
+      raise InvalidStatus, where( self, self.evaluate )
 
     if knownInfo is not None:
       if 'PilotsEff' in knownInfo.keys():
         status = knownInfo
     else:
-      
+
       if args[2] == 'Banned':
         return {'SAT':None}
-      
-      periods = self._getPeriods(args, commandIn=commandPeriods)
-      pilotsStats = self._getPilotsStats((args[0], args[1]), periods, commandIn=commandStats)
-      periodsForPilotsEff = self._getPeriods(args, pilotsStats['MeanProcessedPilots'], 
-                                             commandIn=commandPeriods)
-      if len(periodsForPilotsEff) != 1:
+
+      periods = self._getPeriods( args, commandIn = commandPeriods )
+      pilotsStats = self._getPilotsStats( ( args[0], args[1] ), periods, commandIn = commandStats )
+      periodsForPilotsEff = self._getPeriods( args, pilotsStats['MeanProcessedPilots'],
+                                             commandIn = commandPeriods )
+      if len( periodsForPilotsEff ) != 1:
         return {'SAT':None}
-      status = self._getPilotsEff((args[0], args[1]), periodsForPilotsEff, 
-                                  commandIn=commandEff)
-      
+      status = self._getPilotsEff( ( args[0], args[1] ), periodsForPilotsEff,
+                                  commandIn = commandEff )
+
       result = {}
-      
+
       if pilotsStats['MeanProcessedPilots'] < ( 3 * pilotsStats['LastProcessedPilots'] ):
         # unusual amount of pilots
         if status['PilotsEff'] < Configurations.GOOD_PILOTS_EFFICIENCY:
@@ -74,7 +80,7 @@ class PilotsEfficiency_Policy(PolicyBase):
             result['Status'] = 'Active'
             result['Reason'] = 'PilotsEff:good'
         return result
-      
+
     result = {}
     #standard situation
     if args[2] == 'Active':
@@ -91,9 +97,9 @@ class PilotsEfficiency_Policy(PolicyBase):
           result['SAT'] = True
           result['Status'] = 'Probing'
           result['Reason'] = 'PilotsEff:med'
-    
+
     elif args[2] == 'Probing':
-      if status['PilotsEff'] > Configurations.GOOD_PILOTS_EFFICIENCY: 
+      if status['PilotsEff'] > Configurations.GOOD_PILOTS_EFFICIENCY:
         result['SAT'] = True
         result['Status'] = 'Active'
         result['Reason'] = 'PilotsEff:good'
@@ -106,13 +112,13 @@ class PilotsEfficiency_Policy(PolicyBase):
           result['SAT'] = False
           result['Status'] = 'Probing'
           result['Reason'] = 'PilotsEff:med'
-    
+
     return result
 
 
 
 
-  def _getPeriods(self, args, meanProcessedPilots=None, commandIn=None):
+  def _getPeriods( self, args, meanProcessedPilots = None, commandIn = None ):
     """ Returns a list of periods of time where args[1] was in status args[2]
 
         - args[0] should be a ValidRes
@@ -143,16 +149,16 @@ class PilotsEfficiency_Policy(PolicyBase):
       # use standard command
       from DIRAC.ResourceStatusSystem.Client.Command.RS_Command import RSPeriods_Command
       command = RSPeriods_Command()
-      
-    clientsInvoker = ClientsInvoker()
-    clientsInvoker.setCommand(command)
-    periods = clientsInvoker.doCommand(args + (hours, ))
-    
-    return periods
-    
 
-      
-  def _getPilotsStats(self, args, periods, commandIn=None):
+    clientsInvoker = ClientsInvoker()
+    clientsInvoker.setCommand( command )
+    periods = clientsInvoker.doCommand( args + ( hours, ) )
+
+    return periods
+
+
+
+  def _getPilotsStats( self, args, periods, commandIn = None ):
     """ Returns pilots stats invoking pilots client
 
         - args[0] should be a ValidRes
@@ -166,23 +172,23 @@ class PilotsEfficiency_Policy(PolicyBase):
             'LastProcessedPilots': X'
           }
     """
-    
+
     if commandIn is not None:
       command = commandIn
     else:
       # use standard command
       from DIRAC.ResourceStatusSystem.Client.Command.Pilots_Command import PilotsStats_Command
       command = PilotsStats_Command()
-      
+
     clientsInvoker = ClientsInvoker()
-    clientsInvoker.setCommand(command)
-    status = clientsInvoker.doCommand(args + (periods, ))
-    
+    clientsInvoker.setCommand( command )
+    status = clientsInvoker.doCommand( args + ( periods, ) )
+
     return status
 
 
-    
-  def _getPilotsEff(self, args, periods, commandIn = None):
+
+  def _getPilotsEff( self, args, periods, commandIn = None ):
     """ Returns pilots efficiency invoking pilots client
 
         - args[0] should be a ValidRes
@@ -195,16 +201,16 @@ class PilotsEfficiency_Policy(PolicyBase):
             'PilotsEff': X (0-1)'
           }
     """
-    
+
     if commandIn is not None:
       command = commandIn
     else:
       # use standard command
       from DIRAC.ResourceStatusSystem.Client.Command.Pilots_Command import PilotsEff_Command
       command = PilotsEff_Command()
-      
+
     clientsInvoker = ClientsInvoker()
-    clientsInvoker.setCommand(command)
-    pilotsEff = clientsInvoker.doCommand(args + (periods, ))
+    clientsInvoker.setCommand( command )
+    pilotsEff = clientsInvoker.doCommand( args + ( periods, ) )
 
     return pilotsEff

@@ -1,12 +1,18 @@
+########################################################################
+# $HeadURL:
+########################################################################
+
 """ The JobsEfficiency_Simple_Policy class is a policy class 
     that checks the efficiency of the pilots
 """
 
+__RCSID__ = "$Id: "
+
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class JobsEfficiency_Simple_Policy(PolicyBase):
-  
-  def evaluate(self):
+class JobsEfficiency_Simple_Policy( PolicyBase ):
+
+  def evaluate( self ):
     """ 
     Evaluate policy on jobs stats, using args (tuple). 
       
@@ -16,9 +22,9 @@ class JobsEfficiency_Simple_Policy(PolicyBase):
         'Status':Active|Probing|Bad, 
         'Reason':'JobsEff:Good|JobsEff:Fair|JobsEff:Poor|JobsEff:Bad|JobsEff:Idle',
       }
-  """ 
-    
-    status = super(JobsEfficiency_Simple_Policy, self).evaluate()
+  """
+
+    status = super( JobsEfficiency_Simple_Policy, self ).evaluate()
 
     if status == 'Unknown':
       return {'SAT':'Unknown'}
@@ -56,7 +62,7 @@ class JobsEfficiency_Simple_Policy(PolicyBase):
       elif status == 'Bad':
         self.result['SAT'] = True
         self.result['Status'] = 'Bad'
-    
+
     elif self.oldStatus == 'Bad':
       if status == 'Good':
         self.result['SAT'] = True
@@ -91,7 +97,7 @@ class JobsEfficiency_Simple_Policy(PolicyBase):
 
     if status != 'Idle':
       self.result['Reason'] = self.result['Reason'] + status
-    
+
     return self.result
-  
+
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
