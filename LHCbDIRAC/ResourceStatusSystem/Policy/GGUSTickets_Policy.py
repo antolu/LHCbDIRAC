@@ -6,7 +6,7 @@
     how many tickets are open atm.  
 """
 
-__RCSID__ = "$Id: "
+__RCSID__ = "$Id"
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
