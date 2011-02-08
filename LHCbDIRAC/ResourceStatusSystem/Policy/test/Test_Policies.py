@@ -23,7 +23,7 @@ from LHCbDIRAC.ResourceStatusSystem.Policy.GGUSTickets_Policy import GGUSTickets
 #from LHCbDIRAC.ResourceStatusSystem.Policy.OnServicePropagation_Policy import OnServicePropagation_Policy 
 #from LHCbDIRAC.ResourceStatusSystem.Policy.OnSENodePropagation_Policy import OnSENodePropagation_Policy 
 from LHCbDIRAC.ResourceStatusSystem.Policy.Propagation_Policy import Propagation_Policy
-from LHCbDIRAC.ResourceStatusSystem.Policy.VOBOX_Policy import VOBOX_Policy
+#from LHCbDIRAC.ResourceStatusSystem.Policy.VOBOX_Policy import VOBOX_Policy
 from LHCbDIRAC.ResourceStatusSystem.Policy.DownHillPropagation_Policy import DownHillPropagation_Policy
 from LHCbDIRAC.ResourceStatusSystem.Policy.TransferQuality_Policy import TransferQuality_Policy
 from LHCbDIRAC.ResourceStatusSystem.Policy.SEOccupancy_Policy import SEOccupancy_Policy
@@ -50,7 +50,7 @@ class PoliciesTestCase( unittest.TestCase ):
 #    self.OSP_P = OnServicePropagation_Policy()
 #    self.OSENP_P = OnSENodePropagation_Policy()
     self.P_P = Propagation_Policy()
-    self.VOB_P = VOBOX_Policy()
+#    self.VOB_P = VOBOX_Policy()
     self.TQ_P = TransferQuality_Policy()
     self.SEO_P = SEOccupancy_Policy()
     self.SEQT_P = SEQueuedTransfers_Policy()
@@ -714,38 +714,38 @@ class Propagation_Policy_Failure( PoliciesTestCase ):
 
 #############################################################################
 
-class VOBOX_PolicySuccess( PoliciesTestCase ):
-
-  def test_evaluate( self ):
-    for status in ValidStatus:
-      args = ( 'Service', 'XX', status )
-      for resCl in [100, 50, 1, 0, None]:
-        self.VOB_P.setArgs( args )
-        self.VOB_P.setKnownInfo( {'Result':resCl} )
-        res = self.VOB_P.evaluate()
-        self.assert_( res.has_key( 'SAT' ) )
-        if resCl is not None:
-          self.assert_( res.has_key( 'Reason' ) )
-        self.mock_command.doCommand.return_value = {'Result':resCl}
-        VOB_P = VOBOX_Policy()
-        VOB_P.setArgs( args )
-        VOB_P.setCommand( self.mock_command )
-        res = VOB_P.evaluate()
-        self.assert_( res.has_key( 'SAT' ) )
-        if resCl is not None:
-          self.assert_( res.has_key( 'Reason' ) )
+#class VOBOX_PolicySuccess( PoliciesTestCase ):
+#
+#  def test_evaluate( self ):
+#    for status in ValidStatus:
+#      args = ( 'Service', 'XX', status )
+#      for resCl in [100, 50, 1, 0, None]:
+#        self.VOB_P.setArgs( args )
+#        self.VOB_P.setKnownInfo( {'Result':resCl} )
+#        res = self.VOB_P.evaluate()
+#        self.assert_( res.has_key( 'SAT' ) )
+#        if resCl is not None:
+#          self.assert_( res.has_key( 'Reason' ) )
+#        self.mock_command.doCommand.return_value = {'Result':resCl}
+#        VOB_P = VOBOX_Policy()
+#        VOB_P.setArgs( args )
+#        VOB_P.setCommand( self.mock_command )
+#        res = VOB_P.evaluate()
+#        self.assert_( res.has_key( 'SAT' ) )
+#        if resCl is not None:
+#          self.assert_( res.has_key( 'Reason' ) )
 
 #############################################################################
-
-class VOBOX_Policy_Failure( PoliciesTestCase ):
-
-  def test_commandFail( self ):
-    self.mock_command.doCommand.side_effect = RSSException()
-    for status in ValidStatus:
-      self.failUnlessRaises( Exception, self.VOB_P.evaluate )
-
-  def test_badArgs( self ):
-    self.failUnlessRaises( TypeError, self.VOB_P.setArgs, None )
+#
+#class VOBOX_Policy_Failure( PoliciesTestCase ):
+#
+#  def test_commandFail( self ):
+#    self.mock_command.doCommand.side_effect = RSSException()
+#    for status in ValidStatus:
+#      self.failUnlessRaises( Exception, self.VOB_P.evaluate )
+#
+#  def test_badArgs( self ):
+#    self.failUnlessRaises( TypeError, self.VOB_P.setArgs, None )
 
 
 #############################################################################
@@ -986,8 +986,8 @@ if __name__ == '__main__':
 #  suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(OnSENodePropagation_Policy_Failure))
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Propagation_PolicySuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Propagation_Policy_Failure ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( VOBOX_PolicySuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( VOBOX_Policy_Failure ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( VOBOX_PolicySuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( VOBOX_Policy_Failure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TransferQuality_PolicySuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TransferQuality_Policy_Failure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( DownHillPropagation_PolicySuccess ) )
