@@ -14,144 +14,144 @@ __RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-import string,re,os
+import string, re, os
 
-gLogger = gLogger.getSubLogger('ProductionLogAnalysis')
+gLogger = gLogger.getSubLogger( 'ProductionLogAnalysis' )
 #There is no point in the below being a configuration option since new projects require code changes...
-projectList = ['Boole','Gauss','Brunel','DaVinci','LHCb','Moore']
+projectList = ['Boole', 'Gauss', 'Brunel', 'DaVinci', 'LHCb', 'Moore']
 dataSummary = {}
 numberOfEventsInput = 0
 numberOfEventsOutput = 0
 firstStepInputEvents = 0
 
 #############################################################################
-def analyseLogFile(fileName,applicationName=''):
+def analyseLogFile( fileName, applicationName = '' ):
   """ This method uses all the below methods to perform comprehensive checks
       on the supplied log file if it exists.
   """
   # Check the log file exists and get the contents
-  gLogger.info("Attempting to open log file: %s" % (fileName))
-  if not os.path.exists(fileName):
-    gLogger.error('Requested log file "%s" is not available' %(fileName))
-    return S_ERROR('Log File Not Available')
-  if os.stat(fileName)[6] == 0:
-    gLogger.error('Requested log file "%s" is empty' %(fileName))
-    return S_ERROR('Log File Is Empty')
+  gLogger.info( "Attempting to open log file: %s" % ( fileName ) )
+  if not os.path.exists( fileName ):
+    gLogger.error( 'Requested log file "%s" is not available' % ( fileName ) )
+    return S_ERROR( 'Log File Not Available' )
+  if os.stat( fileName )[6] == 0:
+    gLogger.error( 'Requested log file "%s" is empty' % ( fileName ) )
+    return S_ERROR( 'Log File Is Empty' )
 
-  fopen = open(fileName,'r')
+  fopen = open( fileName, 'r' )
   logString = fopen.read()
   fopen.close()
-  
+
   #For the production case the application name will always be given, for the
   #standalone utility this may not always be true so try to guess
   if not applicationName:
-    for line in logString.split('\n'):
-      if re.search('Welcome to',line) and re.search('version',line):
+    for line in logString.split( '\n' ):
+      if re.search( 'Welcome to', line ) and re.search( 'version', line ):
         try:
-           applicationName = line.split()[2]      
-        except Exception,x:
-          return S_ERROR('Could not obtain application name')
-        gLogger.info('Guessing application name is "%s" from log file %s' %(applicationName,fileName))
-  
+          applicationName = line.split()[2]
+        except Exception, x:
+          return S_ERROR( 'Could not obtain application name' )
+        gLogger.info( 'Guessing application name is "%s" from log file %s' % ( applicationName, fileName ) )
+
   if not applicationName in projectList:
-    gLogger.error('Application name "%s" is not in allowed list: %s' %(applicationName,string.join(projectList,', ')))
-    return S_ERROR('Log Analysis of %s Not Supported' %(applicationName))
+    gLogger.error( 'Application name "%s" is not in allowed list: %s' % ( applicationName, string.join( projectList, ', ' ) ) )
+    return S_ERROR( 'Log Analysis of %s Not Supported' % ( applicationName ) )
 
   # Check that no errors were seen in the log
-  result = checkGaudiErrors(logString,applicationName)
+  result = checkGaudiErrors( logString, applicationName )
   if not result['OK']:
-    result['Data']=dataSummary
+    result['Data'] = dataSummary
     return result
-  
+
   # Check that the number of events handled is correct
-  result = checkApplicationEvents(applicationName,logString)
+  result = checkApplicationEvents( applicationName, logString )
   if not result['OK']:
-    result['Data']=dataSummary
+    result['Data'] = dataSummary
     return result
-  
-  result = S_OK('%s Completed Successfully' %(applicationName))
-  result['numberOfEventsOutput']=numberOfEventsOutput
-  result['numberOfEventsInput']=numberOfEventsInput
-  result['FirstStepInputEvents']=firstStepInputEvents
+
+  result = S_OK( '%s Completed Successfully' % ( applicationName ) )
+  result['numberOfEventsOutput'] = numberOfEventsOutput
+  result['numberOfEventsInput'] = numberOfEventsInput
+  result['FirstStepInputEvents'] = firstStepInputEvents
   return result
 
 #############################################################################
-def checkApplicationEvents(applicationName,logString):
+def checkApplicationEvents( applicationName, logString ):
   """ Internally calls the correctly named method to check the number of 
       events in an application log file. 
-  """ 
+  """
   # Check that the number of events handled is correct
   if applicationName.lower() == 'lhcb':
-    return checkLHCbEvents(logString)
+    return checkLHCbEvents( logString )
   if applicationName.lower() == 'gauss':
-    return checkGaussEvents(logString)
+    return checkGaussEvents( logString )
   if applicationName.lower() == 'boole':
-    return checkBooleEvents(logString)
+    return checkBooleEvents( logString )
   if applicationName.lower() == 'brunel':
-    return checkBrunelEvents(logString)
+    return checkBrunelEvents( logString )
   if applicationName.lower() == 'davinci':
-    return checkDaVinciEvents(logString)
+    return checkDaVinciEvents( logString )
   if applicationName.lower() == 'moore':
-    return checkMooreEvents(logString)
-  return S_ERROR("Application Not Known")
+    return checkMooreEvents( logString )
+  return S_ERROR( "Application Not Known" )
 
 #############################################################################
-def getInputFiles(logString):
+def getInputFiles( logString ):
   """ Determine the list of input files accessed from the application log. The log should contain a string like:
 
       Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='filename'
 
       In the event that the file name contains LFN: this is removed.
   """
-  exp = re.compile(r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'")
-  files = re.findall(exp,logString)
+  exp = re.compile( r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'" )
+  files = re.findall( exp, logString )
   strippedFiles = []
-  for file in files: strippedFiles.append(file.replace('LFN:',''))
-  return S_OK(strippedFiles)
+  for file in files: strippedFiles.append( file.replace( 'LFN:', '' ) )
+  return S_OK( strippedFiles )
 
 #############################################################################
-def getLastFile(logString):
+def getLastFile( logString ):
   """ Determine the last input file opened from the application log.
   """
-  files = getInputFiles(logString)['Value']
+  files = getInputFiles( logString )['Value']
   if files:
-    return S_OK(files[-1])
-  return S_ERROR("No input files opened")
+    return S_OK( files[-1] )
+  return S_ERROR( "No input files opened" )
 
 #############################################################################
-def checkGaudiErrors(logString,applicationName):
+def checkGaudiErrors( logString, applicationName ):
   """ This method stores Gaudi strings that are well known and determines
       success / failure based on conventions.
   """
   global dataSummary
   # Check if the application finish successfully
   toFind = 'Application Manager Finalized successfully'
-  if applicationName.lower()=='moore':
+  if applicationName.lower() == 'moore':
     #toFind = 'Service finalized successfully'
     toFind = ''
   else:
-    gLogger.info('Check application ended successfully e.g. searching for "%s"' %(toFind))
-  
+    gLogger.info( 'Check application ended successfully e.g. searching for "%s"' % ( toFind ) )
+
   if toFind:
-    okay = re.findall(toFind,logString)
+    okay = re.findall( toFind, logString )
     if not okay:
-      gLogger.info('"%s" was not found in log...' %(toFind))
-      return S_ERROR('Finalization Error')
+      gLogger.info( '"%s" was not found in log...' % ( toFind ) )
+      return S_ERROR( 'Finalization Error' )
 
   # Check whether there were errors completing the event loop
   applicationErrors = {'Terminating event processing loop due to errors':'Event Loop Not Terminated'}
-  for errString,description in applicationErrors.items():
-    gLogger.info('Checking for "%s" meaning job would fail with "%s"' %(errString,description))
-    found = re.findall(errString,logString)
+  for errString, description in applicationErrors.items():
+    gLogger.info( 'Checking for "%s" meaning job would fail with "%s"' % ( errString, description ) )
+    found = re.findall( errString, logString )
     if found:
-      gLogger.error('Found error in log file => "%s"' %(errString))
-      result = getLastFile(logString)
+      gLogger.error( 'Found error in log file => "%s"' % ( errString ) )
+      result = getLastFile( logString )
       if result['OK']:
         lastFile = result['Value']
-        gLogger.info('Determined last file before crash to be: %s => ApplicationCrash' %(lastFile))
-        dataSummary[lastFile]='ApplicationCrash'
-        
-      return S_ERROR(description)
+        gLogger.info( 'Determined last file before crash to be: %s => ApplicationCrash' % ( lastFile ) )
+        dataSummary[lastFile] = 'ApplicationCrash'
+
+      return S_ERROR( description )
 
   # Check for a known list of problems in the application logs
   gaudiErrors = {\
@@ -170,17 +170,17 @@ def checkGaudiErrors(logString,applicationName):
   'User defined signal 1'                                           :     'User defined signal 1',
   'Not found DLL'                                                   :     'Not found DLL'}
 
-  for errString,description in gaudiErrors.items():
-    gLogger.info('Checking for "%s" meaning job would fail with "%s"' %(errString,description))
-    found = re.findall(errString,logString)
+  for errString, description in gaudiErrors.items():
+    gLogger.info( 'Checking for "%s" meaning job would fail with "%s"' % ( errString, description ) )
+    found = re.findall( errString, logString )
     if found:
-      gLogger.error('Found error in log file => "%s"' %(errString))
-      return S_ERROR(description)
+      gLogger.error( 'Found error in log file => "%s"' % ( errString ) )
+      return S_ERROR( description )
 
-  return S_OK('All checks passed')
+  return S_OK( 'All checks passed' )
 
 #############################################################################
-def getRequestedEvents(logString):
+def getRequestedEvents( logString ):
   """ Determine the number of requested events from the application log. The log should contain one of two strings:
 
       Requested to process all events on input file   or
@@ -188,56 +188,56 @@ def getRequestedEvents(logString):
 
       If neither of these strings are found an error is returned
   """
-  exp = re.compile(r"Requested to process ([0-9]+|all)")
-  findline = re.search(exp,logString)
+  exp = re.compile( r"Requested to process ([0-9]+|all)" )
+  findline = re.search( exp, logString )
   if not findline:
-    gLogger.error("Could not determine requested events.")
-    return S_ERROR("Could Not Determine Requested Events")
-  events = findline.group(1)
+    gLogger.error( "Could not determine requested events." )
+    return S_ERROR( "Could Not Determine Requested Events" )
+  events = findline.group( 1 )
   if events == 'all':
     requestedEvents = 0
-    gLogger.info('Determined the number of requested events to be "all".')
+    gLogger.info( 'Determined the number of requested events to be "all".' )
   else:
-    requestedEvents = int(events)
-    gLogger.info('Determined the number of requested events to be %s.' %requestedEvents)
-  return S_OK(requestedEvents)
+    requestedEvents = int( events )
+    gLogger.info( 'Determined the number of requested events to be %s.' % requestedEvents )
+  return S_OK( requestedEvents )
 
 #############################################################################
-def getLastEvent(logString):
+def getLastEvent( logString ):
   """ Determine the last event handled from the application log. The log should contain the string:
 
        Nr. in job = x
 
       If this string is not found then 0 is returned
   """
-  exp = re.compile(r"Nr. in job = ([0-9]+)")
-  list = re.findall(exp,logString)
+  exp = re.compile( r"Nr. in job = ([0-9]+)" )
+  list = re.findall( exp, logString )
   if not list:
     lastEvent = 0
   else:
-    lastEvent = int(list[-1])
-  gLogger.info("Determined the number of events handled to be %s." % lastEvent)
-  return S_OK(lastEvent)
+    lastEvent = int( list[-1] )
+  gLogger.info( "Determined the number of events handled to be %s." % lastEvent )
+  return S_OK( lastEvent )
 
 #############################################################################
-def getLastEventSummary(logString):
+def getLastEventSummary( logString ):
   """ DaVinci does not write out each event but instead give a summary every x events. The log should contain the string:
 
       Reading Event record
 
       If this string is not found then 0 is returned
   """
-  exp = re.compile(r"Reading Event record ([0-9]+)")
-  list = re.findall(exp,logString)
+  exp = re.compile( r"Reading Event record ([0-9]+)" )
+  list = re.findall( exp, logString )
   if not list:
     readEvents = 0
   else:
-    readEvents = int(list[-1])
-  gLogger.info("Determined the number of events read to be %s." % readEvents)
-  return S_OK(readEvents)
+    readEvents = int( list[-1] )
+  gLogger.info( "Determined the number of events read to be %s." % readEvents )
+  return S_OK( readEvents )
 
 #############################################################################
-def getEventsOutput(logString,writer):
+def getEventsOutput( logString, writer ):
   """  Determine the number of events written out by the supplied writer. The log should contain the string:
 
        Writer            INFO Events output: x
@@ -245,334 +245,333 @@ def getEventsOutput(logString,writer):
        If the string is not found an error is returned
   """
   global numberOfEventsOutput
-  possibleWriters = ['FSRWriter','DigiWriter','RawWriter','GaussTape','DstWriter','InputCopyStream']
+  possibleWriters = ['FSRWriter', 'DigiWriter', 'RawWriter', 'GaussTape', 'DstWriter', 'InputCopyStream']
   if not writer in possibleWriters:
-    gLogger.error("Requested writer not available.",writer)
-    return S_ERROR("Requested writer not available")
-  exp = re.compile(r"%s\s+INFO Events output: (\d+)" % writer)
-  findline = re.search(exp,logString)
+    gLogger.error( "Requested writer not available.", writer )
+    return S_ERROR( "Requested writer not available" )
+  exp = re.compile( r"%s\s+INFO Events output: (\d+)" % writer )
+  findline = re.search( exp, logString )
   if not findline:
-    gLogger.warn("Could not determine events output.")
-    return S_ERROR("Could not determine events output")
-  writtenEvents = int(findline.group(1))
-  gLogger.info("Determined the number of events written to be %s." % writtenEvents)
-  numberOfEventsOutput = str(writtenEvents)
-  return S_OK(writtenEvents)
+    gLogger.warn( "Could not determine events output." )
+    return S_ERROR( "Could not determine events output" )
+  writtenEvents = int( findline.group( 1 ) )
+  gLogger.info( "Determined the number of events written to be %s." % writtenEvents )
+  numberOfEventsOutput = str( writtenEvents )
+  return S_OK( writtenEvents )
 
 #############################################################################
-def getEventsProcessed(logString,service):
+def getEventsProcessed( logString, service ):
   """ Determine the number of events reported processed by the supplied service. The log should contain the string:
 
       Service          SUCCESS x events processed
 
       If the string is not found an error is returned
   """
-  global numberOfEventsInput  
-  possibleServices = ['DaVinciInit','DaVinciInitAlg','DaVinciMonitor','BrunelInit','BrunelEventCount','ChargedProtoPAlg','BooleInit','GaussGen','GaussSim','L0Muon']
+  global numberOfEventsInput
+  possibleServices = ['DaVinciInit', 'DaVinciInitAlg', 'DaVinciMonitor', 'BrunelInit', 'BrunelEventCount', 'ChargedProtoPAlg', 'BooleInit', 'GaussGen', 'GaussSim', 'L0Muon']
   if not service in possibleServices:
-    gLogger.error("Requested service not available.",service)
-    return S_ERROR("Requested service '%s' not available" % service)
-  exp = re.compile(r"%s\s+SUCCESS (\d+) events processed" % service)
-  if service.lower()=='l0muon':
-    exp = re.compile(r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" %service)
-    
-  findline = re.search(exp,logString)
+    gLogger.error( "Requested service not available.", service )
+    return S_ERROR( "Requested service '%s' not available" % service )
+  exp = re.compile( r"%s\s+SUCCESS (\d+) events processed" % service )
+  if service.lower() == 'l0muon':
+    exp = re.compile( r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" % service )
+
+  findline = re.search( exp, logString )
   if not findline:
-    if not re.search('Alg$',service):     
-      return getEventsProcessed(logString,'%sAlg' %service)
-    gLogger.error("Could not determine events processed.")
-    return S_ERROR("Could not determine events processed")
-  eventsProcessed = int(findline.group(1))
-  gLogger.info("Determined the number of events processed to be %s." % eventsProcessed)
-  numberOfEventsInput = str(eventsProcessed)
-  return S_OK(eventsProcessed)
+    if not re.search( 'Alg$', service ):
+      return getEventsProcessed( logString, '%sAlg' % service )
+    gLogger.error( "Could not determine events processed." )
+    return S_ERROR( "Could not determine events processed" )
+  eventsProcessed = int( findline.group( 1 ) )
+  gLogger.info( "Determined the number of events processed to be %s." % eventsProcessed )
+  numberOfEventsInput = str( eventsProcessed )
+  return S_OK( eventsProcessed )
 
 #############################################################################
-def checkMooreEvents(logString):
+def checkMooreEvents( logString ):
   """ Obtain event information from the application log and determine whether 
       the Moore job generated the correct number of events.
   """
   global firstStepInputEvents
-  global dataSummary 
+  global dataSummary
   # Get the last event processed
-  lastEvent = getLastEventSummary(logString)['Value']
+  lastEvent = getLastEventSummary( logString )['Value']
   firstStepInputEvents = lastEvent
 
   # Get the number of events processed by Moore
-  res = getEventsProcessed(logString,'L0Muon')
+  res = getEventsProcessed( logString, 'L0Muon' )
   if not res['OK']:
-    res = getLastFile(logString)
+    res = getLastFile( logString )
     if res['OK']:
       lastFile = res['Value']
-      dataSummary[lastFile]='ApplicationCrash'
-    gLogger.error("Crash in event %s" % lastEvent)
-    return S_ERROR('Crash During Execution')
-  
+      dataSummary[lastFile] = 'ApplicationCrash'
+    gLogger.error( "Crash in event %s" % lastEvent )
+    return S_ERROR( 'Crash During Execution' )
+
   return S_OK()
 
 #############################################################################
-def checkLHCbEvents(logString):
+def checkLHCbEvents( logString ):
   """ Obtain event information from the application log and determine whether the 
       LHCb job generated the correct number of events.
   """
   global numberOfEventsInput
   global firstStepInputEvents
   # Get the last event processed
-  lastEvent = getLastEventSummary(logString)['Value']
+  lastEvent = getLastEventSummary( logString )['Value']
   if not lastEvent:
-    return S_ERROR('No Events Processed')
-  
-  numberOfEventsInput = str(lastEvent)
+    return S_ERROR( 'No Events Processed' )
+
+  numberOfEventsInput = str( lastEvent )
   firstStepInputEvents = numberOfEventsInput
 
   # Get the number of events output by LHCb
-  res = getEventsOutput(logString,'InputCopyStream')
+  res = getEventsOutput( logString, 'InputCopyStream' )
   if not res['OK']:
-    return S_ERROR('No Events Processed')
-  
+    return S_ERROR( 'No Events Processed' )
+
   outputEvents = res['Value']
   if outputEvents != lastEvent:
-    return S_ERROR("Processed Events Do Not Match")
+    return S_ERROR( "Processed Events Do Not Match" )
   # If there were no events processed
   if outputEvents == 0:
-    return S_ERROR('No Events Processed')
-  return S_OK()  
+    return S_ERROR( 'No Events Processed' )
+  return S_OK()
 
 #############################################################################
-def checkGaussEvents(logString):
+def checkGaussEvents( logString ):
   """ Obtain event information from the application log and determine whether 
       the Gauss job generated the correct number of events.
   """
   # Get the number of requested events
-  res = getRequestedEvents(logString)
+  res = getRequestedEvents( logString )
   if not res['OK']:
     return res
   requestedEvents = res['Value']
   # You must give a requested number of events for Gauss (this is pointless as the job will run forever)
   if not requestedEvents:
-    return S_ERROR("Missing Requested Events For Gauss")
+    return S_ERROR( "Missing Requested Events For Gauss" )
 
   # Get the last event processed
-  lastEvent = getLastEvent(logString)['Value']
+  lastEvent = getLastEvent( logString )['Value']
   # Get the number of events generated by Gauss
-  res = getEventsProcessed(logString,'GaussGen')
+  res = getEventsProcessed( logString, 'GaussGen' )
   if not res['OK']:
-    gLogger.error("Crash in event %s" % lastEvent)
-    return S_ERROR('Crash During Execution')
-  
+    gLogger.error( "Crash in event %s" % lastEvent )
+    return S_ERROR( 'Crash During Execution' )
+
   generatedEvents = res['Value']
   # Get the number of events processed by Gauss
-  res = getEventsOutput(logString,'GaussTape')
+  res = getEventsOutput( logString, 'GaussTape' )
   if not res['OK']:
-    result = S_ERROR('No Events Output')
+    return S_ERROR( 'No Events Output' )
   outputEvents = res['Value']
 
   # Check that the correct number of events were generated
   if generatedEvents != requestedEvents:
-    return S_ERROR('Too Few Events Generated')
+    return S_ERROR( 'Too Few Events Generated' )
   # Check that more than 90% of generated events are output
-  if outputEvents < 0.9*requestedEvents:
-    return S_ERROR('Not Enough Events Generated')
+  if outputEvents < 0.9 * requestedEvents:
+    return S_ERROR( 'Not Enough Events Generated' )
   return S_OK()
 
 #############################################################################
-def checkBooleEvents(logString):
+def checkBooleEvents( logString ):
   """ Obtain event information from the application log and determine whether the 
       Boole job processed the correct number of events.
   """
   global firstStepInputEvents
   global dataSummary
   # Get the number of requested events
-  res = getRequestedEvents(logString)
+  res = getRequestedEvents( logString )
   if not res['OK']:
     return res
   requestedEvents = res['Value']
 
   # Get the last event processed
-  lastEvent = getLastEvent(logString)['Value']
+  lastEvent = getLastEvent( logString )['Value']
   firstStepInputEvents = lastEvent
 
   # Get the number of events processed by Boole
-  res = getEventsProcessed(logString,'BooleInit')
+  res = getEventsProcessed( logString, 'BooleInit' )
   if not res['OK']:
-    res = getLastFile(logString)
+    res = getLastFile( logString )
     if res['OK']:
       lastFile = res['Value']
-      dataSummary[lastFile]='ApplicationCrash'
-    gLogger.error("Crash in event %s" % lastEvent)
-    return S_ERROR('Crash During Execution')
-  
+      dataSummary[lastFile] = 'ApplicationCrash'
+    gLogger.error( "Crash in event %s" % lastEvent )
+    return S_ERROR( 'Crash During Execution' )
+
   processedEvents = res['Value']
   # Get the number of events output by Boole
-  res = getEventsOutput(logString,'DigiWriter')
+  res = getEventsOutput( logString, 'DigiWriter' )
   if not res['OK']:
-    res = getEventsOutput(logString,'RawWriter')
+    res = getEventsOutput( logString, 'RawWriter' )
     if not res['OK']:
-      return S_ERROR('No Events Output')
+      return S_ERROR( 'No Events Output' )
   outputEvents = res['Value']
   # Get whether all events in the input file were processed
-  noMoreEvents = re.findall('No more events in event selection',logString)
+  noMoreEvents = re.findall( 'No more events in event selection', logString )
 
   # If were are to process all the files in the input then ensure that all were read
-  if (not requestedEvents) and (not noMoreEvents):
-    return S_ERROR("Not All Input Events Processed")
+  if ( not requestedEvents ) and ( not noMoreEvents ):
+    return S_ERROR( "Not All Input Events Processed" )
   # If we are to process a given number of events ensure the target was met
   if requestedEvents:
     if requestedEvents != processedEvents:
-      return S_ERROR('Too Few Events Processed')
+      return S_ERROR( 'Too Few Events Processed' )
   # Check that the final reported processed events match those logged as processed during execution
   if lastEvent != processedEvents:
-    gLogger.verbose('Last reported event %s != processed events %s' %(lastEvent,processedEvents))    
-    if processedEvents>100 and lastEvent<0.9*processedEvents:
-      return S_ERROR("Processed Events Do Not Match")
+    gLogger.verbose( 'Last reported event %s != processed events %s' % ( lastEvent, processedEvents ) )
+    if processedEvents > 100 and lastEvent < 0.9 * processedEvents:
+      return S_ERROR( "Processed Events Do Not Match" )
   # If there were no events processed
   if processedEvents == 0:
-    return S_ERROR("No Events Processed")
+    return S_ERROR( "No Events Processed" )
   # If the output events are not equal to the processed events be sure there were no failed events
   if outputEvents != processedEvents:
-    gLogger.warn('Number of processed events %s does not match output events %s (considered OK for Boole)' %(processedEvents,outputEvents))
+    gLogger.warn( 'Number of processed events %s does not match output events %s (considered OK for Boole)' % ( processedEvents, outputEvents ) )
 
   return S_OK()
 
 #############################################################################
-def checkBrunelEvents(logString):
+def checkBrunelEvents( logString ):
   """ Obtain event information from the application log and determine whether the 
       Brunel job processed the correct number of events.
   """
   global firstStepInputEvents
-  global dataSummary 
+  global dataSummary
   # Get the number of requested events
-  res = getRequestedEvents(logString)
+  res = getRequestedEvents( logString )
   if not res['OK']:
     return res
   requestedEvents = res['Value']
 
   # Get the last event processed
-  lastEvent = getLastEvent(logString)['Value']
+  lastEvent = getLastEvent( logString )['Value']
   firstStepInputEvents = lastEvent
-    
+
   # Get the number of events processed by Brunel
-  res = getEventsProcessed(logString,'BrunelInit')
+  res = getEventsProcessed( logString, 'BrunelInit' )
   if not res['OK']:
-    res = getLastFile(logString)
+    res = getLastFile( logString )
     if res['OK']:
       lastFile = res['Value']
-      dataSummary[lastFile]='ApplicationCrash'
-    gLogger.error("Crash in event %s" % lastEvent)
-    return S_ERROR('Crash During Execution')
+      dataSummary[lastFile] = 'ApplicationCrash'
+    gLogger.error( "Crash in event %s" % lastEvent )
+    return S_ERROR( 'Crash During Execution' )
 
   processedEvents = res['Value']
   # Get the number of events output by Brunel
-  res = getEventsOutput(logString,'DstWriter')
+  res = getEventsOutput( logString, 'DstWriter' )
   if not res['OK']:
-    return S_ERROR('No Events Output')
+    return S_ERROR( 'No Events Output' )
   outputEvents = res['Value']
   # Get whether all events in the input file were processed
-  noMoreEvents = re.findall('No more events in event selection',logString)
+  noMoreEvents = re.findall( 'No more events in event selection', logString )
 
   # If were are to process all the files in the input then ensure that all were read
-  if (not requestedEvents) and (not noMoreEvents):
-    return S_ERROR("Not All Input Events Processed")
+  if ( not requestedEvents ) and ( not noMoreEvents ):
+    return S_ERROR( "Not All Input Events Processed" )
   # If we are to process a given number of events ensure the target was met
   if requestedEvents:
     if requestedEvents != processedEvents:
-      return S_ERROR('Too Few Events Processed')
+      return S_ERROR( 'Too Few Events Processed' )
   # Check that the final reported processed events match those logged as processed during execution
   if lastEvent != processedEvents:
-    gLogger.verbose('Last reported event %s != processed events %s' %(lastEvent,processedEvents))
-    if processedEvents>100 and lastEvent<0.9*processedEvents:
-      return S_ERROR("Processed Events Do Not Match")
+    gLogger.verbose( 'Last reported event %s != processed events %s' % ( lastEvent, processedEvents ) )
+    if processedEvents > 100 and lastEvent < 0.9 * processedEvents:
+      return S_ERROR( "Processed Events Do Not Match" )
   # If there were no events processed
   if processedEvents == 0:
-    return S_ERROR("No Events Processed")
+    return S_ERROR( "No Events Processed" )
   # If the output events are not equal to the processed events be sure there were no failed events
   if outputEvents != processedEvents:
-    gLogger.warn('Number of processed events %s does not match output events %s (considered OK for Brunel)' %(processedEvents,outputEvents))
+    gLogger.warn( 'Number of processed events %s does not match output events %s (considered OK for Brunel)' % ( processedEvents, outputEvents ) )
 
   return S_OK()
 
 #############################################################################
-def checkDaVinciEvents(logString):
+def checkDaVinciEvents( logString ):
   """ Obtain event information from the application log and determine whether the 
       DaVinci job processed the correct number of events.
   """
-  global firstStepInputEvents 
-  global dataSummary 
+  global firstStepInputEvents
+  global dataSummary
   # Get the number of requested events
-  res = getRequestedEvents(logString)
+  res = getRequestedEvents( logString )
   if not res['OK']:
     return res
   requestedEvents = res['Value']
 
   # Get the last event processed
-  lastEvent = getLastEventSummary(logString)['Value']
+  lastEvent = getLastEventSummary( logString )['Value']
   firstStepInputEvents = lastEvent
 
   # Get the number of events processed by DaVinci
-  res = getEventsProcessed(logString,'DaVinciInit')
+  res = getEventsProcessed( logString, 'DaVinciInit' )
   if not res['OK']:
-    res = getLastFile(logString)
+    res = getLastFile( logString )
     if res['OK']:
       lastFile = res['Value']
-      dataSummary[lastFile]='ApplicationCrash'
-    gLogger.error("Crash in event %s" % lastEvent)
-    return S_ERROR('Crash During Execution')
-  
+      dataSummary[lastFile] = 'ApplicationCrash'
+    gLogger.error( "Crash in event %s" % lastEvent )
+    return S_ERROR( 'Crash During Execution' )
+
   processedEvents = res['Value']
   # Get whether all events in the input file were processed
-  noMoreEvents = re.findall('No more events in event selection',logString)
+  noMoreEvents = re.findall( 'No more events in event selection', logString )
 
   # If were are to process all the files in the input then ensure that all were read
-  if (not requestedEvents) and (not noMoreEvents):
-    return S_ERROR("Not All Input Events Processed")
+  if ( not requestedEvents ) and ( not noMoreEvents ):
+    return S_ERROR( "Not All Input Events Processed" )
   # If we are to process a given number of events ensure the target was met
   if requestedEvents:
     if requestedEvents != processedEvents:
-      return S_ERROR("Too Few Events Processed")
-  
-  result = getEventsOutput(logString,'InputCopyStream')
+      return S_ERROR( "Too Few Events Processed" )
+
+  result = getEventsOutput( logString, 'InputCopyStream' )
   if result['OK']:
-    gLogger.info('Found "%s" events output for DaVinci with InputCopyStream' %(result['Value']))
-    
+    gLogger.info( 'Found "%s" events output for DaVinci with InputCopyStream' % ( result['Value'] ) )
+
   return S_OK()
 
 #############################################################################
-def getDaVinciStreamEvents(logFile,bkFileTypes,prodJobID):
+def getDaVinciStreamEvents( logFile, bkFileTypes ):
   """ Get the number of stream file events, intended to work for both MDST 
-      and DST streams.  The arguments are the path to a log file, list of BK
-      file types to check for and finally the production ID and job ID string
-      created by DIRAC.  
+      and DST streams.  The arguments are the path to a log file, and list of BK
+      file types to check for.  
       
       Initially this was a workaround in GaudiApplication but is now the default
       way of handling the streams.  With the method in this utility at least the
       event counting can now be tested outside of running jobs.
   """
 
-  fopen = open(logFile,'r')
+  fopen = open( logFile, 'r' )
   lines = fopen.readlines()
-  fopen.close()  
-  
+  fopen.close()
+
   checkStreams = {}
   for bk in bkFileTypes:
-    if re.search('.',bk):
-      bk = bk.split('.')[0]
-    checkStreams[bk]=string.lower(bk)
-  
+    if re.search( '.', bk ):
+      bk = bk.split( '.' )[0]
+    checkStreams[bk] = string.lower( bk )
+
   #Here we rely on there being a string "Events output" in the lines we are interested in
-  davinciStringsToCheck = ['Events output']  
-  
+  davinciStringsToCheck = ['Events output']
+
   candidateLines = []
   #First get the candidate lines (DaVinci logs can be huge)
   for line in lines:
     for check in davinciStringsToCheck:
-      if re.search(check,line):
-        candidateLines.append(line)
+      if re.search( check, line ):
+        candidateLines.append( line )
 
   if not candidateLines:
-    gLogger.warn('No candidate lines were found to match the following BK types: %s' %(string.join(bkFileTypes,', ')))
-    return S_ERROR('No matching lines found in log file') 
+    gLogger.warn( 'No candidate lines were found to match the following BK types: %s' % ( string.join( bkFileTypes, ', ' ) ) )
+    return S_ERROR( 'No matching lines found in log file' )
 
-  streamEvents = {}  
+  streamEvents = {}
 
   #The lines to match frequently change for DaVinci but those being used are currently:
   #2010-10-23 03:28:35 UTC Bhadron_OStream      INFO Events output: 196
@@ -580,23 +579,23 @@ def getDaVinciStreamEvents(logFile,bkFileTypes,prodJobID):
   #2010-10-12 10:12:31 UTC Bd2JpsiKstar_OS...   INFO Events output: 399
 
   for line in candidateLines:
-    loweredLine = string.lower(line)       
-    for bkType,typeToMatch in checkStreams.items():
+    loweredLine = string.lower( line )
+    for bkType, typeToMatch in checkStreams.items():
       # N.B. the full stream name must at least be present in the log line
-      if re.search('%s\S+\s+\S+\s+events output' %(typeToMatch),loweredLine):
+      if re.search( '%s\S+\s+\S+\s+events output' % ( typeToMatch ), loweredLine ):
         try:
-          gLogger.verbose('Checking " %s "' %(line.strip()))
-          eventsForStream = line.strip().split(' ')[-1]
+          gLogger.verbose( 'Checking " %s "' % ( line.strip() ) )
+          eventsForStream = line.strip().split( ' ' )[-1]
           streamEvents[bkType] = eventsForStream
-          gLogger.info('Found %s events for output stream %s' %(eventsForStream,bkType))
-        except Exception,x:
-          gLogger.error('Could not extract stream events from DaVinci log file... something has changed\n"%s" => "%s"' %(line,x))
+          gLogger.info( 'Found %s events for output stream %s' % ( eventsForStream, bkType ) )
+        except Exception, x:
+          gLogger.error( 'Could not extract stream events from DaVinci log file... something has changed\n"%s" => "%s"' % ( line, x ) )
 
   for bk in checkStreams.values():
     bk = bk.upper()
-    if not streamEvents.has_key(bk):
-      gLogger.warn('No number of events was found for output stream "%s", check the DaVinci log' %(bk))
-                    
-  return S_OK(streamEvents)
+    if not streamEvents.has_key( bk ):
+      gLogger.warn( 'No number of events was found for output stream "%s", check the DaVinci log' % ( bk ) )
+
+  return S_OK( streamEvents )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
