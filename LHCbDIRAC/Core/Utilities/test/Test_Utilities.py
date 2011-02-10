@@ -30,7 +30,7 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                   'outputList':[  {'outputDataType': 'sim', 'outputDataSE': 'Tier1-RDST', 'outputDataName': '00012345_00012345_1.sim'},
                                   {'outputDataType': 'digi', 'outputDataSE': 'Tier1-RDST', 'outputDataName': '00012345_00012345_2.digi'},
                                   {'outputDataType': 'dst', 'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_4.dst'},
-                                  {'outputDataType': 'ALLSTREAMS.DST', 'outputBKType': 'ALLSTREAMS.DST', 'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_5.AllStreams.dst'}],
+                                  {'outputDataType': 'ALLSTREAMS.DST', 'outputBKType': 'ALLSTREAMS.DST', 'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_5.allstreams.dst'}],
 #                  'outputDataFileMask': ''
                  }
 
@@ -131,7 +131,7 @@ class ProductionDataSuccess( UtilitiesTestCase ):
 
     JOB_ID = '00054321'
     LFN_ROOT = '/lhcb/MC/MC10'
-    filetuple = ( ( '00012345_00054321_1.sim', 'sim' ), ( '00012345_00054321_1.SIM', 'SIM' ) )
+    filetuple = ( ( '00012345_00054321_1.sim', 'sim' ), ( '00012345_00054321_1.sim', 'SIM' ) )
     mode = ( 'certification', 'Certification' )
     prodstring = '00012345'
 
