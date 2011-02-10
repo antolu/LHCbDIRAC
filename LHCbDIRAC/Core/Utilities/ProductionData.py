@@ -264,7 +264,7 @@ def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, mode, prodstring ):
   except:
     jobindex = '0000'
 
-  fname = filetuple[0].lower()
+  fname = filetuple[0]
   if re.search( 'lfn:', fname ) or re.search( 'LFN:', fname ):
     return fname.replace( 'lfn:', '' ).replace( 'LFN:', '' )
 
