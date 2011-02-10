@@ -139,6 +139,44 @@ class GaudiApplicationSuccess( ModulesTestCase ):
     os.remove( 'BAR.txt' )
     os.remove( 'FooBAR.ext.txt' )
 
+  #################################################
+
+  def test__findOutputs( self ):
+
+    open( 'aaa.bhadron.dst', 'w' ).close()
+    open( 'bbb.calibration.dst', 'w' ).close()
+    open( 'ccc.charm.mdst', 'w' ).close()
+    open( 'prova.txt', 'w' ).close()
+
+    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'},
+                  {'outputDataType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.calibration.dst'},
+                  {'outputDataType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'},
+                  {'outputDataType': 'CHARMCONTROL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'},
+                  {'outputDataType': 'CHARMFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'},
+                  {'outputDataType': 'LEPTONIC.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'},
+                  {'outputDataType': 'LEPTONICFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'},
+                  {'outputDataType': 'MINIBIAS.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'},
+                  {'outputDataType': 'RADIATIVE.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'},
+                  {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
+                  {'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
+
+    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'},
+              {'outputDataType': 'calibration.dst', 'outputBKType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.calibration.dst'},
+              {'outputDataType': 'charm.mdst', 'outputBKType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'},
+              {'outputDataType': 'hist', 'outputBKType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
+    bkExp = ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST']
+
+
+    out, bk = self.ga._findOutputs( stepOutput )
+
+    self.assertEqual( out, outExp )
+    self.assertEqual( bk, bkExp )
+
+    os.remove( 'aaa.bhadron.dst' )
+    os.remove( 'bbb.calibration.dst' )
+    os.remove( 'ccc.charm.mdst' )
+
+
 #############################################################################
 # Test Suite run 
 #############################################################################
