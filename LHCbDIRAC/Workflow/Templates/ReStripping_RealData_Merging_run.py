@@ -106,6 +106,9 @@ if testFlag:
   events = '1000'
   strippType = "ReSTRIPPING_TEST_IGNORE"
 #  inputDataDaVinci = ['/lhcb/data/2010/SDST/00008178/0000/00008178_00009199_1.sdst']
+else:
+  outBkConfigName = bkConfigName
+  outBkConfigVersion = bkConfigVersion
 
 #Sort out the stripping file mask
 if strippFileMask:

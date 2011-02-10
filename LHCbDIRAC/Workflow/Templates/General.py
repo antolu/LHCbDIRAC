@@ -19,6 +19,12 @@ args = Script.getPositionalArgs()
 import DIRAC
 
 from DIRAC import gLogger, gConfig
+
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
+BKClient = BookkeepingClient()
+
+
 #gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
 
 #################################################################################
@@ -91,4 +97,4 @@ unmergedStreamSE = '{{StrippStreamSE#PROD-Stripping: unmerged stream SE#Tier1-DS
 
 
 
-
+BKClient.getStepOutputFiles( step )

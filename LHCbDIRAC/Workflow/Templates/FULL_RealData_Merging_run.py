@@ -27,7 +27,10 @@ args = Script.getPositionalArgs()
 import DIRAC
 
 from DIRAC import gConfig, gLogger
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
 gLogger = gLogger.getSubLogger( 'FULL_RealData_Merging_run.py' )
+BKClient = BookkeepingClient()
 
 #################################################################################
 # Below here is the production API script with notes
@@ -49,16 +52,16 @@ sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
 
 #reco params
-recoPriority = '{{RecoPriority#Reconstruction production priority#7}}'
-recoCPU = '{{RecoMaxCPUTime#Reconstruction Max CPU time in secs#1000000}}'
-recoPlugin = '{{RecoPluginType#Reconstruction production plugin name#AtomicRun}}'
-recoAncestorProd = '{{RecoAncestorProd#Reconstruction ancestor production if any#0}}'
-recoDataSE = '{{RecoDataSE#Reconstruction Output Data Storage Element#Tier1-RDST}}'
-recoFilesPerJob = '{{RecoFilesPerJob#Reconstruction Group size or number of files per job#1}}'
-recoFileMask = '{{RecoOutputDataFileMask#Reconstruction file extns to save (comma separated)#DST,ROOT}}'
-recoTransFlag = '{{RecoTransformation#Reconstruction distribute output data True/False (False if merging)#False}}'
-recoStartRun = '{{RecoRunStart#Reconstruction run start, to set the start run#0}}'
-recoEndRun = '{{RecoRunEnd#Reconstruction run end, to set the end of the range#0}}'
+recoPriority = '{{RecoPriority#PROD-RECO: priority#7}}'
+recoCPU = '{{RecoMaxCPUTime#PROD-RECO: Max CPU time in secs#1000000}}'
+recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#AtomicRun}}'
+recoAncestorProd = '{{RecoAncestorProd#PROD-RECO: ancestor production if any#0}}'
+recoDataSE = '{{RecoDataSE#PROD-RECO: Output Data Storage Element#Tier1-RDST}}'
+recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO: Group size or number of files per job#1}}'
+recoFileMask = '{{RecoOutputDataFileMask#PROD-RECO: file extensions to save (comma separated)#DST,ROOT}}'
+recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/False (False if merging)#False}}'
+recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
+recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
 recoEvtsPerJob = '{{RecoNumberEvents#Reconstruction number of events per job (set to something small for a test)#-1}}'
 unmergedStreamSE = '{{RecoStreamSE#Reconstruction unmerged stream SE#Tier1-DST}}'
 #merging params
@@ -91,10 +94,16 @@ mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 transformationFlag = eval( transformationFlag )
 #testProduction = eval(testProduction)
 testFlag = eval( testFlag )
+publishFlag = eval( publishFlag )
 
 inputDataList = []
 
 BKscriptFlag = False
+
+#The below are fixed for the FULL stream
+recoType = "FULL"
+recoAppType = "SDST"
+recoIDPolicy = 'download'
 
 if not publishFlag:
   recoTestData = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81676/081676_0000000510.raw'
@@ -102,22 +111,15 @@ if not publishFlag:
   recoIDPolicy = 'protocol'
   BKscriptFlag = True
 
-#The below are fixed for the FULL stream
-recoType = "FULL"
-recoAppType = "SDST"
-recoIDPolicy = 'download'
-
 if testFlag:
-  bkConfigName = 'certification'
-  bkConfigVersion = 'test'
+  outBkConfigName = 'certification'
+  outBkConfigVersion = 'test'
   recoEvtsPerJob = '5'
-
-#Sort out the reco file mask
-if recoFileMask:
-  maskList = [m.lower() for m in recoFileMask.replace( ' ', '' ).split( ',' )]
-  if not recoAppType.lower() in maskList:
-    maskList.append( recoAppType.lower() )
-  recoFileMask = string.join( maskList, ';' )
+  recoStartRun = '75346'
+  recoEndRun = '75349'
+else:
+  outBkConfigName = bkConfigName
+  outBkConfigVersion = bkConfigVersion
 
 recoInputBKQuery = {
                     'SimulationConditions'     : 'All',
@@ -176,6 +178,22 @@ if fourSteps:
 #if not recoBKPublishing:
 #  recoScriptFlag = True
 
+recoFileMask = ''
+
+#Sort out the reco file mask
+if recoFileMask:
+  maskList = [m.lower() for m in recoFileMask.replace( ' ', '' ).split( ',' )]
+  if not recoAppType.lower() in maskList:
+    maskList.append( recoAppType.lower() )
+  recoFileMask = string.join( maskList, ';' )
+
+strippingOutput = BKClient.getStepOutputFiles( int( '{{p2Step}}' ) )
+if not strippingOutput:
+  gLogger.error( 'Error getting res from BKK: %s', strippingOutput['Message'] )
+  DIRAC.exit( 2 )
+
+strippingOutputList = [x[0] for x in strippingOutput['Value']['Records']]
+
 #################################################################################
 # Create the reconstruction production
 #################################################################################
@@ -194,7 +212,7 @@ production.setProdType( 'DataReconstruction' )
 wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
 production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
 production.setWorkflowDescription( "%s Real data FULL reconstruction production." % ( prodGroup ) )
-production.setBKParameters( bkConfigName, bkConfigVersion, prodGroup, '{{simDesc}}' )
+production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, '{{simDesc}}' )
 production.setInputBKSelection( recoInputBKQuery )
 production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
@@ -204,8 +222,9 @@ production.addBrunelStep( "{{p1Ver}}", recoAppType.lower(), brunelOptions, extra
                          dataType = 'Data', numberOfEvents = recoEvtsPerJob, histograms = True,
                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
 dvOptions = "{{p2Opt}}"
-production.addDaVinciStep( "{{p2Ver}}", "dst", dvOptions, extraPackages = '{{p2EP}}', inputDataType = recoAppType.lower(),
+production.addDaVinciStep( "{{p2Ver}}", "stripping", dvOptions, extraPackages = '{{p2EP}}', inputDataType = recoAppType.lower(),
                           dataType = 'Data', outputSE = unmergedStreamSE, histograms = True,
+                          extraOutput = strippingOutputList,
                           stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
 production.addFinalizationStep()
@@ -220,7 +239,8 @@ production.setInputDataPolicy( recoIDPolicy )
 # End of production API script, now what to do with the production object
 #################################################################################
 
-if publishFlag == False and testFlag:
+if ( not publishFlag ) and ( testFlag ):
+
   gLogger.info( 'Production test will be launched with number of events set to %s.' % ( recoEvtsPerJob ) )
   try:
     result = production.runLocal()
@@ -360,7 +380,7 @@ for mergeStream in dstList:
     mergeProd.setSystemConfig( sysConfig )
 
   mergeProd.setWorkflowDescription( 'Steam merging workflow for %s files from input production %s' % ( mergeStream, recoProdID ) )
-  mergeProd.setBKParameters( bkConfigName, bkConfigVersion, prodGroup, '{{simDesc}}' )
+  mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, '{{simDesc}}' )
   mergeProd.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
   mergeProd.addDaVinciStep( '{{p3Ver}}', 'merge', mergeOpts, extraPackages = '{{p3EP}}', eventType = '{{eventType}}',
