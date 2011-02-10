@@ -1,9 +1,9 @@
 ########################################################################
-# $Id: TransformationManagerHandler.py 18968 2009-12-03 10:33:19Z acsmith $
+# $Id$
 ########################################################################
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
-__RCSID__ = "$Id: TransformationManagerHandler.py 18968 2009-12-03 10:33:19Z acsmith $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                            import RequestHandler

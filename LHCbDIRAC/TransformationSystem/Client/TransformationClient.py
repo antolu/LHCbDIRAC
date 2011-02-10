@@ -1,9 +1,9 @@
 """ Class that contains client access to the transformation DB handler. """
 ########################################################################
-# $Id: TransformationClient.py 18427 2009-11-20 10:28:53Z acsmith $
+# $Id$
 # $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/LHCbDIRAC/TransformationSystem/Client/TransformationClient.py $
 ########################################################################
-__RCSID__ = "$Id: TransformationClient.py 19179 2009-12-04 09:54:19Z acsmith $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                    import S_OK, gLogger
 from DIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient as DIRACTransformationClient  

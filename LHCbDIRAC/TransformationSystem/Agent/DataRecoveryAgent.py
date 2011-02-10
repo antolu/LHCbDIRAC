@@ -23,7 +23,7 @@
     - Mark the recovered input file status as 'Unused' in the ProductionDB
 """
 
-__RCSID__ = "$Id: DataRecovery.py 18182 2009-11-11 14:45:10Z paterson $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                       import S_OK, S_ERROR, gConfig, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
