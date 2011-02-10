@@ -77,7 +77,7 @@ def getOptions( appName, appType, extraOpts = None, inputType = None, histogram 
       options.append( "DaVinci().ETCFile = \"@{outputData}\"" )
     elif appType.lower() == 'dst' and inputType not in ['sdst', 'dst']: #e.g. not stripping
       options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-    elif re.match( '[a-z,A-Z,.]*dst', appType.lower() ) and inputType in ['sdst', 'dst']: #e.g. stripping
+    elif ( re.match( '[a-z,A-Z,.]*dst', appType.lower() ) or appType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
       options.append( 'from Configurables import SelDSTWriter' )
       options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
     elif appType.lower() == 'mdst':
