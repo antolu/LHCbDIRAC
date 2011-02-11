@@ -257,10 +257,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = extraOutputFile,
-                       condDBTag = condDBTag, ddDBTag = ddDBTag, '',
+                       condDBTag = condDBTag, ddDBTag = ddDBTag,
                        outputAppendName = '', abandonOutput = abandonOutput,
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible )
-
 
   #############################################################################
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
@@ -483,6 +482,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
+
   def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                     extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
                     histograms = False, firstEventNumber = 0, extraOutput = [],
