@@ -220,7 +220,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    outputSE = None, histograms = False, inputData = 'previousStep', overrideOpts = '',
-                   extraOpts = '', extraOutputFile = {}, condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                   extraOpts = '', extraOutputFile = [], condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
@@ -256,8 +256,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'dataType', 'string', 'MC', 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutputFile, condDBTag, ddDBTag, '', abandonOutput,
-                       stepID, stepName, stepVisible )
+                       firstEventNumber, extraOutput = extraOutputFile,
+                       condDBTag = condDBTag, ddDBTag = ddDBTag, '',
+                       outputAppendName = '', abandonOutput = abandonOutput,
+                       stepID = stepID, stepName = stepName, stepVisible = stepVisible )
+
 
   #############################################################################
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
@@ -312,14 +315,16 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'Brunel', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, {}, condDBTag, ddDBTag, '', abandonOutput,
-                       stepID, stepName, stepVisible )
+                       firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
+                       outputAppendName = '', abandonOutput = abandonOutput,
+                       stepID = stepID, stepName = stepName, stepVisible = stepVisible )
 
   #############################################################################
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
                      overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
                      condDBTag = 'global', ddDBTag = 'global', inputProduction = '', abandonOutput = False,
+                     extraOutput = [],
                      stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
@@ -330,10 +335,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 0
 
-    #FEDERICO: many stripping cases, could not consider them all
-#    appTypes = ['dst', 'fetc', 'setc', 'rdst', 'davincihist', 'merge', 'mdst']
-#    if not appType.lower() in appTypes:
-#      raise TypeError, 'Application type not currently supported (%s)' % appTypes
     inputDataTypes = ['rdst', 'dst', 'sdst']
     if not inputDataType.lower() in inputDataTypes and not appType.lower() in ['merge', 'setc']:
       raise TypeError, 'Only %s input data types supported' % ( string.join( inputDataTypes, ', ' ) )
@@ -387,7 +388,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                        extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, {}, condDBTag, ddDBTag, '', abandonOutput,
+                       firstEventNumber, extraOutput, condDBTag, ddDBTag, '', abandonOutput,
                        stepID, stepName, stepVisible )
 
   #############################################################################
@@ -436,8 +437,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, {}, condDBTag, ddDBTag, outputAppendName, abandonOutput,
-                       stepID, stepName, stepVisible )
+                       firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
+                       outputAppendName = outputAppendName, abandonOutput = abandonOutput,
+                       stepID = stepID, stepName = stepName, stepVisible = stepVisible )
+
 
   #############################################################################
   def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts', inputProduction = '',
@@ -475,14 +478,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, {}, condDBTag, ddDBTag, '', False,
+                       firstEventNumber, [], condDBTag, ddDBTag, '', False,
                        stepID, stepName, stepVisible )
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
   def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                     extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
-                    histograms = False, firstEventNumber = 0, extraOutput = {},
+                    histograms = False, firstEventNumber = 0, extraOutput = [],
                     condDBTag = 'global', ddDBTag = 'global', outputAppendName = '', abandonOutput = False,
                     stepID = 0, stepName = '', stepVisible = '' ):
     """Helper function.
@@ -494,7 +497,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiStep = self.__getGaudiApplicationStep( '%s_%s' % ( appName, self.gaudiStepCount ) )
 
     #lower the appType if not creating a template
-    if appType and not re.search( '{{', appType ):
+    if type( appType ) == str and appType and not re.search( '{{', appType ):
       appType = string.lower( appType )
 
     gaudiStep.setValue( 'applicationName', appName )
@@ -552,15 +555,28 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiStep.setValue( 'applicationLog', '@{applicationName}_@{STEP_ID}.log' )
     gaudiStep.setValue( 'outputData', '@{STEP_ID}.@{applicationType}' )
 
-    gaudiStepOutput = {}
-    gaudiStepOutput['outputDataName'] = '@{STEP_ID}.@{applicationType}'
-    gaudiStepOutput['outputDataType'] = '@{applicationType}'
-    gaudiStepOutput['outputDataSE'] = outputSE
+    outputList = []
+
+    #trying to control the stripping case, with many output file types
+    if not extraOutput:
+      extraOutput = [appType]
+
+    for fileType in extraOutput:
+      gaudiStepOutputItem = {}
+
+      gaudiStepOutputItem['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
+      gaudiStepOutputItem['outputDataType'] = fileType.lower()
+      gaudiStepOutputItem['outputDataSE'] = outputSE
+
+      outputList.append( gaudiStepOutputItem )
+
+#    gaudiStepOutput['outputDataName'] = '@{STEP_ID}.@{applicationType}'
+#    gaudiStepOutput['outputDataType'] = '@{applicationType}'
+#    gaudiStepOutput['outputDataSE'] = outputSE
 
     if abandonOutput:
-      gaudiStepOutput['abandonOutput'] = 'True' # this is conditional only on the key
+      outputList['abandonOutput'] = 'True' # this is conditional only on the key
 
-    outputList = [gaudiStepOutput]
 
     if histograms:
       histoFile = {}
@@ -568,8 +584,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       histoFile['outputDataType'] = 'HIST'
       histoFile['outputDataSE'] = self.histogramSE
       outputList.append( histoFile )
-    if extraOutput:
-      outputList.append( extraOutput )
+#    if extraOutput:
+#      outputList.append( extraOutput )
 
     gaudiStep.setValue( 'listoutput', ( outputList ) )
 
@@ -999,8 +1015,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
   #############################################################################
   def create( self, publish = True, fileMask = '', bkQuery = {}, groupSize = 1, derivedProduction = 0,
-                  bkScript = True, wfString = '', requestID = 0, reqUsed = 0,
-                  transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0, transformationPlugin = '' ):
+              bkScript = True, wfString = '', requestID = 0, reqUsed = 0,
+              transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0, transformationPlugin = '' ):
     """ Will create the production and subsequently publish to the BK, this
         currently relies on the conditions information being present in the
         worklow.  Production parameters are also added at this point.
@@ -1185,7 +1201,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       try:
         self._setProductionParameters( prodID, prodXMLFile = fileName, groupDescription = bkDict['GroupDescription'],
                                       bkPassInfo = bkDict['Steps'], bkInputQuery = bkQuery, reqID = requestID,
-                                      derivedProd = derivedProduction, transformationPlugin = transformationPlugin )
+                                      derivedProd = derivedProduction )
       except Exception, x:
         self.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
 
