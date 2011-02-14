@@ -1,7 +1,7 @@
 """  StorageUsageAgent takes the LFC as the primary source of information to determine storage usage.
 """
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/DataManagementSystem/Agent/StorageUsageAgent.py $
-__RCSID__ = "$Id: StorageUsageAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
+# $HeadURL$
+__RCSID__ = "$Id$"
 
 from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
