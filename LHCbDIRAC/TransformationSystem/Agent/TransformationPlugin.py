@@ -67,7 +67,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
         if res['Value']:
           assignedSE = res['Value'][0]['UsedSE']
-          res = getSitesForSE( assignedSE, gridName = 'LCG' )
+          res = ( assignedSE, gridName = 'LCG' )
           if not res['OK']:
             continue
           for site in res['Value']:
@@ -605,6 +605,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for replicaSE, lfns in replicaGroups.items():
 
       existingSEs = replicaSE.split( ',' )
+      # Make a list of sites where the file already is in order to avoid duplicate copies
+      targetSites = []
+      for se in existingSEs:
+        res = getSitesFromSE( se )
+        if res['OK']:
+          targetSites += res['Value']
 
       master1se = []
       for se in existingSEs:
@@ -631,36 +637,75 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
       targetSEs = []
 
-      if not master1se:
+      needtocopy = 1
+      if len( master1se ) < needtocopy:
         if master1ActiveSEs:
-          se = randomize( master1ActiveSEs )[0]
-          targetSEs.append( se )
-        else:
+          for se in randomize( master1ActiveSEs ):
+            if needtocopy <= 0:
+              break
+            res = getSitesForSE( se )
+            if res['OK']:
+              sites = res['Value']
+              for site in sites:
+                if site in targetSites:
+                  site = None
+                  break
+              if site:
+                targetSEs.append( se )
+                targetSites += sites
+                needtocopy -= 1
+                break
+        if needtocopy > 0 :
           gLogger.warning( "Can not select Active SE for Master1SE" )
           continue
 
-      if not master2se:
+      needtocopy = 1
+      if len( master2se ) < needtocopy:
         if master2ActiveSEs:
-          se = randomize( master2ActiveSEs )[0]
-          targetSEs.append( se )
-        else:
+          for se in randomize( master2ActiveSEs ):
+            if needtocopy <= 0:
+              break
+            res = getSitesForSE( se )
+            if res( 'OK' ):
+              sites = res['Value']
+              for site in sites:
+                if site in targetSites:
+                  site = None
+                  break
+              if site:
+                targetSEs.append( se )
+                targetSites += sites
+                needtocopy -= 1
+        if needtocopy > 0:
           gLogger.warning( "Can not select Active SE for Master2SE" )
           continue
 
-      if len( secondaryses ) < numberOfCopies - 2:
-        candidateSEs = copy.copy( secondaryActiveSEs )
-        needtocopy = numberOfCopies - 2
+      needtocopy = numberOfCopies - 2
+      if len( secondaryses ) < needtocopy:
+        # Missing secondary copies, make a list of candidates
+        candidateSEs = randomize( secondaryActiveSEs )
         for se in secondaryses:
-          needtocopy = needtocopy - 1
+          needtocopy -= 1
           if se in candidateSEs:
             candidateSEs.remove( se )
 
         if len( candidateSEs ) >= needtocopy:
-          candidateSEs = randomize( candidateSEs )
-          for icopy in range( needtocopy ):
-            targetSEs.append( candidateSEs[icopy] )
-        else:
-          gLogger.warning( "Can not select Active SE for SecondarySE" )
+          for se in candidateSEs:
+            if needtocopy <= 0:
+              break
+            res = getSitesForSE( se )
+            if res( 'OK' ):
+              sites = res['Value']
+              for site in sites:
+                if site in targetSites:
+                  site = None
+                  break
+              if site:
+                targetSEs.append( se )
+                targetSites += sites
+                needtocopy -= 1
+        if needtocopy > 0:
+          gLogger.warning( "Can not select enough Active SEs for SecondarySE" )
           continue
 
       if targetSEs:
@@ -701,8 +746,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       destSEs = [destSEs]
     if not numberOfCopies:
       numberOfCopies = len( destSEs )
+
     replicaGroups = self._getFileGroups( self.data )
+
     storageElementGroups = {}
+
     for replicaSE, lfnGroup in replicaGroups.items():
       existingSEs = replicaSE.split( ',' )
       # If there is no choice on the SEs, send all files at once, otherwise make chunks
@@ -710,8 +758,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = [lfnGroup]
       else:
         lfnChunks = breakListIntoChunks( lfnGroup, 50 )
+
       for lfns in lfnChunks:
         candidateSEs = randomize( destSEs )
+        # Remove existing SEs from list of candidates
         for se in existingSEs:
           if se in candidateSEs:
             candidateSEs.remove( se )
