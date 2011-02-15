@@ -733,7 +733,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _ReplicateDataset( self ):
     destSEs = self.params.get( 'destinationSEs', ["CERN-ARCHIVE"] )
-    if type( DestSEs ) == types.StringType:
+    if type( destSEs ) == types.StringType:
       destSEs = [destSEs]
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', len( destSEs ) ) )
     return self.__simpleReplication( destSEs, numberOfCopies )
