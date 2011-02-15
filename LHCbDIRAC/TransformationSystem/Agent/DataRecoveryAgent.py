@@ -49,7 +49,7 @@ class DataRecoveryAgent( AgentModule ):
     self.enableFlag = '' #defined below
     self.replicaManager = ReplicaManager()
     #self.prodDB = ProductionDB()
-    self.transClient = TransformationClient('TransformationDB')
+    self.transClient = TransformationClient( 'TransformationDB' )
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
     self.taskIDName = 'TaskID'
@@ -355,6 +355,12 @@ class DataRecoveryAgent( AgentModule ):
       return S_OK( jobFileDict )
 
     for jobID, requestName in result['Value'].items():
+      res = requestClient.getRequestStatus( requestName )
+      if not res['OK']:
+        self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
+      elif res['Value'] == 'Done':
+        continue
+      # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
       del jobFileDict[str( jobID )]
       self.log.info( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
 
