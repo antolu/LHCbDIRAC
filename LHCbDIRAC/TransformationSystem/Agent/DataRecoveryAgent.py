@@ -355,7 +355,7 @@ class DataRecoveryAgent( AgentModule ):
       return S_OK( jobFileDict )
 
     for jobID, requestName in result['Value'].items():
-      res = requestClient.getRequestStatus( requestName )
+      res = self.requestClient.getRequestStatus( requestName )
       if not res['OK']:
         self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
       elif res['Value'] == 'Done':
