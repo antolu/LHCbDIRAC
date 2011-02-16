@@ -9,14 +9,16 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger
 
 import string, re
 
 gLogger = gLogger.getSubLogger( 'ProductionOptions' )
 
 #############################################################################
-def getOptions( appName, appType, extraOpts = None, inputType = None, histogram = '@{applicationName}_@{STEP_ID}_Hist.root', condDB = '@{CondDBTag}', ddDB = '@{DDDBTag}', production = True ):
+def getOptions( appName, appType, extraOpts = None, inputType = None,
+                histogram = '@{applicationName}_@{STEP_ID}_Hist.root',
+                condDB = '@{CondDBTag}', ddDB = '@{DDDBTag}', production = True ):
   """ Simple function to create the default options for a given project name.
 
       Assumes CondDB tags and event max are required.
@@ -36,9 +38,6 @@ def getOptions( appName, appType, extraOpts = None, inputType = None, histogram 
 #  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append( "HistogramPersistencySvc().OutputFile = \"%s\"" % ( histogram ) )
   if appName.lower() == 'gauss':
-    if appType.lower() == 'gen':
-      options.append( 'from Configurables import Gauss' )
-      options.append( 'Gauss().Phases = ["Generator"]' )
     options.append( "OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
   elif appName.lower() == 'boole':
     if appType.lower() == 'mdf':
