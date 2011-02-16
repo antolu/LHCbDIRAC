@@ -39,9 +39,9 @@ def constructProductionLFNs( paramDict ):
     wfMask = [i.lower().strip() for i in wfMask.split( ';' )]
   wfType = paramDict['JobType']
   outputList = paramDict['outputList']
-  inputData = ''
-  if paramDict.has_key( 'InputData' ):
-    inputData = paramDict['InputData']
+#  inputData = ''
+#  if paramDict.has_key( 'InputData' ):
+#    inputData = paramDict['InputData']
 
   fileTupleList = []
   gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfMask = %s, wfType=%s' % ( wfConfigName, wfConfigVersion,
@@ -61,16 +61,19 @@ def constructProductionLFNs( paramDict ):
   #Strip output data according to file mask
   fileTupleListMasked = _applyMask( wfMask, fileTupleList )
 
-  lfnRoot = ''
-  debugRoot = ''
-  if inputData:
-    gLogger.verbose( 'Making LFN_ROOT for job with inputdata: %s' % ( inputData ) )
-    lfnRoot = _getLFNRoot( inputData, wfConfigName )
-    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
-  else:
-    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
-    gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
-    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
+#  lfnRoot = ''
+#  debugRoot = ''
+#  if inputData:
+#    gLogger.verbose( 'Making LFN_ROOT for job with inputdata: %s' % ( inputData ) )
+#    lfnRoot = _getLFNRoot( inputData, wfConfigName )
+#    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
+#  else:
+#    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
+#    gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
+#    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
+  lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
+  gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
+  debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
 
   gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
   if not lfnRoot:
@@ -147,19 +150,21 @@ def getLogPath( paramDict ):
 
   productionID = paramDict['PRODUCTION_ID']
   jobID = paramDict['JOB_ID']
-  wfConfigName = paramDict['dataType']
+#  wfConfigName = paramDict['dataType']
+  wfConfigName = paramDict['configName']
   wfConfigVersion = paramDict['configVersion']
   wfType = paramDict['JobType']
-  inputData = ''
-  if paramDict.has_key( 'InputData' ):
-    inputData = paramDict['InputData']
+#  inputData = ''
+#  if paramDict.has_key( 'InputData' ):
+#    inputData = paramDict['InputData']
 
   gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfType=%s' % ( wfConfigName, wfConfigVersion, wfType ) )
-  lfnRoot = ''
-  if inputData:
-    lfnRoot = _getLFNRoot( inputData, wfType )
-  else:
-    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
+#  lfnRoot = ''
+#  if inputData:
+#    lfnRoot = _getLFNRoot( inputData, wfType )
+#  else:
+#    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
+  lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
 
   #Get log file path - unique for all modules
   logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', wfConfigName, str( productionID ).zfill( 8 ), log = True )

@@ -146,14 +146,16 @@ class ProductionDataSuccess( UtilitiesTestCase ):
     dtl = [( '00012345_00054321_1.sim', 'sim' ),
            ( '00012345_00054321_4.dst', 'dst' ),
            ( '00012345_00054321_2.digi', 'digi' ),
+           ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' ),
            ( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )]
 
-    wfMask = ( '', 'dst', 'ALLSTREAMS.DST', ['dst', 'digi'], ['DIGI', 'allstreams.dst'] )
+    wfMask = ( '', 'dst', 'ALLSTREAMS.DST', ['dst', 'digi'], ['DIGI', 'allstreams.dst'], 'hist', ['dst', 'hist'] )
 
     dtlM = ( [
                ( '00012345_00054321_1.sim', 'sim' ),
                ( '00012345_00054321_4.dst', 'dst' ),
                ( '00012345_00054321_2.digi', 'digi' ),
+               ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' ),
                ( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )
               ],
               [( '00012345_00054321_4.dst', 'dst' )],
@@ -165,6 +167,13 @@ class ProductionDataSuccess( UtilitiesTestCase ):
               [
                ( '00012345_00054321_2.digi', 'digi' ),
                ( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )
+              ],
+              [
+               ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' )
+              ],
+              [
+               ( '00012345_00054321_4.dst', 'dst' ),
+               ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' )
               ]
             )
 
