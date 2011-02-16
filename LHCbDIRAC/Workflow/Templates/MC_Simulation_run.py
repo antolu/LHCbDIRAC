@@ -59,8 +59,11 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 
-publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
-testFlag = '{{TemplateTest#GENERAL: Testing flag, e.g. for certification True/False#False}}'
+certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
+localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
+
+#publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
+#testFlag = '{{TemplateTest#GENERAL: Testing flag, e.g. for certification True/False#False}}'
 
 configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC10}}'
@@ -81,7 +84,7 @@ mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySi
 mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
 
-transformationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
+replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
 replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcast}}'
 
 evtType = '{{eventType}}'
@@ -108,12 +111,22 @@ else:
 # Gauss production is requested, see below.
 gaussAppType = 'sim'
 
-transformationFlag = eval( transformationFlag )
+replicationFlag = eval( replicationFlag )
 mergingFlag = eval( mergingFlag )
 banTier1s = eval( banTier1s )
 outputsCERN = eval( outputsCERN )
-publishFlag = eval( publishFlag )
-testFlag = eval( testFlag )
+certificationFlag = eval( certificationFlag )
+localTestFlag = eval( localTestFlag )
+
+if certificationFlag:
+  publishFlag = True
+  testFlag = True
+  mergingFlag = True
+  replicationFlag = False
+if localTestFlag:
+  publishFlag = False
+  testFlag = True
+  mergingFlag = False
 
 #Use computing model default unless CERN is requested
 defaultOutputSE = '' # for all intermediate outputs
@@ -126,10 +139,10 @@ if outputsCERN:
   daVinciDataSE = 'CERN_MC_M-DST'
 
 mcRequestTracking = 1
-mcTransformationFlag = transformationFlag
+mcreplicationFlag = replicationFlag
 if mergingFlag:
   mcRequestTracking = 0
-  mcTransformationFlag = False
+  mcreplicationFlag = False
 
 BKscriptFlag = False
 
@@ -143,6 +156,8 @@ if testFlag:
   configVersion = 'test'
   events = '5'
   mergingGroupSize = '1'
+  mcreplicationFlag = False
+  replicationFlag = False
 
 #The below is in order to choose the right steps in the workflow automatically
 #e.g. each number of steps maps to a unique number
@@ -212,9 +227,6 @@ booleOpts = '{{p2Opt}}'
 
 
 if sixSteps:
-  if not mergingFlag:
-    gLogger.error( 'Six steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
   if not sixSteps.lower() == mergingApp.lower():
     gLogger.error( 'Six steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
     DIRAC.exit( 2 )
@@ -248,49 +260,35 @@ if sixSteps:
   mergingStepVisible = '{{p6Vis}}'
   decided = True
 
-#  outputDataStep = '5'
-#  finalAppType = 'ALLSTREAMS.DST'
 
+if fiveSteps and not decided:
+  if not fiveSteps.lower() == mergingApp.lower():
+    gLogger.error( 'Five steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
+    DIRAC.exit( 2 )
 
-
-
-
-
-
-
-
-#
-#if fiveSteps:
-#  if not mergingFlag:
-#    gLogger.error( 'Five steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
-#    DIRAC.exit( 2 )
-#  if not fiveSteps.lower() == mergingApp.lower():
-#    gLogger.error( 'Five steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
-#    DIRAC.exit( 2 )
-#
-#  prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
-#  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-#                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-#                          outputSE = defaultOutputSE, appType = gaussAppType,
-#                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-#  production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-#                          condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-#                          stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-#  mooreOpts = '{{p3Opt}}'
-#  production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-#                          condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-#                          stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-#  brunelOpts = '{{p4Opt}}'
-#  production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
-#                           outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
-#                           stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
-#  mergingVersion = '{{p5Ver}}'
-#  merginCondDB = '{{p5CDb}}'
-#  mergingDDDB = '{{p5DDDb}}'
-#  mergingStepID = '{{p5Step}}'
-#  mergingStepName = '{{p5Name}}'
-#  mergingStepVisible = '{{p5Vis}}'
-#  decided = True
+  prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
+  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
+                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
+                          outputSE = defaultOutputSE, appType = gaussAppType,
+                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
+  production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
+                          condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
+                          stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
+  mooreOpts = '{{p3Opt}}'
+  production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
+                          condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
+                          stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+  brunelOpts = '{{p4Opt}}'
+  production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
+                           outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
+                           stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
+  mergingVersion = '{{p5Ver}}'
+  merginCondDB = '{{p5CDb}}'
+  mergingDDDB = '{{p5DDDb}}'
+  mergingStepID = '{{p5Step}}'
+  mergingStepName = '{{p5Name}}'
+  mergingStepVisible = '{{p5Vis}}'
+  decided = True
 #
 #if fourSteps and not decided:
 #  if not mergingFlag and threeSteps.lower() == 'moore':
@@ -482,7 +480,7 @@ result = production.create(
                            publish = publishFlag,
                            requestID = int( requestID ),
                            reqUsed = mcRequestTracking,
-                           transformation = mcTransformationFlag,
+                           transformation = mcreplicationFlag,
                            bkScript = BKscriptFlag,
                            parentRequestID = int( parentReq )
                            )
@@ -562,7 +560,7 @@ result = mergeProd.create(
                           bkScript = BKscriptFlag,
                           requestID = int( requestID ),
                           reqUsed = 1,
-                          transformation = transformationFlag,
+                          transformation = replicationFlag,
                           parentRequestID = int( parentReq ),
                           transformationPlugin = replicationPlugin
                           )
@@ -585,7 +583,7 @@ else:
   prodID = 1
   gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
-if not transformationFlag:
+if not replicationFlag:
   gLogger.info( 'No transformation requested for production ID %s.' % ( prodID ) )
   DIRAC.exit( 0 )
 

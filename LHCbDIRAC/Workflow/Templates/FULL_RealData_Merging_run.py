@@ -43,8 +43,11 @@ from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 # Configurable parameters
 ###########################################
 
-testFlag = '{{TemplateTest#GENERAL: A flag to set whether a test script should be generated#False}}'
-publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
+certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
+localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
+
+#testFlag = '{{TemplateTest#GENERAL: A flag to set whether a test script should be generated#False}}'
+#publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
 
 # workflow params for all productions
 appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
@@ -62,18 +65,18 @@ recoFileMask = '{{RecoOutputDataFileMask#PROD-RECO: file extensions to save (com
 recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/False (False if merging)#False}}'
 recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
-recoEvtsPerJob = '{{RecoNumberEvents#Reconstruction number of events per job (set to something small for a test)#-1}}'
-unmergedStreamSE = '{{RecoStreamSE#Reconstruction unmerged stream SE#Tier1-DST}}'
+recoEvtsPerJob = '{{RecoNumberEvents#PROD-RECO: number of events per job (set to something small for a test)#-1}}'
+unmergedStreamSE = '{{RecoStreamSE#PROD-RECO: unmerged stream SE#Tier1-DST}}'
 #merging params
-mergeDQFlag = '{{MergeDQFlag#Merging DQ Flag e.g. OK#OK}}'
-mergePriority = '{{MergePriority#Merging production priority#8}}'
-mergePlugin = '{{MergePlugin#Merging production plugin#MergeByRun}}'
-mergeRemoveInputsFlag = '{{MergeRemoveFlag#Merging remove input data flag True/False#False}}'
-mergeCPU = '{{MergeMaxCPUTime#Merging Max CPU time in secs#300000}}'
+mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK#OK}}'
+mergePriority = '{{MergePriority#PROD-Merging: priority#8}}'
+mergePlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRun}}'
+mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#False}}'
+mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 
 #transformation params
-transformationFlag = '{{TransformationEnable#Transformation flag to enable True/False#True}}'
-transformationPlugin = '{{TransformationPlugin#Transformation plugin name#LHCbDSTBroadcast}}'
+transformationFlag = '{{TransformationEnable#Replication: flag to enable True/False#True}}'
+transformationPlugin = '{{TransformationPlugin#Replication: plugin name#LHCbDSTBroadcast}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -93,8 +96,18 @@ recoTransFlag = eval( recoTransFlag )
 mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 transformationFlag = eval( transformationFlag )
 #testProduction = eval(testProduction)
-testFlag = eval( testFlag )
-publishFlag = eval( publishFlag )
+certificationFlag = eval( certificationFlag )
+localTestFlag = eval( localTestFlag )
+
+if certificationFlag:
+  publishFlag = True
+  testFlag = True
+  mergingFlag = True
+  replicationFlag = False
+if localTestFlag:
+  publishFlag = False
+  testFlag = True
+  mergingFlag = False
 
 inputDataList = []
 
@@ -115,28 +128,23 @@ if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '5'
-  recoStartRun = '75346'
+  recoStartRun = '75346' # da vedere: magup/down ? questi sono down...
   recoEndRun = '75349'
+  recoCPU = '100000'
 else:
   outBkConfigName = bkConfigName
   outBkConfigVersion = bkConfigVersion
 
 recoInputBKQuery = {
-                    'SimulationConditions'     : 'All',
                     'DataTakingConditions'     : '{{simDesc}}',
                     'ProcessingPass'           : '{{inProPass}}',
                     'FileType'                 : '{{inFileType}}',
                     'EventType'                : '{{eventType}}',
-                    'ConfigName'               : '{{configName}}',
-                    'ConfigVersion'            : '{{configVersion}}',
+                    'ConfigName'               : bkConfigName,
+                    'ConfigVersion'            : bkConfigVersion,
                     'ProductionID'             : 0,
                     'DataQualityFlag'          : recoDQFlag
                     }
-
-if testFlag:
-  recoInputBKQuery['DataTakingConditions'] = 'All'
-  recoInputBKQuery['SimulationConditions'] = '{{simDesc}}'
-  gLogger.notice( 'Since the test production flag is specified reverting DataTaking to Simulation Conditions in BK Query' )
 
 if int( recoEndRun ) and int( recoStartRun ):
   if int( recoEndRun ) < int( recoStartRun ):
@@ -228,7 +236,6 @@ production.addDaVinciStep( "{{p2Ver}}", "stripping", dvOptions, extraPackages = 
                           stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
 production.addFinalizationStep()
-production.setInputBKSelection( recoInputBKQuery )
 production.setProdGroup( prodGroup )
 production.setFileMask( recoFileMask )
 production.setProdPriority( recoPriority )
