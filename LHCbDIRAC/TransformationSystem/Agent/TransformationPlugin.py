@@ -67,7 +67,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
         if res['Value']:
           assignedSE = res['Value'][0]['UsedSE']
-          res = ( assignedSE, gridName = 'LCG' )
+          res = getSitesForSE( assignedSE, gridName = 'LCG' )
           if not res['OK']:
             continue
           for site in res['Value']:
@@ -242,7 +242,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = getSEsForSite( targetSite )
         if not res['OK']:
           continue
-        ses = res['Value']
         for se in res['Value']:
           if se in possibleTargets:
             assignedSE = se
@@ -540,7 +539,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Check ancestor availability on sites. Returns a list of SEs where all the ancestors are present
     """
     # Get the ancestors from the BK
-    res = getFileAncestors( filesReplicas.keys(), ancestorDepth )
+    res = getAncestorFiles( filesReplicas.keys(), ancestorDepth )
     if not res['OK']:
       gLogger.warn( res['Message'] )
       return res
@@ -562,6 +561,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     seSiteCache = {}
     dataLfns = self.data.keys()
+    ancestorSites = []
     for lfn in dataLfns:
       lfnSEs = self.data[lfn].keys()
       lfnSites = {}
@@ -608,7 +608,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # Make a list of sites where the file already is in order to avoid duplicate copies
       targetSites = []
       for se in existingSEs:
-        res = getSitesFromSE( se )
+        res = getSitesForSE( se )
         if res['OK']:
           targetSites += res['Value']
 
@@ -656,7 +656,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 needtocopy -= 1
                 break
         if needtocopy > 0 :
-          gLogger.warning( "Can not select Active SE for Master1SE" )
+          gLogger.warn( "Can not select Active SE for Master1SE" )
           continue
 
       needtocopy = 1
@@ -677,7 +677,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 targetSites += sites
                 needtocopy -= 1
         if needtocopy > 0:
-          gLogger.warning( "Can not select Active SE for Master2SE" )
+          gLogger.warn( "Can not select Active SE for Master2SE" )
           continue
 
       needtocopy = numberOfCopies - 2
@@ -705,7 +705,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 targetSites += sites
                 needtocopy -= 1
         if needtocopy > 0:
-          gLogger.warning( "Can not select enough Active SEs for SecondarySE" )
+          gLogger.warn( "Can not select enough Active SEs for SecondarySE" )
           continue
 
       if targetSEs:
