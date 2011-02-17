@@ -176,3 +176,10 @@ class Transformation( DIRACTransformation ):
 
   def _checkLHCbMCDSTBroadcastRandomPlugin( self ):
     return S_OK()
+
+  def _checkArchiveDatasetPlugin( self ):
+    return S_OK()
+
+  def _checkReplicateDatasetPlugin( self ):
+    return S_OK()
+
