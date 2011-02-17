@@ -19,7 +19,8 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
-import sys, os, string, re
+
+import re
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
@@ -43,14 +44,12 @@ from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 # Configurable parameters
 ###########################################
 
+appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
+
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 
-#testFlag = '{{TemplateTest#GENERAL: A flag to set whether a test script should be generated#False}}'
-#publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
-
 # workflow params for all productions
-appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
 
@@ -61,7 +60,6 @@ recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#AtomicRun}}'
 recoAncestorProd = '{{RecoAncestorProd#PROD-RECO: ancestor production if any#0}}'
 recoDataSE = '{{RecoDataSE#PROD-RECO: Output Data Storage Element#Tier1-RDST}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO: Group size or number of files per job#1}}'
-recoFileMask = '{{RecoOutputDataFileMask#PROD-RECO: file extensions to save (comma separated)#DST,ROOT}}'
 recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/False (False if merging)#False}}'
 recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
@@ -75,7 +73,7 @@ mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag 
 mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 
 #transformation params
-transformationFlag = '{{TransformationEnable#Replication: flag to enable True/False#True}}'
+replicationFlag = '{{TransformationEnable#Replication: flag to enable True/False#True}}'
 transformationPlugin = '{{TransformationPlugin#Replication: plugin name#LHCbDSTBroadcast}}'
 
 ###########################################
@@ -94,10 +92,15 @@ recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
 recoTransFlag = eval( recoTransFlag )
 #recoBKPublishing = eval( recoBKPublishing )
 mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
-transformationFlag = eval( transformationFlag )
+replicationFlag = eval( replicationFlag )
 #testProduction = eval(testProduction)
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
+
+dataTakingCond = '{{simDesc}}'
+processingPass = '{{inProPass}}'
+BKfileType = '{{inFileType}}'
+eventType = '{{eventType}}'
 
 if certificationFlag:
   publishFlag = True
@@ -128,18 +131,22 @@ if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '5'
-  recoStartRun = '75346' # da vedere: magup/down ? questi sono down...
+  recoStartRun = '75346'
   recoEndRun = '75349'
   recoCPU = '100000'
+  dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
+  processingPass = 'Real Data'
+  BKfileType = 'RAW'
+  eventType = '90000000'
 else:
   outBkConfigName = bkConfigName
   outBkConfigVersion = bkConfigVersion
 
 recoInputBKQuery = {
-                    'DataTakingConditions'     : '{{simDesc}}',
-                    'ProcessingPass'           : '{{inProPass}}',
-                    'FileType'                 : '{{inFileType}}',
-                    'EventType'                : '{{eventType}}',
+                    'DataTakingConditions'     : dataTakingCond,
+                    'ProcessingPass'           : processingPass,
+                    'FileType'                 : BKfileType,
+                    'EventType'                : eventType,
                     'ConfigName'               : bkConfigName,
                     'ConfigVersion'            : bkConfigVersion,
                     'ProductionID'             : 0,
@@ -186,21 +193,22 @@ if fourSteps:
 #if not recoBKPublishing:
 #  recoScriptFlag = True
 
-recoFileMask = ''
-
-#Sort out the reco file mask
-if recoFileMask:
-  maskList = [m.lower() for m in recoFileMask.replace( ' ', '' ).split( ',' )]
-  if not recoAppType.lower() in maskList:
-    maskList.append( recoAppType.lower() )
-  recoFileMask = string.join( maskList, ';' )
-
 strippingOutput = BKClient.getStepOutputFiles( int( '{{p2Step}}' ) )
 if not strippingOutput:
   gLogger.error( 'Error getting res from BKK: %s', strippingOutput['Message'] )
   DIRAC.exit( 2 )
 
 strippingOutputList = [x[0] for x in strippingOutput['Value']['Records']]
+
+#recoFileMask = 'HIST'
+#
+##Sort out the reco file mask
+#if recoFileMask:
+#  maskList = [m.lower() for m in recoFileMask.replace( ' ', '' ).split( ',' )]
+#  if not recoAppType.lower() in maskList:
+#    maskList.append( recoAppType.lower() )
+#  recoFileMask = string.join( maskList, ';' )
+
 
 #################################################################################
 # Create the reconstruction production
@@ -220,13 +228,13 @@ production.setProdType( 'DataReconstruction' )
 wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
 production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
 production.setWorkflowDescription( "%s Real data FULL reconstruction production." % ( prodGroup ) )
-production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, '{{simDesc}}' )
+production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
 production.setInputBKSelection( recoInputBKQuery )
 production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
 brunelOptions = "{{p1Opt}}"
 production.addBrunelStep( "{{p1Ver}}", recoAppType.lower(), brunelOptions, extraPackages = '{{p1EP}}',
-                         eventType = '{{eventType}}', inputData = inputDataList, inputDataType = 'mdf', outputSE = recoDataSE,
+                         eventType = eventType, inputData = inputDataList, inputDataType = 'mdf', outputSE = recoDataSE,
                          dataType = 'Data', numberOfEvents = recoEvtsPerJob, histograms = True,
                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
 dvOptions = "{{p2Opt}}"
@@ -237,7 +245,7 @@ production.addDaVinciStep( "{{p2Ver}}", "stripping", dvOptions, extraPackages = 
 
 production.addFinalizationStep()
 production.setProdGroup( prodGroup )
-production.setFileMask( recoFileMask )
+#production.setFileMask( recoFileMask )
 production.setProdPriority( recoPriority )
 production.setProdPlugin( recoPlugin )
 production.setInputDataPolicy( recoIDPolicy )
@@ -301,51 +309,51 @@ else:
 
 if not mergingFlag:
   DIRAC.exit( 0 )
-
-##################################################################################
-### TEMPORARY HACK SINCE THERE IS NO REASONABLE WAY TO GET THE LIST OF STREAMS ###
-##################################################################################
-
-#The below list is not yet defined in the central CS but can be to allow a bit of flexibility
-#anything in the above list will trigger a merging production.
-streamsListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST',
-                      'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST',
-                      'LEPTONICFULL.DST', 'CHARMFULL.DST', 'CALIBRATION.DST']
-
-streamsList = gConfig.getValue( '/Operations/Reconstruction/MergingStreams', streamsListDefault )
-
-#The below list is not yet defined in the central CS but can be to allow a bit of flexibility
-#anything in the above list will trigger default replication policy according to the computing
-#model. 
+#
+###################################################################################
+#### TEMPORARY HACK SINCE THERE IS NO REASONABLE WAY TO GET THE LIST OF STREAMS ###
+###################################################################################
+#
+##The below list is not yet defined in the central CS but can be to allow a bit of flexibility
+##anything in the above list will trigger a merging production.
+#streamsListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST',
+#                      'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST',
+#                      'LEPTONICFULL.DST', 'CHARMFULL.DST', 'CALIBRATION.DST']
+#
+#streamsList = gConfig.getValue( '/Operations/Reconstruction/MergingStreams', streamsListDefault )
+#
+##The below list is not yet defined in the central CS but can be to allow a bit of flexibility
+##anything in the above list will trigger default replication policy according to the computing
+##model. 
 replicateListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST',
                          'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST']
 
 replicateList = gConfig.getValue( '/Operations/Reconstruction/ReplicationStandard', replicateListDefault )
-
-#This new case will be handled outside of this template (at least initially)
-onlyOneOtherSite = ['LEPTONICFULL.DST', 'CHARMFULL.DST']
-
+#
+##This new case will be handled outside of this template (at least initially)
+#onlyOneOtherSite = ['LEPTONICFULL.DST', 'CHARMFULL.DST']
+#
 #The use-case of not performing replication and sending a stream to CERN is handled by the below
 #CS section, similarly to the above I did not add the section to the CS. 
 onlyCERNDefault = ['CALIBRATION.DST']
 
 onlyCERN = gConfig.getValue( '/Operations/Reconstruction/OnlyCERN', onlyCERNDefault )
-
-
-dstList = streamsList # call it dstList just to accommodate future hacks
-
-##################################################################################
-
-
-###########################################
-# Now remove the banned streams
-###########################################
-
-if not dstList: # or not setcList:
-  gLogger.error( 'Could not find any file types to merge! Exiting...' )
-  DIRAC.exit( 2 )
-
-gLogger.info( 'List of DST file types is: %s' % ( string.join( dstList, ', ' ) ) )
+#
+#
+#dstList = streamsList # call it dstList just to accommodate future hacks
+#
+###################################################################################
+#
+#
+############################################
+## Now remove the banned streams
+############################################
+#
+#if not dstList: # or not setcList:
+#  gLogger.error( 'Could not find any file types to merge! Exiting...' )
+#  DIRAC.exit( 2 )
+#
+#gLogger.info( 'List of DST file types is: %s' % ( string.join( dstList, ', ' ) ) )
 
 ###########################################
 # Some parameters
@@ -368,7 +376,7 @@ taggingOpts = '{{p4Opt}}'
 
 productionList = []
 
-for mergeStream in dstList:
+for mergeStream in strippingOutputList:
   mergeSE = 'Tier1_M-DST'
   if mergeStream.lower() in onlyCERN:
     mergeSE = 'CERN_M-DST'
@@ -387,10 +395,10 @@ for mergeStream in dstList:
     mergeProd.setSystemConfig( sysConfig )
 
   mergeProd.setWorkflowDescription( 'Steam merging workflow for %s files from input production %s' % ( mergeStream, recoProdID ) )
-  mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, '{{simDesc}}' )
+  mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   mergeProd.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
-  mergeProd.addDaVinciStep( '{{p3Ver}}', 'merge', mergeOpts, extraPackages = '{{p3EP}}', eventType = '{{eventType}}',
+  mergeProd.addDaVinciStep( '{{p3Ver}}', 'merge', mergeOpts, extraPackages = '{{p3EP}}', eventType = eventType,
                            inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions,
                            inputProduction = recoProdID, inputData = [], outputSE = mergeSE,
                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
@@ -414,7 +422,7 @@ for mergeStream in dstList:
                             requestID = currentReqID,
                             reqUsed = 1,
                             transformation = mergeTransFlag
-                            ) #,bkProcPassPrepend='{{inProPass}}')
+                            ) #,bkProcPassPrepend=processingPass)
   if not result['OK']:
     gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
     DIRAC.exit( 2 )
@@ -445,36 +453,36 @@ for mergeStream in dstList:
 # Create the transformations explicitly since we need to propagate the types
 #################################################################################
 
-if not transformationFlag:
+if not replicationFlag:
   gLogger.info( 'Transformation flag is False, exiting prior to creating transformations.' )
   gLogger.info( 'Template finished successfully.' )
-  DIRAC.exit( 0 )
 
-transDict = {'DST':replicateList} # We used to also distribute the SETC files as well
+else:
+  transDict = {'DST':replicateList} # We used to also distribute the SETC files as well
 
-for streamType, streamList in transDict.items():
-  transBKQuery = {  'ProductionID'           : productionList,
-                    'FileType'               : streamList}
+  for streamType, streamList in transDict.items():
+    transBKQuery = {  'ProductionID'           : productionList,
+                      'FileType'               : streamList}
 
-  transformation = Transformation()
-  transName = 'STREAM_Replication_%s_Request%s_{{pDsc}}_{{eventType}}_%s' % ( streamType, currentReqID, appendName )
-  transformation.setTransformationName( transName )
-  transformation.setTransformationGroup( prodGroup )
-  transformation.setDescription( 'Replication of streamed %s from {{pDsc}}' % ( streamType ) )
-  transformation.setLongDescription( 'Replication of streamed %s from {{pDsc}} to all Tier1s' % ( streamType ) )
-  transformation.setType( 'Replication' )
-  transformation.setPlugin( transformationPlugin )
-  transformation.setBkQuery( transBKQuery )
-  transformation.addTransformation()
-  transformation.setStatus( 'Active' )
-  transformation.setAgentType( 'Automatic' )
-  transformation.setTransformationFamily( currentReqID )
-  result = transformation.getTransformationID()
-  if not result['OK']:
-    gLogger.error( 'Problem during transformation creation with result:\n%s\nExiting...' % ( result ) )
-    DIRAC.exit( 2 )
+    transformation = Transformation()
+    transName = 'STREAM_Replication_%s_Request%s_{{pDsc}}_{{eventType}}_%s' % ( streamType, currentReqID, appendName )
+    transformation.setTransformationName( transName )
+    transformation.setTransformationGroup( prodGroup )
+    transformation.setDescription( 'Replication of streamed %s from {{pDsc}}' % ( streamType ) )
+    transformation.setLongDescription( 'Replication of streamed %s from {{pDsc}} to all Tier1s' % ( streamType ) )
+    transformation.setType( 'Replication' )
+    transformation.setPlugin( transformationPlugin )
+    transformation.setBkQuery( transBKQuery )
+    transformation.addTransformation()
+    transformation.setStatus( 'Active' )
+    transformation.setAgentType( 'Automatic' )
+    transformation.setTransformationFamily( currentReqID )
+    result = transformation.getTransformationID()
+    if not result['OK']:
+      gLogger.error( 'Problem during transformation creation with result:\n%s\nExiting...' % ( result ) )
+      DIRAC.exit( 2 )
 
-  gLogger.info( 'Transformation creation result: %s' % ( result ) )
+    gLogger.info( 'Transformation creation result: %s' % ( result ) )
 
 gLogger.info( 'Template finished successfully.' )
 DIRAC.exit( 0 )

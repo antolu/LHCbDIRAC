@@ -62,9 +62,6 @@ appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to product
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 
-#publishFlag = '{{WorkflowTestFlag#GENERAL: Publish production to the production system True/False#True}}'
-#testFlag = '{{TemplateTest#GENERAL: Testing flag, e.g. for certification True/False#False}}'
-
 configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC10}}'
 
@@ -158,6 +155,7 @@ if testFlag:
   mergingGroupSize = '1'
   mcreplicationFlag = False
   replicationFlag = False
+  cpu = '100000'
 
 #The below is in order to choose the right steps in the workflow automatically
 #e.g. each number of steps maps to a unique number
@@ -177,16 +175,12 @@ fiveSteps = '{{p5App}}'
 sixSteps = '{{p6App}}'
 sevenSteps = '{{p7App}}'
 
-# In case you want to set list (or a single) application for which the out data should be uploaded
-# If not set, take all the produced, with the outputFileMask is always defined 
-outputDataStep = ''
-
 if sevenSteps:
-  gLogger.error( 'Seven steps specified, not sure what to do! Exiting...' )
+  gLogger.error( 'Seven steps specified, not sure what to do ! Exiting...' )
   DIRAC.exit( 2 )
 
 if outputFileMask:
-  maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
+  maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ', ' )]
   if not finalAppType.lower() in maskList:
     maskList.append( finalAppType.lower() )
   outputFileMask = string.join( maskList, ';' )
@@ -202,7 +196,7 @@ if sysConfig:
 production.setProdType( 'MCSimulation' )
 wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
 
-production.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
+production.setWorkflowName( ' % s_ % s' % ( wkfName, appendName ) )
 production.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
 production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 production.setSimulationEvents( events, eventNumberTotal )
@@ -211,13 +205,13 @@ decided = False
 
 #To make editing the resulting script easier in all cases separate options from long function calls
 gaussOpts = '{{p1Opt}}'
-defaultEvtOpts = gConfig.getValue( '/Operations/Gauss/EvtOpts', '$DECFILESROOT/options/{{eventType}}.opts' )
+defaultEvtOpts = gConfig.getValue( ' / Operations / Gauss / EvtOpts', '$DECFILESROOT / options / {{eventType}}.opts' )
 if not defaultEvtOpts in gaussOpts:
-  gaussOpts += ';%s' % defaultEvtOpts
+  gaussOpts += '; % s' % defaultEvtOpts
 
-defaultGenOpts = gConfig.getValue( '/Operations/Gauss/Gen{{Generator}}Opts', '$LBPYTHIAROOT/options/{{Generator}}.py' )
+defaultGenOpts = gConfig.getValue( ' / Operations / Gauss / Gen{{Generator}}Opts', '$LBPYTHIAROOT / options / {{Generator}}.py' )
 if not defaultGenOpts in gaussOpts:
-  gaussOpts += ';%s' % defaultGenOpts
+  gaussOpts += '; % s' % defaultGenOpts
 
 booleOpts = '{{p2Opt}}'
 #Having Moore and Brunel at the third step means other Opts are defined later.
@@ -228,10 +222,10 @@ booleOpts = '{{p2Opt}}'
 
 if sixSteps:
   if not sixSteps.lower() == mergingApp.lower():
-    gLogger.error( 'Six steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
+    gLogger.error( 'Six steps requested but last is not % s merging, not sure what to do ! Exiting...' % ( mergingApp ) )
     DIRAC.exit( 2 )
 
-  prodDescription = 'A six step workflow Gauss->Boole->Moore->Brunel->DaVinci + Merging'
+  prodDescription = 'A six step workflow Gauss -> Boole -> Moore -> Brunel -> DaVinci + Merging'
   production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
                           extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
                           outputSE = defaultOutputSE, appType = gaussAppType,
@@ -263,10 +257,10 @@ if sixSteps:
 
 if fiveSteps and not decided:
   if not fiveSteps.lower() == mergingApp.lower():
-    gLogger.error( 'Five steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
+    gLogger.error( 'Five steps requested but last is not % s merging, not sure what to do ! Exiting...' % ( mergingApp ) )
     DIRAC.exit( 2 )
 
-  prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
+  prodDescription = 'A five step workflow Gauss -> Boole -> Moore -> Brunel + Merging'
   production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
                           extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
                           outputSE = defaultOutputSE, appType = gaussAppType,
@@ -292,7 +286,7 @@ if fiveSteps and not decided:
 #
 #if fourSteps and not decided:
 #  if not mergingFlag and threeSteps.lower() == 'moore':
-#    prodDescription = 'A four step workflow Gauss->Boole->Moore-Brunel without merging'
+#    prodDescription = 'A four step workflow Gauss -> Boole -> Moore - Brunel without merging'
 #    production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
 #                            extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
 #                            outputSE = defaultOutputSE, appType = gaussAppType,
@@ -310,7 +304,7 @@ if fiveSteps and not decided:
 #                             stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
 #    decided = True
 #  elif not mergingFlag and threeSteps.lower() == 'brunel':
-#    prodDescription = 'A three step workflow Gauss->Boole->Brunel without merging'
+#    prodDescription = 'A three step workflow Gauss -> Boole -> Brunel without merging'
 #    production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
 #                            extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
 #                            outputSE = defaultOutputSE, appType = gaussAppType,
@@ -325,7 +319,7 @@ if fiveSteps and not decided:
 #    decided = True
 #  elif mergingFlag and fourSteps.lower() == mergingApp.lower():
 #    #Will likely disappear eventually as Moore will start to be used everywhere
-#    prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
+#    prodDescription = 'A four step workflow Gauss -> Boole -> Brunel + Merging'
 #    production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
 #                            extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
 #                            outputSE = defaultOutputSE, appType = gaussAppType,
@@ -346,7 +340,7 @@ if fiveSteps and not decided:
 #    decided = True
 #  else:
 #    #So far ignoring possible Gauss->Boole->Moore + Merging combination (never requested).
-#    gLogger.error( 'Four steps requested but workflow is neither Gauss->Boole->Brunel +Merging, \
+#    gLogger.error( 'Four steps requested but workflow is neither Gauss -> Boole -> Brunel + Merging, \
 #                   Gauss->Boole->Brunel without Merging, or Gauss->Boole->Moore->Brunel, not sure what to do! Exiting...' )
 #    DIRAC.exit( 2 )
 #
