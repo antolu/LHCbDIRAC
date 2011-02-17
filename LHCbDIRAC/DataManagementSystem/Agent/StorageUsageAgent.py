@@ -141,6 +141,7 @@ class StorageUsageAgent( AgentModule ):
     self.__baseDir = self.am_getOption( 'BaseDirectory', '/lhcb' )
     self.__baseDirLabel = "_".join( List.fromChar( self.__baseDir, "/" ) )
     self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
+    self.__keepDirLevels = self.am_getOption( "KeepDirLevels", 4 )
 
     self.__startExecutionTime = long( time.time() )
     self.__dirExplorer = DirectoryExplorer( reverse = True )
@@ -288,8 +289,10 @@ class StorageUsageAgent( AgentModule ):
     return S_ERROR( "Could not download user proxy:\n%s " % "\n ".join( downErrors ) )
 
 
-
   def removeEmptyDir( self, dirPath ):
+    if len( List.fromChar( dirPath, "/" ) ) <= self.__keepDirLevels:
+      return S_OK()
+
     self.log.notice( "Deleting empty directory %s" % dirPath )
     res = self.__storageUsage.removeDirectory( dirPath )
     if not res['OK']:
