@@ -16,7 +16,7 @@
      input production.
 """
 
-__RCSID__ = "$Id $"
+__RCSID__ = "$Id$"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble
