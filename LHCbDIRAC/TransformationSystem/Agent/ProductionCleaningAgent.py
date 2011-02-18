@@ -180,7 +180,7 @@ class ProductionCleaningAgent( AgentModule ):
     bkFlag = 'Yes'
     if not directories:
       bkFlag = ''
-    res = self.cleanBKFiles( prodID, 'Yes' )
+    res = self.cleanBKFiles( prodID, bkFlag )
     if not res['OK']:
       return res
     # Clean the production DB of the files and job information
@@ -203,8 +203,8 @@ class ProductionCleaningAgent( AgentModule ):
 
   def getProductionDirectories( self, prodID ):
     """ Get the directories for the supplied productionID from the production management system """
-    directories = []
-    res = self.transClient.getTransformationParameters( prodID, pname = 'OutputDirectories' )
+
+    res = self.transClient.getTransformationParameters( prodID, 'OutputDirectories' )
     if not res['OK']:
       gLogger.error( "Failed to obtain production directories", res['Message'] )
       return res
