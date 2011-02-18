@@ -62,7 +62,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     """
     from DIRAC.Core.DISET.RPCClient import RPCClient
     gLogger.info( "Attempting to get files for production %s" % productionID )
-    bk = RPCClient( 'Bookkeeping/BookkeepingManager' )
+    bk = RPCClient( 'Bookkeeping/NewBookkeepingManager' )
     res = bk.getProductionFiles( productionID, 'ALL' )
     if not res['OK']:
       return res
