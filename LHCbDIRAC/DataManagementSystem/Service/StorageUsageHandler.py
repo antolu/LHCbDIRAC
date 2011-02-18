@@ -142,7 +142,12 @@ class StorageUsageHandler( RequestHandler ):
     """ Retieve a summary of the user usage per SE
     """
     return storageUsageDB.getUserSummaryPerSE( userName )
-
+  
+  types_getDirectorySummaryPerSE = []
+  def export_getDirectorySummaryPerSE(self, directory ):
+    """Retrieve a summary (total files and total size) for a given directory, grouped by storage element """
+    return storageUsageDB.getDirectorySummaryPerSE( directory )
+  
   types_getIDs = []
   def export_getIDs( self, dirList ):
     """ Check if the directories exist in the su_Directory table and if yes returns the IDs 
