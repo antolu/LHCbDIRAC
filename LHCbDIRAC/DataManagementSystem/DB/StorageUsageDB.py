@@ -121,6 +121,7 @@ class StorageUsageDB( DB ):
   ####
   def publishToDarkDir(self, directoryDict ):
     """ Publish an entry into the dark data directory """
+    self.log.info("in publishToDarkDir: directoryDict is %s" %directoryDict)
     for path in directoryDict.keys():
       SeName = directoryDict[ path ][ 'SEName']
       try:
@@ -144,7 +145,8 @@ class StorageUsageDB( DB ):
       DID = result['Value']
       if DID:
         # there is an entry for (path, SEname), make an update of the row
-        sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=%s WHERE Path = %s and SEName = %s" % (files, size, sqlUpdate, sqlPath, sqlSeName)
+        #sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=%s WHERE Path = %s and SEName = %s" % (files, size, sqlUpdate, sqlPath, sqlSeName)
+        sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % (files, size, sqlPath, sqlSeName)
         self.log.info("sqlCmd: %s" %sqlCmd)
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -152,7 +154,8 @@ class StorageUsageDB( DB ):
           return result
       else:
         # entry is not there, make an insert of a new row
-        sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, %s)" % (sqlPath, sqlSeName, files, size, sqlUpdate)
+        #sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, %s)" % (sqlPath, sqlSeName, files, size, sqlUpdate)
+        sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, UTC_TIMESTAMP())" % (sqlPath, sqlSeName, files, size)
         self.log.info("sqlCmd: %s" %sqlCmd)
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -177,7 +180,7 @@ class StorageUsageDB( DB ):
         path = "%s/" % path
       sqlPath = self._escapeString( path )['Value']
       sqlSeName = self._escapeString( SeName )['Value']
-      sqlUpdate = self._escapeString( update )['Value']
+      sqlUpdate = self._escapeString( update )['Value']     
       sqlCmd = "SELECT d.DID FROM su_Directory as d, se_Usage as u where d.DID=u.DID and d.Path=%s and u.SEName=%s" % (sqlPath, sqlSeName)
       self.log.debug("sqlCmd: %s" %sqlCmd)
       result = self._query( sqlCmd )
@@ -186,13 +189,13 @@ class StorageUsageDB( DB ):
         return result
       sqlRes = result['Value']
       if sqlRes:
-        DID = sqlRes[0][0]
-      #val = result[ 'Value' ]
-      #if val:
-       # for row in val:
-        #  DID = row[ 0 ] # WARNING: not sure this is the correct way to retrieve result of a query (check whether there is a standard way how to unpack the tuple)
+        try:
+          DID = int( sqlRes[0][0] )
+        except  ValueError:
+          return S_ERROR("ERROR: DID should be integer!") 
         # there is an entry for (path, SEname), make an update of the row
-        sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=%s WHERE DID=%d AND SEName=%s" % (files, size, sqlUpdate, DID, sqlSeName)
+        #sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=%s WHERE DID=%d AND SEName=%s" % (files, size, sqlUpdate, DID, sqlSeName)
+        sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=UTC_TIMESTAMP() WHERE DID=%d AND SEName=%s" % (files, size, DID, sqlSeName)
         self.log.info("sqlCmd: %s" %sqlCmd)
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -206,8 +209,12 @@ class StorageUsageDB( DB ):
           self.log.error( "Cannot getIds for directory %s" %(path))
           return result
         for dir in result[ 'Value' ].keys():
-          DID = result[ 'Value' ][ dir ]
-        sqlCmd = "INSERT INTO se_Usage (DID, SEName, Files, Size, Updated) VALUES ( %d, %s, %d, %d, %s)" % (DID, sqlSeName, files, size, sqlUpdate)
+          try:
+            DID = int( result[ 'Value' ][ dir ] )
+          except ValueError:
+            return S_ERROR("ERROR: DID should be integer!")   
+        #sqlCmd = "INSERT INTO se_Usage (DID, SEName, Files, Size, Updated) VALUES ( %d, %s, %d, %d, %s)" % (DID, sqlSeName, files, size, sqlUpdate)
+        sqlCmd = "INSERT INTO se_Usage (DID, SEName, Files, Size, Updated) VALUES ( %d, %s, %d, %d, UTC_TIMESTAMP())" % (DID, sqlSeName, files, size)
         self.log.info("sqlCmd: %s" %sqlCmd)
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -442,6 +449,25 @@ class StorageUsageDB( DB ):
       userData[ userName ][ seName ] = { 'Size' : long( row[2] ), 'Files' : long( row[3] ) }
     return S_OK( userData )
 
+
+  def getDirectorySummaryPerSE(self, directory ):
+    """ Queries the DB and get a summary (total size and files) for the given directory """
+    sqlDirectory = self._escapeString( directory )['Value']
+    sqlCmd = "SELECT %s, su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '%s%%'  GROUP BY su.SEName" % (sqlDirectory, directory)
+    gLogger.info("getDirectorySummaryPerSE: sqlCmd is %s " %sqlCmd) 
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    Data = {}    
+    for row in result[ 'Value' ]:
+      dir = row[ 0 ]
+      seName = row[ 1 ]
+      if dir not in Data.keys():
+        Data[ dir ] = {}
+      Data[ dir ][ seName ] =  { 'Size' : long( row[2] ), 'Files' : long( row[3] ) }         
+    return S_OK( Data )    
+    
+    
   def __getAllReplicasInFC(self, path ):
     ''' Queries the su_seUsage table to get all the entries relative to a given path registered in the FC. Returns
      for every replica the SE, the update, the files and the total size '''
