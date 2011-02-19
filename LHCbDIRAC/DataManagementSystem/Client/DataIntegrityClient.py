@@ -2,8 +2,8 @@
 __RCSID__ = "$Id: DataIntegrityClient.py 26492 2010-06-17 14:03:38Z acsmith $"
 
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient  import DataIntegrityClient as DIRACDataIntegrityClient
-from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig
-import re, os, types
+from DIRAC                                                  import S_OK, S_ERROR, gLogger
+import re, types
 
 class DataIntegrityClient( DIRACDataIntegrityClient ):
 
