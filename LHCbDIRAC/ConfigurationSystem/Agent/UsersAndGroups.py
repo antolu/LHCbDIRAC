@@ -48,7 +48,7 @@ class UsersAndGroups( AgentModule ):
 
   def getLFCRegisteredDNs( self ):
     #Request a proxy
-    if gConfig._useServerCertificate():
+    if gConfig.useServerCertificate():
       if not self.__generateProxy():
         return False
     #Execute the call
