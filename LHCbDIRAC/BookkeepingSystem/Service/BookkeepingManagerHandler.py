@@ -2,14 +2,13 @@
 # $Id: BookkeepingManagerHandler.py 29467 2010-10-15 15:32:29Z zmathe $
 ########################################################################
 
-""" BookkeepingManaher service is the front-end to the Bookkeeping database 
+""" BookkeepingManaher service is the front-end to the Bookkeeping database
 """
 
 __RCSID__ = "$Id: BookkeepingManagerHandler.py 29467 2010-10-15 15:32:29Z zmathe $"
 
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
-from LHCbDIRAC.BookkeepingSystem.Service.copyFiles                                    import copyXMLfile
 
 from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
@@ -17,8 +16,6 @@ from DIRAC                                                                      
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 from DIRAC.Core.Utilities.Shifter                                                 import setupShifterProxyInEnv
-from DIRAC.Core.Utilities                                                         import DEncode
-import time, sys, os
 import cPickle
 
 
@@ -42,7 +39,7 @@ ToDoPath = gConfig.getValue( "stuart", "/opt/bookkeeping/XMLProcessing/ToDo" )
 class BookkeepingManagerHandler( RequestHandler ):
 
   ###########################################################################
-  # types_<methodname> global variable is a list which defines for each exposed 
+  # types_<methodname> global variable is a list which defines for each exposed
   # method the types of its arguments, the argument types are ignored if the list is empty.
 
   types_echo = [StringType]
@@ -67,12 +64,12 @@ class BookkeepingManagerHandler( RequestHandler ):
             return result
           """
           stamp = time.strftime('%Y.%m.%d-%H.%M.%S',time.gmtime())
-          
+
           fileID=int(repr(time.time()).split('.')[1])
-          
-          filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)  
+
+          filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)
           update_file = open(filePath, "w")
-          
+
           print >>update_file, data
           update_file.close()
           #copyXML(filePath)
@@ -244,12 +241,12 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getFileTypesWithSimcond( self, configName, configVersion, simcondid, procPass, evtId, prod ):
     return dataMGMT_.getFileTypesWithSimcond( configName, configVersion, simcondid, procPass, evtId, prod )
 
-  #############################################################################  
+  #############################################################################
   types_getProgramNameWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_getProgramNameWithSimcond( self, configName, configVersion, simcondid, procPass, evtId, prod, ftype ):
     return dataMGMT_.getProgramNameWithSimcond( configName, configVersion, simcondid, procPass, evtId, prod, ftype )
 
-  #############################################################################  
+  #############################################################################
   types_getProductionFiles = [IntType, StringType]
   def export_getProductionFiles( self, prod, fileType, replica = 'ALL' ):
     return dataMGMT_.getProductionFiles( int( prod ), fileType, replica )
@@ -279,7 +276,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
     return dataMGMT_.getProductionFilesWithAGivenDate( production, fileType, sDate, eDate )
 
-  #############################################################################  
+  #############################################################################
   types_getProcessingPassDesc = [StringType, IntType, StringType]
   def export_getProcessingPassDesc( self, totalproc, passid, simid = 'ALL' ):
     return dataMGMT_.getProcessingPassDesc( totalproc, passid, simid )
@@ -288,7 +285,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getProcessingPassDesc_new( self, totalproc, simid = 'ALL' ):
     return dataMGMT_.getProcessingPassDesc_new( totalproc, simid )
 
-  #############################################################################  
+  #############################################################################
   types_getAvailableFileTypes = []
   def export_getAvailableFileTypes( self ):
     res = dataMGMT_.getAvailableFileTypes()
@@ -303,19 +300,19 @@ class BookkeepingManagerHandler( RequestHandler ):
     return S_OK( result )
 
 
-  #############################################################################  
+  #############################################################################
   types_getFileMetaDataForUsers = [ListType]
   def export_getFileMetaDataForUsers( self, lfns ):
     res = dataMGMT_.getFileMetaDataForUsers( lfns )
     return res
 
-  #############################################################################  
+  #############################################################################
   types_getProductionFilesForUsers = [IntType, DictType, DictType, LongType, LongType]
   def export_getProductionFilesForUsers( self, prod, ftype, SortDict, StartItem, Maxitems ):
     res = dataMGMT_.getProductionFilesForUsers( prod, ftype, SortDict, StartItem, Maxitems )
     return res
 
-  #############################################################################  
+  #############################################################################
   types_getFilesWithSimcond = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_getFilesWithSimcond( self, configName, configVersion, simcondid, procPass, evtId, prod, ftype, progName, progVersion ):
     '''
@@ -329,8 +326,8 @@ class BookkeepingManagerHandler( RequestHandler ):
     '''
     if not result['OK']:
       return S_ERROR(result['Message'])
-    
-    files = result['Value'] 
+
+    files = result['Value']
     rm = ReplicaManager()
     list =[]
     for file in files:
@@ -404,37 +401,37 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getSpecificFiles( self, configName, configVersion, programName, programVersion, fileType, eventTypeId, production ):
     return dataMGMT_.getSpecificFiles( configName, configVersion, programName, programVersion, fileType, eventTypeId, production )
 
-  #############################################################################  
+  #############################################################################
   types_getPass_index = []
   def export_getPass_index( self ):
     return dataMGMT_.getPass_index()
 
-  #############################################################################  
+  #############################################################################
   types_insert_pass_index = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_insert_pass_index( self, groupdesc, step0, step1, step2, step3, step4, step5, step6 ):
     return dataMGMT_.insert_pass_index( groupdesc, step0, step1, step2, step3, step4, step5, step6 )
 
-  #############################################################################  
+  #############################################################################
   types_insert_pass_index_new = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_insert_pass_index_new( self, groupdesc, step0, step1, step2, step3, step4, step5, step6 ):
     return dataMGMT_.insert_pass_index_new( groupdesc, step0, step1, step2, step3, step4, step5, step6 )
 
-  #############################################################################  
+  #############################################################################
   types_insertProcessing = [LongType, StringType, StringType, StringType]
   def export_insertProcessing( self, production, passdessc, inputprod, simcondsesc ):
     return dataMGMT_.insertProcessing( production, passdessc, inputprod, simcondsesc )
 
-  #############################################################################  
+  #############################################################################
   types_listProcessingPass = [LongType]
   def export_listProcessingPass( self, prod = None ):
     return dataMGMT_.listProcessingPass( prod )
 
-  #############################################################################  
+  #############################################################################
   types_listProcessingPass = []
   def listProcessingPass( self ):
     return dataMGMT_.listProcessingPass( None )
 
-  #############################################################################  
+  #############################################################################
   types_getFilesWithGivenDataSets = [DictType]
   def export_getFilesWithGivenDataSets( self, values ):
 
@@ -527,7 +524,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
     return S_OK( result )
 
-#############################################################################  
+#############################################################################
   types_getFilesWithGivenDataSetsForUsers = [DictType]
   def export_getFilesWithGivenDataSetsForUsers( self, values ):
 
@@ -637,11 +634,11 @@ class BookkeepingManagerHandler( RequestHandler ):
         if i[8] != None:
           ilumi += i[8]
         result[i[0]] = {'EventStat':i[1], 'EventInputStat':i[2], 'Runnumber':i[3], 'Fillnumber':i[4], 'FileSize':i[5], 'TotalLuminosity':i[6], 'Luminosity':i[7], 'InstLuminosity':i[8]}
-      retVal = S_OK(result)
+      retVal = S_OK( result )
       if nbfiles > 0:
         summary = {'Number Of Files':nbfiles, 'Number of Events':nbevents, 'EventInputStat':evinput, 'FileSize':fsize / 1000000000., 'TotalLuminosity':tLumi, 'Luminosity':lumi, 'InstLuminosity':ilumi}
         retVal['Summary'] = summary
-    return retVal 
+    return retVal
 
   types_getProcessedEvents = [IntType]
   def export_getProcessedEvents( self, prodid ):
@@ -652,47 +649,47 @@ class BookkeepingManagerHandler( RequestHandler ):
       result = retVal['Value'][0][0]
       return S_OK( result )
 
-  #############################################################################  
+  #############################################################################
   types_getProductionsWithPocessingPass = [StringType]
   def export_getProductionsWithPocessingPass( self, processingPass ):
     return dataMGMT_.getProductionsWithPocessingPass( processingPass )
 
-  #############################################################################  
+  #############################################################################
   types_getFilesByProduction = [LongType, LongType, StringType]
   def export_getFilesByProduction( self, production, eventtype, filetype ):
     return dataMGMT_.getFilesByProduction( production, eventtype, filetype )
 
-  #############################################################################  
+  #############################################################################
   types_getProductions = [StringType, StringType, LongType]
   def export_getProductions( self, configName, configversion, eventTypeId ):
     return dataMGMT_.getProductions( configName, configversion, long( eventTypeId ) )
 
-  #############################################################################  
+  #############################################################################
   types_getNumberOfEvents = [StringType, StringType, LongType, LongType]
   def export_getNumberOfEvents( self, configName, configversion, eventTypeId, production ):
     return dataMGMT_.getNumberOfEvents( configName, configversion, eventTypeId, production )
 
-  #############################################################################  
+  #############################################################################
   types_getEventTyesWithProduction = [LongType]
   def export_getEventTyesWithProduction( self, production ):
     return dataMGMT_.getEventTyesWithProduction( production )
 
-  #############################################################################  
+  #############################################################################
   types_getFileTypesWithProduction = [LongType, LongType]
   def export_getFileTypesWithProduction( self, production, eventType ):
     return dataMGMT_.getFileTypesWithProduction( production, eventType )
 
-  #############################################################################  
+  #############################################################################
   types_getSpecificFilesWithoutProd = [StringType, StringType, StringType, StringType, StringType, LongType]
   def export_getSpecificFilesWithoutProd( self, configName, configVersion, pname, pversion, filetype, eventType ):
     return dataMGMT_.getSpecificFilesWithoutProd( configName, configVersion, pname, pversion, filetype, eventType )
 
-  #############################################################################  
+  #############################################################################
   types_getFileTypes = [StringType, StringType, LongType, LongType]
   def export_getFileTypes( self, configName, configVersion, eventType, prod ):
     return dataMGMT_.getFileTypes( configName, configVersion, eventType, prod )
 
-  #############################################################################  
+  #############################################################################
   types_getProgramNameAndVersion = [StringType, StringType, LongType, LongType, StringType]
   def export_getProgramNameAndVersion( self, configName, configVersion, eventType, prod, fileType ):
     return dataMGMT_.getProgramNameAndVersion( configName, configVersion, eventType, prod, fileType )
@@ -753,8 +750,8 @@ class BookkeepingManagerHandler( RequestHandler ):
   '''
   infos is a dictionary. It contains: PrgNamesVersions,  GroupDescription, SimulationConditions, Production, InputProductionTotalProcessingPass
   for example: cl.addProduction({'PrgNamesVersions':{'Step0':'Gauss-v35r1','Step1':'Boole-v16r3','Step2':'Brunel-v33r3'},'GroupDescription':'ParticleGun','SimulationConditions':simcond,'Production':12})
-               
-  
+
+
   PrgNamesVersions: program names and versions are used this production
   GroupDescription: wich group correspond this processing ex: DC06-Sim or ParticleGun ....
   SimulationCondition: ex. simcond = {'BeamEnergy': 'rerer', 'Generator': 'dsds', 'Luminosity': 'wwww', 'MagneticField': 'hhh', 'BeamCond': 'sasas', 'DetectorCond': 'ddfd', 'SimDescription': 'Proba'}
@@ -807,48 +804,48 @@ class BookkeepingManagerHandler( RequestHandler ):
           result = res
     return result
 
-  #############################################################################  
+  #############################################################################
   types_setQuality = [ListType, StringType]
   def export_setQuality( self, lfns, flag ):
     return dataMGMT_.setQuality( lfns, flag )
 
-  #############################################################################  
+  #############################################################################
   types_setQualityRun = [IntType, StringType]
   def export_setQualityRun( self, runNb, flag ):
     return dataMGMT_.setQualityRun( runNb, flag )
 
-  #############################################################################  
+  #############################################################################
   types_setQualityProduction = [IntType, StringType]
   def export_setQualityProduction( self, prod, flag ):
     return dataMGMT_.setQualityProduction( prod, flag )
 
-  #############################################################################  
+  #############################################################################
   types_getAvailableDataQuality = []
   def export_getAvailableDataQuality( self ):
     return dataMGMT_.getAvailableDataQuality()
 
-  #############################################################################  
+  #############################################################################
   types_insert_aplications = [StringType, StringType, StringType, StringType, StringType, StringType]
   def export_insert_aplications( self, appName, appVersion, option, dddb, condb, extrapack ):
     return dataMGMT_.insert_aplications( appName, appVersion, option, dddb, condb, extrapack )
 
-  #############################################################################  
+  #############################################################################
   types_insert_pass_index_migration = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
   def export_insert_pass_index_migration( self, passid, descr, groupid, step0, step1, step2, step3, step4, step5, step6 ):
     return dataMGMT_.insert_pass_index_migration( passid, descr, groupid, step0, step1, step2, step3, step4, step5, step6 )
 
   # ----------------------------------Event Types------------------------------------------------------------------
-  #############################################################################  
+  #############################################################################
   types_getAvailableEventTypes = []
   def export_getAvailableEventTypes( self ):
     return dataMGMT_.getAvailableEventTypes()
 
-  #############################################################################  
+  #############################################################################
   types_getConfigNameAndVersion = [LongType]
   def export_getConfigNameAndVersion( self, eventTypeId ):
     return dataMGMT_.getConfigNameAndVersion( eventTypeId )
 
-  #############################################################################  
+  #############################################################################
   types_getAvailableProcessingPass = [StringType, StringType, LongType]
   def export_getAvailableProcessingPass( self, configName, configVersion, eventTypeId ):
     return dataMGMT_.getAvailableProcessingPass( configName, configVersion, eventTypeId )
@@ -1082,13 +1079,13 @@ class BookkeepingManagerHandler( RequestHandler ):
   types_setFilesInvisible = [ListType]
   def export_setFilesInvisible( self, lfns ):
     return dataMGMT_.setFilesInvisible( lfns )
-  
+
   #############################################################################
   types_setFilesVisible = [ListType]
   def export_setFilesVisible( self, lfns ):
     return dataMGMT_.setFilesVisible( lfns )
-  
-  
+
+
   #############################################################################
 
   '''
@@ -1182,7 +1179,7 @@ class BookkeepingManagerHandler( RequestHandler ):
       return S_ERROR( value['Message'] )
     return S_OK( {'ParameterNames':parameters, 'Records':infos} )
 
-  #############################################################################  
+  #############################################################################
   types_getProductionSummary = [DictType]
   def export_getProductionSummary( self, dict ):
 
@@ -1420,7 +1417,6 @@ class BookkeepingManagerHandler( RequestHandler ):
       if not result['OK']:
         return S_ERROR( result['Message'] )
       fileString = cPickle.dumps( result['Value'], protocol = 2 )
-      #fileString = DEncode.encode(result['Value'])
       result = fileHelper.stringToNetwork( fileString )
       if result['OK']:
         gLogger.info( 'Sent file %s of size %d' % ( parametes, len( fileString ) ) )
@@ -1432,7 +1428,6 @@ class BookkeepingManagerHandler( RequestHandler ):
       if not result['OK']:
         return S_ERROR( result['Message'] )
       fileString = cPickle.dumps( result['Value'], protocol = 2 )
-      #fileString = DEncode.encode(result['Value'])
       result = fileHelper.stringToNetwork( fileString )
       if result['OK']:
         gLogger.info( 'Sent file %s of size %d' % ( parametes, len( fileString ) ) )
@@ -1445,7 +1440,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getRunQuality = [StringType, StringType]
-  def export_getRunQuality(self, procpass, flag):
-    return dataMGMT_.getRunQuality(procpass, flag)
-  
+  def export_getRunQuality( self, procpass, flag ):
+    return dataMGMT_.getRunQuality( procpass, flag )
+
 #-----------------------------------END Event Types------------------------------------------------------------------
