@@ -2,12 +2,12 @@
 """
 from DIRAC                                                             import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
-from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, uniqueElements, randomize
+from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
 from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles                  import getAncestorFiles
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
-import time, random, sys, re, types
+import time, re, types
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
 
@@ -18,7 +18,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transClient = TransformationClient()
 
   def _AtomicRun( self ):
-    possibleTargets = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
+    #possibleTargets = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
     transID = self.params['TransformationID']
     # Get the requested shares from the CS
     res = self._getShares( 'CPU', True )
@@ -714,7 +714,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           storageElementGroups[stringTargetSEs] = []
         storageElementGroups[stringTargetSEs].extend( lfns )
 
-     # Now create reasonable size tasks
+    # Now create reasonable size tasks
     tasks = []
     for stringTargetSEs in sortList( storageElementGroups.keys() ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
