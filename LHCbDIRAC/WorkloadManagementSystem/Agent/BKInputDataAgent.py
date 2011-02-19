@@ -13,9 +13,9 @@ __RCSID__ = "$Id$"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
-from DIRAC                                                 import gConfig, S_OK, S_ERROR
+from DIRAC                                                 import S_OK, S_ERROR
 
-import os, re, time, string
+import time, string
 
 class BKInputDataAgent( OptimizerModule ):
 
@@ -85,7 +85,7 @@ class BKInputDataAgent( OptimizerModule ):
     # Fail the job if any of the files are not in the BK
     bkFileMetadata = res['Value']
     badLFNs = []
-    bkGuidDict = {}
+    #bkGuidDict = {}
     for lfn in productionFiles:
       if not bkFileMetadata.has_key( lfn ):
         badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'File does not exist in the BK' ) )
