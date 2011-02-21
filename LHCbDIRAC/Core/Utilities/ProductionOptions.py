@@ -118,8 +118,8 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
 #############################################################################
 def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOptions = '', runNumber = 0, firstEventNumber = 1, jobType = '' ):
   """ Return the standard options for a Gaudi application project to be used at run time
-      by the workflow modules.  The input data options field is a python list (output of 
-      getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case 
+      by the workflow modules.  The input data options field is a python list (output of
+      getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case
       and when the job type is not 'user'.
   """
   optionsLines = []
@@ -210,7 +210,6 @@ def printOptions( project = '', printOutput = True ):
     if project.lower() == i.lower():
       project = i
 
-  finalApps = {}
   if appDict.has_key( project ):
     apps = [project]
 
