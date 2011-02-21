@@ -17,7 +17,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
 
-import re, string, os, sys, time, glob
+import re, os, sys, time
 
 class GaudiApplication( ModuleBase ):
 
@@ -277,7 +277,7 @@ class GaudiApplication( ModuleBase ):
 
   def _lowerExtension( self ):
     """
-      Lowers the file extension of the produced files. 
+      Lowers the file extension of the produced files.
       E.g.: fileName.EXTens.ION -> fileName.extens.ion
     """
 
@@ -303,7 +303,7 @@ class GaudiApplication( ModuleBase ):
   #############################################################################
 
   def manageDaVinciStreamingStep( self, stepOutput ):
-    """ Function to manage the outputs of a DaVinci streaming step and of MC stripping step. 
+    """ Function to manage the outputs of a DaVinci streaming step and of MC stripping step.
         Relies on the workflow commons dictionary and the outputlist and updates these in case
         of changes so takes no arguments.  Also tries to determine the number of
         events written to each stream file, this information is propagated to the
@@ -345,11 +345,11 @@ class GaudiApplication( ModuleBase ):
 
   def _findOutputs( self, stepOutput ):
     """ Find which outputs of those in stepOutput are produced
-    
-        stepOutput = 
-        [{'outputDataType': 'BHADRON.DST', 
+
+        stepOutput =
+        [{'outputDataType': 'BHADRON.DST',
         'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.BHADRON.DST'},
-        {'outputDataType': 'CALIBRATION.DST', 
+        {'outputDataType': 'CALIBRATION.DST',
         'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
 
     """
