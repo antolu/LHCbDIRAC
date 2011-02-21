@@ -563,7 +563,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     dataLfns = self.data.keys()
     ancestorSites = []
     for lfn in dataLfns:
-       lfnSEs = self.data[lfn].keys()
+      lfnSEs = self.data[lfn].keys()
       lfnSites = {}
       for se in lfnSEs:
         if not seSiteCache.has_key( se ):
