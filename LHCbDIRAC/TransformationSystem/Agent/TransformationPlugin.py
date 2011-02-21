@@ -563,7 +563,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     dataLfns = self.data.keys()
     ancestorSites = []
     for lfn in dataLfns:
-      lfnSEs = self.data[lfn].keys()
+       lfnSEs = self.data[lfn].keys()
       lfnSites = {}
       for se in lfnSEs:
         if not seSiteCache.has_key( se ):
@@ -589,6 +589,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _LHCbMCDSTBroadcastRandom( self ):
     """ This plug-in broadcasts files to master1, to master2 and to (NumberOfReplicas-2) secondary SEs  """
 
+    transID = self.params['TransformationID']
     master1SEs = self.params.get( 'Master1SEs', ['CERN_MC_M-DST'] )
     master2SEs = self.params.get( 'Master2SEs', ['CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
     secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
@@ -713,6 +714,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not storageElementGroups.has_key( stringTargetSEs ):
           storageElementGroups[stringTargetSEs] = []
         storageElementGroups[stringTargetSEs].extend( lfns )
+      else:
+        gLogger.info( "Found %s files that are already completed" % len( lfns ) )
+        self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
 
     # Now create reasonable size tasks
     tasks = []
@@ -742,6 +746,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__simpleReplication( "CERN-ARCHIVE" )
 
   def __simpleReplication( self, destSEs, numberOfCopies = 0 ):
+    transID = self.params['TransformationID']
     if type( destSEs ) == types.StringType:
       destSEs = [destSEs]
     if not numberOfCopies:
@@ -760,6 +765,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = breakListIntoChunks( lfnGroup, 50 )
 
       for lfns in lfnChunks:
+        targetSEs = []
         candidateSEs = randomize( destSEs )
         # Remove existing SEs from list of candidates
         for se in existingSEs:
@@ -781,6 +787,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if not storageElementGroups.has_key( stringTargetSEs ):
             storageElementGroups[stringTargetSEs] = []
           storageElementGroups[stringTargetSEs].extend( lfns )
+        else:
+          gLogger.info( "Found %s files that are already completed" % len( lfns ) )
+          self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
 
       # Now create reasonable size tasks
     tasks = []
