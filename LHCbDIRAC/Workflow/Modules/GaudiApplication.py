@@ -249,6 +249,9 @@ class GaudiApplication( ModuleBase ):
     self.log.info( "Going to manage %s output" % self.applicationName )
     self._manageGaudiAppOutput()
 
+    # Still have to set the application status e.g. user job case.
+    self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
+    return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
   #############################################################################
 
@@ -257,11 +260,14 @@ class GaudiApplication( ModuleBase ):
     finalOutputs, bkFileTypes = self._findOutputs( self.stepOutputs )
 
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
+    self.step_commons['listoutput'] = finalOutputs
+
     if self.workflow_commons.has_key( 'outputList' ):
-      self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
+      for outFile in finalOutputs:
+        if outFile not in self.workflow_commons['outputList']:
+          self.workflow_commons['outputList'].append( outFile )
     else:
       self.workflow_commons['outputList'] = finalOutputs
-    self.step_commons['listoutput'] = finalOutputs
 
     self.log.info( 'Attempting to recreate the production output LFNs...' )
     result = constructProductionLFNs( self.workflow_commons )
@@ -278,10 +284,6 @@ class GaudiApplication( ModuleBase ):
       if streamEvents['OK']:
         streamEvents = streamEvents['Value']
         self.workflow_commons['StreamEvents'] = streamEvents
-
-    # Still have to set the application status e.g. user job case.
-    self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
-    return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
 #    if self.applicationName.lower() == 'davinci':
 #
