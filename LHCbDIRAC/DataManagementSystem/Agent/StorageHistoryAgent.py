@@ -28,7 +28,13 @@ class StorageHistoryAgent( AgentModule ):
     """Sets defaults
     """
     self.am_setOption( 'PollingTime', 43200 )
-    self.__stDB = StorageUsageDB()
+    if self.am_getOption( 'DirectDB', False ):
+      from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+      self.__stDB = StorageUsageDB()
+    else:
+      from DIRAC.Core.DISET.RPCClient import RPCClient
+      self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
+
     return S_OK()
 
   def execute( self ):
