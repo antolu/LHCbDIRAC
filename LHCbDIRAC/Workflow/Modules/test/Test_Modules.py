@@ -177,13 +177,14 @@ class GaudiApplicationSuccess( ModulesTestCase ):
     os.remove( 'ccc.charm.mdst' )
 
 
+
 #############################################################################
 # Test Suite run 
 #############################################################################
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesTestCase )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
