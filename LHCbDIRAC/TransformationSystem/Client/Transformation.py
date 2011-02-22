@@ -128,12 +128,14 @@ class Transformation( DIRACTransformation ):
                                              addFiles = addFiles,
                                              bkQuery = self.paramValues['BkQuery'] )
     if not res['OK']:
-      self._prettyPrint( res )
+      if printOutput:
+        self._prettyPrint( res )
       return res
     transID = res['Value']
     res = self.transClient.getTransformationParameters( transID, ['BkQueryID'] )
     if not res['OK']:
-      self._prettyPrint( res )
+      if printOutput:
+        self._prettyPrint( res )
       return res
     self.setBkQueryID( res['Value'] )
     self.exists = True
@@ -149,6 +151,31 @@ class Transformation( DIRACTransformation ):
             gLogger.info( "oTransformation = Transformation(%d)" % transID )
             gLogger.info( "oTransformation.set%s(...)" % paramName )
     return S_OK()
+
+  def setTargetSE( self, seList ):
+    return self.__setSE( 'TargetSE', seList )
+
+  def setSourceSE( self, seList ):
+    return self.__setSE( 'SourceSE', seList )
+
+  def setSE( self, se, seList ):
+    return self.__setSE( se, seList )
+
+  def setAdditionalParam( self, key, val ):
+    self.item_called = key
+    return self.__setParam( val )
+
+  def __setSE( self, se, seList ):
+    if type( seList ) in types.StringTypes:
+      try:
+        seList = eval( seList )
+      except:
+        seList = seList.split( ',' )
+    res = self.__checkSEs( seList )
+    if not res['OK']:
+      return res
+    self.item_called = se
+    return self.__setParam( seList )
 
   def _checkByRunPlugin( self ):
     return self._checkStandardPlugin()
