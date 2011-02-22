@@ -145,7 +145,6 @@ class StorageUsageDB( DB ):
       DID = result['Value']
       if DID:
         # there is an entry for (path, SEname), make an update of the row
-        #sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=%s WHERE Path = %s and SEName = %s" % (files, size, sqlUpdate, sqlPath, sqlSeName)
         sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % (files, size, sqlPath, sqlSeName)
         self.log.info("sqlCmd: %s" %sqlCmd)
         result = self._update( sqlCmd )
@@ -154,7 +153,6 @@ class StorageUsageDB( DB ):
           return result
       else:
         # entry is not there, make an insert of a new row
-        #sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, %s)" % (sqlPath, sqlSeName, files, size, sqlUpdate)
         sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, UTC_TIMESTAMP())" % (sqlPath, sqlSeName, files, size)
         self.log.info("sqlCmd: %s" %sqlCmd)
         result = self._update( sqlCmd )
@@ -453,18 +451,17 @@ class StorageUsageDB( DB ):
   def getDirectorySummaryPerSE(self, directory ):
     """ Queries the DB and get a summary (total size and files) for the given directory """
     sqlDirectory = self._escapeString( directory )['Value']
-    sqlCmd = "SELECT %s, su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '%s%%'  GROUP BY su.SEName" % (sqlDirectory, directory)
+    sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '%s%%'  GROUP BY su.SEName" % (directory)
     gLogger.info("getDirectorySummaryPerSE: sqlCmd is %s " %sqlCmd) 
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
       return result
     Data = {}    
     for row in result[ 'Value' ]:
-      dir = row[ 0 ]
-      seName = row[ 1 ]
-      if dir not in Data.keys():
-        Data[ dir ] = {}
-      Data[ dir ][ seName ] =  { 'Size' : long( row[2] ), 'Files' : long( row[3] ) }         
+      seName = row[ 0 ]
+      if seName not in Data.keys():
+        Data[ seName ] = {}
+      Data[ seName ] =  { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }         
     return S_OK( Data )    
     
     
