@@ -393,6 +393,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return res
 
   def _lhcbBroadcast( self, master1SE, master2SEs, secondarySEs, numberOfCopies ):
+    master1SE = self.__getListFromString( master1SE )
+    master2SEs = self.__getListFromString( master2SEs )
+    secondarySEs = self.__getListFromString( secondarySEs )
     transID = self.params['TransformationID']
     # Group the remaining data by run
     res = self.__groupByRun( self.files )
@@ -593,6 +596,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     master1SEs = self.params.get( 'Master1SEs', ['CERN_MC_M-DST'] )
     master2SEs = self.params.get( 'Master2SEs', ['CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
     secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    master1SE = self.__getListFromString( master1SE )
+    master2SEs = self.__getListFromString( master2SEs )
+    secondarySEs = self.__getListFromString( secondarySEs )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
 
     master1ActiveSEs = self.__getActiveSEs( master1SEs )
@@ -737,14 +743,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _ReplicateDataset( self ):
     destSEs = self.params.get( 'destinationSEs', ["CERN-ARCHIVE"] )
-    numberOfCopies = int( self.params.get( 'NumberOfReplicas', len( destSEs ) ) )
+    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
     return self.__simpleReplication( destSEs, numberOfCopies )
 
   def _ArchiveDataset( self ):
     return self.__simpleReplication( "CERN-ARCHIVE" )
 
+  def __getListFromString( self, s ):
+    if type( s ) == types.StringType:
+      try:
+        l = eval( s )
+      except:
+        l = s.split( ',' )
+      return l
+    return s
+
   def __simpleReplication( self, destSEs, numberOfCopies = 0 ):
     transID = self.params['TransformationID']
+    destSEs = self.__getListFromString( destSEs )
     if type( destSEs ) == types.StringType:
       try:
         destSEs = eval( destSEs )
