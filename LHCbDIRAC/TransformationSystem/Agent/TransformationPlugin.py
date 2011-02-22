@@ -137,6 +137,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runFiles = {}
     for fileDict in files:
       runNumber = fileDict.get( 'RunNumber', 0 )
+      if runNumber == None:
+        runNumber = 0
       lfn = fileDict.get( 'LFN', '' )
       if runNumber not in runFiles.keys():
         runFiles[runNumber] = []
@@ -502,6 +504,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not lfn:
         continue
       runID = fileDict.get( 'RunNumber', 'IGNORE' )
+      if runID == None:
+        runID = 0
       if runID == 'IGNORE':
         continue
       if not runSiteDict.has_key( runID ):
