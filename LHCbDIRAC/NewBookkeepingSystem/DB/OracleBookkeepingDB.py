@@ -2572,7 +2572,7 @@ and files.qualityid= dataquality.qualityid'
       
     if filetype != default:
       condition += "  and ftypes.name='"+str(filetype)+"'"
-    
+    tables = ' , dataquality d'
     if quality != 'ALL':
       if type(quality) == types.StringType:
         command = "select QualityId from dataquality where dataqualityflag='"+str(i)+"'"
@@ -2598,6 +2598,7 @@ and files.qualityid= dataquality.qualityid'
             quality = res['Value'][0][0]
           conds += ' f.qualityid='+str(quality)+' or'
         condition += 'and'+conds[:-3] + ')'
+      conditions += ' and d.qualityid=f.qualityid '  
       
     if processing != default:
       command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
@@ -2615,10 +2616,9 @@ and files.qualityid= dataquality.qualityid'
       
       condition += " and prod.processingid in %s"%(pro)
     
-    command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes  where \
+    command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from files f, jobs j, productionscontainer prod, configurations c, filetypes ftypes  where \
     j.jobid=f.jobid and \
     ftypes.filetypeid=f.filetypeid and \
-    d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
     f.visibilityflag='Y' and \
     j.configurationid=c.configurationid and \
