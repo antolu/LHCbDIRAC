@@ -356,7 +356,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     master2SEs = self.params.get( 'Master2SEs', ['CERN_M-DST', 'CNAF_M-DST', 'GRIDKA_M-DST', 'IN2P3_M-DST', 'NIKHEF_M-DST', 'PIC_M-DST', 'RAL_M-DST'] )
     targetSEs = self.params.get( 'SecondarySEs', ['CERN_M-DST', 'CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'NIKHEF-DST', 'PIC-DST', 'RAL-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 4 ) )
-    return self._lhcbBroadcast( randomize( master1SEs )[0], master2SEs, targetSEs, numberOfCopies )
+    return self._lhcbBroadcast( master1SEs, master2SEs, targetSEs, numberOfCopies )
 
   def _LHCbMCDSTBroadcast( self ):
     """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
@@ -364,7 +364,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     master2SEs = self.params.get( 'Master2SEs', ['CERN_MC_M-DST', 'CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
     targetSEs = self.params.get( 'SecondarySEs', ['CERN_MC_M-DST', 'CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
-    return self._lhcbBroadcast( randomize( master1SEs )[0], master2SEs, targetSEs, numberOfCopies )
+    return self._lhcbBroadcast( master1SEs, master2SEs, targetSEs, numberOfCopies )
 
   def __groupByRunAndParam( self, lfnDict, param = '' ):
     runDict = {}
@@ -392,8 +392,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       gLogger.error( "Failed to get bookkeeping metadata", res['Message'] )
     return res
 
-  def _lhcbBroadcast( self, master1SE, master2SEs, secondarySEs, numberOfCopies ):
-    master1SE = self.__getListFromString( master1SE )
+  def _lhcbBroadcast( self, master1SEs, master2SEs, secondarySEs, numberOfCopies ):
+    master1SEs = self.__getListFromString( master1SEs )
+    master1SE = randomize( master1SEs )[0]
     master2SEs = self.__getListFromString( master2SEs )
     secondarySEs = self.__getListFromString( secondarySEs )
     transID = self.params['TransformationID']
@@ -596,7 +597,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     master1SEs = self.params.get( 'Master1SEs', ['CERN_MC_M-DST'] )
     master2SEs = self.params.get( 'Master2SEs', ['CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
     secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
-    master1SE = self.__getListFromString( master1SE )
+    master1SEs = self.__getListFromString( master1SEs )
     master2SEs = self.__getListFromString( master2SEs )
     secondarySEs = self.__getListFromString( secondarySEs )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
