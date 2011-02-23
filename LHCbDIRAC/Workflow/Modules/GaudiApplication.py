@@ -17,7 +17,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
 
-import re, os, sys, time, itertools
+import re, os, sys, time
 
 class GaudiApplication( ModuleBase ):
 
@@ -285,63 +285,6 @@ class GaudiApplication( ModuleBase ):
         streamEvents = streamEvents['Value']
         self.workflow_commons['StreamEvents'] = streamEvents
 
-#    if self.applicationName.lower() == 'davinci':
-#
-#      if self.applicationType.lower() in ['dst', 'mdst']:
-#
-#        stepOutput, bkFileTypes = self._findOutputs( self.stepOutputs )
-#        for stepOutputFile, bkFileType in itertools.izip( stepOutput, bkFileTypes ):
-#          self.log.info( 'Assume this is a non-streaming %s step since %s (%s) was produced' % ( self.jobType,
-#                                                                                                 stepOutputFile,
-#                                                                                                 bkFileType ) )
-#
-#      else:
-#        result = self.manageDaVinciStreamingStep( self.stepOutputs )
-#        if not result['OK']:
-#          return result
-#
-#    # Still have to set the application status e.g. user job case.
-#    self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
-#    return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
-
-  #############################################################################
-
-
-#  def manageDaVinciStreamingStep( self, stepOutput ):
-#    """ Function to manage the outputs of a DaVinci streaming step and of MC stripping step. 
-#        Relies on the workflow commons dictionary and the outputlist and updates these in case
-#        of changes so takes no arguments.  Also tries to determine the number of
-#        events written to each stream file, this information is propagated to the
-#        BookkeepingReport module.
-#    """
-#
-#    self.log.info( '%s streaming step, will attempt to add output data files to the global list of output data' % self.jobType )
-#
-#    finalOutputs, bkFileTypes = self._findOutputs( stepOutput )
-#
-#    self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
-#    if self.workflow_commons.has_key( 'outputList' ):
-#      self.workflow_commons['outputList'] = finalOutputs + self.workflow_commons['outputList']
-#    else:
-#      self.workflow_commons['outputList'] = finalOutputs
-#    self.step_commons['listoutput'] = finalOutputs
-#
-#    self.log.info( 'Attempting to recreate the production output LFNs...' )
-#    result = constructProductionLFNs( self.workflow_commons )
-#    if not result['OK']:
-#      self.log.error( 'Could not create production LFNs', result['Message'] )
-#      return result
-#    self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
-#    self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
-#    self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
-#
-#    #Now will attempt to find the number of output events per stream and convey them via the workflow commons dictionary
-#    streamEvents = getDaVinciStreamEvents( self.applicationLog, bkFileTypes )
-#    if streamEvents['OK']:
-#      streamEvents = streamEvents['Value']
-#      self.workflow_commons['StreamEvents'] = streamEvents
-#
-#    return S_OK()
 
   #############################################################################
 
@@ -580,6 +523,8 @@ class GaudiApplication( ModuleBase ):
     """
       Lowers the file extension of the produced files (on disk!). 
       E.g.: fileName.EXTens.ION -> fileName.extens.ion
+      
+      Unused at the moment
     """
 
     filesInDir = [x for x in os.listdir( '.' ) if not os.path.isdir( x )]
