@@ -132,7 +132,7 @@ transformation.setType( 'Replication' )
 if pluginParams:
   for key, val in pluginParams.items():
     if key.endswith( "SE" ) or key.endswith( "SEs" ):
-      res = transformation.setSE( key, val )
+      res = transformation.setSEParam( key, val )
     else:
       res = transformation.setAdditionalParam( key, val )
     if not res['OK']:
