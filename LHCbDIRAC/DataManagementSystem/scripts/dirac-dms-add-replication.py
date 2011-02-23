@@ -150,10 +150,7 @@ if test:
   print "BK Query:", transBKQuery
   if transBKQuery:
     res = transformation.testBkQuery( transBKQuery )
-    if res['OK']:
-      nfiles = len( res['Value'] )
-      print nfiles, "files found for that query"
-    else:
+    if not res['OK']:
       print "**** ERROR in BK query ****"
       print res['Message']
   print "Plugin:", plugin
@@ -164,7 +161,7 @@ if test:
 
 if transBKQuery:
   res = transformation.testBkQuery( transBKQuery )
-  if res['OK']:
+  if not res['OK']:
     nfiles = len( res['Value'] )
   else:
     print "**** ERROR in BK query ****"
