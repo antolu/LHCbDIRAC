@@ -304,39 +304,29 @@ class GaudiApplication( ModuleBase ):
     finalOutputs = []
 
     filesFound = []
-    otherFiles = []
 
     for output in stepOutput:
 
-      outType = output['outputDataType'].lower()
-      if outType in ['dst', 'mdst'] or re.match( '[a-z,A-Z,.]*dst', outType ):
+      found = False
+      for fileOnDisk in os.listdir( '.' ):
+        if output['outputDataName'].lower() == fileOnDisk.lower():
+          found = True
+          break
 
-        for fileOnDisk in os.listdir( '.' ):
-          if output['outputDataName'].lower() == fileOnDisk.lower():
-            self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk, output['outputDataName'] ) )
-            output['outputDataName'] = fileOnDisk
-            filesFound.append( output )
-
+      if found:
+        self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk, output['outputDataName'] ) )
+        output['outputDataName'] = fileOnDisk
+        filesFound.append( output )
       else:
-        #e.g. root files
-        otherFiles.append( output )
+        self.log.warn( '%s not found' % output['outputDataName'] )
 
     for f in filesFound:
       bkFileTypes.append( f['outputDataType'].upper() )
-#      outName = f['outputDataName'].split( '.' )[:-1] + f['outputDataName'].split( '.' )[-1].lower()
       finalOutputs.append( {'outputDataName': f['outputDataName'],
                             'outputDataType': f['outputDataType'].lower(),
                             'outputDataSE': f['outputDataSE'],
                             'outputBKType': f['outputDataType'].upper()
                             } )
-
-    for f in otherFiles:
-      finalOutputs.append( {'outputDataName': f['outputDataName'],
-                            'outputDataType': f['outputDataType'].lower(),
-                            'outputDataSE': f['outputDataSE'],
-                            'outputBKType': f['outputDataType'].upper()
-                            } )
-
 
     return ( finalOutputs, bkFileTypes )
 

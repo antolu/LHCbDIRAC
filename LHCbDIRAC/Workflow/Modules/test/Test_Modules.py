@@ -143,8 +143,8 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 
   def test__findOutputs( self ):
 
-    open( 'aaa.bhadron.dst', 'w' ).close()
-    open( 'bbb.calibration.dst', 'w' ).close()
+    open( 'aaa.Bhadron.dst', 'w' ).close()
+    open( 'bbb.Calibration.dst', 'w' ).close()
     open( 'ccc.charm.mdst', 'w' ).close()
     open( 'prova.txt', 'w' ).close()
 
@@ -160,10 +160,9 @@ class GaudiApplicationSuccess( ModulesTestCase ):
                   {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
                   {'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
 
-    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'},
-              {'outputDataType': 'calibration.dst', 'outputBKType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.calibration.dst'},
-              {'outputDataType': 'charm.mdst', 'outputBKType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'},
-              {'outputDataType': 'hist', 'outputBKType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
+    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.Bhadron.dst'},
+              {'outputDataType': 'calibration.dst', 'outputBKType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.Calibration.dst'},
+              {'outputDataType': 'charm.mdst', 'outputBKType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'}]
     bkExp = ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST']
 
 
@@ -172,9 +171,24 @@ class GaudiApplicationSuccess( ModulesTestCase ):
     self.assertEqual( out, outExp )
     self.assertEqual( bk, bkExp )
 
-    os.remove( 'aaa.bhadron.dst' )
-    os.remove( 'bbb.calibration.dst' )
+
+
+
+    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'}]
+    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.Bhadron.dst'}]
+    bkExp = ['BHADRON.DST']
+
+    out, bk = self.ga._findOutputs( stepOutput )
+
+    self.assertEqual( out, outExp )
+    self.assertEqual( bk, bkExp )
+
+
+
+    os.remove( 'aaa.Bhadron.dst' )
+    os.remove( 'bbb.Calibration.dst' )
     os.remove( 'ccc.charm.mdst' )
+    os.remove( 'prova.txt' )
 
 
 

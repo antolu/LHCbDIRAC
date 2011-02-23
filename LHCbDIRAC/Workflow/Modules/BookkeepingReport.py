@@ -15,9 +15,9 @@ import DIRAC
 
 import os, time, re, string
 
-class BookkeepingReport(ModuleBase):
+class BookkeepingReport( ModuleBase ):
 
-  def __init__(self):
+  def __init__( self ):
     self.version = __RCSID__
     self.configName = ''
     self.configVersion = ''
@@ -32,243 +32,245 @@ class BookkeepingReport(ModuleBase):
     self.inputData = ''
     self.InputData = ''
     self.JOB_ID = None # to check
-    self.sourceData=''
+    self.sourceData = ''
     self.applicationName = ''
     self.applicationLog = ''
-    self.firstStepInput=''
+    self.firstStepInput = ''
     self.jobType = ''
-    self.log = gLogger.getSubLogger("BookkeepingReport")
+    self.log = gLogger.getSubLogger( "BookkeepingReport" )
     pass
 
-  def resolveInputVariables(self):
-    if self.workflow_commons.has_key('FirstStepInputEvents'):
+  def resolveInputVariables( self ):
+    if self.workflow_commons.has_key( 'FirstStepInputEvents' ):
       self.firstStepInput = self.workflow_commons['FirstStepInputEvents']
 
-    if self.workflow_commons.has_key('sourceData'):
-        self.sourceData = self.workflow_commons['sourceData']
+    if self.workflow_commons.has_key( 'sourceData' ):
+      self.sourceData = self.workflow_commons['sourceData']
 
-    if self.step_commons.has_key('eventType'):
-        self.eventType = self.step_commons['eventType']
+    if self.step_commons.has_key( 'eventType' ):
+      self.eventType = self.step_commons['eventType']
 
-    if self.workflow_commons.has_key('simDescription'):
-        self.simDescription = self.workflow_commons['simDescription']
+    if self.workflow_commons.has_key( 'simDescription' ):
+      self.simDescription = self.workflow_commons['simDescription']
 
-    if self.step_commons.has_key('numberOfEvents'):
-       self.numberOfEvents = self.step_commons['numberOfEvents']
+    if self.step_commons.has_key( 'numberOfEvents' ):
+      self.numberOfEvents = self.step_commons['numberOfEvents']
 
-    if self.step_commons.has_key('numberOfEventsOutput'):
-       self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
+    if self.step_commons.has_key( 'numberOfEventsOutput' ):
+      self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
 
-    if self.step_commons.has_key('numberOfEventsInput'):
-       self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
+    if self.step_commons.has_key( 'numberOfEventsInput' ):
+      self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
 
-    if self.step_commons.has_key('inputDataType'):
-       self.inputDataType = self.step_commons['inputDataType']
+    if self.step_commons.has_key( 'inputDataType' ):
+      self.inputDataType = self.step_commons['inputDataType']
 
-    if self.workflow_commons.has_key('poolXMLCatName'):
-       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+    if self.workflow_commons.has_key( 'poolXMLCatName' ):
+      self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
-    if self.workflow_commons.has_key('InputData'):
-       self.InputData = self.workflow_commons['InputData']
+    if self.workflow_commons.has_key( 'InputData' ):
+      self.InputData = self.workflow_commons['InputData']
 
-    if self.step_commons.has_key('inputData'):
-       self.inputData = self.step_commons['inputData']
+    if self.step_commons.has_key( 'inputData' ):
+      self.inputData = self.step_commons['inputData']
 
-    if self.step_commons.has_key('listoutput'):
-       self.listoutput = self.step_commons['listoutput']
+    if self.step_commons.has_key( 'listoutput' ):
+      self.listoutput = self.step_commons['listoutput']
 
-    if self.workflow_commons.has_key('outputList'):
-        self.workflow_commons['outputList'] = self.workflow_commons['outputList'] + self.listoutput
+    if self.workflow_commons.has_key( 'outputList' ):
+      for outputItem in self.listoutput:
+        if outputItem not in self.workflow_commons['outputList']:
+          self.workflow_commons['outputList'].append( outputItem )
     else:
-        self.workflow_commons['outputList'] = self.listoutput
+      self.workflow_commons['outputList'] = self.listoutput
 
-    if self.step_commons.has_key('applicationName'):
-       self.applicationName = self.step_commons['applicationName']
-       self.applicationVersion = self.step_commons['applicationVersion']
-       self.applicationLog = self.step_commons['applicationLog']
+    if self.step_commons.has_key( 'applicationName' ):
+      self.applicationName = self.step_commons['applicationName']
+      self.applicationVersion = self.step_commons['applicationVersion']
+      self.applicationLog = self.step_commons['applicationLog']
 
-    if self.workflow_commons.has_key('BookkeepingLFNs') and self.workflow_commons.has_key('LogFilePath') and self.workflow_commons.has_key('ProductionOutputData'):
+    if self.workflow_commons.has_key( 'BookkeepingLFNs' ) and self.workflow_commons.has_key( 'LogFilePath' ) and self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.logFilePath = self.workflow_commons['LogFilePath']
       self.bkLFNs = self.workflow_commons['BookkeepingLFNs']
-      if not type(self.bkLFNs)==type([]):
-        self.bkLFNs = [i.strip() for i in self.bkLFNs.split(';')]
+      if not type( self.bkLFNs ) == type( [] ):
+        self.bkLFNs = [i.strip() for i in self.bkLFNs.split( ';' )]
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
-      if not type(self.prodOutputLFNs)==type([]):
-        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split(';')]
+      if not type( self.prodOutputLFNs ) == type( [] ):
+        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]
     else:
-      self.log.info('LogFilePath / BookkeepingLFNs parameters not found, creating on the fly')
-      result = constructProductionLFNs(self.workflow_commons)
+      self.log.info( 'LogFilePath / BookkeepingLFNs parameters not found, creating on the fly' )
+      result = constructProductionLFNs( self.workflow_commons )
       if not result['OK']:
-        self.log.error('Could not create production LFNs',result['Message'])
+        self.log.error( 'Could not create production LFNs', result['Message'] )
         return result
-      self.bkLFNs=result['Value']['BookkeepingLFNs']
-      self.logFilePath=result['Value']['LogFilePath'][0]
-      self.prodOutputLFNs=result['Value']['ProductionOutputData']
+      self.bkLFNs = result['Value']['BookkeepingLFNs']
+      self.logFilePath = result['Value']['LogFilePath'][0]
+      self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
-    if self.workflow_commons.has_key('JobType'):
+    if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
 
     return S_OK()
 
   ############################################################################
-  def getNodeInformation(self):
+  def getNodeInformation( self ):
     """Try to obtain system HostName, CPU, Model, cache and memory.  This information
        is not essential to the running of the jobs but will be reported if
        available.
     """
     result = S_OK()
     try:
-      file = open ("/proc/cpuinfo","r")
-      info =  file.readlines()
+      file = open ( "/proc/cpuinfo", "r" )
+      info = file.readlines()
       file.close()
       result["HostName"] = socket.gethostname()
-      result["CPU(MHz)"]   = string.replace(string.replace(string.split(info[6],":")[1]," ",""),"\n","")
-      result["ModelName"] = string.replace(string.replace(string.split(info[4],":")[1]," ",""),"\n","")
-      result["CacheSize(kB)"] = string.replace(string.replace(string.split(info[7],":")[1]," ",""),"\n","")
-      file = open ("/proc/meminfo","r")
-      info =  file.readlines()
+      result["CPU(MHz)"] = string.replace( string.replace( string.split( info[6], ":" )[1], " ", "" ), "\n", "" )
+      result["ModelName"] = string.replace( string.replace( string.split( info[4], ":" )[1], " ", "" ), "\n", "" )
+      result["CacheSize(kB)"] = string.replace( string.replace( string.split( info[7], ":" )[1], " ", "" ), "\n", "" )
+      file = open ( "/proc/meminfo", "r" )
+      info = file.readlines()
       file.close()
-      result["Memory(kB)"] =  string.replace(string.replace(string.split(info[3],":")[1]," ",""),"\n","")
+      result["Memory(kB)"] = string.replace( string.replace( string.split( info[3], ":" )[1], " ", "" ), "\n", "" )
     except Exception, x:
-      self.log.fatal('BookkeepingReport failed to obtain node information with Exception:')
-      self.log.fatal(str(x))
+      self.log.fatal( 'BookkeepingReport failed to obtain node information with Exception:' )
+      self.log.fatal( str( x ) )
       result = S_ERROR()
-      result['Message']='Failed to obtain system information for '+self.systemFlag
+      result['Message'] = 'Failed to obtain system information for ' + self.systemFlag
       return result
 
     return result
 
 
 
-  def execute(self):
-    self.log.info('Initializing '+self.version)
+  def execute( self ):
+    self.log.info( 'Initializing ' + self.version )
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-       self.log.info('Skip this module, failure detected in a previous step :')
-       self.log.info('Workflow status : %s' %(self.workflowStatus))
-       self.log.info('Step Status %s' %(self.stepStatus))
+       self.log.info( 'Skip this module, failure detected in a previous step :' )
+       self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
+       self.log.info( 'Step Status %s' % ( self.stepStatus ) )
        return S_OK()
 
     result = self.resolveInputVariables()
     if not result['OK']:
-      self.log.error(result['Message'])
+      self.log.error( result['Message'] )
       return result
 
-    self.root = gConfig.getValue('/LocalSite/Root',os.getcwd())
-    bfilename = 'bookkeeping_'+self.STEP_ID+'.xml'
-    bfile = open(bfilename,'w')
-    print >> bfile,self.makeBookkeepingXMLString()
+    self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
+    bfilename = 'bookkeeping_' + self.STEP_ID + '.xml'
+    bfile = open( bfilename, 'w' )
+    print >> bfile, self.makeBookkeepingXMLString()
     bfile.close()
 
     return S_OK()
 
-  def __parameter_string(self,name,value,ptype):
+  def __parameter_string( self, name, value, ptype ):
 
-    return '  <TypedParameter Name="' + str(name) + \
-                     '" Value="'+str(value)+'" Type="'+str(ptype)+'"/>\n'
+    return '  <TypedParameter Name="' + str( name ) + \
+                     '" Value="' + str( value ) + '" Type="' + str( ptype ) + '"/>\n'
 
 
-  def makeBookkeepingXMLString(self):
+  def makeBookkeepingXMLString( self ):
 
-    dataTypes = gConfig.getValue('/Operations/Bookkeeping/FileTypes',[])
-    gLogger.info('DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' %(string.join(dataTypes,', ')))
+    dataTypes = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
+    gLogger.info( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( dataTypes, ', ' ) ) )
 
-    if self.workflow_commons.has_key('dataType'):
+    if self.workflow_commons.has_key( 'dataType' ):
       job_mode = self.workflow_commons['dataType'].lower()
     else:
       job_mode = 'test'
-    ldate = time.strftime("%Y-%m-%d",time.localtime(time.time()))
-    ltime = time.strftime("%H:%M",time.localtime(time.time()))
-    if self.step_commons.has_key('StartTime'):
-      ldatestart = time.strftime("%Y-%m-%d",time.localtime(self.step_commons['StartTime']))
-      ltimestart = time.strftime("%H:%M",time.localtime(self.step_commons['StartTime']))
+    ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
+    ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
+    if self.step_commons.has_key( 'StartTime' ):
+      ldatestart = time.strftime( "%Y-%m-%d", time.localtime( self.step_commons['StartTime'] ) )
+      ltimestart = time.strftime( "%H:%M", time.localtime( self.step_commons['StartTime'] ) )
 
     # Timing
     exectime = 0
-    if self.step_commons.has_key('StartTime'):
+    if self.step_commons.has_key( 'StartTime' ):
       exectime = time.time() - self.step_commons['StartTime']
     cputime = 0
-    if self.step_commons.has_key('StartStats'):
+    if self.step_commons.has_key( 'StartStats' ):
       stats = os.times()
-      cputime = stats[0]+stats[2]-self.step_commons['StartStats'][0]-self.step_commons['StartStats'][2]
+      cputime = stats[0] + stats[2] - self.step_commons['StartStats'][0] - self.step_commons['StartStats'][2]
 
     s = ''
-    s = s+'<?xml version="1.0" encoding="ISO-8859-1"?>\n'
-    s = s+'<!DOCTYPE Job SYSTEM "book.dtd">\n'
+    s = s + '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
+    s = s + '<!DOCTYPE Job SYSTEM "book.dtd">\n'
 
     # Get the Config name from the environment if any
-    if self.workflow_commons.has_key('configName'):
+    if self.workflow_commons.has_key( 'configName' ):
       configName = self.workflow_commons['configName']
       configVersion = self.workflow_commons['configVersion']
     else:
       configName = self.applicationName
       configVersion = self.applicationVersion
 
-    s = s+'<Job ConfigName="'+configName+ \
-          '" ConfigVersion="'+configVersion+ \
-          '" Date="'+ldate+ \
-          '" Time="'+ltime+'">\n'
+    s = s + '<Job ConfigName="' + configName + \
+          '" ConfigVersion="' + configVersion + \
+          '" Date="' + ldate + \
+          '" Time="' + ltime + '">\n'
 
-    s = s+self.__parameter_string("CPUTIME",cputime,'Info')
-    s = s+self.__parameter_string("ExecTime",exectime,'Info')
+    s = s + self.__parameter_string( "CPUTIME", cputime, 'Info' )
+    s = s + self.__parameter_string( "ExecTime", exectime, 'Info' )
 
     nodeInfo = self.getNodeInformation()
     if nodeInfo['OK']:
-      s = s+self.__parameter_string("WNMODEL",nodeInfo['ModelName'],'Info')
-      s = s+self.__parameter_string("WNMEMORY",nodeInfo['Memory(kB)'],'Info')
-      s = s+self.__parameter_string("WNCPUPOWER",nodeInfo['CPU(MHz)'],'Info')
-      s = s+self.__parameter_string("WNCACHE",nodeInfo['CacheSize(kB)'],'Info')
+      s = s + self.__parameter_string( "WNMODEL", nodeInfo['ModelName'], 'Info' )
+      s = s + self.__parameter_string( "WNMEMORY", nodeInfo['Memory(kB)'], 'Info' )
+      s = s + self.__parameter_string( "WNCPUPOWER", nodeInfo['CPU(MHz)'], 'Info' )
+      s = s + self.__parameter_string( "WNCACHE", nodeInfo['CacheSize(kB)'], 'Info' )
 
-    s = s+self.__parameter_string("WNCPUHS06",gConfig.getValue('/LocalSite/CPUNormalizationFactor', '1'),'Info')
-    s = s+self.__parameter_string("Production",self.PRODUCTION_ID,'Info')
-    s = s+self.__parameter_string("DiracJobId",self.JOB_ID,'Info')
-    s = s+self.__parameter_string("Name",self.STEP_ID,'Info')
-    s = s+self.__parameter_string("JobStart",ldatestart+' '+ltimestart,'Info')
-    s = s+self.__parameter_string("JobEnd",ldate+' '+ltime,'Info')
-    s = s+self.__parameter_string("Location",DIRAC.siteName(),'Info')    
-    s = s+self.__parameter_string("JobType",self.jobType,"Info")
-    
+    s = s + self.__parameter_string( "WNCPUHS06", gConfig.getValue( '/LocalSite/CPUNormalizationFactor', '1' ), 'Info' )
+    s = s + self.__parameter_string( "Production", self.PRODUCTION_ID, 'Info' )
+    s = s + self.__parameter_string( "DiracJobId", self.JOB_ID, 'Info' )
+    s = s + self.__parameter_string( "Name", self.STEP_ID, 'Info' )
+    s = s + self.__parameter_string( "JobStart", ldatestart + ' ' + ltimestart, 'Info' )
+    s = s + self.__parameter_string( "JobEnd", ldate + ' ' + ltime, 'Info' )
+    s = s + self.__parameter_string( "Location", DIRAC.siteName(), 'Info' )
+    s = s + self.__parameter_string( "JobType", self.jobType, "Info" )
+
 #    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
 
     host = None
-    if os.environ.has_key("HOSTNAME"):
+    if os.environ.has_key( "HOSTNAME" ):
       host = os.environ["HOSTNAME"]
-    elif os.environ.has_key("HOST"):
+    elif os.environ.has_key( "HOST" ):
       host = os.environ["HOST"]
     if host is not None:
-      s = s+self.__parameter_string('WorkerNode',host,'Info')
+      s = s + self.__parameter_string( 'WorkerNode', host, 'Info' )
 
-    if  os.environ.has_key('XMLDDDB_VERSION'):
-      s = s+self.__parameter_string("GeometryVersion",os.environ["XMLDDDB_VERSION"],'Info')
+    if  os.environ.has_key( 'XMLDDDB_VERSION' ):
+      s = s + self.__parameter_string( "GeometryVersion", os.environ["XMLDDDB_VERSION"], 'Info' )
 
-    s = s+self.__parameter_string("ProgramName",self.applicationName,'Info')
-    s = s+self.__parameter_string("ProgramVersion",self.applicationVersion,'Info')
+    s = s + self.__parameter_string( "ProgramName", self.applicationName, 'Info' )
+    s = s + self.__parameter_string( "ProgramVersion", self.applicationVersion, 'Info' )
 
     # DIRAC version
-    s = s+self.__parameter_string('DiracVersion','v'+str(majorVersion)+'r'+str(minorVersion)+'p'+str(patchLevel),'Info')
+    s = s + self.__parameter_string( 'DiracVersion', 'v' + str( majorVersion ) + 'r' + str( minorVersion ) + 'p' + str( patchLevel ), 'Info' )
 
     if self.firstEventNumber != None:
-      s = s+self.__parameter_string('FirstEventNumber',self.firstEventNumber,"Info")
+      s = s + self.__parameter_string( 'FirstEventNumber', self.firstEventNumber, "Info" )
     else:
-      s = s+self.__parameter_string('FirstEventNumber',"1","Info")
+      s = s + self.__parameter_string( 'FirstEventNumber', "1", "Info" )
 
     if self.numberOfEvents != None:
-      s = s+self.__parameter_string('StatisticsRequested',self.numberOfEvents,"Info")
+      s = s + self.__parameter_string( 'StatisticsRequested', self.numberOfEvents, "Info" )
 
     if self.numberOfEventsInput != None:
-      s = s+self.__parameter_string('NumberOfEvents',self.numberOfEventsInput,"Info")
+      s = s + self.__parameter_string( 'NumberOfEvents', self.numberOfEventsInput, "Info" )
     else:
-      s = s+self.__parameter_string('NumberOfEvents',self.numberOfEvents,"Info")
+      s = s + self.__parameter_string( 'NumberOfEvents', self.numberOfEvents, "Info" )
 
     if self.inputData:
-      intermediateInputs=False
-      for inputname in self.inputData.split(';'):
+      intermediateInputs = False
+      for inputname in self.inputData.split( ';' ):
         for bkLFN in self.bkLFNs:
-          if os.path.basename(bkLFN)==os.path.basename(inputname):
-            s = s+'  <InputFile    Name="'+bkLFN+'"/>\n'
-            intermediateInputs=True
+          if os.path.basename( bkLFN ) == os.path.basename( inputname ):
+            s = s + '  <InputFile    Name="' + bkLFN + '"/>\n'
+            intermediateInputs = True
         if not intermediateInputs:
-          s = s+'  <InputFile    Name="'+inputname.replace('LFN:','')+'"/>\n'
+          s = s + '  <InputFile    Name="' + inputname.replace( 'LFN:', '' ) + '"/>\n'
 
     ####################################################################
     # Output files
@@ -281,8 +283,8 @@ class BookkeepingReport(ModuleBase):
     else:
       self.log.warn( 'BookkeepingReport: no eventType specified' )
       eventtype = 'Unknown'
-    self.log.info( 'Event type = %s' % (str(self.eventType)))
-    self.log.info( 'stats = %s' %(str(self.numberOfEventsOutput)))
+    self.log.info( 'Event type = %s' % ( str( self.eventType ) ) )
+    self.log.info( 'stats = %s' % ( str( self.numberOfEventsOutput ) ) )
 
     if self.numberOfEventsOutput != '':
       statistics = self.numberOfEventsOutput
@@ -298,32 +300,32 @@ class BookkeepingReport(ModuleBase):
     outputs = []
     count = 0
     bkTypeDict = {}
-    while (count < len(self.listoutput)):
-      if self.listoutput[count].has_key('outputDataName'):
-        outputs.append(((self.listoutput[count]['outputDataName']),(self.listoutput[count]['outputDataSE']),(self.listoutput[count]['outputDataType'])))
-      if self.listoutput[count].has_key('outputBKType'):
-        bkTypeDict[self.listoutput[count]['outputDataName']]=self.listoutput[count]['outputBKType']
-      count=count+1
+    while ( count < len( self.listoutput ) ):
+      if self.listoutput[count].has_key( 'outputDataName' ):
+        outputs.append( ( ( self.listoutput[count]['outputDataName'] ), ( self.listoutput[count]['outputDataSE'] ), ( self.listoutput[count]['outputDataType'] ) ) )
+      if self.listoutput[count].has_key( 'outputBKType' ):
+        bkTypeDict[self.listoutput[count]['outputDataName']] = self.listoutput[count]['outputBKType']
+      count = count + 1
     outputs_done = []
-    outputs.append(((self.applicationLog),('LogSE'),('LOG')))
-    self.log.info(outputs)
-    if type(self.logFilePath)==type([]):
+    outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
+    self.log.info( outputs )
+    if type( self.logFilePath ) == type( [] ):
       self.logFilePath = self.logFilePath[0]
 
-    for output,outputse,outputtype in list(outputs):
-      self.log.info('Looking at output %s %s %s' %(output,outputse,outputtype))
+    for output, outputse, outputtype in list( outputs ):
+      self.log.info( 'Looking at output %s %s %s' % ( output, outputse, outputtype ) )
       typeName = outputtype.upper()
       typeVersion = '1'
       fileStats = statistics
-      if bkTypeDict.has_key(output):
-        typeVersion='ROOT_All'
-        typeName=string.upper(bkTypeDict[output])
-        self.log.info('Setting explicit BK type version for %s to %s and file type to %s' %(output,typeVersion,typeName))
-        if self.workflow_commons.has_key('StreamEvents'):
+      if bkTypeDict.has_key( output ):
+        typeVersion = 'ROOT_All'
+        typeName = string.upper( bkTypeDict[output] )
+        self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
+        if self.workflow_commons.has_key( 'StreamEvents' ):
           streamEvents = self.workflow_commons['StreamEvents']
-          if streamEvents.has_key(typeName):
+          if streamEvents.has_key( typeName ):
             fileStats = streamEvents[typeName]
-            self.log.info('Found explicit number of events = %s for file %s, type %s' %(fileStats,output,typeName))
+            self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )
@@ -331,15 +333,15 @@ class BookkeepingReport(ModuleBase):
       # Output file size
       if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
         try:
-          outputsize = str(os.path.getsize(output))
+          outputsize = str( os.path.getsize( output ) )
         except:
           outputsize = '0'
       else:
         outputsize = self.step_commons[ 'size' ][ output ]
 
       if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
-        comm = 'md5sum '+str(output)
-        resultTuple = shellCall(0,comm)
+        comm = 'md5sum ' + str( output )
+        resultTuple = shellCall( 0, comm )
         status = resultTuple['Value'][0]
         out = resultTuple['Value'][1]
       else:
@@ -354,50 +356,50 @@ class BookkeepingReport(ModuleBase):
         md5sum = out.split()[0]
 
       if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
-        guidResult = getGUID(output)
+        guidResult = getGUID( output )
         guid = ''
         if not guidResult['OK']:
-          self.log.error('Could not find GUID for %s with message' %(output),guidResult['Message'])
+          self.log.error( 'Could not find GUID for %s with message' % ( output ), guidResult['Message'] )
         elif guidResult['generated']:
-          self.log.warn('PoolXMLFile generated GUID(s) for the following files ',string.join(guidResult['generated'],', '))
+          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ', string.join( guidResult['generated'], ', ' ) )
           guid = guidResult['Value'][output]
         else:
           guid = guidResult['Value'][output]
-          self.log.info('Setting POOL XML catalog GUID for %s to %s' %(output,guid))
+          self.log.info( 'Setting POOL XML catalog GUID for %s to %s' % ( output, guid ) )
       else:
         guid = self.step_commons[ 'guid' ][ output ]
 
       if not guid:
-        return S_ERROR('No GUID found for %s' %output)
+        return S_ERROR( 'No GUID found for %s' % output )
 
       # find the constructed lfn
       lfn = ''
-      if not re.search('.log$',output):
+      if not re.search( '.log$', output ):
         for outputLFN in self.bkLFNs:
-          if os.path.basename(outputLFN)==output:
-            lfn=outputLFN
+          if os.path.basename( outputLFN ) == output:
+            lfn = outputLFN
         if not lfn:
-          return S_ERROR('Could not find LFN for %s' %output)
+          return S_ERROR( 'Could not find LFN for %s' % output )
       else:
-        lfn = '%s/%s' %(self.logFilePath,self.applicationLog)
+        lfn = '%s/%s' % ( self.logFilePath, self.applicationLog )
 
       #Fix for histograms
-      oldTypeName=None
-      if typeName.upper()=='HIST':
-        typeVersion='0'
-        oldTypeName=typeName
-        typeName='%sHIST' %(self.applicationName.upper())
+      oldTypeName = None
+      if typeName.upper() == 'HIST':
+        typeVersion = '0'
+        oldTypeName = typeName
+        typeName = '%sHIST' % ( self.applicationName.upper() )
 
-      s = s+'  <OutputFile   Name="'+lfn+'" TypeName="'+typeName+'" TypeVersion="'+typeVersion+'">\n'
+      s = s + '  <OutputFile   Name="' + lfn + '" TypeName="' + typeName + '" TypeVersion="' + typeVersion + '">\n'
 
       #HIST is in the dataTypes e.g. we may have new names in the future ;)
       if oldTypeName:
-        typeName=oldTypeName
+        typeName = oldTypeName
 
       if typeName in dataTypes:
-        s = s+'    <Parameter  Name="EventTypeId"     Value="'+eventtype+'"/>\n'
-        s = s+'    <Parameter  Name="EventStat"       Value="'+str(fileStats)+'"/>\n'
-        s = s+'    <Parameter  Name="FileSize"        Value="'+outputsize+'"/>\n'
+        s = s + '    <Parameter  Name="EventTypeId"     Value="' + eventtype + '"/>\n'
+        s = s + '    <Parameter  Name="EventStat"       Value="' + str( fileStats ) + '"/>\n'
+        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
 
 
       ############################################################
@@ -407,22 +409,22 @@ class BookkeepingReport(ModuleBase):
           logfile = self.applicationLog
           if logfile == output:
             logurl = 'http://lhcb-logs.cern.ch/storage'
-            url = logurl+self.logFilePath+'/'+self.applicationLog
-            s = s+'    <Replica Name="'+url+'" Location="Web"/>\n'
+            url = logurl + self.logFilePath + '/' + self.applicationLog
+            s = s + '    <Replica Name="' + url + '" Location="Web"/>\n'
 
-      s = s+'    <Parameter  Name="MD5Sum"        Value="'+md5sum+'"/>\n'
-      s = s+'    <Parameter  Name="Guid"        Value="'+guid+'"/>\n'
-      s = s+'  </OutputFile>\n'
+      s = s + '    <Parameter  Name="MD5Sum"        Value="' + md5sum + '"/>\n'
+      s = s + '    <Parameter  Name="Guid"        Value="' + guid + '"/>\n'
+      s = s + '  </OutputFile>\n'
     if self.applicationName == "Gauss":
-        s = self.makeBeamConditions(s)
+        s = self.makeBeamConditions( s )
 
-    s = s+'</Job>'
+    s = s + '</Job>'
     return s
 
-  def makeBeamConditions(self,sbeam):
-      sbeam = sbeam+'  <SimulationCondition>\n'
-      sbeam = sbeam+'    <Parameter Name="SimDescription"   Value="'+self.simDescription+'"/>\n'
-      sbeam = sbeam+'  </SimulationCondition>\n'
+  def makeBeamConditions( self, sbeam ):
+      sbeam = sbeam + '  <SimulationCondition>\n'
+      sbeam = sbeam + '    <Parameter Name="SimDescription"   Value="' + self.simDescription + '"/>\n'
+      sbeam = sbeam + '  </SimulationCondition>\n'
       return sbeam
 
 
