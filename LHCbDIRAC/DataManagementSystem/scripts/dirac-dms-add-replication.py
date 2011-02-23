@@ -118,7 +118,7 @@ else:
   if bkNodes[0] == "MC":
     bkFields[2] = "SimulationConditions"
   for i in range( len( bkFields ) ):
-    if bkNodes[i].lower != 'all':
+    if bkNodes[i].lower() != 'all':
       transBKQuery[bkFields[i]] = bkNodes[i]
   longName = transGroup + " for BKQuery " + bkQuery
   transName += '-' + bkQuery
