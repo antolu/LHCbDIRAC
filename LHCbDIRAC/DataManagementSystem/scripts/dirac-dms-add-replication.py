@@ -91,9 +91,9 @@ if prods:
     Script.showHelp()
     DIRAC.exit( 2 )
   transBKQuery = {}
-  if prods[0].lower() != 'all':
+  if prods[0].upper() != 'ALL':
     transBKQuery['ProductionID'] = prods
-  if fileType.lower() != 'all':
+  if fileType.upper() != 'ALL':
     transBKQuery['FileType'] = fileType
   if len( prods ) == 1:
     s = 's'
@@ -118,7 +118,7 @@ else:
   if bkNodes[0] == "MC":
     bkFields[2] = "SimulationConditions"
   for i in range( len( bkFields ) ):
-    if bkNodes[i].lower() != 'all':
+    if bkNodes[i].upper().endswith( 'ALL' ):
       transBKQuery[bkFields[i]] = bkNodes[i]
   longName = transGroup + " for BKQuery " + bkQuery
   transName += '-' + bkQuery
