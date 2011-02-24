@@ -408,34 +408,30 @@ class LHCB_BKKDBManager( BaseESManager ):
   def clevelBody_2( self, path, levels, dict ):
     entityList = list()
     result = self.db_.getConditions( dict )
-    print result
     if result['OK']:
       dbResult = result['Value']
       if dbResult[0]["TotalRecords"] > 0:
         add = self.__addAll( path, levels, 'Simulation Conditions/DataTaking' )
         if add:
           entityList += [add]
-      for record in dbResult[0]['Records']:
-        value = {}
-        j = 0
-        for i in dbResult[0]['ParameterNames']:
-          value[i] = record[j]
-          j += 1
-        entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
-      self._cacheIt( entityList )
+        for record in dbResult[0]['Records']:
+          value = {}
+          j = 0
+          for i in dbResult[0]['ParameterNames']:
+            value[i] = record[j]
+            j += 1
+          entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
+        self._cacheIt( entityList )
       if dbResult[1]["TotalRecords"] > 0:
-        add = self.__addAll( path, levels, 'Simulation Conditions/DataTaking' )
-        if add:
-          entityList += [add]
-      for record in dbResult[1]['Records']:
-        value = {}
-        j = 0
-        for i in dbResult[1]['ParameterNames']:
-          value[i] = record[j]
-          j += 1
-        entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
-      self._cacheIt( entityList )
-      
+        for record in dbResult[1]['Records']:
+          value = {}
+          j = 0
+          for i in dbResult[1]['ParameterNames']:
+            value[i] = record[j]
+            j += 1
+          entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
+        self._cacheIt( entityList )
+        
     else:
       gLogger.error( result['Message'] )
 
@@ -470,9 +466,9 @@ class LHCB_BKKDBManager( BaseESManager ):
         add = self.__addAll( path, levels, 'Processing Pass' )
         if add:
           entityList += [add]
-      for record in dbResult[0]['Records']:
-        entityList += [self._getEntityFromPath( path, record[0], levels, 'Processing Pass', dict, 'getProcessingPass' )]
-      self._cacheIt( entityList )
+        for record in dbResult[0]['Records']:
+          entityList += [self._getEntityFromPath( path, record[0], levels, 'Processing Pass', dict, 'getProcessingPass' )]
+        self._cacheIt( entityList )
       if dbResult[1]['TotalRecords'] > 0:
         value = {}
         for record in dbResult[1]['Records']:
@@ -692,18 +688,28 @@ class LHCB_BKKDBManager( BaseESManager ):
     result = self.db_.getConditions( dict )
     if result['OK']:
       dbResult = result['Value']
-      if dbResult["TotalRecords"] > 1:
+      if dbResult[0]["TotalRecords"] > 0:
         add = self.__addAll( path, levels, 'Simulation Conditions/DataTaking' )
         if add:
           entityList += [add]
-      for record in dbResult['Records']:
-        value = {}
-        j = 0
-        for i in dbResult['ParameterNames']:
-          value[i] = record[j]
-          j += 1
-        entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
-      self._cacheIt( entityList )
+        for record in dbResult[0]['Records']:
+          value = {}
+          j = 0
+          for i in dbResult[0]['ParameterNames']:
+            value[i] = record[j]
+            j += 1
+          entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
+        self._cacheIt( entityList )
+      if dbResult[1]["TotalRecords"] > 0:
+        for record in dbResult[1]['Records']:
+          value = {}
+          j = 0
+          for i in dbResult[1]['ParameterNames']:
+            value[i] = record[j]
+            j += 1
+          entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
+        self._cacheIt( entityList )
+        
     else:
       gLogger.error( result['Message'] )
 

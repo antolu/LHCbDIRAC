@@ -325,7 +325,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   
   #############################################################################
   def getProcessingPass(self, configName, configVersion, conddescription, runnumber, production, path='/'):
-    
+    print 'sssssss',configName, configVersion
     erecords = []
     eparameters =  []
     precords = []
@@ -341,7 +341,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if conddescription != default:
       retVal = self._getConditionString(conddescription)
       if retVal['OK']:
-        condition = retVal['Value']
+        condition += retVal['Value']
       else:
         return retVal
     if production != default:
@@ -379,10 +379,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
           erecords += [[record[0],record[1]]]
       else:
         return retVal
+      print 'dsdsdsds',condition
       command = 'SELECT distinct name \
       FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
       productionscontainer.production=newbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     else:
+      print 'dsdsdsds1111',condition
       command = 'SELECT distinct name \
       FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
       productionscontainer.production=newbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
@@ -420,7 +422,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if conddescription!= default:
       retVal = self._getConditionString(conddescription)
       if retVal['OK']:
-        condition = retVal['Value']
+        condition += retVal['Value']
       else:
         return retVal
       
@@ -3005,7 +3007,7 @@ and files.qualityid= dataquality.qualityid'
     if cond!=default:
       retVal = self._getConditionString(cond,'prod')
       if retVal['OK']:
-        condition = retVal['Value']
+        condition += retVal['Value']
       else:
         return retVal
       
