@@ -69,7 +69,7 @@ unmergedStreamSE = '{{RecoStreamSE#PROD-RECO: unmerged stream SE#Tier1-DST}}'
 mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK#OK}}'
 mergePriority = '{{MergePriority#PROD-Merging: priority#8}}'
 mergePlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRun}}'
-mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#False}}'
+mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
 mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 
 #transformation params
@@ -138,6 +138,7 @@ if testFlag:
   processingPass = 'Real Data'
   BKfileType = 'RAW'
   eventType = '90000000'
+  mergeRemoveInputsFlag = True
 else:
   outBkConfigName = bkConfigName
   outBkConfigVersion = bkConfigVersion

@@ -1,4 +1,4 @@
-import unittest, itertools, os, re
+import unittest, itertools, os
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
