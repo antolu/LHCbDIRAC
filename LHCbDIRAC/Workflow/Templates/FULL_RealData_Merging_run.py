@@ -90,10 +90,8 @@ recoRunNumbers = '{{inProductionID}}'
 #Other parameters from the request page
 recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
 recoTransFlag = eval( recoTransFlag )
-#recoBKPublishing = eval( recoBKPublishing )
 mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 replicationFlag = eval( replicationFlag )
-#testProduction = eval(testProduction)
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 

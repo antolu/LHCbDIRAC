@@ -16,15 +16,15 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
-import sys,os,string,re
+import string, re
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 
 import DIRAC
 
-from DIRAC import gConfig, gLogger
-gLogger = gLogger.getSubLogger('EXPRESS_RealData_run.py')
+from DIRAC import gLogger
+gLogger = gLogger.getSubLogger( 'EXPRESS_RealData_run.py' )
 
 #################################################################################
 # Below here is the production API script with notes
@@ -62,34 +62,34 @@ recoEndRun = '{{RecoRunEnd#Reconstruction run end, to set the end of the range#0
 # Fixed and implied parameters 
 ###########################################
 
-currentReqID = int('{{ID}}')
+currentReqID = int( '{{ID}}' )
 prodGroup = '{{pDsc}}'
 bkConfigName = '{{configName}}'
 bkConfigVersion = '{{configVersion}}'
 
 recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
 #dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
-recoRunNumbers='{{inProductionID}}'
+recoRunNumbers = '{{inProductionID}}'
 
-recoTransFlag = eval(recoTransFlag)
-testProduction = eval(testProduction)
+recoTransFlag = eval( recoTransFlag )
+testProduction = eval( testProduction )
 
 if testProduction:
   bkConfigName = 'certification'
   bkConfigVersion = 'test'
 
 #The below are fixed for the EXPRESS stream
-recoType="FULL"
+recoType = "FULL"
 recoAppType = "DST"
 #appType = "DST"
-recoIDPolicy='download'
+recoIDPolicy = 'download'
 
 #Sort out the reco file mask
 if recoFileMask:
-  maskList = [m.lower() for m in recoFileMask.replace(' ','').split(',')]
+  maskList = [m.lower() for m in recoFileMask.replace( ' ', '' ).split( ',' )]
   if not recoAppType.lower() in maskList:
-    maskList.append(recoAppType.lower())
-  recoFileMask = string.join(maskList,';')
+    maskList.append( recoAppType.lower() )
+  recoFileMask = string.join( maskList, ';' )
 
 recoInputBKQuery = { 'SimulationConditions'     : 'All',
                      'DataTakingConditions'     : '{{simDesc}}',
@@ -102,30 +102,30 @@ recoInputBKQuery = { 'SimulationConditions'     : 'All',
                      'DataQualityFlag'          : recoDQFlag}
 
 if testProduction:
-  recoInputBKQuery['DataTakingConditions']='All'
-  recoInputBKQuery['SimulationConditions']='{{simDesc}}'
-  gLogger.notice('Since the test production flag is specified reverting DataTaking to Simulation Conditions in BK Query')
+  recoInputBKQuery['DataTakingConditions'] = 'All'
+  recoInputBKQuery['SimulationConditions'] = '{{simDesc}}'
+  gLogger.notice( 'Since the test production flag is specified reverting DataTaking to Simulation Conditions in BK Query' )
 
-if int(recoEndRun) and int(recoStartRun):
-  if int(recoEndRun)<int(recoStartRun):
-    gLogger.error('Your end run "%s" should be less than your start run "%s"!' %(recoEndRun,recoStartRun))
-    DIRAC.exit(2)
+if int( recoEndRun ) and int( recoStartRun ):
+  if int( recoEndRun ) < int( recoStartRun ):
+    gLogger.error( 'Your end run "%s" should be less than your start run "%s"!' % ( recoEndRun, recoStartRun ) )
+    DIRAC.exit( 2 )
 
-if int(recoStartRun):
-  recoInputBKQuery['StartRun']=int(recoStartRun)
-if int(recoEndRun):
-  recoInputBKQuery['EndRun']=int(recoEndRun)
+if int( recoStartRun ):
+  recoInputBKQuery['StartRun'] = int( recoStartRun )
+if int( recoEndRun ):
+  recoInputBKQuery['EndRun'] = int( recoEndRun )
 
-if re.search(',',recoRunNumbers) and not int(recoStartRun) and not int(recoEndRun):
-  gLogger.info('Found run numbers to add to BK Query...')
-  runNumbers = [int(i) for i in recoRunNumbers.replace(' ','').split(',')]
-  recoInputBKQuery['RunNumbers']=runNumbers
+if re.search( ',', recoRunNumbers ) and not int( recoStartRun ) and not int( recoEndRun ):
+  gLogger.info( 'Found run numbers to add to BK Query...' )
+  runNumbers = [int( i ) for i in recoRunNumbers.replace( ' ', '' ).split( ',' )]
+  recoInputBKQuery['RunNumbers'] = runNumbers
 
 #Have to confirm this isn't a FULL request for example
 threeSteps = '{{p3App}}'
 if threeSteps:
-  gLogger.error('Three steps specified, not sure what to do! Exiting...')
-  DIRAC.exit(2)
+  gLogger.error( 'Three steps specified, not sure what to do! Exiting...' )
+  DIRAC.exit( 2 )
 
 #For the FULL case there's an option to avoid BK publishing, not here
 recoScriptFlag = False
@@ -138,52 +138,52 @@ diracProd = DiracProduction() #used to set automatic status
 
 production = Production()
 
-if not destination.lower() in ('all','any'):
-  gLogger.info('Forcing destination site %s for production' %(destination))
-  production.setDestination(destination)
+if not destination.lower() in ( 'all', 'any' ):
+  gLogger.info( 'Forcing destination site %s for production' % ( destination ) )
+  production.setDestination( destination )
 
 if sysConfig:
-  production.setSystemConfig(sysConfig)
+  production.setSystemConfig( sysConfig )
 
-production.setCPUTime(recoCPU)
-production.setProdType('DataReconstruction')
-wkfName='Request%s_{{pDsc}}_{{eventType}}' %(currentReqID) #Rest can be taken from the details in the monitoring  
-production.setWorkflowName('%s_%s_%s' %(prependName,wkfName,appendName))
-production.setWorkflowDescription("%s Real data EXPRESS reconstruction production." %(prodGroup))
-production.setBKParameters(bkConfigName,bkConfigVersion,prodGroup,'{{simDesc}}')
-production.setInputBKSelection(recoInputBKQuery)
-production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
+production.setCPUTime( recoCPU )
+production.setProdType( 'DataReconstruction' )
+wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring  
+production.setWorkflowName( '%s_%s_%s' % ( prependName, wkfName, appendName ) )
+production.setWorkflowDescription( "%s Real data EXPRESS reconstruction production." % ( prodGroup ) )
+production.setBKParameters( bkConfigName, bkConfigVersion, prodGroup, '{{simDesc}}' )
+production.setInputBKSelection( recoInputBKQuery )
+production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
-brunelOptions="{{p1Opt}}"
-production.addBrunelStep("{{p1Ver}}",recoAppType.lower(),brunelOptions,extraPackages='{{p1EP}}',
-                         eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=recoDataSE,
-                         dataType='Data',histograms=True,
-                         stepID='{{p1Step}}',stepName='{{p1Name}}',stepVisible='{{p1Vis}}')
+brunelOptions = "{{p1Opt}}"
+production.addBrunelStep( "{{p1Ver}}", recoAppType.lower(), brunelOptions, extraPackages = '{{p1EP}}',
+                         eventType = '{{eventType}}', inputData = [], inputDataType = 'mdf', outputSE = recoDataSE,
+                         dataType = 'Data', histograms = True,
+                         stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
 
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
-  production.addDaVinciStep("{{p2Ver}}","davincihist","{{p2Opt}}",extraPackages='{{p2EP}}',
-                            inputDataType=recoAppType.lower(),histograms=True,abandonOutput=True,
-                            stepID='{{p2Step}}',stepName='{{p2Name}}',stepVisible='{{p2Vis}}')                            
+  production.addDaVinciStep( "{{p2Ver}}", "davincihist", "{{p2Opt}}", extraPackages = '{{p2EP}}',
+                            inputDataType = recoAppType.lower(), histograms = True, abandonOutput = True,
+                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
 production.addFinalizationStep()
-production.setInputBKSelection(recoInputBKQuery)
-production.setProdGroup(prodGroup)
-production.setFileMask(recoFileMask)
-production.setProdPriority(recoPriority)
-production.setProdPlugin(recoPlugin)
-production.setInputDataPolicy(recoIDPolicy)
+production.setInputBKSelection( recoInputBKQuery )
+production.setProdGroup( prodGroup )
+production.setFileMask( recoFileMask )
+production.setProdPriority( recoPriority )
+production.setProdPlugin( recoPlugin )
+production.setInputDataPolicy( recoIDPolicy )
 
-result = production.create(bkQuery=recoInputBKQuery,groupSize=recoFilesPerJob,derivedProduction=int(recoAncestorProd),
-                           bkScript=recoScriptFlag,requestID=currentReqID,reqUsed=1,transformation=recoTransFlag)
+result = production.create( bkQuery = recoInputBKQuery, groupSize = recoFilesPerJob, derivedProduction = int( recoAncestorProd ),
+                           bkScript = recoScriptFlag, requestID = currentReqID, reqUsed = 1, transformation = recoTransFlag )
 if not result['OK']:
-  gLogger.error('Production creation failed with result:\n%s\ntemplate is exiting...' %(result))
-  DIRAC.exit(2)
+  gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
+  DIRAC.exit( 2 )
 
 recoProdID = result['Value']
-diracProd.production(recoProdID,'automatic',printOutput=True)
-gLogger.info('Reconstruction production successfully created with ID %s and started in automatic mode' %(recoProdID))
-DIRAC.exit(0)
+diracProd.production( recoProdID, 'automatic', printOutput = True )
+gLogger.info( 'Reconstruction production successfully created with ID %s and started in automatic mode' % ( recoProdID ) )
+DIRAC.exit( 0 )
 
 #################################################################################
 # End of the template.
