@@ -43,4 +43,4 @@ else:
       size = res['Value'][lfn]['FileSize']
       guid = res['Value'][lfn]['GUID']
       hasReplica = res['Value'][lfn]['GotReplica']
-      print '%s %s %s %s' % ( lfn.ljust( 100 ), str( size ).ljust( 10 ), guid.ljust( 40 ), hasReplica.ljust( 8 ) )
+      print '%s %s %s %s' % ( lfn.ljust( 100 ), str( size ).ljust( 10 ), guid.ljust( 40 ), str(hasReplica).ljust( 8 ) )
