@@ -20,6 +20,7 @@ Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
 Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic" )
 Script.registerSwitch( "g:", "Group=", "   Transformation group [<plugin name>]" )
 Script.registerSwitch( "", "Test", "   Just print out but not submit" )
+Script.registerSwitch( "", "Removal", "   Create a Removal transformation instead of a replication" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -34,7 +35,8 @@ requestID = 0
 start = False
 transGroup = None
 pluginParams = {}
-transName = 'Replication'
+transName = None
+transType = "Replication"
 listSEs = None
 nbCopies = None
 
@@ -57,6 +59,8 @@ for switch in Script.getUnprocessedSwitches():
     transGroup = val
   elif opt == "ses":
     listSEs = val.split( ',' )
+  elif opt == 'removal':
+    transType = "Removal"
   elif opt == "copies":
     try:
       nbCopies = int( val )
@@ -73,6 +77,9 @@ for switch in Script.getUnprocessedSwitches():
       import DIRAC
       print "Error parsing parameters: ", val
       DIRAC.exit( 2 )
+
+if not transName:
+  transName = transType
 
 import DIRAC
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
@@ -132,7 +139,7 @@ transformation.setTransformationName( transName )
 transformation.setTransformationGroup( transGroup )
 transformation.setDescription( longName )
 transformation.setLongDescription( longName )
-transformation.setType( 'Replication' )
+transformation.setType( transType )
 if pluginParams:
   for key, val in pluginParams.items():
     if key.endswith( "SE" ) or key.endswith( "SEs" ):
