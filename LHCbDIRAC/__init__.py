@@ -1,14 +1,14 @@
 from pkgutil import extend_path
-__path__ = extend_path(__path__, __name__)
+__path__ = extend_path( __path__, __name__ )
 
 # Define Version
 
 majorVersion = 6
 minorVersion = 0
-patchLevel   = 0
-preVersion   = 5
+patchLevel = 0
+preVersion = 8
 
-version      = "v%sr%s" % ( majorVersion, minorVersion )
+version = "v%sr%s" % ( majorVersion, minorVersion )
 buildVersion = "v%dr%d" % ( majorVersion, minorVersion )
 if patchLevel:
   version = "%sp%s" % ( version, patchLevel )
