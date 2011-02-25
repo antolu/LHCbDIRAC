@@ -678,7 +678,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             if needtocopy <= 0:
               break
             res = getSitesForSE( se )
-            if res( 'OK' ):
+            if res['OK']:
               sites = res['Value']
               for site in sites:
                 if site in targetSites:
@@ -706,7 +706,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             if needtocopy <= 0:
               break
             res = getSitesForSE( se )
-            if res( 'OK' ):
+            if res['OK' ]:
               sites = res['Value']
               for site in sites:
                 if site in targetSites:
@@ -821,6 +821,97 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         tasks.append( ( stringTargetSEs, lfnGroup ) )
 
     return S_OK( tasks )
+
+  def _destroyDataset( self ):
+    return self.__removeReplicas( keepSEs = [], minKeep = 0 )
+
+  def _deleteDataset( self ):
+    keepSEs = self.params.get( 'keepSEs', ["CERN-ARCHIVE"] )
+    return self.__removeReplicas( keepSEs = keepSEs, minKeep = 0 )
+
+  def _deleteReplicas( self ):
+    listSEs = self.params.get( 'fromSEs', None )
+    keepSEs = self.params.get( 'keepSEs', ["CERN-ARCHIVE"] )
+    master1SEs = self.params.get( 'master1SEs', ['CERN_MC_M-DST', 'CERN_M-DST'] )
+    master2SEs = [ 'CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST']
+    master2SEs += [ 'CNAF_M-DST', 'GRIDKA_M-DST', 'IN2P3_M-DST', 'NIKHEF_M-DST', 'PIC_M-DST', 'RAL_M-DST']
+    master2SEs = self.params.get( 'master2SEs', master2SEs )
+    # this is the number of replicas to be kept in addition to keepSEs and master1SEs
+    minKeep = int( self.params.get( 'NumberOfReplicas', 1 ) )
+
+    return self.__removeReplicas( listSEs = listSEs, keepSEs = keepSEs + master1SEs, master2SEs = master2SEs, minKeep = minKeep )
+
+  def __removeReplicas( self, listSEs = [], keepSEs = [], master2SEs = [], minKeep = 999 ):
+    transID = self.params['TransformationID']
+    listSEs = self.__getListFromString( listSEs )
+    keepSEs = self.__getListFromString( keepSEs )
+    master2SEs = self.__getListFromString( master2SEs )
+
+    replicaGroups = self._getFileGroups( self.data )
+
+    storageElementGroups = {}
+    for replicaSE, lfns in replicaGroups.items():
+      replicaSE = replicaSE.split( ',' )
+      if minKeep == 0 and keepSEs:
+        # Check that the dataset exists at least at one keepSE
+        if len( [se for se in replicaSE if se in keepSEs] ) == 0:
+          gLogger.info( "Found %d files that are not in any keepSEs, no removal done" % len( lfns ) )
+          self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+          continue
+      existingSEs = [se for se in replicaSE if not se in keepSEs]
+      if minKeep == 0:
+        targetSEs = existingSEs
+      else:
+        targetSEs = []
+        if len( existingSEs ) > minKeep:
+          # explicit deletion
+          if listSEs:
+            # check how  many replicas would be left if we remove from listSEs
+            nLeft = len( [se for se in existingSEs if not se in listSEs] )
+            if nLeft >= minKeep:
+              # we can delete all replicas in listSEs
+              targetSEs = listSEs
+            else:
+              # we should keep some in listSEs, too bad
+              targetSEs = randomize( listSEs )[0:minKeep - nLeft]
+              gLogger.info( "Found %d files that could only be deleted in %s of the requested SEs" % ( len( lfns ), minKeep - nLeft ) )
+          else:
+            # remove all replicas and keep only minKeep
+            existingMasters = []
+            existingSecondaries = []
+            for se in existingSEs:
+              if se in master2SEs:
+                existingMasters.append( se )
+              else:
+                existingSecondaries.append( se )
+            masters = len( existingMasters )
+            if masters >= minKeep:
+              # we can delete all secondary SEs and possible some masters
+              targetSEs = existingSecondaries + randomize( existingMasters )[0:masters - minKeep]
+            else:
+              # we can only delete part of the secondaries
+              targetSEs = randomize( existingSecondaries )[0:-minKeep + masters]
+
+        if targetSEs:
+          stringTargetSEs = ','.join( sortList( targetSEs ) )
+          if not storageElementGroups.has_key( stringTargetSEs ):
+            storageElementGroups[stringTargetSEs] = []
+          storageElementGroups[stringTargetSEs].extend( lfns )
+        else:
+          gLogger.info( "Found %s files that don't need any replica deletion" % len( lfns ) )
+          self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+
+      # Now create reasonable size tasks
+    tasks = []
+    for stringTargetSEs in sortList( storageElementGroups.keys() ):
+      stringTargetLFNs = storageElementGroups[stringTargetSEs]
+      for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
+        tasks.append( ( stringTargetSEs, lfnGroup ) )
+
+    return S_OK( tasks )
+
+
+
 
 
 
