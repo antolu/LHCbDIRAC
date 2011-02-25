@@ -20,7 +20,6 @@ Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
 Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic" )
 Script.registerSwitch( "g:", "Group=", "   Transformation group [<plugin name>]" )
 Script.registerSwitch( "", "Test", "   Just print out but not submit" )
-Script.registerSwitch( "", "Removal", "   Create a Removal transformation instead of a replication" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -35,22 +34,34 @@ requestID = 0
 start = False
 transGroup = None
 pluginParams = {}
-transName = None
-transType = "Replication"
+transName = 'Replication'
 listSEs = None
 nbCopies = None
 
-for switch in Script.getUnprocessedSwitches():
+switches = Script.getUnprocessedSwitches()
+import DIRAC
+for switch in switches:
   opt = switch[0].lower()
   val = switch[1]
   if opt in ( "p", "production" ):
-    prods = val.split( ',' )
+    prods = []
+    for prod in val.split( ',' ):
+      if prod.find( ':' ) > 0:
+        pLimits = prod.split( ':' )
+        for p in range( int( pLimits[0] ), int( pLimits[1] ) + 1 ):
+          prods.append( str( p ) )
+      else:
+        prods.append( prod )
   elif opt in ( "f", "filetype" ):
     fileType = val.split( ',' )
   elif opt in ( "b", "bkquery" ):
     bkQuery = val
   elif opt in ( 'r', 'request' ):
-    requestID = val
+    try:
+      requestID = int( val )
+    except:
+      print "--Request requires an integer"
+      DIRAC.exit( 2 )
   elif opt in ( 'p', 'plugin' ):
     plugin = val
   elif opt in ( 's', 'start' ):
@@ -59,14 +70,11 @@ for switch in Script.getUnprocessedSwitches():
     transGroup = val
   elif opt == "ses":
     listSEs = val.split( ',' )
-  elif opt == 'removal':
-    transType = "Removal"
   elif opt == "copies":
     try:
       nbCopies = int( val )
     except:
       print "--Copies must be an integer"
-      import DIRAC
       DIRAC.exit( 2 )
   elif opt == 'test':
     test = True
@@ -74,14 +82,9 @@ for switch in Script.getUnprocessedSwitches():
     try:
       pluginParams = eval( val )
     except:
-      import DIRAC
       print "Error parsing parameters: ", val
       DIRAC.exit( 2 )
 
-if not transName:
-  transName = transType
-
-import DIRAC
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 # Add parameters
@@ -93,14 +96,15 @@ if nbCopies:
 if not transGroup:
   transGroup = plugin
 
+transBKQuery = {'Visibility': 'Yes'}
+
 if prods:
   if not fileType:
     Script.showHelp()
     DIRAC.exit( 2 )
-  transBKQuery = {}
   if prods[0].upper() != 'ALL':
     transBKQuery['ProductionID'] = prods
-  if fileType.upper() != 'ALL':
+  if fileType[0].upper() != 'ALL':
     transBKQuery['FileType'] = fileType
   if len( prods ) == 1:
     s = 's'
@@ -121,7 +125,6 @@ else:
     print "Incorrect BKQuery...\nSyntax: %s" % '/'.join( bkFields )
     Script.showHelp()
     DIRAC.exit( 2 )
-  transBKQuery = {}
   if bkNodes[0] == "MC":
     bkFields[2] = "SimulationConditions"
   for i in range( len( bkFields ) ):
@@ -139,7 +142,7 @@ transformation.setTransformationName( transName )
 transformation.setTransformationGroup( transGroup )
 transformation.setDescription( longName )
 transformation.setLongDescription( longName )
-transformation.setType( transType )
+transformation.setType( 'Replication' )
 if pluginParams:
   for key, val in pluginParams.items():
     if key.endswith( "SE" ) or key.endswith( "SEs" ):
@@ -164,6 +167,18 @@ if test:
     if not res['OK']:
       print "**** ERROR in BK query ****"
       print res['Message']
+    else:
+      lfns = res['Value']
+      print "BKQuery obtained %d files" % len( lfns )
+      dirs = {}
+      import os
+      for lfn in lfns:
+        dir = os.path.dirname( lfn )
+        if not dirs.has_key( dir ):
+          dirs[dir] = 0
+        dirs[dir] += 1
+      for dir in dirs.keys():
+        print dir, dirs[dir], "files"
   print "Plugin:", plugin
   print "Parameters:", pluginParams
   print "RequestID:", requestID
@@ -172,7 +187,7 @@ if test:
 
 if transBKQuery:
   res = transformation.testBkQuery( transBKQuery )
-  if not res['OK']:
+  if res['OK']:
     nfiles = len( res['Value'] )
   else:
     print "**** ERROR in BK query ****"
