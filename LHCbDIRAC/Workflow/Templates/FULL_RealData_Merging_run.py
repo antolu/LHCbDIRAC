@@ -141,6 +141,9 @@ else:
   outBkConfigName = bkConfigName
   outBkConfigVersion = bkConfigVersion
 
+if certificationFlag:
+  recoEvtsPerJob = '1000'
+
 recoInputBKQuery = {
                     'DataTakingConditions'     : dataTakingCond,
                     'ProcessingPass'           : processingPass,

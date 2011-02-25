@@ -62,7 +62,6 @@ recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO: Group size or number of files pe
 recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/False (False if merging)#False}}'
 recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
-recoEvtsPerJob = '{{RecoNumberEvents#PROD-RECO: number of events per job (set to something small for a test)#-1}}'
 unmergedStreamSE = '{{RecoStreamSE#PROD-RECO: unmerged stream SE#Tier1-DST}}'
 
 ###########################################
@@ -86,6 +85,7 @@ dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'
 BKfileType = '{{inFileType}}'
 eventType = '{{eventType}}'
+recoEvtsPerJob = '-1'
 
 if certificationFlag:
   publishFlag = True
@@ -127,6 +127,9 @@ if testFlag:
 else:
   outBkConfigName = bkConfigName
   outBkConfigVersion = bkConfigVersion
+
+if certificationFlag:
+  recoEvtsPerJob = '-1'
 
 recoInputBKQuery = {
                     'DataTakingConditions'     : dataTakingCond,
@@ -198,7 +201,7 @@ production.addBrunelStep( "{{p1Ver}}", recoAppType.lower(), brunelOptions, extra
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
   production.addDaVinciStep( "{{p2Ver}}", "davincihist", "{{p2Opt}}", extraPackages = '{{p2EP}}',
-                            inputDataType = recoAppType.lower(), histograms = True, abandonOutput = True,
+                            inputDataType = recoAppType.lower(), histograms = True,
                             stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
 #QUESTO E' IN FULL
