@@ -182,7 +182,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
                    extraPackages = '', outputSE = None, histograms = False, overrideOpts = '', extraOpts = '',
-                   appType = 'sim', condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                   appType = 'sim', condDBTag = 'global', ddDBTag = 'global',
                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType can be sim / gen 
@@ -210,7 +210,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'dataType', 'string', 'MC', 'DataType' ) #MC or DATA to be reviewed
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
-                                   histograms, firstEventNumber, {}, condDBTag, ddDBTag, '', abandonOutput,
+                                   histograms, firstEventNumber, {}, condDBTag, ddDBTag, '',
                                    stepID, stepName, stepVisible )
     self.gaussList.append( gaussStep.getName() )
     gaussStep.setValue( 'numberOfEventsInput', 0 )
@@ -220,7 +220,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    outputSE = None, histograms = False, inputData = 'previousStep', overrideOpts = '',
-                   extraOpts = '', extraOutputFile = [], condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                   extraOpts = '', extraOutputFile = [], condDBTag = 'global', ddDBTag = 'global',
                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
@@ -258,14 +258,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = extraOutputFile,
                        condDBTag = condDBTag, ddDBTag = ddDBTag,
-                       outputAppendName = '', abandonOutput = abandonOutput,
+                       outputAppendName = '',
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible )
 
   #############################################################################
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                     inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
                     overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
-                    condDBTag = 'global', ddDBTag = 'global', abandonOutput = False,
+                    condDBTag = 'global', ddDBTag = 'global',
                     stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst / sdst
@@ -315,14 +315,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._addGaudiStep( 'Brunel', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
-                       outputAppendName = '', abandonOutput = abandonOutput,
+                       outputAppendName = '',
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible )
 
   #############################################################################
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
                      overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
-                     condDBTag = 'global', ddDBTag = 'global', inputProduction = '', abandonOutput = False,
+                     condDBTag = 'global', ddDBTag = 'global', inputProduction = '',
                      extraOutput = [],
                      stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
@@ -387,14 +387,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                        extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput, condDBTag, ddDBTag, '', abandonOutput,
+                       firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
                        stepID, stepName, stepVisible )
 
   #############################################################################
   def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
                    overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'MC',
-                   condDBTag = 'global', ddDBTag = 'global', outputAppendName = '', abandonOutput = False,
+                   condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is digi (simulation) / dst and inputDataType is digi / raw only at the moment.
@@ -437,7 +437,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
-                       outputAppendName = outputAppendName, abandonOutput = abandonOutput,
+                       outputAppendName = outputAppendName,
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible )
 
 
@@ -486,7 +486,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                     extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
                     histograms = False, firstEventNumber = 0, extraOutput = [],
-                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '', abandonOutput = False,
+                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
                     stepID = 0, stepName = '', stepVisible = '' ):
     """Helper function.
     """
@@ -573,10 +573,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 #    gaudiStepOutput['outputDataName'] = '@{STEP_ID}.@{applicationType}'
 #    gaudiStepOutput['outputDataType'] = '@{applicationType}'
 #    gaudiStepOutput['outputDataSE'] = outputSE
-
-    if abandonOutput:
-      outputList['abandonOutput'] = 'True' # this is conditional only on the key
-
 
     if histograms:
       histoFile = {}
@@ -1034,7 +1030,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         The workflow XML is created regardless of the flags.
     """
     #Needs to be revisited in order to disentangle the many operations.
-    prodID = self.defaultProdID
     if not parentRequestID:
       parentRequestID = requestID
 
