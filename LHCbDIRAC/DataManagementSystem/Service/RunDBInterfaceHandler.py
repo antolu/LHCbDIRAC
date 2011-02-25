@@ -1,8 +1,11 @@
 """ DISET request handler base class for the DatasetDB."""
+
+__RCSID__ = "$Id:  $"
+
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
-import xmlrpclib,time,sys
+import os,xmlrpclib,time,sys
 
 allRunFields = ['runID','fillID','state','runType','partitionName','partitionID','startTime','endTime','destination','startLumi','endLumi','beamEnergy']
 #selectRunFields = ['runID','fillID','state','runType','partitionName','partitionID','startLumi','endLumi','beamEnergy','startTime','endTime','destination']
@@ -15,15 +18,15 @@ fileStates = {}
 fileStateRev = {}
 def initializeRunDBInterfaceHandler(serviceInfo):
   global server
+  #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
   sys.path.append('/group/online/rundb/RunDatabase/python')
   from path import SQL_ALCHEMY_PATH
   sys.path.append(SQL_ALCHEMY_PATH)
   try:
     ORACLE_HOME = os.environ['ORACLE_HOME']
   except:
-    ORACLE_HOME = '/sw/oracle/10.2.0.4/linux64'
-  sys.path.append("%s/python" % str(ORACLE_HOME))
-
+    print 'ERROR: ORACLE_HOME environment variable should be set'
+  sys.path.append("%s" % str(ORACLE_HOME))
   import RunDatabase_Defines
   #print dir(RunDatabase_Defines)
   #print RunDatabase_Defines.FileFields
@@ -43,9 +46,14 @@ def initializeRunDBInterfaceHandler(serviceInfo):
   for key,value in runStates.items():
     runStateRev[value] = key
       
+  im = __import__('RunDatabase', globals(), locals(), ['*'])
   import RunDatabase
+  print im
   from DbModel import createEngine_Oracle
-  server = RunDatabase.RunDbServer(engine=createEngine_Oracle())
+  try:
+    server = RunDatabase.RunDbServer(engine=createEngine_Oracle())
+  except:
+    print 'Failed to make an instance of runDB server'
   return S_OK()
 
 class RunDBInterfaceHandler(RequestHandler):
@@ -122,6 +130,7 @@ class RunDBInterfaceHandler(RequestHandler):
       records.append((fileID,runID,name,state,bytes,events,stream,creationTime,timeStamp,refCount))
       
     resultDict['Records'] = records
+    print resultDict
     return S_OK(resultDict)
     
   """
@@ -171,9 +180,9 @@ class RunDBInterfaceHandler(RequestHandler):
         decending = True
     paramString = "%s,no=%s" % (paramString,sys.maxint)
     if paramString:
-      jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields%s)" % paramString
+      jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields,runExtraParams=['magnetCurrent','magnetState']%s)" % paramString
     else:
-      jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields)"
+      jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields,runExtraParams=['magnetCurrent','magnetState'])"
     print jobsQueryString
     exec(jobsQueryString)
     if not success:
@@ -210,7 +219,7 @@ class RunDBInterfaceHandler(RequestHandler):
     # prepare the standard structure now
     runCounters = {}
     for tuple in runList:
-      runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy = tuple
+      runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy,magnetCurrent,magnetState= tuple
       runCounters[runID] = {'Size':0,'Events':0,'Files':0}
 
     # Now sum the number of events and files in the run
@@ -240,16 +249,22 @@ class RunDBInterfaceHandler(RequestHandler):
 
     records = []
     for tuple in runList:
-      runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy = tuple
+      runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy,magnetCurrent,magnetState= tuple
       startTime = str(startTime)
       endTime = str(endTime)
       if runStates.has_key(state):
         state = runStates[state]
       else:
         state = 'UNKNOWN'
-      records.append((runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy,runCounters[runID]['Files'],runCounters[runID]['Events'],runCounters[runID]['Size']))
+      try:
+        integratedLumi = endLumi - startLumi
+      except:
+        integratedLumi = 'na'
+      records.append((runID,fillID,state,runType,partitionName,partitionID,startTime,endTime,destination,startLumi,endLumi,beamEnergy,runCounters[runID]['Files'],runCounters[runID]['Events'],runCounters[runID]['Size'],magnetCurrent,magnetState,integratedLumi))
     resultDict['Records'] = records
-    resultDict['ParameterNames'] = allRunFields + ['files','events','size']
+    resultDict['ParameterNames'] = allRunFields+['files','events','size','magnetCurrent','magnetState','integratedLumi']
+    print 'parameter names: ' , resultDict['ParameterNames']
+    print resultDict
     return S_OK(resultDict)
 
   types_getRunSelections = []
