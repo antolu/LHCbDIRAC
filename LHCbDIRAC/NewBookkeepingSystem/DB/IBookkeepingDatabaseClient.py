@@ -404,8 +404,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProductionSimulationCond(prod)
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
-    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag)
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible):
+    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible)
   
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):

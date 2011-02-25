@@ -452,12 +452,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     retVal = self._getDataTakingConditionId(conddescription)
     if retVal['OK']:
       if retVal['Value'] != -1:
-        condition += ' and '+table+'.DAQPERIODID ='+str(retVal['Value'])
+        condition += " and %s.DAQPERIODID=%s and %s.DAQPERIODID is not null "%(table, str(retVal['Value']),table)
       else:
         retVal = self._getSimulationConditioId(conddescription)
         if retVal['OK']:
           if retVal['Value'] != -1:
-           condition += ' and '+table+'.simid ='+str(retVal['Value'])
+           condition += " and %s.simid=%s and %s.simid is not null "%(table, str(retVal['Value']),table)
           else:
             return S_ERROR('Condition does not exists!') 
         else:
@@ -2202,7 +2202,7 @@ and files.qualityid= dataquality.qualityid'
     return S_OK('The files are visible!')
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag='Yes'):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers = [], replicaFlag='Yes', visible='ALL'):
     
     configid = None
     condition = ''
@@ -2345,7 +2345,10 @@ and files.qualityid= dataquality.qualityid'
     if replicaFlag in ['Yes','No']:
       condition += ' and f.gotreplica=\''+replicaFlag+'\''
 
-    
+    visibleFlags = {'Yes':'Y','No':'N'}
+    if visible != 'ALL' and visibleFlags.has_key(visible):
+      condition += " and f.visibilityflag='%s'"%(visibleFlags[visible])
+      
     if simdesc != 'ALL':
       condition += " and prod.simid=sim.simid and \
                      sim.simdescription='%s' "%(simdesc)
@@ -2365,10 +2368,10 @@ and files.qualityid= dataquality.qualityid'
       
     
     if nbofEvents:
-      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % (tables, condition)
+      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid %s " % (tables, condition)
                    
     else:
-      command =  " select distinct f.filename from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % (tables, condition)
+      command =  " select distinct f.filename from %s where f.jobid= j.jobid %s " % (tables, condition)
                    
     res = self.dbR_._query(command)
     
@@ -2556,10 +2559,12 @@ and files.qualityid= dataquality.qualityid'
     if configVersion != default:
       condition += " and c.configversion='%s' "%(configVersion)
     
+    sim_dq_conditions = ''
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'prod')
       if retVal['OK']:
-        condition += retVal['Value']
+        sim_dq_conditions = retVal['Value']
+        condition += sim_dq_conditions
       else:
         return retVal
     
@@ -2603,10 +2608,11 @@ and files.qualityid= dataquality.qualityid'
       conditions += ' and d.qualityid=f.qualityid '  
       
     if processing != default:
-      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='%s'"%(processing.split('/')[1], processing)
+      command = "select distinct prod.processingid from productionscontainer prod where \
+           prod.processingid in (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
+         START WITH id in (select distinct id from processing where name='%s') \
+         CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+        where v.path='%s') %s"%(processing.split('/')[1], processing, sim_dq_conditions)
       retVal = self.dbR_._query(command)
       if not retVal['OK']:
         return retVal
@@ -2781,8 +2787,13 @@ and files.qualityid= dataquality.qualityid'
     command = "select stepid, stepname from steps where applicationname='%s' and applicationversion='%s'"%(programName, programVersion)
     retVal = self.dbR_._query(command)
     if retVal['OK']:
+      stepName = 'Real Data'
       if len(retVal['Value']) == 0:
-        return self.insertStep({'StepName':'Real Data','ApplicationName':programName,'ApplicationVersion':programVersion})
+        retVal = self.insertStep({'Step':{'StepName':stepName,'ApplicationName':programName,'ApplicationVersion':programVersion},'InputFileTypes':[{'FileType':'RAW','Visible':'Y'}]})
+        if retVal['OK']:
+          return S_OK([retVal['Value'],stepName])
+        else:
+          return retVal
       else:
         return S_OK([retVal['Value'][0][0],retVal['Value'][0][1]])
     else:

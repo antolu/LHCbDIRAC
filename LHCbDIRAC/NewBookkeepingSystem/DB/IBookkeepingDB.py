@@ -410,7 +410,7 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
   
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible):
     gLogger.error('This method is not implemented!')
     
   def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):

@@ -1116,11 +1116,10 @@ class NewBookkeepingManagerHandler(RequestHandler):
     else:
       procPass = 'ALL'
     
+    ftype = 'ALL'
     if values.has_key('FileType'):
       ftype = values['FileType']
-    else:
-      return S_ERROR('FileType is missing!')
-    
+        
     if values.has_key('EventType'):
       evt = values['EventType']
     else:
@@ -1181,8 +1180,12 @@ class NewBookkeepingManagerHandler(RequestHandler):
     if values.has_key('ReplicaFlag'):
       replicaFlag = values['ReplicaFlag']
  
+    visible = 'ALL'
+    if values.has_key('Visible'):
+      visible = values['Visible']
+    
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, visible)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
     else:
