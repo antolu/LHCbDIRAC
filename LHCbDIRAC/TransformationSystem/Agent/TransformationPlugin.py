@@ -755,12 +755,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__simpleReplication( "CERN-ARCHIVE" )
 
   def __getListFromString( self, s ):
+    # Avoid using eval()... painful
     if type( s ) == types.StringType:
-      try:
-        l = eval( s )
-      except:
-        l = s.split( ',' )
-      return l
+      if s == "[]":
+        return []
+      if s[0] == '[' and s[-1] == ']':
+        s = s[1:-1]
+      l = s.split( ',' )
+      ll = []
+      for a in l:
+        if not a:
+          ll.append( a )
+        elif a[0] == "'" and a[-1] == "'":
+          ll.append( a[1:-1] )
+        elif a[0] == '"' and a[-1] == '"':
+          ll.append( a[1:-1] )
+        else:
+          ll.append( a )
+      return ll
     return s
 
   def __simpleReplication( self, destSEs, numberOfCopies = 0 ):
