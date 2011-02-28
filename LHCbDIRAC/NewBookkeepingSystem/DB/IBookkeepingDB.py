@@ -467,3 +467,7 @@ class IBookkeepingDB(object):
   #############################################################################
   def getRunQuality(self, procpass, flag):
     gLogger.error('This method is not implemented!')
+  
+  #############################################################################
+  def insertDataTakingCond(self, conditions):
+    gLogger.error('This method is not implemented!')

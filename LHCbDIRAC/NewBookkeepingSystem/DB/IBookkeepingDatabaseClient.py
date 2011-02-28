@@ -462,4 +462,8 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getRunQuality(self, procpass, flag):
     return self.getManager().getRunQuality(procpass, flag)
+  
+  #############################################################################
+  def insertDataTakingCond(self, conditions):
+    return self.getManager().insertDataTakingCond(conditions)
     
