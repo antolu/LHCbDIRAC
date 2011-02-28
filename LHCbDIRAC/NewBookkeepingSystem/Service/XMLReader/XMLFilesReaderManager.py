@@ -395,18 +395,18 @@ class XMLFilesReaderManager:
       datataking['Description'] = context.getOutput()
         
       res = dataManager_.getDataTakingCondDesc(datataking)
-      dataTackingPeriodID = None
+      dataTackingPeriodDesc = None
       if res['OK']:
         daqid = res['Value']
         if len(daqid)!=0: #exist in the database datataking
-          dataTackingPeriodID = res['Value'][0][0]
-          gLogger.debug('Data taking condition id', dataTackingPeriodID)
+          dataTackingPeriodDesc = res['Value'][0][0]
+          gLogger.debug('Data taking condition id', dataTackingPeriodDesc)
         else:
           res = dataManager_.insertDataTakingCond(datataking)
           if not res['OK']:
             return S_ERROR("DATA TAKING Problem"+str(res['Message']))
           else:
-            dataTackingPeriodID = res['Value']
+            dataTackingPeriodDesc = datataking['Description'] # The new data taking condition inserted. The name should be the generated name. 
       else:
         return S_ERROR("DATA TAKING Problem"+str(res['Message']))
 
@@ -433,10 +433,10 @@ class XMLFilesReaderManager:
         return S_ERROR(retVal['Message'])
       steps = {'Steps':[{'StepId':retVal['Value'][0],'StepName':retVal['Value'][1],'Visible':'Y'}]}
       gLogger.debug('Pass_indexid', steps)
-      gLogger.debug('Data taking', dataTackingPeriodID)
+      gLogger.debug('Data taking', dataTackingPeriodDesc)
       gLogger.debug('production', production)
       
-      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodID, steps=steps['Steps'], inputproc='')
+      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodDesc, steps=steps['Steps'], inputproc='')
       
       if res['OK']:
         gLogger.info("New processing pass has been created!")
