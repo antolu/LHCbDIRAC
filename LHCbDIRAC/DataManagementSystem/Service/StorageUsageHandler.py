@@ -1,10 +1,20 @@
-""" StorageUsageHandler is the implementation of the Storage Usage service in the DISET framework
-"""
-__RCSID__ = "$Id: DataIntegrityHandler.py 18161 2009-11-11 12:07:09Z acasajus $"
-from DIRAC import gLogger, gConfig, rootPath, S_OK, S_ERROR
+###################################################################################################
+# $HeadURL$
+###################################################################################################
 
+""" StorageUsageHandler is the implementation of the Storage Usage service in the DISET framework.
+"""
+__RCSID__ = "$Id"
+
+## 
 from types import *
+
+## from DIRAC
+from DIRAC import gLogger, gConfig, rootPath, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+
+## from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 # This is a global instance of the DataIntegrityDB class
@@ -83,16 +93,16 @@ class StorageUsageHandler( RequestHandler ):
       orderAttribute = None
 
     directory = ''
-    if selectDict.has_key( 'Directory' ):
+    if "Directory" in selectDict:
       directory = selectDict['Directory']
     filetype = ''
-    if selectDict.has_key( 'FileType' ):
+    if "FileType" in selectDict:
       filetype = selectDict['FileType']
     production = ''
-    if selectDict.has_key( 'Production' ):
+    if "Production" in selectDict:
       production = selectDict['Production']
     ses = []
-    if selectDict.has_key( 'SEs' ):
+    if "SEs" in selectDict:
       ses = selectDict['SEs']
 
     res = storageUsageDB.getStorageDirectorySummary( directory, filetype, production, ses )
@@ -200,7 +210,7 @@ class StorageUsageHandler( RequestHandler ):
   ####
   # Tier1 SE status for web
   ####
-  types_getTier1SEStatus = [ DictType, ListType, IntType, IntType ]
+  types_getTier1SEStatusWeb = [ DictType, ListType, IntType, IntType ]
   def export_getTier1SEStatusWeb( self, selectDict={}, sortList=[ "SE", "DESC" ], startItem=0, maxItems=56 ):
     """get Tier1 SE status  
     
@@ -216,67 +226,32 @@ class StorageUsageHandler( RequestHandler ):
     :param int StartItem: as above
     :param MaxItems: as above
     """    
-    ## TB
-    TB = 1000.0 * 1000.0 * 1000.0 * 1000.0
-    ## space tokens quota, all values are in TB
-    seQuota = {
-      "CERN" : { "-RAW" : 380, "-RDST" : 325, "_M-DST"  : 350, "-DST" : 0, "_MC_M-DST" : 580, "_MC-DST" : 0, 
-                 "-USER" : 205, "-HIST" : None, "-FAILOVER" : None },
-      "CNAF" : { "-RAW" : 50, "-RDST" : 90, "_M-DST"  : 70, "-DST" : 240, "_MC_M-DST" : 55, "_MC-DST" : 55, 
-                 "-USER" : 30, "-HIST" : None, "-FAILOVER" : None },
-      "GRIDKA" : { "-RAW" : 65, "-RDST" : 125, "_M-DST"  : 90, "-DST" : 220, "_MC_M-DST" : 70, "_MC-DST" : 75, 
-                   "-USER" : 40, "-HIST" : None, "-FAILOVER" : None },
-      "IN2P3" : { "-RAW" : 105, "-RDST" : 195, "_M-DST"  : 145, "-DST" : 165, "_MC_M-DST" : 110, "_MC-DST" : 125, 
-                  "-USER" : 65, "-HIST" : None, "-FAILOVER" : None },
-      "NIKHEF" : { "-RAW" : 80, "-RDST" : 145, "_M-DST"  : 110, "-DST" : 200, "_MC_M-DST" : 85, "_MC-DST" : 115, 
-                   "-USER" : 50, "-HIST" : None, "-FAILOVER" : None }, 
-      "PIC" : { "-RAW" : 25, "-RDST" : 45, "_M-DST"  : 35, "-DST" : 140, "_MC_M-DST" : 25, "_MC-DST" : 25, 
-                "-USER" : 15, "-HIST" : None, "-FAILOVER" : None },
-      "RAL" : { "-RAW" : 70, "-RDST" : 135, "_M-DST"  : 100, "-DST" : 210, "_MC_M-DST" : 75, "_MC-DST" : 75, 
-                "-USER" : 45, "-HIST" : None, "-FAILOVER" : None } }
-
-    ## read storage usage summary
-    resStorageSummary =  RPCClient("DataManagement/StorageUsage").getStorageSummary( "", "", "", [] )
-    if not resStorageSummary["OK"]:
-      return S_ERROR( resStorageSummary["Message"] )
-
-    seStatus = { "ParameterNames" : [ "SE", "ReadAccess", "WriteAccess", "Used [TB]", "Quota [TB]", "Free [%]" ],
-                 "Records" : [],
-                 "TotalRecords" : 0,
-                 "Extras" : "" }
-    
-    for tier1, disks in sorted(seQuota.items()):
-      for seDisk in sorted(disks):
-        SE = tier1 + seDisk
-        readAccess = writeAccess = quota = used = free = None
-
-        if ( SE in resStorageSummary["Value"] ):
-          quota = seQuota[tier1][seDisk] 
-          used =  resStorageSummary["Value"][SE]["Size"] / TB
-
-          if quota and used:
-            free = 100.0 - (used * 100.0 / quota)   
-            if quota < used:
-              gLogger.warn("wrong quota for %s, space used (%4.2f TB) > quota (%4.2f TB)" % ( SE, used, quota ) )
-         
-          cfgPath = "/Resources/StorageElements/" + SE
-          res = gConfig.getOptionsDict( cfgPath )
-          if not res["OK"]:
-            gLogger.error("can't read config dict from path " + cfgPath )
-          else:
-            if "ReadAccess" in res["Value"]:
-              readAccess = res["Value"]["ReadAccess"]
-            if "WriteAccess" in res["Value"]:
-              writeAccess = res["Value"]["WriteAccess"]
-       
-          rec = [ SE, 
-                  readAccess if readAccess else "-", 
-                  writeAccess if writeAccess else "-", 
-                  "%4.2f" % used, 
-                  "%4.2f" % quota if quota  else "-",
-                  "%4.2f" % free if free else "-" ]
-          seStatus["Records"].append( rec )
-          seStatus["TotalRecords"] += 1
-
-    return S_OK( seStatus )
+    res = gConfig.getOptionsDict( "/Resources/StorageElementGroups" )
+    if not res["OK"]:
+      return S_ERROR( res["Message"] )
+    tier1SEs = list()
+    for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith("Tier1") ]:
+      tier1SEs += [ se.strip() for se in seStr.split(",") if not se.endswith("-disk") ]
+    SEs = { "ParameterNames" : [ "SE", "Read", "Write", "Disk", "Tape", "Quota", "Used" ],
+            "Records" : [],
+            "TotalRecords" : 0,
+            "Extras" : "" }
+    for seName in sorted(tier1SEs):
+      storageElement = StorageElement(seName)
+      if not storageElement.valid:
+        gLogger.error( "invalid StorageElement '" + seName + "' reason: " + storageElement.errorReason )
+      else:
+        seStatus = storageElement.getStatus() 
+        if not seStatus["OK"]:
+          return S_ERROR( seStatus["Message"] )
+        seStatus = seStatus["Value"]
+        SEs["Records"].append( [ seName, 
+                                 seStatus["Read"], 
+                                 seStatus["Write"], 
+                                 seStatus["DiskSE"],
+                                 seStatus["TapeSE"],
+                                 seStatus["TotalCapacityTB"],
+                                 seStatus["DiskCacheTB"] ] )
+        SEs["TotalRecords"] += 1
+    return S_OK(SEs)
     
