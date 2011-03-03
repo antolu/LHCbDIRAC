@@ -211,7 +211,7 @@ class StorageUsageHandler( RequestHandler ):
   # Tier1 SE status for web
   ####
   types_getTier1SEStatusWeb = [ DictType, ListType, IntType, IntType ]
-  def export_getTier1SEStatusWeb( self, selectDict={}, sortList=[ "SE", "DESC" ], startItem, maxItems ):
+  def export_getTier1SEStatusWeb( self, selectDict={}, sortList=[ "SE", "DESC" ], startItem=0, maxItems=56 ):
     """get Tier1 SE status  
     
     :warning: 
@@ -232,7 +232,7 @@ class StorageUsageHandler( RequestHandler ):
     tier1SEs = list()
     for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith("Tier1") ]:
       tier1SEs += [ se.strip() for se in seStr.split(",") if not se.endswith("-disk") ]
-    SEs = { "ParameterNames" : [ "SE", "Read", "Write", "Type",  "Used", "Quota" ],
+    SEs = { "ParameterNames" : [ "SE", "ReadAccess", "WriteAccess", "Used", "Quota", "Free" ],
             "Records" : [],
             "TotalRecords" : 0,
             "Extras" : "" }
@@ -246,12 +246,15 @@ class StorageUsageHandler( RequestHandler ):
           return S_ERROR( seStatus["Message"] )
         seStatus = seStatus["Value"]
         seType = "DiskSE" if seStatus["DiskSE"] else "TapeSE"
+        seFree = seStatus["DiskCacheTB"] * 100.0 / seStatus["TotalCapacityTB"]
+        
         SEs["Records"].append( [ seName, 
                                  "Active" if seStatus["Read"] else "InActive", 
                                  "Active" if seStatus["Write"] else "InActive", 
-                                 seType,
-                                 seStatus["DiskCacheTB"]
-                                 seStatus["TotalCapacityTB"] ] )
+                                 #seType,
+                                 "%4.2f" % seStatus["DiskCacheTB"],
+                                 "%4.2f" % seStatus["TotalCapacityTB"],
+                                 "%4.2f" % seFree ] )
         SEs["TotalRecords"] += 1
     return S_OK(SEs)
     
