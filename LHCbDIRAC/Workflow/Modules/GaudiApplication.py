@@ -260,7 +260,7 @@ class GaudiApplication( ModuleBase ):
     try:
       finalOutputs, bkFileTypes = self._findOutputs( self.stepOutputs )
     except AttributeError:
-      self.log.info( 'Step outputs are not defined (this is normal for SAM jobs)' )
+      self.log.warn( 'Step outputs are not defined (this is normal for SAM jobs)' )
       return 
 
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
