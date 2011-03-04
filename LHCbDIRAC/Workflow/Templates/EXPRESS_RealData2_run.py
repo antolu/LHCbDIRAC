@@ -26,7 +26,7 @@ args = Script.getPositionalArgs()
 
 import DIRAC
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gLogger
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 gLogger = gLogger.getSubLogger( 'EXPRESS_RealData_Merging_run.py' )
@@ -37,7 +37,6 @@ BKClient = BookkeepingClient()
 #################################################################################
 from LHCbDIRAC.Interfaces.API.Production import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 ###########################################
 # Configurable parameters
@@ -55,7 +54,7 @@ destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO: priority#7}}'
 recoCPU = '{{RecoMaxCPUTime#PROD-RECO: Max CPU time in secs#1000000}}'
-recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#AtomicRun}}'
+recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#ByRun}}'
 recoAncestorProd = '{{RecoAncestorProd#PROD-RECO: ancestor production if any#0}}'
 recoDataSE = '{{RecoDataSE#PROD-RECO: Output Data Storage Element#Tier1-RDST}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO: Group size or number of files per job#1}}'
@@ -123,7 +122,7 @@ if testFlag:
   processingPass = 'Real Data'
   BKfileType = 'RAW'
   eventType = '91000000'
-  mergeRemoveInputsFlag = True
+  recoDQFlag = 'ALL'
 else:
   outBkConfigName = bkConfigName
   outBkConfigVersion = bkConfigVersion
