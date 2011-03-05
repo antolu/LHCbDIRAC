@@ -10,9 +10,9 @@ Script.parseCommandLine()
 """DIRAC Production Management Class
 
    This class allows to monitor the progress of productions operationally.
-   
-   Of particular use are the monitoring functions allowing to drill down 
-   by site, minor status and application status for a given transformation.  
+
+   Of particular use are the monitoring functions allowing to drill down
+   by site, minor status and application status for a given transformation.
 
 """
 
@@ -104,7 +104,6 @@ class DiracProduction:
       adj = self.prodAdj
       prodInfo = result['Value']
       headers = self.prodHeaders.values()
-      prodDict = result['Value']
       top = ''
       for i in headers:
         top += i.ljust( adj )

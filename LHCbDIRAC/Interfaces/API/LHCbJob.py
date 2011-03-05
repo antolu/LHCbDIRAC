@@ -78,9 +78,9 @@
      dirac = DiracLHCb()
      jobID = dirac.submit(j,mode='local')
      print 'Submission Result: ',jobID
-     
+
    To execute a protocol access test (for experts) the following example script should suffice:
-   
+
      from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
@@ -92,13 +92,13 @@
 
      dirac = DiracLHCb()
      jobID = dirac.submit(j,mode='wms')
-     print 'Submission Result: ',jobID   
+     print 'Submission Result: ',jobID
 
 """
 
 __RCSID__ = "$Id$"
 
-import string, re, os, time, shutil, types, copy
+import string
 
 from DIRAC.Core.Workflow.Parameter                  import *
 from DIRAC.Core.Workflow.Module                     import *
@@ -110,25 +110,25 @@ from DIRAC.Core.Utilities.File                      import makeGuid
 from DIRAC.Core.Utilities.List                      import uniqueElements
 from DIRAC                                          import gConfig
 
-COMPONENT_NAME='/WorkflowLib/API/LHCbJob'
+COMPONENT_NAME = '/WorkflowLib/API/LHCbJob'
 
-class LHCbJob(Job):
+class LHCbJob( Job ):
 
   #############################################################################
 
-  def __init__(self,script=None,stdout='std.out',stderr='std.err'):
+  def __init__( self, script = None, stdout = 'std.out', stderr = 'std.err' ):
     """Instantiates the Workflow object and some default parameters.
     """
-    Job.__init__(self,script,stdout,stderr)
+    Job.__init__( self, script, stdout, stderr )
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
-    self.scratchDir = gConfig.getValue(self.section+'/LocalSite/ScratchDir','/tmp')
+    self.scratchDir = gConfig.getValue( self.section + '/LocalSite/ScratchDir', '/tmp' )
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
 
   #############################################################################
-  def setApplication(self,appName,appVersion,optionsFiles,inputData='',optionsLine='',inputDataType='',logFile=''):
+  def setApplication( self, appName, appVersion, optionsFiles, inputData = '', optionsLine = '', inputDataType = '', logFile = '' ):
     """Helper function.
 
        Specify application for DIRAC workflows.
@@ -165,144 +165,144 @@ class LHCbJob(Job):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName,'appVersion':appVersion,'optionsFiles':optionsFiles,'inputData':inputData,'optionsLine':optionsLine,'inputDataType':inputDataType,'logFile':logFile}
-    if not type(appName) in types.StringTypes or not type(appVersion) in types.StringTypes:
-      return self._reportError('Expected strings for application name and version',__name__,**kwargs)
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles, 'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
+    if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
+      return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
     if logFile:
-      if type(logFile) in types.StringTypes:
+      if type( logFile ) in types.StringTypes:
         logName = logFile
       else:
-        return self._reportError('Expected string for log file name',__name__,**kwargs)
+        return self._reportError( 'Expected string for log file name', __name__, **kwargs )
     else:
-      logName = '%s_%s.log' %(appName,appVersion)
+      logName = '%s_%s.log' % ( appName, appVersion )
 
-    if not type(inputDataType) in types.StringTypes:
-      return self._reportError('Expected string for input data type',__name__,**kwargs)
+    if not type( inputDataType ) in types.StringTypes:
+      return self._reportError( 'Expected string for input data type', __name__, **kwargs )
     if not inputDataType:
-      inputDataType=self.inputDataType
+      inputDataType = self.inputDataType
 
-    optionsFile=None
+    optionsFile = None
     if not optionsFiles:
-      return self._reportError('Expected string or list for optionsFiles',__name__,**kwargs)
-    if type(optionsFiles) in types.StringTypes:
+      return self._reportError( 'Expected string or list for optionsFiles', __name__, **kwargs )
+    if type( optionsFiles ) in types.StringTypes:
       optionsFiles = [optionsFiles]
-    if not type(optionsFiles) == type([]):
-      return self._reportError('Expected string or list for optionsFiles',__name__,**kwargs)
+    if not type( optionsFiles ) == type( [] ):
+      return self._reportError( 'Expected string or list for optionsFiles', __name__, **kwargs )
     for optsFile in optionsFiles:
       if not optionsFile:
-        self.log.verbose('Found master options file %s' %optsFile)
+        self.log.verbose( 'Found master options file %s' % optsFile )
         optionsFile = optsFile
-      if os.path.exists(optsFile):
-        self.log.verbose('Found specified options file: %s' %optsFile)
-        self.addToInputSandbox.append(optsFile)
-        optionsFile +=';%s' %optsFile
-      elif re.search('\$',optsFile):
-        self.log.verbose('Assuming %s is using an environment variable to be resolved during execution' %optsFile)
-        if not optionsFile==optsFile:
-          optionsFile +=';%s' %optsFile
+      if os.path.exists( optsFile ):
+        self.log.verbose( 'Found specified options file: %s' % optsFile )
+        self.addToInputSandbox.append( optsFile )
+        optionsFile += ';%s' % optsFile
+      elif re.search( '\$', optsFile ):
+        self.log.verbose( 'Assuming %s is using an environment variable to be resolved during execution' % optsFile )
+        if not optionsFile == optsFile:
+          optionsFile += ';%s' % optsFile
       else:
-        return self._reportError('Specified options file %s does not exist' %(optsFile),__name__,**kwargs)
+        return self._reportError( 'Specified options file %s does not exist' % ( optsFile ), __name__, **kwargs )
 
     #ensure optionsFile list is unique:
-    tmpList = string.split(optionsFile,';')
-    optionsFile = string.join(uniqueElements(tmpList),';')
-    self.log.verbose('Final options list is: %s' %optionsFile)
+    tmpList = string.split( optionsFile, ';' )
+    optionsFile = string.join( uniqueElements( tmpList ), ';' )
+    self.log.verbose( 'Final options list is: %s' % optionsFile )
     if inputData:
-      if type(inputData) in types.StringTypes:
+      if type( inputData ) in types.StringTypes:
         inputData = [inputData]
-      if not type(inputData)==type([]):
-        return self._reportError('Expected single LFN string or list of LFN(s) for inputData',__name__,**kwargs)
-      for i in xrange(len(inputData)):
-        inputData[i] = inputData[i].replace('LFN:','')
-      inputData = map( lambda x: 'LFN:'+x, inputData)
-      inputDataStr = string.join(inputData,';')
-      self.addToInputData.append(inputDataStr)
+      if not type( inputData ) == type( [] ):
+        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
+      for i in xrange( len( inputData ) ):
+        inputData[i] = inputData[i].replace( 'LFN:', '' )
+      inputData = map( lambda x: 'LFN:' + x, inputData )
+      inputDataStr = string.join( inputData, ';' )
+      self.addToInputData.append( inputDataStr )
 
-    self.gaudiStepCount +=1
+    self.gaudiStepCount += 1
     stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %(appName,stepNumber)
-    step =  self.__getGaudiApplicationStep(stepDefn)
-    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
+    stepDefn = '%sStep%s' % ( appName, stepNumber )
+    step = self.__getGaudiApplicationStep( stepDefn )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
-    stepName = 'Run%sStep%s' %(appName,stepNumber)
+    stepName = 'Run%sStep%s' % ( appName, stepNumber )
 
-    logPrefix = 'Step%s_' %(stepNumber)
-    logName = '%s%s' %(logPrefix,logName)
-    self.addToOutputSandbox.append(logName)
+    logPrefix = 'Step%s_' % ( stepNumber )
+    logName = '%s%s' % ( logPrefix, logName )
+    self.addToOutputSandbox.append( logName )
 
-    self.workflow.addStep(step)
+    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
 
-    stepInstance.setValue("applicationName",appName)
-    stepInstance.setValue("applicationVersion",appVersion)
-    stepInstance.setValue("applicationLog",logName)
+    stepInstance.setValue( "applicationName", appName )
+    stepInstance.setValue( "applicationVersion", appVersion )
+    stepInstance.setValue( "applicationLog", logName )
     if optionsFile:
-      stepInstance.setValue("optionsFile",optionsFile)
+      stepInstance.setValue( "optionsFile", optionsFile )
     if optionsLine:
-      stepInstance.setValue("optionsLine",optionsLine)
+      stepInstance.setValue( "optionsLine", optionsLine )
     if inputDataType:
-      stepInstance.setValue("inputDataType",inputDataType)
+      stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
-      stepInstance.setValue("inputData",string.join(inputData,';'))
+      stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
 
     # now we have to tell DIRAC to install the necessary software
-    currentApp = '%s.%s' %(appName,appVersion)
+    currentApp = '%s.%s' % ( appName, appVersion )
     swPackages = 'SoftwarePackages'
-    description='List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter(swPackages):
-      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    description = 'List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter( swPackages ):
+      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
-      apps = self.workflow.findParameter(swPackages).getValue()
-      if not currentApp in string.split(apps,';'):
-        apps += ';'+currentApp
-      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+      apps = self.workflow.findParameter( swPackages ).getValue()
+      if not currentApp in string.split( apps, ';' ):
+        apps += ';' + currentApp
+      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
 
   #############################################################################
-  def __getGaudiApplicationStep(self,name='GaudiApplication'):
+  def __getGaudiApplicationStep( self, name = 'GaudiApplication' ):
     """Internal function.
 
         This method controls the definition for a GaudiApplication step.
     """
     # Create the GaudiApplication module first
     moduleName = 'GaudiApplication'
-    module = ModuleDefinition(moduleName)
-    module.setDescription('A generic Gaudi Application module that can execute any provided project name and version')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)
-    module.setBody(body)
-    #Add user job finalization module 
+    module = ModuleDefinition( moduleName )
+    module.setDescription( 'A generic Gaudi Application module that can execute any provided project name and version' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    module.setBody( body )
+    #Add user job finalization module
     moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition(moduleName)
-    userData.setDescription('Uploads user output data files with LHCb specific policies.')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
-    userData.setBody(body)
-    
+    userData = ModuleDefinition( moduleName )
+    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    userData.setBody( body )
+
     # Create Step definition
-    step = StepDefinition(name)
-    step.addModule(module)
-    step.addModule(userData)
-    step.createModuleInstance('GaudiApplication',name)
-    step.createModuleInstance('UserJobFinalization',name)    
+    step = StepDefinition( name )
+    step.addModule( module )
+    step.addModule( userData )
+    step.createModuleInstance( 'GaudiApplication', name )
+    step.createModuleInstance( 'UserJobFinalization', name )
 
     # Define step parameters
-    step.addParameter(Parameter("applicationName","","string","","",False, False, "Application Name"))
-    step.addParameter(Parameter("applicationVersion","","string","","",False, False, "Application Name"))
-    step.addParameter(Parameter("applicationLog","","string","","",False,False,"Name of the output file of the application"))
-    step.addParameter(Parameter("optionsFile","","string","","",False,False,"Options File"))
-    step.addParameter(Parameter("optionsLine","","string","","",False,False,"This is appended to standard options"))
+    step.addParameter( Parameter( "applicationName", "", "string", "", "", False, False, "Application Name" ) )
+    step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, "Application Name" ) )
+    step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, "Name of the output file of the application" ) )
+    step.addParameter( Parameter( "optionsFile", "", "string", "", "", False, False, "Options File" ) )
+    step.addParameter( Parameter( "optionsLine", "", "string", "", "", False, False, "This is appended to standard options" ) )
     #step.addParameter(Parameter("optionsLinePrev","","string","","",False,False,"options to be added first","option"))
     #step.addParameter(Parameter("poolXMLCatName","","string","","",False,False,"POOL XML Catalog file name"))
-    step.addParameter(Parameter("inputDataType","","string","","",False, False, "Input Data Type"))
-    step.addParameter(Parameter("inputData","","string","","",False, False, "Input Data Type"))
+    step.addParameter( Parameter( "inputDataType", "", "string", "", "", False, False, "Input Data Type" ) )
+    step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, "Input Data Type" ) )
     return step
 
   #############################################################################
-  def setApplicationScript(self,appName,appVersion,script,arguments='',inputData='',inputDataType='',poolXMLCatalog='pool_xml_catalog.xml',logFile=''):
+  def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '', inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '' ):
     """Helper function.
 
        Specify application environment and script to be executed.
@@ -340,129 +340,129 @@ class LHCbJob(Job):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName,'appVersion':appVersion,'script':script,'arguments':arguments,'inputData':inputData,'inputDataType':inputDataType,'poolXMLCatalog':poolXMLCatalog,'logFile':logFile}
-    if not type(appName) in types.StringTypes or not type(appVersion) in types.StringTypes:
-      return self._reportError('Expected strings for application name and version',__name__,**kwargs)    
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments, 'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
+    if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
+      return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
-    if not script or not type(script)==type(' '):
-      return self._reportError('Expected strings for script name',__name__,**kwargs)    
-      
-    if not os.path.exists(script):
-      return self._reportError('Script must exist locally',__name__,**kwargs)    
+    if not script or not type( script ) == type( ' ' ):
+      return self._reportError( 'Expected strings for script name', __name__, **kwargs )
+
+    if not os.path.exists( script ):
+      return self._reportError( 'Script must exist locally', __name__, **kwargs )
 
     if logFile:
-      if type(logFile) == type(' '):
+      if type( logFile ) == type( ' ' ):
         logName = logFile
       else:
-        return self._reportError('Expected string for log file name',__name__,**kwargs)    
+        return self._reportError( 'Expected string for log file name', __name__, **kwargs )
     else:
-      shortScriptName = os.path.basename(script).split('.')[0]
-      logName = '%s_%s_%s.log' %(appName,appVersion,shortScriptName)
+      shortScriptName = os.path.basename( script ).split( '.' )[0]
+      logName = '%s_%s_%s.log' % ( appName, appVersion, shortScriptName )
 
-    self.addToInputSandbox.append(script)
+    self.addToInputSandbox.append( script )
 
     if arguments:
-      if not type(arguments)==type(' '):
-        return self._reportError('Expected string for optional script arguments',__name__,**kwargs)    
+      if not type( arguments ) == type( ' ' ):
+        return self._reportError( 'Expected string for optional script arguments', __name__, **kwargs )
 
-    if not type(poolXMLCatalog)==type(" "):
-      return self._reportError('Expected string for POOL XML Catalog name',__name__,**kwargs)    
+    if not type( poolXMLCatalog ) == type( " " ):
+      return self._reportError( 'Expected string for POOL XML Catalog name', __name__, **kwargs )
 
     if inputData:
-      if type(inputData) in types.StringTypes:
+      if type( inputData ) in types.StringTypes:
         inputData = [inputData]
-      if not type(inputData)==type([]):
-        return self._reportError('Expected single LFN string or list of LFN(s) for inputData',__name__,**kwargs)    
-      for i in xrange(len(inputData)):
-        inputData[i] = inputData[i].replace('LFN:','')
-      inputData = map( lambda x: 'LFN:'+x, inputData)
-      inputDataStr = string.join(inputData,';')
-      self.addToInputData.append(inputDataStr)
+      if not type( inputData ) == type( [] ):
+        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
+      for i in xrange( len( inputData ) ):
+        inputData[i] = inputData[i].replace( 'LFN:', '' )
+      inputData = map( lambda x: 'LFN:' + x, inputData )
+      inputDataStr = string.join( inputData, ';' )
+      self.addToInputData.append( inputDataStr )
 
-    self.gaudiStepCount +=1
+    self.gaudiStepCount += 1
     stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %(appName,stepNumber)
-    step =  self.__getGaudiApplicationScriptStep(stepDefn)
-    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
+    stepDefn = '%sStep%s' % ( appName, stepNumber )
+    step = self.__getGaudiApplicationScriptStep( stepDefn )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
-    stepName = 'Run%sStep%s' %(appName,stepNumber)
+    stepName = 'Run%sStep%s' % ( appName, stepNumber )
 
-    logPrefix = 'Step%s_' %(stepNumber)
-    logName = '%s%s' %(logPrefix,logName)
-    self.addToOutputSandbox.append(logName)
+    logPrefix = 'Step%s_' % ( stepNumber )
+    logName = '%s%s' % ( logPrefix, logName )
+    self.addToOutputSandbox.append( logName )
 
-    self.workflow.addStep(step)
+    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
+    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
 
-    stepInstance.setValue("applicationName",appName)
-    stepInstance.setValue("applicationVersion",appVersion)
-    stepInstance.setValue("script",script)
-    stepInstance.setValue("applicationLog",logName)
+    stepInstance.setValue( "applicationName", appName )
+    stepInstance.setValue( "applicationVersion", appVersion )
+    stepInstance.setValue( "script", script )
+    stepInstance.setValue( "applicationLog", logName )
     if arguments:
-      stepInstance.setValue("arguments",arguments)
+      stepInstance.setValue( "arguments", arguments )
     if inputDataType:
-      stepInstance.setValue("inputDataType",inputDataType)
+      stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
-      stepInstance.setValue("inputData",string.join(inputData,';'))
+      stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
     if poolXMLCatalog:
-      stepInstance.setValue("poolXMLCatName",poolXMLCatalog)
+      stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
 
     # now we have to tell DIRAC to install the necessary software
-    currentApp = '%s.%s' %(appName,appVersion)
+    currentApp = '%s.%s' % ( appName, appVersion )
     swPackages = 'SoftwarePackages'
-    description='List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter(swPackages):
-      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    description = 'List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter( swPackages ):
+      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
-      apps = self.workflow.findParameter(swPackages).getValue()
-      if not currentApp in string.split(apps,';'):
-        apps += ';'+currentApp
-      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+      apps = self.workflow.findParameter( swPackages ).getValue()
+      if not currentApp in string.split( apps, ';' ):
+        apps += ';' + currentApp
+      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
 
   #############################################################################
-  def __getGaudiApplicationScriptStep(self,name='GaudiApplicationScript'):
+  def __getGaudiApplicationScriptStep( self, name = 'GaudiApplicationScript' ):
     """Internal function.
 
       This method controls the definition for a GaudiApplicationScript step.
     """
     # Create the GaudiApplication script module first
     moduleName = 'GaudiApplicationScript'
-    module = ModuleDefinition(moduleName)
-    module.setDescription('A  Gaudi Application script module that can execute any provided script in the given project name and version environment')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)
-    module.setBody(body)
-    #Add user job finalization module 
+    module = ModuleDefinition( moduleName )
+    module.setDescription( 'A  Gaudi Application script module that can execute any provided script in the given project name and version environment' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    module.setBody( body )
+    #Add user job finalization module
     moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition(moduleName)
-    userData.setDescription('Uploads user output data files with LHCb specific policies.')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
-    userData.setBody(body)
-    
+    userData = ModuleDefinition( moduleName )
+    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    userData.setBody( body )
+
     # Create Step definition
-    step = StepDefinition(name)
-    step.addModule(module)
-    step.addModule(userData)    
-    step.createModuleInstance('GaudiApplicationScript',name)
-    step.createModuleInstance('UserJobFinalization',name)    
-        
+    step = StepDefinition( name )
+    step.addModule( module )
+    step.addModule( userData )
+    step.createModuleInstance( 'GaudiApplicationScript', name )
+    step.createModuleInstance( 'UserJobFinalization', name )
+
     # Define step parameters
-    step.addParameter(Parameter("applicationName","","string","","",False, False, "Application Name"))
-    step.addParameter(Parameter("applicationVersion","","string","","",False, False, "Application Name"))
-    step.addParameter(Parameter("applicationLog","","string","","",False,False,"Name of the output file of the application"))
-    step.addParameter(Parameter("script","","string","","",False,False,"Script name"))
-    step.addParameter(Parameter("arguments","","string","","",False,False,"Arguments for script"))
-    step.addParameter(Parameter("poolXMLCatName","","string","","",False,False,"POOL XML Catalog file name"))
-    step.addParameter(Parameter("inputDataType","","string","","",False, False, "Input Data Type"))
-    step.addParameter(Parameter("inputData","","string","","",False, False, "Input Data Type"))
+    step.addParameter( Parameter( "applicationName", "", "string", "", "", False, False, "Application Name" ) )
+    step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, "Application Name" ) )
+    step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, "Name of the output file of the application" ) )
+    step.addParameter( Parameter( "script", "", "string", "", "", False, False, "Script name" ) )
+    step.addParameter( Parameter( "arguments", "", "string", "", "", False, False, "Arguments for script" ) )
+    step.addParameter( Parameter( "poolXMLCatName", "", "string", "", "", False, False, "POOL XML Catalog file name" ) )
+    step.addParameter( Parameter( "inputDataType", "", "string", "", "", False, False, "Input Data Type" ) )
+    step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, "Input Data Type" ) )
     return step
 
   #############################################################################
-  def setBenderModule(self,benderVersion,modulePath,inputData='',numberOfEvents=-1):
+  def setBenderModule( self, benderVersion, modulePath, inputData = '', numberOfEvents = -1 ):
     """Helper function.
 
        Specify Bender module to be executed.
@@ -484,50 +484,50 @@ class LHCbJob(Job):
        @param numberOfEvents: Number of events to process e.g. -1
        @type numberOfEvents: integer
     """
-    kwargs = {'benderVersion':benderVersion,'modulePath':modulePath,'inputData':inputData,'numberOfEvents':numberOfEvents}
-    if not type(benderVersion)==type(' '):
-      return self._reportError('Bender version should be a string',__name__,**kwargs)    
-    if not type(modulePath)==type(' '):
-      return self._reportError('Bender module path should be a string',__name__,**kwargs)    
-    if not type(numberOfEvents)==type(2):
+    kwargs = {'benderVersion':benderVersion, 'modulePath':modulePath, 'inputData':inputData, 'numberOfEvents':numberOfEvents}
+    if not type( benderVersion ) == type( ' ' ):
+      return self._reportError( 'Bender version should be a string', __name__, **kwargs )
+    if not type( modulePath ) == type( ' ' ):
+      return self._reportError( 'Bender module path should be a string', __name__, **kwargs )
+    if not type( numberOfEvents ) == type( 2 ):
       try:
-        numberOfEvents=int(numberOfEvents)
-      except Exception,x:
-        return self._reportError('Number of events should be an integer or convertible to an integer',__name__,**kwargs)    
-    if type(inputData)==type(" "):
+        numberOfEvents = int( numberOfEvents )
+      except Exception, x:
+        return self._reportError( 'Number of events should be an integer or convertible to an integer', __name__, **kwargs )
+    if type( inputData ) == type( " " ):
       inputData = [inputData]
-    if not type(inputData)==type([]):
-      return self._reportError('Input data should be specified as a list or a string',__name__,**kwargs)    
-      
-    poolCatName='xmlcatalog_file:pool_xml_catalog.xml'
+    if not type( inputData ) == type( [] ):
+      return self._reportError( 'Input data should be specified as a list or a string', __name__, **kwargs )
+
+    poolCatName = 'xmlcatalog_file:pool_xml_catalog.xml'
     benderScript = ['#!/usr/bin/env python']
-    benderScript.append('from Gaudi.Configuration import FileCatalog')
-    benderScript.append('FileCatalog   ( Catalogs = [ "%s" ] )' %poolCatName)
-    benderScript.append('import %s as USERMODULE' %modulePath)
-    benderScript.append('USERMODULE.configure()')
-    benderScript.append('gaudi = USERMODULE.appMgr()')
-    benderScript.append('evtSel = gaudi.evtSel()')
-    benderScript.append('evtSel.open ( %s ) ' %inputData)
-    benderScript.append('USERMODULE.run( %s )\n' %numberOfEvents)
+    benderScript.append( 'from Gaudi.Configuration import FileCatalog' )
+    benderScript.append( 'FileCatalog   ( Catalogs = [ "%s" ] )' % poolCatName )
+    benderScript.append( 'import %s as USERMODULE' % modulePath )
+    benderScript.append( 'USERMODULE.configure()' )
+    benderScript.append( 'gaudi = USERMODULE.appMgr()' )
+    benderScript.append( 'evtSel = gaudi.evtSel()' )
+    benderScript.append( 'evtSel.open ( %s ) ' % inputData )
+    benderScript.append( 'USERMODULE.run( %s )\n' % numberOfEvents )
     guid = makeGuid()
-    tmpdir = self.scratchDir+'/'+guid
-    self.log.verbose('Created temporary directory for submission %s' % (tmpdir))
-    os.mkdir(tmpdir)
-    fopen = open('%s/BenderScript.py' %tmpdir,'w')
-    self.log.verbose('Bender script is: %s/BenderScript.py' %tmpdir)
-    fopen.write(string.join(benderScript,'\n'))
+    tmpdir = self.scratchDir + '/' + guid
+    self.log.verbose( 'Created temporary directory for submission %s' % ( tmpdir ) )
+    os.mkdir( tmpdir )
+    fopen = open( '%s/BenderScript.py' % tmpdir, 'w' )
+    self.log.verbose( 'Bender script is: %s/BenderScript.py' % tmpdir )
+    fopen.write( string.join( benderScript, '\n' ) )
     fopen.close()
     #should try all components of the PYTHONPATH before giving up...
-    userModule = '%s.py' %(string.split(modulePath,'.')[-1])
-    self.log.verbose('Looking for user module with name: %s' %userModule)
-    if os.path.exists(userModule):
-      self.addToInputSandbox.append(userModule)
-    self.setInputData(inputData)
-    self.setApplicationScript('Bender', benderVersion, '%s/BenderScript.py' %tmpdir, logFile='Bender%s.log' %benderVersion)
+    userModule = '%s.py' % ( string.split( modulePath, '.' )[-1] )
+    self.log.verbose( 'Looking for user module with name: %s' % userModule )
+    if os.path.exists( userModule ):
+      self.addToInputSandbox.append( userModule )
+    self.setInputData( inputData )
+    self.setApplicationScript( 'Bender', benderVersion, '%s/BenderScript.py' % tmpdir, logFile = 'Bender%s.log' % benderVersion )
     return S_OK()
-  
+
   #############################################################################
-  def setRootMacro(self,rootVersion,rootScript,arguments='',logFile=''):
+  def setRootMacro( self, rootVersion, rootScript, arguments = '', logFile = '' ):
     """Helper function.
 
        Specify ROOT version and macro to be executed (e.g. root -b -f <rootScript>).
@@ -549,10 +549,10 @@ class LHCbJob(Job):
        @type logFile: string
     """
     rootType = 'c'
-    return self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
 
   #############################################################################
-  def setRootPythonScript(self,rootVersion,rootScript,arguments='',logFile=''):
+  def setRootPythonScript( self, rootVersion, rootScript, arguments = '', logFile = '' ):
     """Helper function.
 
        Specify ROOT version and python script to be executed (e.g. python <rootScript>).
@@ -574,10 +574,10 @@ class LHCbJob(Job):
        @type logFile: string
     """
     rootType = 'py'
-    return self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
 
   #############################################################################
-  def setRootExecutable(self,rootVersion,rootScript,arguments='',logFile=''):
+  def setRootExecutable( self, rootVersion, rootScript, arguments = '', logFile = '' ):
     """Helper function.
 
        Specify ROOT version and executable (e.g. ./<rootScript>).
@@ -598,125 +598,125 @@ class LHCbJob(Job):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    rootType='bin'
-    return self.__configureRootModule(rootVersion, rootScript, rootType, arguments, logFile)
+    rootType = 'bin'
+    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
 
   #############################################################################
-  def __configureRootModule(self,rootVersion,rootScript,rootType,arguments,logFile):
+  def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile ):
     """ Internal function.
 
         Supports the root macro, python and executable wrapper functions.
     """
-    kwargs = {'rootVersion':rootVersion,'rootScript':rootScript,'rootType':rootType,'arguments':arguments,'logFile':logFile}
-    if not type(arguments) == types.ListType:
+    kwargs = {'rootVersion':rootVersion, 'rootScript':rootScript, 'rootType':rootType, 'arguments':arguments, 'logFile':logFile}
+    if not type( arguments ) == types.ListType:
       arguments = [arguments]
 
-    for param in [rootVersion,rootScript,rootType,logFile]:
-      if not type(param) in types.StringTypes:
-        return self._reportError('Expected strings for Root application input parameters',__name__,**kwargs)    
+    for param in [rootVersion, rootScript, rootType, logFile]:
+      if not type( param ) in types.StringTypes:
+        return self._reportError( 'Expected strings for Root application input parameters', __name__, **kwargs )
 
-    if not os.path.exists(rootScript):
-      return self._reportError('ROOT Script %s must exist locally' %(rootScript),__name__,**kwargs)    
-     
-    self.addToInputSandbox.append(rootScript)
+    if not os.path.exists( rootScript ):
+      return self._reportError( 'ROOT Script %s must exist locally' % ( rootScript ), __name__, **kwargs )
+
+    self.addToInputSandbox.append( rootScript )
 
     #Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptions(self.rootSection,[])
+    rootVersions = gConfig.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
-      return self._reportError('Could not contact DIRAC Configuration Service for supported ROOT version list',__name__,**kwargs)          
+      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
 
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
-      return self._reportError('Requested ROOT version %s is not in supported list: %s' %(rootVersion,string.join(rootList,', ')),__name__,**kwargs)                
+      return self._reportError( 'Requested ROOT version %s is not in supported list: %s' % ( rootVersion, string.join( rootList, ', ' ) ), __name__, **kwargs )
 
-    rootName = os.path.basename(rootScript).replace('.','')
+    rootName = os.path.basename( rootScript ).replace( '.', '' )
     if logFile:
       logName = logFile
     else:
-      logName = '%s_%s.log' %(rootName,rootVersion.replace('.',''))
+      logName = '%s_%s.log' % ( rootName, rootVersion.replace( '.', '' ) )
 
-    self.gaudiStepCount +=1
+    self.gaudiStepCount += 1
     stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' %(rootName,stepNumber)
-    step =  self.__getRootApplicationStep(stepDefn)
-    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
+    stepDefn = '%sStep%s' % ( rootName, stepNumber )
+    step = self.__getRootApplicationStep( stepDefn )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
-    stepName = 'Run%sStep%s' %(rootName,stepNumber)
+    stepName = 'Run%sStep%s' % ( rootName, stepNumber )
 
-    logPrefix = 'Step%s_' %(stepNumber)
-    logName = '%s%s' %(logPrefix,logName)
-    self.addToOutputSandbox.append(logName)
+    logPrefix = 'Step%s_' % ( stepNumber )
+    logName = '%s%s' % ( logPrefix, logName )
+    self.addToOutputSandbox.append( logName )
 
-    self.workflow.addStep(step)
+    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("rootVersion",rootVersion)
-    stepInstance.setValue("rootType",rootType)
-    stepInstance.setValue("rootScript",os.path.basename(rootScript))
-    stepInstance.setValue("logFile",logName)
+    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance.setValue( "rootVersion", rootVersion )
+    stepInstance.setValue( "rootType", rootType )
+    stepInstance.setValue( "rootScript", os.path.basename( rootScript ) )
+    stepInstance.setValue( "logFile", logName )
     if arguments:
-      stepInstance.setValue("arguments",arguments)
+      stepInstance.setValue( "arguments", arguments )
 
     # now we have to tell DIRAC to install the necessary software
-    appRoot = '%s/%s' %(self.rootSection,rootVersion)
-    currentApp = gConfig.getValue(appRoot,'')
+    appRoot = '%s/%s' % ( self.rootSection, rootVersion )
+    currentApp = gConfig.getValue( appRoot, '' )
     if not currentApp:
-      return self._reportError('Could not get value from DIRAC Configuration Service for option %s' %appRoot,__name__,**kwargs)                
+      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
     swPackages = 'SoftwarePackages'
-    description='List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter(swPackages):
-      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    description = 'List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter( swPackages ):
+      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
-      apps = self.workflow.findParameter(swPackages).getValue()
-      if not currentApp in string.split(apps,';'):
-        apps += ';'+currentApp
-      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
-    return S_OK()  
+      apps = self.workflow.findParameter( swPackages ).getValue()
+      if not currentApp in string.split( apps, ';' ):
+        apps += ';' + currentApp
+      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
+    return S_OK()
 
   #############################################################################
-  def __getRootApplicationStep(self,name='RootApplication'):
+  def __getRootApplicationStep( self, name = 'RootApplication' ):
     """Internal function.
 
         This method controls the definition for a RootApplication step.
     """
     # Create the RootApplication module first
     moduleName = 'RootApplication'
-    module = ModuleDefinition(moduleName)
-    module.setDescription('A generic Root Application module that can execute macros, python scripts or executables')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
-    module.setBody(body)
-    #Add user job finalization module 
+    module = ModuleDefinition( moduleName )
+    module.setDescription( 'A generic Root Application module that can execute macros, python scripts or executables' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    module.setBody( body )
+    #Add user job finalization module
     moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition(moduleName)
-    userData.setDescription('Uploads user output data files with LHCb specific policies.')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
-    userData.setBody(body)    
-    
+    userData = ModuleDefinition( moduleName )
+    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    userData.setBody( body )
+
     # Create Step definition
-    step = StepDefinition(name)
-    step.addModule(module)
-    step.addModule(userData)    
-    step.createModuleInstance('RootApplication',name)
-    step.createModuleInstance('UserJobFinalization',name)      
+    step = StepDefinition( name )
+    step.addModule( module )
+    step.addModule( userData )
+    step.createModuleInstance( 'RootApplication', name )
+    step.createModuleInstance( 'UserJobFinalization', name )
     # Define step parameters
-    step.addParameter(Parameter("rootVersion","","string","","",False, False, "Root version."))
-    step.addParameter(Parameter("rootScript","","string","","",False, False, "Root script."))
-    step.addParameter(Parameter("rootType","","string","","",False, False, "Root type."))
-    step.addParameter(Parameter("arguments",[],"list","","",False, False, "Optional arguments for payload."))
-    step.addParameter(Parameter("logFile","","string","","",False, False, "Log file name."))
+    step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, "Root version." ) )
+    step.addParameter( Parameter( "rootScript", "", "string", "", "", False, False, "Root script." ) )
+    step.addParameter( Parameter( "rootType", "", "string", "", "", False, False, "Root type." ) )
+    step.addParameter( Parameter( "arguments", [], "list", "", "", False, False, "Optional arguments for payload." ) )
+    step.addParameter( Parameter( "logFile", "", "string", "", "", False, False, "Log file name." ) )
     return step
 
   #############################################################################
-  def __getCurrentStepPrefix(self):
+  def __getCurrentStepPrefix( self ):
     """Internal function, returns current step prefix for setting parameters.
     """
     return self.currentStepPrefix
 
   #############################################################################
-  def addPackage(self,appName,appVersion):
+  def addPackage( self, appName, appVersion ):
     """Helper function.
 
        Specify additional software packages to be installed on Grid
@@ -733,26 +733,26 @@ class LHCbJob(Job):
        @type appVersion: Package version string
 
     """
-    kwargs = {'appName':appName,'appVersion':appVersion}
-    if not type(appName) == type(' ') or not type(appVersion) == type(' '):
-      return self._reportError('Expected strings for application name and version',__name__,**kwargs)                
-    
-    currentApp = '%s.%s' %(appName,appVersion)
+    kwargs = {'appName':appName, 'appVersion':appVersion}
+    if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
+      return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
+
+    currentApp = '%s.%s' % ( appName, appVersion )
     swPackages = 'SoftwarePackages'
-    description='List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter(swPackages):
-      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    description = 'List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter( swPackages ):
+      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
-      apps = self.workflow.findParameter(swPackages).getValue()
+      apps = self.workflow.findParameter( swPackages ).getValue()
       if apps:
-        if not currentApp in string.split(apps,';'):
-          apps += ';'+currentApp
-        self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+        if not currentApp in string.split( apps, ';' ):
+          apps += ';' + currentApp
+        self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
 
     return S_OK()
 
   #############################################################################
-  def setAncestorDepth(self,depth):
+  def setAncestorDepth( self, depth ):
     """Helper function.
 
        Level at which ancestor files are retrieved from the bookkeeping.
@@ -771,19 +771,19 @@ class LHCbJob(Job):
     """
     kwargs = {'depth':depth}
     description = 'Level at which ancestor files are retrieved from the bookkeeping'
-    if type(depth)==type(" "):
+    if type( depth ) == type( " " ):
       try:
-        self._addParameter(self.workflow,'AncestorDepth','JDL',int(depth),description)
-      except Exception,x:
-        return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
-    elif type(depth)==type(1):
-      self._addParameter(self.workflow,'AncestorDepth','JDL',depth,description)
+        self._addParameter( self.workflow, 'AncestorDepth', 'JDL', int( depth ), description )
+      except Exception, x:
+        return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
+    elif type( depth ) == type( 1 ):
+      self._addParameter( self.workflow, 'AncestorDepth', 'JDL', depth, description )
     else:
-      return self._reportError('Expected integer for Ancestor Depth',__name__,**kwargs)                
+      return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
     return S_OK()
 
   #############################################################################
-  def setInputDataType(self,inputDataType):
+  def setInputDataType( self, inputDataType ):
     """Helper function.
 
        Explicitly set the input data type to be conveyed to Gaudi Applications.
@@ -802,18 +802,18 @@ class LHCbJob(Job):
 
     """
     description = 'User specified input data type'
-    if not type(inputDataType)==type(" "):
+    if not type( inputDataType ) == type( " " ):
       try:
-        inputDataType = str(inputDataType)
-      except Exception,x:
-        return self._reportError('Expected string for input data type',__name__,**{'inputDataType':inputDataType})                
+        inputDataType = str( inputDataType )
+      except Exception, x:
+        return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
 
     self.inputDataType = inputDataType
-    self._addParameter(self.workflow,'InputDataType','JDL',inputDataType,description)
+    self._addParameter( self.workflow, 'InputDataType', 'JDL', inputDataType, description )
     return S_OK()
 
   #############################################################################
-  def setCondDBTags(self,condDict):
+  def setCondDBTags( self, condDict ):
     """Under development. Helper function.
 
        Specify Conditions Database tags by by Logical File Name (LFN).
@@ -829,25 +829,25 @@ class LHCbJob(Job):
        @type condDict: Dict of DB, tag pairs
     """
     kwargs = {'condDict':condDict}
-    if not type(condDict)==type({}):
-      return self._reportError('Expected dictionary for CondDB tags',__name__,**kwargs)                
+    if not type( condDict ) == type( {} ):
+      return self._reportError( 'Expected dictionary for CondDB tags', __name__, **kwargs )
 
     conditions = []
-    for db,tag in condDict.items():
+    for db, tag in condDict.items():
       try:
-        db = str(db)
-        tag = str(tag)
-        conditions.append(string.join([db,tag],'.'))
-      except Exception,x:
-        return self._reportError('Expected string for conditions',__name__,**kwargs)                
+        db = str( db )
+        tag = str( tag )
+        conditions.append( string.join( [db, tag], '.' ) )
+      except Exception, x:
+        return self._reportError( 'Expected string for conditions', __name__, **kwargs )
 
-    condStr = string.join(conditions,';')
+    condStr = string.join( conditions, ';' )
     description = 'List of CondDB tags'
-    self._addParameter(self.workflow,'CondDBTags','JDL',condStr,description)
+    self._addParameter( self.workflow, 'CondDBTags', 'JDL', condStr, description )
     return S_OK()
 
   #############################################################################
-  def setOutputData(self,lfns,OutputSE=[],OutputPath=''):
+  def setOutputData( self, lfns, OutputSE = [], OutputPath = '' ):
     """Helper function, used in preference to Job.setOutputData() for LHCb.
 
        For specifying output data to be registered in Grid storage.  If a list
@@ -867,38 +867,38 @@ class LHCbJob(Job):
        @type OutputSE: string or list
        @type OutputPath: string
     """
-    kwargs = {'lfns':lfns,'OutputSE':OutputSE,'OutputPath':OutputPath}    
-    if type(lfns)==list and len(lfns):
-      outputDataStr = string.join(lfns,';')
+    kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
+    if type( lfns ) == list and len( lfns ):
+      outputDataStr = string.join( lfns, ';' )
       description = 'List of output data files'
-      self._addParameter(self.workflow,'UserOutputData','JDL',outputDataStr,description)
-    elif type(lfns)==type(" "):
+      self._addParameter( self.workflow, 'UserOutputData', 'JDL', outputDataStr, description )
+    elif type( lfns ) == type( " " ):
       description = 'Output data file'
-      self._addParameter(self.workflow,'UserOutputData','JDL',lfns,description)
+      self._addParameter( self.workflow, 'UserOutputData', 'JDL', lfns, description )
     else:
-      return self._reportError('Expected file name string or list of file names for output data',**kwargs) 
-    
+      return self._reportError( 'Expected file name string or list of file names for output data', **kwargs )
+
     if OutputSE:
       description = 'User specified Output SE'
-      if type(OutputSE) in types.StringTypes:
+      if type( OutputSE ) in types.StringTypes:
         OutputSE = [OutputSE]
-      elif type(OutputSE) != types.ListType:
-        return self._reportError('Expected string or list for OutputSE',**kwargs)         
-      OutputSE = ';'.join(OutputSE)
-      self._addParameter(self.workflow,'UserOutputSE','JDL',OutputSE,description)
+      elif type( OutputSE ) != types.ListType:
+        return self._reportError( 'Expected string or list for OutputSE', **kwargs )
+      OutputSE = ';'.join( OutputSE )
+      self._addParameter( self.workflow, 'UserOutputSE', 'JDL', OutputSE, description )
 
     if OutputPath:
       description = 'User specified Output Path'
-      if not type(OutputPath) in types.StringTypes:
-        return self._reportError('Expected string for OutputPath',**kwargs)
+      if not type( OutputPath ) in types.StringTypes:
+        return self._reportError( 'Expected string for OutputPath', **kwargs )
       # Remove leading "/" that might cause problems with os.path.join
-      while OutputPath[0] == '/': OutputPath=OutputPath[1:]
-      self._addParameter(self.workflow,'UserOutputPath','JDL',OutputPath,description)
+      while OutputPath[0] == '/': OutputPath = OutputPath[1:]
+      self._addParameter( self.workflow, 'UserOutputPath', 'JDL', OutputPath, description )
 
     return S_OK()
-  
+
   #############################################################################
-  def setExecutable(self,executable,arguments='',logFile=''):
+  def setExecutable( self, executable, arguments = '', logFile = '' ):
     """Helper function.
 
        Specify executable script to run with optional arguments and log file
@@ -922,78 +922,78 @@ class LHCbJob(Job):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'executable':executable,'arguments':arguments,'logFile':logFile}
-    if not type(executable) == type(' ') or not type(arguments) == type(' ') or not type(logFile) == type(' '):
-      return self._reportError('Expected strings for executable and arguments',**kwargs)
+    kwargs = {'executable':executable, 'arguments':arguments, 'logFile':logFile}
+    if not type( executable ) == type( ' ' ) or not type( arguments ) == type( ' ' ) or not type( logFile ) == type( ' ' ):
+      return self._reportError( 'Expected strings for executable and arguments', **kwargs )
 
-    if os.path.exists(executable):
-      self.log.verbose('Found script executable file %s' % (executable))
-      self.addToInputSandbox.append(executable)
-      logName = '%s.log' %(os.path.basename(executable))
-      moduleName = os.path.basename(executable)
+    if os.path.exists( executable ):
+      self.log.verbose( 'Found script executable file %s' % ( executable ) )
+      self.addToInputSandbox.append( executable )
+      logName = '%s.log' % ( os.path.basename( executable ) )
+      moduleName = os.path.basename( executable )
     else:
-      self.log.verbose('Found executable code')
+      self.log.verbose( 'Found executable code' )
       logName = 'CodeOutput.log'
       moduleName = 'CodeSegment'
 
     if logFile:
-      if type(logFile) == type(' '):
+      if type( logFile ) == type( ' ' ):
         logName = logFile
 
-    self.gaudiStepCount +=1
+    self.gaudiStepCount += 1
 
-    moduleName = moduleName.replace('.','')
+    moduleName = moduleName.replace( '.', '' )
     stepNumber = self.gaudiStepCount
-    stepDefn = 'ScriptStep%s' %(stepNumber)
-    step =  self.__getLHCbScriptStep(stepDefn)
-    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')    
-    stepName = 'RunScriptStep%s' %(stepNumber)
-    logPrefix = 'Script%s_' %(stepNumber)
-    logName = '%s%s' %(logPrefix,logName)
-    self.addToOutputSandbox.append(logName)
-    self.workflow.addStep(step)
+    stepDefn = 'ScriptStep%s' % ( stepNumber )
+    step = self.__getLHCbScriptStep( stepDefn )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+    stepName = 'RunScriptStep%s' % ( stepNumber )
+    logPrefix = 'Script%s_' % ( stepNumber )
+    logName = '%s%s' % ( logPrefix, logName )
+    self.addToOutputSandbox.append( logName )
+    self.workflow.addStep( step )
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("name",moduleName)
-    stepInstance.setValue("logFile",logName)
-    stepInstance.setValue("executable",executable)
+    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance.setValue( "name", moduleName )
+    stepInstance.setValue( "logFile", logName )
+    stepInstance.setValue( "executable", executable )
     if arguments:
-      stepInstance.setValue("arguments",arguments)
-    
-    return S_OK()    
+      stepInstance.setValue( "arguments", arguments )
+
+    return S_OK()
 
   #############################################################################
-  def __getLHCbScriptStep(self,name='Script'):
+  def __getLHCbScriptStep( self, name = 'Script' ):
     """Internal function. This method controls the definition for a script module.
     """
     # Create the script module first
     moduleName = 'Script'
-    module = ModuleDefinition(moduleName)
-    module.setDescription('A  script module that can execute any provided script.')
+    module = ModuleDefinition( moduleName )
+    module.setDescription( 'A  script module that can execute any provided script.' )
     body = 'from DIRAC.Core.Workflow.Modules.Script import Script\n'
-    module.setBody(body)
-    #Add user job finalization module 
+    module.setBody( body )
+    #Add user job finalization module
     moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition(moduleName)
-    userData.setDescription('Uploads user output data files with LHCb specific policies.')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
-    userData.setBody(body)    
+    userData = ModuleDefinition( moduleName )
+    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    userData.setBody( body )
     # Create Step definition
-    step = StepDefinition(name)
-    step.addModule(module)
-    step.addModule(userData)
-    step.createModuleInstance('Script',name)
-    step.createModuleInstance('UserJobFinalization',name)    
+    step = StepDefinition( name )
+    step.addModule( module )
+    step.addModule( userData )
+    step.createModuleInstance( 'Script', name )
+    step.createModuleInstance( 'UserJobFinalization', name )
     # Define step parameters
-    step.addParameter(Parameter("name","","string","","",False, False,'Name of executable'))
-    step.addParameter(Parameter("executable","","string","","",False, False, 'Executable Script'))
-    step.addParameter(Parameter("arguments","","string","","",False, False, 'Arguments for executable Script'))
-    step.addParameter(Parameter("logFile","","string","","",False,False,'Log file name'))
+    step.addParameter( Parameter( "name", "", "string", "", "", False, False, 'Name of executable' ) )
+    step.addParameter( Parameter( "executable", "", "string", "", "", False, False, 'Executable Script' ) )
+    step.addParameter( Parameter( "arguments", "", "string", "", "", False, False, 'Arguments for executable Script' ) )
+    step.addParameter( Parameter( "logFile", "", "string", "", "", False, False, 'Log file name' ) )
     return step
-    
+
   #############################################################################
-  def setProtocolAccessTest(self,protocols,rootVersion,inputData='',logFile=''):
+  def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '' ):
     """Helper function.
 
        Perform a protocol access test at an optional site with the input data specified.
@@ -1010,108 +1010,109 @@ class LHCbJob(Job):
        @param inputData: Input data for application
        @type inputData: single LFN string or list of LFNs
        @param logFile: log file name
-       @type logFile: string                   
+       @type logFile: string
     """
-    kwargs = {'protocols':protocols,'inputData':inputData,'logFile':logFile,'rootVersion':rootVersion}
+    kwargs = {'protocols':protocols, 'inputData':inputData, 'logFile':logFile, 'rootVersion':rootVersion}
+    self.gaudiStepCount += 1
+    stepNumber = self.gaudiStepCount
+
     if not protocols:
-      return self._reportError('A list of protocols is required for this test',__name__,**kwargs)
-    
-    if not type(logFile) == type(' ') or not type(rootVersion) == type(' '):
-      return self._reportError('Expected strings for input parameters',__name__,**kwargs)
+      return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
+
+    if not type( logFile ) == type( ' ' ) or not type( rootVersion ) == type( ' ' ):
+      return self._reportError( 'Expected strings for input parameters', __name__, **kwargs )
 
     if logFile:
-      if not type(logFile) in types.StringTypes:
-        return self._reportError('Expected string for log file name',__name__,**kwargs)
-      logPrefix = 'Step%s_' %(stepNumber)
-      logFile = '%s%s' %(logPrefix,logFile)
-    self.addToOutputSandbox.append('*.log')
-    self.addToOutputSandbox.append('*.output')
-    self.addToOutputSandbox.append('*.error')
-    self.addToOutputSandbox.append('*.readtimes')
+      if not type( logFile ) in types.StringTypes:
+        return self._reportError( 'Expected string for log file name', __name__, **kwargs )
+      logPrefix = 'Step%s_' % ( stepNumber )
+      logFile = '%s%s' % ( logPrefix, logFile )
+    self.addToOutputSandbox.append( '*.log' )
+    self.addToOutputSandbox.append( '*.output' )
+    self.addToOutputSandbox.append( '*.error' )
+    self.addToOutputSandbox.append( '*.readtimes' )
 
     if inputData:
-      if type(inputData) in types.StringTypes:
+      if type( inputData ) in types.StringTypes:
         inputData = [inputData]
-      if not type(inputData)==type([]):
-        return self._reportError('Expected single LFN string or list of LFN(s) for inputData',__name__,**kwargs)
-      for i in xrange(len(inputData)):
-        inputData[i] = inputData[i].replace('LFN:','')
-      inputData = map( lambda x: 'LFN:'+x, inputData)
-      inputDataStr = string.join(inputData,';')
-      self.addToInputData.append(inputDataStr)
+      if not type( inputData ) == type( [] ):
+        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
+      for i in xrange( len( inputData ) ):
+        inputData[i] = inputData[i].replace( 'LFN:', '' )
+      inputData = map( lambda x: 'LFN:' + x, inputData )
+      inputDataStr = string.join( inputData, ';' )
+      self.addToInputData.append( inputDataStr )
 
-    if type(protocols) == type(' '):
+    if type( protocols ) == type( ' ' ):
       protocols = [protocols]
-    protocols = string.join(protocols,';')
+    protocols = string.join( protocols, ';' )
 
     #Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptions(self.rootSection,[])
+    rootVersions = gConfig.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
-      return self._reportError('Could not contact DIRAC Configuration Service for supported ROOT version list',__name__,**kwargs)          
+      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
 
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
-      return self._reportError('Requested ROOT version %s is not in supported list: %s' %(rootVersion,string.join(rootList,', ')),__name__,**kwargs)                
-    
-    self.gaudiStepCount +=1
-    stepNumber = self.gaudiStepCount
-    stepDefn = 'ProtocolTestStep%s' %(stepNumber)
-    step =  self.__getProtocolStep(stepDefn)
-    self._addParameter(self.workflow,'TotalSteps','String',self.gaudiStepCount,'Total number of steps')
+      return self._reportError( 'Requested ROOT version %s is not in supported list: %s' % ( rootVersion, string.join( rootList, ', ' ) ), __name__, **kwargs )
 
-    stepName = 'RunProtocolTestStep%s' %(stepNumber)
+    stepDefn = 'ProtocolTestStep%s' % ( stepNumber )
+    step = self.__getProtocolStep( stepDefn )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
-    self.workflow.addStep(step)
+    stepName = 'RunProtocolTestStep%s' % ( stepNumber )
+
+    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance(stepDefn,stepName)
-    stepInstance.setValue("protocols",protocols)
+    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance.setValue( "protocols", protocols )
     if logFile:
-      stepInstance.setValue("applicationLog",logFile)
+      stepInstance.setValue( "applicationLog", logFile )
     if inputData:
-      stepInstance.setValue("inputData",string.join(inputData,';'))
+      stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
 
     # now we have to tell DIRAC to install the necessary software
-    appRoot = '%s/%s' %(self.rootSection,rootVersion)
-    currentApp = gConfig.getValue(appRoot,'')
+    appRoot = '%s/%s' % ( self.rootSection, rootVersion )
+    currentApp = gConfig.getValue( appRoot, '' )
     if not currentApp:
-      return self._reportError('Could not get value from DIRAC Configuration Service for option %s' %appRoot,__name__,**kwargs)                    
-    
-    appVersion = currentApp.split('.')[1]
-    stepInstance.setValue("applicationVersion",appVersion)    
-    stepInstance.setValue("rootVersion",rootVersion)       
+      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
+
+    appVersion = currentApp.split( '.' )[1]
+    stepInstance.setValue( "applicationVersion", appVersion )
+    stepInstance.setValue( "rootVersion", rootVersion )
     swPackages = 'SoftwarePackages'
-    description='List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter(swPackages):
-      self._addParameter(self.workflow,swPackages,'JDL',currentApp,description)
+    description = 'List of LHCb Software Packages to be installed'
+    if not self.workflow.findParameter( swPackages ):
+      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
-      apps = self.workflow.findParameter(swPackages).getValue()
-      if not currentApp in string.split(apps,';'):
-        apps += ';'+currentApp
-      self._addParameter(self.workflow,swPackages,'JDL',apps,description)
+      apps = self.workflow.findParameter( swPackages ).getValue()
+      if not currentApp in string.split( apps, ';' ):
+        apps += ';' + currentApp
+      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
-  def __getProtocolStep(self,name='ProtocolAccessTest'):
+  def __getProtocolStep( self, name = 'ProtocolAccessTest' ):
     """Internal function. This method controls the definition for the ProtocolAccessTest module.
     """
     # Create the ProtocolAccessTest module first
     moduleName = 'ProtocolAccessTest'
-    module = ModuleDefinition(moduleName)
-    module.setDescription('A module to perform a Protocol Access Test')
-    body = 'from %s.%s import %s\n' %(self.importLocation,moduleName,moduleName)    
-    module.setBody(body)
+    module = ModuleDefinition( moduleName )
+    module.setDescription( 'A module to perform a Protocol Access Test' )
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    module.setBody( body )
     # Create Step definition
-    step = StepDefinition(name)
-    step.addModule(module)
-    step.createModuleInstance('ProtocolAccessTest',name)
+    step = StepDefinition( name )
+    step.addModule( module )
+    step.createModuleInstance( 'ProtocolAccessTest', name )
     # Define step parameters
-    step.addParameter(Parameter("protocols","","string","","",False, False, 'List of Protocols'))
-    step.addParameter(Parameter("applicationLog","","string","","",False,False,'Log file name'))
-    step.addParameter(Parameter("applicationVersion","","string","","",False,False,'DaVinci version'))
-    step.addParameter(Parameter("rootVersion","","string","","",False,False,'ROOT version'))
-    step.addParameter(Parameter("inputData","","string","","",False, False, 'Input Data')) 
+    step.addParameter( Parameter( "protocols", "", "string", "", "", False, False, 'List of Protocols' ) )
+    step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, 'Log file name' ) )
+    step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, 'DaVinci version' ) )
+    step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, 'ROOT version' ) )
+    step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, 'Input Data' ) )
     return step
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
