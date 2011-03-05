@@ -7,7 +7,7 @@
    Get statistics on number of replicas for a given directory or production
 """
 
-__VERSION__ = "$ $"
+__RCSID__ = "$Id:  $"
 
 import DIRAC
 from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks

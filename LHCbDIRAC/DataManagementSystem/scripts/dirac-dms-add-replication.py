@@ -4,6 +4,8 @@
  Create a new replication transformation
 """
 
+__RCSID__ = "$Id:  $"
+
 from DIRAC.Core.Base import Script
 
 plugin = "ArchiveDataset"

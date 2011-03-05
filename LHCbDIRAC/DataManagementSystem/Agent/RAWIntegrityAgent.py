@@ -3,7 +3,7 @@
 ########################################################################
 """  RAWIntegrityAgent determines whether RAW files in Castor were migrated correctly
 """
-from DIRAC                                                  import gLogger, gConfig, gMonitor, S_OK, S_ERROR
+from DIRAC                                                  import gLogger, gMonitor, S_OK
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.RequestManagementSystem.Client.RequestClient     import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer  import RequestContainer
@@ -14,7 +14,7 @@ from DIRAC.DataManagementSystem.Client.DataLoggingClient    import DataLoggingCl
 
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB       import RAWIntegrityDB
 
-import time, os
+import os
 from types import *
 
 __RCSID__ = "$Id$"
@@ -47,7 +47,7 @@ class RAWIntegrityAgent( AgentModule ):
     gMonitor.registerActivity( "WaitSize", "Size of migration buffer", "RAWIntegriryAgent", "GB", gMonitor.OP_MEAN )
     gMonitor.registerActivity( "MigrationRate", "Observed migration rate", "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
-    # This sets the Default Proxy to used as that defined under 
+    # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )

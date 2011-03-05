@@ -1,8 +1,11 @@
 #! /usr/bin/env python
+
+__RCSID__ = "$Id$"
+
 from DIRAC.Core.Base                                      import Script
 se = 'CERN-USER'
-Script.registerSwitch( "S:", "SE=","The destination storage element. Possibilities are CERN-USER,CNAF-USER,GRIDKA-USER,IN2P3-USER,NIKHEF-USER,PIC-USER,RAL-USER. [%s]" % se)
-Script.parseCommandLine(ignoreErrors = True)
+Script.registerSwitch( "S:", "SE=", "The destination storage element. Possibilities are CERN-USER,CNAF-USER,GRIDKA-USER,IN2P3-USER,NIKHEF-USER,PIC-USER,RAL-USER. [%s]" % se )
+Script.parseCommandLine( ignoreErrors = True )
 castorFiles = Script.getPositionalArgs()
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() == "s" or switch[0].lower() == "SE":
@@ -12,57 +15,57 @@ from DIRAC                                                import gLogger
 from DIRAC.Core.Security.Misc                             import getProxyInfo
 from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
-import re,os
+import re, os
 
 lhcb = DiracLHCb()
 replicaManager = ReplicaManager()
 
-res = getProxyInfo(False,False)
+res = getProxyInfo( False, False )
 if not res['OK']:
-  gLogger.error("Failed to get client proxy information.",res['Message'])
-  DIRAC.exit(2)
+  gLogger.error( "Failed to get client proxy information.", res['Message'] )
+  DIRAC.exit( 2 )
 proxyInfo = res['Value']
 username = proxyInfo['username']
 if not castorFiles:
-  gLogger.info("No files suppied")
-  gLogger.info("Usage: dirac-lhcb-gridify-castor-file castorpfn1 castorpfn2")
-  gLogger.info("Try dirac-lhcb-gridify-castor-file  --help for options")
-  DIRAC.exit(0)
-exp = re.compile(r'/castor/cern.ch/user/[a-z]/[a-z]*/(\S+)$')
+  gLogger.info( "No files suppied" )
+  gLogger.info( "Usage: dirac-lhcb-gridify-castor-file castorpfn1 castorpfn2" )
+  gLogger.info( "Try dirac-lhcb-gridify-castor-file  --help for options" )
+  DIRAC.exit( 0 )
+exp = re.compile( r'/castor/cern.ch/user/[a-z]/[a-z]*/(\S+)$' )
 
-stageSVCCLASS = os.environ.get('STAGE_SVCCLASS','')
+stageSVCCLASS = os.environ.get( 'STAGE_SVCCLASS', '' )
 os.environ['STAGE_SVCCLASS'] = 'default'
 
 for physicalFile in castorFiles:
-  if not physicalFile.startswith("/castor/cern.ch/user"):
-    gLogger.info("%s is not a Castor user file (e.g. /castor/cern.ch/user/%s/%s). Ignored." % (physicalFile,username[0],username))
+  if not physicalFile.startswith( "/castor/cern.ch/user" ):
+    gLogger.info( "%s is not a Castor user file (e.g. /castor/cern.ch/user/%s/%s). Ignored." % ( physicalFile, username[0], username ) )
     continue
-  if not re.findall(exp,physicalFile):
-    gLogger.info("Failed to determine relative path for file %s. Ignored." % physicalFile)
+  if not re.findall( exp, physicalFile ):
+    gLogger.info( "Failed to determine relative path for file %s. Ignored." % physicalFile )
     continue
-  relativePath =  re.findall(exp,physicalFile)[0]
-  gLogger.verbose("Found relative path of %s to be %s" % (physicalFile,relativePath))
-  localFile = os.path.basename(relativePath)
+  relativePath = re.findall( exp, physicalFile )[0]
+  gLogger.verbose( "Found relative path of %s to be %s" % ( physicalFile, relativePath ) )
+  localFile = os.path.basename( relativePath )
   #res = replicaManager.getStorageFile(physicalFile,'CERN-ARCHIVE',singleFile=True)
   #if not res['OK']:
   #  gLogger.info("Failed to get local copy of %s" % physicalFile, res['Message'])
   #  if os.path.exists(localFile): os.remove(localFile)
   #  continue
   import commands
-  cmd = "rfcp %s %s" % (physicalFile,localFile)
+  cmd = "rfcp %s %s" % ( physicalFile, localFile )
   print cmd
-  status,output=commands.getstatusoutput(cmd)
-  print status,output
+  status, output = commands.getstatusoutput( cmd )
+  print status, output
   if status:
-    gLogger.info("Failed to get local copy of %s" % physicalFile,output)
+    gLogger.info( "Failed to get local copy of %s" % physicalFile, output )
     continue
-  gLogger.verbose("Obtained local copy of %s at %s" % (physicalFile,localFile))
-  lfn = '/lhcb/user/%s/%s/Migrated/%s' % (username[0],username,relativePath)
-  res = lhcb.addRootFile(lfn,localFile,se)
-  if os.path.exists(localFile): os.remove(localFile)
+  gLogger.verbose( "Obtained local copy of %s at %s" % ( physicalFile, localFile ) )
+  lfn = '/lhcb/user/%s/%s/Migrated/%s' % ( username[0], username, relativePath )
+  res = lhcb.addRootFile( lfn, localFile, se )
+  if os.path.exists( localFile ): os.remove( localFile )
   if not res['OK']:
-    gLogger.error("Failed to upload %s to grid." % physicalFile,res['Message'])
+    gLogger.error( "Failed to upload %s to grid." % physicalFile, res['Message'] )
     continue
-  gLogger.info("Successfully uploaded %s to Grid. The corresponding LFN is %s" % (physicalFile,lfn))
+  gLogger.info( "Successfully uploaded %s to Grid. The corresponding LFN is %s" % ( physicalFile, lfn ) )
 os.environ['STAGE_SVCCLASS'] = stageSVCCLASS
-DIRAC.exit(0)
+DIRAC.exit( 0 )

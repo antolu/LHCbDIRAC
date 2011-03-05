@@ -21,7 +21,6 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     res = self.__getProductionFiles( productionID )
     if not res['OK']:
       return res
-    bkMetadata = res['Value']['BKMetadata']
     noReplicaFiles = res['Value']['GotReplicaNo']
     yesReplicaFiles = res['Value']['GotReplicaYes']
     # For the files marked as existing we perfom catalog check

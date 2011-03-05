@@ -2,6 +2,8 @@
     It offers a simple interface to add files, get files and modify their status.
 """
 
+__RCSID__ = "$Id:  $"
+
 from DIRAC  import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
 import types

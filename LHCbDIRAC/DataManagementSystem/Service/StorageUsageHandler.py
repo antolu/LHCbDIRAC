@@ -4,13 +4,13 @@
 
 """ StorageUsageHandler is the implementation of the Storage Usage service in the DISET framework.
 """
-__RCSID__ = "$Id"
+__RCSID__ = "$Id$"
 
-## 
+##
 from types import *
 
 ## from DIRAC
-from DIRAC import gLogger, gConfig, rootPath, S_OK, S_ERROR
+from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
@@ -87,10 +87,6 @@ class StorageUsageHandler( RequestHandler ):
     resultDict = {}
 
     # Sorting instructions. Only one for the moment.
-    if sortList:
-      orderAttribute = sortList[0][0] + ":" + sortList[0][1]
-    else:
-      orderAttribute = None
 
     directory = ''
     if "Directory" in selectDict:
@@ -137,7 +133,7 @@ class StorageUsageHandler( RequestHandler ):
 
   types_getStorageElementSelection = []
   def export_getStorageElementSelection( self ):
-    """ Retrieve the possible selections 
+    """ Retrieve the possible selections
     """
     return storageUsageDB.getStorageElementSelection()
 
@@ -152,24 +148,24 @@ class StorageUsageHandler( RequestHandler ):
     """ Retieve a summary of the user usage per SE
     """
     return storageUsageDB.getUserSummaryPerSE( userName )
-  
+
   types_getDirectorySummaryPerSE = []
-  def export_getDirectorySummaryPerSE(self, directory ):
+  def export_getDirectorySummaryPerSE( self, directory ):
     """Retrieve a summary (total files and total size) for a given directory, grouped by storage element """
     return storageUsageDB.getDirectorySummaryPerSE( directory )
-  
+
   types_getIDs = []
   def export_getIDs( self, dirList ):
-    """ Check if the directories exist in the su_Directory table and if yes returns the IDs 
+    """ Check if the directories exist in the su_Directory table and if yes returns the IDs
     """
     return storageUsageDB.getIDs( dirList )
 
   types_getAllReplicasInFC = []
-  def export_getAllReplicasInFC(self, path ):
-    """ Export the DB method to query the su_seUsage table to get all the entries relative to a given path registered 
+  def export_getAllReplicasInFC( self, path ):
+    """ Export the DB method to query the su_seUsage table to get all the entries relative to a given path registered
     in the FC. Returns for every replica the SE, the update, the files and the size  """
     return storageUsageDB.getAllReplicasInFC( path )
-  
+
   ####
   # Catalog
   ####
@@ -196,28 +192,28 @@ class StorageUsageHandler( RequestHandler ):
   # methods to deal with DarkData directory: se_DarkDirectories
   ###
   types_publishToDarkDir = []
-  def export_publishToDarkDir(self, directoryDict ):
+  def export_publishToDarkDir( self, directoryDict ):
     """ Export the publishToDarkDir DB method, which inserts/updates row into the  se_DarkDirectories """
     return storageUsageDB.publishToDarkDir( directoryDict )
   ###
   # methods to deal with se_Usage table
   ###
   types_publishToSEReplicas = []
-  def export_publishToSEReplicas(self, directoryDict ):
+  def export_publishToSEReplicas( self, directoryDict ):
     """ Export the publishToSEReplicas DB method, which inserts/updates replicas on the SE to the se_Usage table """
     return storageUsageDB.publishToSEReplicas( directoryDict )
-  
+
   ####
   # Tier1 SE status for web
   ####
   types_getTier1SEStatusWeb = [ DictType, ListType, IntType, IntType ]
-  def export_getTier1SEStatusWeb( self, selectDict={}, sortList=[ "SE", "DESC" ], startItem=0, maxItems=56 ):
-    """get Tier1 SE status  
-    
-    :warning: 
+  def export_getTier1SEStatusWeb( self, selectDict = {}, sortList = [ "SE", "DESC" ], startItem = 0, maxItems = 56 ):
+    """get Tier1 SE status
+
+    :warning:
     Always returning information about all T1 SEs but could be easly modified to see only few of them.
 
-    :todo: 
+    :todo:
     Read space tokens quota from DIRAC config.
 
     :param self: self reference
@@ -225,36 +221,34 @@ class StorageUsageHandler( RequestHandler ):
     :param list SortList: as above
     :param int StartItem: as above
     :param MaxItems: as above
-    """    
+    """
     res = gConfig.getOptionsDict( "/Resources/StorageElementGroups" )
     if not res["OK"]:
       return S_ERROR( res["Message"] )
     tier1SEs = list()
-    for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith("Tier1") ]:
-      tier1SEs += [ se.strip() for se in seStr.split(",") if not se.endswith("-disk") ]
+    for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith( "Tier1" ) ]:
+      tier1SEs += [ se.strip() for se in seStr.split( "," ) if not se.endswith( "-disk" ) ]
     SEs = { "ParameterNames" : [ "SE", "ReadAccess", "WriteAccess", "Used", "Quota", "Free" ],
             "Records" : [],
             "TotalRecords" : 0,
             "Extras" : "" }
-    for seName in sorted(tier1SEs):
-      storageElement = StorageElement(seName)
+    for seName in sorted( tier1SEs ):
+      storageElement = StorageElement( seName )
       if not storageElement.valid:
         gLogger.error( "invalid StorageElement '" + seName + "' reason: " + storageElement.errorReason )
       else:
-        seStatus = storageElement.getStatus() 
+        seStatus = storageElement.getStatus()
         if not seStatus["OK"]:
           return S_ERROR( seStatus["Message"] )
         seStatus = seStatus["Value"]
-        seType = "DiskSE" if seStatus["DiskSE"] else "TapeSE"
         seFree = seStatus["DiskCacheTB"] * 100.0 / seStatus["TotalCapacityTB"]
-        
-        SEs["Records"].append( [ seName, 
-                                 "Active" if seStatus["Read"] else "InActive", 
-                                 "Active" if seStatus["Write"] else "InActive", 
-                                 #seType,
+
+        SEs["Records"].append( [ seName,
+                                 "Active" if seStatus["Read"] else "InActive",
+                                 "Active" if seStatus["Write"] else "InActive",
                                  "%4.2f" % seStatus["DiskCacheTB"],
                                  "%4.2f" % seStatus["TotalCapacityTB"],
                                  "%4.2f" % seFree ] )
         SEs["TotalRecords"] += 1
-    return S_OK(SEs)
-    
+    return S_OK( SEs )
+

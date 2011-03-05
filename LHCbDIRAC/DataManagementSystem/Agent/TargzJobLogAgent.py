@@ -4,16 +4,13 @@
 
 __RCSID__ = "$Id$"
 
-""" Compress Old Jobs 
+""" Compress Old Jobs
 """
 
-from DIRAC                                                    import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                                                    import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                              import AgentModule
-from DIRAC.Core.Utilities.Subprocess                          import shellCall
 from DIRAC.Resources.Storage.StorageElement                   import StorageElement
-import sys, os, shutil
-import time
-import types
+import os, shutil
 import glob
 import re
 from datetime import datetime, timedelta
@@ -67,8 +64,8 @@ class TargzJobLogAgent( AgentModule ):
 #    g3 = gConfig.getValue(self.section+'/JobGlob', '????')
     g3 = self.am_getOption( 'JobGlob', '????' )
     gLogger.info( "JobGlob", g3 )
-    
-    logPathList = self.am_getOption('LogPathList', [])
+
+    logPathList = self.am_getOption( 'LogPathList', [] )
     gLogger.info( "LogPathList", logPathList )
 
     numberOfTared = 0
@@ -198,22 +195,22 @@ class TargzJobLogAgent( AgentModule ):
     tarname = "/tmp/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + ".tgz"
 
-    res = self.storageElement.getPfnForLfn(destFile)
+    res = self.storageElement.getPfnForLfn( destFile )
     if res['OK']:
       pfn = res["Value"]
     else:
-      gLogger.error("getPfnForLfnfor file %s"%destFile, res['Message'])
+      gLogger.error( "getPfnForLfnfor file %s" % destFile, res['Message'] )
       return S_ERROR()
 
-    res = self.storageElement.exists(pfn,True)
+    res = self.storageElement.exists( pfn, True )
     if res['OK']:
       if res['Value']:
-        gLogger.error("file exists ", pfn)
+        gLogger.error( "file exists ", pfn )
         return S_ERROR()
     else:
-      gLogger.error("Can not check file exists %s"%pfn, res['Message'])
+      gLogger.error( "Can not check file exists %s" % pfn, res['Message'] )
       return S_ERROR()
-          
+
     tared = False
     try:
       os.chdir( path )
@@ -226,27 +223,27 @@ class TargzJobLogAgent( AgentModule ):
     finally:
       os.chdir( oldpath )
 
-    if not tared: 
-      os.remove(tarname)
-      gLogger.error("Can not tar file %s",subprodpath)
+    if not tared:
+      os.remove( tarname )
+      gLogger.error( "Can not tar file %s", subprodpath )
       return S_ERROR()
-    
+
     putok = False
     fileDict = {pfn:tarname}
-    gLogger.info("putFile",fileDict)
-    res = self.storageElement.putFile(fileDict)
+    gLogger.info( "putFile", fileDict )
+    res = self.storageElement.putFile( fileDict )
     if res['OK']:
       if not res['Value']['Failed']:
-        subprodpath = os.path.join( path, prod, sub)
+        subprodpath = os.path.join( path, prod, sub )
         gLogger.info( "rmTree", subprodpath )
-        shutil.rmtree(subprodpath)
+        shutil.rmtree( subprodpath )
         putok = True
       else:
-        gLogger.error("putFile", res['Value']['Failed'])
+        gLogger.error( "putFile", res['Value']['Failed'] )
     else:
-      gLogger.error("putFile",res['Message'])
+      gLogger.error( "putFile", res['Message'] )
 
-    os.remove(tarname)
+    os.remove( tarname )
 
     if putok:
       return S_OK()

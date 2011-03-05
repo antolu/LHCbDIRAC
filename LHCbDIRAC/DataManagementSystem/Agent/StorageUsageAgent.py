@@ -3,7 +3,7 @@
 # $HeadURL$
 __RCSID__ = "$Id$"
 
-from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
+from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
@@ -15,7 +15,6 @@ from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
 
 import time, os, re, threading
-import tempfile
 from types import *
 
 class StorageUsageAgent( AgentModule ):
@@ -31,7 +30,7 @@ class StorageUsageAgent( AgentModule ):
 
     self.am_setOption( "PollingTime", 43200 )
 
-    # This sets the Default Proxy to used as that defined under 
+    # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configsorteduration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
@@ -263,7 +262,7 @@ class StorageUsageAgent( AgentModule ):
 
     result = self.catalog.getCatalogDirectoryMetadata( dirPath, singleFile = True )
     if not result[ 'OK' ]:
-      gLogger.error( "Could not get metadata info", res[ 'Message' ] )
+      gLogger.error( "Could not get metadata info", result[ 'Message' ] )
     ownerRole = result[ 'Value' ][ 'OwnerRole' ]
     ownerDN = result[ 'Value' ][ 'OwnerDN' ]
     if ownerRole[0] != "/":

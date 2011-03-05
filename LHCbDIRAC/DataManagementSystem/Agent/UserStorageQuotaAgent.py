@@ -3,14 +3,12 @@
 # $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/DataManagementSystem/Agent/UserStorageQuotaAgent.py $
 __RCSID__ = "$Id: UserStorageQuotaAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
 
-from DIRAC  import gLogger, gConfig, gMonitor, S_OK, S_ERROR, rootPath
+from DIRAC  import gLogger, gConfig, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
 
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
-import time, os
 from types import *
 
 AGENT_NAME = 'DataManagement/UserStorageQuotaAgent'
@@ -25,7 +23,7 @@ class UserStorageQuotaAgent( AgentModule ):
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
 
-    # This sets the Default Proxy to used as that defined under 
+    # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
@@ -37,8 +35,6 @@ class UserStorageQuotaAgent( AgentModule ):
   def execute( self ):
     res = self.StorageUsageDB.getUserStorageUsage()
     usageDict = res['Value']
-    usageToUserDict = {}
-    userNameDNDict = {}
 
     byteToGB = 1000 * 1000 * 1000.0
 

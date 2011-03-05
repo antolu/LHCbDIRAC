@@ -3,12 +3,12 @@ This is a service which represents a DISET proxy to the LCG File Catalog
 """
 __RCSID__ = "$Id: LcgFileCatalogProxyHandler.py 18296 2009-11-17 14:40:02Z acsmith $"
 
-from DIRAC                                          import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                import RequestHandler
 from DIRAC.Resources.Catalog.FileCatalog            import FileCatalog
 from DIRAC.Core.Utilities.Subprocess                    import pythonCall
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient    import gProxyManager
-import os, shutil
+import os
 from types import *
 
 
@@ -29,7 +29,7 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
 
   def __proxyWrapper( self, name, args, kargs ):
     """ The wrapper will obtain the client proxy and set it up in the environment.
-    
+
         The required functionality is then executed and returned to the client.
     """
     res = self.__prepareSecurityDetails()
@@ -41,7 +41,7 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
     except AttributeError, x:
       errStr = "LcgFileCatalogProxyHandler.__proxyWrapper: No method named %s" % name
       gLogger.exception( errStr, name, x )
-      return S_ERROR( error )
+      return S_ERROR( errStr )
     try:
       result = method( *args, **kargs )
       return result
@@ -51,7 +51,7 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
       return S_ERROR( errStr )
 
   def __prepareSecurityDetails( self ):
-    """ Obtains the connection details for the client  
+    """ Obtains the connection details for the client
     """
     try:
       clientDN = self._clientTransport.peerCredentials['DN']
