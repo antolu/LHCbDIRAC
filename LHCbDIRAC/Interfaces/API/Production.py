@@ -477,7 +477,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, [], condDBTag, ddDBTag, '', False,
+                       firstEventNumber, [], condDBTag, ddDBTag, '',
                        stepID, stepName, stepVisible )
     #if using LHCb to merge we won't want to abandon the output
 
