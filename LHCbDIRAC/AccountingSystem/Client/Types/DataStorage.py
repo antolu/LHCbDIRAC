@@ -1,5 +1,5 @@
 # $HeadURL$
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id:  $"
 
 from DIRAC.AccountingSystem.Client.Types.BaseAccountingType import BaseAccountingType
 
@@ -9,7 +9,7 @@ class DataStorage( BaseAccountingType ):
     BaseAccountingType.__init__( self )
     self.definitionKeyFields = [ ( 'DataType' , "VARCHAR(32)" ),
                                  ( 'Activity', "VARCHAR(32)" ),
-                                 ( 'FileType',  "VARCHAR(32)" ),
+                                 ( 'FileType', "VARCHAR(32)" ),
                                  ( 'Production', "INT UNSIGNED" ),
                                  ( 'ProcessingPass', "VARCHAR(32)" ),
                                  ( 'Conditions', "VARCHAR(32)" ),
