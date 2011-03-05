@@ -1,3 +1,5 @@
+__RCSID__ = "$Id:  $"
+
 import unittest, itertools, copy
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask
@@ -183,7 +185,7 @@ class ProductionDataSuccess( UtilitiesTestCase ):
       self.assertEqual( r, res )
 
 #############################################################################
-# Test Suite run 
+# Test Suite run
 #############################################################################
 
 if __name__ == '__main__':

@@ -4,70 +4,72 @@
 # Author : Vladimir Romanovsky
 ########################################################################
 
+__RCSID__ = "$Id$"
+
 from DIRAC.Interfaces.API.Dirac                              import Dirac
 from DIRAC.Interfaces.API.Job                                import Job
 
-import shutil,os
-    
-def makeProductionLFN(jobid,prodid,config,fname,ftype):
+import shutil, os
+
+def makeProductionLFN( jobid, prodid, config, fname, ftype ):
   """ Constructs the logical file name according to LHCb conventions.
   Returns the lfn without 'lfn:' prepended
   """
 
-  if fname.count('lfn:'):
-    return fname.replace('lfn:','')
-  
-  if fname.count('LFN:'):
-    return fname.replace('LFN:','')
+  if fname.count( 'lfn:' ):
+    return fname.replace( 'lfn:', '' )
 
-  if config.count('DC06'):
+  if fname.count( 'LFN:' ):
+    return fname.replace( 'LFN:', '' )
+
+  if config.count( 'DC06' ):
     lfnroot = '/lhcb/MC/DC06'
   else:
     lfnroot = '/lhcb/data/'
-    
+
   try:
-    jobindex = "%04d"%(int(jobid)/10000)
+    jobindex = "%04d" % ( int( jobid ) / 10000 )
   except:
     jobindex = '0000'
 
-  return os.path.join(lfnroot,str(ftype).upper(),prodid,jobindex,fname)
+  return os.path.join( lfnroot, str( ftype ).upper(), prodid, jobindex, fname )
 
 
 class JobInfoFromXML:
   '''
   '''
 
-  def __init__(self,jobid):
-  
+  def __init__( self, jobid ):
+
     self.message = None
     try:
-      job = int(jobid)
+      job = int( jobid )
     except:
-      self.message='Input parameter is not integer'
+      self.message = 'Input parameter is not integer'
       return
-  
-    dirac=Dirac()
 
-    result = dirac.getInputSandbox(job)
+    dirac = Dirac()
+
+    result = dirac.getInputSandbox( job )
     if not result['OK']:
-      self.message=result['Message']
+      self.message = result['Message']
       return
 
     try:
-      xml = open('InputSandbox%s/jobDescription.xml' %job).read()
-    except Exception,x:
-      self.message= 'Can not read XML file: %s'%x
+      xml = open( 'InputSandbox%s/jobDescription.xml' % job ).read()
+    except Exception, x:
+      self.message = 'Can not read XML file: %s' % x
       return
-    shutil.rmtree( 'InputSandbox%s'%job )      
-    
-    self.j = Job(xml)
-    self.jobid =  None
+    shutil.rmtree( 'InputSandbox%s' % job )
+
+    self.j = Job( xml )
+    self.jobid = None
     self.prodid = None
     self.jobname = None
     self.output = None
     self.inputdata = None
     self.configversion = None
-  
+
     for p in self.j.workflow.parameters:
       if p.getName() == "JOB_ID":
         self.jobid = p.getValue()
@@ -83,52 +85,52 @@ class JobInfoFromXML:
         self.configversion = p.getValue()
 
     if not self.jobid or not self.prodid or not self.jobname or not self.configversion:
-      self.message = 'Wrong job parameters: %s'%str({'JOB_ID':self.jobid, 'PRODUCTION_ID':self.prodid, 'JobName':self.jobname,'configVersion':self.configversion})
+      self.message = 'Wrong job parameters: %s' % str( {'JOB_ID':self.jobid, 'PRODUCTION_ID':self.prodid, 'JobName':self.jobname, 'configVersion':self.configversion} )
       return
-      
-  def valid(self):
+
+  def valid( self ):
     if self.message:
-      return {'OK':False,'Message':self.message}  
+      return {'OK':False, 'Message':self.message}
     return {'OK':True}
 
-  def getInputLFN(self):
-  
+  def getInputLFN( self ):
+
     if self.message:
-      return {'OK':False,'Message':self.message}
+      return {'OK':False, 'Message':self.message}
 
     if not self.inputdata:
-      return {'OK':True,'Value':[]}
-      
+      return {'OK':True, 'Value':[]}
+
     jobid = self.jobid
     prodid = self.prodid
     configversion = self.configversion
     filename = self.inputdata
     filetype = None
-    inputlfns= [makeProductionLFN(jobid,prodid,configversion,filename,filetype)]
-    return {'OK':True,'Value':inputlfns}
-  
-  def getOutputLFN(self):
-  
+    inputlfns = [makeProductionLFN( jobid, prodid, configversion, filename, filetype )]
+    return {'OK':True, 'Value':inputlfns}
+
+  def getOutputLFN( self ):
+
     if self.message:
-      return {'OK':False,'Message':self.message}
+      return {'OK':False, 'Message':self.message}
 
     code = self.j.createCode()
     listoutput = []
-    for line in code.split("\n"):
-      if line.count("listoutput"):
-        listoutput += eval(line.split("#")[0].split("=")[-1]) 
+    for line in code.split( "\n" ):
+      if line.count( "listoutput" ):
+        listoutput += eval( line.split( "#" )[0].split( "=" )[-1] )
 
     outputlfns = []
     for item in listoutput:
-      if (not self.output) or item['outputDataType'] in self.output:
+      if ( not self.output ) or item['outputDataType'] in self.output:
         jobid = self.jobid
         prodid = self.prodid
         configversion = self.configversion
         filename = item['outputDataName']
         filetype = item['outputDataType']
-        lfn = makeProductionLFN(jobid,prodid,configversion,filename,filetype)
-        outputlfns.append(lfn)
+        lfn = makeProductionLFN( jobid, prodid, configversion, filename, filetype )
+        outputlfns.append( lfn )
 
     return {'OK':True, 'Value':outputlfns}
-  
-             
+
+
