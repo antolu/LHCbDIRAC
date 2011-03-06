@@ -40,7 +40,7 @@ if prodID:
 
 diracProd = DiracProduction()
 exitCode = 0
-result = diracProd.checkFilesStatus(args,prodID,printOutput=True)
+result = diracProd.checkFilesStatus(args,prodID,printOutput=False)
 if not result['OK']:
   print 'ERROR %s' %(result['Message'])
   exitCode = 2
