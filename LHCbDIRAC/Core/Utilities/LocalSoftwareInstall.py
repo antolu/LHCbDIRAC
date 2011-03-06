@@ -20,29 +20,29 @@ __RCSID__ = "$Id$"
 from DIRAC.Core.Utilities.Subprocess                     import systemCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger
 
-import os,sys,shutil
+import os, sys, shutil
 
 class LocalSoftwareInstall:
 
   #############################################################################
-  def __init__(self,argumentsDict):
+  def __init__( self, argumentsDict ):
     """ Standard constructor
     """
     os.environ['CMTCONFIG'] = argumentsDict['Job']['SystemConfig']
 
     apps = argumentsDict['Job']['SoftwarePackages']
-    if type(apps) == type(' '):
+    if type( apps ) == type( ' ' ):
       apps = [apps]
 
     self.installProject = 'install_project.py'
     self.apps = []
     for app in apps:
       gLogger.verbose( 'Requested Package %s' % app )
-      app = tuple(app.split('.'))
-      self.apps.append(app)
+      app = tuple( app.split( '.' ) )
+      self.apps.append( app )
 
   #############################################################################
-  def execute(self):
+  def execute( self ):
     """When this module is used by DIRAC components, this method is called.
        Currently this only creates a link to the VO_LHCB_SW_DIR/lib directory
        if available.
@@ -50,24 +50,24 @@ class LocalSoftwareInstall:
 
     initialDir = os.getcwd()
 
-    os.environ['MYSITEROOT'] = os.path.join(initialDir,'lib')
-    if not os.path.exists('lib'):
-      os.mkdir('lib')
-    elif not os.path.isdir('lib'):
+    os.environ['MYSITEROOT'] = os.path.join( initialDir, 'lib' )
+    if not os.path.exists( 'lib' ):
+      os.mkdir( 'lib' )
+    elif not os.path.isdir( 'lib' ):
       return S_ERROR( 'Existing lib file' )
-    shutil.copy('install_project.py','lib')
-    os.chdir('lib')
+    shutil.copy( 'install_project.py', 'lib' )
+    os.chdir( 'lib' )
     for app in self.apps:
-      cmd = '%s install_project -b %s %s' % (( sys.executable,)+app)
-      ret = systemCall( 3600, cmd.split(), callbackFunction=log )
+      cmd = '%s install_project -b %s %s' % ( ( sys.executable, ) + app )
+      ret = systemCall( 3600, cmd.split(), callbackFunction = log )
       if not ret['OK']:
         break
       if ret['Value'][0]:
         ret = S_ERROR( 'Command exits with error %s: "%s"' % ( ret['Value'][0], cmd ) )
         break
       ret = S_OK()
-    os.chdir(initialDir)
-    shutil.copy( os.path.join('lib','LHCb_config.py'),'LHCb_config.py')
+    os.chdir( initialDir )
+    shutil.copy( os.path.join( 'lib', 'LHCb_config.py' ), 'LHCb_config.py' )
 #    from LHCb_config import *
     return ret
 

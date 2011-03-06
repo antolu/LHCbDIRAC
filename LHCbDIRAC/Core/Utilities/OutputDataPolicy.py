@@ -4,7 +4,6 @@
 """
 __RCSID__ = "$Id$"
 
-import DIRAC
 from DIRAC                                          import gLogger
 from DIRAC.Interfaces.API.Job                       import Job
 from LHCbDIRAC.Core.Utilities.ProductionData        import preSubmissionLFNs

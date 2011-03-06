@@ -5,9 +5,9 @@
     analysis.  The primary client of this is AnalyseLogFile but the aim
     is to create a standalone utility for checking the sanity of log files
     that can also be used outside of workflows.
-    
+
     Hopefully this will make use of File Summary Records at some point and as a
-    standalone utility this makes future development a lot easier. 
+    standalone utility this makes future development a lot easier.
 """
 
 __RCSID__ = "$Id$"
@@ -49,7 +49,7 @@ def analyseLogFile( fileName, applicationName = '' ):
       if re.search( 'Welcome to', line ) and re.search( 'version', line ):
         try:
           applicationName = line.split()[2]
-        except Exception, x:
+        except Exception:
           return S_ERROR( 'Could not obtain application name' )
         gLogger.info( 'Guessing application name is "%s" from log file %s' % ( applicationName, fileName ) )
 
@@ -77,8 +77,8 @@ def analyseLogFile( fileName, applicationName = '' ):
 
 #############################################################################
 def checkApplicationEvents( applicationName, logString ):
-  """ Internally calls the correctly named method to check the number of 
-      events in an application log file. 
+  """ Internally calls the correctly named method to check the number of
+      events in an application log file.
   """
   # Check that the number of events handled is correct
   if applicationName.lower() == 'lhcb':
@@ -289,7 +289,7 @@ def getEventsProcessed( logString, service ):
 
 #############################################################################
 def checkMooreEvents( logString ):
-  """ Obtain event information from the application log and determine whether 
+  """ Obtain event information from the application log and determine whether
       the Moore job generated the correct number of events.
   """
   global firstStepInputEvents
@@ -312,7 +312,7 @@ def checkMooreEvents( logString ):
 
 #############################################################################
 def checkLHCbEvents( logString ):
-  """ Obtain event information from the application log and determine whether the 
+  """ Obtain event information from the application log and determine whether the
       LHCb job generated the correct number of events.
   """
   global numberOfEventsInput
@@ -340,7 +340,7 @@ def checkLHCbEvents( logString ):
 
 #############################################################################
 def checkGaussEvents( logString ):
-  """ Obtain event information from the application log and determine whether 
+  """ Obtain event information from the application log and determine whether
       the Gauss job generated the correct number of events.
   """
   # Get the number of requested events
@@ -377,7 +377,7 @@ def checkGaussEvents( logString ):
 
 #############################################################################
 def checkBooleEvents( logString ):
-  """ Obtain event information from the application log and determine whether the 
+  """ Obtain event information from the application log and determine whether the
       Boole job processed the correct number of events.
   """
   global firstStepInputEvents
@@ -436,7 +436,7 @@ def checkBooleEvents( logString ):
 
 #############################################################################
 def checkBrunelEvents( logString ):
-  """ Obtain event information from the application log and determine whether the 
+  """ Obtain event information from the application log and determine whether the
       Brunel job processed the correct number of events.
   """
   global firstStepInputEvents
@@ -493,7 +493,7 @@ def checkBrunelEvents( logString ):
 
 #############################################################################
 def checkDaVinciEvents( logString ):
-  """ Obtain event information from the application log and determine whether the 
+  """ Obtain event information from the application log and determine whether the
       DaVinci job processed the correct number of events.
   """
   global firstStepInputEvents
@@ -538,10 +538,10 @@ def checkDaVinciEvents( logString ):
 
 #############################################################################
 def getDaVinciStreamEvents( logFile, bkFileTypes ):
-  """ Get the number of stream file events, intended to work for both MDST 
+  """ Get the number of stream file events, intended to work for both MDST
       and DST streams.  The arguments are the path to a log file, and list of BK
-      file types to check for.  
-      
+      file types to check for.
+
       Initially this was a workaround in GaudiApplication but is now the default
       way of handling the streams.  With the method in this utility at least the
       event counting can now be tested outside of running jobs.

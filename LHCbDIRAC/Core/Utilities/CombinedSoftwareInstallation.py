@@ -365,13 +365,13 @@ def LocalArea():
     if os.path.exists( localArea ):
       try:
         os.remove( localArea )
-      except Exception, x:
+      except Exception:
         DIRAC.gLogger.error( 'Cannot remove:', localArea )
         localArea = ''
     else:
       try:
         os.mkdir( localArea )
-      except Exception, x:
+      except Exception:
         DIRAC.gLogger.error( 'Cannot create:', localArea )
         localArea = ''
   return localArea
@@ -436,15 +436,12 @@ def RemoveApplication( app, config, area ):
 
 def onlineExecute( softwarePackages ):
   """Alternative CombinedSoftwareInstallation for the Online Farm."""
-  import xmlrpclib
   # First: Get the full requirements for the job.
   bkProcessingPass = dict( workflow_commons[ 'BKProcessingPass' ] )
   for step in bkProcessingPass:
     bkProcessingPass[ step ][ 'ExtraPackages' ] = DIRAC.List.fromChar( BKProcessingPass[ step ][ 'ExtraPackages' ] , ';' )
     bkProcessingPass[ step ][ 'OptionFiles' ] = DIRAC.List.fromChar( BKProcessingPass[ step ][ 'OptionFiles' ] , ';' )
   # Second: Get slice information from the Online Farm
-  server_url = 'http://storeio01.lbdaq.cern.ch:8889';
-  # recoManager = xmlrpclib.Server(server_url);
   recoManager = DummyRPC()
   connectionError = "Cannot connect to Reconstruction Manager"
   try:
