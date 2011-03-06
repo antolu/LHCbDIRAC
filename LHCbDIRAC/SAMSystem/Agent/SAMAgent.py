@@ -173,7 +173,6 @@ class SAMAgent( AgentModule ):
     for site in sites:
 
       opt = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )['Value']
-      name = opt.get( 'Name', '' )
       ces = List.fromChar( opt.get( 'CE', '' ) )
       allces += ces
 

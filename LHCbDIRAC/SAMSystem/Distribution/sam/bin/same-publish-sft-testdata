@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+import re
+import os
+import sys
+import time
+import getopt
+import signal
+
+# set SAME home directory assuming that executable is in SAME_HOME/bin
+def setupHomeDir():
+    global same_home
+    if not os.environ.has_key('SAME_HOME'): 
+	same_home=os.path.normpath(
+	    os.path.dirname(os.path.abspath(sys.argv[0])) + "/..")
+	os.environ['SAME_HOME']=same_home
+    else:
+	same_home=os.environ['SAME_HOME']
+    sys.path.append(same_home+'/lib/python')
+    os.environ['PATH']=same_home+'/bin:'+os.environ['PATH']
+
+def sig_alarm(sig,stack):
+    global process
+    process.kill(signal.SIGKILL)
+    
+setupHomeDir()
+
+from same.Config import config
+import sys
+from SOAPpy import SOAPProxy
+
+proxy=SOAPProxy(config.get('webservices','sft_publisher_url'))
+
+lines=sys.stdin.readlines()
+try:
+    det=lines.index('detailedData: EOT\n');
+    attrs=dict(map(lambda s: (s[:s.index(': ')],s[s.index(': ')+2:].strip()), lines[:det]))
+    attrs['detailedData']=''.join(lines[det+1:-1])
+    attrs['testName']=re.match("(gCE|CE)-(.*)",attrs['testName']).groups()[1]
+
+    print proxy.publishTestData('VO',attrs.get('voName',''),'testName',attrs.get('testName',''),'nodeName',attrs.get('nodeName',''),
+                      'envID',attrs.get('envName',''),'status',attrs.get('status',''),'summaryData',attrs.get('summaryData',''),
+                      'externalReportID',attrs.get('envName',''),'detailedData',attrs.get('detailedData',''))
+except:
+    print "ERROR: Bad format of result file!"
+    

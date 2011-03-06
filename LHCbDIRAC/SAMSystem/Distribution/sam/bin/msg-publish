@@ -1,0 +1,272 @@
+#!/usr/bin/env python
+
+#
+# A simple publisher using the MSG protocols
+#
+
+from __future__ import generators
+import os,sys,getopt
+import ConfigParser
+import logging
+#Try Except because of change in library from Python 2.2 to Python 2.3
+try :
+    from logging.handlers import SysLogHandler
+except ImportError :
+    from logging import SysLogHandler
+try :
+    from logging.handlers import FileHandler
+except ImportError :
+    from logging import FileHandler
+
+
+
+# setup home directory
+msg_home=os.environ.get('MSG_HOME','/opt/lcg')
+sys.path.append(msg_home+'/lib/python')
+
+def readConfig(customConfigFile=None):
+    global msg_home
+    configFilename=msg_home + "/etc/msg/msg-publish.conf"
+    config=ConfigParser.ConfigParser()
+    config.set('DEFAULT', 'home', os.environ["HOME"])
+    config.set('DEFAULT', 'msg_home', msg_home)
+    config.read(configFilename)
+    config.read(os.environ["HOME"]+'/.msg-publish.conf')
+    if os.environ.has_key("MSG_PUBLISHER_CONFIG"):
+        config.read(os.environ['MSG_PUBLISHER_CONFIG'])
+    if customConfigFile:
+        config.read(customConfigFile)
+    return config
+
+class MessageClass:
+    def __init__(self,reqattrs=None,headerattrs=None,destination=None):
+        self.reqattrs = reqattrs
+        self.headerattrs = headerattrs
+        self.destination = destination        
+    
+    def validate(self, record):
+        for ra in self.reqattrs:
+            if not record.has_key(ra):
+                logger.warn('Incomplete record, missing required attribute: %s'%ra)
+                raise RecordSyntaxException('Incomplete record, missing required attribute: %s'%ra)
+                #return False
+        return True
+
+def usage(mClasses):
+    print """
+Usage: %s [options] MESSAGE_CLASS [FILE1] [FILE2...]
+
+Where MESSAGE_CLASS must be one of the followings: %s
+and FILE is a file containing the tuples of test results
+
+OPTIONS:
+\t -h, --help
+\t\t Print this help text and exit.
+\t -b, --bulk 
+\t\t Bulk publishing  
+\t -v, --verbose
+\t\t Be more verbose
+\t -c, --conf
+\t\t Alternative configuration file
+\t -a, --attributes
+\t\t List of header attributes
+\t -d, --destination
+\t\t Alternative message destination
+\t -g, --generic
+\t\t Generic message class (do not validate class name and records)
+\t -s, --sign
+\t\t Sign with my proxy certificate (NOT IMPLEMENTED)
+\t -e, --encrypt
+\t\t Encrypt with given public key (NOT IMPLEMENTED)
+\t --no-cert-publish
+\t\t Do not attach certificate to any signed message (NOT IMPLEMENTED)
+"""%(sys.argv[0],', '.join(mClasses.keys()))
+
+def parseOpts():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hvbc:a:d:gse:n", ["help", "verbose","bulk","config=","attributes=","destination=","generic","sign","encrypt=","no-cert-publish"])
+    except getopt.GetoptError:
+        return {},[]
+    options=dict([(o.strip('-')[0],a) for (o,a) in opts])
+    return options,args
+
+def readMessageClasses(config):
+    if not config.has_option('classes','messageClasses'):
+        logger.error('No message classes defined in config file!')
+        return {}
+    classNames=config.get('classes','messageClasses').split()
+    mClasses={}
+    for name in classNames:
+        if config.has_option('classes',name+'_reqattrs'):
+            reqattrs=map(str.lower,config.get('classes',name+'_reqattrs').split())
+        else:
+            reqattrs=None    
+        if config.has_option('classes',name+'_headerattrs'):
+            headerattrs=map(str.lower,config.get('classes',name+'_headerattrs').split())
+        else:
+            headerattrs=None    
+        if config.has_option('classes',name+'_destination'):
+            destination=config.get('classes',name+'_destination')
+        else:
+            destination=config.get('publisher','default_destination')    
+        mClasses[name]=MessageClass(reqattrs,headerattrs,destination)
+    return mClasses
+
+def setupLogger(verbose, config):
+    global logger
+
+    logLocation=''
+    logger=logging.root
+
+    #Get configuration and provide defaults
+    if config.has_option('logging','log-location') :
+        logLocation = config.get('logging', 'log-location')
+    else : 
+        logLocation = '/tmp/_msgpublish.log' 
+    if config.has_option('logging','debug-level') :
+        logger.setLevel( int(config.get('logging', 'debug-level')) )
+    else :
+        if verbose:
+            logger.setLevel(logging.INFO)
+        else:
+            logger.setLevel(logging.WARN)
+    if config.has_option('logging','log-size') :
+        logSize = config.getint('logging', 'log-size')
+    else : 
+        logSize = 100000
+    if config.has_option('logging','log-count') :
+        logCount = config.getint('logging', 'log-count')
+    else : 
+        logCount = 10
+
+    #Set Formatter and add Handlers:
+    #If syslog, use Syslog. Otherwise use LogLocation (including default under/tmp/$login_msgpublish.log)
+    format=logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    
+    if config.has_option('logging','syslog-location') :
+       syslog=SysLogHandler( config.get('logging','syslog-location') )
+       syslog.setFormatter(format)
+       logger.addHandler(syslog)
+    else :
+       fileHdlr=FileHandler(filename=logLocation)
+       #                              maxBytes=logSize,
+       #                              backupCount=logCount)
+       fileHdlr.setFormatter(format)
+       logger.addHandler(fileHdlr)
+
+    logger.info('Logger created')
+    
+def loadRecords(mClass, inFiles):
+    from msg.simplePublish import record
+    if not inFiles:
+        return record.loadAll(sys.stdin)
+    if '-' in inFiles:
+        inFiles.remove('-')
+        inStreams=map(open,inFiles)
+        inStreams.append(sys.stdin)
+    else:
+        inStreams=map(open,inFiles)   
+    return chain(*map(record.loadAll,inStreams))
+
+def composeMessage(destination,headerattrs,records):
+    """Assumes that all records have the same headerattrs"""
+    msg={'destination':destination,
+         'body': ''.join([r.dumps() for r in records])}
+    if headerattrs:
+        msg['header']=dict([(k,records[0].get(k)) for k in headerattrs])
+    return msg
+ 
+def composeMessages(destination,headerattrs,records,bulk):
+    if bulk:
+        recordGroups=groupby(records,lambda x: tuple(map(x.get,headerattrs)))
+        return [composeMessage(destination,headerattrs,group) for  group in recordGroups]
+    else:
+        return [composeMessage(destination,headerattrs,[record]) for record in records] 
+# ----------------
+
+class groupby(dict):
+    def __init__(self, seq, key=lambda x:x):
+        for value in seq:
+            k = key(value)
+            self.setdefault(k, []).append(value)
+    __iter__ = dict.itervalues
+
+def chain(*iterables):
+    for it in iterables:
+        for element in it:
+            yield element
+
+# ----------------
+
+#print "==================="
+#print "== msg-publish   =="
+#print "==================="
+options,args=parseOpts()
+config=readConfig(options.get('c'))
+setupLogger('v' in options, config)
+logger.info(" Logger set.")
+mClasses=readMessageClasses(config)
+if 'h' in options or not args:
+    usage(mClasses)
+    if not args:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
+mcName=args[0]
+inFiles=args[1:]
+
+if mcName not in mClasses and 'g' not in options:
+    logger.error("Unknown message class: %s! Exiting."%mcName)
+    usage(mClasses)
+    sys.exit(2)
+    
+logger.debug( "getting message classes. " )
+mClass=mClasses.get(mcName,MessageClass())
+logger.debug( "loading Records. " )
+records=loadRecords(mClass,inFiles)
+logger.debug( "Records loaded." )#+ len(records) )
+
+from msg.simplePublish.record import RecordSyntaxException
+if not 'g' in options:
+    try :
+        records=filter(mClass.validate,records)
+    except RecordSyntaxException, e :
+        logger.error(" Failure on loading Records: " + e.value + ". \n Please check syntax. Exiting" )
+        sys.exit(3)
+
+if 'd' in options:
+    destination=options['d']
+elif mClass.destination:
+    destination=mClass.destination
+else:
+    destination=config.get('publisher','default_destination')
+
+if 'a' in options:
+    headerattrs=[attr.lower() for attr in  options['a'].split(',')]
+else:
+    headerattrs=mClass.headerattrs
+
+try :
+    logger.debug('Composing Messages')
+    messages=composeMessages(destination,headerattrs,records,'b' in options)
+    logger.debug('Configuring endpoints')
+    endpoints=config.get('publisher','endpoints').split()
+except Exception, e :
+    logger.exception( "Exception Caught: %s : %s" % (e.__class__.__name__, e.args ))
+    logger.error("Exiting msg-publish.")
+    sys.exit(3)
+
+logger.debug('getting RobustPublisher')
+from msg.simplePublish.robustpublisher import RobustPublisher
+
+logger.info('Sending ' + str(len(messages)) + ' messages.' )
+try :
+    sentMessages=RobustPublisher(endpoints).publishMessages(messages)
+except Exception, e : 
+    logger.exception( " Exception caught: %s : %s" % ( e.__class__.__name__, e.args) )
+    logger.error("\nmsg-publish failed: Unable to publish sent messages. exiting.")
+    sys.exit(3)
+logger.info( "\ndone. %s messages sent. " % sentMessages )
+sys.exit(0)
+

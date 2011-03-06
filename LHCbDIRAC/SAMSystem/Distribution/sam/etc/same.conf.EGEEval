@@ -1,0 +1,65 @@
+# Default configuration for SAME
+[DEFAULT]
+# Settings for locations
+workdir=%(home)s/.same
+logdir=%(same_home)s/var/log
+resdir=%(same_home)s/var/results
+secresdir=%(same_home)s/var/results-secure
+webdir=%(same_home)s/web
+cachedir=%(same_home)s/var/cache
+master_vo=dteam
+
+# Logging levels:
+# CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
+# Logging level for the log file
+loglevel=INFO
+# Logging level for console messages
+verbosity=CRITICAL
+
+[sensors]
+common_attrs="sitename nodename inmaintenance"
+common_filter="type=Production status=Certified ismonitored=y"
+CE_filter="serviceabbr=CE"
+gCE_filter="serviceabbr=gCE"
+FTS_filter="serviceabbr=FTS"
+FTS_attrs="sitename nodename inmaintenance tier"
+SE_filter="serviceabbr=SE"
+SRM_filter="serviceabbr=SRM"
+SRMv1_filter="serviceabbr=SRMv1"
+SRMv2_filter="serviceabbr=SRMv2"
+LFC_filter="serviceabbr=LFC voname=%(master_vo)s"
+LFC_C_filter="serviceabbr=LFC_C voname=%(master_vo)s"
+LFC_L_filter="serviceabbr=LFC_L voname=%(master_vo)s"
+host-cert_attrs="nodename serviceabbr"
+host-cert_filter="serviceabbr=FTS,LFC,LFC_C,LFC_L,VOMS,CE,SRMv2,gRB,MyProxy,RB,RGMA"
+VOBOX_filter="serviceabbr=VOBOX voname=%(master_vo)s"
+RB_filter="serviceabbr=RB"
+gRB_filter="serviceabbr=gRB"
+
+[statuscode]
+ok=10
+info=20
+notice=30
+warning=40
+error=50
+critical=60
+maintenance=100
+
+[submission]
+vo=%(master_vo)s
+test_timeout=600
+
+[scheduler]
+max_processes=10
+default_timeout=1800
+shell=/bin/sh
+
+[webservices]
+publisher_wsdl=%(same_home)s/etc/publisher-val.wsdl
+query_wsdl=%(same_home)s/etc/query-val.wsdl
+
+[msg]
+publish_cmd=%(same_home)s/bin/msg-publish
+#change the value of publishing_mode to msg to enable MSG publishing
+publishing_mode=samws
+
