@@ -64,8 +64,8 @@
 """
 __RCSID__ = "$Id$"
 
-import sys, os, re, imp, string, xmllib
-import threading, xmlrpclib, traceback
+import sys, os, re, string, xmllib
+import threading, traceback
 
 
 class StringFile:
@@ -139,7 +139,7 @@ class Retriever( threading.Thread ):
           else:
             print 'WARNING: file ', f, ' was not found in the LFC database.'
             self.srv.incomplete['MissingLFNs'].append( f )
-      except KeyError, X:
+      except KeyError:
         if self.strict:
             print 'Processing error: file ', f, ' was not found in the LFC database.'
             self.srv.incomplete['MissingLFNs'].append( f )
@@ -627,8 +627,6 @@ class Bookkeeping:
   """
 
   def gaudiCatalogFromLFNs( self, files, strict, depth = 1 ):
-    import time
-    srv = self.server
     fids = {}
     catalog = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     catalog = catalog + '<!-- GaudiPoolCatalog: Edited By Gaudi Bookkeeping tools -->\n'
@@ -638,7 +636,6 @@ class Bookkeeping:
     count = 0
     prev = None
     threaded = 0
-    start = time.time()
     for ff in files:
       """extention=ff[ff.rfind('.')+1:]
       if string.upper(extention) in ('DST','DIGI','SIM','RDST'):
@@ -651,7 +648,6 @@ class Bookkeeping:
       fids[ff] = {'type':'ROOT_ALL', 'replicas':{}, 'guid':''}
       count = count + 1
       if ( ( count % 500 ) == 0 or count == length ):
-        start2 = time.time()
         if threaded:
           t = Retriever( self, fids, strict, depth )
           fids = {}
@@ -678,8 +674,6 @@ class Bookkeeping:
 
 
   def gaudiCatalog( self, files, strict, depth = 1 ):
-    import time
-    srv = self.server
     fids = {}
     catalog = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     catalog = catalog + '<!-- GaudiPoolCatalog: Edited By Gaudi Bookkeeping tools -->\n'
@@ -689,7 +683,6 @@ class Bookkeeping:
     count = 0
     prev = None
     threaded = 0
-    start = time.time()
     for ff in files:
       fname = ff[0]
       if fname[0:4] == 'LFN:':
@@ -708,7 +701,6 @@ class Bookkeeping:
       fids[fname] = {'type':ff[1], 'replicas':{}, 'guid':''}
       count = count + 1
       if ( ( count % 500 ) == 0 or count == length ):
-        start2 = time.time()
         if threaded:
           t = Retriever( self, fids, strict, depth )
           fids = {}
@@ -773,7 +765,7 @@ def getAncestors( LFNs, depth = 1 ):
     result = S_OK()
     result['PFNs'] = obj.getAncestors( LFNs, depth )
     return result
-  except Exception, x:
+  except Exception:
     sf = StringFile()
     traceback.print_exc( file = sf )
     err_msg = S_ERROR( sf.read() )
@@ -830,8 +822,8 @@ def genCatalog( LFNs, outputFilename, depth = 1, site = None, protocol = None ):
           return S_ERROR( "PFNs not found" )
         else:
           if result is None:
-             result = S_WARNING( "Some PFNs have not been found" )
-             result['PFNs'] = obj.incomplete['MissingLFNs']
+            result = S_WARNING( "Some PFNs have not been found" )
+            result['PFNs'] = obj.incomplete['MissingLFNs']
           else:
             result['PFNs'].append( obj.incomplete['MissingLFNs'] )
           return result
@@ -923,9 +915,9 @@ def execute( args ) :
         print 'options file "' + f + '" not found'
         return usage()
   if gaudi and not files:
-       if not os.path.exists( gaudi ) :
-        print 'Gaudi catalog file "' + gaudi + '" not found'
-        return usage()
+    if not os.path.exists( gaudi ) :
+      print 'Gaudi catalog file "' + gaudi + '" not found'
+      return usage()
 
   #else :
   #  print 'No input file specified'
@@ -1011,9 +1003,9 @@ def execute( args ) :
         print >> cat_file, cat
         cat_file.close()
       if pool:
-         print 'Wrote POOL catalog file:', pool
+        print 'Wrote POOL catalog file:', pool
       if card:
-         print 'Wrote Gaudi card:', card
+        print 'Wrote Gaudi card:', card
       if not card:
           print 'Please add to your options file the following line:'
           print 'PoolDbCacheSvc.Catalog = { "xmlcatalog_file:' + pool + '" }';
@@ -1034,14 +1026,14 @@ def execute( args ) :
         print "Warning: -p option must be used in conjuct with -s and -P options"
         print 'Try "genCatalog --help" for more information.'
   if ( info ):
-     space = '                        '
-     print '\n                INFO\n'
-     print 'Site' + space[len( 'Site' ):] + 'SEs\n'
-     for site, se in sup_site.items():
-       print site, space[len( site ):], se
-     print '\nSE' + space[len( 'SE' ):] + 'Protocol(s)\n'
-     for se, pro in seTOprot.items():
-       print se, space[len( se ):], pro
+    space = '                        '
+    print '\n                INFO\n'
+    print 'Site' + space[len( 'Site' ):] + 'SEs\n'
+    for site, se in sup_site.items():
+      print site, space[len( site ):], se
+    print '\nSE' + space[len( 'SE' ):] + 'Protocol(s)\n'
+    for se, pro in seTOprot.items():
+      print se, space[len( se ):], pro
   return 1
 
 if __name__ == "__main__":
