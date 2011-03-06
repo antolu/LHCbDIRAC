@@ -8,9 +8,9 @@
 
 __RCSID__ = "$Id$"
 
-import sys,os,string
+import os
 start = os.getcwd()
-os.chdir('/tmp')
+os.chdir( '/tmp' )
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
@@ -30,10 +30,10 @@ appType = '{{ApplicationType#Output File Type e.g. DST/RDST#RDST}}'
 
 #Other parameters
 dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
-inProductionID='{{inProductionID}}'
+inProductionID = '{{inProductionID}}'
 
 if args:
-  inProductionID = int(inProductionID)
+  inProductionID = int( inProductionID )
 
 
 inputBKQuery = { 'SimulationConditions'     : 'All',
@@ -48,35 +48,35 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 
 production = Production()
 
-production.setPlatform('DIRAC') #IMPORTANT for Online tests not to interfere with production
-production.setDestination('DIRAC.ONLINE-FARM.ch')
+production.setPlatform( 'DIRAC' ) #IMPORTANT for Online tests not to interfere with production
+production.setDestination( 'DIRAC.ONLINE-FARM.ch' )
 
-production.setProdType('DataReconstruction')
-wkfName='Request{{ID}}_{{pDsc}}_{{eventType}}_{{p1App}}{{p1Ver}}_DDDB{{p1DDDb}}_CondDB{{p1CDb}}_1'
-production.setWorkflowName('%s_%s' %(wkfName,appendName))
-production.setWorkflowDescription("Real data reconstruction production.")
-production.setBKParameters('{{configName}}','{{configVersion}}','{{pDsc}}','{{simDesc}}')
-production.setInputBKSelection(inputBKQuery)
-production.setDBTags('{{p1CDb}}','{{p1DDDb}}')
+production.setProdType( 'DataReconstruction' )
+wkfName = 'Request{{ID}}_{{pDsc}}_{{eventType}}_{{p1App}}{{p1Ver}}_DDDB{{p1DDDb}}_CondDB{{p1CDb}}_1'
+production.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
+production.setWorkflowDescription( "Real data reconstruction production." )
+production.setBKParameters( '{{configName}}', '{{configVersion}}', '{{pDsc}}', '{{simDesc}}' )
+production.setInputBKSelection( inputBKQuery )
+production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
-production.addBrunelStep("{{p1Ver}}",appType.lower(),"{{p1Opt}}",extraPackages='{{p1EP}}',eventType='{{eventType}}',inputData=[],inputDataType='mdf',outputSE=dataSE,histograms=True)
+production.addBrunelStep( "{{p1Ver}}", appType.lower(), "{{p1Opt}}", extraPackages = '{{p1EP}}', eventType = '{{eventType}}', inputData = [], inputDataType = 'mdf', outputSE = dataSE, histograms = True )
 #Not sure if you want a finalization step...
 production.addFinalizationStep()
 
-production.setInputBKSelection(inputBKQuery)
-production.setProdGroup('{{pDsc}}')
-production.setFileMask("%s;root" %(appType.lower()))
-production.setProdPriority(priority)
-production.setProdPlugin(plugin)
-production.setInputDataPolicy('download')
+production.setInputBKSelection( inputBKQuery )
+production.setProdGroup( '{{pDsc}}' )
+production.setFileMask( "%s;root" % ( appType.lower() ) )
+production.setProdPriority( priority )
+production.setProdPlugin( plugin )
+production.setInputDataPolicy( 'download' )
 
-result = production.create(bkQuery=inputBKQuery,groupSize=1,derivedProduction=int(ancestorProd),bkScript=False,requestID=int('{{ID}}'),reqUsed=1)
+result = production.create( bkQuery = inputBKQuery, groupSize = 1, derivedProduction = int( ancestorProd ), bkScript = False, requestID = int( '{{ID}}' ), reqUsed = 1 )
 if not result['OK']:
-  print 'Error:',result['Message']
+  print 'Error:', result['Message']
 
 prodID = result['Value']
-msg = 'Production %s successfully created' %prodID
+msg = 'Production %s successfully created' % prodID
 diracProd = DiracProduction()
-diracProd.production(prodID,'start',printOutput=True)
+diracProd.production( prodID, 'start', printOutput = True )
 msg += ' and started in manual submission mode.'
 print msg

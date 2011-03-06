@@ -3,7 +3,7 @@
 ########################################################################
 
 """  The General.py Template will try to create a general template, to be used for all kind of requests
-     
+
 """
 
 __RCSID__ = "$Id$"
@@ -11,27 +11,15 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
-import string
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
-
-import DIRAC
-
-from DIRAC import gLogger, gConfig
 
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 BKClient = BookkeepingClient()
 
-
 #gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
-
-#################################################################################
-# Below here is the actual production API script with notes
-#################################################################################
-from LHCbDIRAC.Interfaces.API.Production import Production
-from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 ###########################################
 # Configurable and fixed parameters
@@ -79,7 +67,7 @@ if not parentReq:
 
 
 
-##FROM ReStripping 
+##FROM ReStripping
 
 #stripp params
 stripping_priority = '{{priority#PROD-Stripping: priority#7}}'

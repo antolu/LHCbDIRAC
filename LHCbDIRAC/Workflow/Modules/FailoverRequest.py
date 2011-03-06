@@ -11,7 +11,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.TransformationSystem.Client.FileReport          import FileReport
 from DIRAC.WorkloadManagementSystem.Client.JobReport       import JobReport
-from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                                                 import S_OK, S_ERROR, gLogger
 
 import os
 
@@ -134,7 +134,7 @@ class FailoverRequest( ModuleBase ):
     # in case of failure and a subsequent failover operation
     if self.workflowStatus['OK'] and self.stepStatus['OK']:
       if not self.jobReport:
-         self.jobReport = JobReport( int( self.jobID ) )
+        self.jobReport = JobReport( int( self.jobID ) )
       jobStatus = self.jobReport.setApplicationStatus( 'Job Finished Successfully' )
       if not jobStatus['OK']:
         self.log.warn( jobStatus['Message'] )

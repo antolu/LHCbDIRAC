@@ -4,12 +4,12 @@
 
 """  The Real Data template creates a workflow for Brunel (and eventually DaVinci) with
      configurable number of events, CPU time, jobs to extend and priority.
-     
+
      In can be used for FULL and EXPRESS processings.
-     
+
      If four steps are discovered then merging is performed with two further
      DaVinci steps.
-     
+
      The reconstruction production is published to the BK with the processing pass
      of the first two steps and it was agreed that the merging production appends
      '-Merging' to the input processing pass name but retains the two steps of the
@@ -22,14 +22,14 @@ __RCSID__ = "$Id$"
 # Some import statements and standard DIRAC script preamble
 #################################################################################
 
-import re, itertools
+import itertools
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 
 import DIRAC
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gLogger
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 gLogger = gLogger.getSubLogger( 'RealData_run.py' )
@@ -38,9 +38,9 @@ BKClient = BookkeepingClient()
 #################################################################################
 # Below here is the production API script with notes
 #################################################################################
-from LHCbDIRAC.Interfaces.API.Production import Production
-from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
+#from LHCbDIRAC.Interfaces.API.Production import Production
+#from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
+#from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 ###########################################
 # Configurable parameters
@@ -80,7 +80,7 @@ replicationFlag = '{{TransformationEnable#Replication: flag to enable True/False
 transformationPlugin = '{{TransformationPlugin#Replication: plugin name#LHCbDSTBroadcast}}'
 
 ###########################################
-# Fixed and implied parameters 
+# Fixed and implied parameters
 ###########################################
 
 currentReqID = int( '{{ID}}' )
@@ -344,7 +344,7 @@ DIRAC.exit( 0 )
 #    gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
 #    DIRAC.exit( 2 )
 #
-#result = production.create( 
+#result = production.create(
 #                           publish = publishFlag,
 #                           bkQuery = recoInputBKQuery,
 #                           groupSize = recoFilesPerJob,
@@ -401,7 +401,7 @@ DIRAC.exit( 0 )
 ##
 ###The below list is not yet defined in the central CS but can be to allow a bit of flexibility
 ###anything in the above list will trigger default replication policy according to the computing
-###model. 
+###model.
 #replicateListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST',
 #                         'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST']
 #
@@ -411,7 +411,7 @@ DIRAC.exit( 0 )
 ##onlyOneOtherSite = ['LEPTONICFULL.DST', 'CHARMFULL.DST']
 ##
 ##The use-case of not performing replication and sending a stream to CERN is handled by the below
-##CS section, similarly to the above I did not add the section to the CS. 
+##CS section, similarly to the above I did not add the section to the CS.
 #onlyCERNDefault = ['CALIBRATION.DST']
 #
 #onlyCERN = gConfig.getValue( '/Operations/Reconstruction/OnlyCERN', onlyCERNDefault )
@@ -493,7 +493,7 @@ DIRAC.exit( 0 )
 #  mergeProd.setFileMask( mergeStream.lower() )
 #  mergeProd.setProdPlugin( mergePlugin )
 #
-#  result = mergeProd.create( 
+#  result = mergeProd.create(
 #                            publish = publishFlag,
 #                            bkScript = BKscriptFlag,
 #                            requestID = currentReqID,

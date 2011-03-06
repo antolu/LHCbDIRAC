@@ -10,10 +10,11 @@ from DIRAC.Resources.Catalog.PoolXMLFile            import getGUID
 from LHCbDIRAC.Core.Utilities.ProductionData        import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
 
-from DIRAC import  *
+from DIRAC import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC.Core.Utilities.Subprocess                     import shellCall
 import DIRAC
 
-import os, time, re, string
+import os, time, re, string, socket
 
 class BookkeepingReport( ModuleBase ):
 
@@ -146,10 +147,10 @@ class BookkeepingReport( ModuleBase ):
     self.log.info( 'Initializing ' + self.version )
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-       self.log.info( 'Skip this module, failure detected in a previous step :' )
-       self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
-       self.log.info( 'Step Status %s' % ( self.stepStatus ) )
-       return S_OK()
+      self.log.info( 'Skip this module, failure detected in a previous step :' )
+      self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
+      self.log.info( 'Step Status %s' % ( self.stepStatus ) )
+      return S_OK()
 
     result = self.resolveInputVariables()
     if not result['OK']:
@@ -175,10 +176,6 @@ class BookkeepingReport( ModuleBase ):
     dataTypes = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
     gLogger.info( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( dataTypes, ', ' ) ) )
 
-    if self.workflow_commons.has_key( 'dataType' ):
-      job_mode = self.workflow_commons['dataType'].lower()
-    else:
-      job_mode = 'test'
     ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
     if self.step_commons.has_key( 'StartTime' ):
@@ -247,7 +244,7 @@ class BookkeepingReport( ModuleBase ):
     s = s + self.__parameter_string( "ProgramVersion", self.applicationVersion, 'Info' )
 
     # DIRAC version
-    s = s + self.__parameter_string( 'DiracVersion', 'v' + str( majorVersion ) + 'r' + str( minorVersion ) + 'p' + str( patchLevel ), 'Info' )
+    s = s + self.__parameter_string( 'DiracVersion', 'v' + str( DIRAC.majorVersion ) + 'r' + str( DIRAC.minorVersion ) + 'p' + str( DIRAC.patchLevel ), 'Info' )
 
     if self.firstEventNumber != None:
       s = s + self.__parameter_string( 'FirstEventNumber', self.firstEventNumber, "Info" )
@@ -306,7 +303,6 @@ class BookkeepingReport( ModuleBase ):
       if self.listoutput[count].has_key( 'outputBKType' ):
         bkTypeDict[self.listoutput[count]['outputDataName']] = self.listoutput[count]['outputBKType']
       count = count + 1
-    outputs_done = []
     outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
     self.log.info( outputs )
     if type( self.logFilePath ) == type( [] ):

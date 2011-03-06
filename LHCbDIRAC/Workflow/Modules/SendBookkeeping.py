@@ -14,22 +14,22 @@ from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContain
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
-from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                                                 import S_OK, gLogger
 
-import os,string,glob
+import os, string, glob
 
-class SendBookkeeping(ModuleBase):
+class SendBookkeeping( ModuleBase ):
 
   #############################################################################
-  def __init__(self):
+  def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__(self)
+    ModuleBase.__init__( self )
     self.version = __RCSID__
     self.log = gLogger.getSubLogger( "SendBookkeeping" )
     #Internal parameters
-    self.enable=True
-    self.failoverTest=False
+    self.enable = True
+    self.failoverTest = False
     self.jobID = ''
     #Workflow parameters
     self.request = None
@@ -37,92 +37,92 @@ class SendBookkeeping(ModuleBase):
     self.bk = BookkeepingClient()
 
   #############################################################################
-  def resolveInputVariables(self):
+  def resolveInputVariables( self ):
     """ By convention the module input parameters are resolved here.
     """
-    self.log.debug(self.workflow_commons)
-    self.log.debug(self.step_commons)
+    self.log.debug( self.workflow_commons )
+    self.log.debug( self.step_commons )
 
-    if self.step_commons.has_key('Enable'):
-      self.enable=self.step_commons['Enable']
-      if not type(self.enable)==type(True):
-        self.log.warn('Enable flag set to non-boolean value %s, setting to False' %self.enable)
-        self.enable=False
+    if self.step_commons.has_key( 'Enable' ):
+      self.enable = self.step_commons['Enable']
+      if not type( self.enable ) == type( True ):
+        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
+        self.enable = False
 
-    if self.step_commons.has_key('TestFailover'):
-      self.enable=self.step_commons['TestFailover']
-      if not type(self.failoverTest)==type(True):
-        self.log.warn('Test failover flag set to non-boolean value %s, setting to False' %self.failoverTest)
-        self.failoverTest=False
+    if self.step_commons.has_key( 'TestFailover' ):
+      self.enable = self.step_commons['TestFailover']
+      if not type( self.failoverTest ) == type( True ):
+        self.log.warn( 'Test failover flag set to non-boolean value %s, setting to False' % self.failoverTest )
+        self.failoverTest = False
 
-    if os.environ.has_key('JOBID'):
+    if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
-      self.log.verbose('Found WMS JobID = %s' %self.jobID)
+      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
     else:
-      self.log.info('No WMS JobID found, disabling module via control flag')
-      self.enable=False
+      self.log.info( 'No WMS JobID found, disabling module via control flag' )
+      self.enable = False
 
-    if self.workflow_commons.has_key('Request'):
+    if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
       self.request = RequestContainer()
-      self.request.setRequestName('job_%s_request.xml' % self.jobID)
-      self.request.setJobID(self.jobID)
-      self.request.setSourceComponent("Job_%s" % self.jobID)
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    return S_OK('Parameters resolved')
+    return S_OK( 'Parameters resolved' )
 
   #############################################################################
-  def execute(self):
+  def execute( self ):
     """ Main execution function.
     """
-    self.log.info('Initializing %s' %self.version)
+    self.log.info( 'Initializing %s' % self.version )
     result = self.resolveInputVariables()
     if not result['OK']:
-      self.log.error(result['Message'])
+      self.log.error( result['Message'] )
       return result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info('Workflow status = %s, step status = %s' %(self.workflowStatus['OK'],self.stepStatus['OK']))
-      self.log.info('Job completed with errors, no bookkeeping records will be sent')
-      return S_OK('Job completed with errors')
+      self.log.info( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
+      self.log.info( 'Job completed with errors, no bookkeeping records will be sent' )
+      return S_OK( 'Job completed with errors' )
 
     bkFileExtensions = ['bookkeeping*.xml']
-    bkFiles=[]
+    bkFiles = []
     for ext in bkFileExtensions:
-      self.log.verbose('Looking at BK file wildcard: %s' %ext)
-      globList = glob.glob(ext)
+      self.log.verbose( 'Looking at BK file wildcard: %s' % ext )
+      globList = glob.glob( ext )
       for check in globList:
-        if os.path.isfile(check):
-          self.log.verbose('Found locally existing BK file: %s' %check)
-          bkFiles.append(check)
+        if os.path.isfile( check ):
+          self.log.verbose( 'Found locally existing BK file: %s' % check )
+          bkFiles.append( check )
 
     #Unfortunately we depend on the file names to order the BK records
     bkFiles.sort()
-    self.log.info('The following BK files will be sent: %s' %(string.join(bkFiles,', ')))
+    self.log.info( 'The following BK files will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
 
     if not self.enable:
-      self.log.info('Module is disabled by control flag')
-      return S_OK('Module is disabled by control flag')
+      self.log.info( 'Module is disabled by control flag' )
+      return S_OK( 'Module is disabled by control flag' )
 
     for bkFile in bkFiles:
-      fopen = open(bkFile,'r')
+      fopen = open( bkFile, 'r' )
       bkXML = fopen.read()
       fopen.close()
       if not self.failoverTest:
-        self.log.verbose('Sending BK record %s:\n%s' %(bkFile,bkXML))
-        result = self.bk.sendBookkeeping(bkFile,bkXML)
-        self.log.verbose(result)
+        self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
+        result = self.bk.sendBookkeeping( bkFile, bkXML )
+        self.log.verbose( result )
         if result['OK']:
-          self.log.info('Bookkeeping report sent for %s' %bkFile)
+          self.log.info( 'Bookkeeping report sent for %s' % bkFile )
         else:
-          self.log.error('Could not send Bookkeeping XML file to server, preparing DISET request for',bkFile)
-          self.request.setDISETRequest(result['rpcStub'],executionOrder=0)
-          self.workflow_commons['Request']=self.request
+          self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
+          self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
+          self.workflow_commons['Request'] = self.request
       else:
-        self.log.error('Testing failover, would prepare DISET request for',bkFile)
+        self.log.error( 'Testing failover, would prepare DISET request for', bkFile )
         #need example rpcStub
 #        self.request.setDISETRequest(result['rpcStub'],executionOrder=0)
 #        self.workflow_commons['Request']=self.request
 
-    return S_OK('SendBookkeeping Module Execution Complete')
+    return S_OK( 'SendBookkeeping Module Execution Complete' )
