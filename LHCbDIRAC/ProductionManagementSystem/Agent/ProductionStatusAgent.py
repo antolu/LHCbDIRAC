@@ -26,7 +26,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
+from DIRAC                                                     import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
@@ -37,6 +37,9 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 
 import string, time
+
+# A.T. import of Dirac API module forbids showing headers in the log
+gLogger.showHeaders(True)
 
 AGENT_NAME = 'ProductionManagement/ProductionStatusAgent'
 
@@ -264,7 +267,7 @@ class ProductionStatusAgent( AgentModule ):
     #Final action is to update MC input productions to completed that have been treated
     res = transformationClient.getTransformationWithStatus( 'RemovedFiles' )
     if not res['OK']:
-      gLogger.error( "Failed to get RemovedFiles productions", res['Message'] )
+      self.log.error( "Failed to get RemovedFiles productions", res['Message'] )
       return res
     if not res['Value']:
       self.log.info( 'No productions in RemovedFiles status' )
