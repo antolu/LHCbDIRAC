@@ -49,7 +49,8 @@ class DiracLHCb( Dirac ):
                              'ProductionID'             :     0,
                              'StartRun'                 :     0,
                              'EndRun'                   :     0,
-                             'DataQualityFlag'          : 'All'}
+                             'DataQualityFlag'          : 'All',
+                             'Visibility'               : 'Yes'}
     self.bk = BookkeepingClient() #to expose all BK client methods indirectly
 
   #############################################################################
@@ -223,6 +224,18 @@ class DiracLHCb( Dirac ):
     """
     return getAncestorFiles( lfns, depth )
 
+  def __translateBKPath( self, bkPath, procPassID = 3 ):
+    bk = removeEmptyElements( bkPath.split( '/' ) )
+    try:
+      bkNodes = bk[0:procPassID]
+      bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
+      bkNodes.append( bk[-2] )
+      bkNodes.append( bk[-1] )
+    except:
+      print "Incorrect BKQuery...\n"
+      bkNodes = None
+    return bkNodes
+
   #############################################################################
   def bkQueryRunsByDate( self, bkPath, startDate, endDate, dqFlag = 'All', selection = 'Runs' ):
     """ This function allows to create and perform a BK query given a supplied
@@ -268,7 +281,7 @@ class DiracLHCb( Dirac ):
 
     #remove any double slashes, spaces must be preserved
     #remove any empty components from leading and trailing slashes
-    bkPath = removeEmptyElements( string.split( string.replace( bkPath, '//', '/' ), '/' ) )
+    bkPath = self.__translateBKPath( bkPath, procPassID = 2 )
     if not len( bkPath ) == 5:
       return S_ERROR( 'Expected 5 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -362,7 +375,7 @@ class DiracLHCb( Dirac ):
 
     #remove any double slashes, spaces must be preserved
     #remove any empty components from leading and trailing slashes
-    bkPath = removeEmptyElements( string.split( string.replace( bkPath, '//', '/' ), '/' ) )
+    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
     if not len( bkPath ) == 4:
       return S_ERROR( 'Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -432,7 +445,7 @@ class DiracLHCb( Dirac ):
 
     #remove any double slashes, spaces must be preserved
     #remove any empty components from leading and trailing slashes
-    bkPath = removeEmptyElements( string.split( string.replace( bkPath, '//', '/' ), '/' ) )
+    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
     if not len( bkPath ) == 4:
       return S_ERROR( 'Expected 4 components to the BK path: /<ProductionID>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -487,7 +500,7 @@ class DiracLHCb( Dirac ):
 
     #remove any double slashes, spaces must be preserved
     #remove any empty components from leading and trailing slashes
-    bkPath = removeEmptyElements( string.split( string.replace( bkPath, '//', '/' ), '/' ) )
+    bkPath = self.__translateBKPath( bkPath, procPassID = 3 )
     if not len( bkPath ) == 6:
       return S_ERROR( 'Expected 6 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
 
@@ -572,6 +585,8 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     problematicFields = []
+    if not bkQueryDict.has_key( 'Visibility' ):
+      bkQueryDict['Visibility'] = "Yes"
     for name, value in bkQueryDict.items():
       if not name in self.bkQueryTemplate.keys():
         problematicFields.append( name )
