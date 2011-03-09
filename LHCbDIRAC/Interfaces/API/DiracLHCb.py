@@ -361,7 +361,7 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> dirac.bkQueryRun('/63566/Real Data + RecoToDST-07/90000000/DST')
+       >>> dirac.bkQueryRun('/63566/Real Data/RecoToDST-07/90000000/DST')
        {'OK':True,'Value': ['/lhcb/data/2009/DST/00005842/0000/00005842_00000008_1.dst']}
 
        @param bkPath: BK path as described above
@@ -431,7 +431,7 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> dirac.bkQueryProduction('/5842/Real Data + RecoToDST-07/90000000/DST')
+       >>> dirac.bkQueryProduction('/5842/Real Data/RecoToDST-07/90000000/DST')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
 
        @param bkPath: BK path as described above
@@ -486,7 +486,7 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> dirac.bkQueryPath('/MC/2010/Beam3500GeV-VeloClosed-MagDown-Nu1/2010-Sim01Reco01-withTruth/27163001/DST')
+       >>> dirac.bkQueryPath('/MC/2010/Beam3500GeV-VeloClosed-MagDown-Nu1/Sim07/Reco06-withTruth/10012004/DST')
        {'OK': True, 'Value': [<LFN1>,<LFN2>]}
 
        @param bkPath: BK path as described above
