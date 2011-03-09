@@ -226,6 +226,8 @@ class DiracLHCb( Dirac ):
 
   def __translateBKPath( self, bkPath, procPassID = 3 ):
     bk = removeEmptyElements( bkPath.split( '/' ) )
+    if procPassID < 0:
+      return bk
     try:
       bkNodes = bk[0:procPassID]
       bkNodes.append( '/' + '/'.join( bk[procPassID:-2] ) )
@@ -385,8 +387,11 @@ class DiracLHCb( Dirac ):
     if re.search( '-', runNumberString ):
       if not len( runNumberString.split( '-' ) ) == 2:
         return S_ERROR( 'Could not determine run range from "%s", try "<Run 1> - <Run2>"' % ( runNumberString ) )
-      start = int( runNumberString.split( '-' )[0] )
-      end = int( runNumberString.split( '-' )[1] )
+      try:
+        start = int( runNumberString.split( '-' )[0] )
+        end = int( runNumberString.split( '-' )[1] )
+      except:
+        return S_ERROR( 'Invalid run range: %s' % runNumberString )
       if int( start ) < int( end ):
         startRun = start
         endRun = end
@@ -394,8 +399,11 @@ class DiracLHCb( Dirac ):
         startRun = end
         endRun = start
     else:
-      startRun = int( runNumberString )
-      endRun = int( runNumberString )
+      try:
+        startRun = int( runNumberString )
+        endRun = startRun
+      except:
+        return S_ERROR( 'Invalid run number: %s' % runNumberString )
 
     query = self.bkQueryTemplate.copy()
     query['StartRun'] = startRun
@@ -420,11 +428,13 @@ class DiracLHCb( Dirac ):
     """ This function allows to create and perform a BK query given a supplied
         BK path. The following BK path convention is expected:
 
-        /<ProductionID>/<Processing Pass>/<Event Type>/<File Type>
+        /<ProductionID>/[<Processing Pass>/<Event Type>/]<File Type>
 
         so an example for 2009 collisions data would be:
 
        /5842/Real Data + RecoToDST-07/90000000/DST
+
+       Note that neither the processing pass nor the event type should be necessary. So either of them can be omitted
 
        a data quality flag can also optionally be provided, the full list of these is available
        via the getAllDQFlags() method.
@@ -445,15 +455,15 @@ class DiracLHCb( Dirac ):
 
     #remove any double slashes, spaces must be preserved
     #remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
-    if not len( bkPath ) == 4:
-      return S_ERROR( 'Expected 4 components to the BK path: /<ProductionID>/<Processing Pass>/<Event Type>/<File Type>' )
-
+    bkPath = self.__translateBKPath( bkPath, procPassID = 0 )
+    if len( bkPath ) < 2:
+      return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
     query = self.bkQueryTemplate.copy()
-    query['ProductionID'] = int( bkPath[0] )
-    query['ProcessingPass'] = bkPath[1]
-    query['EventType'] = bkPath[2]
-    query['FileType'] = bkPath[3]
+    try:
+      query['ProductionID'] = int( bkPath[0] )
+    except:
+      return S_ERROR( 'Invalid production ID' )
+    query['FileType'] = bkPath[-1]
 
     if dqFlag:
       check = self.__checkDQFlags( dqFlag )
