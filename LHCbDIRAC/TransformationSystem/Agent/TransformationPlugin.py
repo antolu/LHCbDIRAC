@@ -268,18 +268,39 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _MergeByRun( self ):
     return self.__mergeByRun( requireFlush = False )
 
+  def __getFilesStatForRun( self, transID, runID ):
+    selectDict = {'Transformation':transID}
+    if runID:
+      selectDict['RunNumber'] = runID
+    res = self.transClient.getTransformationFiles( selectDict )
+    files = 0
+    processed = 0
+    if res['OK']:
+      for fileDict in res['Value']:
+        files += 1
+        if fileDict['Status'] == "Processed":
+          processed += 1
+    return ( files, processed )
+
   def __mergeByRun( self, requireFlush = False ):
-    runFiles = {}
-    for fileDict in self.files:
-      runNumber = fileDict.get( 'RunNumber' )
-      lfn = fileDict.get( 'LFN' )
-      if ( runNumber ) and ( runNumber not in runFiles.keys() ):
-        runFiles[runNumber] = []
-      if runNumber and lfn:
-        runFiles[runNumber].append( lfn )
+
+    transID = self.params['TransformationID']
+    if requireFlush:
+      res = self.transClient.getBookkeepingQueryForTransformation( transID )
+      if res['OK']:
+        queryProdID = res['Value'].get( 'ProductionID' )
+      if not queryProdID:
+        gLogger.warn( "Could not find ancestor production for transformation %d. Flush impossible" % transID )
+        requireFlush = False
+
+    res = self.__groupByRun( self.files )
+    if not res['OK']:
+      return res
+    runFiles = res['Value']
+
     allReplicas = self.data.copy()
     allTasks = []
-    res = self.transClient.getTransformationRuns( {'TransformationID':self.params['TransformationID'], 'RunNumber':runFiles.keys()} )
+    res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runFiles.keys()} )
     if not res['OK']:
       return res
     transStatus = self.params['Status']
@@ -288,8 +309,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runStatus = runDict['Status']
       runLfns = runFiles.get( runID, [] )
       if not runLfns:
-        if requireFlush:
-          self.transClient.setTransformationRunStatus( self.params['TransformationID'], runID, 'Flush' )
+      #  if requireFlush:
+      #    self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
         continue
       runReplicas = {}
       for lfn in runLfns:
@@ -302,8 +323,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # Make sure we handle the flush correctly
       if transStatus == 'Flush':
         status = 'Flush'
-      elif not requireFlush:
-        status = 'Flush'
+      elif requireFlush:
+        # If all files in that run have been processed by the mother production, flush
+        ( files, processed ) = self.__getFilesStatForRun( queryProdID, runID )
+        if files and files == processed:
+          status = 'Flush'
       else:
         status = runStatus
       self.params['Status'] = status
@@ -313,7 +337,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         return res
       allTasks.extend( res['Value'] )
       if requireFlush:
-        self.transClient.setTransformationRunStatus( self.params['TransformationID'], runID, 'Flush' )
+        self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
     return S_OK( allTasks )
 
   def _ByRun( self, param = '', plugin = 'Standard' ):
@@ -353,20 +377,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self._ByRun( param = 'EventTypeId' )
 
   def _LHCbDSTBroadcast( self ):
-    """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     master1SEs = self.params.get( 'Master1SEs', ['CERN_M-DST'] )
-    master2SEs = self.params.get( 'Master2SEs', ['CERN_M-DST', 'CNAF_M-DST', 'GRIDKA_M-DST', 'IN2P3_M-DST', 'NIKHEF_M-DST', 'PIC_M-DST', 'RAL_M-DST'] )
-    targetSEs = self.params.get( 'SecondarySEs', ['CERN_M-DST', 'CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'NIKHEF-DST', 'PIC-DST', 'RAL-DST'] )
+    master2SEs = self.params.get( 'Master2SEs', ['CNAF_M-DST', 'GRIDKA_M-DST', 'IN2P3_M-DST', 'NIKHEF_M-DST', 'PIC_M-DST', 'RAL_M-DST'] )
+    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'NIKHEF-DST', 'PIC-DST', 'RAL-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 4 ) )
-    return self._lhcbBroadcast( master1SEs, master2SEs, targetSEs, numberOfCopies )
+    return self._lhcbBroadcast( master1SEs, master2SEs, secondarySEs, numberOfCopies )
 
   def _LHCbMCDSTBroadcast( self ):
-    """ This plug-in takes files found at the sourceSE and broadcasts to a given number of targetSEs being sure to get a copy to CERN"""
     master1SEs = self.params.get( 'Master1SEs', ['CERN_MC_M-DST'] )
-    master2SEs = self.params.get( 'Master2SEs', ['CERN_MC_M-DST', 'CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
-    targetSEs = self.params.get( 'SecondarySEs', ['CERN_MC_M-DST', 'CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    master2SEs = self.params.get( 'Master2SEs', ['CNAF_MC_M-DST', 'GRIDKA_MC_M-DST', 'IN2P3_MC_M-DST', 'NIKHEF_MC_M-DST', 'PIC_MC_M-DST', 'RAL_MC_M-DST'] )
+    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
-    return self._lhcbBroadcast( master1SEs, master2SEs, targetSEs, numberOfCopies )
+    return self._lhcbBroadcast( master1SEs, master2SEs, secondarySEs, numberOfCopies )
 
   def __groupByRunAndParam( self, lfnDict, param = '' ):
     runDict = {}
@@ -395,11 +417,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return res
 
   def _lhcbBroadcast( self, master1SEs, master2SEs, secondarySEs, numberOfCopies ):
+    """ This plug-in broadcasts files to one master1Se, one master2Se and (n-2) secondarySEs"""
     master1SEs = self.__getListFromString( master1SEs )
-    master1SE = randomize( master1SEs )[0]
     master2SEs = self.__getListFromString( master2SEs )
     secondarySEs = self.__getListFromString( secondarySEs )
+    # Select active SEs only
+    master1ActiveSEs = self.__getActiveSEs( master1SEs )
+    master2ActiveSEs = self.__getActiveSEs( master2SEs )
+    secondaryActiveSEs = self.__getActiveSEs( secondarySEs )
+
     transID = self.params['TransformationID']
+
     # Group the remaining data by run
     res = self.__groupByRun( self.files )
     if not res['OK']:
@@ -410,6 +438,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # For each of the runs determine the destination of any previous files
     runSiteDict = {}
     if runFileDict:
+      # Make a list of SEs already assigned to runs
       res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runFileDict.keys()} )
       if not res['OK']:
         gLogger.error( "Failed to obtain TransformationRuns", res['Message'] )
@@ -442,47 +471,45 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not exampleRunLfnSEs:
         continue
 
-      # Ensure that we have a master copy at CERN
-      runTargetSEs = [master1SE]
-      if master1SE in exampleRunLfnSEs:
-        exampleRunLfnSEs.remove( master1SE )
-      selectedRunTargetSites = ['LCG.CERN.ch']
+      # Ensure that we have a master1 copy
+      master1SE = None
+      for dummySE in list( exampleRunLfnSEs ) + randomize( master1ActiveSEs ):
+        if dummySE in master1ActiveSEs:
+          master1SE = dummySE
+          selectedRunTargetSites = [self._getSiteForSE( master1SE )['Value']]
+          runTargetSEs = [master1SE]
+          break
+      if not master1SE:
+        gLogger.error( 'Cannot select master1SE in active SEs' )
+        continue
+
       # If we know the second master copy use it
-      secondMaster = False
-      for dummySE in list( exampleRunLfnSEs ):
-        if len( runTargetSEs ) >= 2: break
-        if dummySE in master2SEs and dummySE not in runTargetSEs:
-          secondMasterSite = self._getSiteForSE( dummySE )['Value']
-          if not secondMasterSite in selectedRunTargetSites:
-            selectedRunTargetSites.append( secondMasterSite )
-            runTargetSEs.append( dummySE )
-            exampleRunLfnSEs.remove( dummySE )
-            secondMaster = dummySE
+      master2SE = None
+      for dummySE in list( exampleRunLfnSEs ) + randomize( master2ActiveSEs ):
+        if dummySE in master2ActiveSEs and dummySE not in runTargetSEs:
+          master2Site = self._getSiteForSE( dummySE )['Value']
+          if not master2Site in selectedRunTargetSites:
+            master2SE = dummySE
+            selectedRunTargetSites.append( master2Site )
+            runTargetSEs.append( master2SE )
+            break
       # If we do not have a second master copy then select one
-      if not secondMaster:
-        for possibleSecondMaster in randomize( master2SEs ):
-          if len( runTargetSEs ) >= 2: break
-          possibleSecondMasterSite = self._getSiteForSE( possibleSecondMaster )['Value']
-          if not possibleSecondMasterSite in selectedRunTargetSites and possibleSecondMaster not in runTargetSEs:
-            selectedRunTargetSites.append( possibleSecondMasterSite )
-            runTargetSEs.append( possibleSecondMaster )
+      if not master2SE:
+        gLogger.error( 'Cannot select master2SE in active SEs' )
+        continue
+
       # Now get select the secondary copies
-      for dummySE in randomize( exampleRunLfnSEs ):
+      for dummySE in randomize( exampleRunLfnSEs ) + randomize( secondaryActiveSEs ):
         if len( runTargetSEs ) >= numberOfCopies: break
-        if dummySE in secondarySEs and dummySE not in runTargetSEs:
-            possibleSecondarySite = self._getSiteForSE( dummySE )['Value']
-            if not possibleSecondarySite in selectedRunTargetSites:
-                selectedRunTargetSites.append( possibleSecondarySite )
+        if dummySE in secondaryActiveSEs and dummySE not in runTargetSEs:
+            secondarySite = self._getSiteForSE( dummySE )['Value']
+            if not secondarySite in selectedRunTargetSites:
+                selectedRunTargetSites.append( secondarySite )
                 runTargetSEs.append( dummySE )
-                exampleRunLfnSEs.remove( dummySE )
-      #Now get the remainder of the required secondary copies
-      for possibleSecondarySE in randomize( secondarySEs ):
-        if len( runTargetSEs ) >= numberOfCopies: break
-        if not possibleSecondarySE in runTargetSEs:
-            possibleSecondarySite = self._getSiteForSE( possibleSecondarySE )['Value']
-            if not possibleSecondarySite in selectedRunTargetSites:
-              selectedRunTargetSites.append( possibleSecondarySite )
-              runTargetSEs.append( possibleSecondarySE )
+      if len( runTargetSEs ) < numberOfCopies:
+        gLogger.error( 'Could not find enough active SEs' )
+        continue
+
       stringrunTargetSEs = ','.join( sortList( runTargetSEs ) )
       runSiteDict[runID] = stringrunTargetSEs
       runSitesToUpdate[runID] = stringrunTargetSEs
@@ -668,7 +695,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 needtocopy -= 1
                 break
         if needtocopy > 0 :
-          gLogger.warn( "Can not select Active SE for Master1SE" )
+          gLogger.error( "Can not select Active SE for Master1SE" )
           continue
 
       needtocopy = 1
@@ -689,7 +716,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 targetSites += sites
                 needtocopy -= 1
         if needtocopy > 0:
-          gLogger.warn( "Can not select Active SE for Master2SE" )
+          gLogger.error( "Can not select Active SE for Master2SE" )
           continue
 
       needtocopy = numberOfCopies - 2
@@ -717,7 +744,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 targetSites += sites
                 needtocopy -= 1
         if needtocopy > 0:
-          gLogger.warn( "Can not select enough Active SEs for SecondarySE" )
+          gLogger.error( "Can not select enough Active SEs for SecondarySE" )
           continue
 
       if targetSEs:
@@ -834,14 +861,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( tasks )
 
-  def _destroyDataset( self ):
+  def _DestroyDataset( self ):
     return self.__removeReplicas( keepSEs = [], minKeep = 0 )
 
-  def _deleteDataset( self ):
+  def _DeleteDataset( self ):
     keepSEs = self.params.get( 'keepSEs', ["CERN-ARCHIVE"] )
     return self.__removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
-  def _deleteReplicas( self ):
+  def _DeleteReplicas( self ):
     listSEs = self.params.get( 'fromSEs', None )
     keepSEs = self.params.get( 'keepSEs', ["CERN-ARCHIVE"] )
     master1SEs = self.params.get( 'master1SEs', ['CERN_MC_M-DST', 'CERN_M-DST'] )
