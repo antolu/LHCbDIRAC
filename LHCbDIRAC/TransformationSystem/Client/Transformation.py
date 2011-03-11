@@ -19,9 +19,10 @@ class Transformation( DIRACTransformation ):
   def __init__( self, transID = 0 ):
     DIRACTransformation.__init__( self, transID = transID, transClient = TransformationClient() )
 
-    self.supportedPlugins += ['ByRun', 'ByRunBySize', 'ByRunCCRC_RAW', 'CCRC_RAW', 'RAWShares', 'AtomicRun']
+    self.supportedPlugins += ['ByRun', 'ByRunBySize', 'RAWShares', 'AtomicRun']
     self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast']
     self.supportedPlugins += ['ArchiveDataset', 'ReplicateDataset']
+    self.supportedPlugins += ['DeleteDataset', 'DeleteReplicas', 'DestroyDataset']
     if not  self.paramValues.has_key( 'BkQuery' ):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key( 'BkQueryID' ):
@@ -165,12 +166,6 @@ class Transformation( DIRACTransformation ):
   def _checkByRunBySizePlugin( self ):
     return self._checkStandardPlugin()
 
-  def _checkByRunCCRC_RAWPlugin( self ):
-    return self._checkStandardPlugin()
-
-  def _checkCCRC_RAWPlugin( self ):
-    return self._checkStandardPlugin()
-
   def _checkRAWSharesPlugin( self ):
     return S_OK()
 
@@ -190,5 +185,14 @@ class Transformation( DIRACTransformation ):
     return S_OK()
 
   def _checkReplicateDatasetPlugin( self ):
+    return S_OK()
+
+  def _checkDeleteDatasetPlugin( self ):
+    return S_OK()
+
+  def _checkDeleteReplicasPlugin( self ):
+    return S_OK()
+
+  def _checkDestroyDatasetPlugin( self ):
     return S_OK()
 
