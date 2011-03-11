@@ -9,13 +9,8 @@
 """
 __RCSID__ = "$Id$"
 
-from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
-from DIRAC                                                   import gConfig
-
-import string
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -25,17 +20,20 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  Version:  Version of the LHCb software package' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
+from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
+from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
+from DIRAC                                                   import gConfig
+
 diracAdmin = DiracAdmin()
 modifiedCS = False
 mailadress = 'lhcb-sam@cern.ch'
 
 def changeCS( path, val ):
   val.sort()
-  result = diracAdmin.csModifyValue( path, string.join( val, ', ' ) )
-  print result
-  if not result['OK']:
+  ret = diracAdmin.csModifyValue( path, ', '.join( val ) )
+  if not ret['OK']:
     print "Cannot modify value of %s" % path
-    print result['Message']
+    print ret['Message']
     DIRAC.exit( 255 )
 
 if len( args ) != 2:
@@ -64,14 +62,15 @@ else:
 #Get the list of possible system configurations
 systemConfigs = gConfig.getOptions( osSection )
 if not systemConfigs['OK']:
-  print 'ERROR: Could not get value for %s with message' % ( osSection, result['Message'] )
+  print 'ERROR: Could not get value for %s with message %s' % ( osSection, systemConfigs['Message'] )
   DIRAC.exit( 255 )
 
 #Prompt for system configurations to add the software for
 for sc in systemConfigs['Value']:
   current = gConfig.getValue( '%s/%s' % ( softwareSection, sc ), [] )
   if not packageNameVersion in current:
-    result = diracAdmin._promptUser( 'Do you want to add %s %s for system configuration %s?' % ( args[0], args[1], sc ) )
+    question = 'Do you want to add %s %s for system configuration %s?' % ( args[0], args[1], sc )
+    result = diracAdmin._promptUser( question )
     if result['OK']:
       current.append( packageNameVersion )
       print 'Adding %s for system configuration %s' % ( packageNameVersion, sc )
@@ -104,7 +103,7 @@ if modifiedCS:
     print 'Sending mail for software installation %s' % ( mailadress )
     res = notifyClient.sendMail( mailadress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
     if not res[ 'OK' ]:
-        print 'The mail could not be sent'
+      print 'The mail could not be sent'
 else:
   print 'No modifications to CS required'
 
