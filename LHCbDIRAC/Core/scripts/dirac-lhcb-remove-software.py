@@ -4,18 +4,30 @@
 # File :    dirac-lhcb-remove-software
 # Author :  Stuart Paterson
 ########################################################################
+"""
+  Modify Configuration to remove a SW in the automatic installation list
+"""
+
 __RCSID__ = "$Id$"
 
-from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
+
 import DIRAC
 from DIRAC.Core.Base import Script
+
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option|cfgfile] ... Name Version' % Script.scriptName,
+                                     'Arguments:',
+                                     '  Name:     Name of the LHCb software package',
+                                     '  Version:  Version of the LHCb software package' ] ) )
+Script.parseCommandLine( ignoreErrors = True )
+args = Script.getPositionalArgs()
+from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
 from DIRAC                                                   import gConfig
 
 import string
 
-Script.parseCommandLine( ignoreErrors = True )
-args = Script.getPositionalArgs()
 diracAdmin = DiracAdmin()
 modifiedCS = False
 mailadress = 'lhcb-sam@cern.ch'
@@ -34,7 +46,7 @@ def changeCS( path, val ):
     DIRAC.exit( 255 )
 
 if len( args ) < 2:
-  usage()
+  Script.showHelp()
 
 softwareSection = '/Operations/SoftwareDistribution'
 activeSection = '/Operations/SoftwareDistribution/Active'
