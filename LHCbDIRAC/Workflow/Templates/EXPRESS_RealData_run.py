@@ -46,10 +46,11 @@ appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to product
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
+validationFlag = '{{validationFlag#GENERAL: Set True to create validation productions#False}}'
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
-destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
+useOracle = '{{useOracle#GENERAL: Use Oracle#True}}'
 
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO: priority#7}}'
@@ -79,6 +80,8 @@ recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
 recoTransFlag = eval( recoTransFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
+validationFlag = eval( validationFlag )
+useOracle = eval( useOracle )
 
 dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'
@@ -86,23 +89,25 @@ BKfileType = '{{inFileType}}'
 eventType = '{{eventType}}'
 recoEvtsPerJob = '-1'
 
-if certificationFlag:
-  publishFlag = True
+if certificationFlag or localTestFlag:
   testFlag = True
-  mergingFlag = True
   replicationFlag = False
-if localTestFlag:
-  publishFlag = False
-  testFlag = True
-  mergingFlag = False
+  if certificationFlag:
+    publishFlag = True
+    mergingFlag = True
+  if localTestFlag:
+    publishFlag = False
+    mergingFlag = False
+else:
+  publishFlag = True
+  testFlag = False
 
 inputDataList = []
 
 BKscriptFlag = False
 
-#The below are fixed for the FULL stream
-recoType = "FULL"
-recoAppType = "DST"
+#The below are fixed for the EXPRESS stream
+recoType = "EXPRESS"
 recoIDPolicy = 'download'
 
 if not publishFlag:
@@ -114,7 +119,7 @@ if not publishFlag:
 if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
-  recoEvtsPerJob = '5'
+  recoEvtsPerJob = '25'
   recoStartRun = '75346'
   recoEndRun = '75349'
   recoCPU = '100000'
@@ -129,6 +134,9 @@ else:
 
 if certificationFlag:
   recoEvtsPerJob = '-1'
+
+if validationFlag:
+  outBkConfigName = 'validation'
 
 recoInputBKQuery = {
                     'DataTakingConditions'     : dataTakingCond,
@@ -162,12 +170,6 @@ if threeSteps:
   gLogger.error( 'Three steps specified, not sure what to do! Exiting...' )
   DIRAC.exit( 2 )
 
-strippingOutput = BKClient.getStepOutputFiles( int( '{{p2Step}}' ) )
-if not strippingOutput:
-  gLogger.error( 'Error getting res from BKK: %s', strippingOutput['Message'] )
-  DIRAC.exit( 2 )
-
-strippingOutputList = [x[0] for x in strippingOutput['Value']['Records']]
 
 #################################################################################
 # Create the reconstruction production
@@ -175,39 +177,90 @@ strippingOutputList = [x[0] for x in strippingOutput['Value']['Records']]
 
 production = Production()
 
-if not destination.lower() in ( 'all', 'any' ):
-  gLogger.info( 'Forcing destination site %s for production' % ( destination ) )
-  production.setDestination( destination )
+gLogger.info( 'Forcing destination site LCG.CERN.ch for production' )
+production.setDestination( 'LCG.CERN.ch' )
 
 if sysConfig:
   production.setSystemConfig( sysConfig )
 
 production.setCPUTime( recoCPU )
 production.setProdType( 'DataReconstruction' )
-wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
+wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) ) #Rest can be taken from the details in the monitoring
 production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
-production.setWorkflowDescription( "%s Real data FULL reconstruction production." % ( prodGroup ) )
+production.setWorkflowDescription( "%sRealdataFULLreconstructionproduction." % ( prodGroup.replace( ' ', '' ) ) )
 production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
 production.setInputBKSelection( recoInputBKQuery )
 production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
 brunelOptions = "{{p1Opt}}"
-production.addBrunelStep( "{{p1Ver}}", recoAppType.lower(), brunelOptions, extraPackages = '{{p1EP}}',
-                         eventType = eventType, inputData = inputDataList, inputDataType = 'mdf', outputSE = recoDataSE,
-                         dataType = 'Data', numberOfEvents = recoEvtsPerJob, histograms = True,
+if useOracle:
+  if not 'useoracle.py' in brunelOptions.lower():
+    brunelOptions = brunelOptions + ';$APPCONFIGOPTS/UseOracle.py'
+
+brunelOutput = BKClient.getStepOutputFiles( int( '{{p1Step}}' ) )
+if not brunelOutput:
+  gLogger.error( 'Error getting res from BKK: %s', brunelOutput['Message'] )
+  DIRAC.exit( 2 )
+
+histograms = False
+brunelOutput = [x[0].lower() for x in brunelOutput['Value']['Records']]
+
+
+if len( brunelOutput ) > 2:
+  gLogger.error( 'Too many output file types in Brunel step' )
+  DIRAC.exit( 2 )
+if len( brunelOutput ) == 2:
+  if 'brunelhist' in brunelOutput:
+    histograms = True
+    brunelOutput.remove( 'brunelhist' )
+    brunelOutput = brunelOutput[0]
+else:
+  brunelOutput = brunelOutput[0]
+
+
+
+production.addBrunelStep( "{{p1Ver}}", brunelOutput.lower(), brunelOptions, extraPackages = '{{p1EP}}',
+                         eventType = eventType, inputData = inputDataList, inputDataType = 'mdf',
+                         outputSE = recoDataSE,
+                         dataType = 'Data', numberOfEvents = recoEvtsPerJob, histograms = histograms,
                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
 
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
-  production.addDaVinciStep( "{{p2Ver}}", "davincihist", "{{p2Opt}}", extraPackages = '{{p2EP}}',
-                            inputDataType = recoAppType.lower(), histograms = True,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
-#QUESTO E' IN FULL
-#production.addDaVinciStep( "{{p2Ver}}", "stripping", dvOptions, extraPackages = '{{p2EP}}', inputDataType = recoAppType.lower(),
-#                          dataType = 'Data', outputSE = unmergedStreamSE, histograms = True,
-#                          extraOutput = strippingOutputList,
-#                          stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
+  daVinciInput = BKClient.getStepInputFiles( int( '{{p2Step}}' ) )
+  if not daVinciInput:
+    gLogger.error( 'Error getting res from BKK: %s', daVinciInput['Message'] )
+    DIRAC.exit( 2 )
+
+  daVinciInput = daVinciInput['Value']['Records'][0][0].lower()
+
+  if daVinciInput != brunelOutput:
+    gLogger.error( 'Brunel output (%s) is different from DaVinci input (%s)' % ( brunelOutput, daVinciInput ) )
+    DIRAC.exit( 2 )
+
+  daVinciOutput = BKClient.getStepOutputFiles( int( '{{p2Step}}' ) )
+  if not daVinciOutput:
+    gLogger.error( 'Error getting res from BKK: %s', daVinciOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  histograms = False
+  daVinciOutput = [x[0].lower() for x in daVinciOutput['Value']['Records']]
+
+  if len( daVinciOutput ) > 2:
+    gLogger.error( 'Too many output file types in DaVinci step' )
+    DIRAC.exit( 2 )
+  if len( daVinciOutput ) == 2:
+    if 'davincihist' in daVinciOutput:
+      histograms = True
+      daVinciOutput.remove( 'davincihist' )
+      daVinciOutput = daVinciOutput[0]
+  else:
+    daVinciOutput = daVinciOutput[0]
+
+  production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, "{{p2Opt}}", extraPackages = '{{p2EP}}',
+                            inputDataType = daVinciInput.lower(), histograms = True,
+                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
 production.addFinalizationStep()
 production.setProdGroup( prodGroup )
