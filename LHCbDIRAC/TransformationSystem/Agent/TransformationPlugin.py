@@ -13,9 +13,10 @@ from DIRAC.TransformationSystem.Agent.TransformationPlugin               import 
 
 class TransformationPlugin( DIRACTransformationPlugin ):
 
-  def __init__( self, plugin ):
-    DIRACTransformationPlugin.__init__( self, plugin )
-    self.transClient = TransformationClient()
+  def __init__( self, plugin, transClient = None, replicaManager = None ):
+    if not transClient:
+      self.transClient = TransformationClient()
+    DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
 
   def _AtomicRun( self ):
     #possibleTargets = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
@@ -269,7 +270,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__mergeByRun( requireFlush = False )
 
   def __getFilesStatForRun( self, transID, runID ):
-    selectDict = {'Transformation':transID}
+    selectDict = {'TransformationID':transID}
     if runID:
       selectDict['RunNumber'] = runID
     res = self.transClient.getTransformationFiles( selectDict )
@@ -287,6 +288,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     transID = self.params['TransformationID']
     if requireFlush:
       res = self.transClient.getBookkeepingQueryForTransformation( transID )
+      queryProdID = None
       if res['OK']:
         queryProdID = res['Value'].get( 'ProductionID' )
       if not queryProdID:
@@ -321,15 +323,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         continue
       self.data = runReplicas
       # Make sure we handle the flush correctly
+      status = runStatus
       if transStatus == 'Flush':
         status = 'Flush'
       elif requireFlush:
         # If all files in that run have been processed by the mother production, flush
-        ( files, processed ) = self.__getFilesStatForRun( queryProdID, runID )
+        processingStats = [0, 0]
+        for prod in queryProdID:
+          ( files, processed ) = self.__getFilesStatForRun( prod, runID )
+          processingStats[0] += files
+          processingStats[1] += processed
+        files = processingStats[0]
+        processed = processingStats[1]
         if files and files == processed:
           status = 'Flush'
-      else:
-        status = runStatus
+          gLogger.info( "All files processed for run %d in productions %s, flush in transformation %d" % ( runID, str( queryProdID ), transID ) )
       self.params['Status'] = status
       res = self._BySize()
       self.params['Status'] = transStatus
@@ -931,14 +939,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               # we can only delete part of the secondaries
               targetSEs = randomize( existingSecondaries )[0:-minKeep + masters]
 
-        if targetSEs:
-          stringTargetSEs = ','.join( sortList( targetSEs ) )
-          if not storageElementGroups.has_key( stringTargetSEs ):
-            storageElementGroups[stringTargetSEs] = []
+      if targetSEs:
+        stringTargetSEs = ','.join( sortList( targetSEs ) )
+        if not storageElementGroups.has_key( stringTargetSEs ):
+          storageElementGroups[stringTargetSEs] = []
           storageElementGroups[stringTargetSEs].extend( lfns )
-        else:
-          gLogger.info( "Found %s files that don't need any replica deletion" % len( lfns ) )
-          self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+      else:
+        gLogger.info( "Found %s files that don't need any replica deletion" % len( lfns ) )
+        self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
 
       # Now create reasonable size tasks
     tasks = []
@@ -948,13 +956,3 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         tasks.append( ( stringTargetSEs, lfnGroup ) )
 
     return S_OK( tasks )
-
-
-
-
-
-
-
-
-
-
