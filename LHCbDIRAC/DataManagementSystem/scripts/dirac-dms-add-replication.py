@@ -9,19 +9,22 @@ __RCSID__ = "$Id:  $"
 from DIRAC.Core.Base import Script
 
 plugin = "ArchiveDataset"
+transType = "Replication"
 test = False
 
 Script.registerSwitch( "P:", "Production=", "   Production ID to search (comma separated list)" )
 Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod" )
 Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path" )
 Script.registerSwitch( "r:", "Request=", "   Assign request number [0]" )
-Script.registerSwitch( "p:", "Plugin=", "   Plugin name %s" % plugin )
+Script.registerSwitch( "", "Plugin=", "   Plugin name %s" % plugin )
 Script.registerSwitch( "", "Parameters=", "   Additional parameters ({<key>:<val>,[<key>:val>]}" )
 Script.registerSwitch( "", "SEs=", "   List of SEs" )
 Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
-Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic" )
 Script.registerSwitch( "g:", "Group=", "   Transformation group [<plugin name>]" )
+Script.registerSwitch( "", "Removal", "   Transformation of type Removal" )
+Script.registerSwitch( "k:", "KeepSEs", "   List of SEs where to keep replicas" )
 Script.registerSwitch( "", "Test", "   Just print out but not submit" )
+Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -39,6 +42,8 @@ pluginParams = {}
 transName = 'Replication'
 listSEs = None
 nbCopies = None
+keepSEs = None
+groupSize = 5
 
 switches = Script.getUnprocessedSwitches()
 import DIRAC
@@ -86,14 +91,23 @@ for switch in switches:
     except:
       print "Error parsing parameters: ", val
       DIRAC.exit( 2 )
+  elif opt == "removal":
+    transType = "Removal"
+  elif opt in ( 'k', 'keepses' ):
+    keepSEs = val.split( ',' )
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 # Add parameters
 if listSEs:
-  pluginParams['destinationSEs'] = listSEs
+  if transType == "Replication":
+    pluginParams['destinationSEs'] = listSEs
+  elif transType == "Removal":
+    pluginParams['FromSEs'] = listSEs
 if nbCopies:
   pluginParams['NumberOfReplicas'] = nbCopies
+if keepSEs:
+  pluginParams['keepSEs'] = keepSEs
 
 if not transGroup:
   transGroup = plugin
@@ -144,7 +158,7 @@ transformation.setTransformationName( transName )
 transformation.setTransformationGroup( transGroup )
 transformation.setDescription( longName )
 transformation.setLongDescription( longName )
-transformation.setType( 'Replication' )
+transformation.setType( transType )
 if pluginParams:
   for key, val in pluginParams.items():
     if key.endswith( "SE" ) or key.endswith( "SEs" ):
@@ -160,6 +174,7 @@ transformation.setPlugin( plugin )
 transformation.setBkQuery( transBKQuery )
 
 if test:
+  print "Transformation type:", transType
   print "Transformation Name:", transName
   print "Transformation group:", transGroup
   print "Long description:", longName
@@ -171,6 +186,7 @@ if test:
       print res['Message']
     else:
       lfns = res['Value']
+      lfns.sort()
       print "BKQuery obtained %d files" % len( lfns )
       dirs = {}
       import os
@@ -184,7 +200,6 @@ if test:
   print "Plugin:", plugin
   print "Parameters:", pluginParams
   print "RequestID:", requestID
-  if start: print "Transformation will be started"
   DIRAC.exit( 0 )
 
 if transBKQuery:
