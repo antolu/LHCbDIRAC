@@ -9,13 +9,8 @@
 
 __RCSID__ = "$Id:  $"
 
-import DIRAC
-from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
 from DIRAC.Core.Base import Script
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
-import sys
+import os, sys
 
 fileType = ''
 directory = ''
@@ -41,11 +36,16 @@ for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() in ["s", "size"]:
     getSize = True
 
-rm = ReplicaManager()
-import os, sys
 
-
+import DIRAC
+from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient  import StorageUsageClient
+
+rm = ReplicaManager()
+
 directories = []
 if fileType or prods[0] != '':
   for prod in prods:
