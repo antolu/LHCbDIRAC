@@ -385,6 +385,7 @@ class BookkeepingReport( ModuleBase ):
         typeVersion = '0'
         oldTypeName = typeName
         typeName = '%sHIST' % ( self.applicationName.upper() )
+        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
 
       s = s + '  <OutputFile   Name="' + lfn + '" TypeName="' + typeName + '" TypeVersion="' + typeVersion + '">\n'
 
