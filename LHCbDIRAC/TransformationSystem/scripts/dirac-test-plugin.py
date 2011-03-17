@@ -26,26 +26,32 @@ class fakeClient:
   def getBookkeepingQueryForTransformation ( self, transID ):
     return self.trans.getBkQuery()
 
-  def getTransformationRuns( self, transDict ) :
+  def getTransformationRuns( self, condDict ) :
     transRuns = []
-    if transDict.has_key( 'RunNumber' ):
-      runs = transDict['RunNumber']
+    if condDict.has_key( 'RunNumber' ):
+      runs = condDict['RunNumber']
       for run in runs:
-        transRuns.append( {'RunNumber':run, 'Status':"Active"} )
+        transRuns.append( {'RunNumber':run, 'Status':"Active", "SelectedSite":None} )
     return DIRAC.S_OK( transRuns )
 
-  def getTransformationFiles( self, transDict ):
-    if transDict['TransformationID'] == self.transID:
+  def getTransformationFiles( self, condDict = None ):
+    if condDict['TransformationID'] == self.transID:
       transFiles = []
-      if transDict.has_key( 'RunNumber' ):
-        runs = transDict['RunNumber']
+      if condDict.has_key( 'Status' ) and not 'Unused' in condDict['Status']:
+        return DIRAC.S_OK( transFiles )
+      if condDict.has_key( 'RunNumber' ):
+        runs = condDict['RunNumber']
         for file in self.files:
           if file['RunNumber'] in runs:
             transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
+        return DIRAC.S_OK( transFiles )
     else:
-      return self.transClient.getTransformationFiles( transDict )
+      return self.transClient.getTransformationFiles( condDict = condDict )
 
   def setTransformationRunStatus( self, transID, runID, status ):
+    return DIRAC.S_OK()
+
+  def setTransformationRunsSite( self, transID, runID, site ):
     return DIRAC.S_OK()
 
   def setFileStatusForTransformation( self, transID, status, lfns ):
@@ -56,6 +62,7 @@ class fakeClient:
     if not res['OK']:
       print "**** ERROR in BK query ****"
       print res['Message']
+      return ( None, None )
     else:
       lfns = res['Value']
       lfns.sort()
@@ -198,7 +205,7 @@ else:
     print "Incorrect BKQuery...\nSyntax: %s" % '/'.join( bkFields )
     Script.showHelp()
     DIRAC.exit( 2 )
-  if bkNodes[0] == "MC":
+  if bkNodes[0] == "MC" or bk[-2][0] != '9':
     bkFields[2] = "SimulationConditions"
   for i in range( len( bkFields ) ):
     if not bkNodes[i].upper().endswith( 'ALL' ):
@@ -240,6 +247,9 @@ fakeClient = fakeClient( transformation, transID, transBKQuery )
 oplugin = TransformationPlugin( plugin, transClient = fakeClient )
 oplugin.setParameters( pluginParams )
 replicas = fakeClient.getReplicas()
+if not replicas:
+  print "No replicas were found, exit..."
+  DIRAC.exit( 2 )
 oplugin.setInputData( replicas )
 oplugin.setTransformationFiles( fakeClient.getFiles() )
 res = oplugin.generateTasks()
