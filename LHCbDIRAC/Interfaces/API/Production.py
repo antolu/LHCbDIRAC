@@ -72,7 +72,7 @@ class Production( LHCbJob ):
     self.plugin = ''
     self.inputFileMask = ''
     self.inputBKSelection = {}
-    self.jobFileGroupSize = 5
+    self.jobFileGroupSize = 0
     self.ancestorProduction = ''
     self.importLine = """
 from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
@@ -1561,6 +1561,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def setJobFileGroupSize( self, gb ):
     """ Sets the number of gb to be input to each job created (e.g. for merging productions)
+        This parameter is used also as number of imput files (e.g. for stripping/reco), so pay attention
     """
     self.jobFileGroupSize = gb
 
