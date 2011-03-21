@@ -323,15 +323,6 @@ class UploadOutputData( ModuleBase ):
           if not result['OK']:
             return result
 
-    #Nasty hack to reregister RAW data on disk according to the computing model in the case where
-    #a data reconstruction job is running at CERN. In case of local testing the module would already
-    #exit above.
-
-    if DIRAC.siteName() == 'LCG.CERN.ch' and self.jobType.lower() == 'datareconstruction' and self.inputData:
-      self.log.info( 'Found data reconstruction job running at CERN, attempting to reregister the following real data from CERN-RAW->CERN-RDST:\n%s' % ( string.join( self.inputData, '\n' ) ) )
-      result = self.reregisterFiles( self.inputData, 'CERN-RAW', 'CERN-RDST' )
-      self.log.info( 'File reregistration result is:\n%s' % ( result ) )
-
     self.workflow_commons['Request'] = self.request
     return S_OK( 'Output data uploaded' )
 
@@ -392,37 +383,7 @@ class UploadOutputData( ModuleBase ):
     return S_OK()
 
   #############################################################################
-  def reregisterFiles( self, lfns, oldSE, newSE ):
-    """ In case a data reconstruction job is running at CERN this method allows
-        to reregister the data to ensure it is on disk according to the computing
-        model.
-    """
-    rm = ReplicaManager()
-    res = rm.getCatalogReplicas( lfns )
-    if not res['OK']:
-      return res
-    failed = res['Value']['Failed']
-    successful = {}
-    lfnReplicas = res['Value']['Successful']
-    updateDict = {}
-    for lfn, replicaDict in lfnReplicas.items():
-      if not ( oldSE in replicaDict.keys() ):
-        failed[lfn] = 'Not registered at original SE'
-      else:
-        updateDict[lfn] = {}
-        updateDict[lfn]['SE'] = oldSE
-        updateDict[lfn]['PFN'] = replicaDict[oldSE]
-        updateDict[lfn]['NewSE'] = newSE
-    if updateDict:
-      self.log.info( 'File reregistration dictionary: \n%s' % ( updateDict ) )
-      res = rm.setCatalogReplicaHost( updateDict )
-      if not res['OK']:
-        return res
-      failed.update( res['Value']['Failed'] )
-      successful.update( res['Value']['Successful'] )
-    return S_OK( {'Successful':successful, 'Failed':failed} )
 
-  #############################################################################
   def __cleanUp( self, lfnList ):
     """ Clean up uploaded data for the LFNs in the list
     """
