@@ -114,7 +114,10 @@ recoType = "EXPRESS"
 recoIDPolicy = 'download'
 
 if not publishFlag:
-  recoTestData = 'LFN:/lhcb/data/2010/RAW/EXPRESS/LHCb/COLLISION10/81676/081676_0000000417.raw'
+  if express:
+    recoTestData = 'LFN:/lhcb/data/2010/RAW/EXPRESS/LHCb/COLLISION10/81676/081676_0000000417.raw'
+  else:
+    recoTestData = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81676/081676_0000000510.raw'
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
   BKscriptFlag = True
@@ -129,7 +132,10 @@ if testFlag:
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
   processingPass = 'Real Data'
   BKfileType = 'RAW'
-  eventType = '91000000'
+  if express:
+    eventType = '91000000'
+  else:
+    eventType = '90000000'
   recoDQFlag = 'ALL'
 else:
   outBkConfigName = bkConfigName
@@ -274,6 +280,7 @@ if express:
 else:
   gLogger.info( 'FULL: Saving only SDST and HIST' )
   production.setFileMask( ['SDST', 'HIST'] )
+production.setJobFileGroupSize( recoFilesPerJob )
 
 #################################################################################
 # End of production API script, now what to do with the production object
@@ -295,7 +302,7 @@ if ( not publishFlag ) and ( testFlag ):
 result = production.create( 
                            publish = publishFlag,
                            bkQuery = recoInputBKQuery,
-                           groupSize = recoFilesPerJob,
+                           groupSize = recoFilesPerJob, #useless
                            derivedProduction = int( recoAncestorProd ),
                            bkScript = BKscriptFlag,
                            requestID = currentReqID,
