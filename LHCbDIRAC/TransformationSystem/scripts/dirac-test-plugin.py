@@ -108,6 +108,7 @@ Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
 Script.registerSwitch( "", "Type=", "   Type of transformation [%s]" % transType )
 Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas" )
 Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
+Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -123,6 +124,7 @@ pluginParams = {}
 listSEs = None
 nbCopies = None
 keepSEs = None
+runs = None
 
 switches = Script.getUnprocessedSwitches()
 import DIRAC
@@ -161,9 +163,19 @@ for switch in switches:
   elif opt == "type":
     transType = val
   elif opt in ( 'k', 'keepses' ):
-    keepSEs = val.split( ',' )
+    if val.lower() == 'none':
+      keepSEs = 'none'
+    else:
+      keepSEs = val.split( ',' )
   elif opt in ( 'g', 'groupsize' ):
-    groupSize = float( val )
+    if float( int( val ) ) == int( val ):
+      groupSize = int( val )
+    else:
+      groupSize = float( val )
+  elif opt in ( 'r', 'run' ):
+    runs = val.split( ':' )
+    if len( runs ) == 1:
+      runs[1] = runs[0]
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
@@ -176,9 +188,15 @@ if listSEs:
 if nbCopies:
   pluginParams['NumberOfReplicas'] = nbCopies
 if keepSEs:
+  if keepSEs == 'none':
+    keepSEs = []
   pluginParams['keepSEs'] = keepSEs
 
 transBKQuery = {'Visibility': 'Yes'}
+
+if runs:
+  transBKQuery['StartRun'] = runs[0]
+  transBKQuery['EndRun'] = runs[1]
 
 if prods:
   if not fileType:
@@ -210,7 +228,6 @@ else:
   for i in range( len( bkFields ) ):
     if not bkNodes[i].upper().endswith( 'ALL' ):
       transBKQuery[bkFields[i]] = bkNodes[i]
-
 
 transformation = Transformation()
 
@@ -247,11 +264,12 @@ fakeClient = fakeClient( transformation, transID, transBKQuery )
 oplugin = TransformationPlugin( plugin, transClient = fakeClient )
 oplugin.setParameters( pluginParams )
 replicas = fakeClient.getReplicas()
+files = fakeClient.getFiles()
 if not replicas:
   print "No replicas were found, exit..."
   DIRAC.exit( 2 )
 oplugin.setInputData( replicas )
-oplugin.setTransformationFiles( fakeClient.getFiles() )
+oplugin.setTransformationFiles( files )
 res = oplugin.generateTasks()
 print ""
 if res['OK']:
