@@ -321,7 +321,7 @@ class ProductionStatusAgent( AgentModule ):
       msg.append( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
     msg.append( '\nRequests updated to Done status this cycle:\n' )
     msg.append( string.join( [str( i ) for i in self.updatedRequests], ', ' ) )
-    res = notify.sendMail( 'stuart.paterson@cern.ch', subject, string.join( msg, '\n' ), 'stuart.paterson@cern.ch', localAttempt = False )
+    res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, string.join( msg, '\n' ), 'vladimir.romanovsky@cern.ch', localAttempt = False )
     if not res['OK']:
       self.log.error( res )
     else:
