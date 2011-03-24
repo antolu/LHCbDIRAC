@@ -6,7 +6,6 @@
 ########################################################################
 __RCSID__ = "$Id: dirac-lhcb-sam-submit-ce.py 18813 2009-12-01 14:46:33Z paterson $"
 import sys, string
-import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "", "ce=", "Computing Element to submit to (must be in DIRAC CS)" )
@@ -22,6 +21,7 @@ Script.registerSwitch( "", "install_project=", "Optional install_project URL [Ex
 Script.registerSwitch( "", "script=", "Optional path to python script to execute in SAM jobs [Experts only]" )
 Script.parseCommandLine( ignoreErrors = True )
 
+import DIRAC
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
 args = Script.getPositionalArgs()
