@@ -110,14 +110,17 @@ inputDataList = []
 BKscriptFlag = False
 
 #The below are fixed for the EXPRESS stream
-recoType = "EXPRESS"
+if express:
+  recoType = "EXPRESS"
+else:
+  recoType = "FULL"
 recoIDPolicy = 'download'
 
 if not publishFlag:
   if express:
-    recoTestData = 'LFN:/lhcb/data/2010/RAW/EXPRESS/LHCb/COLLISION10/81676/081676_0000000417.raw'
+    recoTestData = 'LFN:/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/87667/087667_0000000017.raw'
   else:
-    recoTestData = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81676/081676_0000000510.raw'
+    recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/87667/087667_0000000019.raw'
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
   BKscriptFlag = True
@@ -126,8 +129,8 @@ if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '25'
-  recoStartRun = '75346'
-  recoEndRun = '75349'
+  recoStartRun = '87664'
+  recoEndRun = '87667'
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
   processingPass = 'Real Data'
@@ -210,14 +213,15 @@ if not brunelOutput:
 
 histograms = False
 brunelOutput = [x[0].lower() for x in brunelOutput['Value']['Records']]
+if 'brunelhist' in brunelOutput:
+  histograms = True
 
 
 if len( brunelOutput ) > 2:
   gLogger.error( 'Too many output file types in Brunel step' )
   DIRAC.exit( 2 )
 if len( brunelOutput ) == 2:
-  if 'brunelhist' in brunelOutput:
-    histograms = True
+  if histograms:
     brunelOutput.remove( 'brunelhist' )
     brunelOutput = brunelOutput[0]
 else:
@@ -251,13 +255,14 @@ if "{{p2Ver}}":
 
   histograms = False
   daVinciOutput = [x[0].lower() for x in daVinciOutput['Value']['Records']]
+  if 'davincihist' in daVinciOutput:
+    histograms = True
 
   if len( daVinciOutput ) > 2:
     gLogger.error( 'Too many output file types in DaVinci step' )
     DIRAC.exit( 2 )
   if len( daVinciOutput ) == 2:
-    if 'davincihist' in daVinciOutput:
-      histograms = True
+    if histograms:
       daVinciOutput.remove( 'davincihist' )
       daVinciOutput = daVinciOutput[0]
   else:
@@ -275,8 +280,8 @@ production.setInputDataPolicy( recoIDPolicy )
 if express:
   gLogger.info( 'EXPRESS: Forcing destination site LCG.CERN.ch for production' )
   production.setDestination( 'LCG.CERN.ch' )
-  gLogger.info( 'EXPRESS: Saving only histograms' )
-  production.setFileMask( 'HIST' )
+#  gLogger.info( 'EXPRESS: Saving only histograms' )
+#  production.setFileMask( 'HIST' )
 else:
   gLogger.info( 'FULL: Saving only SDST and HIST' )
   production.setFileMask( ['SDST', 'HIST'] )

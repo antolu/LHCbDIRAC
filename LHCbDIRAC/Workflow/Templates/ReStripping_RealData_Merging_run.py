@@ -51,6 +51,7 @@ strippCPU = '{{StrippMaxCPUTime#PROD-Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#Standard}}'
 strippAncestorProd = '{{StrippAncestorProd#PROD-Stripping: ancestor production if any#0}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#1}}'
+#questa e' da togliere/cambiare
 strippFileMask = '{{StrippOutputDataFileMask#PROD-Stripping: file extns to save (comma separated)#DST,ROOT}}'
 stripping_transformationFlag = '{{StrippTransformation#PROD-Stripping: distribute output data True/False (False if merging)#False}}'
 strippStartRun = '{{StrippRunStart#PROD-Stripping: run start, to set the start run#0}}'

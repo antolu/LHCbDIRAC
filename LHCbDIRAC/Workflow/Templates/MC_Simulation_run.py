@@ -545,7 +545,7 @@ mergeProd.setWorkflowDescription( 'MC workflow for merging outputs from a previo
 mergeProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
 mergeProd.setDBTags( mergingCondDB, mergingDDDB )
 mergeProd.addMergeStep( mergingVersion, eventType = '{{eventType}}', inputDataType = finalAppType.lower(),
-                       inputProduction = prodID, inputData = [], passDict = bkPassDict,
+                       inputProduction = prodID, inputData = [],
                        condDBTag = mergingCondDB, ddDBTag = mergingDDDB,
                        stepID = mergingStepID, stepName = mergingStepName, stepVisible = mergingStepVisible )
 mergeProd.addFinalizationStep( removeInputData = True )
