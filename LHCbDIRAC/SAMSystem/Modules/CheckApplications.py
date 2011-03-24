@@ -22,6 +22,8 @@ import string, os, sys, re, shutil
 
 SAM_TEST_NAME = 'CE-lhcb-checkapp'
 SAM_LOG_FILE = 'sam-checkapp.log'
+InstallProject = 'install_project.py'
+InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class CheckApplications( ModuleBaseSAM ):
 

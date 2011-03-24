@@ -12,10 +12,11 @@
 
 __RCSID__ = "$Id: DiracSAM.py 18161 2009-11-11 12:07:09Z acasajus $"
 
-from DIRAC.Interfaces.API.Dirac                         import *
+from DIRAC.Interfaces.API.Dirac                         import Dirac, gLogger, gConfig, S_OK, S_ERROR
 from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob              import LHCbSAMJob
 from DIRAC.Core.Utilities.SiteCEMapping                 import getCESiteMapping
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+import string
+#from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 class DiracSAM( Dirac ):
 

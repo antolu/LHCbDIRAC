@@ -36,13 +36,11 @@
 
 __RCSID__ = "$Id: LHCbSAMJob.py 18191 2009-11-11 16:46:41Z paterson $"
 
-import string
+import string, os
 
-from DIRAC.Core.Workflow.Parameter                  import *
-from DIRAC.Core.Workflow.Module                     import *
-from DIRAC.Core.Workflow.Step                       import *
-from DIRAC.Core.Workflow.Workflow                   import *
-from DIRAC.Core.Workflow.WorkflowReader             import *
+from DIRAC.Core.Workflow.Parameter                  import Parameter
+from DIRAC.Core.Workflow.Module                     import ModuleDefinition
+from DIRAC.Core.Workflow.Step                       import StepDefinition
 from DIRAC.Interfaces.API.Job                       import Job
 from DIRAC.Core.Utilities.SiteCEMapping             import getSiteForCE
 from DIRAC                                          import gConfig
@@ -128,7 +126,7 @@ except Exception,x:
     if not type( priority ) == int:
       try:
         priority = int( priority )
-      except Exception, x:
+      except Exception:
         raise TypeError, 'Expected Integer for User priority'
 
     self._addParameter( self.workflow, 'Priority', 'JDL', priority, 'User Job Priority' )
@@ -498,64 +496,6 @@ except Exception,x:
     step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
     step.addParameter( Parameter( "appNameVersion", "", "string", "", "", False, False, "Appliciation name and version" ) )
     step.addParameter( Parameter( "appNameOptions", "", "string", "", "", False, False, "Appliciation Options" ) )
-    return step
-
-  #############################################################################
-  def checkApplications( self, enableFlag = True ):
-    """Helper function.
-
-       Add the checkApplications step.
-
-       Example usage:
-
-       >>> job = LHCbSAMJob()
-       >>> job.checkApplications('True')
-
-       @param enableFlag: Flag to enable / disable calls for testing purposes
-       @type enableFlag: boolean
-
-    """
-    if not enableFlag in [True, False]:
-      raise TypeError, 'Expected boolean value for enableFlag'
-
-    if enableFlag:
-      self.gaudiStepCount += 1
-      stepNumber = self.gaudiStepCount
-      stepDefn = '%sStep%s' % ( 'SAM', stepNumber )
-      step = self.__getCheckApplicationsStep( stepDefn )
-
-      self._addJDLParameter( 'TestApplication%s' % ( appNameVersion.replace( '.', '' ) ), str( enableFlag ) )
-      stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
-      self.addToOutputSandbox.append( '*.log' )
-      self.workflow.addStep( step )
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
-
-      # Define Step and its variables
-      stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
-      stepInstance.setValue( "enable", enableFlag )
-      stepInstance.setValue( "samTestName", testName )
-      stepInstance.setValue( "appNameVersion", appNameVersion )
-
-  #############################################################################
-  def __getCheckApplicationsStep( self, name = 'TestApplications' ):
-    """Internal function.
-
-        This method controls the definition for a TestApplications step.
-    """
-    # Create the GaudiApplication module first
-    moduleName = 'CheckApplications'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A module to check if the application is properly installed' )
-    body = string.replace( self.importLine, '<MODULE>', 'CheckApplications' )
-    module.setBody( body )
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    # Define step parameters
-    step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "CheckApplication SAM Test Name" ) )
-    step.addParameter( Parameter( "appNameVersion", "", "string", "", "", False, False, "Appliciation name and version" ) )
     return step
 
   #############################################################################

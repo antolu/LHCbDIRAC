@@ -49,6 +49,8 @@ class SAMFinalization( ModuleBaseSAM ):
     self.siteRoot = os.path.dirname( os.path.realpath( LHCbDIRAC.__path__[0] ) )
     self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' % ( self.siteRoot )
     self.samPublishScript = 'sam/bin/same-publish-tuples'
+    self.nagiosPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/nagios.tgz' % ( self.siteRoot )
+    self.nagiosPublishScript = 'publisher/exp_test_result_publisher.py'
     self.logSE = 'LogSE'
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
@@ -139,6 +141,11 @@ class SAMFinalization( ModuleBaseSAM ):
     if not result['OK']:
       self.setApplicationStatus( 'SAM Reporting Error' )
       return self.finalize( 'Failure while publishing SAM results', result['Message'], 'error' )
+
+    result = self.__publishNAGIOSResults( samNode, samResults, samLogs )
+    if not result['OK']:
+      self.setApplicationStatus( 'NAGIOS Reporting Error' )
+      return self.finalize( 'Failure while publishing NAGIOS results', result['Message'], 'error' )
 
     result = self.__uploadSAMLogs( samNode )
     if not result['OK']:
@@ -415,6 +422,105 @@ EOT
     return S_OK()
 
   #############################################################################
+  def __publishNAGIOSResults( self, samNode, samResults, samLogs ):
+    """Prepares SAM publishing files and reports results to the SAM DB.
+    """
+
+    self.log.info( 'Preparing NAGIOS publishing files' )
+    if not self.jobID:
+      self.log.verbose( 'No jobID defined, setting to 12345 and samNode to test.node for test purposes' )
+      self.jobID = 12345
+      samNode = 'test.node'
+
+    #Get SAM client
+    self.log.info( 'Publish Flag: %s, Enable Flag: %s' % ( self.publishResultsFlag, self.enable ) )
+    if self.publishResultsFlag and self.enable:
+      result = self.__getNAGIOSClient()
+      if not result['OK']:
+        self.setJobParameter( self.testName, 'Failed to locate NAGIOS client with message %s' % ( result['Message'] ) )
+        return result
+
+    lfnPath = self.__getLFNPathString( samNode )
+    testSummary = self.__getTestSummary( lfnPath, samResults, samLogs )
+    softwareReport = self.__getSoftwareReport( lfnPath, samResults, samLogs )
+    counter = 0
+    publishFlag = True
+    for testName, testStatus in samResults.items():
+      counter += 1
+      defFile = """testName: %s
+testAbbr: LHCb %s
+testTitle: LHCb NAGIOS %s
+EOT
+""" % ( testName, testName, testName )
+
+      envFile = """envName: CE-00%s%s
+name: LHCbSAMTest
+value: OK
+""" % ( self.jobID, counter )
+
+      resultFile = """nodename: %s
+testname: %s
+envName: CE-00%s%s
+voname: lhcb
+status: %s
+detaileddata: EOT
+<br>
+<IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
+<br><br><br><br><br><br><br>
+<br>DIRAC Site Name %s ( CE = %s )<br>
+<br>Corresponding to JobID %s in DIRAC setup %s<br>
+<br>Test Summary %s:<br>
+<br>
+%s
+<br>
+<br><br><br>
+Link to log files: <br>
+<UL><br>
+<LI><A HREF='%s%s'>Log SE output</A><br>
+<LI><A HREF='%s%s/test/sam/%s'>Previous tests for %s</A><br>
+<LI><A HREF='%s%s/test/sam'>LHCb SAM Logs CE Directory</A><br>
+</UL><br>
+<br>
+%s
+<br>
+EOT
+""" % ( samNode, testName, self.jobID, counter, testStatus, self.diracLogo, DIRAC.siteName(), samNode, self.jobID, self.diracSetup, time.strftime( '%Y-%m-%d' ), testSummary, self.logURL, lfnPath, self.logURL, self.samVO, samNode, samNode, self.logURL, self.samVO, softwareReport )
+
+      files = {}
+      files[defFile] = '.def'
+      files[resultFile] = '.result'
+      files[envFile] = '.env'
+
+      for contents, ext in files.items():
+        fopen = open( testName + ext, 'w' )
+        fopen.write( contents )
+        fopen.close()
+
+      testDict = {'TestDef':'.def', 'TestData':'.result', 'TestEnvVars':'.env'}
+      if not self.publishResultsFlag:
+        self.log.info( 'Publish flag is disabled for %s %s' % ( testName, testStatus ) )
+      if self.publishResultsFlag and self.enable:
+        self.log.info( 'Attempting to publish results for %s to SAM DB' % ( testName ) )
+        samHome = '%s/sam' % ( os.getcwd() )
+        samPublish = '%s/%s' % ( os.getcwd(), self.nagiosPublishScript )
+        os.environ['SAME_HOME'] = samHome
+        sys.path.insert( 0, samHome )
+        if not os.path.exists( samPublish ):
+          return S_ERROR( '%s does not exist' % ( samPublish ) )
+        for testTitle, testExtn in testDict.items():
+          testFile = '%s%s' % ( testName, testExtn )
+          cmd = '%s %s %s' % ( samPublish, testTitle, testFile )
+          result = self.runCommand( 'Publishing %s %s' % ( testName, testFile ), cmd )
+          if not result['OK']:
+            self.setJobParameter( testName, 'Publishing %s %s failed' % ( testName, testFile ) )
+            publishFlag = False
+
+    if not publishFlag:
+      return S_ERROR( 'Publishing of some results failed' )
+
+    return S_OK()
+
+  #############################################################################
   def __getLFNPathString( self, samNode ):
     """Returns LFN path string according to SAM convention.
     """
@@ -471,5 +577,17 @@ EOT
     #Untar not using tarfile so this is added to the sam logs
     #SAM -> LCG -> Linux
     return self.runCommand( 'Obtaining SAM client', 'tar -zxvf %s' % ( os.path.basename( self.samPublishClient ) ) )
+
+  #############################################################################
+  def __getNAGIOSClient( self ):
+    """Locates the shipped NAGIOS client tarball and unpacks it in the job working
+       directory if the publishing and enable flags are set to True.
+    """
+    if not os.path.exists( self.nagiosPublishClient ):
+      return S_ERROR( '%s does not exist' % ( self.nagiosPublishClient ) )
+    shutil.copy( self.nagiosPublishClient, os.getcwd() )
+    #Untar not using tarfile so this is added to the sam logs
+    #SAM -> LCG -> Linux
+    return self.runCommand( 'Obtaining NAGIOS client', 'tar -zxvf %s' % ( os.path.basename( self.nagiosPublishClient ) ) )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
