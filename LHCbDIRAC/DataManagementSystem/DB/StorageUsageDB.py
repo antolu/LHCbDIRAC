@@ -121,7 +121,6 @@ class StorageUsageDB( DB ):
   ####
   def publishToDarkDir( self, directoryDict ):
     """ Publish an entry into the dark data directory """
-    self.log.info( "in publishToDarkDir: directoryDict is %s" % directoryDict )
     for path in directoryDict.keys():
       SeName = directoryDict[ path ][ 'SEName']
       try:
@@ -231,6 +230,36 @@ class StorageUsageDB( DB ):
       return result
     return S_OK( dict( result[ 'Value' ] ) )
 
+  def __getIDsFromDarkDirs( self, dirList ):
+    """ Get the ID from the se_DarkDirectories tables, for a given tuple (Path,SE) """
+    dirPath = dirList.keys()[ 0 ]
+    if dirPath[-1] != "/":
+      dirPath = "%s/" % dirPath
+    SE = dirList[ dirPath ][ 'SEName' ]
+    sqlSE = self._escapeString( SE )[ 'Value' ]
+    sqlPath = self._escapeString( dirPath )[ 'Value' ]
+    sqlCmd = "SELECT Path, DID FROM se_DarkDirectories WHERE Path=%s AND SEName=%s" % ( sqlPath, sqlSE )
+    self.log.info( "in getIDsFromDarkDirs query %s" % sqlCmd )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return S_OK( dict( result[ 'Value' ] ) )
+
+  def __getIDsFromSe_Usage( self, dirList ):
+    """Get the ID of the entry corresponding to the tuple (path, SE) """
+    dirPath = dirList.keys()[ 0 ]
+    if dirPath[-1] != "/":
+      dirPath = "%s/" % dirPath
+    SE = dirList[ dirPath ][ 'SEName' ]
+    sqlSE = self._escapeString( SE )[ 'Value' ]
+    sqlPath = self._escapeString( dirPath )[ 'Value' ]
+    sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID AND d.Path=%s and r.SEName=%s" % ( sqlPath, sqlSE )
+    self.log.info( "in __getIDsFromSe_Usage query %s" % sqlCmd )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return S_OK( dict( result[ 'Value' ] ) )
+
   def __updateSEUsage( self, dirID, SEUsage ):
     sqlCmd = "DELETE FROM `su_SEUsage` WHERE DID=%d" % dirID
     result = self._update( sqlCmd )
@@ -292,6 +321,52 @@ class StorageUsageDB( DB ):
         return result
     return S_OK()
 
+  def removeDirFromSe_Usage( self, dirDict ):
+    """ Remove the entry corresponding to the tuple (path, SE) from the se_Usage table.
+     This function is typically called when a directory is found to be a dark data, and before inserting it into the 
+    se_DarkDirectories table, it is necessary to remove it from the se_Usage table, if it exists there. In general, one same directory can only exist into either the
+     se_Usage or the se_DarkDirectories. """
+    deletedDirs = 0
+    result = self.__getIDsFromSe_Usage( dirDict )
+    if not result[ 'OK' ]:
+      return result
+    dirIDs = result[ 'Value' ]
+    if not dirIDs:
+      return S_OK( deletedDirs )
+    deletedDirs = len( dirIDs )
+    if deletedDirs > 1:
+      return S_ERROR( "There should not be more than 1 match for a tuple (path,SE)!!" )
+    sqlIDs = ", ".join( [ str( dirIDs[ path ] ) for path in dirIDs ] )
+    sqlCmd = "DELETE FROM se_Usage WHERE DID in ( %s )" % ( sqlIDs )
+    result = self._update( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return S_OK( deletedDirs )
+
+  def removeDirFromSe_DarkDir( self, dirDict ):
+    """ Remove an entry from the se_DarkDirectories table. This is typically used when a directory is found to be correctly registered in the FC
+    and it was previously inserted in the dark data table: before inserting the entry into the se_Usage table, it has to be removed
+    from the se_DarkDirectories """
+    deletedDirs = 0
+    result = self.__getIDsFromDarkDirs( dirDict )
+    if not result[ 'OK' ]:
+      return result
+    self.log.info( "sqlCmd result for getIDsFromDarkDirs is: %s" % result )
+    dirIDs = result[ 'Value' ]
+    if not dirIDs:
+      self.log.info( "No directory to remove" )
+      return S_OK( deletedDirs )
+    deletedDirs = len( dirIDs )
+    if deletedDirs > 1:
+      return S_ERROR( "There should not be more than 1 match for a tuple (path,SE)!!" )
+    self.log.info( "remove directories: %s" % dirIDs )
+    sqlIDs = ", ".join( [ str( dirIDs[ path ] ) for path in dirIDs ] )
+    sqlCmd = "DELETE FROM se_DarkDirectories WHERE DID in ( %s )" % ( sqlIDs )
+    result = self._update( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    self.log.info( "sqlCmd result for DELETE is: %s" % result )
+    return S_OK( deletedDirs )
 
   ################
   # Clean outdated entries
