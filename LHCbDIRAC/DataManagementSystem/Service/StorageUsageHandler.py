@@ -43,6 +43,16 @@ class StorageUsageHandler( RequestHandler ):
         return result
     return S_OK()
 
+  types_removeDirFromSe_Usage = []
+  def export_removeDirFromSe_Usage( self, dirPaths ):
+    """ Exports the method to remove entries from the se_Usage table """
+    return storageUsageDB.removeDirFromSe_Usage( dirPaths )
+
+  types_removeDirFromSe_DarkDir = []
+  def export_removeDirFromSe_DarkDir( self, dirPaths ):
+    """ Exports the method to remove entries from the se_DarkDirectory table """
+    return storageUsageDB.removeDirFromSe_DarkDir( dirPaths )
+
   ##################################################################
   #
   # These are the methods for monitoring the usage
@@ -69,14 +79,14 @@ class StorageUsageHandler( RequestHandler ):
 
   types_getStorageDirectoryData = []
   def export_getStorageDirectoryData( self, directory = '', filetype = '', production = '', sites = [] ):
-    """ Retieve a directory summary for the storage usage
+    """ Retrieve a directory summary for the storage usage
     """
     return storageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
 
 
   types_getStorageDirectories = []
   def export_getStorageDirectories( self, directory = '', filetype = '', production = '', sites = [] ):
-    """ Retieve the directories for the supplied selection
+    """ Retrieve the directories for the supplied selection
     """
     return storageUsageDB.getStorageDirectories( directory, filetype, production, sites )
 
@@ -139,13 +149,13 @@ class StorageUsageHandler( RequestHandler ):
 
   types_getUserStorageUsage = []
   def export_getUserStorageUsage( self, userName = False ):
-    """ Retieve a summary of the user usage
+    """ Retrieve a summary of the user usage
     """
     return storageUsageDB.getUserStorageUsage( userName )
 
   types_getUserSummaryPerSE = []
   def export_getUserSummaryPerSE( self, userName = False ):
-    """ Retieve a summary of the user usage per SE
+    """ Retrieve a summary of the user usage per SE
     """
     return storageUsageDB.getUserSummaryPerSE( userName )
 
