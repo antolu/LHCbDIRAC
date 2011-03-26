@@ -22,7 +22,7 @@ Script.registerSwitch( "", "SEs=", "   List of SEs" )
 Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
 Script.registerSwitch( "g:", "Group=", "   Transformation group [<plugin name>]" )
 Script.registerSwitch( "", "Removal", "   Transformation of type Removal" )
-Script.registerSwitch( "k:", "KeepSEs", "   List of SEs where to keep replicas" )
+Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas" )
 Script.registerSwitch( "", "Test", "   Just print out but not submit" )
 Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -39,7 +39,6 @@ requestID = 0
 start = False
 transGroup = None
 pluginParams = {}
-transName = 'Replication'
 listSEs = None
 nbCopies = None
 keepSEs = None
@@ -97,7 +96,7 @@ for switch in switches:
     keepSEs = val.split( ',' )
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
-
+transName = transType
 # Add parameters
 if listSEs:
   if transType == "Replication":
@@ -159,6 +158,8 @@ transformation.setTransformationGroup( transGroup )
 transformation.setDescription( longName )
 transformation.setLongDescription( longName )
 transformation.setType( transType )
+if transType == "Removal":
+  transformation.setBody( "removal;replicaRemoval" )
 if pluginParams:
   for key, val in pluginParams.items():
     if key.endswith( "SE" ) or key.endswith( "SEs" ):
