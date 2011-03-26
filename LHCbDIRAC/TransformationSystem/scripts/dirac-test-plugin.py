@@ -88,7 +88,12 @@ class fakeClient:
         runID = metadata.get( 'RunNumber', 0 )
         runDict = {"RunNumber":runID, "LFN":lfn}
         files.append( runDict )
-    res = rm.getActiveReplicas( lfns )
+    res = self.trans.getType()
+    type = res['Value']
+    if type.lower() in ( "replication", "removal" ):
+      res = rm.getReplicas( lfns )
+    else:
+      res = rm.getActiveReplicas( lfns )
     if res['OK']:
       replicas = res['Value']['Successful']
     return ( files, replicas )
@@ -106,6 +111,7 @@ Script.registerSwitch( "", "Parameters=", "   Additional parameters ({<key>:<val
 Script.registerSwitch( "", "SEs=", "   List of SEs" )
 Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
 Script.registerSwitch( "", "Type=", "   Type of transformation [%s]" % transType )
+Script.registerSwitch( "", "Removal", "   Equivalent to --Type Removal" )
 Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas" )
 Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
 Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
@@ -176,6 +182,8 @@ for switch in switches:
     runs = val.split( ':' )
     if len( runs ) == 1:
       runs[1] = runs[0]
+  elif opt == "removal":
+    transType = "Removal"
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
@@ -282,7 +290,20 @@ if res['OK']:
       l = ','.join( sortList( replicas[lfn].keys() ) )
       if not l in location:
         location.append( l )
+    targets = task[0].split( ',' )
     print i, '- Target SEs:', task[0], "- %d files" % len( task[1] ), " - Current locations:", location
+    if transType == "Removal":
+      remain = []
+      for l in location:
+        r = ','.join( [se for se in l.split( ',' ) if not se in targets] )
+        remain.append( r )
+      print "    Remaining SEs:", remain
+    if transType == "Replication":
+      total = []
+      for l in location:
+        r = l + ',' + ','.join( [se for se in targets if not se in l.split( ',' )] )
+        total.append( r )
+      print "    Final SEs:", total
 else:
   print res['Message']
 DIRAC.exit( 0 )
