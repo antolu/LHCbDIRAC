@@ -765,10 +765,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if len( secondaryses ) < needtocopy:
         # Missing secondary copies, make a list of candidates
         candidateSEs = mandatorySEs + randomize( secondaryActiveSEs )
+        #print secondaryses, candidateSEs, needtocopy
         for se in secondaryses:
           needtocopy -= 1
           if se in candidateSEs:
             candidateSEs.remove( se )
+        #print candidateSEs, needtocopy
 
         if len( candidateSEs ) >= needtocopy:
           for se in candidateSEs:
@@ -927,7 +929,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _DeleteReplicas( self ):
     listSEs = self.params.get( 'fromSEs', None )
     keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    keepSEs = self.__getListFromString( keepSEs )
     mandatorySEs = self.params.get( 'mandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
+    mandatorySEs = self.__getListFromString( mandatorySEs )
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     minKeep = int( self.params.get( 'NumberOfReplicas', 1 ) )
 
@@ -951,6 +955,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
           continue
       existingSEs = [se for se in replicaSE if not se in keepSEs]
+      #print "Existing:",existingSEs,", minKeep", minKeep, ", keepSEs", keepSEs
       if minKeep == 0:
         targetSEs = existingSEs
       else:
