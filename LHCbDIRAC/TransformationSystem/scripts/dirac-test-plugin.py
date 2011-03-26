@@ -193,7 +193,7 @@ if listSEs:
     pluginParams['destinationSEs'] = listSEs
   elif transType == "Removal":
     pluginParams['FromSEs'] = listSEs
-if nbCopies:
+if nbCopies != None:
   pluginParams['NumberOfReplicas'] = nbCopies
 if keepSEs:
   if keepSEs == 'none':
