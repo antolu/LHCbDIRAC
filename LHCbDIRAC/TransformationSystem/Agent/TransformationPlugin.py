@@ -628,7 +628,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not runSEDict.has_key( runID ):
         continue
       runTargetSEs = sortList( runSEDict[runID].split( ',' ) )
-      existingSites = self._getSitesForSEs( self.data[lfn].keys() )
+      existingSEs = [se for se in self.data[lfn].keys() if not se.endswith( "-ARCHIVE" )]
+      existingSites = self._getSitesForSEs( existingSEs )
 
       fileTargets[lfn] = []
       for runTargetSE in runTargetSEs:
