@@ -122,8 +122,15 @@ if modifiedCS:
   else:
     print 'Successfully committed changes to CS'
     notifyClient = NotificationClient()
+    userName = diracAdmin._getCurrentUser()
+    if not userName['OK']:
+      print 'ERROR: Could not obtain current username from proxy'
+      exitCode = 2
+      DIRAC.exit( exitCode )
+    userName = userName['Value']
     print 'Sending mail for software installation %s' % ( mailadress )
-    res = notifyClient.sendMail( mailadress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
+    res = diracAdmin.sendMail( mailadress, subject, msg )
+
     if not res[ 'OK' ]:
         print 'The mail could not be sent'
 else:
