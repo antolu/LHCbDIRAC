@@ -52,6 +52,9 @@ if not warn:
 else:
   printHeader( 'Active LHCb Software For All System Configurations' )
 
+for systemConfig in systemConfigs:
+  software[systemConfig] = software[systemConfig].replace( ' ', '' ).split( ',' )
+
 for package in active:
   packageArch = []
   for systemConfig in systemConfigs:
