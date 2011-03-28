@@ -186,6 +186,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'LockSharedArea', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "forceLockRemoval", "", "bool", "", "", False, False, "lock deletion flag" ) )
@@ -243,6 +244,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'SystemConfiguration', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     return step
@@ -297,6 +299,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'SiteQueues', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     return step
@@ -362,6 +365,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'SoftwareInstallation', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "purgeSharedAreaFlag", "", "bool", "", "", False, False, "Remove all software in shared area" ) )
@@ -422,6 +426,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'SoftwareReport', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
@@ -491,6 +496,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'TestApplications', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
@@ -552,6 +558,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'SAMFinalization', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "publishResultsFlag", "", "bool", "", "", False, False, "Flag to trigger publishing of results to SAM DB" ) )
@@ -617,6 +624,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'RunTestScript', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "scriptName", "", "string", "", "", False, False, "script name to execute" ) )
