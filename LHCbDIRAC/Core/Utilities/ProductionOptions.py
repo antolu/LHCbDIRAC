@@ -76,12 +76,12 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
       options.append( "DaVinci().ETCFile = \"@{outputData}\"" )
     elif appType.lower() == 'dst' and inputType not in ['sdst', 'dst']: #e.g. not stripping
       options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-    elif ( re.match( '[a-z,A-Z,.]*dst', appType.lower() ) or appType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
-      options.append( 'from Configurables import SelDSTWriter' )
-      options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
     elif appType.lower() == 'mdst':
       options.append( 'from Configurables import MicroDSTWriter' )
       options.append( 'MicroDSTWriter("BetaSMicroDST").OutputFileSuffix  = \'@{STEP_ID}\'' )
+    elif appType.lower() == 'fmdst':
+      options.append( 'from KaliCalo.Configuration import KaliPi0Conf' )
+      options.append( 'KaliPi0Conf(FemToDST = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
     elif appType.lower() == 'davincihist':
       options.append( 'from Configurables import InputCopyStream' )
       options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
@@ -89,16 +89,22 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
     elif appType.lower() == 'merge':
       options.append( 'from Configurables import InputCopyStream' )
       options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
+    elif ( re.match( '[a-z,A-Z,.]*dst', appType.lower() ) or appType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
+      options.append( 'from Configurables import SelDSTWriter' )
+      options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
+
   elif appName.lower() == 'merge':
     #options.append('EventSelector.PrintFreq = 200')
     options.append( 'OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
     return options
+
   elif appName.lower() == 'moore':
     options.append( 'from Configurables import Moore' )
     options.append( 'Moore().outputFile = \'@{outputData}\'' )
     #Note this is the only case where the DB Tags are overwritten
     dddbOpt = "Moore().DDDBtag = \"%s\"" % ( ddDB )
     conddbOpt = "Moore().CondDBtag = \"%s\"" % ( condDB )
+
   else:
     gLogger.warn( 'No specific options found for project %s' % appName )
 
