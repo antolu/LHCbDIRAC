@@ -445,7 +445,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts', inputProduction = '',
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
                    inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
-                   passDict = {}, condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
+                   condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
                    stepID = '', stepName = '', stepVisible = '' ):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
