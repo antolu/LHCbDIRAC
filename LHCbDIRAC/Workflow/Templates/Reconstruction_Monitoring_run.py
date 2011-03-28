@@ -237,6 +237,12 @@ production.addBrunelStep( "{{p1Ver}}", brunelOutput.lower(), brunelOptions, extr
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
 
+  daVinciOptions = "{{p2Opt}}"
+  if useOracle:
+    if not 'useoracle.py' in daVinciOptions.lower():
+      daVinciOptions = daVinciOptions + ';$APPCONFIGOPTS/UseOracle.py'
+
+
   daVinciInput = BKClient.getStepInputFiles( int( '{{p2Step}}' ) )
   if not daVinciInput:
     gLogger.error( 'Error getting res from BKK: %s', daVinciInput['Message'] )
@@ -268,7 +274,7 @@ if "{{p2Ver}}":
   else:
     daVinciOutput = daVinciOutput[0]
 
-  production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, "{{p2Opt}}", extraPackages = '{{p2EP}}',
+  production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, daVinciOptions, extraPackages = '{{p2EP}}',
                             inputDataType = daVinciInput.lower(), histograms = histograms,
                             stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
@@ -280,8 +286,8 @@ production.setInputDataPolicy( recoIDPolicy )
 if express:
   gLogger.info( 'EXPRESS: Forcing destination site LCG.CERN.ch for production' )
   production.setDestination( 'LCG.CERN.ch' )
-#  gLogger.info( 'EXPRESS: Saving only histograms' )
-#  production.setFileMask( 'HIST' )
+  gLogger.info( 'EXPRESS: Saving only histograms' )
+  production.setFileMask( 'HIST' )
 else:
   gLogger.info( 'FULL: Saving only SDST and HIST' )
   production.setFileMask( ['SDST', 'HIST'] )
