@@ -261,7 +261,7 @@ class GaudiApplication( ModuleBase ):
       finalOutputs, bkFileTypes = self._findOutputs( self.stepOutputs )
     except AttributeError:
       self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
-      return 
+      return
 
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
     self.step_commons['listoutput'] = finalOutputs
@@ -339,10 +339,18 @@ class GaudiApplication( ModuleBase ):
 
 
   def redirectLogOutput( self, fd, message ):
+    """ Callback function for the Subprocess.shellcall
+        Manages log files
+    
+        fd is stdin/stderr
+        message is every line (?)
+    """
     sys.stdout.flush()
     if message:
-      if re.search( 'INFO Evt', message ): print message
-      if re.search( 'Reading Event record', message ): print message
+      if re.search( 'INFO Evt', message ):
+        print message
+      if re.search( 'Reading Event record', message ):
+        print message
       if self.applicationLog:
         log = open( self.applicationLog, 'a' )
         log.write( message + '\n' )

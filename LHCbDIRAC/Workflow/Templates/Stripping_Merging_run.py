@@ -18,7 +18,7 @@ args = Script.getPositionalArgs()
 
 import DIRAC
 
-from DIRAC import gConfig, gLogger
+from DIRAC import gLogger
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 gLogger = gLogger.getSubLogger( 'Stripping_Merging_run.py' )
@@ -29,7 +29,7 @@ BKClient = BookkeepingClient()
 #################################################################################
 from LHCbDIRAC.Interfaces.API.Production import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
+#from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 ###########################################
 # Configurable parameters
@@ -97,7 +97,6 @@ certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
 
-recoEnabled = False
 strippEnabled = False
 mergingEnabled = False
 
@@ -186,11 +185,9 @@ recoInputDataList = []
 strippInputDataList = []
 
 if not publishFlag:
-  recoTestData = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81676/081676_0000000510.raw'
-  recoInputDataList.append( recoTestData )
-  strippIDPolicy = 'protocol'
   strippTestData = 'LFN:/lhcb/data/2010/SDST/00008178/0000/00008178_00009199_1.sdst'
   strippInputDataList.append( strippTestData )
+  strippIDPolicy = 'protocol'
   BKscriptFlag = True
 else:
   strippIDPolicy = 'download'
@@ -202,7 +199,7 @@ strippIDPolicy = 'protocol'
 if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
-  evtsPerJob = '500'
+  evtsPerJob = '1000'
   startRun = '75346'
   endRun = '75349'
   recoCPU = '100000'
@@ -296,7 +293,8 @@ if strippEnabled:
     production.setAncestorDepth( 2 )
 
   production.addDaVinciStep( strippVersion, "stripping", strippOptions, extraPackages = strippEP,
-                             inputDataType = strippInput.lower(), dataType = 'Data', outputSE = unmergedStreamSE,
+                             inputDataType = strippInput.lower(), inputData = strippInputDataList, dataType = 'Data',
+                             outputSE = unmergedStreamSE,
                              histograms = True, extraOutput = strippOutputList,
                              stepID = strippStep, stepName = strippName, stepVisible = strippVisibility )
 
