@@ -1,30 +1,33 @@
 #!/usr/bin/env python
 
 """
- Create a new replication transformation
+ Create a new replication or removal transformation according to plugin
 """
 
 __RCSID__ = "$Id:  $"
 
 from DIRAC.Core.Base import Script
 
-plugin = "ArchiveDataset"
-transType = "Replication"
+plugin = None
 test = False
+groupSize = 5
+removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
 
+Script.registerSwitch( "", "Plugin=", "   Plugin name (mandatory)" )
 Script.registerSwitch( "P:", "Production=", "   Production ID to search (comma separated list)" )
-Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod" )
+Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod) [All]" )
 Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path" )
-Script.registerSwitch( "r:", "Request=", "   Assign request number [0]" )
-Script.registerSwitch( "", "Plugin=", "   Plugin name %s" % plugin )
-Script.registerSwitch( "", "Parameters=", "   Additional parameters ({<key>:<val>,[<key>:val>]}" )
-Script.registerSwitch( "", "SEs=", "   List of SEs" )
+Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
+
+Script.registerSwitch( "", "SEs=", "   List of SEs (dest for replication, source for removal)" )
 Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
-Script.registerSwitch( "g:", "Group=", "   Transformation group [<plugin name>]" )
-Script.registerSwitch( "", "Removal", "   Transformation of type Removal" )
-Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas" )
+Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}" )
+Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas (for plugins %s)" % str( removalPlugins ) )
+Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
+
+Script.registerSwitch( "R:", "Request=", "   Assign request number [<id of query production>]" )
+Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
 Script.registerSwitch( "", "Test", "   Just print out but not submit" )
-Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -37,12 +40,11 @@ bkQuery = None
 bkFields = ["ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType"]
 requestID = 0
 start = False
-transGroup = None
 pluginParams = {}
 listSEs = None
 nbCopies = None
 keepSEs = None
-groupSize = 5
+runs = None
 
 switches = Script.getUnprocessedSwitches()
 import DIRAC
@@ -72,8 +74,6 @@ for switch in switches:
     plugin = val
   elif opt in ( 's', 'start' ):
     start = True
-  elif opt in ( 'g', 'group' ):
-    transGroup = val
   elif opt == "ses":
     listSEs = val.split( ',' )
   elif opt == "copies":
@@ -90,12 +90,29 @@ for switch in switches:
     except:
       print "Error parsing parameters: ", val
       DIRAC.exit( 2 )
-  elif opt == "removal":
-    transType = "Removal"
   elif opt in ( 'k', 'keepses' ):
     keepSEs = val.split( ',' )
+  elif opt in ( 'g', 'groupsize' ):
+    if float( int( val ) ) == int( val ):
+      groupSize = int( val )
+    else:
+      groupSize = float( val )
+  elif opt in ( 'r', 'run' ):
+    runs = val.split( ':' )
+    if len( runs ) == 1:
+      runs[1] = runs[0]
 
+if not plugin:
+  print "ERROR: No plugin supplied..."
+  Script.showHelp()
+  DIRAC.exit( 0 )
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+if plugin in removalPlugins:
+  transType = "Removal"
+else:
+  transType = "Replication"
 transName = transType
 # Add parameters
 if listSEs:
@@ -108,17 +125,23 @@ if nbCopies != None:
 if keepSEs:
   pluginParams['keepSEs'] = keepSEs
 
-if not transGroup:
-  transGroup = plugin
+transGroup = plugin
 
 transBKQuery = {'Visibility': 'Yes'}
 
+if runs:
+  transBKQuery['StartRun'] = runs[0]
+  transBKQuery['EndRun'] = runs[1]
+
 if prods:
   if not fileType:
-    Script.showHelp()
-    DIRAC.exit( 2 )
+    fileType = ["All"]
   if prods[0].upper() != 'ALL':
     transBKQuery['ProductionID'] = prods
+    if len( prods ) == 1 and not requestID:
+      res = TransformationClient().getTransformation( int( prods[0] ) )
+      if res['OK']:
+        requestID = int( res['Value']['TransformationFamily'] )
   if fileType[0].upper() != 'ALL':
     transBKQuery['FileType'] = fileType
   if len( prods ) == 1:
