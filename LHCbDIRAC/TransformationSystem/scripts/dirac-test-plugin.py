@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
- test a plugin
+ Test a plugin
 """
 
 __RCSID__ = "$Id:  $"
@@ -96,25 +96,29 @@ class fakeClient:
       res = rm.getActiveReplicas( lfns )
     if res['OK']:
       replicas = res['Value']['Successful']
+    else:
+      replicas = {}
     return ( files, replicas )
 
 
-plugin = "ArchiveDataset"
+plugin = None
 transType = "Replication"
+removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
 groupSize = 5
 
+Script.registerSwitch( "", "Plugin=", "   Plugin name (mandatory)" )
+Script.registerSwitch( "t:", "Type=", "   Transformation type [Replication] (Removal automatic)" )
 Script.registerSwitch( "P:", "Production=", "   Production ID to search (comma separated list)" )
-Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod" )
+Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod) [All]" )
 Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path" )
-Script.registerSwitch( "", "Plugin=", "   Plugin name %s" % plugin )
-Script.registerSwitch( "", "Parameters=", "   Additional parameters ({<key>:<val>,[<key>:val>]}" )
-Script.registerSwitch( "", "SEs=", "   List of SEs" )
-Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
-Script.registerSwitch( "", "Type=", "   Type of transformation [%s]" % transType )
-Script.registerSwitch( "", "Removal", "   Equivalent to --Type Removal" )
-Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas" )
-Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
 Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
+
+Script.registerSwitch( "", "SEs=", "   List of SEs (dest for replication, source for removal)" )
+Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
+Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}" )
+Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas (for plugins %s)" % str( removalPlugins ) )
+Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
+
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -182,11 +186,19 @@ for switch in switches:
     runs = val.split( ':' )
     if len( runs ) == 1:
       runs[1] = runs[0]
-  elif opt == "removal":
-    transType = "Removal"
+  elif opt in ( 't', 'type' ):
+    transType = val
+
+if not plugin:
+  print "Plugin is a mandatory argument..."
+  Script.showHelp()
+  DIRAC.exit( 0 )
 
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
+if plugin in removalPlugins:
+  transType = "Removal"
 # Add parameters
 if listSEs:
   if transType == "Replication":
@@ -208,10 +220,13 @@ if runs:
 
 if prods:
   if not fileType:
-    Script.showHelp()
-    DIRAC.exit( 2 )
+    fileType = ['All']
   if prods[0].upper() != 'ALL':
     transBKQuery['ProductionID'] = prods
+    if len( prods ) == 1 and not requestID:
+      res = TransformationClient().getTransformation( int( prods[0] ) )
+      if res['OK']:
+        requestID = int( res['Value']['TransformationFamily'] )
   if fileType[0].upper() != 'ALL':
     transBKQuery['FileType'] = fileType
   if len( prods ) == 1:
@@ -258,7 +273,8 @@ print "Transformation type:", transType
 print "BK Query:", transBKQuery
 print "Plugin:", plugin
 print "Parameters:", pluginParams
-print "RequestID:", requestID
+if requestID:
+  print "RequestID:", requestID
 print "\nNow testing the plugin\n"
 
 from DIRAC.Core.Utilities.List                                         import sortList
