@@ -110,7 +110,7 @@ if lcg:
     if re.search( '-RAW', se ) or re.search( '-RDST', se ) or re.search( '-tape', se ) or re.search( 'M-DST', se ):
       tapeTotalFiles += files
       tapeTotalSize += size
-    if re.search( '-DST', se ) or re.search( '-FAILOVER', se ) or re.search( '-USER', se ) or re.search( '-disk', se ) or re.search( '-HIST', se ):
+    if re.search( '-DST', se ) or re.search( '-FAILOVER', se ) or re.search( '-USER', se ) or re.search( '-disk', se ) or re.search( '-disk', se ) or re.search( '-FREEZER', se ):
       diskTotalFiles += files
       diskTotalSize += size
   print '%s %s %s' % ( 'Storage Type'.ljust( 20 ), ( 'Size (%s)' % unit ).ljust( 20 ), 'Files'.ljust( 20 ) )
