@@ -22,68 +22,6 @@ import os, time
 
 AGENT_NAME = "SAM/SAMAgent"
 
-class SAMPublisher:
-
-  def __init__( self ):
-    self.Script = None
-    self.samPublishClient = os.getenv( 'DIRAC', '/opt/dirac/pro' ) + '/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz'
-
-  def install( self, dest = None ):
-    cmd = 'tar -zxvf %s' % ( self.samPublishClient )
-    if dest:
-      gLogger.info( "Publisher", "Try to install in %s " % ( dest ) )
-      if not os.path.isdir( dest ):
-        return S_ERROR( "Publisher", "No such directory: %s" % ( dest ) )
-      cmd += " --directory %s" % ( dest )
-    res = shellCall( 0, cmd )
-    if not res['OK']:
-      return res
-    if res['Value'][0]:
-      return S_ERROR( res['Value'][2] )
-    if dest:
-      dirname = dest
-    else:
-      dirname = os.getcwd()
-    self.Script = os.path.join( dirname, "sam/bin/same-publish-tuples" )
-    return S_OK()
-
-  def publish( self, testName, ce, status, detailedData = None ):
-
-    if not self.Script:
-      return S_ERROR( "SAMPublisher is not installed" )
-
-    if not detailedData:
-      detailedData = 'EOT\n<br>\nEOT'
-
-    timeStr = time.strftime( "%Y-%m-%d-%H-%M-%S", time.gmtime() )
-
-    defFile = "testName: %(TestName)s\ntestAbbr: LHCb %(TestName)s\ntestTitle: LHCb SAM %(TestName)s\nEOT\n" % {'TestName':testName}
-    envFile = "envName: CE-%s\nname: LHCbSAMTest\nvalue: OK\n" % ( timeStr )
-    resultFile = "nodename: %s\ntestname: %s\nenvName: CE-%s\nvoname: lhcb\nstatus: %d\ndetaileddata: %s\n" % ( ce, testName, timeStr, status, detailedData )
-
-    publishFlag = True
-
-    for test, cont in ( ( 'TestDef', defFile ), ( 'TestEnvVars', envFile ), ( 'TestData', resultFile ) ):
-      fname = os.tmpnam()
-      fopen = open( fname, 'w' )
-      fopen.write( cont )
-      fopen.close()
-      cmd = '%s %s %s' % ( self.Script, test, fname )
-      result = shellCall( 0, cmd )
-      if not result['OK']:
-        gLogger.warn( "Publishing %s" % ( test ), result['Message'] )
-        publishFlag = False
-      elif result['Value'][0]:
-        gLogger.warn( "Publishing %s" % ( test ), result['Value'][2] )
-        publishFlag = False
-
-      os.remove( fname )
-
-    if publishFlag:
-      return S_OK()
-    else:
-      return S_ERROR( "Publishing error" )
-
 class SAMAgent( AgentModule ):
 
   def initialize( self ):
@@ -99,12 +37,6 @@ class SAMAgent( AgentModule ):
     gMonitor.registerActivity( "ActiveSites", "Active Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
     gMonitor.registerActivity( "BannedSites", "Banned Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
     gMonitor.registerActivity( "DeletedJobs", "Deleted Jobs", "SAMAgent", "Jobs", gMonitor.OP_SUM, 3600 * 2 )
-
-    self.samPub = SAMPublisher()
-
-    result = self.samPub.install()
-    if not result['OK']:
-      gLogger.error( "SAM publisher installation", result['Message'] )
 
     return result
 
@@ -156,9 +88,7 @@ class SAMAgent( AgentModule ):
     gLogger.info( "Clear SAM jobs for last %d day(s)" % days )
     dirac = Dirac()
 
-    samPub = self.samPub
     testName = 'CE-lhcb-availability'
-
 
     sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
 
@@ -236,11 +166,5 @@ class SAMAgent( AgentModule ):
         status = 50
 
       gLogger.verbose( "CE status:", "%s %d" % ( ce, status ) )
-
-      res = samPub.publish( testName, ce, status )
-      if not res['OK']:
-        gLogger.warn( "SAM publisher error for CE %s" % ce, res['Message'] )
-
-
 
     return S_OK()
