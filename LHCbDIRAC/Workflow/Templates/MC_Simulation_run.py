@@ -522,8 +522,6 @@ if not mergingFlag:
 # This is the start of the merging production definition (if requested)
 #################################################################################
 
-bkPassDict = {}
-
 inputBKQuery = { 'SimulationConditions'     : 'All',
                  'DataTakingConditions'     : 'All',
                  'ProcessingPass'           : 'All',
