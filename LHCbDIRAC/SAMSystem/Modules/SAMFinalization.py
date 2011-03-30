@@ -16,6 +16,7 @@ __RCSID__ = "$Id$"
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from DIRAC.Core.Utilities.Subprocess                    import pythonCall
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
@@ -47,10 +48,9 @@ class SAMFinalization( ModuleBaseSAM ):
     self.samLogFiles = gConfig.getValue( '/Operations/SAM/LogFiles', [] )
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
     self.siteRoot = os.path.dirname( os.path.realpath( LHCbDIRAC.__path__[0] ) )
-    self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' % ( self.siteRoot )
-    self.samPublishScript = 'sam/bin/same-publish-tuples'
-    self.nagiosPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/nagios.tgz' % ( self.siteRoot )
-    self.nagiosPublishScript = 'publisher/exp_test_result_publisher.py'
+#    self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' % ( self.siteRoot )
+    self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/stomp.zip' % ( self.siteRoot )
+#    self.samPublishScript = 'sam/bin/same-publish-tuples'
     self.logSE = 'LogSE'
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
@@ -137,15 +137,10 @@ class SAMFinalization( ModuleBaseSAM ):
     else:
       samLogs = self.workflow_commons['SAMLogs']
 
-    result = self.__publishSAMResults( samNode, samResults, samLogs )
+    result = self.__publishSAMResultsNagios( samNode, samResults, samLogs )
     if not result['OK']:
       self.setApplicationStatus( 'SAM Reporting Error' )
       return self.finalize( 'Failure while publishing SAM results', result['Message'], 'error' )
-
-    result = self.__publishNAGIOSResults( samNode, samResults, samLogs )
-    if not result['OK']:
-      self.setApplicationStatus( 'NAGIOS Reporting Error' )
-      return self.finalize( 'Failure while publishing NAGIOS results', result['Message'], 'error' )
 
     result = self.__uploadSAMLogs( samNode )
     if not result['OK']:
@@ -422,51 +417,28 @@ EOT
     return S_OK()
 
   #############################################################################
-  def __publishNAGIOSResults( self, samNode, samResults, samLogs ):
+  def __publishSAMResultsNagios( self, samNode, samResults, samLogs ):
     """Prepares SAM publishing files and reports results to the SAM DB.
     """
 
-    self.log.info( 'Preparing NAGIOS publishing files' )
+    self.log.info( 'Preparing SAM publishing files' )
     if not self.jobID:
       self.log.verbose( 'No jobID defined, setting to 12345 and samNode to test.node for test purposes' )
       self.jobID = 12345
       samNode = 'test.node'
 
-    #Get SAM client
-    self.log.info( 'Publish Flag: %s, Enable Flag: %s' % ( self.publishResultsFlag, self.enable ) )
-    if self.publishResultsFlag and self.enable:
-      result = self.__getNAGIOSClient()
-      if not result['OK']:
-        self.setJobParameter( self.testName, 'Failed to locate NAGIOS client with message %s' % ( result['Message'] ) )
-        return result
-
+     
     lfnPath = self.__getLFNPathString( samNode )
     testSummary = self.__getTestSummary( lfnPath, samResults, samLogs )
     softwareReport = self.__getSoftwareReport( lfnPath, samResults, samLogs )
-    counter = 0
-    publishFlag = True
+
+    reports = []
     for testName, testStatus in samResults.items():
-      counter += 1
-      defFile = """testName: %s
-testAbbr: LHCb %s
-testTitle: LHCb NAGIOS %s
-EOT
-""" % ( testName, testName, testName )
 
-      envFile = """envName: CE-00%s%s
-name: LHCbSAMTest
-value: OK
-""" % ( self.jobID, counter )
-
-      resultFile = """nodename: %s
-testname: %s
-envName: CE-00%s%s
-voname: lhcb
-status: %s
-detaileddata: EOT
+      testDetails = """
 <br>
 <IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
-<br><br><br><br><br><br><br>
+<br><br>
 <br>DIRAC Site Name %s ( CE = %s )<br>
 <br>Corresponding to JobID %s in DIRAC setup %s<br>
 <br>Test Summary %s:<br>
@@ -484,39 +456,21 @@ Link to log files: <br>
 %s
 <br>
 EOT
-""" % ( samNode, testName, self.jobID, counter, testStatus, self.diracLogo, DIRAC.siteName(), samNode, self.jobID, self.diracSetup, time.strftime( '%Y-%m-%d' ), testSummary, self.logURL, lfnPath, self.logURL, self.samVO, samNode, samNode, self.logURL, self.samVO, softwareReport )
+""" % ( self.diracLogo, DIRAC.siteName(), samNode, self.jobID, self.diracSetup, time.strftime( '%Y-%m-%d' ), testSummary, self.logURL, lfnPath, self.logURL, self.samVO, samNode, samNode, self.logURL, self.samVO, softwareReport )
 
-      files = {}
-      files[defFile] = '.def'
-      files[resultFile] = '.result'
-      files[envFile] = '.env'
+      report = {}
+      report['testName'] = testName
+      report['testStatus'] = testStatus
+      report['testSummary'] = "%s %s"%(testName,testStatus)
+      report['testDetails'] = testDetails
+      reports.append(report)
+      
+    sys.path.append(self.samPublishClient+"/stomp")
 
-      for contents, ext in files.items():
-        fopen = open( testName + ext, 'w' )
-        fopen.write( contents )
-        fopen.close()
-
-      testDict = {'TestDef':'.def', 'TestData':'.result', 'TestEnvVars':'.env'}
-      if not self.publishResultsFlag:
-        self.log.info( 'Publish flag is disabled for %s %s' % ( testName, testStatus ) )
-      if self.publishResultsFlag and self.enable:
-        self.log.info( 'Attempting to publish results for %s to SAM DB' % ( testName ) )
-        samHome = '%s/sam' % ( os.getcwd() )
-        samPublish = '%s/%s' % ( os.getcwd(), self.nagiosPublishScript )
-        os.environ['SAME_HOME'] = samHome
-        sys.path.insert( 0, samHome )
-        if not os.path.exists( samPublish ):
-          return S_ERROR( '%s does not exist' % ( samPublish ) )
-        for testTitle, testExtn in testDict.items():
-          testFile = '%s%s' % ( testName, testExtn )
-          cmd = '%s %s %s' % ( samPublish, testTitle, testFile )
-          result = self.runCommand( 'Publishing %s %s' % ( testName, testFile ), cmd )
-          if not result['OK']:
-            self.setJobParameter( testName, 'Publishing %s %s failed' % ( testName, testFile ) )
-            publishFlag = False
-
-    if not publishFlag:
-      return S_ERROR( 'Publishing of some results failed' )
+    res = pythonCall( 600, self.__publisherNagios, samNode, reports )
+    
+    if not res['OK']:
+      return res
 
     return S_OK()
 
@@ -578,16 +532,62 @@ EOT
     #SAM -> LCG -> Linux
     return self.runCommand( 'Obtaining SAM client', 'tar -zxvf %s' % ( os.path.basename( self.samPublishClient ) ) )
 
-  #############################################################################
-  def __getNAGIOSClient( self ):
-    """Locates the shipped NAGIOS client tarball and unpacks it in the job working
-       directory if the publishing and enable flags are set to True.
+  def __publisherNagios( self, ce, reports ):
     """
-    if not os.path.exists( self.nagiosPublishClient ):
-      return S_ERROR( '%s does not exist' % ( self.nagiosPublishClient ) )
-    shutil.copy( self.nagiosPublishClient, os.getcwd() )
-    #Untar not using tarfile so this is added to the sam logs
-    #SAM -> LCG -> Linux
-    return self.runCommand( 'Obtaining NAGIOS client', 'tar -zxvf %s' % ( os.path.basename( self.nagiosPublishClient ) ) )
+    Publish information to Nagious:
+    
+    hostName:           CE name for example ce06.pic.es
+    metricName:         org.lhcb.WN-<test_name>-lhcb
+    metricStatus:       0 is OK, 1 is WARNING, 2 is ERROR
+    timeStamp:          2010-12-07T16:02:06Z (<-- please stick to this format)
+    summaryData:        Few lines summarizing the test
+    detailsData:        Free format text (this could be a link to the logSE if you prefer)
+    """
+  
+    import stomp
+    self.log.verbose ( "Nagios")
+    host = 'egi.msg.cern.ch'
+    port = 6163
+    queue = '/queue/grid.probe.metricOutput.EGEE.sam-lhcb_cern_ch' 
+    try:
+      conn = stomp.Connection([(host,port)])
+      conn.start()
+      conn.connect()
+    except Exception:
+      return S_ERROR('Exception on connect to %s %d'%(host,port))    
+
+
+    timeStamp =  time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime())
+  
+    for report in reports:
+    
+      testStatus = int(report['testStatus'])
+      
+      metricStatus = 0
+      if 0 < testStatus < 50:
+        metricStatus = 1
+      if testStatus >= 50:
+        metricStatus = 2
+	
+      message = ""
+      message +="hostName: %s\n"%ce
+      message +="metricName: org.lhcb.WN-%s-lhcb\n"%report['testName']
+      message +="metricStatus: %d\n"%metricStatus
+      message +="timestamp: %s\n"%timeStamp
+      message +="summaryData: %s\n"%report['testSummary']
+      message +="detailsData: %s\n"%report['testDetails']
+      message +="EOT\n"
+
+      try:
+        conn.send(message,destination=queue, ack='auto', persistent='true')
+      except Exception:
+        return S_ERROR('Exception on send to %s %d %s' %(host,port,queue))    
+
+    try:
+      conn.disconnect()
+    except Exception:
+      return S_ERROR('Exception on disconnect to %s %d '%(host,port))    
+
+    return S_OK()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
