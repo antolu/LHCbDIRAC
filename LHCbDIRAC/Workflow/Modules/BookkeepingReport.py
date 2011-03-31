@@ -385,7 +385,7 @@ class BookkeepingReport( ModuleBase ):
         typeVersion = '0'
         oldTypeName = typeName
         typeName = '%sHIST' % ( self.applicationName.upper() )
-        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
+#        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
 
       s = s + '  <OutputFile   Name="' + lfn + '" TypeName="' + typeName + '" TypeVersion="' + typeVersion + '">\n'
 
@@ -396,6 +396,8 @@ class BookkeepingReport( ModuleBase ):
       if typeName in dataTypes:
         s = s + '    <Parameter  Name="EventTypeId"     Value="' + eventtype + '"/>\n'
         s = s + '    <Parameter  Name="EventStat"       Value="' + str( fileStats ) + '"/>\n'
+        
+      if typeName in dataTypes or 'HIST' in typeName:
         s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
 
 
