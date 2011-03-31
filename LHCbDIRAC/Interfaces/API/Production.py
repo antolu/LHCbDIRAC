@@ -1114,10 +1114,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
       #This mechanism desperately needs to be reviewed
       result = prodClient.addTransformation( fileName, descShort, descLong, self.type, self.plugin, 'Manual', fileMask,
-                                            transformationGroup = self.prodGroup, groupSize = int( groupSize ),
-                                            inheritedFrom = int( derivedProduction ), body = workflowBody,
-                                            maxTasks = int( maxNumberOfTasks ), eventsPerTask = int( maxEventsPerTask ),
-                                            bkQuery = bkQuery )
+                                             transformationGroup = self.prodGroup, groupSize = int( groupSize ),
+                                             inheritedFrom = int( derivedProduction ), body = workflowBody,
+                                             maxTasks = int( maxNumberOfTasks ), eventsPerTask = int( maxEventsPerTask ),
+                                             bkQuery = bkQuery )
 
       if not result['OK']:
         self.log.error( 'Problem creating production:\n%s' % result )
@@ -1195,8 +1195,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if publish:
       try:
         self._setProductionParameters( prodID, prodXMLFile = fileName, groupDescription = bkDict['GroupDescription'],
-                                      bkPassInfo = bkDict['Steps'], bkInputQuery = bkQuery, reqID = requestID,
-                                      derivedProd = derivedProduction )
+                                       bkPassInfo = bkDict['Steps'], bkInputQuery = bkQuery, reqID = requestID,
+                                       derivedProd = derivedProduction )
       except Exception, x:
         self.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
 
@@ -1205,8 +1205,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         return S_ERROR( 'BK query does not include FileType!' )
       bkFileType = bkQuery['FileType']
       result = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
-                                          prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
-                                          parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
+                                           prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
+                                           parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
       if not result['OK']:
         self.log.error( 'Transformation creation failed with below result, can be done later...\n%s' % ( result ) )
       else:
