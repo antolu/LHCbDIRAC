@@ -199,7 +199,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( runFiles )
 
   def _RAWShares( self ):
-    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'NIKHEF-RAW', 'PIC-RAW', 'RAL-RAW']
+    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
     transID = self.params['TransformationID']
 
     # Get the requested shares from the CS
@@ -437,17 +437,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _LHCbDSTBroadcast( self ):
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_M-DST'] )
-    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'NIKHEF-DST', 'PIC-DST', 'RAL-DST'] )
+    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST', 'PIC-DST', 'RAL-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 4 ) )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
   def _LHCbMCDSTBroadcast( self ):
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST'] )
-    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
@@ -665,9 +665,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     transID = self.params['TransformationID']
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST'] )
-    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'NIKHEF_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
 
     archive1SEs = self.__getListFromString( archive1SEs )
@@ -825,11 +825,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       gLogger.info( "_ReplicateDataset plugin: no destination SEs" )
       return S_OK( [] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
-    return self.__simpleReplication( destSEs, numberOfCopies )
+    return self.__simpleReplication( destSEs, [], numberOfCopies )
 
   def _ArchiveDataset( self ):
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive1SEs = self.__getListFromString( archive1SEs )
+    archive2SEs = self.__getListFromString( archive2SEs )
     archive1ActiveSEs = self.__getActiveSEs( archive1SEs )
     if not archive1ActiveSEs:
       archive1ActiveSEs = archive1SEs
@@ -837,8 +839,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not archive2ActiveSEs:
       archive2ActiveSEs = archive2SEs
     archive1SE = randomize( archive1ActiveSEs )[0]
-    archive2SE = randomize( archive2ActiveSEs )[0]
-    return self.__simpleReplication( [archive1SE, archive2SE] )
+    return self.__simpleReplication( [archive1SE], archive2ActiveSEs, numberOfCopies = 2 )
 
   def __getListFromString( self, s ):
     # Avoid using eval()... painful
@@ -850,6 +851,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       l = s.split( ',' )
       ll = []
       for a in l:
+        a = a.strip()
         if not a:
           ll.append( a )
         elif a[0] == "'" and a[-1] == "'":
@@ -861,16 +863,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return ll
     return s
 
-  def __simpleReplication( self, destSEs, numberOfCopies = 0 ):
+  def __simpleReplication( self, mandatorySEs, destSEs, numberOfCopies = 0 ):
     transID = self.params['TransformationID']
-    destSEs = self.__getListFromString( destSEs )
-    if type( destSEs ) == types.StringType:
-      try:
-        destSEs = eval( destSEs )
-      except:
-        destSEs = destSEs.split( ',' )
+    secondarySEs = self.__getListFromString( destSEs )
+    activeSecondarySEs = self.__getActiveSEs( secondarySEs )
     if not numberOfCopies:
-      numberOfCopies = len( destSEs )
+      numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
+    numberOfCopies = max( len( mandatorySEs ), numberOfCopies )
 
     replicaGroups = self._getFileGroups( self.data )
 
@@ -879,25 +878,26 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for replicaSE, lfnGroup in replicaGroups.items():
       existingSEs = replicaSE.split( ',' )
       # If there is no choice on the SEs, send all files at once, otherwise make chunks
-      if numberOfCopies >= len( destSEs ):
+      if numberOfCopies >= len( mandatorySEs ) + len( activeSecondarySEs ):
         lfnChunks = [lfnGroup]
       else:
-        lfnChunks = breakListIntoChunks( lfnGroup, 50 )
+        lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
       for lfns in lfnChunks:
         targetSEs = []
-        candidateSEs = randomize( destSEs )
+        candidateSEs = mandatorySEs + randomize( activeSecondarySEs )
         # Remove existing SEs from list of candidates
         for se in existingSEs:
           if se in candidateSEs:
+            numberOfCopies -= 1
             candidateSEs.remove( se )
-        activeSEs = self.__getActiveSEs( candidateSEs )
-        if numberOfCopies <= len( activeSEs ):
-          targetSEs = activeSEs[0:numberOfCopies]
+        if numberOfCopies <= len( candidateSEs ):
+          targetSEs = candidateSEs[0:numberOfCopies]
         else:
-          targetSEs = activeSEs
+          targetSEs = candidateSEs
           needToCopy = numberOfCopies - len( targetSEs )
-          for se in candidateSEs:
+          # Try and replicate to non active SEs
+          for se in destSEs:
             if needToCopy == 0: break
             if se not in targetSEs:
               targetSEs.append( se )
@@ -924,12 +924,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__removeReplicas( keepSEs = [], minKeep = 0 )
 
   def _DeleteDataset( self ):
-    keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     return self.__removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
     listSEs = self.params.get( 'fromSEs', None )
-    keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     keepSEs = self.__getListFromString( keepSEs )
     mandatorySEs = self.params.get( 'mandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
     mandatorySEs = self.__getListFromString( mandatorySEs )
