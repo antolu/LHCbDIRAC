@@ -820,7 +820,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return activeSE
 
   def _ReplicateDataset( self ):
-    destSEs = self.params.get( 'destinationSEs' )
+    destSEs = self.params.get( 'DestinationSEs' )
     if not destSEs:
       gLogger.info( "_ReplicateDataset plugin: no destination SEs" )
       return S_OK( [] )
