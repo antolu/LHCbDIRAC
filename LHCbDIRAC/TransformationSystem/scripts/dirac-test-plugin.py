@@ -4,7 +4,7 @@
  Test a plugin
 """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id: $"
 
 from DIRAC.Core.Base import Script
 
@@ -104,6 +104,7 @@ class fakeClient:
 plugin = None
 transType = "Replication"
 removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
+parameterSEs = ( "KeepSEs", "Archive1SEs", "Archive2SEs", "MandatorySEs", "SecondarySEs", "DestinationSEs", "FromSEs" )
 groupSize = 5
 
 Script.registerSwitch( "", "Plugin=", "   Plugin name (mandatory)" )
@@ -113,11 +114,12 @@ Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod)
 Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path" )
 Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
 
-Script.registerSwitch( "", "SEs=", "   List of SEs (dest for replication, source for removal)" )
-Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
-Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}" )
+Script.registerSwitch( "", "NumberOfReplicas=", "   Number of copies to create or to remove" )
 Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas (for plugins %s)" % str( removalPlugins ) )
+for param in parameterSEs[1:]:
+  Script.registerSwitch( "", param + '=', "   List of SEs for the corresponding parameter of the plugin" )
 Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
+Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}" )
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -131,9 +133,7 @@ bkQuery = None
 bkFields = ["ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType"]
 requestID = 0
 pluginParams = {}
-listSEs = None
 nbCopies = None
-keepSEs = None
 runs = None
 
 switches = Script.getUnprocessedSwitches()
@@ -141,6 +141,13 @@ import DIRAC
 for switch in switches:
   opt = switch[0].lower()
   val = switch[1]
+  for param in parameterSEs:
+    if opt == param.lower():
+      if val.lower() == 'none':
+        val = []
+      else:
+        val = val.split( ',' )
+      pluginParams[param] = val
   if opt in ( "p", "production" ):
     prods = []
     for prod in val.split( ',' ):
@@ -156,13 +163,11 @@ for switch in switches:
     bkQuery = val
   elif opt in ( 'p', 'plugin' ):
     plugin = val
-  elif opt == "ses":
-    listSEs = val.split( ',' )
-  elif opt == "copies":
+  elif opt == "numberofreplicas":
     try:
       nbCopies = int( val )
     except:
-      print "--Copies must be an integer"
+      print "--NumberOfReplicas must be an integer"
       DIRAC.exit( 2 )
   elif opt == 'parameters':
     try:
@@ -172,11 +177,6 @@ for switch in switches:
       DIRAC.exit( 2 )
   elif opt == "type":
     transType = val
-  elif opt in ( 'k', 'keepses' ):
-    if val.lower() == 'none':
-      keepSEs = 'none'
-    else:
-      keepSEs = val.split( ',' )
   elif opt in ( 'g', 'groupsize' ):
     if float( int( val ) ) == int( val ):
       groupSize = int( val )
@@ -200,17 +200,8 @@ from DIRAC.TransformationSystem.Client.TransformationClient import Transformatio
 if plugin in removalPlugins:
   transType = "Removal"
 # Add parameters
-if listSEs:
-  if transType == "Replication":
-    pluginParams['destinationSEs'] = listSEs
-  elif transType == "Removal":
-    pluginParams['FromSEs'] = listSEs
 if nbCopies != None:
   pluginParams['NumberOfReplicas'] = nbCopies
-if keepSEs:
-  if keepSEs == 'none':
-    keepSEs = []
-  pluginParams['keepSEs'] = keepSEs
 
 transBKQuery = {'Visibility': 'Yes'}
 
