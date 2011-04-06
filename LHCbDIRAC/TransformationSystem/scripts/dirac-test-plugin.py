@@ -90,14 +90,14 @@ class fakeClient:
         files.append( runDict )
     res = self.trans.getType()
     type = res['Value']
-    if type.lower() in ( "replication", "removal" ):
-      res = rm.getReplicas( lfns )
-    else:
-      res = rm.getActiveReplicas( lfns )
-    if res['OK']:
-      replicas = res['Value']['Successful']
-    else:
-      replicas = {}
+    replicas = {}
+    for lfnChunk in breakListIntoChunks( lfns, 200 ):
+      if type.lower() in ( "replication", "removal" ):
+        res = rm.getReplicas( lfnChunk )
+      else:
+        res = rm.getActiveReplicas( lfnChunk )
+      if res['OK']:
+        replicas.update( res['Value']['Successful'] )
     return ( files, replicas )
 
 
@@ -203,7 +203,7 @@ if plugin in removalPlugins:
 if nbCopies != None:
   pluginParams['NumberOfReplicas'] = nbCopies
 
-transBKQuery = {'Visibility': 'Yes'}
+transBKQuery = {'Visible': 'Yes'}
 
 if runs:
   transBKQuery['StartRun'] = runs[0]
