@@ -79,6 +79,7 @@ class fakeClient:
 
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
     from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     bk = BookkeepingClient()
     rm = ReplicaManager()
     res = bk.getFileMetadata( lfns )
