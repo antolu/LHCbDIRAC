@@ -179,10 +179,11 @@ for switch in switches:
   elif opt == "type":
     transType = val
   elif opt in ( 'g', 'groupsize' ):
-    if float( int( val ) ) == int( val ):
+    val = float( val )
+    if float( int( val ) ) == val:
       groupSize = int( val )
     else:
-      groupSize = float( val )
+      groupSize = val
   elif opt in ( 'r', 'run' ):
     runs = val.split( ':' )
     if len( runs ) == 1:
@@ -207,8 +208,10 @@ if nbCopies != None:
 transBKQuery = {'Visible': 'Yes'}
 
 if runs:
-  transBKQuery['StartRun'] = runs[0]
-  transBKQuery['EndRun'] = runs[1]
+  if runs[0]:
+    transBKQuery['StartRun'] = runs[0]
+  if runs[1]:
+    transBKQuery['EndRun'] = runs[1]
 
 if prods:
   if not fileType:
