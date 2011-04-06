@@ -134,8 +134,10 @@ transGroup = plugin
 transBKQuery = {'Visible': 'Yes'}
 
 if runs:
-  transBKQuery['StartRun'] = runs[0]
-  transBKQuery['EndRun'] = runs[1]
+  if runs[0]:
+    transBKQuery['StartRun'] = runs[0]
+  if runs[1]:
+    transBKQuery['EndRun'] = runs[1]
 
 if prods:
   if not fileType:
@@ -186,7 +188,10 @@ transformation.setDescription( longName )
 transformation.setLongDescription( longName )
 transformation.setType( transType )
 if transType == "Removal":
-  transformation.setBody( "removal;replicaRemoval" )
+  if plugin == "DestroyDataset":
+    transformation.setBody( "removal;removeFile" )
+  else:
+    transformation.setBody( "removal;replicaRemoval" )
 if pluginParams:
   for key, val in pluginParams.items():
     if key.endswith( "SE" ) or key.endswith( "SEs" ):
