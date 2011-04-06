@@ -2,7 +2,7 @@
 """
 __RCSID__ = "$Id:  $"
 
-from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath
+from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
@@ -57,7 +57,7 @@ class SEUsageAgent( AgentModule ):
         gLogger.debug( "SEUsageAgent: successfully read input file" )
       else:
         gLogger.error( "SEUsageAgent: failed to read input file" )
-        return S_OK()
+        return S_ERROR( "Failed to read input files" )
 
       # Start the main loop:
       # read all file of type directory summary for the given site:
@@ -161,7 +161,7 @@ class SEUsageAgent( AgentModule ):
   def readInputFile( self, site ):
     """ Download, read and parse input files with SEs content. 
         Write down the results to  ASCII files. 
-        There are 2 phases in the manupulation of input files:
+        There are 2 phases in the manipulation of input files:
         phase 1- it is directly the format of the DB query output, right after uncompressing the tar file provided by the site:
         PFN | size | update (ms)
         phase 2- one row per file, with format: SE PFN size update
@@ -174,7 +174,7 @@ class SEUsageAgent( AgentModule ):
     originURL = self.siteConfig[ site ][ 'originURL' ]
     targetPath = self.siteConfig[ site ][ 'targetPath' ]
     pathToInputFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
-    alternativeStorageName = self.siteConfig[ site ][ 'alternativeStorageName' ] # is for SARA it's NIKHEF
+    alternativeStorageName = self.siteConfig[ site ][ 'alternativeStorageName' ] # i.e. for SARA it's NIKHEF
     if pathToInputFiles[-1] != "/":
       pathToInputFiles = "%s/" % pathToInputFiles
     gLogger.info( "Reading input files for site %s " % site )
@@ -198,10 +198,10 @@ class SEUsageAgent( AgentModule ):
     for inputFileP1 in InputFilesListP1:
       if 'USER' in inputFileP1:
         #### THIS IS ONLY A TEMPORARY TRICK TO SPEED UP DEBUGGING!!!!!
-        gLogger.info( "TRICK TO BE REMOVED!!!!!!" )
+        gLogger.info( "WARNING!!!!! Skip users files for the time being (until in development)" )
         continue
       self.dirDict = {}
-      gLogger.info( "inputFile: %s" % inputFileP1 )
+
       # the expected input file line is: pfn | size | date
       #/pnfs/grid.sara.nl/data/lhcb/data/2010/CHARMCONTROL.DST/00009283/0000/00009283_00000384_1.charmcontrol.dst          |   831797381 | 1296022620555
       # manipulate the input file to create a directory summary file (one row per directory)
@@ -215,26 +215,37 @@ class SEUsageAgent( AgentModule ):
       fP2 = open( fileP2, "w" )
       fullPathFileP1 = targetPath + 'LHCb/' + inputFileP1
       gLogger.debug( "Reading from file %s" % fullPathFileP1 )
+      totalLines = 0 # counts all lines in input
+      processedLines = 0 # counts all processed lines
       for line in open( fullPathFileP1, "r" ).readlines():
+        totalLines += 1
         try:
           splitLine = line.split( '|' )
           filePath = splitLine[0].rstrip()
           size = splitLine[1].lstrip()
           updated = splitLine[2].lstrip()
           newLine = SE + ' ' + filePath + ' ' + size + ' ' + updated
-          #gLogger.debug("newLine : %s " %newLine)
           fP2.write( "%s" % newLine )
+          processedLines += 1
         except:
           gLogger.info( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
           continue
       fP2.close()
+      gLogger.info( "File %s: total lines: %d correctly processed: %d " % ( fullPathFileP1, totalLines, processedLines ) )
 
       gLogger.debug( "Reading from fileP2 %s " % fileP2 )
+      totalLines = 0 # counts all lines in input
+      processedLines = 0 # counts all processed lines     
       for line in open( fileP2, "r" ).readlines():
+        totalLines += 1
         splitLine = line.split()
         SEName = splitLine[0]
         PFNfilePath = splitLine[1]
-        filePath = self.getLFNPath( SEName, PFNfilePath )
+        res = self.getLFNPath( SEName, PFNfilePath )
+        if not res[ 'OK' ]:
+          gLogger.info( "ERROR: could not retrieve LFN for PFN %s" % PFNfilePath )
+          continue
+        filePath = res[ 'Value' ]
         #gLogger.debug("filePath: %s" %filePath)
         if not filePath:
           gLogger.info( "SEUsageAgent: it was not possible to get the LFN for PFN=%s, skip this line" % PFNfilePath )
@@ -257,6 +268,9 @@ class SEUsageAgent( AgentModule ):
           self.dirDict[ basePath ][ 'Updated'] = updated
         self.dirDict[ basePath ][ 'Files' ] += 1
         self.dirDict[ basePath ][ 'Size' ] += size
+        processedLines += 1
+
+      gLogger.info( "File %s: total lines: %d correctly processed: %d " % ( fileP2, totalLines, processedLines ) )
 
       # create the directory summary file
       fileP3 = pathToInputFiles + SE + '.dirSummary.txt'
@@ -276,21 +290,34 @@ class SEUsageAgent( AgentModule ):
 
 
   def getLFNPath( self, ST, PFNfilePath ):
-    """ Given a PFN returns the LFN, stripping the suffix relative to the particular site """
-    siteSuffix = {'NIKHEF': '/pnfs/grid.sara.nl/data',
-                  'SARA': '/pnfs/grid.sara.nl/data' }
+    """ Given a PFN returns the LFN, stripping the suffix relative to the particular site. 
+        Important: usually the transformation is done simply removing the SApath of the site, except for ARCHIVED and FREEZED 
+        datasets: in this case the PFN is: <old SAPath>/lhcb/archive/<LFN> and <old SAPath>/lhcb/freezer/<LFN>
+        so, in order to get the lfn also the 'lhcb/archive/' or '/lhcb/freezer' string should be removed
+          """
+    #gLogger.info( "Get the path from the CS:" )
+    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( ST ) )
+    if not res[ 'OK' ]:
+      return S_ERROR( "Could not retrieve path from CS" )
+    SEPath = res[ 'Value' ]
+    prefixes = ['/lhcb/archive', '/lhcb/freezer']
     LFN = 'None'
-    for site in siteSuffix.keys():
-      if site in ST:
-        if not PFNfilePath.startswith( siteSuffix[site] ):
-          gLogger.info( "SEUsageAgent: WARNING for PFN %s! the PFN for site %s should start with the prefix %s ! Skip this file." % ( PFNfilePath, site, siteSuffix[site] ) )
-          break
-        LFN = PFNfilePath.split( siteSuffix[site] )[1]
-        if not LFN.startswith( '/lhcb' ):
-          gLogger.info( "SEUsageAgent: WARNING! LFN should start with /lhcb: PFN=%s LFN=%s. Skip this file." % ( PFNfilePath, LFN ) )
-          continue
-        break
-    return  LFN
+    try:
+      LFN = PFNfilePath.split( SEPath )[1]
+      for p in prefixes:
+        if p in LFN:
+          gLogger.info( "Remove the initial prefix %s from LFN: %s" % ( p, LFN ) )
+          length = len( p )
+          LFN = LFN[ length: ]
+    except:
+      gLogger.error( "ERROR retrieving LFN from PFN %s" % PFNfilePath )
+      return S_ERROR( "Could not retrieve LFN" )
+    # additional check on the LFN format:  
+    if not LFN.startswith( '/lhcb' ):
+      gLogger.info( "SEUsageAgent: ERROR! LFN should start with /lhcb: PFN=%s LFN=%s. Skip this file." % ( PFNfilePath, LFN ) )
+      return S_ERROR( "Anomalous LFN does not start with '/lhcb' string" )
+
+    return  S_OK( LFN )
 
 
 
