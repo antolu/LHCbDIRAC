@@ -27,6 +27,7 @@ Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (
 
 Script.registerSwitch( "R:", "Request=", "   Assign request number [<id of query production>]" )
 Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
+Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
 Script.registerSwitch( "", "Test", "   Just print out but not submit" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -45,6 +46,7 @@ listSEs = None
 nbCopies = None
 keepSEs = None
 runs = None
+force = False
 
 switches = Script.getUnprocessedSwitches()
 import DIRAC
@@ -101,6 +103,8 @@ for switch in switches:
     runs = val.split( ':' )
     if len( runs ) == 1:
       runs[1] = runs[0]
+  elif opt == "force":
+    force == True
 
 if not plugin:
   print "ERROR: No plugin supplied..."
@@ -127,7 +131,7 @@ if keepSEs:
 
 transGroup = plugin
 
-transBKQuery = {'Visibility': 'Yes'}
+transBKQuery = {'Visible': 'Yes'}
 
 if runs:
   transBKQuery['StartRun'] = runs[0]
@@ -203,37 +207,40 @@ if test:
   print "Transformation group:", transGroup
   print "Long description:", longName
   print "BK Query:", transBKQuery
-  if transBKQuery:
-    res = transformation.testBkQuery( transBKQuery )
-    if not res['OK']:
-      print "**** ERROR in BK query ****"
-      print res['Message']
-    else:
-      lfns = res['Value']
-      lfns.sort()
-      print "BKQuery obtained %d files" % len( lfns )
-      dirs = {}
-      import os
-      for lfn in lfns:
-        dir = os.path.dirname( lfn )
-        if not dirs.has_key( dir ):
-          dirs[dir] = 0
-        dirs[dir] += 1
+
+if transBKQuery:
+  res = transformation.testBkQuery( transBKQuery )
+  if not res['OK']:
+    print "**** ERROR in BK query ****"
+    print res['Message']
+    DIRAC.exit( 2 )
+  else:
+    lfns = res['Value']
+    lfns.sort()
+    nfiles = len( lfns )
+    if test:
+      print "BKQuery obtained %d files" % nfiles
+    dirs = {}
+    import os
+    for lfn in lfns:
+      dir = os.path.dirname( lfn )
+      if not dirs.has_key( dir ):
+        dirs[dir] = 0
+      dirs[dir] += 1
+    if test:
       for dir in dirs.keys():
         print dir, dirs[dir], "files"
+
+if test:
   print "Plugin:", plugin
   print "Parameters:", pluginParams
   print "RequestID:", requestID
   DIRAC.exit( 0 )
 
-if transBKQuery:
-  res = transformation.testBkQuery( transBKQuery )
-  if res['OK']:
-    nfiles = len( res['Value'] )
-  else:
-    print "**** ERROR in BK query ****"
-    print res['Message']
-    DIRAC.exit( 2 )
+if not force and nfiles == 0:
+  print "No files found from BK query"
+  print "If you anyway want to submit the transformation, use option --Force"
+  DIRAC.exit( 0 )
 
 trial = 0
 while True:
@@ -261,6 +268,8 @@ while True:
     if transBKQuery:
       print "BK Query:", transBKQuery
       print nfiles, "files found for that query"
+      for dir in dirs.keys():
+        print dir, dirs[dir], "files"
     print "Plugin:", plugin
     if pluginParams:
       print "Additional parameters:", pluginParams
