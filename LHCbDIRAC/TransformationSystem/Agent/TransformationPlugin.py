@@ -884,21 +884,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
       for lfns in lfnChunks:
+        needToCopy = numberOfCopies
         targetSEs = []
         candidateSEs = mandatorySEs + randomize( activeSecondarySEs )
         # Remove existing SEs from list of candidates
         for se in existingSEs:
           if se in candidateSEs:
-            numberOfCopies -= 1
+            needToCopy -= 1
             candidateSEs.remove( se )
-        if numberOfCopies <= len( candidateSEs ):
-          targetSEs = candidateSEs[0:numberOfCopies]
+        if needToCopy <= 0:
+          continue
+        if needToCopy <= len( candidateSEs ):
+          targetSEs = candidateSEs[0:needToCopy]
         else:
           targetSEs = candidateSEs
-          needToCopy = numberOfCopies - len( targetSEs )
+          needToCopy -= len( targetSEs )
           # Try and replicate to non active SEs
           for se in destSEs:
-            if needToCopy == 0: break
+            if needToCopy <= 0: break
             if se not in targetSEs:
               targetSEs.append( se )
               needToCopy -= 1
