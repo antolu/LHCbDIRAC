@@ -7,7 +7,7 @@ from DIRAC.Core.DISET.RPCClient                               import RPCClient
 from DIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 from DIRAC.Core.Utilities.List                                import sortList
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id: $"
 
 def testBKQuery( transBKQuery, transType ):
   bk = BookkeepingClient()
