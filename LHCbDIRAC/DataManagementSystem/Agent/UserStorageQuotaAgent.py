@@ -45,12 +45,12 @@ class UserStorageQuotaAgent( AgentModule ):
       usageGB = usageDict[userName] / byteToGB
       res = gConfig.getOptionsDict( '/Registry/Users/%s' % userName )
       if not res['OK']:
-        msg = "Username not found in the CS.", "%s using %.2f GB" % ( userName, usageGB )
+        msg = "Username not found in the CS: %s using %.2f GB" % ( userName, usageGB )
         errorMsg += msg + '\n'
         gLogger.error( msg )
         continue
       elif not res['Value'].has_key( 'Email' ):
-        msg = "CS does not contain email information for user.", userName
+        msg = "CS does not contain email information for user %s" % userName
         errorMsg += msg + '\n'
         gLogger.error( msg )
         continue
@@ -82,7 +82,8 @@ class UserStorageQuotaAgent( AgentModule ):
       if errorMsg:
         managerMsg += "\nThe following errors have been found by the UserStorageQuotaAgent:\n" + errorMsg
       fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
-      NotificationClient().sendMail( fromAddress, "User quota warnings", managerMsg, fromAddress )
+      toAddress = 'lhcb-datamanagement@cern.ch'
+      NotificationClient().sendMail( toAddress, "User quota warnings", managerMsg, fromAddress )
     return S_OK()
 
   def sendFirstWarningMail( self, userName, userMail, quota, usage ):
