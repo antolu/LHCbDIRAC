@@ -13,7 +13,8 @@ class DataStorage( BaseAccountingType ):
                                  ( 'Production', "INT UNSIGNED" ),
                                  ( 'ProcessingPass', "VARCHAR(32)" ),
                                  ( 'Conditions', "VARCHAR(32)" ),
-                                 ( 'EventType', "VARCHAR(32)" )
+                                 ( 'EventType', "VARCHAR(32)" ),
+                                 ( 'StorageElement', "VARCHAR(32)" )
                                ]
     self.definitionAccountingFields = [ ( 'LogicalSize', 'BIGINT UNSIGNED' ),
                                         ( 'LogicalFiles', 'BIGINT UNSIGNED' ),
