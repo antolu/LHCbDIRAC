@@ -57,7 +57,7 @@ def testBKQuery( transBKQuery, transType ):
   return lfns
 
 def buildBKQuery( bkQuery, prods, fileType, runs ):
-  bkFields = ( "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" )
+  bkFields = [ "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" ]
   transBKQuery = {'Visible': 'Yes'}
   requestID = None
   if runs:
