@@ -12,6 +12,12 @@ __RCSID__ = "$Id:  $"
 from DIRAC.Core.Base import Script
 import os, sys
 
+def orderSEs( listSEs ):
+  listSEs = sortList( listSEs )
+  orderedSEs = [se for se in listSEs if se.endswith( "-ARCHIVE" )]
+  orderedSEs += [se for se in listSEs if not se.endswith( "-ARCHIVE" )]
+  return orderedSEs
+
 fileType = ''
 directory = ''
 prods = ['']
@@ -46,6 +52,16 @@ from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient  import StorageUsa
 
 rm = ReplicaManager()
 
+pr = []
+for p in prods:
+  if p.find( ":" ) > 0:
+    p = p.split( ":" )
+    for i in range( int( p[0] ), int( p[1] ) + 1 ):
+      pr.append( str( i ) )
+  else:
+    pr.append( p )
+prods = pr
+
 directories = []
 if fileType or prods[0] != '':
   for prod in prods:
@@ -65,6 +81,7 @@ repStats = {}
 repSEs = {}
 repSites = {}
 maxRep = 0
+maxArch = 0
 nfiles = 0
 totSize = 0
 for directory in directories:
@@ -85,15 +102,24 @@ for directory in directories:
   for lfn, replicas in res['Value'].items():
     SEs = replicas.keys()
     nrep = len( replicas )
+    narchive = -1
     for se in list( SEs ):
       if se.endswith( "-FAILOVER" ):
         nrep -= 1
-        if not repStats.has_key( -1 ):
-          repStats[-1] = 0
-        repStats[-1] += 1
+        if not repStats.has_key( -100 ):
+          repStats[-100] = 0
+        repStats[-100] += 1
+        SEs.remove( se )
+      if se.endswith( "-ARCHIVE" ):
+        nrep -= 1
+        narchive -= 1
     if not repStats.has_key( nrep ):
       repStats[nrep] = 0
     repStats[nrep] += 1
+    # narchive is negative ;-)
+    if not repStats.has_key( narchive ):
+      repStats[narchive] = 0
+    repStats[narchive] += 1
     for se in replicas.keys():
       if not repSEs.has_key( se ):
         repSEs[se] = [0, 0]
@@ -102,6 +128,7 @@ for directory in directories:
         repSEs[se][1] += lfnSize[lfn]
 
     if nrep > maxRep: maxRep = nrep
+    if - narchive > maxArch: maxArch = -narchive
     nfiles += 1
 
 GB = 1000. * 1000. * 1000.
@@ -111,26 +138,32 @@ if totSize:
 else:
   print "%d files found in" % ( nfiles ), directories
 print "\nReplica statistics:"
-if repStats.has_key( -1 ):
-  print "Failover replicas:", repStats[-1], "files"
+if repStats.has_key( -100 ):
+  print "Failover replicas:", repStats[-100], "files"
+if maxArch:
+  for nrep in range( 1, maxArch + 1 ):
+    if not repStats.has_key( -nrep ):
+      repStats[-nrep] = 0
+    print nrep - 1, "archives:", repStats[-nrep], "files"
 for nrep in range( maxRep + 1 ):
   if not repStats.has_key( nrep ):
     repStats[nrep] = 0
   print nrep, "replicas:", repStats[nrep], "files"
 
 print "\nSE statistics:"
-for se in sortList( repSEs.keys() ):
+for se in orderSEs( repSEs.keys() ):
   if se.endswith( "-FAILOVER" ): continue
-  res = getSitesForSE( se, gridName = 'LCG' )
-  if res['OK']:
-    try:
-      site = res['Value'][0]
-    except:
-      continue
-    if not repSites.has_key( site ):
-      repSites[site] = [0, 0]
-    repSites[site][0] += repSEs[se][0]
-    repSites[site][1] += repSEs[se][1]
+  if not se.endswith( "-ARCHIVE" ):
+    res = getSitesForSE( se, gridName = 'LCG' )
+    if res['OK']:
+      try:
+        site = res['Value'][0]
+      except:
+        continue
+      if not repSites.has_key( site ):
+        repSites[site] = [0, 0]
+      repSites[site][0] += repSEs[se][0]
+      repSites[site][1] += repSEs[se][1]
   string = "%16s: %s files" % ( se, repSEs[se][0] )
   if getSize: string += " - %.3f TB" % ( repSEs[se][1] / TB )
   print string
