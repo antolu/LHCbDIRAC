@@ -230,17 +230,17 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         command += ",'%s'" % ( step['Visible'] )
       else:
         command += ',NULL'
-      
+
       if step.has_key('ProcessingPass'):
         command += ",'%s'"%(step['ProcessingPass'])
       else:
         command += ',NULL'
-      
+
       if step.has_key('Usable'):
         command += ",'%s'"%(step['Usable'])
       else:
         command += ",'Not ready'"
-      
+
       command += values+")"
       retVal = self.dbW_._query(command)
       if retVal['OK']:
@@ -259,12 +259,12 @@ class OracleBookkeepingDB( IBookkeepingDB ):
   def deleteSetpContiner(self, prod):
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.deleteSetpContiner',[prod], False)
     return result
-  
+
   #############################################################################
   def deleteProductionsContiner(self, prod):
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.deleteProductionsCont',[prod], False)
     return result
-  
+
   #############################################################################
   def updateStep( self, dict ):
     if dict.has_key( 'StepId' ):
@@ -333,14 +333,14 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     data_taking_conditions.SPD_PRS, data_taking_conditions.ECAL, data_taking_conditions.HCAL, data_taking_conditions.MUON, data_taking_conditions.L0, data_taking_conditions.HLT,\
      data_taking_conditions.VeloPosition from simulationConditions,data_taking_conditions,newbookkeepingView where \
       newbookkeepingview.simid=simulationConditions.simid(+) and \
-      newbookkeepingview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)'+condition 
-      
-      
+      newbookkeepingview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)'+condition
+
+
     return self.dbR_._query(command)
-  
+
   #############################################################################
   def getProcessingPass(self, configName, configVersion, conddescription, runnumber, production, path='/'):
-    
+
     erecords = []
     eparameters = []
     precords = []
@@ -386,7 +386,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         eventTypes.EventTypeId=newbookkeepingview.eventtypeid and \
         productionscontainer.processingid=processing.id and \
         processing.id in (%s) %s'%(pro,condition)
-        
+
       retVal = self.dbR_._query(command)
       if retVal['OK']:
         eparameters = ['EventTypeId', 'Description']
@@ -394,7 +394,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
           erecords += [[record[0], record[1]]]
       else:
         return retVal
-      
+
       command = 'SELECT distinct name \
       FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
       productionscontainer.production=newbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
@@ -536,7 +536,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       command = "select distinct pcont.production from productionscontainer pcont,newbookkeepingview bview where \
                  bview.production=pcont.production "+condition
     return self.dbR_._query(command)
-  
+
   #############################################################################
   def getFileTypes( self, configName, configVersion, conddescription = default, processing = default, evt = default, runnb = default, production = default ):
 
@@ -585,7 +585,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       command = "select distinct ftypes.name  from productionscontainer pcont, newbookkeepingview bview,  filetypes ftypes where \
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
     return self.dbR_._query(command)
-  
+
   #############################################################################
   def getFiles( self, configName, configVersion, conddescription = default, processing = default, evt = default, production = default, filetype = default, quality = default, runnb = default ):
     condition = ''
@@ -601,12 +601,12 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         condition += retVal['Value']
       else:
         return retVal
-    
+
     tables = ''
     if evt != default:
       condition += ' and v.production=prod.production and v.eventtypeid=%s and f.eventtypeid=%s'%(str(evt),str(evt))
-      tables+= ', newbookkeepingview v' 
-    
+      tables+= ', newbookkeepingview v'
+
     if production != default:
       condition += ' and j.production=' + str( production )
 
@@ -668,8 +668,8 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     f.visibilityFlag='Y' and \
     j.configurationid=c.configurationid and j.production=prod.production %s" %(tables,condition)
     return self.dbR_._query(command)
-  
-  #############################################################################  
+
+  #############################################################################
   def getAvailableDataQuality(self):
     command = ' select dataqualityflag from dataquality'
     retVal = self.dbR_._query( command )
@@ -762,8 +762,8 @@ class OracleBookkeepingDB( IBookkeepingDB ):
   #############################################################################
   def getRunNbAndTck(self, lfn):
     return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunNbAndTck',[lfn])
-             
-  
+
+
   #############################################################################
   def getProductionFiles(self, prod, ftype, gotreplica='ALL'):
     command = ''
@@ -821,7 +821,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     if dict.has_key( 'Replica' ):
       gotreplica = dict['Replica']
       condition += 'and files.gotreplica=\''+str(gotreplica)+'\''
-    
+
     command = ''
     tables = ''
     if dict.has_key( 'DataQuality' ):
@@ -1022,7 +1022,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       return S_ERROR( retVal['Message'] )
 
     qid = retVal['Value']
-    
+
     utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     command = ' update files set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.runnumber='+str(runNb)+')'
@@ -1032,7 +1032,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     command = 'select files.filename from jobs, files where jobs.jobid=files.jobid and \
       jobs.runnumber='+str(runNb)
-    
+
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR( retVal['Message'] )
@@ -1061,17 +1061,17 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       return S_ERROR( retVal['Message'] )
 
     qid = retVal['Value']
-    
+
     utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     command = ' update files set inserttimestamp=TO_TIMESTAMP(\''+str(utctime)+'\',\'YYYY-MM-DD HH24:MI:SS\'), qualityId='+str(qid)+' where fileid in ( select files.fileid from jobs, files where jobs.jobid=files.jobid and \
       jobs.production='+str(prod)+')'
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
       return S_ERROR(retVal['Message'])
-    
+
     command = 'select files.filename from jobs, files where jobs.jobid=files.jobid and \
       jobs.production='+str(prod)
-    
+
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
       return S_ERROR( retVal['Message'] )
@@ -1252,7 +1252,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       odepth = depth
     else:
       odepth = depth + 1
-    
+
     tables = ''
     condition = ''
     gLogger.debug('original',lfn)
@@ -1454,7 +1454,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
                  'WNCPUHS06': 0, \
                  'TotalLuminosity':0, \
                  'Tck':'None'}
-    
+
     for param in job:
       if not attrList.__contains__( param ):
         gLogger.error( "insert job error: ", " the job table not contains " + param + " this attributte!!" )
@@ -1471,14 +1471,14 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         attrList[param] = timestamp
       else:
         attrList[param] = job[param]
-   
+
     try:
-      conv = int(attrList['Tck']) 
+      conv = int(attrList['Tck'])
       attrList['Tck'] = str(hex(conv))
     except ValueError:
-      pass #it is already defined      
-      
-      
+      pass #it is already defined
+
+
     result = self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertJobsRow',LongType,[ attrList['ConfigName'], attrList['ConfigVersion'], \
                   attrList['DiracJobId'], \
                   attrList['DiracVersion'], \
@@ -1504,7 +1504,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
                   attrList['FillNumber'], \
                   attrList['WNCPUHS06'], \
                   attrList['TotalLuminosity'], \
-                  attrList['Tck'] ])           
+                  attrList['Tck'] ])
     return result
 
   #############################################################################
@@ -1598,14 +1598,14 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         if res['OK']:
           res = self.deleteInputFiles(jobID)
           res = self.deleteJob(jobID)
-          if res['OK']:        
+          if res['OK']:
             result['Succesfull']=file
           else:
             result['Failed']=file
       else:
         result['Failed']=file
-      
-    return S_OK(result)    
+
+    return S_OK(result)
   '''
 
   #############################################################################
@@ -1765,7 +1765,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
                            from jobs,files where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid='+str(ftypeId)+' and \
-                           jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
+                           jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem)
     else:
 
       command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp, luminosity, instLuminosity from \
@@ -1774,8 +1774,8 @@ class OracleBookkeepingDB( IBookkeepingDB ):
                            from jobs,files,filetypes where \
                            jobs.jobid=files.jobid and \
                            files.filetypeid=filetypes.filetypeid and \
-                           jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem) 
-   
+                           jobs.production='+str(prod)+' Order by files.filename) where rownum <='+str(Maxitems)+ ') where rnum >'+str(StartItem)
+
     res = self.dbR_._query(command)
     if res['OK']:
       dbResult = res['Value']
@@ -1985,8 +1985,8 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         f.gotreplica='Yes' and \
         bview.programname= j.programname and \
         bview.programversion= j.programversion and \
-        bview.production = prod.production" + conditions 
-    
+        bview.production = prod.production" + conditions
+
     command += "group by bview.configname, bview.configversion, sim.simdescription, v.Path, bview.eventtypeid, bview.description, bview.production, ftypes.name"
     retVal = self.dbR_._query( command )
     if not retVal['OK']:
@@ -2148,7 +2148,7 @@ and files.qualityid= dataquality.qualityid'
             files = retVal['Value']
             successful = files['Successful']
             failed = files['Failed']
-            if len(successful[successful.keys()[0]]) == 0: 
+            if len(successful[successful.keys()[0]]) == 0:
               ok = False
           if ok:
             processedRuns += [i]
@@ -2177,7 +2177,7 @@ and files.qualityid= dataquality.qualityid'
     if retVal['OK']:
       processingid = retVal['Value']
       command = 'select distinct bview.production  from newbookkeepingview bview, productionscontainer prod where \
-      bview.runnumber='+str(run)+' and bview.production>0 and bview.production=prod.production and prod.processingid='+str(processingid) 
+      bview.runnumber='+str(run)+' and bview.production>0 and bview.production=prod.production and prod.processingid='+str(processingid)
       retVal = self.dbR_._query(command)
       return retVal
     return S_ERROR()
@@ -2594,11 +2594,11 @@ and files.qualityid= dataquality.qualityid'
         condition += sim_dq_conditions
       else:
         return retVal
-    
+
     tables = ''
     if evt != default:
       condition += ' and f.eventtypeid=%s'%(evt)
-            
+
     if production != default:
       condition += ' and j.production=' + str( production )
 
@@ -2633,8 +2633,8 @@ and files.qualityid= dataquality.qualityid'
             quality = res['Value'][0][0]
           conds += ' f.qualityid='+str(quality)+' or'
         condition += 'and'+conds[:-3] + ')'
-      condition += ' and d.qualityid=f.qualityid '  
-      
+      condition += ' and d.qualityid=f.qualityid '
+
     if processing != default:
       command = "select distinct prod.processingid from productionscontainer prod where \
            prod.processingid in (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
@@ -2649,9 +2649,9 @@ and files.qualityid= dataquality.qualityid'
         pro += "%s," % ( str( i[0] ) )
       pro = pro[:-1]
       pro += (')')
-      
+
       condition += " and prod.processingid in %s"%(pro)
-    
+
     command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from files f, jobs j, productionscontainer prod, configurations c, filetypes ftypes %s  where \
     j.jobid=f.jobid and \
     ftypes.filetypeid=f.filetypeid and \
@@ -2659,7 +2659,7 @@ and files.qualityid= dataquality.qualityid'
     f.visibilityflag='Y' and \
     j.configurationid=c.configurationid and j.production=prod.production %s"%(tables,condition)
     return self.dbR_._query(command)
-  
+
   #############################################################################
   def getLimitedFiles( self, configName, configVersion, conddescription = default, processing = default, evt = default, production = default, filetype = default, quality = default, runnb = default, startitem = 0, maxitems = 10 ):
 
@@ -2676,12 +2676,12 @@ and files.qualityid= dataquality.qualityid'
         condition += retVal['Value']
       else:
         return retVal
-    
+
     tables = ''
     if evt != default:
       tables += ' , newbookkeepingview v '
       condition += ' and v.production=prod.production and v.eventtypeid=%s and f.eventtypeid=%s'%(str(evt),str(evt))
-      
+
     if production != default:
       condition += ' and j.production=' + str( production )
 
@@ -2746,7 +2746,7 @@ and files.qualityid= dataquality.qualityid'
     f.visibilityflag='Y' and \
     j.configurationid=c.configurationid and j.production=prod.production %s) where rownum <=%d ) where r >%d"%(tables, condition, int(maxitems),int(startitem))
     return self.dbR_._query(command)
-  
+
   #############################################################################
   def getDataTakingCondId( self, condition ):
     command = 'select DaqPeriodId from data_taking_conditions where '
@@ -2864,8 +2864,13 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def __insertprocessing(self, values, parentid=None, ids = []):
+
     for i in values:
-      command = "select id from processing where name='%s'" % ( i )
+      command = ''
+      if parentid != None:
+        command = "select id from processing where name='%s' and parentid=%s" % ( i, parentid )
+      else:
+        command = "select id from processing where name='%s' and parentid is null" % ( i )
       retVal = self.dbR_._query( command )
       if retVal['OK']:
         if len( retVal['Value'] ) == 0:
@@ -2892,19 +2897,20 @@ and files.qualityid= dataquality.qualityid'
               command = "insert into processing(id,parentid,name)values(%d,null,'%s')"%(id,i)
               retVal = self.dbW_._query(command)
               if not retVal['OK']:
-                gLogger.error(retVal['Message'])  
+                gLogger.error(retVal['Message'])
               values.remove(i)
               self.__insertprocessing(values, id, ids)
         else:
+
           values.remove(i)
           parentid = retVal['Value'][0][0]
           ids += [parentid]
           self.__insertprocessing(values,parentid, ids)
-    
-  
+
+
   #############################################################################
   def addProcessing(self, path):
-    
+
     lastindex = len(path)-1
     retVal = self.__getPassIds(path[lastindex])
     stepids = []
@@ -2919,11 +2925,11 @@ and files.qualityid= dataquality.qualityid'
       else:
         for i in ids:
           procs = self.__getprocessingid(i)
-          if len(procs)>0: 
+          if len(procs)>0:
             if self.__checkprocessingpass(path, procs):
-              return S_OK(ppp[len(ppp)-1][4])       
+              return S_OK(ppp[len(ppp)-1][4])
         newpath = list(path)
-        self.__insertprocessing(newpath, None, stepids) 
+        self.__insertprocessing(newpath, None, stepids)
         return S_OK(stepids[-1:])
     return S_ERROR()
 
@@ -2958,7 +2964,7 @@ and files.qualityid= dataquality.qualityid'
     if inputproc != '':
       if inputproc[0] != '/': inputproc = '/'+inputproc
       path = inputproc.split('/')[1:]
-    
+
     for i in steps:
       if i['Visible']=='Y':
         res = self.getAvailableSteps({'StepId':i['StepId']})
@@ -2969,8 +2975,8 @@ and files.qualityid= dataquality.qualityid'
           procpas = res['Value'][0][9]
           path += [procpas]
         else:
-          return S_ERROR('This step is missing')    
-    
+          return S_ERROR('This step is missing')
+
     if len(path) == 0:
       return S_ERROR('You have to define the input processing pass or you have to have a visible step!')
     processingid = None
@@ -3046,7 +3052,7 @@ and files.qualityid= dataquality.qualityid'
                                         FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
                                         CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
                        )"%(procpass.split('/')[1], procpass)
-    
+
     if cond!=default:
       retVal = self._getConditionString(cond,'prod')
       if retVal['OK']:
@@ -3063,7 +3069,7 @@ and files.qualityid= dataquality.qualityid'
                where \
               cont.stepid=s.stepid and \
               prod.production=cont.production %s order by cont.step"%(condition)
-  
+
     retVal = self.dbR_._query(command)
     records = []
     #parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
@@ -3097,13 +3103,13 @@ and files.qualityid= dataquality.qualityid'
                                         FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
                                         CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
                        )"%(procpass.split('/')[1], procpass)
-    
+
     command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion, s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step \
                 from steps s, productionscontainer prod, stepscontainer cont \
                where \
               cont.stepid=s.stepid and \
               prod.production=cont.production %s and prod.production=%dorder by cont.step"%(condition,prod)
-  
+
     retVal = self.dbR_._query(command)
     records = []
     #parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
@@ -3118,13 +3124,13 @@ and files.qualityid= dataquality.qualityid'
         nb += 1
     else:
       return retVal
-    
+
     return S_OK({'Parameters':parametersNames,'Records':processing, 'TotalRecords':nb})
-  
+
   #############################################################################
   def getRuns(self, cName, cVersion):
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRuns', [cName, cVersion])
-  
+
   #############################################################################
   def getRunProcPass(self, runnb):
     command = "select * from table (BOOKKEEPINGORACLEDB.getRunProcPass(%d))"%(runnb)
