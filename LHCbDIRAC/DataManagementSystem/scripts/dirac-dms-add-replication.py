@@ -244,11 +244,6 @@ if __name__ == "__main__":
       #print "Transformation %d created" % result['Value']
       print "Name:", transName, ", Description:", longName
       print "Transformation body:", transBody
-      if transBKQuery:
-        print "BK Query:", transBKQuery
-        print nfiles, "files found for that query"
-        for dir in dirs.keys():
-          print dir, dirs[dir], "files"
       print "Plugin:", plugin
       if pluginParams:
         print "Additional parameters:", pluginParams
