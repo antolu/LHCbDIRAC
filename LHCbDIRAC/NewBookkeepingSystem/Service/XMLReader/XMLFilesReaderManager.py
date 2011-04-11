@@ -6,17 +6,18 @@
 
 """
 
-from xml.dom.minidom                                                                    import parse, parseString
+from xml.dom.minidom                                                                       import parse, parseString
 from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.JobReader                            import JobReader
 from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
-from DIRAC                                                                              import gLogger, S_OK, S_ERROR
+from DIRAC.ConfigurationSystem.Client.Config                                               import gConfig
+from DIRAC                                                                                 import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.NewBookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
 #from DIRAC.NewBookkeepingSystem.Client.BookkeepingClient                                  import BookkeepingClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager                                   import ReplicaManager
+from DIRAC.DataManagementSystem.Client.ReplicaManager                                      import ReplicaManager
 from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.Job.FileParam                        import FileParam
 from LHCbDIRAC.NewBookkeepingSystem.Service.XMLReader.Job.JobParameters                    import JobParameters
 from LHCbDIRAC.NewBookkeepingSystem.DB.DataTakingConditionInterpreter                      import *
-import re
+import os,sys,datetime,re
 
 __RCSID__ = "$Id$"
 
@@ -120,6 +121,7 @@ class XMLFilesReaderManager:
 
       params = file.getFileParams()
       evtExists = False
+      runExists = False
       for param in params:
         paramName = param.getParamName()
 
@@ -183,33 +185,40 @@ class XMLFilesReaderManager:
       infiles = job.getJobInputFiles()
       if not job.exists( 'RunNumber' ) and len( infiles ) > 0:
         fileName = infiles[0].getFileName()
-        retVal = dataManager_.getRunNumber( fileName )
-
+        retVal = dataManager_.getRunNbAndTck(fileName)
+        
         if not retVal['OK']:
-          return S_ERROR( retVal['Message'] )
-        runnumber = retVal['Value']
-
-        if runnumber != None:
-          newJobParams = JobParameters()
-          newJobParams.setName( 'RunNumber' )
-          newJobParams.setValue( str( runnumber ) )
-          job.addJobParams( newJobParams )
-          prod = job.getParam( 'Production' ).getValue()
-
-          retVal = dataManager_.getProductionProcessingPass( prod )
-          if retVal['OK']:
-            proc = retVal['Value']
-
-            retVal = dataManager_.getRunFlag( runnumber, proc )
+          return S_ERROR(retVal['Message'])
+        if len(retVal['Value']) > 0:
+          runnumber = retVal['Value'][0][0]
+          tck = retVal['Value'][0][1]
+          if not job.exists('Tck'):
+            newJobParams = JobParameters()
+            newJobParams.setName('Tck')
+            newJobParams.setValue(tck)
+            job.addJobParams(newJobParams)
+            
+          if runnumber != None: 
+            newJobParams = JobParameters()
+            newJobParams.setName('RunNumber')
+            newJobParams.setValue(str(runnumber))
+            job.addJobParams(newJobParams)
+            prod = job.getParam('Production').getValue()
+            
+            retVal = dataManager_.getProductionProcessingPass(prod)
             if retVal['OK']:
-              dqvalue = retVal['Value']
+              proc = retVal['Value']
+            
+              retVal = dataManager_.getRunFlag(runnumber, proc)
+              if retVal['OK']:
+                dqvalue = retVal['Value']
+              else:
+                dqvalue = None
+                gLogger.warn('The data quality working group did not checked the run!!')
             else:
               dqvalue = None
-              gLogger.warn( 'The data quality working group did not checked the run!!' )
-          else:
-            dqvalue = None
-            gLogger.warn( 'Bkk can not set the quality flag because the processing pass is missing!' )
-
+              gLogger.warn('Bkk can not set the quality flag because the processing pass is missing!')
+        
     inputfiles = job.getJobInputFiles()
     sumEventInputStat = 0
     sumEvtStat = 0
@@ -372,6 +381,7 @@ class XMLFilesReaderManager:
     config = job.getJobConfiguration()
 
     jobsimcondtitions = job.getSimulationCond()
+    simulations = {}
     production = None
 
     condParams = job.getDataTakingCond()
@@ -427,21 +437,25 @@ class XMLFilesReaderManager:
       retVal = dataManager_.getStepIdandNameForRUN( programName, programVersion )
 
       if not retVal['OK']:
-        return S_ERROR( retVal['Message'] )
-      steps = {'Steps':[{'StepId':retVal['Value'][0], 'StepName':retVal['Value'][1], 'Visible':'Y'}]}
-      gLogger.debug( 'Pass_indexid', steps )
-      gLogger.debug( 'Data taking', dataTackingPeriodDesc )
-      gLogger.debug( 'production', production )
-
-      res = dataManager_.addProduction( production, simcond = None, daq = dataTackingPeriodDesc, steps = steps['Steps'], inputproc = '' )
-
+        return S_ERROR(retVal['Message'])
+      steps = {'Steps':[{'StepId':retVal['Value'][0],'StepName':retVal['Value'][1], 'ProcessingPass':retVal['Value'][1], 'Visible':'Y'}]}
+      gLogger.debug('Pass_indexid', steps)
+      gLogger.debug('Data taking', dataTackingPeriodDesc)
+      gLogger.debug('production', production)
+      
+      
+      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodDesc, steps=steps['Steps'], inputproc='')
+      
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )
         gLogger.info( "New production is:", production )
       else:
-        gLogger.error( 'Unable to create processing pass!', res['Message'] )
-        return S_ERROR( 'Unable to create processing pass!' )
-
+        retVal = dataManager_.deleteSetpContiner(production)
+        if not retVal['OK']:
+          return retVal
+        gLogger.error('Unable to create processing pass!',res['Message'])
+        return S_ERROR('Unable to create processing pass!')
+      
 
     attrList = {'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \
@@ -468,7 +482,12 @@ class XMLFilesReaderManager:
     if production != None: # for the online registration
       attrList['Production'] = production
 
-    res = dataManager_.insertJob( attrList )
+    res = dataManager_.insertJob(attrList)
+  
+    if not res['OK'] and production < 0:
+      retVal = dataManager_.deleteProductionsContiner(production)
+      if not retVal['OK']:
+        gLogger.error(retVal['Message'])
     return res
 
   #############################################################################
@@ -499,6 +518,7 @@ class XMLFilesReaderManager:
 
     replicaFileName = ""
     for param in params:
+      name = param.getName()
       replicaFileName = param.getFile()
       location = param.getLocation()
       delete = param.getAction() == "Delete"

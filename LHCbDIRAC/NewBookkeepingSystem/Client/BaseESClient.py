@@ -6,7 +6,7 @@
  Base Entity System client
 """
 
-from DIRAC                                                                   import S_ERROR
+from DIRAC                                                                      import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.NewBookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.BaseESManager                        import BaseESManager
 

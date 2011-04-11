@@ -4,7 +4,7 @@
 
 """
 """
-from DIRAC                                                               import gLogger
+from DIRAC                                                               import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.NewBookkeepingSystem.Client                               import IndentMaker
 from UserDict                                                            import UserDict
 
@@ -107,7 +107,7 @@ class Entity( dict ):
       s  = "{"
       keys = self.keys()
       for key in keys:
-        #if key == 'fullpath':
+        #if key == 'fullpath':    
           s += "\n " + str(key) + " : "
           value = self[key]
 
@@ -117,8 +117,8 @@ class Entity( dict ):
             #childrenString += str(Entity(child)) + "\n"
           else:
              s +=  str(value)
-          s += "\n}"
-     #        s = IndentMaker.prepend(s, "_______")
+          s += "\n}"                
+     #        s = IndentMaker.prepend(s, "_______")                
     return s
   """
   def __repr__( self ):

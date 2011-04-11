@@ -7,8 +7,8 @@
  Interface for entity system managers
 """
 
-from DIRAC                                                               import gLogger
-from LHCbDIRAC.NewBookkeepingSystem.Client.IEntitySystemStateless           import IEntitySystemStateless
+from DIRAC                                                                  import gLogger, S_OK, S_ERROR
+from LHCbDIRAC.NewBookkeepingSystem.Client.IEntitySystemStateless           import IEntitySystemStateless  
 
 __RCSID__ = "$Id$"
 

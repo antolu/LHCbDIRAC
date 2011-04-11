@@ -13,11 +13,11 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 
-import string
+import time, string
 
 #############################################################################
 def getFileAncestors( inputData, ancestorDepth ):

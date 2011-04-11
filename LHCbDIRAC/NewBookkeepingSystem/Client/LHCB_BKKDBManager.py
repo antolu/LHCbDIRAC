@@ -14,6 +14,7 @@ from LHCbDIRAC.NewBookkeepingSystem.Client.Help                                 
 from DIRAC.DataManagementSystem.Client.ReplicaManager                           import ReplicaManager
 import os
 import types
+import sys
 
 __RCSID__ = "$Id$"
 
@@ -216,7 +217,7 @@ class LHCB_BKKDBManager( BaseESManager ):
           result = type( long( i ) ) == types.LongType
           if start and result:
             end = True
-        except Exception:
+        except Exception, ex:
           pass #print 'i',ex
         if start and not end:
           level = startlevel
@@ -241,7 +242,7 @@ class LHCB_BKKDBManager( BaseESManager ):
           result = type( long( i ) ) == types.LongType
           if start and result:
             end = True
-        except Exception:
+        except Exception, ex:
           pass #print 'i',ex
         if start and not end:
           level = startlevel
@@ -265,8 +266,8 @@ class LHCB_BKKDBManager( BaseESManager ):
         level += 1
         try:
           result = ( type( long( i ) ) == types.LongType )
-        except Exception:
-          result = i in self.__filetypes
+        except Exception, ex:
+           result = i in self.__filetypes
         if start and result:
             end = True
         if start and not end:
@@ -339,6 +340,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_0( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "-----------------------------------------------------------" )
     gLogger.debug ( "Configurations names:" )
     gLogger.debug ( "-----------------------------------------------------------" )
@@ -362,6 +364,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_1( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing configversions" )
     dict = {'ConfigName': processedPath[0]}
     gLogger.debug( "-----------------------------------------------------------" )
@@ -388,6 +391,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_2( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing Simulation Conditions!" )
     dict = {'ConfigName': processedPath[0],
             'ConfigVersion':processedPath[1]}
@@ -436,6 +440,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_3( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing processing pass" )
     dict = {'ConfigName': processedPath[0],
             'ConfigVersion':processedPath[1],
@@ -476,6 +481,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_4( self, path, levels, processedPath, procpass ):
+    entityList = list()
 
     gLogger.debug( "listing event types" )
     r = procpass.split( '/' )[1:]
@@ -510,6 +516,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_5( self, path, levels, processedPath, procpass ):
+    entityList = list()
 
     gLogger.debug( "listing event types" )
     r = procpass.split( '/' )[1:]
@@ -547,6 +554,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def clevelHeader_6( self, path, levels, processedPath, procpass ):
+    entityList = list()
     gLogger.debug( "listing event types" )
 
     r = procpass.split( '/' )[1:]
@@ -591,8 +599,9 @@ class LHCB_BKKDBManager( BaseESManager ):
     result = self.__getFiles( dict, SortDict, StartItem, Maxitems )
     for record in result['Records']:
       value = {'name':record[0], 'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
-               'FileType':dict['FileType'], 'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11], 'EventTypeId':dict['EventTypeId'],
-               'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15]}
+               'FileType':dict['FileType'], 'EventTypeId':dict['EventTypeId'], 'RunNumber':record[9], 'FillNumber':record[10], 'FullStat':record[11], 'DataqualityFlag':record[12], 
+               'EventInputStat':record[13], 'TotalLuminosity':record[14], 'Luminosity':record[15], 'InstLuminosity':record[16]}
+  
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath( path, value, levels, 'List of files', dict, 'getFiles' )]
     self._cacheIt( entityList )
@@ -701,7 +710,7 @@ class LHCB_BKKDBManager( BaseESManager ):
             j += 1
           entityList += [self._getSpecificEntityFromPath( path, value, record[1], levels, None, 'Simulation Conditions/DataTaking', dict, 'getConditions' )]
         self._cacheIt( entityList )
-
+        
     else:
       gLogger.error( result['Message'] )
 
@@ -853,6 +862,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def plevelHeader_0( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "-----------------------------------------------------------" )
     gLogger.debug ( "productions:" )
     gLogger.debug ( "-----------------------------------------------------------" )
@@ -877,6 +887,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def plevelHeader_2( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing eventtype" )
 
     dict = {'Production':processedPath[0]}
@@ -910,6 +921,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def plevelHeader_3( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing file types" )
     dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1]}
     gLogger.debug( "-----------------------------------------------------------" )
@@ -935,6 +947,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def plevelHeader_4( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing file types" )
     dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
 
@@ -965,6 +978,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     return entityList
 
   def rlevelHeader_0( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "-----------------------------------------------------------" )
     gLogger.debug ( "Runs:" )
     gLogger.debug ( "-----------------------------------------------------------" )
@@ -989,6 +1003,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def rlevelHeader_2( self, path, levels, processedPath ):
+    entityList = list()
     gLogger.debug( "listing processing pass" )
     dict = {'RunNumber':processedPath[0]}
     gLogger.debug( "-----------------------------------------------------------" )
@@ -1025,6 +1040,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def rlevelHeader_3( self, path, levels, processedPath, procpass ):
+    entityList = list()
     gLogger.debug( "listing eventtypes" )
     r = procpass.split( '/' )[1:]
     for i in r:
@@ -1048,7 +1064,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult['Records']:
-        entityList += [self._getEntityFromPath( path, record[0], levels, 'FileTypes', dict, 'getFileTypes' )]
+         entityList += [self._getEntityFromPath( path, record[0], levels, 'FileTypes', dict, 'getFileTypes' )]
       self._cacheIt( entityList )
     else:
         gLogger.error( result['Message'] )
@@ -1057,6 +1073,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def rlevelHeader_4( self, path, levels, processedPath, procpass ):
+    entityList = list()
     gLogger.debug( "listing file types" )
     r = procpass.split( '/' )[1:]
     for i in r:
@@ -1243,6 +1260,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     except:
       # not cached so far
       gLogger.debug( str( path ) + " not in cache. Fetching..." )
+      entityList = self.list( self.mergePaths( path, ".." )['Value'] )
 
     # Second try
 
@@ -1271,6 +1289,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     if result['OK']:
       dbResult = result['Value']
       for record in dbResult:
+        prod = str( record[0] )
         value = {'DiracJobID':record[0], 'DiracVersion':record[1], 'EventInputStat':record[2], 'ExecTime':record[3], 'FirstEventNumber':record[4], \
                  'Location':record[5], 'Name':record[6], 'NumberofEvents':record[7], \
                   'StatisticsRequested':record[8], 'WNCPUPOWER':record[9], 'CPUTime':record[10], 'WNCACHE':record[11], 'WNMEMORY':record[12], 'WNMODEL':record[13], 'WORKERNODE':record[14], 'WNCPUHS06':record[15], 'TotalLuminosity':record[17]}
@@ -1362,6 +1381,7 @@ class LHCB_BKKDBManager( BaseESManager ):
         gLogger.error( res['Message'] )
       else:
         records = res['Value']['Records']
+        params = res['Value']['ParameterNames']
         totalrecords = records[0][0]
         nbOfEvents = records[0][1]
         filesSize = records[0][2]

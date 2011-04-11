@@ -6,6 +6,7 @@
 """
 
 from LHCbDIRAC.NewBookkeepingSystem.DB.IBookkeepingDB             import IBookkeepingDB
+from DIRAC                                                        import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"
 
@@ -155,9 +156,13 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getInputAndOutputJobFiles( jobids )
 
   #############################################################################
-  def getJobsIds( self, filelist ):
-    return self.getManager().getJobsIds( filelist )
-
+  def getInputAndOutputJobFiles(self, jobids):
+    return self.getManager().getInputAndOutputJobFiles(jobids)
+  
+  #############################################################################
+  def getJobsIds(self, filelist):
+    return self.getManager().getJobsIds(filelist)
+  
   #############################################################################
   def insertTag( self, name, tag ):
     return self.getManager().insertTag( name, tag )
@@ -315,9 +320,13 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getSizeOfFiles( prodid )
 
   #############################################################################
-  def getNbOfFiles( self, prodid ):
-    return self.getManager().getNbOfFiles( prodid )
-
+  def getSizeOfFiles(self, prodid):
+    return self.getManager().getSizeOfFiles(prodid)
+  
+  #############################################################################
+  def getNbOfFiles(self, prodid):
+    return self.getManager().getNbOfFiles(prodid)
+  
   #############################################################################
   def getProductionInformation( self, prodid ):
     return self.getManager().getProductionInformation( prodid )
@@ -395,9 +404,9 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getProductionSimulationCond( prod )
 
   #############################################################################
-  def getFilesWithGivenDataSets( self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible ):
-    return self.getManager().getFilesWithGivenDataSets( simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible )
-
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible, filesize):
+    return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible, filesize)
+  
   #############################################################################
   def getFilesWithGivenDataSetsForUsers( self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag ):
     return self.getManager().getFilesWithGivenDataSetsForUsers( simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag )
@@ -455,5 +464,33 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getRunQuality( procpass, flag )
 
   #############################################################################
-  def insertDataTakingCond( self, conditions ):
-    return self.getManager().insertDataTakingCond( conditions )
+  def insertDataTakingCond(self, conditions):
+    return self.getManager().insertDataTakingCond(conditions)
+  
+  #############################################################################
+  def deleteSetpContiner(self, prod):
+    return self.getManager().deleteSetpContiner(prod)
+  
+  #############################################################################
+  def getRunNbAndTck(self, lfn):
+    return self.getManager().getRunNbAndTck(lfn)
+  
+  #############################################################################
+  def deleteProductionsContiner(self, prod):
+    return self.getManager().deleteProductionsContiner(prod)
+  
+  #############################################################################
+  def insertEventTypes(self, evid, desc, primary):
+    return self.getManager().insertEventTypes(evid, desc, primary)
+  
+  #############################################################################
+  def updateEventType(self, evid, desc, primary):
+    return self.getManager().updateEventType(evid, desc, primary)
+  
+  #############################################################################
+  def getRuns(self, cName, cVersion):
+    return self.getManager().getRuns(cName, cVersion)
+  
+  #############################################################################
+  def getRunProcPass(self, runnb):
+    return self.getManager().getRunProcPass(runnb)

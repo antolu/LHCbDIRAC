@@ -11,10 +11,12 @@ dict = {'EventTypeId': 93000000,
         'Production':7421
          }
 """
-from DIRAC                           import S_OK, S_ERROR
+import DIRAC
+from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-import types, cPickle, tempfile
+from DIRAC.Core.Utilities            import DEncode
+import types,cPickle,os, tempfile
 
 
 __RCSID__ = "$Id$"
@@ -444,6 +446,10 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.addReplica( fileName )
 
+  #############################################################################
+  def removeReplica(self, fileName):
+    server = self.__getServer()
+    return server.removeReplica(fileName)
 
   #############################################################################
   def getRunInformations( self, runnb ):
@@ -585,7 +591,13 @@ class BookkeepingClient:
     server = self.__getServer()
     result = server.getAvailableConfigurations()
     return result
-
+  
+  #######################################################################################################################################################################################################################################
+  def getMoreProductionInformations(self, prodid):
+    server = self.__getServer()
+    result = server.getMoreProductionInformations(int(prodid))
+    return result
+  
   #############################################################################
   def getProductionProcessingPassID( self, prodid ):
     server = self.__getServer()
@@ -656,3 +668,17 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getRunQuality( procpass, flag )
 
+  #############################################################################
+  def getRunNbAndTck(self, lfn):
+    server = self.__getServer()
+    return server.getRunNbAndTck(lfn)
+  
+  #############################################################################
+  def getRuns(self, dict):
+    server = self.__getServer()
+    return server.getRuns(dict)
+  
+  #############################################################################
+  def getRunProcPass(self, dict):
+    server = self.__getServer()
+    return server.getRunProcPass(dict)

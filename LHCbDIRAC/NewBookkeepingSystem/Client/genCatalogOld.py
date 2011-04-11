@@ -138,8 +138,8 @@ class Retriever( threading.Thread ):
             self.result = self.result + self.srv.catalogEntry( ff['replicas'], f, ff['type'], ff['guid'], 'FromCatalog' )
           else:
             print 'WARNING: file ', f, ' was not found in the LFC database.'
-            self.srv.incomplete['MissingLFNs'].append( f )
-      except KeyError:
+            self.srv.incomplete['MissingLFNs'].append(f)
+      except KeyError, X:
         if self.strict:
             print 'Processing error: file ', f, ' was not found in the LFC database.'
             self.srv.incomplete['MissingLFNs'].append( f )
@@ -626,7 +626,9 @@ class Bookkeeping:
     return self.catalog
   """
 
-  def gaudiCatalogFromLFNs( self, files, strict, depth = 1 ):
+  def gaudiCatalogFromLFNs(self, files, strict, depth=1):
+    import time
+    srv = self.server
     fids = {}
     catalog = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     catalog = catalog + '<!-- GaudiPoolCatalog: Edited By Gaudi Bookkeeping tools -->\n'
@@ -636,6 +638,7 @@ class Bookkeeping:
     count = 0
     prev = None
     threaded = 0
+    start = time.time()
     for ff in files:
       """extention=ff[ff.rfind('.')+1:]
       if string.upper(extention) in ('DST','DIGI','SIM','RDST'):
@@ -647,7 +650,8 @@ class Bookkeeping:
       """
       fids[ff] = {'type':'ROOT_ALL', 'replicas':{}, 'guid':''}
       count = count + 1
-      if ( ( count % 500 ) == 0 or count == length ):
+      if ( (count % 500) == 0 or count == length ):
+        start2 = time.time()
         if threaded:
           t = Retriever( self, fids, strict, depth )
           fids = {}
@@ -673,7 +677,9 @@ class Bookkeeping:
     return self.catalog
 
 
-  def gaudiCatalog( self, files, strict, depth = 1 ):
+  def gaudiCatalog(self, files, strict, depth=1):
+    import time
+    srv = self.server
     fids = {}
     catalog = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     catalog = catalog + '<!-- GaudiPoolCatalog: Edited By Gaudi Bookkeeping tools -->\n'
@@ -683,6 +689,7 @@ class Bookkeeping:
     count = 0
     prev = None
     threaded = 0
+    start = time.time()
     for ff in files:
       fname = ff[0]
       if fname[0:4] == 'LFN:':
@@ -700,7 +707,8 @@ class Bookkeeping:
         continue
       fids[fname] = {'type':ff[1], 'replicas':{}, 'guid':''}
       count = count + 1
-      if ( ( count % 500 ) == 0 or count == length ):
+      if ( (count % 500) == 0 or count == length ):
+        start2 = time.time()
         if threaded:
           t = Retriever( self, fids, strict, depth )
           fids = {}
@@ -765,11 +773,11 @@ def getAncestors( LFNs, depth = 1 ):
     result = S_OK()
     result['PFNs'] = obj.getAncestors( LFNs, depth )
     return result
-  except Exception:
-    sf = StringFile()
-    traceback.print_exc( file = sf )
-    err_msg = S_ERROR( sf.read() )
-    err_msg['call'] = '\n command:  getAncestors(' + str( LFNs ) + ',' + str( depth ) + ')'
+  except Exception,x:
+    sf=StringFile()
+    traceback.print_exc(file=sf)
+    err_msg=S_ERROR(sf.read())
+    err_msg['call']='\n command:  getAncestors('+str(LFNs)+','+str(depth)+')'
     return err_msg
 
 

@@ -49,20 +49,21 @@ print 'Do you want to add this new file type? (yes or no)'
 value = raw_input( 'Choice:' )
 choice = value.lower()
 if choice in ['yes', 'y']:
+  
+  fileTypesList = gConfig.getValue( filetypeSection, [] )
+  if not fileTypesList:
+    print 'ERROR: Could not get value for %s' % ( filetypeSection )
+    DIRAC.exit( 255 )
+
+  if ftype.upper() in fileTypesList:
+    print '==> %s already in %s' % ( ftype, filetypeSection )
+  else:
+    fileTypesList.append( ftype.upper() )
+    changeCS( filetypeSection, fileTypesList )
+    modifiedCS = True
   res = bk.insertFileTypes( ftype.upper(), desc )
   if res['OK']:
     print 'The file types added successfully!'
-    fileTypesList = gConfig.getValue( filetypeSection, [] )
-    if not fileTypesList:
-      print 'ERROR: Could not get value for %s' % ( filetypeSection )
-      DIRAC.exit( 255 )
-
-    if ftype.upper() in fileTypesList:
-      print '==> %s already in %s' % ( ftype, filetypeSection )
-    else:
-      fileTypesList.append( ftype.upper() )
-      changeCS( filetypeSection, fileTypesList )
-      modifiedCS = True
   else:
     print "Error discovered!", res['Message']
 elif choice in ['no', 'n']:
