@@ -828,18 +828,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__simpleReplication( destSEs, [], numberOfCopies )
 
   def _ArchiveDataset( self ):
-    archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive1SEs = self.params.get( 'Archive1SEs', [] )
+    archive2SEs = self.params.get( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     archive1SEs = self.__getListFromString( archive1SEs )
-    archive2SEs = self.__getListFromString( archive2SEs )
+    archive2SEs = [se for se in self.__getListFromString( archive2SEs ) if se not in archive1SEs]
     archive1ActiveSEs = self.__getActiveSEs( archive1SEs )
     if not archive1ActiveSEs:
       archive1ActiveSEs = archive1SEs
     archive2ActiveSEs = self.__getActiveSEs( archive2SEs )
     if not archive2ActiveSEs:
       archive2ActiveSEs = archive2SEs
-    archive1SE = randomize( archive1ActiveSEs )[0]
-    return self.__simpleReplication( [archive1SE], archive2ActiveSEs, numberOfCopies = 2 )
+    if archive1ActiveSEs:
+      archive1SE = [randomize( archive1ActiveSEs )[0]]
+    else:
+      archive1SE = []
+    return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = 2 )
 
   def __getListFromString( self, s ):
     # Avoid using eval()... painful
@@ -956,6 +959,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check that the dataset exists at least at 2 keepSE
         if len( [se for se in replicaSE if se in keepSEs] ) < nKeep:
           gLogger.info( "Found %d files that are not in %d keepSEs, no removal done" % ( len( lfns ), nKeep ) )
+          gLogger.info( "... Here they are: %s" % str( lfns ) )
+          gLogger.info( "... and they are at %s" % str( replicaSE ) )
           self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
           continue
       existingSEs = [se for se in replicaSE if not se in keepSEs]
