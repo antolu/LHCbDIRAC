@@ -85,6 +85,7 @@ certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
 useOracle = eval( useOracle )
+express = eval( express )
 
 dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'

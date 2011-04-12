@@ -68,11 +68,8 @@ mergePlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRunWithFlush}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
 mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
-mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#protocol}}'
-
-#transformation params
-replicationFlag = '{{TransformationEnable#Replication: flag to enable True/False#True}}'
-transformationPlugin = '{{TransformationPlugin#Replication: plugin name#LHCbDSTBroadcast}}'
+mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
+mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -92,10 +89,11 @@ processingPass = '{{inProPass}}'
 eventType = '{{eventType}}'
 
 mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
-replicationFlag = eval( replicationFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
+useOracle = eval( useOracle )
+strippTransFlag = eval( strippTransFlag )
 
 strippEnabled = False
 mergingEnabled = False
@@ -124,16 +122,25 @@ elif twoSteps:
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
     strippOptions = '{{p1Opt}}'
+    if useOracle:
+      if not 'useoracle.py' in strippOptions.lower():
+        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
+
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
+    strippFileType = '{{inFileType}}'
 
     mergingEnabled = True
+    mergeApp = '{{p2App}}'
     mergeStep = int( '{{p2Step}}' )
     mergeName = '{{p2Name}}'
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
     mergeOptions = '{{p2Opt}}'
+    if useOracle:
+      if not 'useoracle.py' in mergeOptions.lower():
+        mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -154,8 +161,12 @@ elif oneStep:
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
     strippOptions = "{{p1Opt}}"
+    if useOracle:
+      if not 'useoracle.py' in strippOptions.lower():
+        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
+    strippFileType = '{{inFileType}}'
 
   else:
     gLogger.error( 'Stripping/streaming step is NOT daVinci and is %s' % oneStep )
@@ -170,7 +181,6 @@ if error:
 
 if certificationFlag or localTestFlag:
   testFlag = True
-  replicationFlag = False
   if certificationFlag:
     publishFlag = True
     mergingFlag = True
@@ -185,28 +195,25 @@ recoInputDataList = []
 strippInputDataList = []
 
 if not publishFlag:
-  strippTestData = 'LFN:/lhcb/data/2010/SDST/00008178/0000/00008178_00009199_1.sdst'
+  strippTestData = 'LFN:/lhcb/data/2010/SDST/00008375/0001/00008375_00016947_1.sdst'
   strippInputDataList.append( strippTestData )
+#  strippTestDataRAW = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/75338/075338_0000000069.raw'
+#  strippInputDataList.append( strippTestDataRAW )
   strippIDPolicy = 'protocol'
+  evtsPerJob = '2000'
   BKscriptFlag = True
 else:
-  strippIDPolicy = 'download'
   BKscriptFlag = False
-
-strippIDPolicy = 'protocol'
-
 
 if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
-  evtsPerJob = '1000'
-  startRun = '75346'
-  endRun = '75349'
+  startRun = '75336'
+  endRun = '75340'
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
-  processingPass = 'Real Data'
-  recofileType = 'RAW'
-  strippfileType = 'SDST'
+  processingPass = 'Reco08/Stripping12b'
+  strippFileType = 'SDST'
   eventType = '90000000'
 else:
   outBkConfigName = bkConfigName
@@ -230,7 +237,7 @@ if strippEnabled:
     gLogger.error( 'Error getting res from BKK: %s', strippInput['Message'] )
     DIRAC.exit( 2 )
 
-  strippInputList = [x[0] for x in strippInput['Value']['Records']]
+  strippInputList = [x[0].lower() for x in strippInput['Value']['Records']]
   if len( strippInputList ) == 1:
     strippInput = strippInputList[0]
   else:
@@ -243,11 +250,17 @@ if strippEnabled:
     DIRAC.exit( 2 )
 
   strippOutputList = [x[0].lower() for x in strippOutput['Value']['Records']]
+  if len( strippOutputList ) > 1:
+    strippType = 'stripping'
+    strippEO = strippOutputList
+  else:
+    strippType = strippOutputList[0]
+    strippEO = []
 
   strippInputBKQuery = {
                         'DataTakingConditions'     : dataTakingCond,
                         'ProcessingPass'           : processingPass,
-                        'FileType'                 : strippfileType,
+                        'FileType'                 : strippFileType,
                         'EventType'                : eventType,
                         'ConfigName'               : bkConfigName,
                         'ConfigVersion'            : bkConfigVersion,
@@ -288,16 +301,23 @@ if strippEnabled:
   production.setInputBKSelection( strippInputBKQuery )
   production.setDBTags( strippCDb, strippDDDb )
   production.setInputDataPolicy( strippIDPolicy )
+  production.setProdPlugin( strippPlugin )
 
-  if strippInput == 'SDST':
+  if strippInput.lower() == 'sdst':
     production.setAncestorDepth( 2 )
 
-  production.addDaVinciStep( strippVersion, "stripping", strippOptions, extraPackages = strippEP,
-                             inputDataType = strippInput.lower(), inputData = strippInputDataList, dataType = 'Data',
+  production.addDaVinciStep( strippVersion, strippType, strippOptions, eventType = eventType, extraPackages = strippEP,
+                             inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob, 
+                             dataType = 'Data',
                              outputSE = unmergedStreamSE,
-                             histograms = True, extraOutput = strippOutputList,
+                             histograms = True, extraOutput = strippEO,
                              stepID = strippStep, stepName = strippName, stepVisible = strippVisibility )
 
+  production.addFinalizationStep()
+  production.setProdGroup( prodGroup )
+  production.setProdPriority( stripp_priority )
+  production.setJobFileGroupSize( strippFilesPerJob )
+#  production.setFileMask(  )
 
 
   #################################################################################
@@ -414,9 +434,10 @@ if mergingEnabled:
   mergeProductionList = []
 
   for mergeStream in strippOutputList:
-    mergeSE = 'Tier1_M-DST'
 #    if mergeStream.lower() in onlyCERN:
 #      mergeSE = 'CERN_M-DST'
+
+    mergeStream = mergeStream.upper()
 
     #################################################################################
     # Merging BK Query
@@ -427,7 +448,7 @@ if mergingEnabled:
       gLogger.error( 'Error getting res from BKK: %s', mergeInput['Message'] )
       DIRAC.exit( 2 )
 
-    mergeInputList = [x[0] for x in mergeInput['Value']['Records']]
+    mergeInputList = [x[0].lower() for x in mergeInput['Value']['Records']]
 
     mergeOutput = BKClient.getStepOutputFiles( mergeStep )
     if not mergeOutput:
@@ -437,7 +458,7 @@ if mergingEnabled:
     mergeOutputList = [x[0].lower() for x in mergeOutput['Value']['Records']]
 
     if mergeInputList != mergeOutputList:
-      gLogger.error( 'MergeInput %s != mergeOutput %s', mergeInputList, mergeOutputList )
+      gLogger.error( 'MergeInput %s != mergeOutput %s' % ( mergeInputList, mergeOutputList ) )
       DIRAC.exit( 2 )
 
   #  if len( mergeInputList ) == 1:
@@ -459,7 +480,7 @@ if mergingEnabled:
     if int( endRun ):
       strippInputBKQuery['EndRun'] = int( endRun )
 
-    if mergeName.lower() == 'davinci':
+    if mergeApp.lower() == 'davinci':
       #below should be integrated in the ProductionOptions utility
       dvExtraOptions = "from Configurables import RecordStream;"
       dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
@@ -483,18 +504,18 @@ if mergingEnabled:
     mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
     mergeProd.setDBTags( mergeCDb, mergeDDDb )
 
-    if mergeName.lower() == 'davinci':
+    if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
                                 inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions,
-                                inputProduction = strippProdID, inputData = [], outputSE = mergeSE,
+                                inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
-    elif mergeName.lower() == 'lhcb':
+    elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
-                              inputDataType = mergeStream.lower(), outputSE = mergeSE,
+                              inputDataType = mergeStream.lower(), outputSE = mergedStreamSE,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
     else:
-      gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeName )
+      gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
       DIRAC.exit( 2 )
 
     mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
@@ -535,7 +556,7 @@ if mergingEnabled:
 
     else:
       prodID = 1
-      gLogger.info( 'MC production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+      gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 
