@@ -7,13 +7,13 @@ class DataStorage( BaseAccountingType ):
 
   def __init__( self ):
     BaseAccountingType.__init__( self )
-    self.definitionKeyFields = [ ( 'DataType' , "VARCHAR(32)" ),
-                                 ( 'Activity', "VARCHAR(32)" ),
+    self.definitionKeyFields = [ ( 'DataType' , "VARCHAR(64)" ),
+                                 ( 'Activity', "VARCHAR(64)" ),
                                  ( 'FileType', "VARCHAR(32)" ),
                                  ( 'Production', "INT UNSIGNED" ),
-                                 ( 'ProcessingPass', "VARCHAR(32)" ),
-                                 ( 'Conditions', "VARCHAR(32)" ),
-                                 ( 'EventType', "VARCHAR(32)" ),
+                                 ( 'ProcessingPass', "VARCHAR(64)" ),
+                                 ( 'Conditions', "VARCHAR(64)" ),
+                                 ( 'EventType', "VARCHAR(64)" ),
                                  ( 'StorageElement', "VARCHAR(32)" )
                                ]
     self.definitionAccountingFields = [ ( 'LogicalSize', 'BIGINT UNSIGNED' ),
