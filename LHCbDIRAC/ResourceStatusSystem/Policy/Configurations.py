@@ -217,7 +217,19 @@ Policies = {
 #      'Resource_Panel' : [ {'WebLink': {'Command': 'DT_Link', 
 #                                        'args': None}}
 #                      ]
-     },
+     },    
+  'HammerCloud' :
+    { 'Description' : "HammerCloud checks",
+      'Granularity' : ['Site'],
+      'Status' : ['Probing'],
+      'FormerStatus' : ValidStatus,
+      'SiteType' : ValidSiteType,
+      'ServiceType' : ValidServiceType,
+      'ResourceType' : ValidResourceType,
+      'module' : 'HC_Policy',
+      'commandIn' : ( 'HC_Command', 'HC_Command' ),
+      'args' : None,
+     },        
   'DT_Scheduled' :
     { 'Description' : "Ongoing and scheduled down-times",
       'Granularity' : ['Site', 'Resource'],
