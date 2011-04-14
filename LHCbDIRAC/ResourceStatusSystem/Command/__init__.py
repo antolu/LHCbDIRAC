@@ -1,0 +1,3 @@
+"""
+   LHCbDIRAC.ResourceStatusSystem.Command package
+"""

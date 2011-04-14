@@ -1,0 +1,4 @@
+"""
+LHCbDIRAC.ResourceStatusSystem.DB package
+
+"""
