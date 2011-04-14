@@ -2567,10 +2567,10 @@ and files.qualityid= dataquality.qualityid'
 
 
     if nbofEvents:
-      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % ( tables, condition )
+      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid and f.visibilityflag='Y' and f.gotreplica='Yes' %s " % ( tables, condition )
 
     else:
-      command = " select distinct f.filename, f.eventstat, j.eventinputstat, j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity from %s where f.jobid= j.jobid and f.gotreplica='Yes' %s " % ( tables, condition )
+      command = " select distinct f.filename, f.eventstat, j.eventinputstat, j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity from %s where f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % ( tables, condition )
 
     res = self.dbR_._query( command )
 
