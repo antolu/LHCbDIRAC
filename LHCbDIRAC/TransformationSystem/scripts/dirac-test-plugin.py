@@ -199,6 +199,8 @@ if __name__ == "__main__":
     transType = "Removal"
   elif plugin in replicationPlugins:
     transType = "Replication"
+  else:
+    transType = "Processing"
   transformation.setType( transType )
 
   # Add parameters

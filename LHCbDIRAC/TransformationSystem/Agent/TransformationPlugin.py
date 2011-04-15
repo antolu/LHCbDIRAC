@@ -94,7 +94,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         gLogger.info( "%s: %.1f" % ( se.ljust( 15 ), normalisedExistingCount[se] ) )
 
     # Group the remaining data by run
-    res = self.__groupByRun( self.files )
+    res = self.__groupByRun()
     if not res['OK']:
       return res
     runFileDict = res['Value']
@@ -185,18 +185,47 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         continue
     return S_OK( tasks )
 
-  def __groupByRun( self, files ):
-    runFiles = {}
+  def __groupByRun( self, files = None ):
+    if files == None:
+      files = self.files
+    runDict = {}
     for fileDict in files:
       runNumber = fileDict.get( 'RunNumber', 0 )
       if runNumber == None:
         runNumber = 0
-      lfn = fileDict.get( 'LFN', '' )
-      if runNumber not in runFiles.keys():
-        runFiles[runNumber] = []
+      lfn = fileDict.get( 'LFN' )
+      if not runDict.has_key( runNumber ):
+        runDict[runNumber] = []
       if lfn:
-        runFiles[runNumber].append( lfn )
-    return S_OK( runFiles )
+        runDict[runNumber].append( lfn )
+    return S_OK( runDict )
+
+  def __groupByRunAndParam( self, lfns, param = '' ):
+    runDict = {}
+    if type( lfns ) == type( {} ):
+      lfns = lfns.keys()
+    if not param:
+      # no need to query the BK as we have the answer from self.files
+      files = [ fileDict for fileDict in self.files if fileDict['LFN'] in lfns]
+      res = self.__groupByRun( files = files )
+      for runNumber, lfns in res['Value'].items():
+        runDict[runNumber] = {None:lfns}
+      return S_OK( runDict )
+
+    res = self.__getBookkeepingMetadata( lfns )
+    if not res['OK']:
+      return res
+    for lfn, metadata in res['Value'].items():
+      runNumber = metadata.get( "RunNumber", 0 )
+      if runNumber == None:
+        runNumber = 0
+      if not runDict.has_key( runNumber ):
+        runDict[runNumber] = {}
+      paramValue = metadata.get( param )
+      if not runDict[runNumber].has_key( paramValue ):
+        runDict[runNumber][paramValue] = []
+      runDict[runNumber][paramValue].append( lfn )
+    return S_OK( runDict )
 
   def _RAWShares( self ):
     possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
@@ -230,7 +259,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         alreadyReplicated[targetSE].extend( lfns )
     for se, lfns in alreadyReplicated.items():
       gLogger.info( "Attempting to update %s files to Processed at %s" % ( len( lfns ), se ) )
-      res = self.__groupByRunAndParam( dict.fromkeys( lfns ), param = 'Standard' )
+      res = self.__groupByRunAndParam( lfns )
       if not res['OK']:
         return res
       runFileDict = res['Value']
@@ -254,7 +283,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         gLogger.info( "%s: %.1f" % ( se.ljust( 15 ), normalisedExistingCount[se] ) )
 
     # Group the remaining data by run
-    res = self.__groupByRunAndParam( self.data, param = 'Standard' )
+    res = self.__groupByRunAndParam( self.data )
     if not res['OK']:
       return res
     runFileDict = res['Value']
@@ -345,8 +374,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not queryProdID:
         gLogger.warn( "Could not find ancestor production for transformation %d. Flush impossible" % transID )
         requireFlush = False
+      else:
+        if type( queryProdID ) != type( [] ):
+          queryProdID = [queryProdID]
 
-    res = self.__groupByRun( self.files )
+    res = self.__groupByRun()
     if not res['OK']:
       return res
     runFiles = res['Value']
@@ -399,7 +431,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
     return S_OK( allTasks )
 
-  def _ByRun( self, param = '', plugin = 'Standard' ):
+  def _ByRun( self, param = '', plugin = 'Standard', requireFlush = False ):
+    transID = self.params['TransformationID']
+    if requireFlush:
+      res = self.transClient.getBookkeepingQueryForTransformation( transID )
+      queryProdID = None
+      if res['OK']:
+        queryProdID = res['Value'].get( 'ProductionID' )
+      if not queryProdID:
+        gLogger.warn( "Could not find ancestor production for transformation %d. Flush impossible" % transID )
+        requireFlush = False
     res = self.__groupByRunAndParam( self.data, param = param )
     if not res['OK']:
       return res
@@ -451,23 +492,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
-  def __groupByRunAndParam( self, lfnDict, param = '' ):
-    runDict = {}
-    res = self.__getBookkeepingMetadata( lfnDict.keys() )
-    if not res['OK']:
-      return res
-    for lfn, metadata in res['Value'].items():
-      runNumber = 0
-      if metadata.has_key( "RunNumber" ):
-        runNumber = metadata["RunNumber"]
-      if not runDict.has_key( runNumber ):
-        runDict[runNumber] = {}
-      paramValue = metadata.get( param )
-      if not runDict[runNumber].has_key( paramValue ):
-        runDict[runNumber][paramValue] = []
-      runDict[runNumber][paramValue].append( lfn )
-    return S_OK( runDict )
-
   def __getBookkeepingMetadata( self, lfns ):
     bk = BookkeepingClient()
     start = time.time()
@@ -492,152 +516,126 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive2ActiveSEs = archive2SEs
     secondaryActiveSEs = self.__getActiveSEs( secondarySEs )
 
-    # We need at least all mandatory copies + 2 (archive1 and archive2)
+    # We need at least all mandatory copies
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
-    numberOfCopies += 2
 
     transID = self.params['TransformationID']
 
     # Group the remaining data by run
-    res = self.__groupByRun( self.files )
+    res = self.__groupByRun()
     if not res['OK']:
       return res
     runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      return S_OK( [] )
 
-    runSEsToUpdate = {}
     # For each of the runs determine the destination of any previous files
     runSEDict = {}
-    if runFileDict:
-      # Make a list of SEs already assigned to runs
-      res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runFileDict.keys()} )
+    runSEsToUpdate = {}
+    # Make a list of SEs already assigned to runs
+    res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runFileDict.keys()} )
+    if not res['OK']:
+      gLogger.error( "Failed to obtain TransformationRuns", res['Message'] )
+      return res
+    for runDict in res['Value']:
+      runID = runDict['RunNumber']
+      selectedSite = runDict['SelectedSite']
+      # If the run already has a selected site, use it for that run
+      if selectedSite:
+        runSEDict[runID] = selectedSite
+        continue
+      # Check if some files are assigned to an SE in this run
+      res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transID, 'RunNumber':runID, 'Status':['Assigned', 'Processed']} )
       if not res['OK']:
-        gLogger.error( "Failed to obtain TransformationRuns", res['Message'] )
-        return res
-      for runDict in res['Value']:
-        selectedSite = runDict['SelectedSite']
-        runID = runDict['RunNumber']
-        if selectedSite:
-          runSEDict[runID] = selectedSite
-          continue
-        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transID, 'RunNumber':runID, 'Status':['Assigned', 'Processed']} )
-        if not res['OK']:
-          gLogger.error( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
-          continue
-        if res['Value']:
-          assignedSE = res['Value'][0]['UsedSE']
-          if assignedSE:
-            runSEDict[runID] = assignedSE
-            runSEsToUpdate[runID] = assignedSE
-
-    for runID in sortList( runFileDict.keys() ):
-      if runSEDict.has_key( runID ):
+        gLogger.error( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
         continue
-      runLfns = runFileDict[runID]
-      if not runLfns:
-        continue
-      # Select candidate SEs where most of the files are already
-      SEFrequency = {}
-      for lfn in runLfns:
-        for se in self.data[lfn].keys():
-          if se.endswith( "-FAILOVER" ):
-            continue
-          if not SEFrequency.has_key( se ):
-            SEFrequency[se] = 0
-          SEFrequency[se] += 1
-      maxFreq = 0
-      runLfnSEs = []
-      for se in SEFrequency.keys():
-        if SEFrequency[se] > maxFreq:
-          maxFreq = SEFrequency[se]
-          runLfnSEs = [se]
-        elif SEFrequency[se] == maxFreq:
-          runLfnSEs.append( se )
-      #exampleRunLfn = randomize( runLfns )[0]
-      # Get rid of anything that is only is failover
-      #runLfnSEs = [se for se in sortList( self.data[exampleRunLfn].keys() ) if not re.search( "-FAILOVER", se )]
-      if not runLfnSEs:
-        continue
+      if res['Value']:
+        assignedSE = res['Value'][0]['UsedSE']
+        if assignedSE:
+          runSEDict[runID] = assignedSE
+          runSEsToUpdate[runID] = True
 
-      selectedRunTargetSites = []
-      # Ensure that we have a archive1 copy
-      archive1SE = None
-      for se in list( runLfnSEs ) + randomize( archive1ActiveSEs ):
-        if se in archive1ActiveSEs:
-          archive1SE = se
-          if not archive1SE.endswith( '-ARCHIVE' ):
-            selectedRunTargetSites.append( self._getSiteForSE( archive1SE )['Value'] )
-          runTargetSEs = [archive1SE]
-          break
-      if not archive1SE:
-        gLogger.error( 'Cannot select archive1SE in active SEs' )
-        continue
-
-      # If we know the second archive copy use it
-      archive2SE = None
-      for se in list( runLfnSEs ) + randomize( archive2ActiveSEs ):
-        if se in archive2ActiveSEs and se not in runTargetSEs:
-          archive2Site = self._getSiteForSE( se )['Value']
-          if not archive2Site in selectedRunTargetSites:
-            archive2SE = se
-            if not archive2SE.endswith( '-ARCHIVE' ):
-              selectedRunTargetSites.append( archive2Site )
-            runTargetSEs.append( archive2SE )
-            break
-      # If we do not have a second archive copy then select one
-      if not archive2SE:
-        gLogger.error( 'Cannot select archive2SE in active SEs' )
-        continue
-
-      # Now select the secondary copies
-      for se in list( mandatorySEs ) + randomize( runLfnSEs ) + randomize( secondaryActiveSEs ):
-        if len( runTargetSEs ) >= numberOfCopies: break
-        if se in mandatorySEs + secondaryActiveSEs and se not in runTargetSEs:
-            secondarySite = self._getSiteForSE( se )['Value']
-            if not secondarySite in selectedRunTargetSites:
-                selectedRunTargetSites.append( secondarySite )
-                runTargetSEs.append( se )
-      if len( runTargetSEs ) < numberOfCopies:
-        gLogger.error( 'Could not find enough active secondary SEs' )
-        continue
-
-      stringrunTargetSEs = ','.join( sortList( runTargetSEs ) )
-      runSEDict[runID] = stringrunTargetSEs
-      runSEsToUpdate[runID] = stringrunTargetSEs
-
-    # Update the TransformationRuns table with the assigned (don't continue if it fails)
-    for runID, targetSite in runSEsToUpdate.items():
-      #if not runID:
-      #  continue
-      res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
-      if not res['OK']:
-        gLogger.error( "Failed to assign TransformationRun site", res['Message'] )
-        return S_ERROR( "Failed to assign TransformationRun site" )
-
-    #Now assign the individual files to their targets
-    fileTargets = {}
+    fileTargetSEs = {}
     alreadyCompleted = []
-    for fileDict in self.files:
-      lfn = fileDict.get( 'LFN', '' )
-      if not lfn:
-        continue
-      runID = fileDict.get( 'RunNumber', 'IGNORE' )
-      if runID == None:
-        runID = 0
-      if runID == 'IGNORE':
-        continue
-      if not runSEDict.has_key( runID ):
-        continue
-      runTargetSEs = sortList( runSEDict[runID].split( ',' ) )
-      existingSEs = [se for se in self.data[lfn].keys() if not se.endswith( "-ARCHIVE" )]
-      existingSites = self._getSitesForSEs( existingSEs )
+    # Consider all runs in turn
+    for runID in runFileDict.keys():
+      runLfns = runFileDict[runID]
+      # Check if the run is already assigned
+      runUpdate = runSEsToUpdate.has_key( runID )
+      stringTargetSEs = runSEDict.get( runID, '' )
+      targetSEs = stringTargetSEs.split( ',' )
+      # No SE assigned yet, determine them
+      if not targetSEs:
+        # Select candidate SEs where most of the files are already
+        SEFrequency = {}
+        for lfn in runLfns:
+          for se in [se for se in self.data[lfn].keys() if not se.endswith( "-FAILOVER" ) and not se.endswith( "-ARCHIVE" )]:
+            if not SEFrequency.has_key( se ):
+              SEFrequency[se] = 0
+            SEFrequency[se] += 1
+        maxFreq = 0
+        runLfnSEs = []
+        for se in SEFrequency.keys():
+          if SEFrequency[se] > maxFreq:
+            maxFreq = SEFrequency[se]
+            runLfnSEs = [se]
+          elif SEFrequency[se] == maxFreq:
+            runLfnSEs.append( se )
+        # this may happen when all files are in FAILOVER
+        if not runLfnSEs:
+          continue
 
-      fileTargets[lfn] = []
-      for runTargetSE in runTargetSEs:
-        if runTargetSE.endswith( "-ARCHIVE" ) or not self._getSiteForSE( runTargetSE )['Value'] in existingSites:
-          fileTargets[lfn].append( runTargetSE )
-      if not fileTargets[lfn]:
-        fileTargets.pop( lfn )
-        alreadyCompleted.append( lfn )
+        targetSites = []
+        targetSEs = []
+        # Ensure that we have a archive1 copy
+        ( ses, targetSites ) = self.__selectSE( randomize( archive1ActiveSEs ), 1, targetSites )
+        if len( ses ) < 1 :
+          gLogger.error( 'Cannot select archive1SE in active SEs' )
+          continue
+        targetSEs += ses
+
+        # If we know the second archive copy use it
+        ( ses, targetSites ) = self.__selectSE( randomize( archive2ActiveSEs ), 1, targetSites )
+        if len( ses ) < 1 :
+          gLogger.error( 'Cannot select archive2SE in active SEs' )
+          continue
+        targetSEs += ses
+
+        # Now select the secondary copies
+        # Missing secondary copies, make a list of candidates, without already existing SEs
+        candidateSEs = mandatorySEs
+        candidateSEs += [se for se in runLfnSEs if se not in candidateSEs]
+        candidateSEs += [se for se in randomize( secondaryActiveSEs ) if se not in candidateSEs]
+        #print candidateSEs, numberOfCopies
+        ( ses, targetSites ) = self.__selectSEs( candidateSEs, numberOfCopies, targetSites )
+        if len( ses ) < numberOfCopies:
+          gLogger.error( "Can not select enough Active SEs for SecondarySE" )
+          continue
+        targetSEs += ses
+
+        stringTargetSEs = ','.join( sortList( targetSEs ) )
+        runUpdate = True
+
+      # Update the TransformationRuns table with the assigned SEs (don't continue if it fails)
+      if runUpdate:
+        res = self.transClient.setTransformationRunsSite( transID, runID, stringTargetSEs )
+        if not res['OK']:
+          gLogger.error( "Failed to assign TransformationRun site", res['Message'] )
+          return S_ERROR( "Failed to assign TransformationRun site" )
+
+      #Now assign the individual files to their targets
+      for lfn in runLfns:
+        existingSEs = self.data[lfn].keys()
+        existingSites = self._getSitesForSEs( [se for se in existingSEs if not se.endswith( '-ARCHIVE' )] )
+        # Discard existing SEs
+        neededSEs = [se for se in targetSEs if se not in existingSEs ]
+        # discard SEs at sites where already normal replica
+        neededSEs = [se for se in neededSEs if se.endswith( "-ARCHIVE" ) or self.getSiteForSE( se )['Value'] not in existingSites]
+        if not neededSEs:
+          alreadyCompleted.append( lfn )
+        else:
+          fileTargetSEs[lfn] = neededSEs
 
     # Update the status of the already done files
     if alreadyCompleted:
@@ -646,19 +644,36 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Now group all of the files by their target SEs
     storageElementGroups = {}
-    for lfn, targetSEs in fileTargets.items():
+    for lfn, targetSEs in fileTargetSEs.items():
       stringTargetSEs = ','.join( sortList( targetSEs ) )
       if not storageElementGroups.has_key( stringTargetSEs ):
         storageElementGroups[stringTargetSEs] = []
       storageElementGroups[stringTargetSEs].append( lfn )
 
-    # Now create reasonable size tasks
-    tasks = []
-    for stringTargetSEs in sortList( storageElementGroups.keys() ):
-      stringTargetLFNs = storageElementGroups[stringTargetSEs]
-      for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
-        tasks.append( ( stringTargetSEs, lfnGroup ) )
-    return S_OK( tasks )
+    return S_OK( self.__createTasks( storageElementGroups ) )
+
+  def __selectSEs( self, candSEs, needToCopy, existingSites ):
+    targetSites = existingSites
+    targetSEs = []
+    for se in candSEs:
+      if needToCopy <= 0: break
+      site = True
+      sites = []
+      # Don't take into account ARCHIVE SEs for duplicate replicas at sites
+      if not se.endswith( '-ARCHIVE' ):
+        res = getSitesForSE( se )
+        if res['OK' ]:
+          sites = res['Value']
+          site = None
+          for site in sites:
+            if site in targetSites:
+              site = None
+              break
+      if site:
+        targetSEs.append( se )
+        targetSites += sites
+        needToCopy -= 1
+    return ( targetSEs, targetSites )
 
   def _LHCbMCDSTBroadcastRandom( self ):
     """ This plug-in broadcasts files to archive1, to archive2 and to (NumberOfReplicas) secondary SEs  """
@@ -684,6 +699,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     secondaryActiveSEs = self.__getActiveSEs( secondarySEs )
 
     # We need at least all mandatory copies + 2 (archive1 and archive2)
+    numberOfArchive1 = 1
+    numberOfArchive2 = 1
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
 
     storageElementGroups = {}
@@ -691,107 +708,51 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     replicaGroups = self._getFileGroups( self.data )
 
     for replicaSE, lfns in replicaGroups.items():
-
       existingSEs = replicaSE.split( ',' )
       # Make a list of sites where the file already is in order to avoid duplicate copies
+      targetSEs = []
       targetSites = []
       for se in existingSEs:
         res = getSitesForSE( se )
         if res['OK']:
           targetSites += res['Value']
 
-      archive1SE = []
-      for se in existingSEs:
-        if se in archive1SEs:
-          archive1SE.append( se )
-      for se in archive1SE:
-        existingSEs.remove( se )
+      archive1ExistSEs = [se for se in existingSEs if se in archive1SEs]
+      archive2ExistSEs = [se for se in existingSEs if se in archive2SEs]
+      secondaryExistSEs = [se for se in existingSEs if se in mandatorySEs + secondarySEs]
+      missingSEs = [ se for se in mandatorySEs if se not in existingSEs]
 
-      archive2SE = []
-      for se in existingSEs:
-        if se in archive2ActiveSEs:
-          archive2SE.append( se )
-      for se in archive2SE:
-        existingSEs.remove( se )
-
-      missingses = []
-      for se in mandatorySEs:
-        if not se in existingSEs:
-          missingses.append( se )
-
-      secondaryses = []
-      for se in existingSEs:
-        if se in mandatorySEs + secondarySEs:
-          secondaryses.append( se )
-
-      if archive1SE and archive2SE and not missingses and len( secondaryses ) >= numberOfCopies:
+      if len( archive1ExistSEs ) >= numberOfArchive1 and len( archive2ExistSEs ) >= numberOfArchive2 and len( secondaryExistSEs ) >= numberOfCopies and not missingSEs :
         gLogger.info( "Found %s files that are already completed" % len( lfns ) )
         continue
 
-      targetSEs = []
-
-      needtocopy = 1
-      if len( archive1SE ) < needtocopy:
-        if archive1ActiveSEs:
-          for se in randomize( archive1ActiveSEs ):
-            if needtocopy <= 0:
-              break
-            targetSEs.append( se )
-            needtocopy -= 1
-            if not se.endswith( '-ARCHIVE' ):
-              res = getSitesForSE( se )
-              if res['OK']:
-                targetSites += res['Value']
-        if needtocopy > 0 :
+      if len( archive1ExistSEs ) < numberOfArchive1:
+        ( ses, targetSites ) = self.__selectSEs( randomize( archive1ActiveSEs ), numberOfArchive1, targetSites )
+        if len( ses ) < numberOfArchive1 :
           gLogger.error( "Can not select Active SE for archive1SE" )
           continue
+        targetSEs += ses
 
-      needtocopy = 1
-      if len( archive2SE ) < needtocopy:
-        if archive2ActiveSEs:
-          for se in randomize( archive2ActiveSEs ):
-            if needtocopy <= 0:
-              break
-            targetSEs.append( se )
-            needtocopy -= 1
-            if not se.endswith( '-ARCHIVE' ):
-              res = getSitesForSE( se )
-              if res['OK']:
-                targetSites += res['Value']
-        if needtocopy > 0:
+      if len( archive2ExistSEs ) < numberOfArchive2:
+        ( ses, targetSites ) = self.__selectSEs( randomize( archive2ActiveSEs ), numberOfArchive2, targetSites )
+        if len( ses ) < numberOfArchive2 :
           gLogger.error( "Can not select Active SE for archive2SE" )
           continue
+        targetSEs += ses
 
-      needtocopy = numberOfCopies
-      if len( secondaryses ) < needtocopy:
-        # Missing secondary copies, make a list of candidates
-        candidateSEs = mandatorySEs + randomize( secondaryActiveSEs )
-        #print secondaryses, candidateSEs, needtocopy
-        for se in secondaryses:
-          needtocopy -= 1
-          if se in candidateSEs:
-            candidateSEs.remove( se )
-        #print candidateSEs, needtocopy
+      needToCopy = numberOfCopies
+      if len( secondaryExistSEs ) < needToCopy:
+        # Missing secondary copies, make a list of candidates, without already existing SEs
+        candidateSEs = [se for se in missingSEs + randomize( secondaryActiveSEs ) if se not in secondaryExistSEs]
+        needToCopy -= len( missingSEs ) + len( secondaryActiveSEs ) - len( candidateSEs )
+        #print candidateSEs, needToCopy
 
-        if len( candidateSEs ) >= needtocopy:
-          for se in candidateSEs:
-            if needtocopy <= 0:
-              break
-            res = getSitesForSE( se )
-            if res['OK' ]:
-              sites = res['Value']
-              site = None
-              for site in sites:
-                if site in targetSites:
-                  site = None
-                  break
-              if site:
-                targetSEs.append( se )
-                targetSites += sites
-                needtocopy -= 1
-        if needtocopy > 0:
+        if len( candidateSEs ) >= needToCopy:
+          ( ses, targetSites ) = self.__selectSEs( candidateSEs, needToCopy, existingSites = targetSites )
+        if len( ses ) < needToCopy:
           gLogger.error( "Can not select enough Active SEs for SecondarySE" )
           continue
+        targetSEs += ses
 
       if targetSEs:
         stringTargetSEs = ','.join( sortList( targetSEs ) )
@@ -802,14 +763,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         gLogger.info( "Found %s files that are already completed" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
 
-    # Now create reasonable size tasks
-    tasks = []
-    for stringTargetSEs in sortList( storageElementGroups.keys() ):
-      stringTargetLFNs = storageElementGroups[stringTargetSEs]
-      for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
-        tasks.append( ( stringTargetSEs, lfnGroup ) )
-
-    return S_OK( tasks )
+    return S_OK( self.__createTasks( storageElementGroups ) )
 
   def __getActiveSEs( self, selist ):
     activeSE = []
@@ -818,31 +772,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if res['OK'] and res['Value'] == 'Active':
         activeSE.append( se )
     return activeSE
-
-  def _ReplicateDataset( self ):
-    destSEs = self.params.get( 'DestinationSEs' )
-    if not destSEs:
-      gLogger.info( "_ReplicateDataset plugin: no destination SEs" )
-      return S_OK( [] )
-    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
-    return self.__simpleReplication( destSEs, [], numberOfCopies )
-
-  def _ArchiveDataset( self ):
-    archive1SEs = self.params.get( 'Archive1SEs', [] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    archive1SEs = self.__getListFromString( archive1SEs )
-    archive2SEs = [se for se in self.__getListFromString( archive2SEs ) if se not in archive1SEs]
-    archive1ActiveSEs = self.__getActiveSEs( archive1SEs )
-    if not archive1ActiveSEs:
-      archive1ActiveSEs = archive1SEs
-    archive2ActiveSEs = self.__getActiveSEs( archive2SEs )
-    if not archive2ActiveSEs:
-      archive2ActiveSEs = archive2SEs
-    if archive1ActiveSEs:
-      archive1SE = [randomize( archive1ActiveSEs )[0]]
-    else:
-      archive1SE = []
-    return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = 2 )
 
   def __getListFromString( self, s ):
     # Avoid using eval()... painful
@@ -866,13 +795,54 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return ll
     return s
 
-  def __simpleReplication( self, mandatorySEs, destSEs, numberOfCopies = 0 ):
+  def __closerSEs( self, existingSEs, targetSEs ):
+    """
+    Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
+    """
+    sameSEs = [se for se in targetSEs if se in existingSEs]
+    targetSEs = [ se for se in targetSEs if se not in existingSEs]
+    if targetSEs:
+      # Some SEs are left, look for sites
+      existingSites = [self._getSiteForSE( se )['Value'] for se in existingSEs]
+      closeSEs = [se for se in targetSEs if self._getSiteForSE( se )['Value'] in existingSites]
+      otherSEs = [se for se in targetSEs if se not in closeSEs]
+      targetSEs = randomize( closeSEs ) + randomize( otherSEs )
+    return targetSEs + sameSEs
+
+  def _ReplicateDataset( self ):
+    destSEs = self.params.get( 'DestinationSEs' )
+    if not destSEs:
+      gLogger.info( "_ReplicateDataset plugin: no destination SEs" )
+      return S_OK( [] )
+    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
+    return self.__simpleReplication( destSEs, [], numberOfCopies )
+
+  def _ArchiveDataset( self ):
+    archive1SEs = self.params.get( 'Archive1SEs', [] )
+    archive2SEs = self.params.get( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    archive1SEs = self.__getListFromString( archive1SEs )
+    archive2SEs = self.__getListFromString( archive2SEs )
+    archive1ActiveSEs = self.__getActiveSEs( archive1SEs )
+    if not archive1ActiveSEs:
+      archive1ActiveSEs = archive1SEs
+    archive2ActiveSEs = self.__getActiveSEs( archive2SEs )
+    if not archive2ActiveSEs:
+      archive2ActiveSEs = archive2SEs
+    if archive1ActiveSEs:
+      archive1SE = [randomize( archive1ActiveSEs )[0]]
+    else:
+      archive1SE = []
+    return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = 2 )
+
+  def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
     transID = self.params['TransformationID']
-    secondarySEs = self.__getListFromString( destSEs )
-    activeSecondarySEs = self.__getActiveSEs( secondarySEs )
+    secondarySEs = self.__getListFromString( secondarySEs )
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
-    numberOfCopies = max( len( mandatorySEs ), numberOfCopies )
+      activeSecondarySEs = secondarySEs
+    else:
+      activeSecondarySEs = self.__getActiveSEs( secondarySEs )
+      numberOfCopies = max( len( mandatorySEs ), numberOfCopies )
 
     replicaGroups = self._getFileGroups( self.data )
 
@@ -887,44 +857,41 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
       for lfns in lfnChunks:
-        needToCopy = numberOfCopies
-        targetSEs = []
-        candidateSEs = mandatorySEs + randomize( activeSecondarySEs )
+        candidateSEs = mandatorySEs + self.__closerSEs( existingSEs, activeSecondarySEs )
         # Remove existing SEs from list of candidates
-        for se in existingSEs:
-          if se in candidateSEs:
-            needToCopy -= 1
-            candidateSEs.remove( se )
-        if needToCopy <= 0:
-          continue
-        if needToCopy <= len( candidateSEs ):
-          targetSEs = candidateSEs[0:needToCopy]
-        else:
-          targetSEs = candidateSEs
-          needToCopy -= len( targetSEs )
-          # Try and replicate to non active SEs
-          for se in destSEs:
-            if needToCopy <= 0: break
-            if se not in targetSEs:
-              targetSEs.append( se )
-              needToCopy -= 1
+        ncand = len( candidateSEs )
+        candidateSEs = [se for se in candidateSEs if se not in existingSEs]
+        needToCopy = numberOfCopies - ( ncand - len( candidateSEs ) )
+        targetSEs = []
+        if needToCopy > 0:
+          if needToCopy <= len( candidateSEs ):
+            targetSEs = candidateSEs[0:needToCopy]
+          else:
+            targetSEs = candidateSEs
+            needToCopy -= len( targetSEs )
+            # Try and replicate to non active SEs
+            otherSEs = [se for se in secondarySEs if se not in targetSEs]
+            if otherSEs:
+              targetSEs += otherSEs[0:min( needToCopy, len( otherSEs ) )]
         if targetSEs:
           stringTargetSEs = ','.join( sortList( targetSEs ) )
           if not storageElementGroups.has_key( stringTargetSEs ):
             storageElementGroups[stringTargetSEs] = []
-          storageElementGroups[stringTargetSEs].extend( lfns )
+          storageElementGroups[stringTargetSEs] += lfns
         else:
           gLogger.info( "Found %s files that are already completed" % len( lfns ) )
           self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
 
-      # Now create reasonable size tasks
+    return S_OK( self.__createTasks( storageElementGroups ) )
+
+  def __createTasks( self, storageElementGroups, chunkSize = 100 ):
+    #  create reasonable size tasks
     tasks = []
     for stringTargetSEs in sortList( storageElementGroups.keys() ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
         tasks.append( ( stringTargetSEs, lfnGroup ) )
-
-    return S_OK( tasks )
+    return tasks
 
   def _DestroyDataset( self ):
     return self.__removeReplicas( keepSEs = [], minKeep = 0 )
@@ -959,8 +926,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check that the dataset exists at least at 2 keepSE
         if len( [se for se in replicaSE if se in keepSEs] ) < nKeep:
           gLogger.info( "Found %d files that are not in %d keepSEs, no removal done" % ( len( lfns ), nKeep ) )
-          gLogger.info( "... Here they are: %s" % str( lfns ) )
-          gLogger.info( "... and they are at %s" % str( replicaSE ) )
           self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
           continue
       existingSEs = [se for se in replicaSE if not se in keepSEs]
@@ -989,16 +954,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         stringTargetSEs = ','.join( sortList( targetSEs ) )
         if not storageElementGroups.has_key( stringTargetSEs ):
           storageElementGroups[stringTargetSEs] = []
-          storageElementGroups[stringTargetSEs].extend( lfns )
+          storageElementGroups[stringTargetSEs] += lfns
       else:
         gLogger.info( "Found %s files that don't need any replica deletion" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
 
-      # Now create reasonable size tasks
-    tasks = []
-    for stringTargetSEs in sortList( storageElementGroups.keys() ):
-      stringTargetLFNs = storageElementGroups[stringTargetSEs]
-      for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
-        tasks.append( ( stringTargetSEs, lfnGroup ) )
-
-    return S_OK( tasks )
+    return S_OK( self.__createTasks( storageElementGroups ) )

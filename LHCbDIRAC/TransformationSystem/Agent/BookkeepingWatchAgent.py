@@ -18,9 +18,23 @@ class BookkeepingWatchAgent( AgentModule ):
   #############################################################################
   def initialize( self ):
     """ Make the necessary initializations """
-    self.fileLog = {}
-    self.timeLog = {}
-    self.fullTimeLog = {}
+    import os
+    import pickle
+    homeDir = os.environ['HOME']
+    self.pickleFile = None
+    if homeDir:
+      self.pickleFile = os.path.join( homeDir, "BookkeepingWatchAgent.pkl" )
+      try:
+        f = open( self.pickleFile, 'r' )
+        self.fileLog = pickle.load( f )
+        self.timeLog = pickle.load( f )
+        self.fullTimeLog = pickle.load( f )
+        f.close()
+        gLogger.info( "BookkeepingWatchAgent.execute: successfully loaded Log from %s", self.pickleFile )
+      except:
+        self.fileLog = {}
+        self.timeLog = {}
+        self.fullTimeLog = {}
     self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
     gMonitor.registerActivity( "Iteration", "Agent Loops", AGENT_NAME, "Loops/min", gMonitor.OP_SUM )
@@ -134,4 +148,14 @@ class BookkeepingWatchAgent( AgentModule ):
                 res = self.transClient.addTransformationRunFiles( transID, runID, sortList( lfns ) )
                 if not res['OK']:
                   gLogger.warn( "BookkeepingWatchAgent.execute: Failed to associated files to run", res['Message'] )
+    if self.pickleFile:
+      try:
+        f = open( self.pickleFile, 'w' )
+        self.fileLog = pickle.load( f )
+        self.timeLog = pickle.load( f )
+        self.fullTimeLog = pickle.load( f )
+        f.close()
+        gLogger.info( "BookkeepingWatchAgent.execute: successfully dumped Log into %s", self.pickleFile )
+      except:
+        pass
     return S_OK()

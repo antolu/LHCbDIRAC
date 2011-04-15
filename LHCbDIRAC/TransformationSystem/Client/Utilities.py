@@ -94,16 +94,16 @@ def buildBKQuery( bkQuery, prods, fileType, runs ):
       return ( None, None )
     if bkNodes[0] == "MC" or bk[-2][0] != '9':
       bkFields[2] = "SimulationConditions"
-  for i in range( len( bkFields ) ):
-    if not bkNodes[i].upper().endswith( 'ALL' ):
-      transBKQuery[bkFields[i]] = bkNodes[i]
+    for i in range( len( bkFields ) ):
+      if not bkNodes[i].upper().endswith( 'ALL' ):
+        transBKQuery[bkFields[i]] = bkNodes[i]
 
   if not transBKQuery.has_key( "FileType" ) and fileType:
     # Add file types
     transBKQuery['FileType'] = fileType
 
   fileType = transBKQuery.get( 'FileType' )
-  if fileType and fileType.lower().find( "all." ) == 0:
+  if fileType and fileType[0].lower().find( "all." ) == 0:
     ext = '.' + fileType.split( '.' )[1]
     fileType = []
     bk = BookkeepingClient()
