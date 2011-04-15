@@ -9,6 +9,7 @@ __RCSID__ = "$Id$"
 from DIRAC.Interfaces.API.Dirac                              import Dirac
 from DIRAC.Interfaces.API.Job                                import Job
 
+from DIRAC import S_OK, S_ERROR
 import shutil, os
 
 def makeProductionLFN( jobid, prodid, config, fname, ftype ):
@@ -90,16 +91,16 @@ class JobInfoFromXML:
 
   def valid( self ):
     if self.message:
-      return {'OK':False, 'Message':self.message}
-    return {'OK':True}
+      return S_ERROR( self.message )
+    return S_OK()
 
   def getInputLFN( self ):
 
     if self.message:
-      return {'OK':False, 'Message':self.message}
+      return S_ERROR( self.message )
 
     if not self.inputdata:
-      return {'OK':True, 'Value':[]}
+      return S_OK( [] )
 
     jobid = self.jobid
     prodid = self.prodid
@@ -107,12 +108,12 @@ class JobInfoFromXML:
     filename = self.inputdata
     filetype = None
     inputlfns = [makeProductionLFN( jobid, prodid, configversion, filename, filetype )]
-    return {'OK':True, 'Value':inputlfns}
+    return S_OK( inputlfns )
 
   def getOutputLFN( self ):
 
     if self.message:
-      return {'OK':False, 'Message':self.message}
+      return S_ERROR( self.message )
 
     code = self.j.createCode()
     listoutput = []
@@ -131,6 +132,4 @@ class JobInfoFromXML:
         lfn = makeProductionLFN( jobid, prodid, configversion, filename, filetype )
         outputlfns.append( lfn )
 
-    return {'OK':True, 'Value':outputlfns}
-
-
+    return S_OK( outputlfns )
