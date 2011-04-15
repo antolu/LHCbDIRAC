@@ -5,7 +5,7 @@
 # Author :  Stuart Paterson
 ########################################################################
 """
-  Modify Configuration to remove a SW in the automatic installation list
+  Remove software version from the list of packages to be maintained by SAM jobs
 """
 
 __RCSID__ = "$Id$"
