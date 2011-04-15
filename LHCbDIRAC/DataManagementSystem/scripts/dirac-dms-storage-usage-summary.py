@@ -100,17 +100,20 @@ for prodID in prods:
       totalUsage[se]['Size'] += res['Value'][se]['Size']
 
 if lcg:
+  from DIRAC.Resources.Storage.StorageElement                    import StorageElement
   tapeTotalFiles = 0
   diskTotalFiles = 0
   tapeTotalSize = 0
   diskTotalSize = 0
   for se in sortList( totalUsage.keys() ):
+    storageElement = StorageElement( se )
     files = totalUsage[se]['Files']
     size = totalUsage[se]['Size']
-    if re.search( '-RAW', se ) or re.search( '-RDST', se ) or re.search( '-tape', se ) or re.search( 'M-DST', se ):
+    seStatus = storageElement.getStatus()['Value']
+    if seStatus['TapeSE']:
       tapeTotalFiles += files
       tapeTotalSize += size
-    if re.search( '-DST', se ) or re.search( '-FAILOVER', se ) or re.search( '-USER', se ) or re.search( '-disk', se ) or re.search( '-disk', se ) or re.search( '-FREEZER', se ):
+    if seStatus['DiskSE']:
       diskTotalFiles += files
       diskTotalSize += size
   print '%s %s %s' % ( 'Storage Type'.ljust( 20 ), ( 'Size (%s)' % unit ).ljust( 20 ), 'Files'.ljust( 20 ) )
