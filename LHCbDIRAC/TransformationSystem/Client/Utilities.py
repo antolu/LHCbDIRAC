@@ -42,7 +42,7 @@ def testBKQuery( transBKQuery, transType ):
       for dir in dirs.keys():
         res = rpc.getStorageSummary( dir, '', '', [] )
         if res['OK']:
-          for se in sortList( res['Value'].keys() ):
+          for se in [se for se in res['Value'].keys() if not se.endswith( "-ARCHIVE" )]:
             if not totalUsage.has_key( se ):
               totalUsage[se] = 0
             totalUsage[se] += res['Value'][se]['Size']
@@ -57,7 +57,7 @@ def testBKQuery( transBKQuery, transType ):
   return lfns
 
 def buildBKQuery( bkQuery, prods, fileType, runs ):
-  bkFields = [ "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" ]
+  bkFields = ( "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" )
   transBKQuery = {'Visible': 'Yes'}
   requestID = None
   if runs:
@@ -103,17 +103,28 @@ def buildBKQuery( bkQuery, prods, fileType, runs ):
     transBKQuery['FileType'] = fileType
 
   fileType = transBKQuery.get( 'FileType' )
-  if fileType and fileType[0].lower().find( "all." ) == 0:
-    ext = '.' + fileType.split( '.' )[1]
-    fileType = []
-    bk = BookkeepingClient()
-    res = bk.getAvailableFileTypes()
+  if fileType:
+    if type( fileType ) == type( [] ):
+      fileTypes = fileType
+    else:
+      fileTypes = [fileType]
+    expandedTypes = []
+    for fileType in fileTypes:
+      if fileType.lower().find( "all." ) == 0:
+        ext = '.' + fileType.split( '.' )[1]
+        fileType = []
+        bk = BookkeepingClient()
+        res = bk.getAvailableFileTypes()
 
-    if res['OK']:
-      dbresult = res['Value']
-      for record in dbresult['Records']:
-        if record[0].endswith( ext ):
-          fileType.append( record[0] )
-    transBKQuery['FileType'] = fileType
+        if res['OK']:
+          dbresult = res['Value']
+          for record in dbresult['Records']:
+            if record[0].endswith( ext ):
+              expandedTypes.append( record[0] )
+      else:
+        expandedTypes.append( fileType )
+    if len( expandedTypes ) == 1:
+      expandedTypes = expandedTypes[0]
+    transBKQuery['FileType'] = expandedTypes
 
   return ( transBKQuery, requestID )
