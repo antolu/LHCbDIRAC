@@ -45,7 +45,7 @@ class HCAgent(AgentModule):
       
       self.diracAdmin = DiracAdmin()
         
-      print "TEST_DURATION: %s hours" % self.TEST_DURATION  
+      gLogger.info( "TEST_DURATION: %s hours" % self.TEST_DURATION )  
         
       return S_OK()
 
@@ -84,7 +84,7 @@ class HCAgent(AgentModule):
     scheduled = self.rsaDB.getTestList(reason = 'HCscheduled')
     
     if not scheduled:
-      print '      no scheduled tests'
+      gLogger.info( '      no scheduled tests' )
       return S_OK()
              
     for sc in scheduled:
@@ -95,7 +95,7 @@ class HCAgent(AgentModule):
       starttime = sc[5] 
       endtime   = sc[6]
       
-      print '      scheduled : on %s at %s' % ( site, starttime )
+      gLogger.info( '      scheduled : on %s at %s' % ( site, starttime ) )
       
       now = datetime.now().replace( microsecond = 0 )
       
@@ -105,33 +105,34 @@ class HCAgent(AgentModule):
         if not self.__detectErrors( res, submitime, site ):
           
           test       = res[1]['response']['test'] 
+          testStatus = test['state']        
           startTime  = datetime.strptime(test['starttime'], self.TIME_FORMAT)
           endTime    = datetime.strptime(test['endtime'], self.TIME_FORMAT) 
 
           # IF it is different, it has been modified. Update.
           if endTime != endtime:
-            print ' Updated endTime %s -> %s' % ( endtime, endTime )          
+            gLogger.info( ' Updated endTime %s -> %s' % ( endtime, endTime ) )          
             self.rsaDB.updateTest( submitime, endTime = endTime )  
         
           # If endTime is in HC < now, there is a problem in HC
           elif endTime < now:
             ## ERROR 
-            print '        endtime ( %s ) < now ( %s )' % ( endtime, now )
-            print '        error   : test is scheduled, but endtime < now'
-            self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )            
-            print '        unlock  : Ok'
+            gLogger.info( '        endtime ( %s ) < now ( %s )' % ( endtime, now ) )
+            gLogger.info( '        error   : test is scheduled, but endtime < now' )
+            #self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )            
+            #print '        unlock  : Ok'
             counter,reason,counterTime = self.__checkErrorCounter()       
             self.rsaDB.updateTest( submitime, reason = reason, counter = counter, counterTime = counterTime )          
         
           if starttime != startTime:
-            print ' Updated startTime %s -> %s' % ( starttime, startTime )          
+            gLogger.info( ' Updated startTime %s -> %s' % ( starttime, startTime ) )          
             self.rsaDB.updateTest( submitime, startTime = startTime )  
        
-          else:
-            print '      starttime ( %s ) < now ( %s )' % ( starttime, now )
+          elif testStatus not in ['tobescheduled','scheduled']:
+            gLogger.info( '      starttime ( %s ) < now ( %s )' % ( starttime, now ) )
             self.rsDB.setToken( 'Site', site, 'RS_Hold', endtime )            
-            print '        locked  : Ok'
-            print '        ongoing : Ok'           
+            gLogger.info( '        locked  : Ok' )
+            gLogger.info( '        ongoing : Ok' )          
             # We move it to ongoing. UpdateOnGoingTests will deal with possible failures
             self.rsaDB.updateTest( submitime, reason = 'HCongoing' ) 
               
@@ -163,13 +164,13 @@ class HCAgent(AgentModule):
     ongoings     = self.rsaDB.getTestList(reason = 'HCongoing')
     
     if not ongoings:
-      print '      no ongoing tests'
+      gLogger.info( '      no ongoing tests' )
       return S_OK()
 
     for og in ongoings:
       
       if not isinstance(og[0], long):
-        print 'There is a NULL ID with status Ongoing'
+        gLogger.info( 'There is a NULL ID with status Ongoing' )
         subject = '[HCAgent][NULL HCongoing]'
         body = '%s is NULL HCongoing \n %s' % ( og[1], og )
         self.__sendEmail( subject, body )  
@@ -195,11 +196,11 @@ class HCAgent(AgentModule):
       ## SANITY CHECK
       ## Site used in HC must be the same as we have on the HCAgent table
       if og[1] != site:
-        print '      sanity check failed: test %d has %s (HC retrieved), %s (HCAgent table)' % ( testID, og[1], site )
+        gLogger.info( '      sanity check failed: test %d has %s (HC retrieved), %s (HCAgent table)' % ( testID, og[1], site ) )
         self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )
-        print '      unlock : Ok '  
+        gLogger.info( '      unlock : Ok ' )  
         testStatus = 'error'
-        print '      marking as error, until problem is clarified'
+        gLogger.info( '      marking as error, until problem is clarified' )
         
         '''
           We should kill the test in HC
@@ -207,18 +208,18 @@ class HCAgent(AgentModule):
       
       # We do not care about seconds
       if endTime.replace( second = 0 ) != og[6].replace( second = 0 ):
-        print '      endTime modified : test %d has %s (HC retrieved), %s (HCAgent table)' % ( testID, og[6], endTime )
+        gLogger.info( '      endTime modified : test %d has %s (HC retrieved), %s (HCAgent table)' % ( testID, og[6], endTime ) )
         self.rsDB.setToken( 'Site', site, 'RS_Hold', endTime )
-        print '      lock : updated '
+        gLogger.info( '      lock : updated ' )
         
         
       if testStatus == 'error':
           
         counter,reason,counterTime = self.__checkErrorCounter()#, reason, datetime.now())
         reason += ' - running error.'
-        print '      error : test %d, at %s (returned error)' % ( testID , site ) 
+        gLogger.info( '      error : test %d, at %s (returned error)' % ( testID , site ) ) 
         self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )  
-        print '      unlock : Ok '  
+        gLogger.info( '      unlock : Ok ' )  
           
       # HC needs some time to end the test, depending on the number of jobs to be killed, etc..
       # We are giving half of the test duration time, or 15 min (the maximum)
@@ -227,19 +228,19 @@ class HCAgent(AgentModule):
         testStatus = 'error'  
         counter,reason,counterTime = self.__checkErrorCounter()#, reason, datetime.now())
         reason += ' - HC not updating status.'
-        print '      error : test %d, at %s (timeout without completing)' % ( testID , site )
+        gLogger.info( '      error : test %d, at %s (timeout without completing)' % ( testID , site ) )
         self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )  
-        print '      unlock : Ok '
+        gLogger.info( '      unlock : Ok ' )
         
       elif testStatus == 'completed':
         
         reason = self.__checkFinishedTest(testID,site)  
-        print '      completed : test %d, at %s' % ( testID , site )
+        gLogger.info( '      completed : test %d, at %s' % ( testID , site ) )
         self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )  
-        print '      unlock : Ok '        
+        gLogger.info( '      unlock : Ok ' )        
 
       else:
-        print '      %s : test %d, at %s' % ( testStatus, testID, site )
+        gLogger.info( '      %s : test %d, at %s' % ( testStatus, testID, site ) )
 
       self.rsaDB.updateTest( None, testID = testID, testStatus = testStatus, startTime = startTime, 
                                  endTime = endTime, reason = reason, counter = counter, counterTime = counterTime )  
@@ -266,7 +267,7 @@ class HCAgent(AgentModule):
     lastFinished = self.rsaDB.getTestList(reason = 'HClastfinished', counter = 0)
     
     if not lastFinished:
-      print '      no lastFinished'
+      gLogger.info( '      no lastFinished' )
       return S_OK()
     
     now = datetime.now()
@@ -282,14 +283,14 @@ class HCAgent(AgentModule):
       
       afterPeriod = counterTime + timedelta( hours = period )      
       
-      print '      completed: test %s, at %s - counter %s, counterTime %s ' % ( testID, site, counter, counterTime )
+      gLogger.info( '      completed: test %s, at %s - counter %s, counterTime %s ' % ( testID, site, counter, counterTime ) )
       
       if now > afterPeriod:
         
         counter    -= 1
         counterTime = afterPeriod 
     
-        print '        updating test %s counter to %s, with counterTime %s' % ( testID, counter, afterPeriod )
+        gLogger.info( '        updating test %s counter to %s, with counterTime %s' % ( testID, counter, afterPeriod ) )
     
         reason = None
         if counter == 0:
@@ -313,18 +314,18 @@ class HCAgent(AgentModule):
       
     '''    
         
-    print '>>> CHECKING QUARANTINE'
+    gLogger.info( '>>> CHECKING QUARANTINE' )
     
     failures = self.rsaDB.getTestList(reason = 'HCfailure', counter = 0)
     prevents = self.rsaDB.getTestList(reason = 'HCprevent', counter = 0)
     
     now = datetime.now()
 
-    if len(failures) > 1:
+    if failures and len(failures) > 1:
       gLogger.exception('More than 1 failure: %s' % failures)
       return S_ERROR('Check Agent Break')
     
-    if len(prevents) > 1:
+    if prevents and len(prevents) > 1:
       gLogger.exception('More than 1 failure: %s' % failures)
       return S_ERROR('Check Agent Break')
 
@@ -342,12 +343,12 @@ class HCAgent(AgentModule):
       endQuarant  = f[8] + timedelta(hours = quarantine) 
       endPrevent  = endQuarant + timedelta(hours = quarantine)  
 
-      if now <= endQuarant:          
-        return S_OK(value = (True, '  quarantine until %s' % endQuarant))  
+      if now < endQuarant:          
+        return S_OK(value = (True, '  quarantine ( test %s ) until %s counter %s' % ( f[0], endQuarant, f[7] )))  
  
-      elif now <= endPrevent:
+      elif now < endPrevent:
         self.rsaDB.updateTest(f[4], reason = 'HCprevent', counterTime = now)
-        return S_OK(value = (False, '  prevent submission until %s counter %s' % (endPrevent, f[7])))
+        return S_OK(value = (False, '  prevent submission ( test %s ) until %s counter %s' % ( f[0], endPrevent, f[7] )))
 
       else:
         gLogger.exception('Failures > endPrevent')
@@ -367,10 +368,10 @@ class HCAgent(AgentModule):
       pollingTime = self.am_getPollingTime()
       firstAfterP = endPrevent + timedelta(seconds=pollingTime)
         
-      if now <= endPrevent:
-        return S_OK(value = (False, '  preventive submission until %s.' % endPrevent))
+      if now < endPrevent:
+        return S_OK(value = (False, '  preventive submission ( test %s ) until %s counter %s.' % ( p[0], endPrevent, p[7] )))
         
-      elif now <= firstAfterP:
+      elif now < firstAfterP:
         counter = p[7] - 1
         reason = None
         messag = '  one more round of preventive submission.'
@@ -397,7 +398,7 @@ class HCAgent(AgentModule):
     
     sites = self.rsDB.getStuffToCheck('Sites')
     
-    print '>>> SUBMITTING TESTS'
+    gLogger.info( '>>> SUBMITTING TESTS' )
       
     siteFlag = False  
       
@@ -411,15 +412,15 @@ class HCAgent(AgentModule):
           now  = datetime.now()
             
           if self.rsaDB.getTestList( siteName = site, reason = 'HCongoing' ):
-            print '  + %s already has an ongoing test'%site
+            gLogger.info( '  + %s already has an ongoing test' % site )
             continue
 
           if self.rsaDB.getTestList( siteName = site, reason = 'HCscheduled' ):
-            print '  + %s already has an scheduled test'%site
+            #print '  + %s already has an scheduled test'%site
             continue
           
           if self.rsaDB.getTestList( siteName = site, reason = 'HCskipped' ):
-            print '  + %s is waiting for a Human action'%site
+            gLogger.info( '  + %s is waiting for a Human action' % site )
             continue
             
           siteFlag = True  
@@ -442,7 +443,7 @@ class HCAgent(AgentModule):
           if self.__detectErrors( res, now, site ):
             return S_OK()  
             
-          print '      submission : Ok'
+          gLogger.info( '      submission : Ok' )
               
           resp = res[1]['response']    
               
@@ -458,7 +459,7 @@ class HCAgent(AgentModule):
           time.sleep( 5 )
                             
     if not siteFlag:
-      print '  + No submitted tests'  
+      gLogger.info( '  + No submitted tests' )  
     
     return S_OK()    
     
@@ -564,6 +565,17 @@ class HCAgent(AgentModule):
       starttime = endTime + timedelta( hours = period )
 
       counter += 1 
+      
+      if counter > self.MAX_COUNTER_ALARM:
+        
+        # After a considerable number of jumps, we put the site aside
+        # and alert an administrator to investigate.
+        
+        #reason  = 'HCskipped'
+        
+        subject = '[HCAgent][MAX COUNTER ALARM] at %s' % lF[1]
+        body    = 'You should take a look...'
+        self.__sendEmail(subject,body)
     
     return ( counter, reason, starttime )                    
 
@@ -599,7 +611,7 @@ class HCAgent(AgentModule):
     '''
     sendMail = self.diracAdmin.sendMail('aebeda3@gmail.com',subject,body)
     if not sendMail['OK']:
-      print 'Error sending email'
+      gLogger.error( 'Error sending email' )
 
 #############################################################################              
               
@@ -615,25 +627,25 @@ class HCAgent(AgentModule):
       return False
     
     if res[1]['type'] == 'SUBMISSION':
-      print '      submission ERROR : %s' % site
+      gLogger.info( '      submission ERROR : %s' % site )
       subject = '[HCAgent][Submission]'
       body = '%s' % res
       #self.__sendEmail( subject, body )
             
     elif res[1]['type'] == 'MISSING':
-      print '      missing ERROR : %s' % site 
+      gLogger.info( '      missing ERROR : %s' % site ) 
       subject = '[HCAgent][Missing]'
       body = '%s' % res
       #self.__sendEmail( subject, body )
             
     elif res[1]['type'] == 'UNKNOWN':
-      print '      unknown ERROR : %s' % site   
+      gLogger.info( '      unknown ERROR : %s' % site )   
       subject = '[HCAgent][Unknown]'
       body = '%s is Unknown \n %s' % ( site, res )
       #self.__sendEmail( subject, body )  
       
     else:
-      print '      error : %s , no idea what happened' % site       
+      gLogger.info( '      error : %s , no idea what happened' % site )       
       subject = '[HCAgent][updateOngoing][NPI]'
       body = '%s is NPI \n %s' % ( site, res )
     
@@ -643,7 +655,7 @@ class HCAgent(AgentModule):
     
     # Release token
     self.rsDB.setToken( 'Site', site, 'RS_SVC', datetime(9999, 12, 31, 23, 59, 59) )            
-    print '        unlock  : Ok'
+    gLogger.info( '        unlock  : Ok' )
     
     return True            
               
@@ -664,12 +676,12 @@ class HCAgent(AgentModule):
         Inspect errors from HC, miss configurations MUST not lead to QUARANTINE
       """
       
-      print '>>> UPDATING TESTS'
-      print '  + scheduled'
+      gLogger.info( '>>> UPDATING TESTS' )
+      gLogger.info( '  + scheduled' )
       self._updateScheduledTests()
-      print '  + ongoings'
+      gLogger.info( '  + ongoings' )
       self._updateOngoingTests()
-      print '  + lastFinished' 
+      gLogger.info( '  + lastFinished' ) 
       self._updateLastFinishedTests()
 
       #############################################################################
@@ -681,7 +693,7 @@ class HCAgent(AgentModule):
       if not res['OK']:
         return S_ERROR(res['Value'])
       
-      print '  '+res['Value'][1]
+      gLogger.info( '  '+res['Value'][1] )
      
       #############################################################################
       # SUBMIT TESTS
