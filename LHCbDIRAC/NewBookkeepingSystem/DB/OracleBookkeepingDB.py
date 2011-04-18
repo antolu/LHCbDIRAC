@@ -297,7 +297,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
   #############################################################################
   def getAvailableConfigNames( self ):
-    command = ' select distinct Configname from tmpbookkeepingview'
+    command = ' select distinct Configname from newbookkeepingview'
     return self.dbR_._query( command )
 
   ##############################################################################
@@ -309,7 +309,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
   #############################################################################
   def getConfigVersions( self, configname ):
-    command = ' select distinct configversion from tmpbookkeepingview where configname=\'' + configname + '\''
+    command = ' select distinct configversion from newbookkeepingview where configname=\'' + configname + '\''
     return self.dbR_._query( command )
 
   #############################################################################
@@ -317,23 +317,23 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     condition = ''
     if configName != default:
-      condition += " and tmpbookkeepingview.configname='%s' " % ( configName )
+      condition += " and newbookkeepingview.configname='%s' " % ( configName )
 
     if configVersion != default:
-      condition += " and tmpbookkeepingview.configversion='%s' " % ( configVersion )
+      condition += " and newbookkeepingview.configversion='%s' " % ( configVersion )
 
 
     if evt != default:
-      condition += " and tmpbookkeepingview.eventtypeid=" + str( evt )
+      condition += " and newbookkeepingview.eventtypeid=" + str( evt )
 
     command = 'select distinct simulationConditions.SIMID,data_taking_conditions.DAQPERIODID,simulationConditions.SIMDESCRIPTION, simulationConditions.BEAMCOND, \
     simulationConditions.BEAMENERGY, simulationConditions.GENERATOR,simulationConditions.MAGNETICFIELD,simulationConditions.DETECTORCOND, simulationConditions.LUMINOSITY, \
     data_taking_conditions.DESCRIPTION,data_taking_conditions.BEAMCOND, data_taking_conditions.BEAMENERGY,data_taking_conditions.MAGNETICFIELD, \
     data_taking_conditions.VELO,data_taking_conditions.IT, data_taking_conditions.TT,data_taking_conditions.OT,data_taking_conditions.RICH1,data_taking_conditions.RICH2, \
     data_taking_conditions.SPD_PRS, data_taking_conditions.ECAL, data_taking_conditions.HCAL, data_taking_conditions.MUON, data_taking_conditions.L0, data_taking_conditions.HLT,\
-     data_taking_conditions.VeloPosition from simulationConditions,data_taking_conditions,tmpbookkeepingview where \
-      tmpbookkeepingview.simid=simulationConditions.simid(+) and \
-      tmpbookkeepingview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)'+condition
+     data_taking_conditions.VeloPosition from simulationConditions,data_taking_conditions,newbookkeepingview where \
+      newbookkeepingview.simid=simulationConditions.simid(+) and \
+      newbookkeepingview.DAQPERIODID=data_taking_conditions.DAQPERIODID(+)'+condition
 
 
     return self.dbR_._query(command)
@@ -348,10 +348,10 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     condition = ''
     if configName != default:
-      condition += " and tmpbookkeepingview.configname='%s' " % ( configName )
+      condition += " and newbookkeepingview.configname='%s' " % ( configName )
 
     if configVersion != default:
-      condition += " and tmpbookkeepingview.configversion='%s' " % ( configVersion )
+      condition += " and newbookkeepingview.configversion='%s' " % ( configVersion )
 
     if conddescription != default:
       retVal = self._getConditionString( conddescription )
@@ -360,10 +360,10 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       else:
         return retVal
     if production != default:
-      condition += ' and tmpbookkeepingview.production=' + str( production )
+      condition += ' and newbookkeepingview.production=' + str( production )
 
     if runnumber != default:
-      condition += ' and tmpbookkeepingview.runnumber=' + str( runnumber )
+      condition += ' and newbookkeepingview.runnumber=' + str( runnumber )
 
     proc = path.split( '/' )[len( path.split( '/' ) ) - 1]
     if proc != '':
@@ -381,9 +381,9 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
       if pro == '':
         return S_ERROR( 'Empty Directory' )
-      command = 'select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,tmpbookkeepingview,productionscontainer,processing where \
-        tmpbookkeepingview.production=productionscontainer.production and \
-        eventTypes.EventTypeId=tmpbookkeepingview.eventtypeid and \
+      command = 'select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,newbookkeepingview,productionscontainer,processing where \
+        newbookkeepingview.production=productionscontainer.production and \
+        eventTypes.EventTypeId=newbookkeepingview.eventtypeid and \
         productionscontainer.processingid=processing.id and \
         processing.id in (%s) %s'%(pro,condition)
 
@@ -396,12 +396,12 @@ class OracleBookkeepingDB( IBookkeepingDB ):
         return retVal
 
       command = 'SELECT distinct name \
-      FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,tmpbookkeepingview where \
-      productionscontainer.production=tmpbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+      FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
+      productionscontainer.production=newbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     else:
       command = 'SELECT distinct name \
-      FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,tmpbookkeepingview where \
-      productionscontainer.production=tmpbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+      FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
+      productionscontainer.production=newbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     retVal = self.dbR_._query(command)
     if retVal['OK']:
       precords = []
@@ -421,17 +421,17 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     condition = ''
     if configName != default:
-      condition += " and tmpbookkeepingview.configname='%s' " % ( configName )
+      condition += " and newbookkeepingview.configname='%s' " % ( configName )
 
     if configVersion != default:
-      condition += " and tmpbookkeepingview.configversion='%s' " % ( configVersion )
+      condition += " and newbookkeepingview.configversion='%s' " % ( configVersion )
 
 
     if eventType != default:
-      condition += " and tmpbookkeepingview.eventtypeid=" + str( eventType )
+      condition += " and newbookkeepingview.eventtypeid=" + str( eventType )
 
     if production != default:
-      condition += " and tmpbookkeepingview.production=" + str( production )
+      condition += " and newbookkeepingview.production=" + str( production )
 
     if conddescription != default:
       retVal = self._getConditionString( conddescription )
@@ -443,12 +443,12 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     proc = path.split( '/' )[len( path.split( '/' ) ) - 1]
     if proc != '':
       command = 'SELECT distinct name \
-      FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,tmpbookkeepingview where \
-      productionscontainer.production=tmpbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+      FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
+      productionscontainer.production=newbookkeepingview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     else:
       command = 'SELECT distinct name \
-      FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,tmpbookkeepingview where \
-      productionscontainer.production=tmpbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+      FROM processing   where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer,newbookkeepingview where \
+      productionscontainer.production=newbookkeepingview.production' + condition +') CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
     retVal = self.dbR_._query(command)
     if retVal['OK']:
       records = []
@@ -525,7 +525,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     if processing != default:
       command = "select distinct pcont.production from \
-                 productionscontainer pcont,tmpbookkeepingview bview \
+                 productionscontainer pcont,newbookkeepingview bview \
                  where pcont.processingid in \
                     (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
                                            FROM processing v   START WITH id in (select distinct id from processing where name='"+str(processing.split('/')[1])+"') \
@@ -533,7 +533,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
                      where v.path='"+processing+"') \
                   and bview.production=pcont.production "+condition
     else:
-      command = "select distinct pcont.production from productionscontainer pcont,tmpbookkeepingview bview where \
+      command = "select distinct pcont.production from productionscontainer pcont,newbookkeepingview bview where \
                  bview.production=pcont.production "+condition
     return self.dbR_._query(command)
 
@@ -578,11 +578,11 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       pro = pro[:-1]
       pro += ( ')' )
       command = "select distinct ftypes.name from \
-                 productionscontainer pcont,tmpbookkeepingview bview, filetypes ftypes  \
+                 productionscontainer pcont,newbookkeepingview bview, filetypes ftypes  \
                  where pcont.processingid in %s \
                   and bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid %s"%(pro,condition)
     else:
-      command = "select distinct ftypes.name  from productionscontainer pcont, tmpbookkeepingview bview,  filetypes ftypes where \
+      command = "select distinct ftypes.name  from productionscontainer pcont, newbookkeepingview bview,  filetypes ftypes where \
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid"+condition
     return self.dbR_._query(command)
 
@@ -605,7 +605,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     tables = ''
     if evt != default:
       if configName == 'MC':
-        tables = ' ,tmpbookkeepingview v '
+        tables = ' ,newbookkeepingview v '
         condition += '  and v.production=j.production and v.production=prod.production and v.eventtypeid=%s '%(evt)
       else:
         condition += ' and j.production=prod.production and f.eventtypeid=%s'%(evt)
@@ -686,13 +686,13 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
   #############################################################################
   def getAvailableProductions( self ):
-    command = ' select distinct production from tmpbookkeepingview where production > 0'
+    command = ' select distinct production from newbookkeepingview where production > 0'
     res = self.dbR_._query( command )
     return res
 
   #############################################################################
   def getAvailableRuns( self ):
-    command = ' select distinct runnumber from tmpbookkeepingview'
+    command = ' select distinct runnumber from newbookkeepingview'
     res = self.dbR_._query( command )
     return res
 
@@ -714,8 +714,8 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
   #############################################################################
   def getMoreProductionInformations( self, prodid ):
-    command = 'select tmpbookkeepingview.configname, tmpbookkeepingview.configversion, tmpbookkeepingview.ProgramName, tmpbookkeepingview.programversion from \
-    tmpbookkeepingview where tmpbookkeepingview.production='+str(prodid)
+    command = 'select newbookkeepingview.configname, newbookkeepingview.configversion, newbookkeepingview.ProgramName, newbookkeepingview.programversion from \
+    newbookkeepingview where newbookkeepingview.production='+str(prodid)
     res = self.dbR_._query(command)
     if not res['OK']:
       return S_ERROR( res['Message'] )
@@ -854,7 +854,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
   #############################################################################
   def getAvailableRunNumbers( self ):
-    command = 'select distinct runnumber from tmpbookkeepingview'
+    command = 'select distinct runnumber from newbookkeepingview'
     res = self.dbR_._query( command )
     return res
 
@@ -1978,7 +1978,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     command = " select bview.configname, bview.configversion, sim.simdescription, \
        v.Path, bview.eventtypeid,bview.description, bview.production, ftypes.name, sum(f.eventstat) \
-  from jobs j, tmpbookkeepingview bview,files f, filetypes ftypes, productionscontainer prod, simulationconditions sim, \
+  from jobs j, newbookkeepingview bview,files f, filetypes ftypes, productionscontainer prod, simulationconditions sim, \
   (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path \
    FROM processing \
    WHERE LEVEL > 0 and id in (select distinct processingid from productionscontainer prod where prod.production=5016) \
@@ -2179,7 +2179,7 @@ and files.qualityid= dataquality.qualityid'
     retVal = self._getProcessingPassId( proc.split( '/' )[1:][0], proc )
     if retVal['OK']:
       processingid = retVal['Value']
-      command = 'select distinct bview.production  from tmpbookkeepingview bview, productionscontainer prod where \
+      command = 'select distinct bview.production  from newbookkeepingview bview, productionscontainer prod where \
       bview.runnumber='+str(run)+' and bview.production>0 and bview.production=prod.production and prod.processingid='+str(processingid)
       retVal = self.dbR_._query(command)
       return retVal
@@ -2601,7 +2601,7 @@ and files.qualityid= dataquality.qualityid'
     tables = ''
     if evt != default:
       if configName == 'MC':
-        tables = ' ,tmpbookkeepingview v '
+        tables = ' ,newbookkeepingview v '
         condition += '  and v.production=j.production and v.production=prod.production and v.eventtypeid=%s '%(evt)
       else:
         condition += ' and j.production=prod.production and f.eventtypeid=%s'%(evt)
@@ -2687,10 +2687,10 @@ and files.qualityid= dataquality.qualityid'
     tables = ''
     if evt != default:
        if configName == 'MC':
-        tables = ' ,tmpbookkeepingview v '
+        tables = ' ,newbookkeepingview v '
         condition += '  and v.production=j.production and v.production=prod.production and v.eventtypeid=%s '%(evt)
        else:
-        tables += ' , tmpbookkeepingview v '
+        tables += ' , newbookkeepingview v '
         condition += ' and j.production=prod.production and f.eventtypeid=%s'%(str(evt))
 
     if production != default:
@@ -3028,18 +3028,18 @@ and files.qualityid= dataquality.qualityid'
   def getStandardEventTypes( self, configName = default, configVersion = default, prod = default ):
     condition = ''
     if configName != default:
-      condition += " tmpbookkeepingview.configname='%s' " % ( configName )
+      condition += " newbookkeepingview.configname='%s' " % ( configName )
 
     if configVersion != default:
-      condition += " and tmpbookkeepingview.configversion='%s' " % ( configVersion )
+      condition += " and newbookkeepingview.configversion='%s' " % ( configVersion )
 
     if prod != default:
       if condition == '':
-        condition += 'tmpbookkeepingview.production=' + str( prod )
+        condition += 'newbookkeepingview.production=' + str( prod )
       else:
-        condition += ' and tmpbookkeepingview.production=' + str( prod )
+        condition += ' and newbookkeepingview.production=' + str( prod )
 
-    command = ' select tmpbookkeepingview.eventtypeid, tmpbookkeepingview.description from tmpbookkeepingview where ' + condition
+    command = ' select newbookkeepingview.eventtypeid, newbookkeepingview.description from newbookkeepingview where ' + condition
     retVal = self.dbR_._query( command )
     records = []
     if retVal['OK']:
