@@ -604,8 +604,11 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
     tables = ''
     if evt != default:
-      condition += ' and v.production=prod.production and v.eventtypeid=%s and f.eventtypeid=%s'%(str(evt),str(evt))
-      tables+= ', newbookkeepingview v'
+      if configName == 'MC':
+        tables = ' ,newbookkeepingview v '
+        condition += '  and v.production=j.production and v.production=prod.production and v.eventtypeid=%s '%(evt)
+      else:
+        condition += ' and j.production=prod.production and f.eventtypeid=%s'%(evt)
 
     if production != default:
       condition += ' and j.production=' + str( production )
@@ -666,7 +669,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
     f.visibilityFlag='Y' and \
-    j.configurationid=c.configurationid and j.production=prod.production %s" %(tables,condition)
+    j.configurationid=c.configurationid %s" %(tables,condition)
     return self.dbR_._query(command)
 
   #############################################################################
@@ -2597,7 +2600,11 @@ and files.qualityid= dataquality.qualityid'
 
     tables = ''
     if evt != default:
-      condition += ' and f.eventtypeid=%s'%(evt)
+      if configName == 'MC':
+        tables = ' ,newbookkeepingview v '
+        condition += '  and v.production=j.production and v.production=prod.production and v.eventtypeid=%s '%(evt)
+      else:
+        condition += ' and j.production=prod.production and f.eventtypeid=%s'%(evt)
 
     if production != default:
       condition += ' and j.production=' + str( production )
@@ -2657,7 +2664,7 @@ and files.qualityid= dataquality.qualityid'
     ftypes.filetypeid=f.filetypeid and \
     f.gotreplica='Yes' and \
     f.visibilityflag='Y' and \
-    j.configurationid=c.configurationid and j.production=prod.production %s"%(tables,condition)
+    j.configurationid=c.configurationid %s"%(tables,condition)
     return self.dbR_._query(command)
 
   #############################################################################
@@ -2679,8 +2686,12 @@ and files.qualityid= dataquality.qualityid'
 
     tables = ''
     if evt != default:
-      tables += ' , newbookkeepingview v '
-      condition += ' and v.production=prod.production and v.eventtypeid=%s and f.eventtypeid=%s'%(str(evt),str(evt))
+       if configName == 'MC':
+        tables = ' ,newbookkeepingview v '
+        condition += '  and v.production=j.production and v.production=prod.production and v.eventtypeid=%s '%(evt)
+       else:
+        tables += ' , newbookkeepingview v '
+        condition += ' and j.production=prod.production and f.eventtypeid=%s'%(str(evt))
 
     if production != default:
       condition += ' and j.production=' + str( production )
@@ -2744,7 +2755,7 @@ and files.qualityid= dataquality.qualityid'
     ftypes.filetypeid=f.filetypeid and \
     f.gotreplica='Yes' and \
     f.visibilityflag='Y' and \
-    j.configurationid=c.configurationid and j.production=prod.production %s) where rownum <=%d ) where r >%d"%(tables, condition, int(maxitems),int(startitem))
+    j.configurationid=c.configurationid  %s) where rownum <=%d ) where r >%d"%(tables, condition, int(maxitems),int(startitem))
     return self.dbR_._query(command)
 
   #############################################################################
