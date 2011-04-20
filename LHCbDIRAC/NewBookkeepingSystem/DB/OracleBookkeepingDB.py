@@ -396,14 +396,12 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       else:
         return retVal
 
-      command = 'SELECT distinct name \
-      FROM processing   where parentid in (select id from  processing where name=\''+str(proc)+'\') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,prodview where \
-      productionscontainer.production=prodview.production ' + condition +')  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc'
+      command = "SELECT distinct name \
+      FROM processing   where parentid in (select id from  processing where name='%s') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,prodview %s where \
+      productionscontainer.production=prodview.production  %s )  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc" % (str(proc), tables, condition)
     else:
-      print tables
-      print condition
       command = 'SELECT distinct name \
-      FROM processing  %s where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer, prodview where \
+      FROM processing  where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer, prodview %s where \
       productionscontainer.production=prodview.production %s ) CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc' % (tables, condition)
     retVal = self.dbR_._query(command)
     if retVal['OK']:
@@ -2679,10 +2677,12 @@ and files.qualityid= dataquality.qualityid'
     if configVersion != default:
       condition += " and c.configversion='%s' " % ( configVersion )
 
+    sim_dq_conditions = ''
     if conddescription != default:
       retVal = self._getConditionString( conddescription, 'prod' )
       if retVal['OK']:
-        condition += retVal['Value']
+        sim_dq_conditions = retVal['Value']
+        condition += sim_dq_conditions
       else:
         return retVal
 
@@ -2730,10 +2730,12 @@ and files.qualityid= dataquality.qualityid'
           condition += 'and' + conds[:-3] + ')'
 
     if processing != default:
-      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='%s'"%(processing.split('/')[1], processing)
+      command = "select distinct prod.processingid from productionscontainer prod where \
+           prod.processingid in (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
+         START WITH id in (select distinct id from processing where name='%s') \
+         CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+        where v.path='%s') %s"%(processing.split('/')[1], processing, sim_dq_conditions)
+
       retVal = self.dbR_._query(command)
       if not retVal['OK']:
         return retVal
