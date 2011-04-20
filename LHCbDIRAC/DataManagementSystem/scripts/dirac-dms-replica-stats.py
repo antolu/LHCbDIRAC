@@ -19,7 +19,7 @@ def orderSEs( listSEs ):
   return orderedSEs
 
 fileType = ''
-directory = ''
+directories = []
 prods = ['']
 getSize = False
 Script.registerSwitch( "D:", "Dir=", "   Dir to search [ALL]" )
@@ -34,7 +34,7 @@ Script.parseCommandLine( ignoreErrors = False )
 
 for switch in Script.getUnprocessedSwitches():
   if switch[0] == "D" or switch[0].lower() == "dir":
-    directory = switch[1]
+    directories = switch[1].split( ',' )
   if switch[0].lower() == "t" or switch[0].lower() == "type":
     fileType = switch[1]
   if switch[0].lower() == "p" or switch[0].lower() == "prod":
@@ -62,16 +62,15 @@ for p in prods:
     pr.append( p )
 prods = pr
 
-directories = []
 if fileType or prods[0] != '':
   for prod in prods:
-    res = StorageUsageClient().getStorageDirectoryData( directory, fileType, prod, [] )
+    res = StorageUsageClient().getStorageDirectoryData( '', fileType, prod, [] )
     if not res['OK']:
       print "Failed to get directories for production", prod, res['Message']
     else:
-      directories.extend( res['Value'].keys() )
-elif directory:
-  directories = [directory]
+      for directory in  res['Value'].keys():
+        if directory.find( "/LOG/" ) < 0:
+          directories.append( directory )
 
 if len( directories ) == 0:
   print "No directories to get statistics for"
