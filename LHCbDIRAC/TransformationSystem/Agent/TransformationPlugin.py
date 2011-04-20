@@ -823,7 +823,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return activeSE
 
   def _ReplicateDataset( self ):
-    destSEs = self.params.get( 'DestinationSEs' )
+    destSEs = self.__getListFromString( self.params.get( 'DestinationSEs' ) )
     if not destSEs:
       gLogger.info( "_ReplicateDataset plugin: no destination SEs" )
       return S_OK( [] )
@@ -869,9 +869,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return ll
     return s
 
-  def __simpleReplication( self, mandatorySEs, destSEs, numberOfCopies = 0 ):
+  def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
     transID = self.params['TransformationID']
-    secondarySEs = self.__getListFromString( destSEs )
     activeSecondarySEs = self.__getActiveSEs( secondarySEs )
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
