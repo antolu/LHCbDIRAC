@@ -158,7 +158,7 @@ if __name__ == "__main__":
   if prods:
     if not fileType:
       fileType = ["All"]
-    longName = transGroup + " of " + ','.join( fileType ) + " for production%s " % s + ','.join( prods )
+    longName = transGroup + " of " + ','.join( fileType ) + " for productions %s " % str( ','.join( prods ) )
     transName += '-' + '/'.join( fileType ) + '-' + '/'.join( prods )
   else:
     longName = transGroup + " for BKQuery " + bkQuery
