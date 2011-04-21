@@ -898,14 +898,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             needToCopy -= 1
             candidateSEs.remove( se )
         if needToCopy <= 0:
-          continue
-        if needToCopy <= len( candidateSEs ):
+          pass
+        elif needToCopy <= len( candidateSEs ):
           targetSEs = candidateSEs[0:needToCopy]
         else:
           targetSEs = candidateSEs
           needToCopy -= len( targetSEs )
           # Try and replicate to non active SEs
-          for se in destSEs:
+          for se in secondarySEs:
             if needToCopy <= 0: break
             if se not in targetSEs:
               targetSEs.append( se )
