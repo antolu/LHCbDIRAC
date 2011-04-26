@@ -2199,7 +2199,7 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getRunFlag( self, runnb, processing ):
-    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId', LongType, [runnb, processing] )
+    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId', StringType, [runnb, processing] )
 
   #############################################################################
   def getRunQuality( self, procpass, flag = 'ALL' ):

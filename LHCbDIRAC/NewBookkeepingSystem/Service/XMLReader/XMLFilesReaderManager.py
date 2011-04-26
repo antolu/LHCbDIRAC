@@ -186,7 +186,7 @@ class XMLFilesReaderManager:
       if not job.exists( 'RunNumber' ) and len( infiles ) > 0:
         fileName = infiles[0].getFileName()
         retVal = dataManager_.getRunNbAndTck(fileName)
-        
+
         if not retVal['OK']:
           return S_ERROR(retVal['Message'])
         if len(retVal['Value']) > 0:
@@ -197,18 +197,18 @@ class XMLFilesReaderManager:
             newJobParams.setName('Tck')
             newJobParams.setValue(tck)
             job.addJobParams(newJobParams)
-            
-          if runnumber != None: 
+
+          if runnumber != None:
             newJobParams = JobParameters()
             newJobParams.setName('RunNumber')
             newJobParams.setValue(str(runnumber))
             job.addJobParams(newJobParams)
             prod = job.getParam('Production').getValue()
-            
-            retVal = dataManager_.getProductionProcessingPass(prod)
+
+            retVal = dataManager_.getProductionProcessingPassID(prod)
             if retVal['OK']:
               proc = retVal['Value']
-            
+
               retVal = dataManager_.getRunFlag(runnumber, proc)
               if retVal['OK']:
                 dqvalue = retVal['Value']
@@ -218,7 +218,7 @@ class XMLFilesReaderManager:
             else:
               dqvalue = None
               gLogger.warn('Bkk can not set the quality flag because the processing pass is missing!')
-        
+
     inputfiles = job.getJobInputFiles()
     sumEventInputStat = 0
     sumEvtStat = 0
@@ -442,10 +442,10 @@ class XMLFilesReaderManager:
       gLogger.debug('Pass_indexid', steps)
       gLogger.debug('Data taking', dataTackingPeriodDesc)
       gLogger.debug('production', production)
-      
-      
+
+
       res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodDesc, steps=steps['Steps'], inputproc='')
-      
+
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )
         gLogger.info( "New production is:", production )
@@ -455,7 +455,7 @@ class XMLFilesReaderManager:
           return retVal
         gLogger.error('Unable to create processing pass!',res['Message'])
         return S_ERROR('Unable to create processing pass!')
-      
+
 
     attrList = {'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \
@@ -483,7 +483,7 @@ class XMLFilesReaderManager:
       attrList['Production'] = production
 
     res = dataManager_.insertJob(attrList)
-  
+
     if not res['OK'] and production < 0:
       retVal = dataManager_.deleteProductionsContiner(production)
       if not retVal['OK']:
