@@ -4,12 +4,12 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                                import S_OK, S_ERROR, gConfig, gLogger, gMonitor
+from DIRAC                                                                import S_OK, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import sortList, breakListIntoChunks
-import os, time, datetime
+import os, time, datetime, pickle
 
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
 
@@ -18,23 +18,17 @@ class BookkeepingWatchAgent( AgentModule ):
   #############################################################################
   def initialize( self ):
     """ Make the necessary initializations """
-    import os
-    import pickle
-    homeDir = os.environ['HOME']
-    self.pickleFile = None
-    if homeDir:
-      self.pickleFile = os.path.join( homeDir, "BookkeepingWatchAgent.pkl" )
-      try:
-        f = open( self.pickleFile, 'r' )
-        self.fileLog = pickle.load( f )
-        self.timeLog = pickle.load( f )
-        self.fullTimeLog = pickle.load( f )
-        f.close()
-        gLogger.info( "BookkeepingWatchAgent.execute: successfully loaded Log from %s", self.pickleFile )
-      except:
-        self.fileLog = {}
-        self.timeLog = {}
-        self.fullTimeLog = {}
+    self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
+    try:
+      f = open( self.pickleFile, 'r' )
+      self.timeLog = pickle.load( f )
+      self.fullTimeLog = pickle.load( f )
+      f.close()
+      gLogger.info( "BookkeepingWatchAgent.execute: successfully loaded Log from %s", self.pickleFile )
+    except:
+      self.pickleFile = None
+      self.timeLog = {}
+      self.fullTimeLog = {}
     self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
     gMonitor.registerActivity( "Iteration", "Agent Loops", AGENT_NAME, "Loops/min", gMonitor.OP_SUM )
@@ -51,7 +45,6 @@ class BookkeepingWatchAgent( AgentModule ):
     gMonitor.addMark( 'Iteration', 1 )
     # Get all the transformations
     result = self.transClient.getTransformations( condDict = {'Status':'Active'}, extraParams = True )
-    activeTransforms = []
     if not result['OK']:
       gLogger.error( "BookkeepingWatchAgent.execute: Failed to get transformations.", result['Message'] )
       return S_OK()
@@ -69,17 +62,16 @@ class BookkeepingWatchAgent( AgentModule ):
       bkDict = res['Value']
 
       # Determine the correct time stamp to use for this transformation
-      if self.timeLog.has_key( transID ):
-        if self.fullTimeLog.has_key( transID ):
-          # If it is more than a day since the last reduced query, make a full query just in case
-          if ( datetime.datetime.utcnow() - self.fullTimeLog[transID] ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
-            timeStamp = self.timeLog[transID]
-            bkDict['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
-          else:
-            self.fullTimeLog[transID] = datetime.datetime.utcnow()
-      self.timeLog[transID] = datetime.datetime.utcnow()
       if not self.fullTimeLog.has_key( transID ):
         self.fullTimeLog[transID] = datetime.datetime.utcnow()
+      if self.timeLog.has_key( transID ):
+        # If it is more than a day since the last reduced query, make a full query just in case
+        if ( datetime.datetime.utcnow() - self.fullTimeLog[transID] ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
+          timeStamp = self.timeLog[transID]
+          bkDict['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
+        else:
+          self.fullTimeLog[transID] = datetime.datetime.utcnow()
+      self.timeLog[transID] = datetime.datetime.utcnow()
 
       # Perform the query to the Bookkeeping
       gLogger.verbose( "Using BK query for transformation %d: %s" % ( transID, str( bkDict ) ) )
@@ -91,14 +83,6 @@ class BookkeepingWatchAgent( AgentModule ):
         gLogger.error( "BookkeepingWatchAgent.execute: Failed to get response from the Bookkeeping", result['Message'] )
         continue
       lfnListBK = result['Value']
-
-      # Check if the number of files has changed since the last cycle
-      nlfns = len( lfnListBK )
-      gLogger.info( "%d files returned for transformation %d from the BK" % ( nlfns, int( transID ) ) )
-      if self.fileLog.has_key( transID ):
-        if nlfns == self.fileLog[transID]:
-          gLogger.verbose( 'No new files in BK DB since last check' )
-      self.fileLog[transID] = nlfns
 
       # Add any new files to the transformation
       addedLfns = []
@@ -112,7 +96,6 @@ class BookkeepingWatchAgent( AgentModule ):
           result = self.transClient.addFilesToTransformation( transID, sortList( lfnList ) )
           if not result['OK']:
             gLogger.warn( "BookkeepingWatchAgent.execute: failed to add lfns to transformation", result['Message'] )
-            self.fileLog[transID] = 0
           else:
             if result['Value']['Failed']:
               for lfn, error in res['Value']['Failed'].items():
@@ -151,11 +134,10 @@ class BookkeepingWatchAgent( AgentModule ):
     if self.pickleFile:
       try:
         f = open( self.pickleFile, 'w' )
-        self.fileLog = pickle.load( f )
-        self.timeLog = pickle.load( f )
-        self.fullTimeLog = pickle.load( f )
+        self.timeLog = pickle.dump( f )
+        self.fullTimeLog = pickle.dump( f )
         f.close()
         gLogger.info( "BookkeepingWatchAgent.execute: successfully dumped Log into %s", self.pickleFile )
       except:
-        pass
+        gLogger.error( "BookkeepingWatchAgent.execute: fail to dump Log into %s", self.pickleFile )
     return S_OK()
