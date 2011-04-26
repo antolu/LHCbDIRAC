@@ -224,6 +224,9 @@ class XMLFilesReaderManager:
     sumEvtStat = 0
     sumLuminosity = 0
 
+    if job.exists( 'JobType' ):
+      job.removeParam( 'JobType' )
+
     for i in inputfiles:
       fname = i.getFileName()
       res = dataManager_.getJobInfo( fname )
@@ -241,6 +244,8 @@ class XMLFilesReaderManager:
           sumEvtStat += value[fname]['EventStat']
         if value[fname]['Luminosity'] != None:
           sumLuminosity += value[fname]['Luminosity']
+        if value[fname].has_key( 'DQFlag' ):
+          dqvalue = value[fname]['DQFlag']
 
     evtinput = 0
     if long( sumEvtStat ) > long( sumEventInputStat ):
@@ -275,25 +280,6 @@ class XMLFilesReaderManager:
         value = long( param.getValue() )
         if value <= 0:
           return S_ERROR( 'The run number not greater 0!' )
-
-    if  dqvalue == None and job.exists( 'JobType' ):
-      jobtype = job.getParam( 'JobType' )
-      jvalue = jobtype.getValue()
-      if jvalue != '' and re.search( 'MERGE', jvalue.upper() ):
-        inputfiles = job.getJobInputFiles()
-        if len( inputfiles ) > 0:
-          fileName = inputfiles[0].getFileName()
-          res = dataManager_.getFileMetadata( [fileName] )
-          if res['OK']:
-            value = res['Value']
-            if value[fileName].has_key( 'DQFlag' ):
-              dqvalue = value[fileName]['DQFlag']
-          else:
-            gLogger.warn( res['Message'] )
-      job.removeParam( 'JobType' )
-
-    if job.exists( 'JobType' ):
-      job.removeParam( 'JobType' )
 
     result = self.__insertJob( job )
 
