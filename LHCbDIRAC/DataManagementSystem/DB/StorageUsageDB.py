@@ -534,6 +534,21 @@ class StorageUsageDB( DB ):
       Data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
     return S_OK( Data )
 
+  def getRunSummaryPerSE( self, run ):
+    """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the 
+    run's file are stored is like:  /lhcb/data/[YEAR]/RAW/[STREAM]/[PARTITION]/[ACTIVITY]/[RUNNO]/"""
+    sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '/lhcb/data/%%/RAW/%%/%%/%%/%d/' GROUP BY su.SEName" % ( run )
+    gLogger.info( "getRunSummaryPerSE: sqlCmd is %s " % sqlCmd )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    Data = {}
+    for row in result[ 'Value' ]:
+      seName = row[ 0 ]
+      if seName not in Data.keys():
+        Data[ seName ] = {}
+      Data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
+    return S_OK( Data )
 
   def __getAllReplicasInFC( self, path ):
     ''' Queries the su_seUsage table to get all the entries relative to a given path registered in the FC. Returns
