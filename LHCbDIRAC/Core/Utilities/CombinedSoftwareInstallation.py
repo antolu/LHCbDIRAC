@@ -130,7 +130,7 @@ class CombinedSoftwareInstallation:
       if not result:
         DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area', '%s_%s' % ( app ) )
         if re.search( ':', self.mySiteRoot ):
-          result = InstallApplication( app, self.jobConfig, self.localArea )
+          result = InstallApplication( app, self.jobConfig, self.mySiteRoot )
           if not result:
             DIRAC.gLogger.error( 'Software failed to be installed!' )
             return DIRAC.S_ERROR( 'Software Not Installed' )
@@ -246,15 +246,22 @@ def InstallApplication( app, config, area ):
 
   if not area:
     return False
+
+  localArea = area
+  sharedArea = ''
+  if re.search( ':', area ):
+    localArea = string.split( area, ':' )[0]
+    sharedArea = string.split( area, ':' )[1]
+
   appName = app[0]
   appVersion = app[1]
   # make a copy of the environment dictionary
   cmtEnv = dict( os.environ )
 
-  installProject = os.path.join( area, InstallProject )
+  installProject = os.path.join( localArea, InstallProject )
   if not os.path.exists( installProject ):
     try:
-      shutil.copy( InstallProject, area )
+      shutil.copy( InstallProject, localArea )
     except:
       DIRAC.gLogger.warn( 'Failed to create:', installProject )
       return False
@@ -262,10 +269,13 @@ def InstallApplication( app, config, area ):
   curDir = os.getcwd()
 
   # Move to requested are and run the installation
-  os.chdir( area )
+  os.chdir( localArea )
 
-  cmtEnv['MYSITEROOT'] = os.getcwd()
-  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % os.getcwd() )
+  mySiteRoot = os.getcwd()
+  if sharedArea:
+    mySiteRoot += ':%s' % sharedArea
+  cmtEnv['MYSITEROOT'] = mySiteRoot
+  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % mySiteRoot )
   cmtEnv['CMTCONFIG'] = config
   DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
