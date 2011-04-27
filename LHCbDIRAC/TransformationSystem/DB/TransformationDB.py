@@ -1,4 +1,4 @@
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/TransformationSystem/DB/TransformationDB.py $
+# $HeadURL$
 
 """ DIRAC Transformation DB
 
@@ -107,10 +107,11 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     startRun = res['Value'].get( 'StartRun' )
-    if not startRun:
-      return S_ERROR( "No StartRun is defined for this query" )
-    if startRun > runNumber:
-      return S_ERROR( "EndRun is before StartRun" )
+    endRun = res['Value'].get( 'EndRun' )
+    if endRun and runNumber < endRun:
+      return S_ERROR( "EndRun can not be reduced" )
+    if startRun and startRun > runNumber:
+      return S_ERROR( "EndRun is before StartRun!" )
     req = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
     return self._update( req, connection )
 
@@ -129,7 +130,10 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     endRun = res['Value'].get( 'EndRun' )
-    if runNumber > endRun:
+    startRun = res['Value'].get( 'StartRun' )
+    if startRun and runNumber > startRun:
+      return S_ERROR( "StartRun can not be increased!" )
+    if endRun and runNumber > endRun:
       return S_ERROR( "StartRun cannot be after EndRun!" )
     req = "UPDATE BkQueries SET StartRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
     return self._update( req, connection )
