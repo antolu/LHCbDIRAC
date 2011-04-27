@@ -164,6 +164,11 @@ class StorageUsageHandler( RequestHandler ):
     """Retrieve a summary (total files and total size) for a given directory, grouped by storage element """
     return storageUsageDB.getDirectorySummaryPerSE( directory )
 
+  types_getRunSummaryPerSE = []
+  def export_getRunSummaryPerSE( self, run ):
+    """Retrieve a summary (total files and total size) for a given run, grouped by storage element """
+    return storageUsageDB.getRunSummaryPerSE( run )
+
   types_getIDs = []
   def export_getIDs( self, dirList ):
     """ Check if the directories exist in the su_Directory table and if yes returns the IDs
