@@ -26,7 +26,7 @@ class BookkeepingWatchAgent( AgentModule ):
       f.close()
       gLogger.info( "BookkeepingWatchAgent.execute: successfully loaded Log from %s", self.pickleFile )
     except:
-      self.pickleFile = None
+      gLogger.info( "BookkeepingWatchAgent.execute: failed loading Log from %s", self.pickleFile )
       self.timeLog = {}
       self.fullTimeLog = {}
     self.pollingTime = self.am_getOption( 'PollingTime', 120 )
@@ -134,8 +134,8 @@ class BookkeepingWatchAgent( AgentModule ):
     if self.pickleFile:
       try:
         f = open( self.pickleFile, 'w' )
-        self.timeLog = pickle.dump( f )
-        self.fullTimeLog = pickle.dump( f )
+        pickle.dump( self.timeLog, f )
+        pickle.dump( self.fullTimeLog, f )
         f.close()
         gLogger.info( "BookkeepingWatchAgent.execute: successfully dumped Log into %s", self.pickleFile )
       except:
