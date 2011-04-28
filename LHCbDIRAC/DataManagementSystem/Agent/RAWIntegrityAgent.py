@@ -44,7 +44,7 @@ class RAWIntegrityAgent( AgentModule ):
 
     gMonitor.registerActivity( "TotMigratedSize", "Total migrated file size", "RAWIntegriryAgent", "GB", gMonitor.OP_ACUM )
     gMonitor.registerActivity( "TimeInQueue", "Average current wait for migration", "RAWIntegriryAgent", "Minutes", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "WaitSize", "Size of migration buffer", "RAWIntegriryAgent", "GB", gMonitor.OP_MEAN )
+    gMonitor.registerActivity( "WaitSize", "Size of migration buffer", "RAWIntegrityAgent", "GB", gMonitor.OP_MEAN )
     gMonitor.registerActivity( "MigrationRate", "Observed migration rate", "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
     # This sets the Default Proxy to used as that defined under
