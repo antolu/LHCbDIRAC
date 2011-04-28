@@ -10,43 +10,30 @@ __RCSID__ = "$Id: "
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 
-class TransferQuality_Policy( PolicyBase ):
+class TransferQuality_Policy(PolicyBase):
 
-  def evaluate( self ):
-    """ 
-    Evaluate policy on Data quality. 
-        
+  def evaluate(self):
+    """
+    Evaluate policy on Data quality.
+
     :returns:
-        { 
-          'SAT':True|False, 
-          'Status':Active|Probing|Banned, 
+        {
+          'Status':Error|Unknown|Active|Probing|Banned,
           'Reason':'TransferQuality:None'|'TransferQuality:xx%',
         }
     """
 
-    quality = super( TransferQuality_Policy, self ).evaluate()
+    quality = super(TransferQuality_Policy, self).evaluate()
 
     if quality == None:
-      self.result['SAT'] = None
+      self.result['Status'] = 'Error'
       return self.result
     elif quality == 'Unknown':
-      return {'SAT':'Unknown'}
+      return {'Status':'Unknown'}
 
     quality = int( round( quality ) )
 
     if 'FAILOVER'.lower() in self.args[1].lower():
-      if self.oldStatus == 'Active':
-        if quality >= Configurations.Transfer_QUALITY_LOW :
-          self.result['SAT'] = False
-        else:
-          self.result['SAT'] = True
-      elif self.oldStatus == 'Probing':
-        if quality < Configurations.Transfer_QUALITY_LOW:
-          self.result['SAT'] = False
-        else:
-          self.result['SAT'] = True
-      else:
-        self.result['SAT'] = True
 
       self.result['Reason'] = 'TransferQuality: %d %% -> ' % quality
       if quality < Configurations.Transfer_QUALITY_LOW :
@@ -62,23 +49,6 @@ class TransferQuality_Policy( PolicyBase ):
       self.result['Reason'] = self.result['Reason'] + strReason
 
     else:
-      if self.oldStatus == 'Active':
-        if quality >= Configurations.Transfer_QUALITY_HIGH :
-          self.result['SAT'] = False
-        else:
-          self.result['SAT'] = True
-      elif self.oldStatus == 'Probing':
-        if quality >= Configurations.Transfer_QUALITY_LOW and quality < Configurations.Transfer_QUALITY_HIGH:
-          self.result['SAT'] = False
-        else:
-          self.result['SAT'] = True
-      elif self.oldStatus == 'Bad':
-        if quality < Configurations.Transfer_QUALITY_LOW :
-          self.result['SAT'] = False
-        else:
-          self.result['SAT'] = True
-      elif self.oldStatus == 'Banned':
-        self.result['SAT'] = True
 
       self.result['Reason'] = 'TransferQuality: %d %% -> ' % quality
       if quality < Configurations.Transfer_QUALITY_LOW :

@@ -2,45 +2,31 @@
 # $HeadURL:
 ########################################################################
 
-""" The GGUSTickets_Policy class is a policy class that evaluates on 
-    how many tickets are open atm.  
+""" The GGUSTickets_Policy class is a policy class that evaluates on
+    how many tickets are open atm.
 """
 
 __RCSID__ = "$Id"
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class GGUSTickets_Policy( PolicyBase ):
+class GGUSTickets_Policy(PolicyBase):
 
-  def evaluate( self ):
-    """ 
-    Evaluate policy on opened tickets, using args (tuple). 
-        
+  def evaluate(self):
+    """
+    Evaluate policy on opened tickets, using args (tuple).
+
     :returns:
-        { 
-          'SAT':True|False, 
-          'Status':Active|Probing, 
+        {
+          'Status':Active|Probing,
           'Reason':'GGUSTickets: n unsolved',
         }
     """
 
-    GGUS_N = super( GGUSTickets_Policy, self ).evaluate()
+    GGUS_N = super(GGUSTickets_Policy, self).evaluate()
 
     if GGUS_N == 'Unknown':
-      return {'SAT':'Unknown'}
-
-    if self.oldStatus == 'Active':
-      if GGUS_N >= 1:
-        self.result['SAT'] = True
-      else:
-        self.result['SAT'] = False
-    elif self.oldStatus == 'Probing':
-      if GGUS_N >= 1:
-        self.result['SAT'] = False
-      else:
-        self.result['SAT'] = True
-    else:
-      self.result['SAT'] = True
+      return {'Status':'Unknown'}
 
     if GGUS_N >= 1:
       self.result['Status'] = 'Probing'

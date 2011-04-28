@@ -15,31 +15,31 @@ from DIRAC.ResourceStatusSystem.Utilities.Utils import *
 # policies parameters
 #############################################################################
 
-DTinHours = 12
+DTinHours                   = 12
 
 # --- Pilots Efficiency policy --- #
-HIGH_PILOTS_NUMBER = 60
-MEDIUM_PILOTS_NUMBER = 20
-GOOD_PILOTS_EFFICIENCY = 90
-MEDIUM_PILOTS_EFFICIENCY = 30
-MAX_PILOTS_PERIOD_WINDOW = 720
-SHORT_PILOTS_PERIOD_WINDOW = 2
+HIGH_PILOTS_NUMBER          = 60
+MEDIUM_PILOTS_NUMBER        = 20
+GOOD_PILOTS_EFFICIENCY      = 90
+MEDIUM_PILOTS_EFFICIENCY    = 30
+MAX_PILOTS_PERIOD_WINDOW    = 720
+SHORT_PILOTS_PERIOD_WINDOW  = 2
 MEDIUM_PILOTS_PERIOD_WINDOW = 8
-LARGE_PILOTS_PERIOD_WINDOW = 48
+LARGE_PILOTS_PERIOD_WINDOW  = 48
 
 # --- Jobs Efficiency policy --- #
-HIGH_JOBS_NUMBER = 60
-MEDIUM_JOBS_NUMBER = 20
-GOOD_JOBS_EFFICIENCY = 90
-MEDIUM_JOBS_EFFICIENCY = 30
-MAX_JOBS_PERIOD_WINDOW = 720
-SHORT_JOBS_PERIOD_WINDOW = 2
-MEDIUM_JOBS_PERIOD_WINDOW = 8
-LARGE_JOBS_PERIOD_WINDOW = 48
+HIGH_JOBS_NUMBER            = 60
+MEDIUM_JOBS_NUMBER          = 20
+GOOD_JOBS_EFFICIENCY        = 90
+MEDIUM_JOBS_EFFICIENCY      = 30
+MAX_JOBS_PERIOD_WINDOW      = 720
+SHORT_JOBS_PERIOD_WINDOW    = 2
+MEDIUM_JOBS_PERIOD_WINDOW   = 8
+LARGE_JOBS_PERIOD_WINDOW    = 48
 
 # --- SE transfer quality --- #
-Transfer_QUALITY_LOW = 60
-Transfer_QUALITY_HIGH = 90
+Transfer_QUALITY_LOW        = 60
+Transfer_QUALITY_HIGH       = 90
 
 
 #############################################################################
@@ -112,15 +112,15 @@ AssigneeGroups = {
    'ResourceType': ValidResourceType,
    'Notifications': ['Mail']
    },
-#  'VladRobGreigJoel_PROD-Web': 
+#  'VladRobGreigJoel_PROD-Web':
 #  {'Users': ['roma', 'santinel', 'joel'],
 #   'Setup': ['LHCb-Production'],
 #   'Granularity': ['Site', 'Service'],
-#   'SiteType': ValidSiteType, 
-#   'ServiceType': ValidServiceType, 
-#   'ResourceType': ValidResourceType, 
+#   'SiteType': ValidSiteType,
+#   'ServiceType': ValidServiceType,
+#   'ResourceType': ValidResourceType,
 #   'Notifications': ['Web']
-#   }, 
+#   },
   'VladRobGreigJoel_PROD-Mail-2':
   {'Users': ['roma', 'santinel', 'joel'],
    'Setup': ['LHCb-Production'],
@@ -130,24 +130,24 @@ AssigneeGroups = {
    'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'],
    'Notifications': ['Mail']
    },
-#  'VladRobGreigJoel_PROD-Web-2': 
+#  'VladRobGreigJoel_PROD-Web-2':
 #  {'Users': ['roma', 'santinel', 'joel'],
 #   'Setup': ['LHCb-Production'],
 #   'Granularity': ['Resource'],
-#   'SiteType': ValidSiteType, 
-#   'ServiceType': ValidServiceType, 
-#   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'], 
+#   'SiteType': ValidSiteType,
+#   'ServiceType': ValidServiceType,
+#   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'],
 #   'Notifications': ['Web']
-#   }, 
-#  'VladRob_DEV': 
+#   },
+#  'VladRob_DEV':
 #  {'Users': ['roma', 'santinel'],
-#   'Setup': ['LHCb-Development', 'LHCb-Certification'], 
+#   'Setup': ['LHCb-Development', 'LHCb-Certification'],
 #   'Granularity': ValidRes,
-#   'SiteType': [], 
-#   'ServiceType': ValidServiceType, 
-#   'ResourceType': ValidResourceType, 
+#   'SiteType': [],
+#   'ServiceType': ValidServiceType,
+#   'ResourceType': ValidResourceType,
 #   'Notifications': ['Web']
-#   }, 
+#   },
   'me_PROD-Mail':
   {'Users': ['fstagni'],
    'Setup': ['LHCb-Production'],
@@ -157,15 +157,15 @@ AssigneeGroups = {
    'ResourceType': ValidResourceType,
    'Notifications': ['Mail']
    },
-#  'me_PROD-Web': 
+#  'me_PROD-Web':
 #  {'Users': ['fstagni'],
 #   'Setup': ['LHCb-Production'],
 #   'Granularity': ValidRes,
-#   'SiteType': ValidSiteType, 
-#   'ServiceType': ValidServiceType, 
-#   'ResourceType': ValidResourceType, 
+#   'SiteType': ValidSiteType,
+#   'ServiceType': ValidServiceType,
+#   'ResourceType': ValidResourceType,
 #   'Notifications': ['Web']
-#   }, 
+#   },
   'me_DEV':
   {'Users': ['fstagni'],
    'Setup': ['LHCb-Development', 'LHCb-Certification'],
@@ -211,25 +211,13 @@ Policies = {
       'module' : 'DT_Policy',
       'commandIn' : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
       'args' : None,
-#      'Site_Panel' : [ {'WebLink': {'Command': 'DT_Link', 
+#      'Site_Panel' : [ {'WebLink': {'Command': 'DT_Link',
 #                                    'args': None}}
-#                      ], 
-#      'Resource_Panel' : [ {'WebLink': {'Command': 'DT_Link', 
+#                      ],
+#      'Resource_Panel' : [ {'WebLink': {'Command': 'DT_Link',
 #                                        'args': None}}
 #                      ]
-     },    
-  'HammerCloud' :
-    { 'Description' : "HammerCloud checks",
-      'Granularity' : ['Site'],
-      'Status' : ['Probing'],
-      'FormerStatus' : ValidStatus,
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-      'module' : 'HC_Policy',
-      'commandIn' : ( 'HC_Command', 'HC_Command' ),
-      'args' : None,
-     },        
+     },
   'DT_Scheduled' :
     { 'Description' : "Ongoing and scheduled down-times",
       'Granularity' : ['Site', 'Resource'],
@@ -251,7 +239,7 @@ Policies = {
      },
   'GGUSTickets' :
     { 'Description' : "Open GGUS tickets",
-      'Granularity' : ['Site'],
+      'Granularity' : [],#['Site'],
       'Status' : ValidStatus,
       'FormerStatus' : ValidStatus,
       'SiteType' : ValidSiteType,
@@ -376,9 +364,9 @@ Policies = {
                           ]
      },
 #  'OnNodePropagation' :
-#    { 'Description' : "How the site of the node is behaving in the RSS", 
-#      'Granularity' : ['Resource'], 
-#      'Status' : ValidStatus, 
+#    { 'Description' : "How the site of the node is behaving in the RSS",
+#      'Granularity' : ['Resource'],
+#      'Status' : ValidStatus,
 #      'FormerStatus' : ValidStatus,
 #      'SiteType' : ValidSiteType,
 #      'ServiceType' : ValidServiceType,
@@ -601,15 +589,15 @@ Policies = {
                               ]
      },
 #  'OnServicePropagation' :
-#    { 'Granularity' : [], 
-#      'Status' : ValidStatus, 
+#    { 'Granularity' : [],
+#      'Status' : ValidStatus,
 #      'FormerStatus' : ValidStatus,
 #      'SiteType' : ValidSiteType,
 #      'ServiceType' : ValidServiceType,
 #      'ResourceType' : ValidResourceType,
 #      'module' : 'OnServicePropagation_Policy',
 #      'commandIn' : None,
-#      'args' : None,  
+#      'args' : None,
 #     },
   'OnStorageElementPropagation' :
     { 'Description' : "How the storage element's nodes are behaving in the RSS",
@@ -626,14 +614,14 @@ Policies = {
                     ]
      },
 #  'OnSENodePropagation' :
-#    { 'Granularity' : [], 
-#      'Status' : ValidStatus, 
+#    { 'Granularity' : [],
+#      'Status' : ValidStatus,
 #      'FormerStatus' : ValidStatus,
 #      'SiteType' : ValidSiteType,
 #      'ServiceType' : ValidServiceType,
-#      'module': 'OnSENodePropagation_Policy', 
+#      'module': 'OnSENodePropagation_Policy',
 #      'commandIn' : None,
-#      'args' : None,  
+#      'args' : None,
 #      'ResourceType' : ['SE'],
 #     },
   'TransferQuality' :
@@ -690,26 +678,26 @@ Policies = {
                       ]
      },
 #  'Fake' :
-#    { 'Granularity' : ['Site'], 
-#      'Status' : ValidStatus, 
+#    { 'Granularity' : ['Site'],
+#      'Status' : ValidStatus,
 #      'FormerStatus' : ValidStatus,
 #      'SiteType' : ValidSiteType,
 #      'ServiceType' : ValidServiceType,
 #      'ConfirmationPolicy': 'Fake_Confirm',
 #      'module': 'Fake_Policy',
 #      'commandIn' : ('DoNothing_Command', 'DoNothing_Command'),
-#      'args' : None,  
+#      'args' : None,
 #      'ResourceType' : ValidResourceType,
 #     },
 #  'Fake_Confirm' :
-#    { 'Granularity' : [], 
-#      'Status' : ValidStatus, 
+#    { 'Granularity' : [],
+#      'Status' : ValidStatus,
 #      'FormerStatus' : ValidStatus,
 #      'SiteType' : ValidSiteType,
 #      'ServiceType' : ValidServiceType,
 #      'module': 'Fake_Confirm_Policy',
 #      'commandIn' : ('DoNothing_Command', 'DoNothing_Command'),
-#      'args' : None,  
+#      'args' : None,
 #      'ResourceType' : ValidResourceType,
 #     },
   'AlwaysFalse' :
@@ -723,7 +711,6 @@ Policies = {
       'ResourceType' : ValidResourceType,
      }
 }
-
 
 Policy_Types = {
   'Resource_PolType' :
@@ -774,7 +761,7 @@ Policy_Types = {
 }
 
 #############################################################################
-# Web views 
+# Web views
 #############################################################################
 
 views_panels = {
@@ -786,7 +773,7 @@ views_panels = {
 
 
 #############################################################################
-# Clients cache 
+# Clients cache
 #############################################################################
 
 Commands_ClientsCache = [( 'ClientsCache_Command', 'JobsEffSimpleEveryOne_Command' ),

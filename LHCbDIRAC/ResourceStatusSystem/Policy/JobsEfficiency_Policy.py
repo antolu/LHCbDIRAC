@@ -2,43 +2,39 @@
 # $HeadURL:
 ########################################################################
 
-""" The JobsEfficiency_Policy class is a policy class 
+""" The JobsEfficiency_Policy class is a policy class
     that checks the efficiency of the jobs
 """
 
 __RCSID__ = "$Id: "
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
-from DIRAC.ResourceStatusSystem.Command.ClientsInvoker import ClientsInvoker
-from DIRAC.ResourceStatusSystem.Utilities.Exceptions import *
-from DIRAC.ResourceStatusSystem.Utilities.Utils import *
-from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
+from DIRAC.ResourceStatusSystem.Command.ClientsInvoker  import ClientsInvoker
+from DIRAC.ResourceStatusSystem.Utilities.Exceptions    import *
+from DIRAC.ResourceStatusSystem.Utilities.Utils         import *
+from LHCbDIRAC.ResourceStatusSystem.Policy              import Configurations
 
 class JobsEfficiency_Policy( PolicyBase ):
 
   def evaluate( self, args, knownInfo = None, commandPeriods = None, commandStats = None,
                commandEff = None, commandCharge = None ):
-    """ evaluate policy on jobs stats, using args (tuple). 
+    """ evaluate policy on jobs stats, using args (tuple).
         - args[0] should be a ValidRes
         - args[1] should be the name of the ValidRes
-        - args[2] should be the present status
-        
+
         returns:
-            { 
-              'SAT':True|False, 
-              'Status':Active|Probing|Banned, 
+            {
+              'SAT':True|False,
+              'Status':Active|Probing|Banned,
               'Reason':'JobsEff:low|JobsEff:med|JobsEff:good',
             }
     """
 
-    if not isinstance( args, tuple ):
+    if type(args) != tuple:
       raise TypeError, where( self, self.evaluate )
 
     if args[0] not in ValidRes:
       raise InvalidRes, where( self, self.evaluate )
-
-    if args[2] not in ValidStatus:
-      raise InvalidStatus, where( self, self.evaluate )
 
     if knownInfo is not None:
       if 'JobsEff' in knownInfo.keys():
@@ -171,7 +167,7 @@ class JobsEfficiency_Policy( PolicyBase ):
 
         - args[0] should be a ValidRes
         - args[1] should be the name of the ValidRes
-        
+
         - periods contains the periods to consider in the query
 
         returns:

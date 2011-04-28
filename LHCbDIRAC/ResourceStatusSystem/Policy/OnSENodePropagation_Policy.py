@@ -13,36 +13,30 @@ from DIRAC.ResourceStatusSystem.Command.ClientsInvoker import ClientsInvoker
 from DIRAC.ResourceStatusSystem.Utilities.Exceptions import *
 from DIRAC.ResourceStatusSystem.Utilities.Utils import *
 
-class OnSENodePropagation_Policy( PolicyBase ):
+class OnSENodePropagation_Policy(PolicyBase):
 
-  def evaluate( self, args, commandIn = None, knownInfo = None ):
-    """ Evaluate policy on SE nodes status, using args (tuple). 
-        
+  def evaluate(self, args, commandIn = None, knownInfo = None):
+    """ Evaluate policy on SE nodes status, using args (tuple).
+
         :params:
           :attr:`args`: a tuple
             `args[0]` should be a ValidRes (StorageElement only)
 
             `args[1]` should be the name of the SE node
-            
-            `args[2]` should be the present status
-          
+
           :attr:`commandIn`: optional command object
-          
+
           :attr:`knownInfo`: optional information dictionary
-        
+
         :returns:
-            { 
-              `SAT`:True|False, 
-              `Status`:Active|Probing|Banned, 
+            {
+              `Status`:Active|Probing|Banned,
               `Reason`:'SE: A:%d/P:%d/B:%d'
             }
     """
 
-    if not isinstance( args, tuple ):
+    if type(args) != tuple:
       raise TypeError, where( self, self.evaluate )
-
-    if args[2] not in ValidStatus:
-      raise InvalidStatus, where( self, self.evaluate )
 
     #get resource stats
     if knownInfo is not None and 'StorageElementStats' in knownInfo.keys():
@@ -73,65 +67,19 @@ class OnSENodePropagation_Policy( PolicyBase ):
 
     result = {}
 
-    if args[2] == 'Active':
-      if storageElementStatus == 'Active':
-        result['SAT'] = False
-        result['Status'] = 'Active'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-      elif storageElementStatus == 'Probing':
-        result['SAT'] = True
-        result['Status'] = 'Probing'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-      elif storageElementStatus == 'Banned':
-        result['SAT'] = True
-        result['Status'] = 'Banned'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-
-    elif args[2] == 'Probing':
-      if storageElementStatus == 'Active':
-        result['SAT'] = True
-        result['Status'] = 'Active'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-      elif storageElementStatus == 'Probing':
-        result['SAT'] = False
-        result['Status'] = 'Probing'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-      elif storageElementStatus == 'Banned':
-        result['SAT'] = True
-        result['Status'] = 'Banned'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-
-    elif args[2] == 'Banned':
-      if storageElementStatus == 'Active':
-        result['SAT'] = True
-        result['Status'] = 'Active'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-      elif storageElementStatus == 'Probing':
-        result['SAT'] = True
-        result['Status'] = 'Probing'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-      elif storageElementStatus == 'Banned':
-        result['SAT'] = False
-        result['Status'] = 'Banned'
-        result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
-                                                    storageElementStats['Probing'],
-                                                    storageElementStats['Banned'] )
-
-
+    if storageElementStatus == 'Active':
+      result['Status'] = 'Active'
+      result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
+                                                   storageElementStats['Probing'],
+                                                   storageElementStats['Banned'] )
+    elif storageElementStatus == 'Probing':
+      result['Status'] = 'Probing'
+      result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
+                                                   storageElementStats['Probing'],
+                                                   storageElementStats['Banned'] )
+    elif storageElementStatus == 'Banned':
+      result['Status'] = 'Banned'
+      result['Reason'] = 'SEs: A:%d/P:%d/B:%d' % ( storageElementStats['Active'],
+                                                   storageElementStats['Probing'],
+                                                   storageElementStats['Banned'] )
     return result

@@ -10,87 +10,48 @@ __RCSID__ = "$Id: "
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class SEQueuedTransfers_Policy( PolicyBase ):
+class SEQueuedTransfers_Policy(PolicyBase):
 
-  def evaluate( self ):
-    """ 
-    Evaluate policy on SE Queued Transfers, using args (tuple). 
-        
+  def evaluate(self):
+    """
+    Evaluate policy on SE Queued Transfers, using args (tuple).
+
     :returns:
-        { 
-          'SAT':True|False, 
-          'Status':Active|Probing|Bad, 
+        {
+          'Status':Error|Unknown|Active|Probing|Bad,
           'Reason':'QueuedTransfers:High'|'QueuedTransfers:Mid-High'|'QueuedTransfers:Low',
         }
     """
 
-    status = super( SEQueuedTransfers_Policy, self ).evaluate()
+    status = super(SEQueuedTransfers_Policy, self).evaluate()
 
     if status is None or status == -1:
-      return {'SAT': None}
+      return {'Status': 'Error'}
 
     if status == 'Unknown':
-      return {'SAT':'Unknown'}
+      return {'Status':'Unknown'}
 
     status = int( round( status['Queued transfers'] ) )
 
-    if self.oldStatus == 'Active':
-      if status > 100:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Bad'
-      elif status < 70:
-        self.result['SAT'] = False
-        self.result['Status'] = 'Active'
-      else:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Probing'
-
-    elif self.oldStatus == 'Probing':
-      if status > 100:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Bad'
-      elif status < 70:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Active'
-      else:
-        self.result['SAT'] = False
-        self.result['Status'] = 'Probing'
-
-    elif self.oldStatus == 'Bad':
-      if status > 100:
-        self.result['SAT'] = False
-        self.result['Status'] = 'Bad'
-      elif status < 70:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Active'
-      else:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Probing'
-
-    elif self.oldStatus == 'Banned':
-      if status > 100:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Bad'
-      elif status < 70:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Active'
-      else:
-        self.result['SAT'] = True
-        self.result['Status'] = 'Probing'
-
+    if status > 100:
+      self.result['Status'] = 'Bad'
+    elif status < 70:
+      self.result['Status'] = 'Active'
+    else:
+      self.result['Status'] = 'Probing'
 
     if status is not None and status != -1:
 
       self.result['Reason'] = "Queued transfers on the SE: %d -> " % status
 
       if status > 100:
-        str = 'HIGH'
+        str_ = 'HIGH'
       elif status < 70:
-        str = 'Low'
+        str_ = 'Low'
       else:
-        str = 'Mid-High'
+        str_ = 'Mid-High'
 
-      self.result['Reason'] = self.result['Reason'] + str
+      self.result['Reason'] = self.result['Reason'] + str_
 
     return self.result
 

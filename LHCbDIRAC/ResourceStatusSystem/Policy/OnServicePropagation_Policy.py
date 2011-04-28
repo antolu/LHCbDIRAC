@@ -17,36 +17,30 @@ class OnServicePropagation_Policy( PolicyBase ):
 
   def evaluate( self, args, commandIn = None, knownInfo = None ):
     """ Evaluate policy on Service Status, using args (tuple).
-        Get Resources stats and Site status. 
+        Get Resources stats and Site status.
         By standard, service status is active. If all the resources are banned, service status is banned.
         Otherwise, if there are no active resources but not all are banned, the status is probing.
         The site status is simply propagated.
-        
+
         :params:
           :attr:`args`: a tuple
             `args[0]` should be a ValidRes (just 'Service' - is ignored!)
-           
+
             `args[1]` should be the name of the service
 
-            `args[2]` should be the present status
-          
           :attr:`commandIn`: optional command object
-          
+
           :attr:`knownInfo`: optional information dictionary
-        
+
         :returns:
-            { 
-              `SAT`:True|False, 
-              `Status`:Active|Probing|Banned, 
+            {
+              `Status`:Error|Active|Probing|Banned,
               `Reason`:'Site Active/Probing/Banned. Nodes: A:X/P:Y/B:Z'
             }
     """
 
-    if not isinstance( args, tuple ):
+    if type(args) != tuple:
       raise TypeError, where( self, self.evaluate )
-
-    if args[2] not in ValidStatus:
-      raise InvalidStatus, where( self, self.evaluate )
 
     #get resources stats
     if knownInfo is not None and 'ResourceStats' in knownInfo.keys() and 'MonitoredStatus' in knownInfo.keys():
@@ -56,7 +50,7 @@ class OnServicePropagation_Policy( PolicyBase ):
       if commandIn is not None:
         commandsList = commandIn
       else:
-        # use standard Commands 
+        # use standard Commands
         from DIRAC.ResourceStatusSystem.Client.Command.RS_Command import ResourceStats_Command
         rs_c = ResourceStats_Command()
 
@@ -73,7 +67,7 @@ class OnServicePropagation_Policy( PolicyBase ):
       siteStatus = res[1]['MonitoredStatus']
 
       if resourceStats is None or siteStatus is None:
-        return {'SAT':None}
+        return {'Status':'Error'}
 
     resourcesStatus = 'Active'
 
@@ -98,79 +92,27 @@ class OnServicePropagation_Policy( PolicyBase ):
 #        from DIRAC.ResourceStatusSystem.DB.ResourceStatusDB import ResourceStatusDB
 #        rsDB = ResourceStatusDB()
 #        siteName = rsDB.getGeneralName(args[1], 'Service', 'Site')
-#        siteStatus = rsDB.getMonitoredsStatusWeb('Site', 
+#        siteStatus = rsDB.getMonitoredsStatusWeb('Site',
 #                                                 {'SiteName':siteName}, [], 0, 1)['Records'][0][4]
 
     result = {}
 
-    if args[2] == 'Active':
-      if siteStatus == 'Active' and resourcesStatus == 'Active':
-        result['SAT'] = False
-        result['Status'] = 'Active'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-      if siteStatus == 'Probing' or resourcesStatus == 'Probing':
-        result['SAT'] = True
-        result['Status'] = 'Probing'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-      if siteStatus == 'Banned' or resourcesStatus == 'Banned':
-        result['SAT'] = True
-        result['Status'] = 'Banned'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-
-    elif args[2] == 'Probing':
-      if siteStatus == 'Active' and resourcesStatus == 'Active':
-        result['SAT'] = True
-        result['Status'] = 'Active'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-      if siteStatus == 'Probing' or resourcesStatus == 'Probing':
-        result['SAT'] = False
-        result['Status'] = 'Probing'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-      if siteStatus == 'Banned' or resourcesStatus == 'Banned':
-        result['SAT'] = True
-        result['Status'] = 'Banned'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-
-    elif args[2] == 'Banned':
-      if siteStatus == 'Active' and resourcesStatus == 'Active':
-        result['SAT'] = True
-        result['Status'] = 'Active'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-      if siteStatus == 'Probing' or resourcesStatus == 'Probing':
-        result['SAT'] = True
-        result['Status'] = 'Probing'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-      if siteStatus == 'Banned' or resourcesStatus == 'Banned':
-        result['SAT'] = False
-        result['Status'] = 'Banned'
-        result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
-                                                                 resourceStats['Active'],
-                                                                 resourceStats['Probing'],
-                                                                 resourceStats['Banned'] )
-
-
+    if siteStatus == 'Banned' or resourcesStatus == 'Banned':
+      result['Status'] = 'Banned'
+      result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
+                                                                resourceStats['Active'],
+                                                                resourceStats['Probing'],
+                                                                resourceStats['Banned'] )
+    if siteStatus == 'Probing' or resourcesStatus == 'Probing':
+      result['Status'] = 'Probing'
+      result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
+                                                                resourceStats['Active'],
+                                                                resourceStats['Probing'],
+                                                                resourceStats['Banned'] )
+    if siteStatus == 'Active' and resourcesStatus == 'Active':
+      result['Status'] = 'Active'
+      result['Reason'] = 'Site "%s". Nodes: A:%d/P:%d/B:%d' % ( siteStatus,
+                                                                resourceStats['Active'],
+                                                                resourceStats['Probing'],
+                                                                resourceStats['Banned'] )
     return result
