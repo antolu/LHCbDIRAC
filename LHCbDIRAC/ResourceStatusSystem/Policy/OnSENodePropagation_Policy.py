@@ -10,8 +10,7 @@ __RCSID__ = "$Id: "
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 from DIRAC.ResourceStatusSystem.Command.ClientsInvoker import ClientsInvoker
-from DIRAC.ResourceStatusSystem.Utilities.Exceptions import *
-from DIRAC.ResourceStatusSystem.Utilities.Utils import *
+from DIRAC.ResourceStatusSystem.Utilities.Utils import where
 
 class OnSENodePropagation_Policy(PolicyBase):
 
