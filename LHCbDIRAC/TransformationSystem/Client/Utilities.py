@@ -57,7 +57,7 @@ def testBKQuery( transBKQuery, transType ):
   return lfns
 
 def buildBKQuery( bkQuery, prods, fileType, runs ):
-  bkFields = ( "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" )
+  bkFields = [ "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" ]
   transBKQuery = {'Visible': 'Yes'}
   requestID = None
   if runs:
@@ -98,16 +98,12 @@ def buildBKQuery( bkQuery, prods, fileType, runs ):
       if not bkNodes[i].upper().endswith( 'ALL' ):
         transBKQuery[bkFields[i]] = bkNodes[i]
 
-  if not transBKQuery.has_key( "FileType" ) and fileType:
-    # Add file types
-    transBKQuery['FileType'] = fileType
-
   fileType = transBKQuery.get( 'FileType' )
   if fileType:
     if type( fileType ) == type( [] ):
       fileTypes = fileType
     else:
-      fileTypes = [fileType]
+      fileTypes = fileType.split( ',' )
     expandedTypes = []
     for fileType in fileTypes:
       if fileType.lower().find( "all." ) == 0:
