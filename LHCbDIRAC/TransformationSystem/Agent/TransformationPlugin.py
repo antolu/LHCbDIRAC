@@ -392,14 +392,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if files and files == processed:
           status = 'Flush'
           gLogger.info( "All files processed for run %d in productions %s, flush in transformation %d" % ( runID, str( queryProdID ), transID ) )
+          self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
       self.params['Status'] = status
       res = self._BySize()
       self.params['Status'] = transStatus
       if not res['OK']:
         return res
       allTasks.extend( res['Value'] )
-      if requireFlush:
-        self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
     return S_OK( allTasks )
 
   def _ByRun( self, param = '', plugin = 'Standard' ):
