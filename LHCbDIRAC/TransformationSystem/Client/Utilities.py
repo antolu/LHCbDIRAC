@@ -84,6 +84,7 @@ def buildBKQuery( bkQuery, prods, fileType, runs ):
   else:
     if not bkQuery:
       return ( None, None )
+    bkQuery = bkQuery.replace( "RealData", "Real Data" )
     if bkQuery[0] == '/':
       bkQuery = bkQuery[1:]
     bk = bkQuery.split( '/' )
