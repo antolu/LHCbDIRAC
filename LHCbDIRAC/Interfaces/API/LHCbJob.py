@@ -128,6 +128,7 @@ class LHCbJob( Job ):
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
 
   #############################################################################
+
   def setApplication( self, appName, appVersion, optionsFiles, inputData = '', optionsLine = '', inputDataType = '', logFile = '' ):
     """Helper function.
 
@@ -264,6 +265,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def __getGaudiApplicationStep( self, name = 'GaudiApplication' ):
     """Internal function.
 
@@ -302,7 +304,9 @@ class LHCbJob( Job ):
     return step
 
   #############################################################################
-  def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '', inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '' ):
+
+  def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '',
+                            inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '' ):
     """Helper function.
 
        Specify application environment and script to be executed.
@@ -425,6 +429,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def __getGaudiApplicationScriptStep( self, name = 'GaudiApplicationScript' ):
     """Internal function.
 
@@ -462,6 +467,7 @@ class LHCbJob( Job ):
     return step
 
   #############################################################################
+
   def setBenderModule( self, benderVersion, modulePath, inputData = '', numberOfEvents = -1 ):
     """Helper function.
 
@@ -527,6 +533,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def setRootMacro( self, rootVersion, rootScript, arguments = '', logFile = '' ):
     """Helper function.
 
@@ -552,6 +559,7 @@ class LHCbJob( Job ):
     return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
 
   #############################################################################
+
   def setRootPythonScript( self, rootVersion, rootScript, arguments = '', logFile = '' ):
     """Helper function.
 
@@ -577,6 +585,7 @@ class LHCbJob( Job ):
     return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
 
   #############################################################################
+
   def setRootExecutable( self, rootVersion, rootScript, arguments = '', logFile = '' ):
     """Helper function.
 
@@ -602,6 +611,7 @@ class LHCbJob( Job ):
     return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
 
   #############################################################################
+
   def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile ):
     """ Internal function.
 
@@ -677,6 +687,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def __getRootApplicationStep( self, name = 'RootApplication' ):
     """Internal function.
 
@@ -710,12 +721,14 @@ class LHCbJob( Job ):
     return step
 
   #############################################################################
+
   def __getCurrentStepPrefix( self ):
     """Internal function, returns current step prefix for setting parameters.
     """
     return self.currentStepPrefix
 
   #############################################################################
+
   def addPackage( self, appName, appVersion ):
     """Helper function.
 
@@ -752,6 +765,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def setAncestorDepth( self, depth ):
     """Helper function.
 
@@ -783,6 +797,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def setInputDataType( self, inputDataType ):
     """Helper function.
 
@@ -813,6 +828,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def setCondDBTags( self, condDict ):
     """Under development. Helper function.
 
@@ -847,6 +863,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def setOutputData( self, lfns, OutputSE = [], OutputPath = '' ):
     """Helper function, used in preference to Job.setOutputData() for LHCb.
 
@@ -898,6 +915,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def setExecutable( self, executable, arguments = '', logFile = '' ):
     """Helper function.
 
@@ -964,6 +982,7 @@ class LHCbJob( Job ):
     return S_OK()
 
   #############################################################################
+
   def __getLHCbScriptStep( self, name = 'Script' ):
     """Internal function. This method controls the definition for a script module.
     """
@@ -993,6 +1012,7 @@ class LHCbJob( Job ):
     return step
 
   #############################################################################
+
   def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '' ):
     """Helper function.
 
@@ -1094,6 +1114,7 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
+
   def __getProtocolStep( self, name = 'ProtocolAccessTest' ):
     """Internal function. This method controls the definition for the ProtocolAccessTest module.
     """
@@ -1114,5 +1135,45 @@ class LHCbJob( Job ):
     step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, 'ROOT version' ) )
     step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, 'Input Data' ) )
     return step
+
+  #############################################################################
+
+  def runLocal( self, DiracLHCb = None, BKKClientIn = None ):
+    """ The DiracLHCb (API) object is for local submission.
+        A BKKClient might be needed.
+        First, adds Ancestors (in any) to the InputData.
+    """
+
+    if DiracLHCb is not None:
+      diracLHCb = DiracLHCb
+    else:
+      from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+      diracLHCb = DiracLHCb()
+
+    if self.workflow.parameters.find( 'AncestorDepth' ):
+
+      if BKKClientIn is not None:
+        bkClient = BKKClientIn
+      else:
+        from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        bkClient = BookkeepingClient()
+
+      lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
+      lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
+      ancestorsDepth = self.workflow.parameters.find( 'AncestorDepth' ).getValue()
+      ancestors = bkClient.getAncestors( lfns, int( ancestorsDepth ) )
+      if not ancestors['OK']:
+        return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
+      ancestorsLFNs = []
+      for ancestorsLFN in ancestors['Value']['Successful'].values():
+        ancestorsLFNs = ancestorsLFNs + ancestorsLFN
+
+      ancestorsLFNsString = ""
+      for ancestorsLFN in ancestorsLFNs:
+        ancestorsLFNsString = 'LFN:' + ancestorsLFN + ';'
+
+      self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
+
+    return diracLHCb.submit( self, mode = 'local' )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
