@@ -19,14 +19,9 @@ __RCSID__ = "$Id$"
 import string, shutil
 
 from DIRAC.Core.Workflow.Workflow                     import *
-from DIRAC.Core.DISET.RPCClient                       import RPCClient #only used for ProductionRequest service
 from DIRAC.Core.Utilities.List                        import removeEmptyElements, uniqueElements
-from DIRAC.Interfaces.API.Dirac                       import Dirac
 from DIRAC                                            import gConfig
 
-from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
@@ -37,9 +32,31 @@ COMPONENT_NAME = 'LHCbSystem/Client/Production'
 class Production( LHCbJob ):
 
   #############################################################################
-  def __init__( self, script = None ):
+
+  def __init__( self, script = None, BKKClientIn = None, transClientIn = None,
+                transformationIn = None ):
     """Instantiates the Workflow object and some default parameters.
     """
+
+    if BKKClientIn is not None:
+      self.BKKClient = BKKClientIn
+    else:
+      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      self.BKKClient = BookkeepingClient()
+
+    if transClientIn is not None:
+      self.transClient = transClientIn
+    else:
+      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+      self.transClient = TransformationClient()
+
+    if transformationIn is not None:
+      self.transformation = transformationIn
+    else:
+      from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
+      self.transformation = Transformation()
+
+
     LHCbJob.__init__( self, script )
     self.prodVersion = __RCSID__
     self.csSection = '/Production/Defaults'
@@ -103,7 +120,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
     self._setParameter( 'Priority', 'JDL', '1', 'Priority' )
     self._setParameter( 'emailAddress', 'string', 'lhcb-datacrash@cern.ch', 'CrashEmailAddress' )
-    self._setParameter( 'DataType', 'string', 'MC', 'Priority' ) #MC or DATA
     self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
 
     #Options related parameters
@@ -207,7 +223,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       outputSE = 'Tier1-RDST'
       self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    self._setParameter( 'dataType', 'string', 'MC', 'DataType' ) #MC or DATA to be reviewed
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
                                    histograms, firstEventNumber, {}, condDBTag, ddDBTag, '',
@@ -253,7 +268,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if extraOutputFile:
       self.log.verbose( 'Adding output file to Boole step %s' % extraOutputFile )
 
-    self._setParameter( 'dataType', 'string', 'MC', 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = extraOutputFile,
@@ -311,7 +325,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
     firstEventNumber = 0
-    self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
+
     self._addGaudiStep( 'Brunel', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
@@ -384,7 +398,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if  appType.lower() == 'merge':
       appType = inputDataType.lower()
 
-    self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                        extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
@@ -433,7 +446,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       extraOpts = string.join( extraOpts, ';' )
       optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
 
-    self._setParameter( 'dataType', 'string', dataType, 'DataType' ) #MC or DATA to be reviewed
     self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
@@ -472,8 +484,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
       extraOpts = string.join( extraOpts, ';' )
       optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
-
-    self._setParameter( 'dataType', 'string', dataType, 'DataType' )
 
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
@@ -802,24 +812,35 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return S_OK( name )
 
   #############################################################################
-  def runLocal( self ):
-    """ Create XML workflow for local testing then reformulate as a job and run locally.
+
+  def runLocal( self, DiracLHCb = None ):
+    """ 
+        Create XML workflow for local testing then reformulate as a job and run locally.
     """
+
     name = self.createWorkflow()['Value']
+    # this "name" is the xml file 
     j = LHCbJob( name )
-    d = Dirac()
-    return d.submit( j, mode = 'local' )
+    # it makes a job (a Worklow, with Parameters, out of the xml file
+
+    if DiracLHCb is not None:
+      diracLHCb = DiracLHCb
+    else:
+      from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+      diracLHCb = DiracLHCb()
+
+    return j.runLocal( diracLHCb, self.BKKClient )
 
   #############################################################################
+
   def getDetailedInfo( self, productionID ):
     """ Return detailed information for a given production.
     """
     return self.getParameters( int( productionID ), 'DetailedInfo' )
 
   #############################################################################
-  def _setProductionParameters( self, prodID, groupDescription = '', bkPassInfo = {}, bkInputQuery = {},
-                               derivedProd = 0, prodXMLFile = '', reqID = 0, printOutput = False,
-                               disable = False ):
+  def _getProductionParameters( self, prodID, groupDescription = '', bkPassInfo = {}, bkInputQuery = {},
+                               derivedProd = 0, prodXMLFile = '', reqID = 0 ):
     """ This method will publish production parameters.
     """
     if not prodXMLFile: #e.g. setting parameters for old productions
@@ -827,8 +848,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if os.path.exists( prodXMLFile ):
         self.log.verbose( 'Using %s for production body' % prodXMLFile )
       else:
-        prodClient = TransformationClient()
-        result = prodClient.getTransformationParameters( int( prodID ), ['Body'] )
+        result = self.transClient.getTransformationParameters( int( prodID ), ['Body'] )
         if not result['OK']:
           return S_ERROR( "Error during command execution: %s" % result['Message'] )
         if not result['Value']:
@@ -857,7 +877,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
     parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
     parameters['JobType'] = prodWorkflow.findParameter( 'JobType' ).getValue()
-    parameters['DataType'] = prodWorkflow.findParameter( 'DataType' ).getValue()
+    parameters['GroupSize'] = self.jobFileGroupSize
 
     if parameters['JobType'].lower() == 'mcsimulation':
       # A.T. EventsPerTask is considered immutable by Andrew
@@ -882,14 +902,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not parameters.has_key( 'eventType' ):
       return S_ERROR( 'Could not determine eventType from workflow' )
 
-    if prodWorkflow.findParameter( 'group_size' ):
-      parameters['group_size'] = prodWorkflow.findParameter( 'group_size' ).getValue()
-
     parameters['BKCondition'] = prodWorkflow.findParameter( 'conditions' ).getValue()
 
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
-      prodClient = TransformationClient()
-      res = prodClient.getBookkeepingQueryForTransformation( int( prodID ) )
+      res = self.transClient.getBookkeepingQueryForTransformation( int( prodID ) )
       if not res['OK']:
         self.log.error( res )
         return S_ERROR( 'Could not obtain production info' )
@@ -901,43 +917,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     parameters['RequestID'] = reqID
     parameters['DerivedProduction'] = derivedProd
 
-    inputDataFile = ''
-    if parameters['BKInputQuery'] and not parameters['DataType'].lower() == 'mc':
-      bkDict = parameters['BKInputQuery']
-      #To prevent not finding a file remove DQ flag distinction here
-      if bkDict.has_key( 'DataQualityFlag' ):
-        if not bkDict['DataQualityFlag'].lower() == 'all':
-          self.log.info( 'Removing DQ flag "%s" just to get a dataset' % ( bkDict['DataQualityFlag'] ) )
-          del bkDict['DataQualityFlag']
-
-      for name, value in bkDict.items():
-        if name == "ProductionID" or name == "EventType" or name == "BkQueryID" :
-          if value == 0:
-            del bkDict[name]
-          else:
-            bkDict[name] = str( value )
-        elif not type( value ) == type( ' ' ):
-          continue
-        else:
-          if value.lower() == "all":
-            del bkDict[name]
-
-      bkserver = BookkeepingClient()
-      self.log.verbose( 'Will attempt to retrieve an input data file for LFN construction from BK query' )
-      result = bkserver.getFilesWithGivenDataSets( bkDict )
-      if not result['OK']:
-        self.log.error( 'Could not obtain data from input BK query' )
-        return S_ERROR( 'Problem contacting BK for input data sets' )
-
-      if result['Value']:
-        inputDataFile = result['Value'][0]
-        self.log.verbose( 'Found an input data set from input BK query: %s' % inputDataFile )
-      else:
-        self.log.verbose( 'No input datasets found from BK query: %s' % ( bkDict ) )
-        return S_ERROR( 'No input datasets found from BK query to set parameters.' )
-
     dummyProdJobID = '99999999'
-    result = self.getOutputLFNs( prodID, dummyProdJobID, inputDataFile, prodXMLFile )
+    result = self.getOutputLFNs( prodID, dummyProdJobID, prodXMLFile )
     if not result['OK']:
       self.log.error( 'Could not create production LFNs', result )
 
@@ -995,17 +976,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     info.append( '\nBK Browsing Paths:\n%s' % ( string.join( bkPaths, '\n' ) ) )
     infoString = string.join( info, '\n' )
     parameters['DetailedInfo'] = infoString
-
-    if printOutput:
-      for n, v in parameters.items():
-        print '=' * len( n ), n, '='*len( n )
-        print v
-
-    if not disable:
-      for n, v in parameters.items():
-        result = self.setProdParameter( prodID, n, v )
-        if not result['OK']:
-          self.log.error( result['Message'] )
 
     return S_OK( parameters )
 
@@ -1068,9 +1038,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     # sweeping changes
     bkDictStep = {}
 
-    bkClient = BookkeepingClient()
     #Add the BK conditions metadata / name
-    simConds = bkClient.getSimConditions()
+    simConds = self.BKKClient.getSimConditions()
     if not simConds['OK']:
       self.log.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
       return simConds
@@ -1102,7 +1071,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     prodID = 0
     if publish:
-      prodClient = TransformationClient()
       if self.inputFileMask:
         fileMask = self.inputFileMask
       if self.jobFileGroupSize:
@@ -1113,11 +1081,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         derivedProduction = self.ancestorProduction
 
       #This mechanism desperately needs to be reviewed
-      result = prodClient.addTransformation( fileName, descShort, descLong, self.type, self.plugin, 'Manual', fileMask,
-                                             transformationGroup = self.prodGroup, groupSize = int( groupSize ),
-                                             inheritedFrom = int( derivedProduction ), body = workflowBody,
-                                             maxTasks = int( maxNumberOfTasks ), eventsPerTask = int( maxEventsPerTask ),
-                                             bkQuery = bkQuery )
+      result = self.transClient.addTransformation( fileName, descShort, descLong, self.type, self.plugin, 'Manual',
+                                                   fileMask, transformationGroup = self.prodGroup, groupSize = int( groupSize ),
+                                                   inheritedFrom = int( derivedProduction ), body = workflowBody,
+                                                   maxTasks = int( maxNumberOfTasks ),
+                                                   eventsPerTask = int( maxEventsPerTask ),
+                                                   bkQuery = bkQuery
+                                                  )
 
       if not result['OK']:
         self.log.error( 'Problem creating production:\n%s' % result )
@@ -1140,7 +1110,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if bkQuery:
       if queryProdID:
-        inputPass = bkClient.getProductionProcessingPass( queryProdID )
+        inputPass = self.BKKClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
           self.log.error( inputPass )
           self.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID, queryProdID ) )
@@ -1184,6 +1154,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       self._publishProductionToBK( bkDictStep, prodID, script = False )
 
     if requestID and publish:
+      from DIRAC.Core.DISET.RPCClient import RPCClient
       reqClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
       reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
       result = reqClient.addProductionToRequest( reqDict )
@@ -1194,9 +1165,18 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if publish:
       try:
-        self._setProductionParameters( prodID, prodXMLFile = fileName, groupDescription = bkDict['GroupDescription'],
-                                       bkPassInfo = bkDict['Steps'], bkInputQuery = bkQuery, reqID = requestID,
-                                       derivedProd = derivedProduction )
+        paramsDict = self._getProductionParameters( prodID,
+                                                    prodXMLFile = fileName,
+                                                    groupDescription = bkDict['GroupDescription'],
+                                                    bkPassInfo = bkDict['Steps'],
+                                                    bkInputQuery = bkQuery,
+                                                    reqID = requestID,
+                                                    derivedProd = derivedProduction )
+        for n, v in paramsDict.items():
+          result = self.setProdParameter( prodID, n, v )
+          if not result['OK']:
+            self.log.error( result['Message'] )
+
       except Exception, x:
         self.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
 
@@ -1304,20 +1284,20 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fopen.close()
       return S_OK()
 
-    transformation = Transformation()
-    transformation.setTransformationName( tName )
-    transformation.setBkQuery( {'ProductionID':inputProd, 'FileType':fileType} )
-    transformation.setDescription( 'Replication of transformation %s output data' % inputProd )
-    transformation.setLongDescription( 'This transformation is to replicate the output data from transformation %s according to the computing model' % ( inputProd ) )
-    transformation.setType( 'Replication' )
-    transformation.setPlugin( plugin )
+
+    self.transformation.setTransformationName( tName )
+    self.transformation.setBkQuery( {'ProductionID':inputProd, 'FileType':fileType} )
+    self.transformation.setDescription( 'Replication of transformation %s output data' % inputProd )
+    self.transformation.setLongDescription( 'This transformation is to replicate the output data from transformation %s according to the computing model' % ( inputProd ) )
+    self.transformation.setType( 'Replication' )
+    self.transformation.setPlugin( plugin )
     if replicas > 1:
-      transformation.setDestinations( replicas )
-    transformation.setTransformationGroup( groupDescription )
-    transformation.addTransformation()
-    transformation.setStatus( 'Active' )
-    transformation.setAgentType( 'Automatic' )
-    transResult = transformation.getTransformationID()
+      self.transformation.setDestinations( replicas )
+    self.transformation.setTransformationGroup( groupDescription )
+    self.transformation.addTransformation()
+    self.transformation.setStatus( 'Active' )
+    self.transformation.setAgentType( 'Automatic' )
+    transResult = self.transformation.getTransformationID()
     if not transResult['OK']:
       return transResult
 
@@ -1362,13 +1342,13 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fopen.close()
       return S_OK( bkName )
     self.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
-    result = BookkeepingClient().addProduction( bkDict )
+    result = self.BKKClient.addProduction( bkDict )
     if not result['OK']:
       self.log.error( result )
     return result
 
   #############################################################################
-  def getOutputLFNs( self, prodID = None, prodJobID = None, inputDataLFN = None, prodXMLFile = '' ):
+  def getOutputLFNs( self, prodID = None, prodJobID = None, prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
     if not prodXMLFile:
@@ -1381,7 +1361,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     job = LHCbJob( prodXMLFile )
     result = preSubmissionLFNs( job._getParameters(), job.createCode(),
-                               productionID = prodID, jobID = prodJobID, inputData = inputDataLFN )
+                               productionID = prodID, jobID = prodJobID )
     if not result['OK']:
       return result
     lfns = result['Value']
@@ -1389,26 +1369,28 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     return result
 
   #############################################################################
+
   def setProdParameter( self, prodID, pname, pvalue ):
     """Set a production parameter.
     """
+
     if type( pvalue ) == type( [] ):
       pvalue = string.join( pvalue, '\n' )
 
-    prodClient = TransformationClient()
     if type( pvalue ) == type( 2 ):
       pvalue = str( pvalue )
-    result = prodClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
+    result = self.transClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
     if not result['OK']:
       self.log.error( 'Problem setting parameter %s for production %s and value: %s' % ( pname, prodID, pvalue ) )
     return result
 
   #############################################################################
+
   def getParameters( self, prodID, pname = '', printOutput = False ):
     """Get a production parameter or all of them if no parameter name specified.
     """
-    prodClient = TransformationClient()
-    result = prodClient.getTransformation( int( prodID ), True )
+
+    result = self.transClient.getTransformation( int( prodID ), True )
     if not result['OK']:
       self.log.error( result )
       return S_ERROR( 'Could not retrieve parameters for production %s' % prodID )
@@ -1561,7 +1543,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def setJobFileGroupSize( self, gb ):
     """ Sets the number of gb to be input to each job created (e.g. for merging productions)
-        This parameter is used also as number of imput files (e.g. for stripping/reco), so pay attention
+        This parameter is used also as number of input files (e.g. for stripping/reco), so pay attention
     """
     self.jobFileGroupSize = gb
 
