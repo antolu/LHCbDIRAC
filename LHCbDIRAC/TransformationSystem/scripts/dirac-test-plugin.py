@@ -171,7 +171,7 @@ if __name__ == "__main__":
     elif opt in ( 'r', 'run' ):
       runs = val.split( ':' )
       if len( runs ) == 1:
-        runs[1] = runs[0]
+        runs.append( runs[0] )
     elif opt in ( 't', 'type' ):
       transType = val
 
