@@ -33,6 +33,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
 
   Script.registerSwitch( "R:", "Request=", "   Assign request number [<id of query production>]" )
+  Script.registerSwitch( "", "Invisible", "Before creating the transformation, set the files in the BKQuery as invisible" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
@@ -53,6 +54,7 @@ if __name__ == "__main__":
   keepSEs = None
   runs = None
   force = False
+  invisible = False
 
   switches = Script.getUnprocessedSwitches()
   import DIRAC
@@ -113,9 +115,11 @@ if __name__ == "__main__":
     elif opt in ( 'r', 'run' ):
       runs = val.split( ':' )
       if len( runs ) == 1:
-        runs[1] = runs[0]
+        runs.append( runs[0] )
     elif opt == "force":
       force == True
+    elif opt == "invisible":
+      invisible = True
 
   if not plugin:
     print "ERROR: No plugin supplied..."
@@ -202,10 +206,11 @@ if __name__ == "__main__":
     print "BK Query:", transBKQuery
 
   if transBKQuery:
+    print "Executing the BK query..."
     lfns = testBKQuery( transBKQuery, transType )
     nfiles = len( lfns )
   else:
-    print "No NK query provided..."
+    print "No BK query provided..."
     Script.showHelp()
     DIRAC.exit( 0 )
 
@@ -219,6 +224,19 @@ if __name__ == "__main__":
     print "No files found from BK query"
     print "If you anyway want to submit the transformation, use option --Force"
     DIRAC.exit( 0 )
+
+  # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
+  setInvisiblePlugins = ( "DeleteDataset" )
+  if invisible or plugin in setInvisiblePlugins:
+    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    res = BookkeepingClient().setFilesInvisible( lfns )
+    if res['OK']:
+      print "%d files we successfully set invisible in the BK" % len( lfns )
+      transBKQuery.pop( "Visible" )
+      transformation.setBkQuery( transBKQuery )
+    else:
+      print "Failed to set the files invisible: %s" % res['Message']
+      DIRAC.exit( 2 )
 
   trial = 0
   while True:
@@ -241,7 +259,7 @@ if __name__ == "__main__":
       transformation.setAgentType( 'Automatic' )
     result = transformation.getTransformationID()
     if result['OK']:
-      #print "Transformation %d created" % result['Value']
+      print "Transformation %d created" % result['Value']
       print "Name:", transName, ", Description:", longName
       print "Transformation body:", transBody
       print "Plugin:", plugin
