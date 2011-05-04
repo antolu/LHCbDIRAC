@@ -29,7 +29,7 @@ def testBKQuery( transBKQuery, transType ):
     transBKQuery.update( {"FileSize":True} )
     res = bk.getFilesWithGivenDataSets( transBKQuery )
     lfnSize = 0
-    if res['OK']:
+    if res['OK'] and type( res['Value'] ) == type( [] ):
       lfnSize = res['Value'][0] / 1000000000000.
     print "\n%d files (%.1f TB) in directories:" % ( len( lfns ), lfnSize )
     for dir in dirs.keys():
