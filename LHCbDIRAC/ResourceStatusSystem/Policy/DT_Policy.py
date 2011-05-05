@@ -18,12 +18,15 @@ class DT_Policy(PolicyBase):
 
     :returns:
         {
-          'Status':Unknown|Active|Probing|Bad|Banned,
+          'Status':Unknown|Active|Bad|Banned,
           'Reason':'DT:None'|'DT:OUTAGE|'DT:AT_RISK',
           'EndDate':datetime (if needed)
         }
     """
     status = super(DT_Policy, self).evaluate()
+
+    if not status:
+      return {'Status':'Error', 'Reason':'GOCDB request did not succeed'}
 
     if status == 'Unknown':
       return {'Status':'Unknown'}
@@ -37,10 +40,10 @@ class DT_Policy(PolicyBase):
       self.result['Status']  = 'Banned'
 
     elif 'WARNING' in status['DT']:
-      self.result['Status']  = 'Probing'
+      self.result['Status']  = 'Bad'
 
     else:
-      self.result['Status'] = 'Unknown'
+      return {'Status':'Error', 'Reason':'GOCDB returned an unknown value for DT'}
 
     self.result['EndDate'] = status['EndDate']
     self.result['Reason'] = 'DownTime found: %s' % status['DT']

@@ -20,33 +20,27 @@ class Propagation_Policy(PolicyBase):
 
     :returns:
       {
-      `Status`:Error|Unknown|Active|Probing|Banned,
+      `Status`:Error|Unknown|Active|Banned,
       `Reason`:'A:X/P:Y/B:Z'
       }
     """
 
     stats = super(Propagation_Policy, self).evaluate()
 
-    if stats == 'Unknown':
-      return {'Status':'Unknown'}
-
     if stats is None:
       return {'Status':'Error'}
 
-    try:
-      val = ( 100 * stats['Active'] + 70 * stats['Probing'] + 30 * stats['Bad'] ) / stats['Total']
-    except ZeroDivisionError:
-      return {'Status':'Error'}
+    if stats == 'Unknown':
+      return {'Status':'Unknown', 'Reason':'No info available from service'}
 
-    if val == 100:
+    if stats['Active'] > 0 and stats['Probing'] == 0 and stats['Bad'] == 0 and stats['Banned'] == 0:
       status = 'Active'
-    elif val == 0:
+    elif stats['Active'] == 0 and stats['Probing'] == 0 and stats['Bad'] == 0 and stats['Banned'] > 0:
       status = 'Banned'
+    elif stats['Active'] > 0 or stats['Probing'] > 0 or stats['Bad'] > 0 or stats['Banned'] > 0:
+      status = 'Bad'
     else:
-      if val >= 70:
-        status = 'Probing'
-      else:
-        status = 'Bad'
+      status = 'Unknown'
 
     self.result['Status'] = status
     # TODO: Check that self.args[2] is correct, in the future, use
