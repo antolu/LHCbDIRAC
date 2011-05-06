@@ -38,7 +38,7 @@ class StoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : "User's LFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = { 'title' : "LFN space usage by %s" % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -74,7 +74,7 @@ class StoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : "User's Number of LFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = { 'title' : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -108,7 +108,7 @@ class StoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : "User's PFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = { 'title' : "PFN space usage by %s" % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -142,7 +142,7 @@ class StoragePlotter( BaseReporter ):
                    'granularity' : granularity, 'unit' : unitName } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : "User's Number of PFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = { 'title' : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -154,12 +154,10 @@ class StoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
-    if reportRequest[ 'grouping' ] == "User":
-      return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
     return self._multiplicityReport( reportRequest, "LogicalFiles", "PhysicalFiles" )
 
   def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : "User's Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
+    metadata = { 'title' : "Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -169,12 +167,10 @@ class StoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
-    if reportRequest[ 'grouping' ] == "User":
-      return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
     return self._multiplicityReport( reportRequest, "LogicalSize", "PhysicalSize" )
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
-    metadata = { 'title' : "User's Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
+    metadata = { 'title' : "Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
@@ -185,13 +181,14 @@ class StoragePlotter( BaseReporter ):
   def _multiplicityReport( self, reportRequest, logicalField, physicalField ):
     #Step 1 get the total LFNs for each bucket
     selectFields = ( "%s, %s, %s, SUM(%s)/SUM(%s)",
-                     [ 'User', 'startTime', 'bucketLength', logicalField, 'entriesInBucket' ]
+                     #[ 'User', 'startTime', 'bucketLength', logicalField, 'entriesInBucket' ]
+                     [ 'Directory', 'startTime', 'bucketLength', logicalField, 'entriesInBucket' ]
                    )
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
                                  selectFields,
                                  reportRequest[ 'condDict' ],
-                                 ( '%s', [ 'User' ] ),
+                                 ( '%s', [ 'Directory' ] ),
                                  { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
