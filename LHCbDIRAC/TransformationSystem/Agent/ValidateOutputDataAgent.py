@@ -4,10 +4,12 @@
 __RCSID__ = "$Id$"
 
 from DIRAC                                                          import S_OK, S_ERROR, gLogger
-from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
 from DIRAC.Core.Utilities.List                                      import sortList
+from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
+from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
@@ -20,6 +22,8 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     """
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
+    self.transClient = TransformationClient()
+    self.storageUsageClient = StorageUsageClient()
 
     # This sets the Default Proxy to used as that defined under 
     # /Operations/Shifter/DataManager
