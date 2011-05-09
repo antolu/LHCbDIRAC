@@ -4,7 +4,7 @@
  Create a new replication or removal transformation according to plugin
 """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 
 if __name__ == "__main__":

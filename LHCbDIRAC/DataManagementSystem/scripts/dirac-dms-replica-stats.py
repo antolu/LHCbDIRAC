@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/tags/LHCbDIRAC/DataManagementSystem/dm_2010121301-v5r11p1/scripts/dirac-dms-replica-stats.py $
+# $HeadURL$
 ########################################################################
 
 """
    Get statistics on number of replicas for a given directory or production
 """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 import os, sys

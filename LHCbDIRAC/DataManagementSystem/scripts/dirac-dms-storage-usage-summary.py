@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/DataManagementSystem/scripts/dirac-dms-storage-usage-summary.py $
+# $HeadURL$
 ########################################################################
 """
   Get the storage usage summary for the given directories
 """
-__RCSID__ = "$Id: dirac-dms-storage-usage-summary.py 31860 2010-12-10 10:09:04Z rgracian $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 unit = 'TB'

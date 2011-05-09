@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
