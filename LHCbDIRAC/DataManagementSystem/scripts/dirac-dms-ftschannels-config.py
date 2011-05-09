@@ -10,8 +10,8 @@ from DIRAC.Core.Utilities.Grid import executeGridCommand
 
 gridEnv = "/afs/cern.ch/project/gd/LCG-share/3.2.8-0/etc/profile.d/grid-env"
 Tier1s = [ "GRIDKA", "NIKHEF", "PIC", "CNAF", "IN2P3", "CERN", "RAL",
-                      "SARA", "INFN", "FZK", "CERNPROD", "RALLCG2", "FZKLCG2",
-                      "SARAMATRIX", "INFNT1", "IN2P3CC"  ]
+           "SARA", "INFN", "FZK", "CERNPROD", "RALLCG2", "FZKLCG2",
+           "SARAMATRIX", "INFNT1", "IN2P3CC"  ]
 Tier1sChannels = [ chA+'-'+chB for chA in Tier1s for chB in Tier1s ]
 translate = { "CERNPROD" : "CERN", "FZK" : "GRIDKA",
               "INFNT1" : "CNAF", "FZKLCG2" : "GRIDKA",
@@ -64,8 +64,7 @@ Usage:
     return res["Message"] 
 
   URL2FTS = dict( [ (k, v.replace("FileTransfer", "ChannelManagement") ) for (k, v) in res["Value"].items() ]  )
-  FTS2URL = dict( [ (v, k) for (k, v) in URL2FTS.items() ] )
-
+  
   head = " %-18s %-18s %-10s %-10s %-10s %-10s %-10s" % ( "Name", "OrigName", "Files", "Streams", "Share", "State", "Band" )
   hashLine = "#" * len(head)
     
