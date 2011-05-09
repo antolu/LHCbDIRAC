@@ -1,6 +1,7 @@
 # $HeadURL$
-"""List statistices about DIRAC T0-T1 FTS channels.
+"""List configuration of LHCbDIRAC T0-T1 FTS channels.
 """
+
 __RCSID__ = "$Id$"
 
 import sys
@@ -50,6 +51,11 @@ def execute():
   """
   main worker here
   """
+  usageStr = __doc__ + """
+Usage:
+	%s [option|cfgfile] 
+""" % Script.scriptName
+  Script.setUsageMessage( usageStr )
   Script.parseCommandLine()
   import DIRAC
   
