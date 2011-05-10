@@ -29,7 +29,7 @@ from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingC
 bk = BookkeepingClient()
 prod = long( args[0] )
 
-res = bk.getProductionInformations_new( prod )
+res = bk.getProductionInformations( prod )
 
 if res['OK']:
     val = res['Value']

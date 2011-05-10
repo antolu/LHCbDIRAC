@@ -496,6 +496,12 @@ class BookkeepingClient:
     return result
 
   #############################################################################
+  def getProductionInformations( self, prodid ):
+    server = self.__getServer()
+    result = server.getProductionInformations_new( long( prodid ) )
+    return result
+
+  #############################################################################
   def getProductionInformationsFromView( self, prodid ):
     server = self.__getServer()
     return server.getProductionInformationsFromView( long( prodid ) )
@@ -591,13 +597,13 @@ class BookkeepingClient:
     server = self.__getServer()
     result = server.getAvailableConfigurations()
     return result
-  
+
   #######################################################################################################################################################################################################################################
   def getMoreProductionInformations(self, prodid):
     server = self.__getServer()
     result = server.getMoreProductionInformations(int(prodid))
     return result
-  
+
   #############################################################################
   def getProductionProcessingPassID( self, prodid ):
     server = self.__getServer()
@@ -672,12 +678,12 @@ class BookkeepingClient:
   def getRunNbAndTck(self, lfn):
     server = self.__getServer()
     return server.getRunNbAndTck(lfn)
-  
+
   #############################################################################
   def getRuns(self, dict):
     server = self.__getServer()
     return server.getRuns(dict)
-  
+
   #############################################################################
   def getRunProcPass(self, dict):
     server = self.__getServer()
