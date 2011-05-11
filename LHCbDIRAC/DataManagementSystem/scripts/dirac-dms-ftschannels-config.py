@@ -5,14 +5,16 @@
 
 outputInfo = """
 Output:
- [1] Name:      name used by VO (carefull, it's lhcb specific)
- [2] OrigName:  name of channel set during channel creation
- [3] Files:     number of concurrent file transfers (other will be enqueued)
- [4] Streams:   number of concurrent streams in each transfer
- [5] Share:     percentage of VO share
- [6] State:     operation state of the channel (one of Active, Inactive, Drain, 
-                Halted, Stopped, Archived) 
- [7] Bandwidth: nominal bandwidth of the channel (in Mb/s)
+ [1] Name:        name used by VO (carefull, it's lhcb specific)
+ [2] OrigName:    name of channel set during channel creation
+ [3] Files:       number of concurrent file transfers (other will be enqueued)
+ [4] Streams:     number of concurrent streams in each transfer
+ [5] Share:       VO share:
+                  - lower bound: your VO only 
+                  - upper bound: sum of all shares including your VO          
+ [6] State:       operation state of the channel (one of Active, Inactive, Drain, 
+                  Halted, Stopped, Archived) 
+ [7] Bandwidth:   nominal bandwidth of the channel (in Mb/s)
 
  Please read man pages for glite-transfer-channel-add, glite-transfer-channel-list,
  glite-transfer-channel-set and glite-transfer-channel-setvoshare for more information.
@@ -50,12 +52,14 @@ def translate( ch ):
   if target in transDict: target = transDict[target]
   return "%s-%s" % (source, target)
 
-def extract( stdout ):
+def extract( stdout , vo ):
   """Extract information about particular channel directly from command output.
   
   :param str stdout: stdout from glite-transfer-channel-list command
   """  
-  name = origName = state = band = files = streams = "" 
+  name = origName = state = band = files = streams = ""
+  voshare = 0.0
+  allshares = 0.0
   for line in stdout.split("\n"):
     if line.startswith("Channel:"):
       origName = line.split(":")[1].strip()
@@ -64,12 +68,16 @@ def extract( stdout ):
       state = line.split(":")[1].strip()
     elif line.startswith("Bandwidth:"):
       band = line.split(":")[1].strip()
-    elif line.startswith("VO 'lhcb'"):
-      share = line.split(":")[1].strip()
+    elif line.startswith("VO '%s'" % vo ):
+      voshare = int( line.split(":")[1].strip() )
+      allshares += voshare
+    elif "share is:" in line:
+      allshares += int( line.split(":")[1].strip() )
     elif line.startswith("Number of files"):
       words = line.split()
       files = words[3][:-1]
       streams = words[5]
+  share = "%d-%d" % ( voshare, allshares ) 
   return name, origName, files, streams, share, state, band
   
 def execute():
@@ -94,7 +102,10 @@ Usage:
     return res["Message"] 
   URL2FTS = dict( [ (k, v.replace("FileTransfer", "ChannelManagement") ) for (k, v) in res["Value"].items() ]  )
   
-  head = " %-18s %-18s %-10s %-10s %-10s %-10s %-10s" % ( "Name", "OrigName", "Files", "Streams", "Share", "State", "Bandwidth" )
+  share = "Share %s-all" % vo
+  fmtHead = " %-18s %-18s %-5s  %-7s  %-" + str(len(share)) + "s  %-10s  %-9s"
+  fmt     = " %-18s %-18s %5s  %7s  %" + str(len(share)) + "s  %-10s  %9s"
+  head = fmtHead % ( "Name", "OrigName", "Files", "Streams", share, "State", "Bandwidth" )
   hashLine = "#" * len(head)
     
   for ftsLCG, ftsURL in sorted(URL2FTS.items()):
@@ -119,7 +130,7 @@ Usage:
       res = res["Value"]
       exitCode, stdout, stderr = res
       if "VO '%s'" % vo in stdout:
-        print " %-18s %-18s %-10s %-10s %-10s %-10s %-10s" % extract( stdout ) 
+        print fmt % extract( stdout, vo ) 
 
 ## entry point
 if __name__ == "__main__":
