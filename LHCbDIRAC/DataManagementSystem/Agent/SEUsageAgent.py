@@ -18,7 +18,7 @@ def alarmTimeoutHandler( *args ):
   raise Exception( 'Timeout' )
 
 AGENT_NAME = 'DataManagement/SEUsageAgent'
-ROOT_INPUT_FILES = '/home/dirac/testInputFiles/' # this should be moved to the configuration! tbd 
+#InputFilesLocation = '/home/dirac/SEUsageAgentInputFiles/'
 
 class SEUsageAgent( AgentModule ):
   def initialize( self ):
@@ -31,19 +31,30 @@ class SEUsageAgent( AgentModule ):
       self.__storageUsage = RPCClient( 'DataManagement/StorageUsage' )
     self.am_setModuleParam( "shifterProxy", "DataManager" )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( rootPath, AGENT_NAME ) )
+    InputFilesLocation = self.am_getOption( 'InputFilesLocation' )
+    # check that this directory exists:
+    if not os.path.isdir( InputFilesLocation ):
+      gLogger.info( "Create the directory to download input files: %s" % InputFilesLocation )
+      os.makedirs( InputFilesLocation )
+    if os.path.isdir( InputFilesLocation ):
+      gLogger.info( "Input files will be downloaded to: %s" % InputFilesLocation )
+    else:
+      gLogger.info( "ERROR! could not create directory %s" % InputFilesLocation )
+      return S_ERROR()
 
     self.siteConfig = {}
     self.siteConfig['SARA'] = { 'originFileName': "LHCb.tar.bz2",
                                 'originURL': "http://web.grid.sara.nl/space_tokens", # without final slash
-                                'targetPath': ROOT_INPUT_FILES + 'downloadedFiles/SARA/',
-                                'pathToInputFiles': ROOT_INPUT_FILES + 'goodFormat/SARA/',
+                                'targetPath': InputFilesLocation + 'downloadedFiles/SARA/',
+                                'pathToInputFiles': InputFilesLocation + 'goodFormat/SARA/',
                                 'alternativeStorageName': 'NIKHEF' }
+
 
     return S_OK()
 
   def execute( self ):
     """ Loops on the input files to read the content of Storage Elements, process them, and store the result into the DB.
-    It reads directory by directory (every row of the input file being a directory). 
+    It reads directory by directory (every row of the input file being a directory).
     If the directory exists in the StorageUsage su_Directory table, and if a replica also exists for the given SE in the su_SEUsage table, then the directory and
     its usage are stored in the replica table (the se_Usage table) together with the insertion time, otherwise it is added to the dark data table (se_DarkDirectories) """
     gLogger.info( "SEUsageAgent: start the execute method\n" )
@@ -52,6 +63,7 @@ class SEUsageAgent( AgentModule ):
     siteList.sort()
     # Read the input files:
     for site in siteList:
+      gLogger.info( "Reading input files for site: %s" % site )
       res = self.readInputFile( site )
       if not res:
         gLogger.debug( "SEUsageAgent: successfully read input file" )
@@ -84,7 +96,7 @@ class SEUsageAgent( AgentModule ):
           # oneDirDict = {LFNPath: {'SEName: se, 'Files':files, 'Size':size, 'Updated',updated }}
           # use this format for consistency with already existing methods of StorageUsageDB which take in input a dictionary like this
           gLogger.info( "SEUsageAgent: processing directory: %s" % ( oneDirDict ) )
-          # initialize the isRegistered flag as False. Change it to true if a replica is found in the same SE. 
+          # initialize the isRegistered flag as False. Change it to true if a replica is found in the same SE.
           isRegistered = False
           gLogger.info( "SEUsageAgent: check if dirName exists in su_Directory: %s" % dirPath )
           res = self.__storageUsage.getIDs( oneDirDict )
@@ -109,7 +121,7 @@ class SEUsageAgent( AgentModule ):
               gLogger.info( "SEUsageAgent: NO replica found for %s on any SE! Anomalous case: the LFN is registered in the FC but with NO replica! For the time being, insert it intose_DarkDirectories table " % dir )
               # we should decide what to do in this case. This might happen, but it is a problem at FC level... TBD!
               isRegistered = False
-            else: # got some replicas! let's see if there is one for this SE      
+            else: # got some replicas! let's see if there is one for this SE
               for lfn in res['Value'].keys():
                 for se in res['Value'][lfn].keys():
                   if SEName in se:
@@ -118,7 +130,7 @@ class SEUsageAgent( AgentModule ):
                     break
 
           gLogger.info( "SEUsageAgent: isRegistered flag is %s" % isRegistered )
-        # now insert the entry into the dark data table, or the replicas table according the isRegistered flag.    
+        # now insert the entry into the dark data table, or the replicas table according the isRegistered flag.
           if not isRegistered:
             gLogger.info( "SEUsageAgent: dark data! Add the entry %s to se_DarkDirectories table. Before (if necessary) remove it from se_Usage table" % ( dirPath ) )
             res = self.__storageUsage.removeDirFromSe_Usage( oneDirDict )
@@ -159,28 +171,32 @@ class SEUsageAgent( AgentModule ):
 
 
   def readInputFile( self, site ):
-    """ Download, read and parse input files with SEs content. 
-        Write down the results to  ASCII files. 
+    """ Download, read and parse input files with SEs content.
+        Write down the results to  ASCII files.
         There are 2 phases in the manipulation of input files:
         phase 1- it is directly the format of the DB query output, right after uncompressing the tar file provided by the site:
         PFN | size | update (ms)
         phase 2- one row per file, with format: SE PFN size update
         phase 3- directory summary files: one row per directory, with format:
         SE DirectoryLFN NumOfFiles TotalSize Update(actually, not used)
-        
+
          """
 
     originFileName = self.siteConfig[ site ][ 'originFileName' ]
     originURL = self.siteConfig[ site ][ 'originURL' ]
     targetPath = self.siteConfig[ site ][ 'targetPath' ]
+    if not os.path.isdir( targetPath ):
+      os.makedirs( targetPath )
     pathToInputFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
+    if not os.path.isdir( pathToInputFiles ):
+      os.makedirs( pathToInputFiles )
     alternativeStorageName = self.siteConfig[ site ][ 'alternativeStorageName' ] # i.e. for SARA it's NIKHEF
     if pathToInputFiles[-1] != "/":
       pathToInputFiles = "%s/" % pathToInputFiles
     gLogger.info( "Reading input files for site %s " % site )
     gLogger.info( "originFileName: %s , originURL: %s ,targetPath: %s , pathToInputFiles: %s " % ( originFileName, originURL, targetPath, pathToInputFiles ) )
 
-    # Download input data made available by the sites. Reuse the code of dirac-install: urlretrieveTimeout, downloadAndExtractTarball    
+    # Download input data made available by the sites. Reuse the code of dirac-install: urlretrieveTimeout, downloadAndExtractTarball
     res = self.downloadAndExtractTarball( originFileName, originURL, targetPath )
     if not res:
        return S_ERROR( "ERROR: Could not download input files" )
@@ -235,7 +251,7 @@ class SEUsageAgent( AgentModule ):
 
       gLogger.debug( "Reading from fileP2 %s " % fileP2 )
       totalLines = 0 # counts all lines in input
-      processedLines = 0 # counts all processed lines     
+      processedLines = 0 # counts all processed lines
       for line in open( fileP2, "r" ).readlines():
         totalLines += 1
         splitLine = line.split()
@@ -252,10 +268,10 @@ class SEUsageAgent( AgentModule ):
           continue
         updated = defaultDate
         size = int( splitLine[2] )
-        # currently the creation data is NOT stored in the DB. The time stamp stored for every entry is the insertion time 
+        # currently the creation data is NOT stored in the DB. The time stamp stored for every entry is the insertion time
         #updatedMS = int( splitLine[3] )*1./1000
         #updatedTuple = time.gmtime( updatedMS ) # convert to tuple format in UTC. Still to be checked which format the DB requires
-        #updated = time.asctime( updatedTuple )            
+        #updated = time.asctime( updatedTuple )
         directories = filePath.split( '/' )
         fileName = directories[len( directories ) - 1 ]
         basePath = ''
@@ -290,8 +306,8 @@ class SEUsageAgent( AgentModule ):
 
 
   def getLFNPath( self, ST, PFNfilePath ):
-    """ Given a PFN returns the LFN, stripping the suffix relative to the particular site. 
-        Important: usually the transformation is done simply removing the SApath of the site, except for ARCHIVED and FREEZED 
+    """ Given a PFN returns the LFN, stripping the suffix relative to the particular site.
+        Important: usually the transformation is done simply removing the SApath of the site, except for ARCHIVED and FREEZED
         datasets: in this case the PFN is: <old SAPath>/lhcb/archive/<LFN> and <old SAPath>/lhcb/freezer/<LFN>
         so, in order to get the lfn also the 'lhcb/archive/' or '/lhcb/freezer' string should be removed
           """
@@ -312,7 +328,7 @@ class SEUsageAgent( AgentModule ):
     except:
       gLogger.error( "ERROR retrieving LFN from PFN %s" % PFNfilePath )
       return S_ERROR( "Could not retrieve LFN" )
-    # additional check on the LFN format:  
+    # additional check on the LFN format:
     if not LFN.startswith( '/lhcb' ):
       gLogger.info( "SEUsageAgent: ERROR! LFN should start with /lhcb: PFN=%s LFN=%s. Skip this file." % ( PFNfilePath, LFN ) )
       return S_ERROR( "Anomalous LFN does not start with '/lhcb' string" )
@@ -382,7 +398,8 @@ class SEUsageAgent( AgentModule ):
         return False
     except Exception, e:
       gLogger.info( "Cannot download %s: %s" % ( tarName, str( e ) ) )
-      sys.exit( 1 )
+      return False
+      #sys.exit( 1 )
 
     #Extract
     cwd = os.getcwd()
