@@ -609,7 +609,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     tables = ''
     if evt != default:
       tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s '%(evt)
+      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid '%(evt)
 
     if production != default:
       condition += ' and j.production=' + str( production )
@@ -2602,7 +2602,7 @@ and files.qualityid= dataquality.qualityid'
     tables = ''
     if evt != default:
       tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s '%(evt)
+      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid '%(evt)
 
     if production != default:
       condition += ' and j.production=' + str( production )
@@ -2689,7 +2689,7 @@ and files.qualityid= dataquality.qualityid'
     tables = ''
     if evt != default:
       tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s '%(evt)
+      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid '%(evt)
 
     if production != default:
       condition += ' and j.production=' + str( production )

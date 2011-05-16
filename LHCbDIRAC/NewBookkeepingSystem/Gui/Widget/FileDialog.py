@@ -22,8 +22,8 @@ class FileDialog(QDialog, Ui_FileDialog):
   def __init__(self, parent = None):
     QDialog.__init__(self, parent)
     self.setupUi(self)
-    flags = 0
-    flags = Qt.Window | Qt.WindowMinimizeButtonHint;
+    #flags = 0
+    #flags = Qt.Window | Qt.WindowMinimizeButtonHint;
     self.setWindowFlags( flags )
     self.__controler = ControlerFileDialog(self, parent.getControler())
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
