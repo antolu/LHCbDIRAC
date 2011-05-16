@@ -5,8 +5,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                      import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.DISET.RequestHandler                            import RequestHandler
+from DIRAC                                                      import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Service.TransformationManagerHandler   import TransformationManagerHandlerBase
 from LHCbDIRAC.TransformationSystem.DB.TransformationDB         import TransformationDB
 from types import *
