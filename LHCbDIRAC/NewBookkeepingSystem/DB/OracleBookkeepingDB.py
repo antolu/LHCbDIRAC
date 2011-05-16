@@ -991,6 +991,10 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     return  self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProcessingPassId', LongType, [root, fullpath] )
 
   #############################################################################
+  def getProcessingPassId(self, fullpath):
+    return self._getProcessingPassId(fullpath.split('/')[1:][0], fullpath)
+
+  #############################################################################
   def _getDataQualityId( self, name ):
     return  self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getDataQualityId', LongType, [name] )
 

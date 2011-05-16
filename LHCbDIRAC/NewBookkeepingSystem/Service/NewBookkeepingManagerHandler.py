@@ -66,12 +66,12 @@ class NewBookkeepingManagerHandler( RequestHandler ):
             return result
           """
           stamp = time.strftime('%Y.%m.%d-%H.%M.%S',time.gmtime())
-          
+
           fileID=int(repr(time.time()).split('.')[1])
-          
-          filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)  
+
+          filePath ="%s%s.%08d.%s"%(ToDoPath+os.sep, stamp, fileID, name)
           update_file = open(filePath, "w")
-          
+
           print >>update_file, data
           update_file.close()
           #copyXML(filePath)
@@ -585,8 +585,8 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getRunNbAndTck = [StringType]
   def export_getRunNbAndTck(self, lfn):
     return dataMGMT_.getRunNbAndTck(lfn)
-  
-  #############################################################################  
+
+  #############################################################################
   types_getProductionFiles = [IntType, StringType]
   def export_getProductionFiles( self, prod, fileType, replica = 'ALL' ):
     return dataMGMT_.getProductionFiles( int( prod ), fileType, replica )
@@ -1188,11 +1188,11 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     visible = 'ALL'
     if values.has_key( 'Visible' ):
       visible = values['Visible']
-    
+
     filesize = False
     if values.has_key('FileSize'):
       filesize = values['FileSize']
-      
+
     result = []
     retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, visible, filesize)
     if not retVal['OK']:
@@ -1407,17 +1407,22 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getRunQuality = [StringType, StringType]
   def export_getRunQuality(self, procpass, flag='ALL'):
     return dataMGMT_.getRunQuality(procpass, flag)
-  
+
   #############################################################################
   types_getRuns = [DictType]
   def export_getRuns(self, dict):
     if dict.has_key('ConfigName') and dict.has_key('ConfigVersion'):
       return dataMGMT_.getRuns(dict['ConfigName'], dict['ConfigVersion'])
     return S_ERROR('The configuration name and version have to be defined!')
-  
+
   #############################################################################
   types_getRunProcPass = [DictType]
   def export_getRunProcPass(self, dict):
     if dict.has_key('RunNumber'):
       return dataMGMT_.getRunProcPass(dict['RunNumber'])
     return S_ERROR('The run number has to be specified!')
+
+  #############################################################################
+  types_getProcessingPassId = [StringType]
+  def export_getProcessingPassId(self, fullpath):
+    return dataMGMT_.getProcessingPassId(fullpath)

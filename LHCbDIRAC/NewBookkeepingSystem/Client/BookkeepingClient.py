@@ -127,6 +127,11 @@ class BookkeepingClient:
     return server.getProcessingPass( dict, path )
 
   #############################################################################
+  def getProcessingPassId(self, fullpath):
+    server = self.__getServer()
+    return server.getProcessingPassId(fullpath)
+
+  #############################################################################
   def getStandardProcessingPass( self, dict, path = '/' ):
     server = self.__getServer()
     return server.getStandardProcessingPass( dict, path )

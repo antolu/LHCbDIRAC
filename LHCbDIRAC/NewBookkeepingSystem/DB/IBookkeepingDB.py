@@ -114,11 +114,11 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getAvailableRuns(self):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def getAvailableEventTypes(self):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def getMoreProductionInformations( self, prodid ):
     gLogger.error( 'This method is not implemented!' )
@@ -328,7 +328,7 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getSizeOfFiles(self, prodid):
     gLogger.error('This method is not implemented!')
-    
+
   def getNbOfFiles( self, prodid ):
     gLogger.error( 'This method is not implemented!' )
 
@@ -411,10 +411,10 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible, filesize):
     gLogger.error('This method is not implemented!')
-    
+
   def getFilesWithGivenDataSetsForUsers(self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def getDataTakingCondId( self, condition ):
     gLogger.error( 'This method is not implemented!' )
@@ -470,23 +470,27 @@ class IBookkeepingDB( object ):
   #############################################################################
   def insertDataTakingCond(self, conditions):
     gLogger.error('This method is not implemented!')
-    
+
   #############################################################################
   def deleteSetpContiner(self, prod):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def getRunNbAndTck(self, lfn):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def deleteProductionsContiner(self, prod):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def getRuns(self, cName, cVersion):
     gLogger.error('This method is not implemented!')
-  
+
   #############################################################################
   def getRunProcPass(self, runnb):
+    gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getProcessingPassId(self, fullpath):
     gLogger.error('This method is not implemented!')
