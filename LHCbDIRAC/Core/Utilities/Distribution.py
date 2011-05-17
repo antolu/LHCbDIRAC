@@ -9,23 +9,20 @@ from DIRAC.Core.Utilities import CFG, File, List
 class Distribution:
 
   cernAnonRoot = 'http://svnweb.cern.ch/guest/dirac'
-  googleAnonRoot = 'http://dirac-grid.googlecode.com/svn'
-
   cernDevRoot = 'svn+ssh://svn.cern.ch/reps/dirac'
-  googleDevRoot = 'https://dirac-grid.googlecode.com/svn'
 
   anonymousSVNRoot = { 'global' : cernAnonRoot,
+                       'Web' : cernAnonRoot,
                        'DIRAC' : cernAnonRoot,
                        'LHCbDIRAC' : cernAnonRoot,
                        'LHCbWebDIRAC' : cernAnonRoot,
-                       'Docs' : googleAnonRoot,
                      }
 
   devSVNRoot = { 'global' : cernDevRoot,
+                 'Web' : cernDevRoot,
                  'DIRAC' : cernDevRoot,
                  'LHCbDIRAC' : cernDevRoot,
                  'LHCbWebDIRAC' : cernDevRoot,
-                 'Docs' : googleDevRoot,
                }
 
   def __init__( self, package = False ):
@@ -164,9 +161,9 @@ class Distribution:
     cmd = "svn ls %s %s" % destT
     return self.executeCommand( cmd, True )
 
-  def doRM( self, path ):
+  def doRM( self, path, comment ):
     destT = self.__getDevCmdBase( path )
-    cmd = "svn rm %s %s" % destT
+    cmd = "svn rm -m '%s' %s %s" % ( comment, destT[0], destT[1] )
     return self.executeCommand( cmd, True )
 
   def __cmdImport( self, origin, dest, comment ):
