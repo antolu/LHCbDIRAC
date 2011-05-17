@@ -164,6 +164,11 @@ class Distribution:
     cmd = "svn ls %s %s" % destT
     return self.executeCommand( cmd, True )
 
+  def doRM( self, path ):
+    destT = self.__getDevCmdBase( path )
+    cmd = "svn rm %s %s" % destT
+    return self.executeCommand( cmd, True )
+
   def __cmdImport( self, origin, dest, comment ):
     destT = self.__getDevCmdBase( dest )
     cmd = "svn import -m '%s' %s '%s' '%s'" % ( comment, destT[0], origin, destT[1] )
