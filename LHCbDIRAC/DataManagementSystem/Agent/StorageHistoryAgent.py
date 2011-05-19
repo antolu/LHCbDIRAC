@@ -170,7 +170,7 @@ class StorageHistoryAgent( AgentModule ):
     ###
     # work flow:
     # 1- queries the BKK client to get the set of data taking conditions relative to: eventType=93000000,ConfigVersion': 'Collision10', 'ConfigName': 'LHCb'.
-    # 2- loops on the data taking conditions and retrieve for each of them the set of all existing processing passes. 
+    # 2- loops on the data taking conditions and retrieve for each of them the set of all existing processing passes.
     #    Loops on all processing passes:
     #    2.1 - for every ( data taking condition, proc. pass) queries the BKK client to get the list of productions
     #    2.2 - for production, gets the list of file types and adds the HIST, DST and SETC (not clear..) and calls StorageUsageClient to get the usage per SE.
@@ -194,7 +194,7 @@ class StorageHistoryAgent( AgentModule ):
       res = self.bkClient.getConfigVersions( bkDict )
       if not res[ 'OK' ]:
         return S_ERROR( res )
-      configVersions = res['Value']['Records']# this is a list of lists , of length 1, lets' change it to a list of strings     
+      configVersions = res['Value']['Records']# this is a list of lists , of length 1, lets' change it to a list of strings
       for v in configVersions:  # loop on configVersions
         configVersion = v[ 0 ]
         bkDict[ 'ConfigVersion' ] = configVersion
@@ -212,7 +212,9 @@ class StorageHistoryAgent( AgentModule ):
           self.dict1 = bkDict
           res = self.getDataTakingConditionsAndSU()
           if not res[ 'OK' ]:
-            return S_ERROR( res )
+            self.log.error( "getDataTakingConditionsAndSU returned ERROR! %s" % res )
+            #return S_ERROR( res )
+            continue
           if QUICKLOOP:# for debugging purpose (will be removed later)
             break
         if QUICKLOOP:# for debugging purpose (will be removed later)
@@ -233,22 +235,23 @@ class StorageHistoryAgent( AgentModule ):
 
     """ Takes in input a dictionary containing eventType and configName and configVersion, and compute the possible dataTaking conditions
     - then calls the getProcPassWithCondTaking and get all the possible processing pass in a recursive way
-    - then gets all possible productions and event types and queries the StorageUsage service to get the space usage per SE 
+    - then gets all possible productions and event types and queries the StorageUsage service to get the space usage per SE
     """
 
     res = self.bkClient.getConditions( self.dict1 )
     now = Time.dateTime()
     eventTypeDesc = self.eventTypeDescription[ self.dict1['EventTypeId'] ] # needed to send it to accounting (instead of numeric ID)
+    eventTypeDesc = str( self.dict1['EventTypeId'] ) + '-' + eventTypeDesc
     self.log.notice( "eventTypeDescription %s" % eventTypeDesc )
     if not res[ 'OK' ]:
       return S_ERROR( res )
-    # res['Value'][0] stores SIMULATION CONDITIONS: filled only for simulated data 
+    # res['Value'][0] stores SIMULATION CONDITIONS: filled only for simulated data
     # res['Value'][1] stores DATA TAKING CONDITIONS: filled only for real data
     if ( res['Value'][1]['TotalRecords'] + res['Value'][0]['TotalRecords'] == 0 ):
       self.log.notice( "WARNING: empty getConditions query for dict1= %s" % self.dict1 )
       return S_OK( res )
-    dataTypeFlag = ''
-    LFCBasePath = {'RealData': '/lhcb/data/', 'SimData': '/lhcb/MC/'}
+    dataTypeFlag = '' # either RealData or SimData
+    LFCBasePath = {'RealData': '/lhcb/', 'SimData': '/lhcb/MC/'}
     if res['Value'][1]['TotalRecords'] > 0:
       self.log.notice( "Returned conditions are relative to REAL DATA for dict1= %s" % self.dict1 )
       index = 1
@@ -262,7 +265,7 @@ class StorageHistoryAgent( AgentModule ):
     dataTakingConds = {}
     for dataTakingTuple in records:
       dataTakingCondID = dataTakingTuple[ 0 ] # numeric ID
-      dataTakingCond = dataTakingTuple[ 1 ]   # Description 
+      dataTakingCond = dataTakingTuple[ 1 ]   # Description
       if not dataTakingCond in dataTakingConds.keys():
         dataTakingConds[ dataTakingCond ] = dataTakingCondID
 
@@ -274,8 +277,8 @@ class StorageHistoryAgent( AgentModule ):
       self.proPassTuples = []
       self.getProcPassWithCondTaking( dataTakingCond, '/' )  # this function stores in the self.proPassTuples variable a list of processing pass tuples.
       processedProcessingPasses = []
-      rawDataFlag = False
       for proPassTuple in sortList( self.proPassTuples ): # loop on processing passes
+        rawDataFlag = False # True only for RAW data
         self.log.notice( "proPassTuple: %s" % proPassTuple )
         if proPassTuple == '/Real Data': #RAW DATA
           rawDataFlag = True
@@ -289,7 +292,7 @@ class StorageHistoryAgent( AgentModule ):
         res = self.bkClient.getProductions( dict3 )
         self.log.notice( " dict3 : %s " % dict3 )
         if not res[ 'OK' ]:
-          self.log.notice( "ERROR: could not get productions for dict %s " % dict3 )
+          self.log.notice( "ERROR: could not get productions for dict %s Error: %s" % ( dict3, res['Message'] ) )
           return S_ERROR( res )
         productions = sortList( [x[0] for x in res[ 'Value' ][ 'Records' ]] )
         if productions == []:
@@ -304,7 +307,7 @@ class StorageHistoryAgent( AgentModule ):
           res = self.bkClient.getNumberOfEvents( prodID )
           # returns a list of tuples of type: ('DAVINCIHIST', None, 91000000, 33154)
           if not res['OK']:
-            self.log.notice( "ERROR getting number of events for prod %s" % prodID )
+            self.log.notice( "ERROR getting number of events for prod %s, Error: %s" % ( prodID, res['Message'] ) )
             continue
           else:
             for eventNumberTuple in res['Value']:
@@ -313,12 +316,16 @@ class StorageHistoryAgent( AgentModule ):
 
           prodFileTypes = sortList( [x[0] for x in res['Value']] )
           prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
-          prodFileTypes.append( 'HIST' )
-          if 'DST' not in prodFileTypes:
-            prodFileTypes.append( 'DST' )
-          if 'SETC' not in prodFileTypes:
-            prodFileTypes.append( 'SETC' )
-
+          # for raw data set the only file type as 'RAW'.
+          # for non-raw data, add the HIST, SETC, DST file type to the list (to be checked why)
+          if not rawDataFlag:
+            prodFileTypes.append( 'HIST' )
+            if 'DST' not in prodFileTypes:
+              prodFileTypes.append( 'DST' )
+            if 'SETC' not in prodFileTypes:
+              prodFileTypes.append( 'SETC' )
+          else:
+            prodFileTypes = [ 'RAW' ]
           self.log.notice( "For prod %d list of event types: %s" % ( prodID, prodFileTypes ) )
           dataPath = LFCBasePath[ dataTypeFlag ]
           for prodFileType in prodFileTypes:
@@ -326,6 +333,7 @@ class StorageHistoryAgent( AgentModule ):
             if not rawDataFlag:
               res = self.suClient.getSummary( dataPath, prodFileType, prodID )
               if not res[ 'OK' ]:
+                self.log.error( "ERROR: getSummary failed with message: %s" % ( res['Message'] ) )
                 return S_ERROR( res )
               logicalFiles = 0
               logicalSize = 0
@@ -341,6 +349,7 @@ class StorageHistoryAgent( AgentModule ):
                 continue
               res = self.bkClient.getRunInformations( runNo )
               if not res[ 'OK' ]:
+                self.log.error( "ERROR: getRunInformations failed with message: %s" % ( res['Message'] ) )
                 return S_ERROR( res )
               logicalFiles = 0
               logicalSize = 0
@@ -360,6 +369,7 @@ class StorageHistoryAgent( AgentModule ):
               self.log.notice( "Calling getRunSummaryPerSE with run= %d " % ( runNo ) )
               res = self.suClient.getRunSummaryPerSE( runNo )
             if not res[ 'OK' ]:
+              self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
               return S_ERROR( res )
             else:
               self.log.notice( "Physical storage usage %s" % res['Value'] )
@@ -367,7 +377,7 @@ class StorageHistoryAgent( AgentModule ):
             for seName in sortList( usageDict.keys() ):
               files = usageDict[seName]['Files']
               size = usageDict[seName]['Size']
-              # create a record to be sent to the accounting:  
+              # create a record to be sent to the accounting:
               self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %d ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( self.dict1['ConfigName'] , self.dict1['ConfigVersion'], prodFileType, prodID, proPassTuple, dataTakingCond, eventTypeDesc, seName, files, size ) )
               dataRecord = DataStorage()
               dataRecord.setStartTime( now )
@@ -412,7 +422,7 @@ class StorageHistoryAgent( AgentModule ):
           continue
         if not processingPassTotals[dataTakingCond].has_key( proPassName ):
           continue
-      if QUICKLOOP: # for debugging     
+      if QUICKLOOP: # for debugging
         break
     res = gDataStoreClient.commit()
     self.log.notice( "In getDataTakingConditionsAndSU commit returned: %s" % res )
@@ -434,6 +444,7 @@ class StorageHistoryAgent( AgentModule ):
 
     res = self.bkClient.getProcessingPass( dict2, path )
     if not res[ 'OK' ]:
+      self.log.error( "getProcessingPass failed with error: %s" % res["Message"] )
       return S_ERROR( res )
     recs = res['Value'][0]
     if recs['TotalRecords'] != 0:
