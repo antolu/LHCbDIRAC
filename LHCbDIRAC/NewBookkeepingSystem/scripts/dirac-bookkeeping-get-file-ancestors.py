@@ -25,10 +25,10 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 if len( args ) == 1:
-  level = 1
+  level = 2
 elif len( args ) == 2:
   try:
-    level = int( args[1] )
+    level = int( args[1] ) + 1
   except:
     Script.showHelp()
 else:
