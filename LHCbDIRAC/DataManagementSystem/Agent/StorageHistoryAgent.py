@@ -385,10 +385,12 @@ class StorageHistoryAgent( AgentModule ):
               dataRecord.setValueByKey( "DataType", self.dict1['ConfigName'] )
               dataRecord.setValueByKey( "Activity", self.dict1['ConfigVersion'] )
               dataRecord.setValueByKey( "FileType", prodFileType )
-              if rawDataFlag:
-                dataRecord.setValueByKey( "Production", runNo )
-              else:
-                dataRecord.setValueByKey( "Production", prodID )
+              #if rawDataFlag:
+              #  res = dataRecord.setValueByKey( "Production", runNo )
+              #else:
+              res = dataRecord.setValueByKey( "Production", prodID )
+              if not res[ 'OK' ]:
+                self.log.notice( "Accounting ERROR prod %s , res= %s" % ( prodID, res ) )
               dataRecord.setValueByKey( "ProcessingPass", proPassTuple )
               dataRecord.setValueByKey( "Conditions", dataTakingCond )
               dataRecord.setValueByKey( "EventType", eventTypeDesc )
@@ -425,6 +427,8 @@ class StorageHistoryAgent( AgentModule ):
       if QUICKLOOP: # for debugging
         break
     res = gDataStoreClient.commit()
+    if not res[ 'OK' ]:
+      self.log.error( "Accounting ERROR: commit returned %s" % res )
     self.log.notice( "In getDataTakingConditionsAndSU commit returned: %s" % res )
     return S_OK()
 
