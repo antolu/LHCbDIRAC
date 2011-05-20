@@ -10,7 +10,7 @@ class DataStorage( BaseAccountingType ):
     self.definitionKeyFields = [ ( 'DataType' , "VARCHAR(64)" ),
                                  ( 'Activity', "VARCHAR(64)" ),
                                  ( 'FileType', "VARCHAR(32)" ),
-                                 ( 'Production', "INT UNSIGNED" ),
+                                 ( 'Production', "VARCHAR(32)" ),
                                  ( 'ProcessingPass', "VARCHAR(64)" ),
                                  ( 'Conditions', "VARCHAR(64)" ),
                                  ( 'EventType', "VARCHAR(64)" ),
