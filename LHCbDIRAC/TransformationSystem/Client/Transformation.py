@@ -21,6 +21,7 @@ class Transformation( DIRACTransformation ):
 
     self.supportedPlugins += ['ByRun', 'ByRunBySize', 'RAWShares', 'AtomicRun']
     self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast']
+    self.supportedPlugins += ['MergeByRun', 'MergeByRunWithFlush', 'ByRunWithFlush', 'ByRunBySizeWithFlush']
     self.supportedPlugins += ['ArchiveDataset', 'ReplicateDataset']
     self.supportedPlugins += ['DeleteDataset', 'DeleteReplicas', 'DestroyDataset']
     if not  self.paramValues.has_key( 'BkQuery' ):
@@ -29,7 +30,7 @@ class Transformation( DIRACTransformation ):
       self.paramValues['BkQueryID'] = 0
 
   def generateBkQuery( self, test = False, printOutput = False ):
-    parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag']
+    parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'Visible']
     queryDict = {'FileType':'DST'}
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
@@ -164,6 +165,18 @@ class Transformation( DIRACTransformation ):
     return self._checkStandardPlugin()
 
   def _checkByRunBySizePlugin( self ):
+    return self._checkStandardPlugin()
+
+  def _checkByRunWithFlushPlugin( self ):
+    return self._checkStandardPlugin()
+
+  def _checkByRunBySizeWithFlushPlugin( self ):
+    return self._checkStandardPlugin()
+
+  def _checkMergeByRunPlugin( self ):
+    return self._checkStandardPlugin()
+
+  def _checkMergeByRunWithFlushPlugin( self ):
     return self._checkStandardPlugin()
 
   def _checkRAWSharesPlugin( self ):

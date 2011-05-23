@@ -132,7 +132,7 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     #taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
     #resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
     # Add the file states to the ParameterNames entry
-    fileStateNames = ['PercentProcessed', 'Processed', 'Unused', 'Assigned', 'Total', 'Problematic']
+    fileStateNames = ['PercentProcessed', 'Processed', 'Unused', 'Assigned', 'Total', 'Problematic', 'ApplicationCrash', 'MaxReset']
     resultDict['ParameterNames'] += ['Files_' + x for x in fileStateNames]
 
     # Get the transformations which are within the selected window
@@ -166,11 +166,9 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
       transRunDict = dict( zip( paramNames, transRun ) )
       transID = transRunDict['TransformationID']
       runID = transRunDict['RunNumber']
-      if not transRunStatusDict.has_key( transID ):
-        transRun += [0., 0, 0, 0, 0, 0]
-        continue
-      if not transRunStatusDict[transID].has_key( runID ):
-        transRun += [0., 0, 0, 0, 0, 0]
+      if transID not in transRunStatusDict or runID not in transRunStatusDict[transID]:
+        for state in fileStateNames:
+          transRun.append( 0 )
         continue
       # Update the status counters
       status = transRunDict['Status']
@@ -183,12 +181,10 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
       if fileDict['Total'] == 0:
         fileDict['PercentProcessed'] = 0
       else:
-        processed = fileDict.get( 'Processed' )
-        if not processed:
-          processed = 0
+        processed = fileDict.get( 'Processed', 0 )
         fileDict['PercentProcessed'] = "%.1f" % ( int( processed * 1000. / fileDict['Total'] ) / 10. )
       for state in fileStateNames:
-        if fileDict and fileDict.has_key( state ):
+        if fileDict and state in fileDict:
           transRun.append( fileDict[state] )
         else:
           transRun.append( 0 )

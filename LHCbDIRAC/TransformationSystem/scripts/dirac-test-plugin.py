@@ -21,6 +21,13 @@ class fakeClient:
   def getFiles( self ):
     return self.files
 
+  def getCounters( self, table, attrList, condDict ):
+    possibleTargets = ['CERN-RAW', 'CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
+    counters = []
+    for se in possibleTargets:
+      counters.append( ( {'UsedSE':se}, 1 ) )
+    return DIRAC.S_OK( counters )
+
   def getBookkeepingQueryForTransformation ( self, transID ):
     return self.trans.getBkQuery()
 
@@ -202,6 +209,8 @@ if __name__ == "__main__":
   else:
     transType = "Processing"
   transformation.setType( transType )
+  if plugin == "DestroyDataset" or prods:
+    transBKQuery.pop( 'Visible' )
 
   # Add parameters
   if nbCopies != None:

@@ -9,7 +9,15 @@ from DIRAC.Core.Utilities.List                                import sortList
 
 __RCSID__ = "$Id:  $"
 
-def testBKQuery( transBKQuery, transType ):
+def getDirsForBKQuery( query, printOutput = False ):
+  ( lfns, dirs ) = makeBKQuery( query, "Removal", printOutput = printOutput )
+  return dirs
+
+def testBKQuery( query, type, printOutput = True ):
+  ( lfns, dirs ) = makeBKQuery( query, type, printOutput = printOutput )
+  return lfns
+
+def makeBKQuery( transBKQuery, transType, printOutput = True ):
   bk = BookkeepingClient()
   res = bk.getFilesWithGivenDataSets( transBKQuery )
   if not res['OK']:
@@ -29,13 +37,15 @@ def testBKQuery( transBKQuery, transType ):
     transBKQuery.update( {"FileSize":True} )
     res = bk.getFilesWithGivenDataSets( transBKQuery )
     lfnSize = 0
-    if res['OK'] and type( res['Value'] ) == type( [] ):
-      lfnSize = res['Value'][0] / 1000000000000.
-    print "\n%d files (%.1f TB) in directories:" % ( len( lfns ), lfnSize )
-    for dir in dirs.keys():
-      print dir, dirs[dir], "files"
+    if res['OK'] and type( res['Value'] ) == type( [] and res['Value'][0] ):
+      if res['Value'][0]:
+        lfnSize = res['Value'][0] / 1000000000000.
+    if printOutput:
+      print "\n%d files (%.1f TB) in directories:" % ( len( lfns ), lfnSize )
+      for dir in dirs.keys():
+        print dir, dirs[dir], "files"
 
-    if transType == "Removal":
+    if printOutput and transType == "Removal":
       rpc = RPCClient( 'DataManagement/StorageUsage' )
       totalUsage = {}
       totalSize = 0
@@ -54,7 +64,7 @@ def testBKQuery( transBKQuery, transType ):
       print "\n%s %s" % ( "SE".ljust( 20 ), "Size (TB)" )
       for se in ses:
         print "%s %s" % ( se.ljust( 20 ), ( '%.1f' % ( totalUsage[se] / 1000000000000. ) ) )
-  return lfns
+  return ( lfns, dirs.keys() )
 
 def buildBKQuery( bkQuery, prods, fileType, runs ):
   bkFields = [ "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" ]
@@ -81,12 +91,15 @@ def buildBKQuery( bkQuery, prods, fileType, runs ):
       s = 's'
     else:
       s = ''
-  else:
-    if not bkQuery:
+  elif not bkQuery:
+    if fileType:
+      transBKQuery['FileType'] = fileType
+    else:
       return ( None, None )
+  else:
     bkQuery = bkQuery.replace( "RealData", "Real Data" )
     if bkQuery[0] == '/':
-      bkQuery = bkQuery[1:]
+      bkQuery = bkQuery[1:].replace( "RealData", "Real Data" )
     bk = bkQuery.split( '/' )
     try:
       bkNodes = [bk[0], bk[1], bk[2], '/' + '/'.join( bk[3:-2] ), bk[-2], bk[-1]]
