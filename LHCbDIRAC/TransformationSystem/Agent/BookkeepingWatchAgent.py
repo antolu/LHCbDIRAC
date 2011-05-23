@@ -152,9 +152,9 @@ class BookkeepingWatchAgent( AgentModule ):
             else:
               runDict = {}
               for lfn, metadata in res['Value'].items():
-                runID = int( metadata.get( 'RunNumber', 0 ) )
+                runID = metadata.get( 'RunNumber', None )
                 if runID:
-                  runDict.setdefault( runID, [] ).append( lfn )
+                  runDict.setdefault( int( runID ), [] ).append( lfn )
               for runID in sortList( runDict.keys() ):
                 lfns = runDict[runID]
                 self.__logVerbose( "Associating %d files to run %d" % ( len( lfns ), runID ) )
