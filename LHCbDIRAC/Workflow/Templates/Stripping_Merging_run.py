@@ -138,9 +138,10 @@ elif twoSteps:
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
     mergeOptions = '{{p2Opt}}'
-    if useOracle:
-      if not 'useoracle.py' in mergeOptions.lower():
-        mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
+    if mergeApp.lower() == 'davinci':
+      if useOracle:
+        if not 'useoracle.py' in mergeOptions.lower():
+          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -357,7 +358,7 @@ if strippEnabled:
 
     msg = 'Stripping production %s successfully created ' % ( strippProdID )
 
-    if testFlag or validationFlag:
+    if testFlag:
       diracProd.production( strippProdID, 'manual', printOutput = True )
       msg = msg + 'and started in manual mode.'
     else:
@@ -431,9 +432,35 @@ if strippEnabled:
 
 if mergingEnabled:
 
+#  if not strippEnabled:
+#    strippProdID = #put something here
+
+  mergeInput = BKClient.getStepInputFiles( mergeStep )
+  if not mergeInput:
+    gLogger.error( 'Error getting res from BKK: %s', mergeInput['Message'] )
+    DIRAC.exit( 2 )
+
+  mergeInputList = [x[0].lower() for x in mergeInput['Value']['Records']]
+
+  mergeOutput = BKClient.getStepOutputFiles( mergeStep )
+  if not mergeOutput:
+    gLogger.error( 'Error getting res from BKK: %s', mergeOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  mergeOutputList = [x[0].lower() for x in mergeOutput['Value']['Records']]
+
+  if strippEnabled:
+    if mergeInputList != strippOutputList:
+      gLogger.error( 'MergeInput %s != strippOutput %s' % ( mergeInputList, strippOutputList ) )
+      DIRAC.exit( 2 )
+
+  if mergeInputList != mergeOutputList:
+    gLogger.error( 'MergeInput %s != mergeOutput %s' % ( mergeInputList, mergeOutputList ) )
+    DIRAC.exit( 2 )
+
   mergeProductionList = []
 
-  for mergeStream in strippOutputList:
+  for mergeStream in mergeOutputList:
 #    if mergeStream.lower() in onlyCERN:
 #      mergeSE = 'CERN_M-DST'
 
@@ -443,45 +470,11 @@ if mergingEnabled:
     # Merging BK Query
     #################################################################################
 
-    mergeInput = BKClient.getStepInputFiles( mergeStep )
-    if not mergeInput:
-      gLogger.error( 'Error getting res from BKK: %s', mergeInput['Message'] )
-      DIRAC.exit( 2 )
-
-    mergeInputList = [x[0].lower() for x in mergeInput['Value']['Records']]
-
-    mergeOutput = BKClient.getStepOutputFiles( mergeStep )
-    if not mergeOutput:
-      gLogger.error( 'Error getting res from BKK: %s', mergeOutput['Message'] )
-      DIRAC.exit( 2 )
-
-    mergeOutputList = [x[0].lower() for x in mergeOutput['Value']['Records']]
-
-    if mergeInputList != mergeOutputList:
-      gLogger.error( 'MergeInput %s != mergeOutput %s' % ( mergeInputList, mergeOutputList ) )
-      DIRAC.exit( 2 )
-
-  #  if len( mergeInputList ) == 1:
-  #    mergeInput = mergeInputList[0]
-  #  if len( mergeOutputList ) == 1:
-  #    mergeOutput = mergeOutputList[0]
-
     mergeBKQuery = { 'ProductionID'             : strippProdID,
                      'DataQualityFlag'          : mergeDQFlag,
                      'FileType'                 : mergeStream}
-
-    if int( endRun ) and int( startRun ):
-      if int( endRun ) < int( startRun ):
-        gLogger.error( 'Your end run "%s" should be less than your start run "%s"!' % ( endRun, startRun ) )
-        DIRAC.exit( 2 )
-
-    if int( startRun ):
-      strippInputBKQuery['StartRun'] = int( startRun )
-    if int( endRun ):
-      strippInputBKQuery['EndRun'] = int( endRun )
-
-    if mergeApp.lower() == 'davinci':
       #below should be integrated in the ProductionOptions utility
+    if mergeApp.lower() == 'davinci':
       dvExtraOptions = "from Configurables import RecordStream;"
       dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
       dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
@@ -544,7 +537,7 @@ if mergingEnabled:
       prodID = result['Value']
       msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStream )
 
-      if testFlag or validationFlag:
+      if testFlag:
         diracProd.production( prodID, 'manual', printOutput = True )
         msg = msg + 'and started in manual mode.'
       else:

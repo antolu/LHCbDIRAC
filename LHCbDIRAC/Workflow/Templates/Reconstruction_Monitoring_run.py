@@ -334,7 +334,7 @@ if publishFlag:
 
   msg = 'Reconstruction production %s successfully created ' % ( recoProdID )
 
-  if testFlag or validationFlag:
+  if testFlag:
     diracProd.production( recoProdID, 'manual', printOutput = True )
     msg = msg + 'and started in manual mode.'
   else:

@@ -75,11 +75,13 @@ cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
 priority = '{{MCPriority#PROD-MC: Production priority#4}}'
 extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
 finalAppType = '{{MCFinalAppType#PROD-MC: final file type to produce and merge e.g. DST,XDST,GEN,SIM...#ALLSTREAMS.DST}}'
+defaultOutput = '{{DefaultOutput#Prod-MC: upload un-merged output (leave blank for default)#}}'
 
 mergingFlag = '{{MergingEnable#PROD-Merging: enable flag Boolean True/False#True}}' #True/False
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
+
 
 replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
 replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcast}}'
@@ -128,15 +130,15 @@ else:
   publishFlag = True
   testFlag = False
 
-#Use computing model default unless CERN is requested
-defaultOutputSE = '' # for all intermediate outputs
-brunelDataSE = ''
-daVinciDataSE = ''
+if not defaultOutput:#Use computing model default unless CERN is requested
+  defaultOutputSE = 'Tier1_RDST' # for all intermediate outputs
+  brunelDataSE = 'Tier1_MC-DST'
+  daVinciDataSE = 'Tier1_MC-DST'
 
 if outputsCERN:
   defaultOutputSE = 'CERN-RDST'
-  brunelDataSE = 'CERN_MC_M-DST'
-  daVinciDataSE = 'CERN_MC_M-DST'
+  brunelDataSE = 'CERN_MC-DST'
+  daVinciDataSE = 'CERN_MC-DST'
 
 mcRequestTracking = 1
 mcreplicationFlag = replicationFlag
@@ -215,9 +217,9 @@ defaultEvtOpts = gConfig.getValue( '/Operations/Gauss/EvtOpts', '$DECFILESROOT/o
 if not defaultEvtOpts in gaussOpts:
   gaussOpts += ';%s' % defaultEvtOpts
 
-defaultGenOpts = gConfig.getValue( '/Operations/Gauss/Gen{{Generator}}Opts', '$LBPYTHIAROOT/options/{{Generator}}.py' )
-if not defaultGenOpts in gaussOpts:
-  gaussOpts += ';%s' % defaultGenOpts
+#defaultGenOpts = gConfig.getValue( '/Operations/Gauss/Gen{{Generator}}Opts', '$LBBCVEGPYROOT/options/{{Generator}}.py' )
+#if not defaultGenOpts in gaussOpts:
+#  gaussOpts += ';%s' % defaultGenOpts
 
 booleOpts = '{{p2Opt}}'
 #Having Moore and Brunel at the third step means other Opts are defined later.
@@ -262,7 +264,7 @@ if sixSteps:
 
 
 if fiveSteps and not decided:
-  if not mergingFlag:
+  if not mergingFlag and not localTestFlag:
     gLogger.error( 'Five steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
     DIRAC.exit( 2 )
   if not fiveSteps.lower() == mergingApp.lower():
