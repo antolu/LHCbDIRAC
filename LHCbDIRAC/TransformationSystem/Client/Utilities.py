@@ -87,10 +87,6 @@ def buildBKQuery( bkQuery, prods, fileType, runs ):
           requestID = int( res['Value']['TransformationFamily'] )
     if fileType[0].upper() != 'ALL':
       transBKQuery['FileType'] = fileType
-    if len( prods ) == 1:
-      s = 's'
-    else:
-      s = ''
   elif not bkQuery:
     if fileType:
       transBKQuery['FileType'] = fileType

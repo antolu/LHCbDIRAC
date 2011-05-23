@@ -7,7 +7,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager                  import Re
 from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles                  import getAncestorFiles
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
-import time, re, types
+import time, types
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin               import TransformationPlugin as DIRACTransformationPlugin
 
