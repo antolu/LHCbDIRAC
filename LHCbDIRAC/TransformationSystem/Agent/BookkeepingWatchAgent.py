@@ -23,12 +23,14 @@ class BookkeepingWatchAgent( AgentModule ):
       f = open( self.pickleFile, 'r' )
       self.timeLog = pickle.load( f )
       self.fullTimeLog = pickle.load( f )
+      self.bkQueries = pickle.load( f )
       f.close()
       gLogger.info( "BookkeepingWatchAgent.execute: successfully loaded Log from %s", self.pickleFile )
     except:
       gLogger.info( "BookkeepingWatchAgent.execute: failed loading Log from %s", self.pickleFile )
       self.timeLog = {}
       self.fullTimeLog = {}
+      self.bkQueries = {}
     self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
     gMonitor.registerActivity( "Iteration", "Agent Loops", AGENT_NAME, "Loops/min", gMonitor.OP_SUM )
@@ -52,31 +54,33 @@ class BookkeepingWatchAgent( AgentModule ):
     # Process each transformation
     for transDict in result['Value']:
       transID = long( transDict['TransformationID'] )
-      if not transDict.has_key( 'BkQueryID' ):
+      if 'BkQueryID' not in transDict:
         gLogger.info( "BookkeepingWatchAgent.execute: Transformation %d did not have associated BK query" % transID )
         continue
       res = self.transClient.getBookkeepingQueryForTransformation( transID )
       if not res['OK']:
         gLogger.warn( "BookkeepingWatchAgent.execute: Failed to get BkQuery", res['Message'] )
         continue
-      bkDict = res['Value']
+      bkQuery = res['Value']
 
       # Determine the correct time stamp to use for this transformation
-      if not self.fullTimeLog.has_key( transID ):
-        self.fullTimeLog[transID] = datetime.datetime.utcnow()
-      if self.timeLog.has_key( transID ):
+      now = datetime.datetime.utcnow()
+      fullTimeLog = self.fullTimeLog.setdefault( transID, now )
+      bkQueryLog = self.bkQueries.setdefault( transID, {} )
+      self.bkQueries[transID] = bkQuery
+      if transID in self.timeLog and bkQueryLog == bkQuery:
         # If it is more than a day since the last reduced query, make a full query just in case
-        if ( datetime.datetime.utcnow() - self.fullTimeLog[transID] ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
+        if ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
           timeStamp = self.timeLog[transID]
-          bkDict['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
+          bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
         else:
-          self.fullTimeLog[transID] = datetime.datetime.utcnow()
-      self.timeLog[transID] = datetime.datetime.utcnow()
+          self.fullTimeLog[transID] = now
+      self.timeLog[transID] = now
 
       # Perform the query to the Bookkeeping
-      gLogger.verbose( "Using BK query for transformation %d: %s" % ( transID, str( bkDict ) ) )
+      gLogger.verbose( "Using BK query for transformation %d: %s" % ( transID, str( bkQuery ) ) )
       start = time.time()
-      result = self.bkClient.getFilesWithGivenDataSets( bkDict )
+      result = self.bkClient.getFilesWithGivenDataSets( bkQuery )
       rtime = time.time() - start
       gLogger.verbose( "BK query time: %.2f seconds." % ( rtime ) )
       if not result['OK']:
@@ -136,6 +140,7 @@ class BookkeepingWatchAgent( AgentModule ):
         f = open( self.pickleFile, 'w' )
         pickle.dump( self.timeLog, f )
         pickle.dump( self.fullTimeLog, f )
+        pickle.dump( self.bkQueries, f )
         f.close()
         gLogger.info( "BookkeepingWatchAgent.execute: successfully dumped Log into %s", self.pickleFile )
       except:
