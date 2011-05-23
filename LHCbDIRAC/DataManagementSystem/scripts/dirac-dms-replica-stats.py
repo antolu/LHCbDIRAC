@@ -20,12 +20,15 @@ def orderSEs( listSEs ):
 
 fileType = ''
 directories = []
-prods = ['']
+prods = []
 getSize = False
-Script.registerSwitch( "D:", "Dir=", "   Dir to search [ALL]" )
+bkQuery = ''
+runs = []
+Script.registerSwitch( "D:", "Directory=", "   Dir to search [ALL]" )
 Script.registerSwitch( "S:", "Size", "   Get the LFN size [No]" )
-Script.registerSwitch( "t:", "Type=", "   File type to search [ALL]" )
-Script.registerSwitch( "p:", "Prod=", "   Production ID to search [ALL] (space or comma separated list)" )
+Script.registerSwitch( "f:", "FileType=", "   File type to search [ALL]" )
+Script.registerSwitch( "p:", "Production=", "   Production ID to search [ALL] (space or comma separated list)" )
+Script.registerSwitch( "", "BKQuery=", "   Bookkeeping query" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -33,12 +36,14 @@ Script.addDefaultOptionValue( 'LogLevel', 'error' )
 Script.parseCommandLine( ignoreErrors = False )
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0] == "D" or switch[0].lower() == "dir":
+  if switch[0] == "D" or switch[0].lower() == "directory":
     directories = switch[1].split( ',' )
-  if switch[0].lower() == "t" or switch[0].lower() == "type":
+  if switch[0].lower() == "t" or switch[0].lower() == "filetype":
     fileType = switch[1]
-  if switch[0].lower() == "p" or switch[0].lower() == "prod":
+  if switch[0].lower() == "p" or switch[0].lower() == "production":
     prods = switch[1].split( ',' )
+  if switch[0].lower() == "bkquery":
+    bkQuery = switch[1]
   if switch[0].lower() in ["s", "size"]:
     getSize = True
 
@@ -49,6 +54,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient  import StorageUsageClient
+from LHCbDIRAC.TransformationSystem.Client.Utilities   import buildBKQuery, getDirsForBKQuery
 
 rm = ReplicaManager()
 
@@ -62,15 +68,10 @@ for p in prods:
     pr.append( p )
 prods = pr
 
-if fileType or prods[0] != '':
-  for prod in prods:
-    res = StorageUsageClient().getStorageDirectoryData( '', fileType, prod, [] )
-    if not res['OK']:
-      print "Failed to get directories for production", prod, res['Message']
-    else:
-      for directory in  res['Value'].keys():
-        if directory.find( "/LOG/" ) < 0:
-          directories.append( directory )
+if not directories:
+  ( transBKQuery, reqID ) = buildBKQuery( bkQuery, prods, fileType, runs )
+  print transBKQuery
+  directories = getDirsForBKQuery( transBKQuery )
 
 if len( directories ) == 0:
   print "No directories to get statistics for"
@@ -172,5 +173,3 @@ for site in sortList( repSites.keys() ):
   string = "%16s: %d files" % ( site, repSites[site][0] )
   if getSize: string += " - %.3f TB" % ( repSites[site][1] / TB )
   print string
-
-

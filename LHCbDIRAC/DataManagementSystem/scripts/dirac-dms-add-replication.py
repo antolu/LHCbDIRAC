@@ -117,7 +117,7 @@ if __name__ == "__main__":
       if len( runs ) == 1:
         runs.append( runs[0] )
     elif opt == "force":
-      force == True
+      force = True
     elif opt == "invisible":
       invisible = True
 
@@ -146,6 +146,8 @@ if __name__ == "__main__":
   if not transBKQuery:
     Script.showhelp()
     DIRAC.exit( 2 )
+  if plugin == "DestroyDataset":
+    transBKQuery.pop( 'Visible' )
 
   if not requestID and reqID:
     requestID = reqID
@@ -164,6 +166,9 @@ if __name__ == "__main__":
       fileType = ["All"]
     longName = transGroup + " of " + ','.join( fileType ) + " for productions %s " % str( ','.join( prods ) )
     transName += '-' + '/'.join( fileType ) + '-' + '/'.join( prods )
+  elif not bkQuery:
+    longName = transGroup + "for fileType " + str( transBKQuery['FileType'] )
+    transName += '-' + str( transBKQuery['FileType'] )
   else:
     longName = transGroup + " for BKQuery " + bkQuery
     transName += '-' + bkQuery
