@@ -25,9 +25,9 @@ class BookkeepingWatchAgent( AgentModule ):
       self.fullTimeLog = pickle.load( f )
       self.bkQueries = pickle.load( f )
       f.close()
-      gLogger.info( "BookkeepingWatchAgent.execute: successfully loaded Log from %s", self.pickleFile )
+      self.__logInfo( "successfully loaded Log from %s", self.pickleFile, "initialize" )
     except:
-      gLogger.info( "BookkeepingWatchAgent.execute: failed loading Log from %s", self.pickleFile )
+      self.__logInfo( "failed loading Log from %s", self.pickleFile, "initialize" )
       self.timeLog = {}
       self.fullTimeLog = {}
       self.bkQueries = {}
@@ -39,6 +39,33 @@ class BookkeepingWatchAgent( AgentModule ):
     self.bkClient = BookkeepingClient()
     return S_OK()
 
+  def __logVerbose( self, message, param = '', method = "execute" ):
+    gLogger.verbose( AGENT_NAME + "." + method + ": " + message, param )
+
+  def __logDebug( self, message, param = '', method = "execute" ):
+    gLogger.debug( AGENT_NAME + "." + method + ": " + message, param )
+
+  def __logInfo( self, message, param = '', method = "execute" ):
+    gLogger.info( AGENT_NAME + "." + method + ": " + message, param )
+
+  def __logWarn( self, message, param = '', method = "execute" ):
+    gLogger.warn( AGENT_NAME + "." + method + ": " + message, param )
+
+  def __logError( self, message, param = '', method = "execute" ):
+    gLogger.error( AGENT_NAME + "." + method + ": " + message, param )
+
+  def __dumpLog( self ):
+    if self.pickleFile:
+      try:
+        f = open( self.pickleFile, 'w' )
+        pickle.dump( self.timeLog, f )
+        pickle.dump( self.fullTimeLog, f )
+        pickle.dump( self.bkQueries, f )
+        f.close()
+        self.__logVerbose( "successfully dumped Log into %s", self.pickleFile )
+      except:
+        self.__logError( "fail to dump Log into %s", self.pickleFile )
+
   ##############################################################################
   def execute( self ):
     """ Main execution method
@@ -48,18 +75,18 @@ class BookkeepingWatchAgent( AgentModule ):
     # Get all the transformations
     result = self.transClient.getTransformations( condDict = {'Status':'Active'}, extraParams = True )
     if not result['OK']:
-      gLogger.error( "BookkeepingWatchAgent.execute: Failed to get transformations.", result['Message'] )
+      self.__logError( "Failed to get transformations.", result['Message'] )
       return S_OK()
 
     # Process each transformation
     for transDict in result['Value']:
       transID = long( transDict['TransformationID'] )
       if 'BkQueryID' not in transDict:
-        gLogger.info( "BookkeepingWatchAgent.execute: Transformation %d did not have associated BK query" % transID )
+        self.__logInfo( "Transformation %d did not have associated BK query" % transID )
         continue
       res = self.transClient.getBookkeepingQueryForTransformation( transID )
       if not res['OK']:
-        gLogger.warn( "BookkeepingWatchAgent.execute: Failed to get BkQuery", res['Message'] )
+        self.__logWarn( "Failed to get BkQuery", res['Message'] )
         continue
       bkQuery = res['Value']
 
@@ -67,82 +94,72 @@ class BookkeepingWatchAgent( AgentModule ):
       now = datetime.datetime.utcnow()
       fullTimeLog = self.fullTimeLog.setdefault( transID, now )
       bkQueryLog = self.bkQueries.setdefault( transID, {} )
-      self.bkQueries[transID] = bkQuery
-      if transID in self.timeLog and bkQueryLog == bkQuery:
+      if 'StartDate' in bkQueryLog:
+        bkQueryLog.pop( 'StartDate' )
+      self.bkQueries[transID] = bkQuery.copy()
+      if transID in self.timeLog and bkQueryLog == bkQuery and  ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
         # If it is more than a day since the last reduced query, make a full query just in case
-        if ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
-          timeStamp = self.timeLog[transID]
-          bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
-        else:
+        timeStamp = self.timeLog[transID]
+        bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
+      if 'StartDate' not in bkQuery:
           self.fullTimeLog[transID] = now
+          self.__dumpLog()
       self.timeLog[transID] = now
 
       # Perform the query to the Bookkeeping
-      gLogger.verbose( "Using BK query for transformation %d: %s" % ( transID, str( bkQuery ) ) )
+      self.__logInfo( "Using BK query for transformation %d: %s" % ( transID, str( bkQuery ) ) )
       start = time.time()
       result = self.bkClient.getFilesWithGivenDataSets( bkQuery )
       rtime = time.time() - start
-      gLogger.verbose( "BK query time: %.2f seconds." % ( rtime ) )
+      self.__logVerbose( "BK query time: %.2f seconds." % ( rtime ) )
       if not result['OK']:
-        gLogger.error( "BookkeepingWatchAgent.execute: Failed to get response from the Bookkeeping", result['Message'] )
+        self.__logError( "Failed to get response from the Bookkeeping", result['Message'] )
         continue
       lfnListBK = result['Value']
 
       # Add any new files to the transformation
-      addedLfns = []
       if lfnListBK:
         lfnChunks = breakListIntoChunks( lfnListBK, 1000 )
+        addedLfns = []
         for lfnList in lfnChunks:
-          addedLfns = []
-          gLogger.verbose( 'Processing %d lfns for transformation %d' % ( len( lfnList ), transID ) )
           # Add the files to the transformation
-          gLogger.verbose( 'Adding %d lfns for transformation %d' % ( len( lfnList ), transID ) )
+          self.__logVerbose( 'Adding %d lfns for transformation %d' % ( len( lfnList ), transID ) )
           result = self.transClient.addFilesToTransformation( transID, sortList( lfnList ) )
           if not result['OK']:
-            gLogger.warn( "BookkeepingWatchAgent.execute: failed to add lfns to transformation", result['Message'] )
+            self.__logWarn( "failed to add lfns to transformation", result['Message'] )
           else:
             if result['Value']['Failed']:
               for lfn, error in res['Value']['Failed'].items():
-                gLogger.warn( "BookkeepingWatchAgent.execute: Failed to add %s to transformation" % lfn, error )
+                self.__logWarn( "Failed to add %s to transformation" % lfn, error )
             if result['Value']['Successful']:
               for lfn, status in result['Value']['Successful'].items():
                 if status == 'Added':
                   addedLfns.append( lfn )
-              gLogger.info( "BookkeepingWatchAgent.execute: Added %d files to transformation %d" % ( len( addedLfns ), transID ) )
-              #addedLfns = result['Value']['Successful'].keys() # TO BE COMMENTED OUT ONCE BACK POPULATION IS DONE
+        if addedLfns:
+          self.__logInfo( "Added %d files to transformation %d, now including run information" % ( len( addedLfns ), transID ) )
+        else:
+          continue
 
-          # Add the RunNumber to the newly inserted files
-          if addedLfns:
-            gLogger.info( "BookkeepingWatchAgent.execute: Obtaining metadata for %d files" % len( addedLfns ) )
+        # Add the RunNumber to the newly inserted files
+        lfnChunks = breakListIntoChunks( addedLfns, 1000 )
+        for addedLfns in lfnChunks:
             start = time.time()
             res = self.bkClient.getFileMetadata( addedLfns )
             rtime = time.time() - start
-            gLogger.verbose( "BK query time: %.2f seconds." % ( rtime ) )
+            self.__logVerbose( "BK query time for metadata: %.2f seconds." % ( rtime ) )
             if not res['OK']:
-              gLogger.error( "BookkeepingWatchAgent.execute: Failed to get BK metadata", res['Message'] )
+              self.__logError( "Failed to get BK metadata", res['Message'] )
             else:
               runDict = {}
               for lfn, metadata in res['Value'].items():
-                runID = metadata.get( 'RunNumber', 0 )
+                runID = int( metadata.get( 'RunNumber', 0 ) )
                 if runID:
-                  runID = int( runID )
-                  if not runDict.has_key( runID ):
-                    runDict[runID] = []
-                  runDict[runID].append( lfn )
+                  runDict.setdefault( runID, [] ).append( lfn )
               for runID in sortList( runDict.keys() ):
                 lfns = runDict[runID]
-                gLogger.verbose( "BookkeepingWatchAgent.execute: Associating %d files to run %d" % ( len( lfns ), runID ) )
+                self.__logVerbose( "Associating %d files to run %d" % ( len( lfns ), runID ) )
                 res = self.transClient.addTransformationRunFiles( transID, runID, sortList( lfns ) )
                 if not res['OK']:
-                  gLogger.warn( "BookkeepingWatchAgent.execute: Failed to associated files to run", res['Message'] )
-    if self.pickleFile:
-      try:
-        f = open( self.pickleFile, 'w' )
-        pickle.dump( self.timeLog, f )
-        pickle.dump( self.fullTimeLog, f )
-        pickle.dump( self.bkQueries, f )
-        f.close()
-        gLogger.info( "BookkeepingWatchAgent.execute: successfully dumped Log into %s", self.pickleFile )
-      except:
-        gLogger.error( "BookkeepingWatchAgent.execute: fail to dump Log into %s", self.pickleFile )
+                  self.__logWarn( "Failed to associate files to run", res['Message'] )
+    self.__dumpLog()
     return S_OK()
