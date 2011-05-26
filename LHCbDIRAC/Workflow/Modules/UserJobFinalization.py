@@ -29,12 +29,12 @@ class UserJobFinalization( ModuleBase ):
   def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__( self )
-    self.version = __RCSID__
+
     self.log = gLogger.getSubLogger( "UserJobFinalization" )
-    self.jobID = ''
+    super( UserJobFinalization, self ).__init__( self.log )
+
+    self.version = __RCSID__
     self.enable = True
-    self.failoverTest = False #flag to put file to failover SE by default
     self.defaultOutputSE = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-USER', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     #List all parameters here
@@ -58,25 +58,6 @@ class UserJobFinalization( ModuleBase ):
     #Earlier modules may have populated the report objects
     if self.workflow_commons.has_key( 'JobReport' ):
       self.jobReport = self.workflow_commons['JobReport']
-
-    if self.step_commons.has_key( 'Enable' ):
-      self.enable = self.step_commons['Enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
-
-    if self.step_commons.has_key( 'TestFailover' ):
-      self.enable = self.step_commons['TestFailover']
-      if not type( self.failoverTest ) == type( True ):
-        self.log.warn( 'Test failover flag set to non-boolean value %s, setting to False' % self.failoverTest )
-        self.failoverTest = False
-
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
-    else:
-      self.log.info( 'No WMS JobID found, disabling module via control flag' )
-      self.enable = False
 
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
@@ -235,7 +216,7 @@ class UserJobFinalization( ModuleBase ):
       final[fileName]['resolvedSE'] = orderedSEs
 
     #At this point can exit and see exactly what the module will upload
-    if not self.enable:
+    if not self._enableModule():
       self.log.info( 'Module is disabled by control flag, would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
       for fileName, metadata in final.items():
         self.log.info( '--------%s--------' % fileName )
@@ -257,31 +238,28 @@ class UserJobFinalization( ModuleBase ):
     replication = {}
     failover = {}
     uploaded = []
-    if not self.failoverTest:
-      for fileName, metadata in final.items():
-        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
-        result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = self.userFileCatalog )
-        if not result['OK']:
-          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
-          failover[fileName] = metadata
-        else:
-          #Only attempt replication after successful upload
-          lfn = metadata['lfn']
-          uploaded.append( lfn )
-          seList = metadata['resolvedSE']
-          replicateSE = ''
-          if result['Value'].has_key( 'uploadedSE' ):
-            uploadedSE = result['Value']['uploadedSE']
-            for se in seList:
-              if not se == uploadedSE:
-                replicateSE = se
-                break
+    for fileName, metadata in final.items():
+      self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
+      result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = self.userFileCatalog )
+      if not result['OK']:
+        self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+        failover[fileName] = metadata
+      else:
+        #Only attempt replication after successful upload
+        lfn = metadata['lfn']
+        uploaded.append( lfn )
+        seList = metadata['resolvedSE']
+        replicateSE = ''
+        if result['Value'].has_key( 'uploadedSE' ):
+          uploadedSE = result['Value']['uploadedSE']
+          for se in seList:
+            if not se == uploadedSE:
+              replicateSE = se
+              break
 
-          if replicateSE and lfn:
-            self.log.info( 'Will attempt to replicate %s to %s' % ( lfn, replicateSE ) )
-            replication[lfn] = replicateSE
-    else:
-      failover = final
+        if replicateSE and lfn:
+          self.log.info( 'Will attempt to replicate %s to %s' % ( lfn, replicateSE ) )
+          replication[lfn] = replicateSE
 
     cleanUp = False
     for fileName, metadata in failover.items():

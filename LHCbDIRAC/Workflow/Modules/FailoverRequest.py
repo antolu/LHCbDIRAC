@@ -18,15 +18,16 @@ import os
 class FailoverRequest( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__( self )
-    self.version = __RCSID__
+
     self.log = gLogger.getSubLogger( "FailoverRequest" )
+    super( FailoverRequest, self ).__init__( self.log )
+
+    self.version = __RCSID__
     #Internal parameters
-    self.enable = True
-    self.jobID = ''
     self.productionID = None
     self.prodJobID = None
     #Workflow parameters
@@ -36,24 +37,12 @@ class FailoverRequest( ModuleBase ):
     self.inputData = []
 
   #############################################################################
+
   def resolveInputVariables( self ):
     """ By convention the module input parameters are resolved here.
     """
     self.log.debug( self.workflow_commons )
     self.log.debug( self.step_commons )
-
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
-    else:
-      self.log.info( 'No WMS JobID found, disabling module via control flag' )
-      self.enable = False
-
-    if self.step_commons.has_key( 'Enable' ):
-      self.enable = self.step_commons['Enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
 
     #Earlier modules will have populated the report objects
     if self.workflow_commons.has_key( 'JobReport' ):
@@ -86,17 +75,18 @@ class FailoverRequest( ModuleBase ):
     if self.workflow_commons.has_key( 'JOB_ID' ):
       self.prodJobID = self.workflow_commons['JOB_ID']
 
-    return S_OK( 'Parameters resolved' )
-
   #############################################################################
+
   def execute( self ):
     """ Main execution function.
     """
+
     self.log.info( 'Initializing %s' % self.version )
-    result = self.resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+
+    if not self._enableModule():
+      return S_OK()
+
+    self.resolveInputVariables()
 
     if not self.fileReport:
       self.log.debug( 'Getting FileReport object' )
@@ -187,10 +177,6 @@ class FailoverRequest( ModuleBase ):
     if result['OK']:
       digest = result['Value']
       self.log.info( digest )
-
-    if not self.enable:
-      self.log.info( 'Module is disabled by control flag' )
-      return S_OK( 'Module is disabled by control flag' )
 
     return self.finalize()
 

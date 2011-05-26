@@ -1,7 +1,7 @@
 ########################################################################
 # $Id$
 ########################################################################
-""" Gaudi Application Class """
+"""Gaudi Application class"""
 
 __RCSID__ = "$Id$"
 
@@ -22,16 +22,15 @@ import re, os, sys, time
 class GaudiApplication( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
-    ModuleBase.__init__( self )
-    self.enable = True
+
+    self.log = gLogger.getSubLogger( "GaudiApplication" )
+    super( GaudiApplication, self ).__init__( self.log )
+
     self.STEP_NUMBER = ''
     self.version = __RCSID__
     self.debug = True
-    self.log = gLogger.getSubLogger( "GaudiApplication" )
-    self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
 
     self.optfile = ''
     self.systemConfig = ''
@@ -51,9 +50,11 @@ class GaudiApplication( ModuleBase ):
     self.stdError = ''
 
   #############################################################################
+
   def resolveInputVariables( self ):
     """ Resolve all input variables for the module here.
     """
+
     self.log.verbose( self.workflow_commons )
     self.log.verbose( self.step_commons )
 
@@ -125,9 +126,12 @@ class GaudiApplication( ModuleBase ):
       self.stepOutputs = self.step_commons['listoutput']
 
   #############################################################################
+
   def execute( self ):
     """ The main execution method of GaudiApplication.
     """
+
+    self.log.info( 'Initializing %s' % ( self.version ) )
 
     #initialization
     self.resolveInputVariables()
@@ -147,7 +151,6 @@ class GaudiApplication( ModuleBase ):
     if not self.optionsFile and not self.optionsLine:
       self.log.warn( 'No optionsFile or optionsLine specified in workflow' )
 
-    self.log.info( 'Initializing %s' % ( self.version ) )
     self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
     self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName, self.applicationVersion, self.systemConfig ) )
     self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
@@ -369,9 +372,6 @@ class GaudiApplication( ModuleBase ):
     matcherror = "Cannot find slice in RecoManager"
     inputoutputerror = "Input/Output data error"
     # 0: checks
-    if not self.workflow_commons.has_key( 'dataType' ):
-      return S_ERROR( inputoutputerror )
-    dataType = self.workflow_commons[ 'dataType' ].lower()
     if not self.workflow_commons.has_key( 'configName' ):
       return S_ERROR( inputoutputerror )
     configName = self.workflow_commons['configName']
@@ -425,7 +425,7 @@ class GaudiApplication( ModuleBase ):
     # Fifth: submit the file and wait.
     inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
     lfnRoot = _getLFNRoot( inputData, configName, configVersion )
-    outputFile = _makeProductionLFN( self.JOB_ID, lfnRoot, ( outputDataName, outputDataType ), dataType, self.PRODUCTION_ID )
+    outputFile = _makeProductionLFN( self.JOB_ID, lfnRoot, ( outputDataName, outputDataType ), self.PRODUCTION_ID )
     outputFile = outputFile.lstrip( 'LFN:' ).lstrip( 'lfn:' )
     poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
     try:

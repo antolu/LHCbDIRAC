@@ -18,45 +18,28 @@ import string, os
 class RemoveInputData( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__( self )
-    self.version = __RCSID__
+
     self.log = gLogger.getSubLogger( "RemoveInputData" )
+    super( RemoveInputData, self ).__init__( self.log )
+
+    self.version = __RCSID__
     self.rm = ReplicaManager()
-    self.jobID = ''
-    self.enable = True
-    self.failoverTest = False #flag to set a failover removal request for testing
 
     #List all parameters here
     self.request = None
 
   #############################################################################
+
   def resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
+
     self.log.verbose( self.workflow_commons )
     self.log.verbose( self.step_commons )
-
-    if self.step_commons.has_key( 'Enable' ):
-      self.enable = self.step_commons['Enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
-
-    if self.step_commons.has_key( 'TestFailover' ):
-      self.failoverTest = self.step_commons['TestFailover']
-      if not type( self.failoverTest ) == type( True ):
-        self.log.warn( 'Test failover flag set to non-boolean value %s, setting to False' % self.failoverTest )
-        self.failoverTest = False
-
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
-    else:
-      self.log.info( 'No WMS JobID found, disabling module via control flag' )
-      self.enable = False
 
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
@@ -81,42 +64,31 @@ class RemoveInputData( ModuleBase ):
   def execute( self ):
     """ Main execution function.
     """
+
     self.log.info( 'Initializing %s' % self.version )
-    result = self.resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+
+    if not self._enableModule():
+      return S_OK()
+
+    self.resolveInputVariables()
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
       return S_OK( 'No input data removal attempted since workflow status not ok' )
 
-    #At this point can exit and see exactly what the module will try to remove
-    #for testing purposes.
-    if not self.enable:
-      self.log.info( 'Module is disabled by control flag, would have attempted to remove the following files:\n%s' % ( string.join( self.inputData, '\n' ) ) )
-      for fileName in self.inputData:
-        self.log.info( 'Remove - %s' % fileName )
-
-      return S_OK( 'Module is disabled by control flag' )
-
     #Try to remove the file list with failover if necessary
     failover = []
-    if not self.failoverTest:
-      self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputData ) )
-      result = self.rm.removeFile( self.inputData )
-      self.log.verbose( result )
-      if not result['OK']:
-        self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
-        failover = self.inputData
-      if result['Value']['Failed']:
-        failureDict = result['Value']['Failed']
-        if failureDict:
-          self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
-        failover = failureDict.keys()
-    else:
-      self.log.info( 'Failover test flag is enabled, setting removal requests by default' )
+    self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputData ) )
+    result = self.rm.removeFile( self.inputData )
+    self.log.verbose( result )
+    if not result['OK']:
+      self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
       failover = self.inputData
+    if result['Value']['Failed']:
+      failureDict = result['Value']['Failed']
+      if failureDict:
+        self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
+      failover = failureDict.keys()
 
     for lfn in failover:
       self.__setFileRemovalRequest( lfn )

@@ -115,6 +115,22 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     os.remove( 'foo.txt' )
 
+  def test__enableModule( self ):
+
+    self.assertFalse( self.mb._enableModule() )
+
+#############################################################################
+# AnalyseLogFile.py
+#############################################################################
+
+class AnalyseLogFileSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+    pass
+
+
 #############################################################################
 # GaudiApplication.py
 #############################################################################

@@ -27,12 +27,12 @@ class ErrorLogging( ModuleBase ):
   def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__( self )
-    self.version = __RCSID__
+
     self.log = gLogger.getSubLogger( "ErrorLogging" )
+    super( ErrorLogging, self ).__init__( self.log )
+
+    self.version = __RCSID__
     #Step parameters
-    self.enable = True
-    self.jobID = ''
     self.applicationName = ''
     self.applicationVersion = ''
     self.applicationLog = ''
@@ -50,25 +50,18 @@ class ErrorLogging( ModuleBase ):
     self.defaultName = 'errors.html'
 
   #############################################################################
+
   def resolveInputVariables( self ):
     """ By convention the module input parameters are resolved here.
     """
     self.log.debug( self.workflow_commons )
     self.log.debug( self.step_commons )
 
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
+    if self._WMSJob():
       self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
     else:
       self.log.info( 'No WMS JobID found, module will still attempt to run without publishing to the ErrorLogging service' )
       self.jobID = '12345'
-      self.enable = False
-
-    if self.step_commons.has_key( 'Enable' ):
-      self.enable = self.step_commons['Enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
 
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
@@ -111,12 +104,14 @@ class ErrorLogging( ModuleBase ):
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
+
   def execute( self ):
     """ Main execution function. Always return S_OK() because we don't want the
         job execution result to depend on retrieving errors from logs.
 
         This module will run regardless of the workflow status.
     """
+
     self.log.info( 'Initializing %s' % self.version )
     result = self.resolveInputVariables()
     if not result['OK']:
@@ -173,10 +168,6 @@ class ErrorLogging( ModuleBase ):
 
     self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName, self.applicationVersion, self.stepNumber ) )
     shutil.copy( self.defaultName, self.errorLogName )
-
-    if not self.enable:
-      self.log.info( 'Module is disabled by control flag, will not publish errors to ErrorLogging' )
-      return S_OK( 'Module is disabled by control flag' )
 
     #TODO - report to error logging service when suitable method is available
     return S_OK()

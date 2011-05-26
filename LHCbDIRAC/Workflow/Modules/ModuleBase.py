@@ -9,7 +9,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC  import S_OK, S_ERROR, gLogger
+from DIRAC  import S_OK, S_ERROR
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
@@ -23,10 +23,17 @@ import os, string, copy
 class ModuleBase( object ):
 
   #############################################################################
-  def __init__( self ):
+
+  def __init__( self, loggerIn = None ):
     """ Initialization of module base.
     """
-    self.log = gLogger.getSubLogger( 'ModuleBase' )
+
+    if not loggerIn:
+      from DIRAC import gLogger
+      self.log = gLogger.getSubLogger( 'ModuleBase' )
+    else:
+      self.log = loggerIn
+
     # FIXME: do we need to do this for every module?
     result = getProxyInfoAsString()
     if not result['OK']:
@@ -34,7 +41,12 @@ class ModuleBase( object ):
     else:
       self.log.verbose( 'Payload proxy information:\n', result['Value'] )
 
+    self.jobID = ''
+    if os.environ.has_key( 'JOBID' ):
+      self.jobID = os.environ['JOBID']
+
   #############################################################################
+
   def setApplicationStatus( self, status, sendFlag = True ):
     """Wraps around setJobApplicationStatus of state update client
     """
@@ -309,3 +321,23 @@ class ModuleBase( object ):
           return S_ERROR( 'File %s has missing %s' % ( fileName, key ) )
 
     return S_OK( final )
+
+  #############################################################################
+
+  def _WMSJob( self ):
+    if not self.jobID:
+      return False
+    else:
+      return True
+
+  #############################################################################
+
+  def _enableModule( self ):
+    if not self._WMSJob():
+      self.log.info( 'No WMS JobID found, disabling module via control flag' )
+      return False
+    else:
+      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
+      return True
+
+  #############################################################################

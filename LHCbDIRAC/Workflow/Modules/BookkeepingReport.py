@@ -1,7 +1,7 @@
 ########################################################################
 # $Id$
 ########################################################################
-""" Bookkeeping Report Class """
+"""Bookkeeping Report class"""
 
 __RCSID__ = "$Id$"
 
@@ -19,6 +19,10 @@ import os, time, re, string, socket
 class BookkeepingReport( ModuleBase ):
 
   def __init__( self ):
+
+    self.log = gLogger.getSubLogger( "BookkeepingReport" )
+    super( BookkeepingReport, self ).__init__( self.log )
+
     self.version = __RCSID__
     self.configName = ''
     self.configVersion = ''
@@ -38,8 +42,6 @@ class BookkeepingReport( ModuleBase ):
     self.applicationLog = ''
     self.firstStepInput = ''
     self.jobType = ''
-    self.log = gLogger.getSubLogger( "BookkeepingReport" )
-    pass
 
   def resolveInputVariables( self ):
     if self.workflow_commons.has_key( 'FirstStepInputEvents' ):
@@ -62,9 +64,6 @@ class BookkeepingReport( ModuleBase ):
 
     if self.step_commons.has_key( 'numberOfEventsInput' ):
       self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
-
-    if self.step_commons.has_key( 'inputDataType' ):
-      self.inputDataType = self.step_commons['inputDataType']
 
     if self.workflow_commons.has_key( 'poolXMLCatName' ):
       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
@@ -385,7 +384,6 @@ class BookkeepingReport( ModuleBase ):
         typeVersion = '0'
         oldTypeName = typeName
         typeName = '%sHIST' % ( self.applicationName.upper() )
-#        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
 
       s = s + '  <OutputFile   Name="' + lfn + '" TypeName="' + typeName + '" TypeVersion="' + typeVersion + '">\n'
 
@@ -396,7 +394,7 @@ class BookkeepingReport( ModuleBase ):
       if typeName in dataTypes:
         s = s + '    <Parameter  Name="EventTypeId"     Value="' + eventtype + '"/>\n'
         s = s + '    <Parameter  Name="EventStat"       Value="' + str( fileStats ) + '"/>\n'
-        
+
       if typeName in dataTypes or 'HIST' in typeName:
         s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
 

@@ -26,9 +26,11 @@ class UploadLogFile( ModuleBase ):
   def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__( self )
-    self.version = __RCSID__
+
     self.log = gLogger.getSubLogger( 'UploadLogFile' )
+    super( UploadLogFile, self ).__init__( self.log )
+
+    self.version = __RCSID__
     self.PRODUCTION_ID = None
     self.JOB_ID = None
     self.workflow_commons = None
@@ -43,31 +45,8 @@ class UploadLogFile( ModuleBase ):
     self.diracLogo = gConfig.getValue( '/Operations/SAM/LogoURL', 'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
     self.rm = ReplicaManager()
 
-    self.enable = True
-    self.failoverTest = False #flag to put log files to failover by default
-    self.jobID = ''
-
 ######################################################################
   def resolveInputVariables( self ):
-
-    if self.step_commons.has_key( 'Enable' ):
-      self.enable = self.step_commons['Enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
-
-    if self.step_commons.has_key( 'TestFailover' ):
-      self.enable = self.step_commons['TestFailover']
-      if not type( self.failoverTest ) == type( True ):
-        self.log.warn( 'Test failover flag set to non-boolean value %s, setting to False' % self.failoverTest )
-        self.failoverTest = False
-
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
-    else:
-      self.log.info( 'No WMS JobID found, disabling module via control flag' )
-      self.enable = False
 
     if self.workflow_commons.has_key( 'LogFilePath' ) and self.workflow_commons.has_key( 'LogTargetPath' ):
       self.logFilePath = self.workflow_commons['LogFilePath']
@@ -102,6 +81,10 @@ class UploadLogFile( ModuleBase ):
     """
     self.log.info( 'Initializing %s' % self.version )
     # Add global reporting tool
+
+    if not self._enableModule():
+      return S_OK()
+
     self.resolveInputVariables()
 
     res = shellCall( 0, 'ls -al' )
@@ -153,10 +136,6 @@ class UploadLogFile( ModuleBase ):
     if not result['OK']:
       self.log.error( 'Failed to create index page for logs', res['Message'] )
 
-    if not self.enable:
-      self.log.info( 'Module is disabled by control flag' )
-      return S_OK( 'Module is disabled by control flag' )
-
     #########################################
     #Make sure all the files in the log directory have the correct permissions
     result = self.__setLogFilePermissions( self.logdir )
@@ -167,20 +146,19 @@ class UploadLogFile( ModuleBase ):
     # Attempt to uplaod logs to the LogSE
     self.log.info( 'Transferring log files to the %s' % self.logSE )
     res = S_ERROR()
-    if not self.failoverTest:
-      self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
-      res = self.rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
-      self.log.verbose( res )
-      if res['OK']:
-        self.log.info( 'Successfully upload log directory to %s' % self.logSE )
-        # TODO: The logURL should be constructed using the LogSE and StorageElement()
-        #storageElement = StorageElement(self.logSE)
-        #pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
-        #logURL = getPfnForProtocol(res['Value'],'http')['Value']
-        logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
-        self.setJobParameter( 'Log URL', logURL )
-        self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
-        return S_OK()
+    self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
+    res = self.rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
+    self.log.verbose( res )
+    if res['OK']:
+      self.log.info( 'Successfully upload log directory to %s' % self.logSE )
+      # TODO: The logURL should be constructed using the LogSE and StorageElement()
+      #storageElement = StorageElement(self.logSE)
+      #pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
+      #logURL = getPfnForProtocol(res['Value'],'http')['Value']
+      logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
+      self.setJobParameter( 'Log URL', logURL )
+      self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
+      return S_OK()
 
     #########################################
     # Recover the logs to a failover storage element

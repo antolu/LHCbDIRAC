@@ -2,6 +2,9 @@
 # $Id$
 ########################################################################
 
+""" Analyse log file module
+"""
+
 __RCSID__ = "$Id$"
 
 import os, re, string, glob
@@ -20,10 +23,14 @@ import DIRAC
 class AnalyseLogFile( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     """Module initialization.
     """
+
     self.log = gLogger.getSubLogger( 'AnalyseLogFile' )
+    super( AnalyseLogFile, self ).__init__( self.log )
+
     self.version = __RCSID__
     self.site = DIRAC.siteName()
     self.systemConfig = ''
@@ -39,15 +46,13 @@ class AnalyseLogFile( ModuleBase ):
     self.coreFile = ''
     self.logString = ''
 
-    self.jobID = ''
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
     #Resolved to be the input data of the current step
     self.stepInputData = []
     #Dict of input data for the job and status
     self.jobInputData = {}
 
   #############################################################################
+
   def resolveInputVariables( self ):
     """ By convention any workflow parameters are resolved here.
     """
@@ -93,9 +98,6 @@ class AnalyseLogFile( ModuleBase ):
     if self.step_commons.has_key( 'applicationLog' ):
       self.applicationLog = self.step_commons['applicationLog']
 
-    if self.step_commons.has_key( 'inputDataType' ):
-      self.inputDataType = self.step_commons['inputDataType']
-
     if self.step_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = self.step_commons['numberOfEvents']
 
@@ -121,10 +123,13 @@ class AnalyseLogFile( ModuleBase ):
     return S_OK()
 
   #############################################################################
+
   def execute( self ):
     """ Main execution method. 
     """
+
     self.log.info( 'Initializing %s' % ( self.version ) )
+
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
@@ -205,6 +210,7 @@ class AnalyseLogFile( ModuleBase ):
     return self.updateFileStatus( self.jobInputData, "Processed" )
 
   #############################################################################
+
   def updateFileStatus( self, inputs, defaultStatus ):
     """ Allows to update file status to a given default, important statuses are
         not overwritten.
@@ -226,6 +232,7 @@ class AnalyseLogFile( ModuleBase ):
     return S_OK()
 
   #############################################################################
+
   def finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
@@ -251,7 +258,7 @@ class AnalyseLogFile( ModuleBase ):
 
     debugLFNs = result['Value']['DebugLFNs']
 
-    #This has to be reviewed... 
+    #FIXME: This has to be reviewed... 
     rm = ReplicaManager()
     try:
       if self.workflow_commons.has_key( 'emailAddress' ):
@@ -340,7 +347,7 @@ class AnalyseLogFile( ModuleBase ):
         msg = msg + '\n\nCore dump:\n\n' + contents
         fd.close()
 
-    if not self.jobID:
+    if not self._WMSJob():
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End" % ( msg ) )
     else:
       notifyClient = NotificationClient()

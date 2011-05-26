@@ -26,14 +26,15 @@ class UploadOutputData( ModuleBase ):
   def __init__( self ):
     """Module initialization.
     """
-    ModuleBase.__init__( self )
-    self.version = __RCSID__
+
     self.log = gLogger.getSubLogger( "UploadOutputData" )
+    super( UploadOutputData, self ).__init__( self.log )
+
+    self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
     self.jobType = ''
     self.enable = True
-    self.failoverTest = False #flag to put file to failover SE by default
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
@@ -62,12 +63,6 @@ class UploadOutputData( ModuleBase ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
 
-    if self.step_commons.has_key( 'TestFailover' ):
-      self.enable = self.step_commons['TestFailover']
-      if not type( self.failoverTest ) == type( True ):
-        self.log.warn( 'Test failover flag set to non-boolean value %s, setting to False' % self.failoverTest )
-        self.failoverTest = False
-
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
       self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
@@ -83,8 +78,8 @@ class UploadOutputData( ModuleBase ):
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    if self.step_commons.has_key( 'outputDataStep' ):
-      self.outputDataStep = self.step_commons['outputDataStep']
+    if self.workflow_commons.has_key( 'outputDataStep' ):
+      self.outputDataStep = self.workflow_commons['outputDataStep']
 
     if self.workflow_commons.has_key( 'outputList' ):
       self.outputList = self.workflow_commons['outputList']
@@ -123,9 +118,11 @@ class UploadOutputData( ModuleBase ):
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
+
   def execute( self ):
     """ Main execution function.
     """
+
     self.log.info( 'Initializing %s' % self.version )
     if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
       return S_OK()
@@ -210,24 +207,21 @@ class UploadOutputData( ModuleBase ):
     #One by one upload the files with failover if necessary
     registrationFailure = False
     failover = {}
-    if not self.failoverTest:
-      for fileName, metadata in final.items():
-        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
-        result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = 'LcgFileCatalogCombined' )
-        if not result['OK']:
-          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
-          failover[fileName] = metadata
+    for fileName, metadata in final.items():
+      self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
+      result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = 'LcgFileCatalogCombined' )
+      if not result['OK']:
+        self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+        failover[fileName] = metadata
+      else:
+        if result['Value'].has_key( 'registration' ):
+          self.log.info( 'File %s was put to the SE but the catalog registration will be set as an asynchronous request' % ( fileName ) )
+          registrationFailure = True
         else:
-          if result['Value'].has_key( 'registration' ):
-            self.log.info( 'File %s was put to the SE but the catalog registration will be set as an asynchronous request' % ( fileName ) )
-            registrationFailure = True
-          else:
-            self.log.info( '%s uploaded successfully, will be registered in BK if all files uploaded for job' % ( fileName ) )
+          self.log.info( '%s uploaded successfully, will be registered in BK if all files uploaded for job' % ( fileName ) )
 
-          lfn = metadata['lfn']
-          performBKRegistration.append( lfn )
-    else:
-      failover = final
+        lfn = metadata['lfn']
+        performBKRegistration.append( lfn )
 
     cleanUp = False
     for fileName, metadata in failover.items():
