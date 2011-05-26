@@ -19,19 +19,19 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 gLogger = gLogger.getSubLogger( 'ProductionData' )
 
 #############################################################################
+
 def constructProductionLFNs( paramDict ):
   """ Used for local testing of a workflow, a temporary measure until
       LFN construction is tidied.  This works using the workflow commons for
       on the fly construction.
   """
-  keys = ['PRODUCTION_ID', 'JOB_ID', 'dataType', 'configVersion', 'JobType', 'outputList', 'configName', 'outputDataFileMask']
+  keys = ['PRODUCTION_ID', 'JOB_ID', 'configVersion', 'JobType', 'outputList', 'configName', 'outputDataFileMask']
   for k in keys:
     if not paramDict.has_key( k ):
       return S_ERROR( '%s not defined' % k )
 
   productionID = paramDict['PRODUCTION_ID']
   jobID = paramDict['JOB_ID']
-#  wfMode = paramDict['dataType']
   wfConfigName = paramDict['configName']
   wfConfigVersion = paramDict['configVersion']
   wfMask = paramDict['outputDataFileMask']
@@ -39,9 +39,6 @@ def constructProductionLFNs( paramDict ):
     wfMask = [i.lower().strip() for i in wfMask.split( ';' )]
   wfType = paramDict['JobType']
   outputList = paramDict['outputList']
-#  inputData = ''
-#  if paramDict.has_key( 'InputData' ):
-#    inputData = paramDict['InputData']
 
   fileTupleList = []
   gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfMask = %s, wfType=%s' % ( wfConfigName, wfConfigVersion,
@@ -86,18 +83,24 @@ def constructProductionLFNs( paramDict ):
 
   #outputData is masked
   for fileTuple in fileTupleListMasked:
-    lfn = _makeProductionLFN( str( jobID ).zfill( 8 ), lfnRoot, fileTuple, wfConfigName, str( productionID ).zfill( 8 ) )
+    lfn = _makeProductionLFN( str( jobID ).zfill( 8 ), lfnRoot, fileTuple, str( productionID ).zfill( 8 ) )
     outputData.append( lfn )
 
   #BKLFNs and debugLFNs are not masked
   for fileTuple in fileTupleList:
-    lfn = _makeProductionLFN( str( jobID ).zfill( 8 ), lfnRoot, fileTuple, wfConfigName, str( productionID ).zfill( 8 ) )
+    lfn = _makeProductionLFN( str( jobID ).zfill( 8 ), lfnRoot, fileTuple, str( productionID ).zfill( 8 ) )
     bkLFNs.append( lfn )
     if debugRoot:
-      debugLFNs.append( _makeProductionLFN( str( jobID ).zfill( 8 ), debugRoot, fileTuple, wfConfigName, str( productionID ).zfill( 8 ) ) )
+      debugLFNs.append( _makeProductionLFN( str( jobID ).zfill( 8 ),
+                                            debugRoot,
+                                            fileTuple,
+                                            str( productionID ).zfill( 8 ) ) )
 
   if debugRoot:
-    debugLFNs.append( _makeProductionLFN( str( jobID ).zfill( 8 ), debugRoot, ( '%s_core' % str( jobID ).zfill( 8 ) , 'core' ), wfConfigName, str( productionID ).zfill( 8 ) ) )
+    debugLFNs.append( _makeProductionLFN( str( jobID ).zfill( 8 ),
+                                          debugRoot,
+                                          ( '%s_core' % str( jobID ).zfill( 8 ) , 'core' ),
+                                          str( productionID ).zfill( 8 ) ) )
 
   #Get log file path - unique for all modules
   logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', wfConfigName, str( productionID ).zfill( 8 ), log = True )
@@ -139,26 +142,20 @@ def _applyMask( mask, dataTuplesList ):
 
 #############################################################################
 
-
 def getLogPath( paramDict ):
   """ Can construct log file paths even if job fails e.g. no output files available.
   """
-  keys = ['PRODUCTION_ID', 'JOB_ID', 'dataType', 'configVersion', 'JobType']
+  keys = ['PRODUCTION_ID', 'JOB_ID', 'configName', 'configVersion']
   for k in keys:
     if not paramDict.has_key( k ):
       return S_ERROR( '%s not defined' % k )
 
   productionID = paramDict['PRODUCTION_ID']
   jobID = paramDict['JOB_ID']
-#  wfConfigName = paramDict['dataType']
   wfConfigName = paramDict['configName']
   wfConfigVersion = paramDict['configVersion']
-  wfType = paramDict['JobType']
-#  inputData = ''
-#  if paramDict.has_key( 'InputData' ):
-#    inputData = paramDict['InputData']
 
-  gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfType=%s' % ( wfConfigName, wfConfigVersion, wfType ) )
+  gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s' % ( wfConfigName, wfConfigVersion ) )
 #  lfnRoot = ''
 #  if inputData:
 #    lfnRoot = _getLFNRoot( inputData, wfType )
@@ -217,7 +214,7 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
   return S_OK( outputData )
 
 #############################################################################
-def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2', inputData = None ):
+def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2' ):
   """ Constructs LFNs to be added to the job description prior to submission
       or simply for visual inspection. 
       
@@ -232,8 +229,6 @@ def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2', inp
   jobCommons['outputList'] = outputList
   jobCommons['PRODUCTION_ID'] = productionID
   jobCommons['JOB_ID'] = jobID
-  if inputData:
-    jobCommons['InputData'] = inputData
 
   gLogger.debug( jobCommons )
   result = constructProductionLFNs( jobCommons )
@@ -258,11 +253,13 @@ def _makeProductionPath( JOB_ID, LFN_ROOT, typeName, mode, prodstring, log = Fal
   return result
 
 #############################################################################
-def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, mode, prodstring ):
+def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, prodstring ):
   """ Constructs the logical file name according to LHCb conventions.
       Returns the lfn without 'lfn:' prepended.
   """
-  gLogger.debug( 'Making production LFN for JOB_ID %s, LFN_ROOT %s, mode %s, prodstring %s for\n%s' % ( JOB_ID, LFN_ROOT, mode, prodstring, str( filetuple ) ) )
+  gLogger.debug( 'Making production LFN for JOB_ID %s, LFN_ROOT %s, prodstring %s for\n%s' % ( JOB_ID, LFN_ROOT,
+                                                                                               prodstring,
+                                                                                               str( filetuple ) ) )
   try:
     jobid = int( JOB_ID )
     jobindex = string.zfill( jobid / 10000, 4 )
