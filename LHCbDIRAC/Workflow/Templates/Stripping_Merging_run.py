@@ -169,6 +169,23 @@ elif oneStep:
     strippEP = '{{p1EP}}'
     strippFileType = '{{inFileType}}'
 
+  elif oneStep.lower() == 'lhcb':
+    mergingEnabled = True
+    mergeApp = '{{p2App}}'
+    mergeStep = int( '{{p2Step}}' )
+    mergeName = '{{p2Name}}'
+    mergeVisibility = '{{p2Vis}}'
+    mergeCDb = '{{p2CDb}}'
+    mergeDDDb = '{{p2DDDb}}'
+    mergeOptions = '{{p2Opt}}'
+    if useOracle:
+      if mergeApp.lower() == 'davinci':
+        if not 'useoracle.py' in mergeOptions.lower():
+          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
+    mergeVersion = '{{p2Ver}}'
+    mergeEP = '{{p2EP}}'
+
+
   else:
     gLogger.error( 'Stripping/streaming step is NOT daVinci and is %s' % oneStep )
     error = True
@@ -284,7 +301,7 @@ if strippEnabled:
   # Create the stripping production
   #################################################################################
 
-  production = Production()
+  production = Production( BKKClientIn = BKClient )
 
   if not destination.lower() in ( 'all', 'any' ):
     gLogger.info( 'Forcing destination site %s for production' % ( destination ) )
@@ -308,7 +325,7 @@ if strippEnabled:
     production.setAncestorDepth( 2 )
 
   production.addDaVinciStep( strippVersion, strippType, strippOptions, eventType = eventType, extraPackages = strippEP,
-                             inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob, 
+                             inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob,
                              dataType = 'Data',
                              outputSE = unmergedStreamSE,
                              histograms = True, extraOutput = strippEO,
@@ -432,8 +449,8 @@ if strippEnabled:
 
 if mergingEnabled:
 
-#  if not strippEnabled:
-#    strippProdID = #put something here
+  if not strippEnabled:
+    strippProdID = 0#'put something here'
 
   mergeInput = BKClient.getStepInputFiles( mergeStep )
   if not mergeInput:
@@ -460,10 +477,11 @@ if mergingEnabled:
 
   mergeProductionList = []
 
+  mergeStreamsList = []
   for mergeStream in mergeOutputList:
 #    if mergeStream.lower() in onlyCERN:
 #      mergeSE = 'CERN_M-DST'
-
+    mergeStreamsList.append( mergeStream )
     mergeStream = mergeStream.upper()
 
     #################################################################################
@@ -472,84 +490,81 @@ if mergingEnabled:
 
     mergeBKQuery = { 'ProductionID'             : strippProdID,
                      'DataQualityFlag'          : mergeDQFlag,
-                     'FileType'                 : mergeStream}
-      #below should be integrated in the ProductionOptions utility
+                     'FileType'                 : mergeStreamsList
+                    }
     if mergeApp.lower() == 'davinci':
       dvExtraOptions = "from Configurables import RecordStream;"
       dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
       dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
-    ###########################################
-    # Create the merging production
-    ###########################################
+  mergeProd = Production( BKKClientIn = BKClient )
+  mergeProd.setCPUTime( mergeCPU )
+  mergeProd.setProdType( 'Merge' )
+  wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
+  mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStreamsList, wkfName, appendName ) )
 
+  if sysConfig:
+    mergeProd.setSystemConfig( sysConfig )
 
-    mergeProd = Production()
-    mergeProd.setCPUTime( mergeCPU )
-    mergeProd.setProdType( 'Merge' )
-    wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
-    mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
+  mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStreamsList, strippProdID ) )
+  mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
+  mergeProd.setDBTags( mergeCDb, mergeDDDb )
 
-    if sysConfig:
-      mergeProd.setSystemConfig( sysConfig )
-
-    mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, strippProdID ) )
-    mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
-    mergeProd.setDBTags( mergeCDb, mergeDDDb )
-
-    if mergeApp.lower() == 'davinci':
-      mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions,
-                                inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
-                                stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
-    elif mergeApp.lower() == 'lhcb':
-      mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
-                              inputDataType = mergeStream.lower(), outputSE = mergedStreamSE,
-                              condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
+  if mergeApp.lower() == 'davinci':
+    mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
+                              inputDataType = 'MIX_MERGE', extraOpts = dvExtraOptions,
+                              inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
+                              extraOutput = mergeOutputList,
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
+  elif mergeApp.lower() == 'lhcb':
+    mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
+                            inputDataType = 'MIX_MERGE', outputSE = mergedStreamSE,
+                            condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
+                            extraOutput = mergeOutputList,
+                            stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
+  else:
+    gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
+    DIRAC.exit( 2 )
+
+  mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+  mergeProd.setInputBKSelection( mergeBKQuery )
+  mergeProd.setInputDataPolicy( mergeIDPolicy )
+  mergeProd.setProdGroup( prodGroup )
+  mergeProd.setProdPriority( mergePriority )
+  mergeProd.setJobFileGroupSize( mergeFileSize )
+#  mergeProd.setFileMask( mergeStream.lower() )
+  mergeProd.setProdPlugin( mergePlugin )
+
+  result = mergeProd.create( 
+                            publish = publishFlag,
+                            bkScript = BKscriptFlag,
+                            requestID = currentReqID,
+                            reqUsed = 1,
+                            transformation = False
+                            )
+  if not result['OK']:
+    gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
+    DIRAC.exit( 2 )
+
+  if publishFlag:
+    diracProd = DiracProduction()
+
+    prodID = result['Value']
+    msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStreamsList )
+
+    if testFlag:
+      diracProd.production( prodID, 'manual', printOutput = True )
+      msg = msg + 'and started in manual mode.'
     else:
-      gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
-      DIRAC.exit( 2 )
+      diracProd.production( prodID, 'automatic', printOutput = True )
+      msg = msg + 'and started in automatic mode.'
+    gLogger.info( msg )
 
-    mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
-    mergeProd.setInputBKSelection( mergeBKQuery )
-    mergeProd.setInputDataPolicy( mergeIDPolicy )
-    mergeProd.setProdGroup( prodGroup )
-    mergeProd.setProdPriority( mergePriority )
-    mergeProd.setJobFileGroupSize( mergeFileSize )
-    mergeProd.setFileMask( mergeStream.lower() )
-    mergeProd.setProdPlugin( mergePlugin )
+    mergeProductionList.append( int( prodID ) )
 
-    result = mergeProd.create( 
-                              publish = publishFlag,
-                              bkScript = BKscriptFlag,
-                              requestID = currentReqID,
-                              reqUsed = 1,
-                              transformation = False
-                              )
-    if not result['OK']:
-      gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
-      DIRAC.exit( 2 )
-
-    if publishFlag:
-      diracProd = DiracProduction()
-
-      prodID = result['Value']
-      msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStream )
-
-      if testFlag:
-        diracProd.production( prodID, 'manual', printOutput = True )
-        msg = msg + 'and started in manual mode.'
-      else:
-        diracProd.production( prodID, 'automatic', printOutput = True )
-        msg = msg + 'and started in automatic mode.'
-      gLogger.info( msg )
-
-      mergeProductionList.append( int( prodID ) )
-
-    else:
-      prodID = 1
-      gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+  else:
+    prodID = 1
+    gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 

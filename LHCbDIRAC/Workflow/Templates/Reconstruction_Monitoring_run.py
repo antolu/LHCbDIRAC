@@ -130,8 +130,8 @@ if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '25'
-  recoStartRun = '87664'
-  recoEndRun = '87667'
+  recoStartRun = '87962'
+  recoEndRun = '87977'
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
   processingPass = 'Real Data'
@@ -188,7 +188,7 @@ if threeSteps:
 # Create the reconstruction production
 #################################################################################
 
-production = Production()
+production = Production( BKKClientIn = BKClient )
 
 if sysConfig:
   production.setSystemConfig( sysConfig )
