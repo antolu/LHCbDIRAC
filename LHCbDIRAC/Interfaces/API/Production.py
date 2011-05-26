@@ -22,21 +22,26 @@ from DIRAC.Core.Workflow.Workflow                     import *
 from DIRAC.Core.Utilities.List                        import removeEmptyElements, uniqueElements
 from DIRAC                                            import gConfig
 
-from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
-
+from LHCbDIRAC.Worfklow.Utilities.Utils import *
 
 COMPONENT_NAME = 'LHCbSystem/Client/Production'
 
-class Production( LHCbJob ):
+class Production():
 
   #############################################################################
 
-  def __init__( self, script = None, BKKClientIn = None, transClientIn = None,
-                transformationIn = None ):
+  def __init__( self, script = None, lhcbJobIn = None, BKKClientIn = None,
+                transClientIn = None, transformationIn = None ):
     """Instantiates the Workflow object and some default parameters.
     """
+
+    if lhcbJobIn is not None:
+      self.LHCbJob = lhcbJobIn
+    else:
+      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
+      self.LHCbJob = LHCbJob( script )
 
     if BKKClientIn is not None:
       self.BKKClient = BKKClientIn
@@ -56,32 +61,18 @@ class Production( LHCbJob ):
       from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
       self.transformation = Transformation()
 
-
-    LHCbJob.__init__( self, script )
     self.prodVersion = __RCSID__
-    self.csSection = '/Production/Defaults'
-    self.gaudiStepCount = 0
-    self.currentStepPrefix = ''
-    self.inputDataType = 'DATA' #Default, other options are MDF, ETC
-    tier1List = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk',
-                 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.SARA.nl', 'CREAM.NIKHEF.nl', 'CREAM.CNAF.it']
-    self.tier1s = gConfig.getValue( '%s/Tier1s' % ( self.csSection ), tier1List )
+    self.csSection = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
+    self.LHCbJob.gaudiStepCount = 0
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
     self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
     self.histogramSE = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
     self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
-    lfn = '/lhcb/data/2009/RAW/EXPRESS/FEST/FEST/44878/044878_0000000002.raw'
-    self.inputDataDefault = gConfig.getValue( '%s/InputDataDefault' % ( self.csSection ), lfn )
     self.defaultProdID = '12345'
     self.defaultProdJobID = '12345'
     self.ioDict = {}
-    self.gaussList = []
-    self.prodTypes = ['DataReconstruction', 'DataStripping', 'MCSimulation', 'MCStripping',
-                      'Merge', 'Test']
-    self.pluginsTriggeringStreamTypes = ['ByFileTypeSize', 'ByRunFileTypeSize',
-                                         'ByRun', 'AtomicRun']
     self.name = 'unspecifiedWorkflow'
     self.firstEventType = ''
     self.bkSteps = {}
@@ -91,9 +82,7 @@ class Production( LHCbJob ):
     self.inputBKSelection = {}
     self.jobFileGroupSize = 0
     self.ancestorProduction = ''
-    self.importLine = """
-from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
-"""
+    self.importLine = """LHCbDIRAC.Workflow.Modules"""
     if not script:
       self.__setDefaults()
 
@@ -103,11 +92,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
 
     # Location: DIRAC.Interfaces.API.Job
-    self.setType( 'MCSimulation' )
-    self.setSystemConfig( self.systemConfig )
-    self.setCPUTime( '1000000' )
-    self.setLogLevel( 'verbose' )
-    self.setJobGroup( '@{PRODUCTION_ID}' )
+    self.LHCbJob.setType( 'MCSimulation' )
+    self.LHCbJob.setSystemConfig( self.systemConfig )
+    self.LHCbJob.setCPUTime( '1000000' )
+    self.LHCbJob.setLogLevel( 'verbose' )
+    self.LHCbJob.setJobGroup( '@{PRODUCTION_ID}' )
 
     self.setFileMask( '' )
 
@@ -137,11 +126,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     proposedParam = gConfig.getValue( '%s/%s' % ( self.csSection, name ), '' )
     if proposedParam:
-      self.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
-      self._addParameter( self.workflow, name, parameterType, proposedParam, description )
+      self.LHCbJob.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description )
     else:
-      self.log.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
-      self._addParameter( self.workflow, name, parameterType, parameterValue, description )
+      self.LHCbJob.log.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description )
 
   #############################################################################
   def __getEventType( self, eventType ):
@@ -154,7 +143,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     elif not self.firstEventType:
       self.firstEventType = eventType
 
-    self.log.verbose( 'Setting event type for current step to %s' % ( eventType ) )
+    self.LHCbJob.log.verbose( 'Setting event type for current step to %s' % ( eventType ) )
     return eventType
 
   #############################################################################
@@ -180,19 +169,19 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         optionsFile = [optionsFile]
 
     for p in extraPackages:
-      self.log.verbose( 'Checking extra package: %s' % ( p ) )
+      self.LHCbJob.log.verbose( 'Checking extra package: %s' % ( p ) )
       if not re.search( '.', p ):
         raise TypeError, 'Must have extra packages in the following format "Name.Version" not %s' % ( p )
 
     for o in optionsFile:
       if re.search( 'DECFILESROOT', o ):
-        self.log.verbose( '%s specified, checking event type options: %s' % ( self.firstEventType, o ) )
+        self.LHCbJob.log.verbose( '%s specified, checking event type options: %s' % ( self.firstEventType, o ) )
         if re.search( '@', o ) or re.search( '%s' % self.firstEventType, o ):
-          self.log.verbose( 'Options: %s specify event type correctly' % ( o ) )
+          self.LHCbJob.log.verbose( 'Options: %s specify event type correctly' % ( o ) )
         else:
           raise TypeError, 'Event type options must be the event type number or workflow parameter'
 
-    self.log.verbose( 'Extra packages and event type options are correctly specified' )
+    self.LHCbJob.log.verbose( 'Extra packages and event type options are correctly specified' )
     return S_OK()
 
   #############################################################################
@@ -203,13 +192,14 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """ Wraps around addGaudiStep and getOptions.
         appType can be sim / gen 
     """
+
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 1
     if not overrideOpts:
       optionsLine = getOptions( 'Gauss', appType, extraOpts = None, histogram = self.histogramName,
                                condDB = condDBTag, ddDB = ddDBTag )
-      self.log.verbose( 'Default options for Gauss are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      self.LHCbJob.log.verbose( 'Default options for Gauss are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
       optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
@@ -221,13 +211,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if not outputSE:
       outputSE = 'Tier1-RDST'
-      self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
                                    histograms, firstEventNumber, {}, condDBTag, ddDBTag, '',
                                    stepID, stepName, stepVisible )
-    self.gaussList.append( gaussStep.getName() )
     gaussStep.setValue( 'numberOfEventsInput', 0 )
     gaussStep.setValue( 'numberOfEventsOutput', 0 )
     gaussStep.setValue( 'generatorName', generatorName )
@@ -251,7 +240,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not overrideOpts:
       optionsLine = getOptions( 'Boole', appType, extraOpts = None, histogram = self.histogramName,
                                condDB = condDBTag, ddDB = ddDBTag )
-      self.log.verbose( 'Default options for Boole are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      self.LHCbJob.log.verbose( 'Default options for Boole are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
       optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
@@ -263,10 +252,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if not outputSE:
       outputSE = 'Tier1-RDST'
-      self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if extraOutputFile:
-      self.log.verbose( 'Adding output file to Boole step %s' % extraOutputFile )
+      self.LHCbJob.log.verbose( 'Adding output file to Boole step %s' % extraOutputFile )
 
     self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
@@ -289,32 +278,30 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     if appType.lower() in ['rdst', 'sdst']:
-      dataType = 'DATA'
       if not outputSE:
         outputSE = 'Tier1-RDST'
-        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
     else:
       if not appType.lower() in ['dst', 'xdst']:
         raise TypeError, 'Application type not recognised'
       if inputDataType.lower() == 'digi':
-        dataType = 'MC'
         if not outputSE:
           outputSE = 'Tier1_MC_M-DST'
-          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
       elif inputDataType.lower() == 'fetc':
         #Must rely on data type for fetc only
         if not outputSE:
           if dataType.lower() == 'mc':
             outputSE = 'Tier1_MC_M-DST'
-            self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+            self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
           else:
             outputSE = 'Tier1_M-DST' #for real data master dst
-            self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+            self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
       optionsLine = getOptions( 'Brunel', appType, extraOpts = None, histogram = self.histogramName,
                                condDB = condDBTag, ddDB = ddDBTag )
-      self.log.verbose( 'Default options for Brunel are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      self.LHCbJob.log.verbose( 'Default options for Brunel are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
       optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
@@ -356,32 +343,32 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       dataType = 'DATA'
       if not outputSE:
         outputSE = 'Tier1_M-DST'
-        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
     elif inputDataType.lower() == 'dst':
       if not dataType:
         raise TypeError, 'Must clarify MC / DATA for DST->DST processing'
       if not outputSE:
         if dataType.upper() == 'MC':
           outputSE = 'Tier1_MC_M-DST'
-          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
         else:
           outputSE = 'Tier1_M-DST'
-          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if appType.lower() in ['merge']: #,'mdst']:
       if not outputSE:
         outputSE = 'Tier1_M-DST'
-        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if appType.lower() in ['setc', 'mdst']:
       if not outputSE:
         outputSE = 'Tier1_M-DST'
-        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
       optionsLine = getOptions( 'DaVinci', appType, extraOpts = None, inputType = inputDataType,
                                 histogram = self.histogramName, condDB = condDBTag, ddDB = ddDBTag )
-      self.log.verbose( 'Default options for DaVinci are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      self.LHCbJob.log.verbose( 'Default options for DaVinci are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
       optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
@@ -406,7 +393,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   #############################################################################
   def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
-                   overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'MC',
+                   overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
@@ -423,20 +410,17 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not inputDataType in inputDataTypes:
       raise TypeError, 'Only RAW and DIGI input data type currently supported'
 
-    if not dataType.lower() == 'mc':
-      raise TypeError, 'Only MC data type is supported'
-
     if not outputSE:
       outputSE = 'Tier1_MC_M-DST'
       if inputDataType.lower() == 'digi':
         outputSE = 'Tier1-RDST' #convention for intermediate outputs that are not saved by default
 
-    self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
       optionsLine = getOptions( 'Moore', appType, extraOpts = None, inputType = inputDataType,
                                histogram = self.histogramName, condDB = condDBTag, ddDB = ddDBTag )
-      self.log.verbose( 'Default options for Moore are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      self.LHCbJob.log.verbose( 'Default options for Moore are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
       optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
@@ -458,6 +442,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
                    inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
                    condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
+                   extraOutput = [],
                    stepID = '', stepName = '', stepVisible = '' ):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
@@ -471,11 +456,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     appType = inputDataType
     if not outputSE:
       outputSE = 'Tier1_MC_M-DST'
-      self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
       optionsLine = getOptions( 'Merge', appType, extraOpts = None, condDB = condDBTag, ddDB = ddDBTag )
-      self.log.verbose( 'Default options for Merging are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      self.LHCbJob.log.verbose( 'Default options for Merging are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
       optionsLine = string.join( optionsLine, ';' )
     else:
       optionsLine = overrideOpts
@@ -487,83 +472,124 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, [], condDBTag, ddDBTag, '',
+                       firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
                        stepID, stepName, stepVisible )
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
 
   def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
-                    extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
-                    histograms = False, firstEventNumber = 0, extraOutput = [],
-                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
-                    stepID = 0, stepName = '', stepVisible = '' ):
+                     extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
+                     histograms = False, firstEventNumber = 0, extraOutput = [],
+                     condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
+                     stepID = 0, stepName = '', stepVisible = '' ):
     """Helper function.
     """
     if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
       raise TypeError, 'Expected strings for application name and version'
 
-    self.gaudiStepCount += 1
-    gaudiStep = self.__getGaudiApplicationStep( '%s_%s' % ( appName, self.gaudiStepCount ) )
+    self.LHCbJob.gaudiStepCount += 1
+#    gaudiStep = self.__getGaudiApplicationStep( '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount ) )
+
+    if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
+
+      modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
+                                                                                    'AnalyseLogFile',
+                                                                                    'ErrorLogging',
+                                                                                    'BookkeepingReport'] )
+      #pName, pType, pValue, pDesc
+      parametersList = [
+                        ['inputData', 'string', '', 'StepInputData'],
+                        ['inputDataType', 'string', '', 'InputDataType'],
+                        ['eventType', 'string', '', 'EventType'],
+                        ['outputData', 'string', '', 'OutputData'],
+                        ['generatorName', 'string', '', 'GeneratorName'],
+                        ['applicationName', 'string', '', 'ApplicationName'],
+                        ['applicationVersion', 'string', '', 'ApplicationVersion'],
+                        ['applicationType', 'string', '', 'ApplicationType'],
+                        ['applicationLog', 'string', '', 'ApplicationLogFile'],
+                        ['optionsFile', 'string', '', 'OptionsFile'],
+                        ['optionsLine', 'string', '', 'OptionsLines'],
+                        ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
+                        ['numberOfEvents', 'string', '', 'NumberOfEvents'],
+                        ['numberOfEventsInput', 'string', '', 'NumberOfEventsInput'],
+                        ['numberOfEventsOutput', 'string', '', 'NumberOfEventsOutput'],
+                        ['listoutput', 'list', [], 'StepOutputList'],
+                        ['extraPackages', 'string', '', 'ExtraPackages'],
+                        ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
+                        ]
+
+      gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
+                                        parametersList = parametersList )
+      self.LHCbJob.workflow.addStep( gaudiStepDef )
+
+    #create the step instance add it to the wf, and return it
+    gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step',
+                                                                  '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount ) )
 
     #lower the appType if not creating a template
     if type( appType ) == str and appType and not re.search( '{{', appType ):
       appType = string.lower( appType )
-
-    gaudiStep.setValue( 'applicationName', appName )
-    gaudiStep.setValue( 'applicationVersion', appVersion )
     if outputAppendName:
       appType = string.lower( '%s.%s' % ( outputAppendName, appType ) )
-
-    gaudiStep.setValue( 'applicationType', appType )
     if type( optionsFile ) == type( [] ):
       optionsFile = string.join( optionsFile, ';' )
     optionsFile = optionsFile.replace( ' ', '' )
 
-    gaudiStep.setValue( 'optionsFile', optionsFile )
-    gaudiStep.setValue( 'optionsLine', optionsLine )
-    gaudiStep.setValue( 'optionsLinePrev', 'None' )
-    gaudiStep.setValue( 'numberOfEvents', numberOfEvents )
-    gaudiStep.setValue( 'eventType', eventType )
+    valuesToSet = [
+                   ['applicationName', appName ],
+                   ['applicationVersion', appVersion ],
+                   ['applicationType', appType ],
+                   ['optionsFile', optionsFile ],
+                   ['optionsLine', optionsLine],
+                   ['optionsLinePrev', 'None'],
+                   ['numberOfEvents', numberOfEvents],
+                   ['eventType', eventType],
+                   ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
+                   ['outputData', '@{STEP_ID}.@{applicationType}'],
+                   ]
+
     if extraPackages:
       if type( extraPackages ) == type( [] ):
         extraPackages = string.join( extraPackages, ';' )
 
       extraPackages = extraPackages.replace( ' ', '' )
-      gaudiStep.setValue( 'extraPackages', extraPackages )
+      valuesToSet.append( [ 'extraPackages', extraPackages ] )
       self.__addSoftwarePackages( extraPackages )
 
     if firstEventNumber:
-      gaudiStep.setValue( 'firstEventNumber', firstEventNumber )
-
-    if not inputData:
-      self.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
-      gaudiStep.setLink( 'inputData', 'self', 'InputData' )
-    elif inputData == 'previousStep':
-      self.log.verbose( 'Taking input data as output from previous Gaudi step' )
-      if not self.ioDict.has_key( self.gaudiStepCount - 1 ):
-        raise TypeError, 'Expected previously defined Gaudi step for input data'
-      gaudiStep.setLink( 'inputData', self.ioDict[self.gaudiStepCount - 1], 'outputData' )
-    elif inputData == 'firstStep':
-      self.log.verbose( 'Taking input data as output from first Gaudi step' )
-      stepKeys = self.ioDict.keys()
-      stepKeys.sort()
-      gaudiStep.setLink( 'inputData', self.ioDict[stepKeys[0]], 'outputData' )
-    else:
-      self.log.verbose( 'Assume input data requirement should be added to job' )
-      self.setInputData( inputData )
-      gaudiStep.setLink( 'inputData', 'self', 'InputData' )
-      #such that it can be overwritten during submission
-      #but also the template value can be used for testing
+      valuesToSet.append( [ 'firstEventNumber', firstEventNumber ] )
 
     if inputDataType != 'None':
       if re.search( '{{', inputDataType ):
-        gaudiStep.setValue( 'inputDataType', inputDataType )
+        valuesToSet.append( [ 'inputDataType', inputDataType ] )
       else:
-        gaudiStep.setValue( 'inputDataType', string.upper( inputDataType ) )
+        valuesToSet.append( [ 'inputDataType', string.upper( inputDataType ) ] )
 
-    gaudiStep.setValue( 'applicationLog', '@{applicationName}_@{STEP_ID}.log' )
-    gaudiStep.setValue( 'outputData', '@{STEP_ID}.@{applicationType}' )
+    for pName, value in valuesToSet:
+      gaudiStepInstance.setValue( pName, value )
+
+
+
+    if not inputData:
+      self.LHCbJob.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
+      gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
+    elif inputData == 'previousStep':
+      self.LHCbJob.log.verbose( 'Taking input data as output from previous Gaudi step' )
+      if not self.ioDict.has_key( self.LHCbJob.gaudiStepCount - 1 ):
+        raise TypeError, 'Expected previously defined Gaudi step for input data'
+      gaudiStepInstance.setLink( 'inputData', self.ioDict[self.LHCbJob.gaudiStepCount - 1], 'outputData' )
+    elif inputData == 'firstStep':
+      self.LHCbJob.log.verbose( 'Taking input data as output from first Gaudi step' )
+      stepKeys = self.ioDict.keys()
+      stepKeys.sort()
+      gaudiStepInstance.setLink( 'inputData', self.ioDict[stepKeys[0]], 'outputData' )
+    else:
+      self.LHCbJob.log.verbose( 'Assume input data requirement should be added to job' )
+      self.LHCbJob.setInputData( inputData )
+      gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
+      #such that it can be overwritten during submission
+      #but also the template value can be used for testing
 
     outputList = []
 
@@ -593,25 +619,25 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 #    if extraOutput:
 #      outputList.append( extraOutput )
 
-    gaudiStep.setValue( 'listoutput', ( outputList ) )
+    gaudiStepInstance.setValue( 'listoutput', ( outputList ) )
 
     #Ensure the global input data type is null
     description = 'Default input data type field'
-    self._addParameter( self.workflow, 'InputDataType', 'JDL', '', description )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'InputDataType', 'JDL', '', description )
 
     # now we have to tell DIRAC to install the necessary software
     self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
     dddbOpt = "@{DDDBTag}"
     conddbOpt = "@{CondDBTag}"
     if not condDBTag.lower() == 'global':
-      self.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, condDBTag ) )
+      self.LHCbJob.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, condDBTag ) )
       conddbOpt = condDBTag.replace( ' ', '' )
     if not ddDBTag.lower() == 'global':
-      self.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, ddDBTag ) )
+      self.LHCbJob.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, ddDBTag ) )
       dddbOpt = ddDBTag.replace( ' ', '' )
 
     #to construct the BK processing pass structure, starts from step '0'
-    stepIDInternal = 'Step%s' % ( self.gaudiStepCount - 1 )
+    stepIDInternal = 'Step%s' % ( self.LHCbJob.gaudiStepCount - 1 )
     bkOptionsFile = optionsFile
     if re.search( '@{eventType}', optionsFile ):
       bkOptionsFile = string.replace( optionsFile, '@{eventType}', str( eventType ) )
@@ -629,8 +655,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
-    self.ioDict[self.gaudiStepCount] = gaudiStep.getName()
-    return gaudiStep
+    self.ioDict[self.LHCbJob.gaudiStepCount] = gaudiStepInstance.getName()
 
   #############################################################################
   def __addSoftwarePackages( self, nameVersion ):
@@ -638,15 +663,15 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     swPackages = 'SoftwarePackages'
     description = 'LHCbSoftwarePackages'
-    if not self.workflow.findParameter( swPackages ):
-      self._addParameter( self.workflow, swPackages, 'JDL', nameVersion, description )
+    if not self.LHCbJob.workflow.findParameter( swPackages ):
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, swPackages, 'JDL', nameVersion, description )
     else:
-      apps = self.workflow.findParameter( swPackages ).getValue()
+      apps = self.LHCbJob.workflow.findParameter( swPackages ).getValue()
       apps = apps.split( ';' )
       apps.append( nameVersion )
       apps = uniqueElements( removeEmptyElements( apps ) )
       apps = string.join( apps, ';' )
-      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
   def __addBKPassStep( self ):
@@ -654,148 +679,26 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     bkPass = 'BKProcessingPass'
     description = 'BKProcessingPassInfo'
-    self._addParameter( self.workflow, bkPass, 'dict', self.bkSteps, description )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, bkPass, 'dict', self.bkSteps, description )
 
   #############################################################################
-  def __getGaudiApplicationStep( self, name ):
-    """Internal function.
 
-      This method controls the definition for a GaudiApplication step.
-    """
+  def addFinalizationStep( self, modulesList = [] ):
 
-    gaudiApp = ModuleDefinition( 'GaudiApplication' )
-    gaudiApp.setDescription( 'A generic Gaudi Application step.' )
-    body = string.replace( self.importLine, '<MODULE>', 'GaudiApplication' )
-    gaudiApp.setBody( body )
+    if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
-    analyseLog = ModuleDefinition( 'AnalyseLogFile' )
-    analyseLog.setDescription( 'Check LogFile module' )
-    body = string.replace( self.importLine, '<MODULE>', 'AnalyseLogFile' )
-    analyseLog.setBody( body )
+      if not modulesList:
+        modulesNameList = gConfig.getValue( '%s/FinalizationStep_Modules' % self.csSection, ['UploadOutputData',
+                                                                                             'UploadLogFile',
+                                                                                             'FailoverRequest'] )
+      else:
+        modulesNameList = modulesList
 
-    errorLogging = ModuleDefinition( 'ErrorLogging' )
-    errorLogging.setDescription( 'Error loggging module' )
-    body = string.replace( self.importLine, '<MODULE>', 'ErrorLogging' )
-    errorLogging.setBody( body )
+      jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesNameList )
+      self.LHCbJob.workflow.addStep( jobFinalizationStepDef )
 
-    genBKReport = ModuleDefinition( 'BookkeepingReport' )
-    genBKReport.setDescription( 'Bookkeeping Report module' )
-    body = string.replace( self.importLine, '<MODULE>', 'BookkeepingReport' )
-    genBKReport.setBody( body )
-    genBKReport.addParameter( Parameter( "STEP_ID", "", "string", "self", "STEP_ID", True, False, "StepID" ) )
-
-    # FEDERICO
-#    stepAccounting = ModuleDefinition( 'StepAccounting' )
-#    stepAccounting.setDescription( 'Step Accounting module' )
-#    body = string.replace( self.importLine, '<MODULE>', 'StepAccounting' )
-#    stepAccounting.setBody( body )
-    # /FEDERICO
-
-    gaudiAppDefn = StepDefinition( 'Gaudi_App_Step' )
-    gaudiAppDefn.addModule( gaudiApp )
-    gaudiAppDefn.createModuleInstance( 'GaudiApplication', 'gaudiApp' )
-    gaudiAppDefn.addModule( analyseLog )
-    gaudiAppDefn.createModuleInstance( 'AnalyseLogFile', 'analyseLog' )
-    gaudiAppDefn.addModule( errorLogging )
-    gaudiAppDefn.createModuleInstance( 'ErrorLogging', 'errorLog' )
-    gaudiAppDefn.addModule( genBKReport )
-    gaudiAppDefn.createModuleInstance( 'BookkeepingReport', 'genBKReport' )
-    # FEDERICO
-#    gaudiAppDefn.addModule( stepAccounting )
-#    gaudiAppDefn.createModuleInstance( 'StepAccounting', 'stepAcc' )
-    # /FEDERICO
-    gaudiAppDefn.addParameterLinked( analyseLog.parameters )
-    gaudiAppDefn.addParameterLinked( gaudiApp.parameters )
-
-    self._addParameter( gaudiAppDefn, 'inputData', 'string', '', 'StepInputData' )
-    self._addParameter( gaudiAppDefn, 'inputDataType', 'string', '', 'InputDataType' )
-    self._addParameter( gaudiAppDefn, 'eventType', 'string', '', 'EventType' )
-    self._addParameter( gaudiAppDefn, 'outputData', 'string', '', 'OutputData' )
-    self._addParameter( gaudiAppDefn, 'generatorName', 'string', '', 'GeneratorName' )
-    self._addParameter( gaudiAppDefn, 'applicationName', 'string', '', 'ApplicationName' )
-    self._addParameter( gaudiAppDefn, 'applicationVersion', 'string', '', 'ApplicationVersion' )
-    self._addParameter( gaudiAppDefn, 'applicationType', 'string', '', "ApplicationType" )
-    self._addParameter( gaudiAppDefn, 'applicationLog', 'string', '', 'ApplicationLogFile' )
-    self._addParameter( gaudiAppDefn, 'optionsFile', 'string', '', 'OptionsFile' )
-    self._addParameter( gaudiAppDefn, 'optionsLine', 'string', '', 'OptionsLines' )
-    self._addParameter( gaudiAppDefn, 'optionsLinePrev', 'string', '', 'PreviousOptionsLines' )
-    self._addParameter( gaudiAppDefn, 'numberOfEvents', 'string', '', 'NumberOfEvents' )
-    self._addParameter( gaudiAppDefn, 'numberOfEventsInput', 'string', '', 'NumberOfEventsInput' )
-    self._addParameter( gaudiAppDefn, 'numberOfEventsOutput', 'string', '', 'NumberOfEventsOutput' )
-    self._addParameter( gaudiAppDefn, 'listoutput', 'list', [], 'StepOutputList' )
-    self._addParameter( gaudiAppDefn, 'extraPackages', 'string', '', 'ExtraPackages' )
-    self._addParameter( gaudiAppDefn, 'firstEventNumber', 'string', 'int', 'FirstEventNumber' )
-    self.workflow.addStep( gaudiAppDefn )
-    return self.workflow.createStepInstance( 'Gaudi_App_Step', name )
-
-  #############################################################################
-  def addFinalizationStep( self, uploadData = True, uploadLogs = True,
-                          sendFailover = True, removeInputData = False,
-                          outputDataStep = '' ):
-    """ Adds the finalization step with enable flags for each module.
-    """
-    for param in [uploadData, uploadLogs, sendFailover]:
-      if not type( param ) == type( True ):
-        raise TypeError, 'All arguments to addFinalizationStep must be boolean'
-
-    dataUpload = ModuleDefinition( 'UploadOutputData' )
-    dataUpload.setDescription( 'Uploads the output data' )
-    self._addParameter( dataUpload, 'Enable', 'bool', 'True', 'EnableFlag' )
-    body = string.replace( self.importLine, '<MODULE>', 'UploadOutputData' )
-    dataUpload.setBody( body )
-
-    if removeInputData:
-      removeInputs = ModuleDefinition( 'RemoveInputData' )
-      removeInputs.setDescription( 'Removes input data after merged output data uploaded to an SE' )
-      self._addParameter( removeInputs, 'Enable', 'bool', 'True', 'EnableFlag' )
-      body = string.replace( self.importLine, '<MODULE>', 'RemoveInputData' )
-      removeInputs.setBody( body )
-
-    logUpload = ModuleDefinition( 'UploadLogFile' )
-    logUpload.setDescription( 'Uploads the log files' )
-    self._addParameter( logUpload, 'Enable', 'bool', 'True', 'EnableFlag' )
-    body = string.replace( self.importLine, '<MODULE>', 'UploadLogFile' )
-    logUpload.setBody( body )
-
-    failoverRequest = ModuleDefinition( 'FailoverRequest' )
-    failoverRequest.setDescription( 'Sends any failover requests' )
-    self._addParameter( failoverRequest, 'Enable', 'bool', 'True', 'EnableFlag' )
-    body = string.replace( self.importLine, '<MODULE>', 'FailoverRequest' )
-    failoverRequest.setBody( body )
-
-    finalization = StepDefinition( 'Job_Finalization' )
-
-    dataUpload.setLink( 'Enable', 'self', 'UploadEnable' )
-    finalization.addModule( dataUpload )
-    finalization.createModuleInstance( 'UploadOutputData', 'dataUpload' )
-    self._addParameter( finalization, 'UploadEnable', 'bool', str( uploadData ), 'EnableFlag' )
-
-    if outputDataStep:
-      if type( outputDataStep ) == type( [] ):
-        outputDataStep = string.join( outputDataStep, ';' )
-      self._addParameter( finalization, 'outputDataStep', 'string', outputDataStep, 'outputDataStep' )
-
-    logUpload.setLink( 'Enable', 'self', 'LogEnable' )
-    finalization.addModule( logUpload )
-    finalization.createModuleInstance( 'UploadLogFile', 'logUpload' )
-    self._addParameter( finalization, 'LogEnable', 'bool', str( uploadLogs ), 'EnableFlag' )
-
-    if removeInputData:
-      removeInputs.setLink( 'Enable', 'self', 'DataRemovalEnable' )
-      finalization.addModule( removeInputs )
-      finalization.createModuleInstance( 'RemoveInputData', 'removeInputs' )
-      self._addParameter( finalization, 'DataRemovalEnable', 'bool', str( removeInputData ), 'EnableFlag' )
-
-    failoverRequest.setLink( 'Enable', 'self', 'FailoverEnable' )
-    finalization.addModule( failoverRequest )
-    finalization.createModuleInstance( 'FailoverRequest', 'failoverRequest' )
-    self._addParameter( finalization, 'FailoverEnable', 'bool', str( sendFailover ), 'EnableFlag' )
-
-    self.workflow.addStep( finalization )
-    finalizeStep = self.workflow.createStepInstance( 'Job_Finalization', 'finalization' )
-    finalizeStep.setValue( 'UploadEnable', uploadData )
-    finalizeStep.setValue( 'LogEnable', uploadLogs )
-    finalizeStep.setValue( 'FailoverEnable', sendFailover )
+    #create the step instance add it to the wf
+    self.LHCbJob.workflow.createStepInstance( 'Job_Finalization', 'finalization' )
 
   #############################################################################
   def createWorkflow( self, name = '' ):
@@ -808,7 +711,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if os.path.exists( name ):
       shutil.move( name, '%s.backup' % name )
     name = name.replace( '/', '' ).replace( '\\', '' )
-    self.workflow.toXMLFile( name )
+    self.LHCbJob.workflow.toXMLFile( name )
     return S_OK( name )
 
   #############################################################################
@@ -820,6 +723,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     name = self.createWorkflow()['Value']
     # this "name" is the xml file 
+    from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     j = LHCbJob( name )
     # it makes a job (a Worklow, with Parameters, out of the xml file
 
@@ -846,7 +750,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not prodXMLFile: #e.g. setting parameters for old productions
       prodXMLFile = 'Production%s.xml' % prodID
       if os.path.exists( prodXMLFile ):
-        self.log.verbose( 'Using %s for production body' % prodXMLFile )
+        self.LHCbJob.log.verbose( 'Using %s for production body' % prodXMLFile )
       else:
         result = self.transClient.getTransformationParameters( int( prodID ), ['Body'] )
         if not result['OK']:
@@ -888,7 +792,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     if prodWorkflow.findParameter( 'InputData' ): #now only comes from BK query
       prodWorkflow.findParameter( 'InputData' ).setValue( '' )
-      self.log.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
+      self.LHCbJob.log.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
       prodXMLFile = self.createWorkflow( prodXMLFile )['Value']
       #prodWorkflow.toXMLFile(prodXMLFile)
 
@@ -907,7 +811,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
       res = self.transClient.getBookkeepingQueryForTransformation( int( prodID ) )
       if not res['OK']:
-        self.log.error( res )
+        self.LHCbJob.log.error( res )
         return S_ERROR( 'Could not obtain production info' )
       bkInputQuery = res['Value']
 
@@ -920,7 +824,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     dummyProdJobID = '99999999'
     result = self.getOutputLFNs( prodID, dummyProdJobID, prodXMLFile )
     if not result['OK']:
-      self.log.error( 'Could not create production LFNs', result )
+      self.LHCbJob.log.error( 'Could not create production LFNs', result )
 
     outputLFNs = result['Value']
     parameters['OutputLFNs'] = outputLFNs
@@ -1006,16 +910,16 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     self.setParentRequest( parentRequestID )
 
     if wfString:
-      self.workflow = fromXMLString( wfString )
-      self.name = self.workflow.getName()
+      self.LHCbJob.workflow = fromXMLString( wfString )
+      self.name = self.LHCbJob.workflow.getName()
 
     try:
       fileName = self.createWorkflow()['Value']
     except Exception, x:
-      self.log.error( x )
+      self.LHCbJob.log.error( x )
       return S_ERROR( 'Could not create workflow' )
 
-    self.log.verbose( 'Workflow XML file name is: %s' % fileName )
+    self.LHCbJob.log.verbose( 'Workflow XML file name is: %s' % fileName )
 
     workflowBody = ''
     if os.path.exists( fileName ):
@@ -1025,12 +929,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     else:
       return S_ERROR( 'Could not get workflow body' )
 
-    bkConditions = self.workflow.findParameter( 'conditions' ).getValue()
+    bkConditions = self.LHCbJob.workflow.findParameter( 'conditions' ).getValue()
 
     bkDict = {}
-    bkSteps = self.workflow.findParameter( 'BKProcessingPass' ).getValue()
+    bkSteps = self.LHCbJob.workflow.findParameter( 'BKProcessingPass' ).getValue()
     bkDict['Steps'] = bkSteps
-    bkDict['GroupDescription'] = self.workflow.findParameter( 'groupDescription' ).getValue()
+    bkDict['GroupDescription'] = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue()
 
     # After the reorganisation by steps release this stuff can be greatly simplified
     # only the stepID, stepName and stepVisible need to be tracked.
@@ -1041,7 +945,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     #Add the BK conditions metadata / name
     simConds = self.BKKClient.getSimConditions()
     if not simConds['OK']:
-      self.log.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
+      self.LHCbJob.log.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
       return simConds
     simulationDescriptions = []
     for record in simConds['Value']:
@@ -1049,25 +953,25 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     realDataFlag = False
     if not bkConditions in simulationDescriptions:
-      self.log.verbose( 'Assuming BK conditions %s are DataTakingConditions' % bkConditions )
+      self.LHCbJob.log.verbose( 'Assuming BK conditions %s are DataTakingConditions' % bkConditions )
       bkDict['DataTakingConditions'] = bkConditions
       bkDictStep['DataTakingConditions'] = bkConditions
       realDataFlag = True
     else:
-      self.log.verbose( 'Found simulation conditions for %s' % bkConditions )
+      self.LHCbJob.log.verbose( 'Found simulation conditions for %s' % bkConditions )
       bkDict['SimulationConditions'] = bkConditions
       bkDictStep['SimulationConditions'] = bkConditions
 
     #Adding some MC transformation parameters if present
     maxNumberOfTasks = 0
     maxEventsPerTask = 0
-    if self.workflow.findParameter( 'MaxNumberOfTasks' ):
-      maxNumberOfTasks = self.workflow.findParameter( 'MaxNumberOfTasks' ).getValue()
-    if self.workflow.findParameter( 'EventsPerTask' ):
-      maxEventsPerTask = self.workflow.findParameter( 'EventsPerTask' ).getValue()
+    if self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ):
+      maxNumberOfTasks = self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ).getValue()
+    if self.LHCbJob.workflow.findParameter( 'EventsPerTask' ):
+      maxEventsPerTask = self.LHCbJob.workflow.findParameter( 'EventsPerTask' ).getValue()
 
-    descShort = self.workflow.getDescrShort()
-    descLong = self.workflow.getDescription()
+    descShort = self.LHCbJob.workflow.getDescrShort()
+    descLong = self.LHCbJob.workflow.getDescription()
 
     prodID = 0
     if publish:
@@ -1081,7 +985,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         derivedProduction = self.ancestorProduction
 
       #This mechanism desperately needs to be reviewed
-      result = self.transClient.addTransformation( fileName, descShort, descLong, self.type, self.plugin, 'Manual',
+      result = self.transClient.addTransformation( fileName, descShort, descLong, self.LHCbJob.type, self.plugin, 'Manual',
                                                    fileMask, transformationGroup = self.prodGroup, groupSize = int( groupSize ),
                                                    inheritedFrom = int( derivedProduction ), body = workflowBody,
                                                    maxTasks = int( maxNumberOfTasks ),
@@ -1090,12 +994,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                                                   )
 
       if not result['OK']:
-        self.log.error( 'Problem creating production:\n%s' % result )
+        self.LHCbJob.log.error( 'Problem creating production:\n%s' % result )
         return result
       prodID = result['Value']
-      self.log.info( 'Production %s successfully created' % prodID )
+      self.LHCbJob.log.info( 'Production %s successfully created' % prodID )
     else:
-      self.log.verbose( 'Publish flag is disabled, using default production ID' )
+      self.LHCbJob.log.verbose( 'Publish flag is disabled, using default production ID' )
 
     bkDict['Production'] = int( prodID )
     bkDictStep['Production'] = int( prodID )
@@ -1112,20 +1016,20 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       if queryProdID:
         inputPass = self.BKKClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
-          self.log.error( inputPass )
-          self.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID, queryProdID ) )
+          self.LHCbJob.log.error( inputPass )
+          self.LHCbJob.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID, queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
-        self.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID, prodID, inputPass ) )
+        self.LHCbJob.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID, prodID, inputPass ) )
         bkDict['InputProductionTotalProcessingPass'] = inputPass
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
-        self.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID, queryProcPass ) )
+        self.LHCbJob.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID, queryProcPass ) )
         bkDict['InputProductionTotalProcessingPass'] = queryProcPass
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
 
     if bkProcPassPrepend:
-      self.log.info( 'The following path will be prepended to the BK processing pass for this production: %s' % ( bkProcPassPrepend ) )
+      self.LHCbJob.log.info( 'The following path will be prepended to the BK processing pass for this production: %s' % ( bkProcPassPrepend ) )
       bkDict['InputProductionTotalProcessingPass'] = bkProcPassPrepend
       bkDictStep['InputProductionTotalProcessingPass'] = bkProcPassPrepend
 
@@ -1144,11 +1048,11 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     bkDictStep['Steps'] = stepList
 
     if bkScript:
-      self.log.verbose( 'Writing BK publish script...' )
+      self.LHCbJob.log.verbose( 'Writing BK publish script...' )
       self._publishProductionToBK( bkDictStep, prodID, script = True )
     else:
       for n, v in bkDictStep.items():
-        self.log.verbose( '%s BK parameter is: %s' % ( n, v ) )
+        self.LHCbJob.log.verbose( '%s BK parameter is: %s' % ( n, v ) )
 
     if publish and not bkScript:
       self._publishProductionToBK( bkDictStep, prodID, script = False )
@@ -1159,9 +1063,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
       result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
-        self.log.error( 'Attempt to add production %s to request %s failed, dictionary below:\n%s' % ( prodID, requestID, reqDict ) )
+        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed, dictionary below:\n%s' % ( prodID, requestID, reqDict ) )
       else:
-        self.log.info( 'Successfully added production %s to request %s with Used flag set to %s' % ( prodID, requestID, reqUsed ) )
+        self.LHCbJob.log.info( 'Successfully added production %s to request %s with Used flag set to %s' % ( prodID, requestID, reqUsed ) )
 
     if publish:
       try:
@@ -1175,10 +1079,10 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         for n, v in paramsDict.items():
           result = self.setProdParameter( prodID, n, v )
           if not result['OK']:
-            self.log.error( result['Message'] )
+            self.LHCbJob.log.error( result['Message'] )
 
       except Exception, x:
-        self.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
+        self.LHCbJob.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
 
     if transformation and not bkScript:
       if not bkQuery.has_key( 'FileType' ):
@@ -1188,30 +1092,30 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                                            prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
                                            parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
       if not result['OK']:
-        self.log.error( 'Transformation creation failed with below result, can be done later...\n%s' % ( result ) )
+        self.LHCbJob.log.error( 'Transformation creation failed with below result, can be done later...\n%s' % ( result ) )
       else:
-        self.log.info( 'Successfully created transformation %s for production %s' % ( result['Value'], prodID ) )
+        self.LHCbJob.log.info( 'Successfully created transformation %s for production %s' % ( result['Value'], prodID ) )
 
       transID = result['Value']
       if transID and prodID:
         result = self.setProdParameter( prodID, 'AssociatedTransformation', transID )
         if not result['OK']:
-          self.log.error( 'Could not set AssociatedTransformation parameter to %s for %s with result %s' % ( transID, prodID, result ) )
+          self.LHCbJob.log.error( 'Could not set AssociatedTransformation parameter to %s for %s with result %s' % ( transID, prodID, result ) )
 
     elif transformation:
       if not bkQuery.has_key( 'FileType' ):
         return S_ERROR( 'BK query does not include FileType!' )
       bkFileType = bkQuery['FileType']
-      self.log.info( 'transformation is %s, bkScript generation is %s, writing transformation script' % ( transformation, bkScript ) )
+      self.LHCbJob.log.info( 'transformation is %s, bkScript generation is %s, writing transformation script' % ( transformation, bkScript ) )
       transID = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
                                            script = True, prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
                                            parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
       if not transID['OK']:
-        self.log.error( 'Problem writing transformation script, result was: %s' % transID )
+        self.LHCbJob.log.error( 'Problem writing transformation script, result was: %s' % transID )
       else:
-        self.log.verbose( 'Successfully created transformation script for prod %s' % prodID )
+        self.LHCbJob.log.verbose( 'Successfully created transformation script for prod %s' % prodID )
     else:
-      self.log.info( 'transformation is %s, bkScript generation is %s, will not write transformation script' % ( transformation, bkScript ) )
+      self.LHCbJob.log.info( 'transformation is %s, bkScript generation is %s, will not write transformation script' % ( transformation, bkScript ) )
 
     return S_OK( prodID )
 
@@ -1221,23 +1125,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
                              parentRequestID = 0, transformationPlugin = '' ):
     """ Create a transformation to distribute the output data for a given production.
     """
-    #this was an attempt to control the madness of coping with streams, in practice 
-    #it should be cleaned up as this method will only be used for the MC production case
-    streams = False
-#    if prodPlugin.lower() == 'byfiletypesize' or prodPlugin.lower() == 'byrunfiletypesize' or prodPlugin.lower()=='byrun' or prodPlugin.lower()=='atomicrun':
-    if prodPlugin.lower() in [string.lower( i ) for i in self.pluginsTriggeringStreamTypes]:
-      streams = True
-      self.log.info( 'Found streaming plugin, adding all possible BK file types for query' )
-      fileType = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
-      self.log.verbose( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( fileType, ', ' ) ) )
-      tmpTypes = []
-      #restrict to '.DST' file types:
-      for fType in fileType:
-        if re.search( '\.DST$', fType ):
-          tmpTypes.append( fType )
-      fileType = tmpTypes
-      fileType.append( 'DST' )
-      self.log.info( 'Data types for replication will be: %s' % ( string.join( fileType, ', ' ) ) )
 
     inputProd = int( inputProd )
     replicas = int( replicas )
@@ -1251,8 +1138,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
         plugin = 'LHCbMCDSTBroadcast'
 
     tName = '%sReplication_Prod%s' % ( fileType, inputProd )
-    if streams:
-      tName = 'StreamsReplication_Prod%s' % ( inputProd )
     if reqID:
       tName = 'Request_%s_%s' % ( reqID, tName )
 
@@ -1305,12 +1190,12 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     if parentRequestID:
       result = self.setProdParameter( transID, 'TransformationFamily', parentRequestID )
       if not result['OK']:
-        self.log.error( 'Could not set TransformationFamily parameter to %s for %s with result %s' % ( parentRequestID, transID, result ) )
+        self.LHCbJob.log.error( 'Could not set TransformationFamily parameter to %s for %s with result %s' % ( parentRequestID, transID, result ) )
 
     # Since other prods also have this parameter defined.
     result = self.setProdParameter( transID, 'groupDescription', groupDescription )
     if not result['OK']:
-      self.log.error( 'Could no set groupDescription parameter with result %s' % ( result['Message'] ) )
+      self.LHCbJob.log.error( 'Could no set groupDescription parameter with result %s' % ( result['Message'] ) )
 
     # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
     infoString = []
@@ -1319,7 +1204,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     infoString = string.join( infoString, '\n' )
     result = self.setProdParameter( transID, 'DetailedInfo', infoString )
     if not result['OK']:
-      self.log.error( 'Could not set Transformation DetailedInfo parameter for %s with result %s' % ( transID, result ) )
+      self.LHCbJob.log.error( 'Could not set Transformation DetailedInfo parameter for %s with result %s' % ( transID, result ) )
 
     return transResult
 
@@ -1341,31 +1226,34 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       fopen.write( string.join( bkLines, '\n' ) + '\n' )
       fopen.close()
       return S_OK( bkName )
-    self.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
+    self.LHCbJob.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
     result = self.BKKClient.addProduction( bkDict )
     if not result['OK']:
-      self.log.error( result )
+      self.LHCbJob.log.error( result )
     return result
 
   #############################################################################
   def getOutputLFNs( self, prodID = None, prodJobID = None, prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
+    #TODO: fix this construction: really necessary?
+
     if not prodXMLFile:
-      self.log.verbose( 'Using workflow object to generate XML file' )
+      self.LHCbJob.log.verbose( 'Using workflow object to generate XML file' )
       prodXMLFile = self.createWorkflow()
     if not prodID:
       prodID = self.defaultProdID
     if not prodJobID:
       prodJobID = self.defaultProdJobID
 
+    from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     job = LHCbJob( prodXMLFile )
     result = preSubmissionLFNs( job._getParameters(), job.createCode(),
                                productionID = prodID, jobID = prodJobID )
     if not result['OK']:
       return result
     lfns = result['Value']
-    self.log.verbose( lfns )
+    self.LHCbJob.log.verbose( lfns )
     return result
 
   #############################################################################
@@ -1381,7 +1269,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       pvalue = str( pvalue )
     result = self.transClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
     if not result['OK']:
-      self.log.error( 'Problem setting parameter %s for production %s and value: %s' % ( pname, prodID, pvalue ) )
+      self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s' % ( pname, prodID, pvalue ) )
     return result
 
   #############################################################################
@@ -1392,18 +1280,18 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     result = self.transClient.getTransformation( int( prodID ), True )
     if not result['OK']:
-      self.log.error( result )
+      self.LHCbJob.log.error( result )
       return S_ERROR( 'Could not retrieve parameters for production %s' % prodID )
 
     if not result['Value']:
-      self.log.info( result )
+      self.LHCbJob.log.info( result )
       return S_ERROR( 'No additional parameters available for production %s' % prodID )
 
     if pname:
       if result['Value'].has_key( pname ):
         return S_OK( result['Value'][pname] )
       else:
-        self.log.verbose( result )
+        self.LHCbJob.log.verbose( result )
         return S_ERROR( 'Production %s does not have parameter %s' % ( prodID, pname ) )
 
     if printOutput:
@@ -1422,7 +1310,7 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     if not re.search( "LFN:", lfn ):
       lfn = "LFN:%s" % lfn
-    self.log.info( 'Setting alignment DB LFN to %s' % lfn )
+    self.LHCbJob.log.info( 'Setting alignment DB LFN to %s' % lfn )
     self._setParameter( 'InputSandbox', 'JDL', lfn, 'AlignmentDB' )
 
   #############################################################################
@@ -1431,52 +1319,61 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     """
     if not tag:
       tag = gConfig.getValue( '%s/WorkflowLibVersion' % ( self.csSection ), 'v9r9' )
-      self.log.verbose( 'Setting workflow library tag to %s' % tag )
+      self.LHCbJob.log.verbose( 'Setting workflow library tag to %s' % tag )
 
     lfn = 'LFN:/lhcb/applications/WorkflowLib-wkf-TAG.tar.gz'.replace( 'TAG', tag )
-    self.log.info( 'Setting workflow library LFN to %s' % lfn )
+    self.LHCbJob.log.info( 'Setting workflow library LFN to %s' % lfn )
     self._setParameter( 'InputSandbox', 'JDL', lfn, 'WorkflowLibVersion' )
 
   #############################################################################
-  def setFileMask( self, fileMask ):
+  def setFileMask( self, fileMask, stepMask = '' ):
     """Output data related parameters.
     """
     if type( fileMask ) == type( [] ):
       fileMask = string.join( fileMask, ';' )
     self._setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
 
+    if stepMask:
+      if type( stepMask ) == type( [] ):
+        stepMask = string.join( stepMask, ';' )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
+
   #############################################################################
   def setWorkflowName( self, name ):
     """Set workflow name.
     """
-    self.workflow.setName( name )
+    self.LHCbJob.workflow.setName( name )
     self.name = name
 
   #############################################################################
   def setWorkflowDescription( self, desc ):
-    """Set workflow name.
+    """Set workflow dscription.
     """
-    self.workflow.setDescription( desc )
+    self.LHCbJob.workflow.setDescription( desc )
 
   #############################################################################
   def setProdType( self, prodType ):
     """Set prod type.
     """
-    if not prodType in self.prodTypes:
-      raise TypeError, 'Prod must be one of %s' % ( string.join( self.prodTypes, ', ' ) )
-    self.setType( prodType )
+    self.LHCbJob.setType( prodType )
 
   #############################################################################
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
-    self.setBannedSites( self.tier1s )
+    tier1s = []
+    from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
+    for site in getSites()['Value']:
+      if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
+        tier1s.append( site )
+
+    self.LHCbJob.setBannedSites( tier1s )
 
   #############################################################################
   def setTargetSite( self, site ):
     """ Sets destination for all jobs.
     """
-    self.setDestination( site )
+    self.LHCbJob.setDestination( site )
 
   #############################################################################
   def setOutputMode( self, outputMode ):
@@ -1557,8 +1454,8 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
   def setWorkflowString( self, wfString ):
     """ Uses the supplied string to create the workflow
     """
-    self.workflow = fromXMLString( wfString )
-    self.name = self.workflow.getName()
+    self.LHCbJob.workflow = fromXMLString( wfString )
+    self.name = self.LHCbJob.workflow.getName()
 
   #############################################################################
   def disableCPUCheck( self ):
@@ -1577,4 +1474,4 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
       maxJobs = int( 1.1 * int( eventsTotal ) / int( eventsPerTask ) )
       self._setParameter( 'MaxNumberOfTasks', 'string', str( maxJobs ), 'MaxNumberOfTasks' )
     else:
-      self.log.warn( 'Either EventsTotal "%s" or EventsPerTask "%s" were set to null' % ( eventsTotal, eventsPerTask ) )
+      self.LHCbJob.log.warn( 'Either EventsTotal "%s" or EventsPerTask "%s" were set to null' % ( eventsTotal, eventsPerTask ) )
