@@ -722,13 +722,6 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def __getCurrentStepPrefix( self ):
-    """Internal function, returns current step prefix for setting parameters.
-    """
-    return self.currentStepPrefix
-
-  #############################################################################
-
   def addPackage( self, appName, appVersion ):
     """Helper function.
 
