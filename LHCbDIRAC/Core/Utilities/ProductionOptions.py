@@ -81,7 +81,7 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
       options.append( 'MicroDSTWriter("BetaSMicroDST").OutputFileSuffix  = \'@{STEP_ID}\'' )
     elif appType.lower() == 'fmdst':
       options.append( 'from KaliCalo.Configuration import KaliPi0Conf' )
-      options.append( 'KaliPi0Conf(FemtoDST = \'PFN:@{outputData}\', PrintFreq = 10000, OutputLevel = ERROR)' )
+      options.append( 'KaliPi0Conf(FemtoDST = \'@{outputData}\', PrintFreq = 10000, OutputLevel = ERROR)' )
     elif appType.lower() == 'davincihist':
       options.append( 'from Configurables import InputCopyStream' )
       options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
