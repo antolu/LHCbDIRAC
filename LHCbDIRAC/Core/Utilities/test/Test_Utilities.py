@@ -2,7 +2,7 @@ __RCSID__ = "$Id:  $"
 
 import unittest, itertools, copy
 
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask, getLogPath
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
@@ -11,9 +11,7 @@ class UtilitiesTestCase( unittest.TestCase ):
 
     pass
 
-#############################################################################
-# ModuleBase.py
-#############################################################################
+#################################################
 
 class ProductionDataSuccess( UtilitiesTestCase ):
 
@@ -25,7 +23,6 @@ class ProductionDataSuccess( UtilitiesTestCase ):
 
     paramDict = { 'PRODUCTION_ID':'12345',
                   'JOB_ID':'54321',
-                  'dataType':'MC',
                   'configVersion':'test',
                   'configName':'certification',
                   'JobType':'MCSimulation',
@@ -134,11 +131,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
     JOB_ID = '00054321'
     LFN_ROOT = '/lhcb/MC/MC10'
     filetuple = ( ( '00012345_00054321_1.sim', 'sim' ), ( '00012345_00054321_1.sim', 'SIM' ) )
-    mode = ( 'certification', 'Certification' )
     prodstring = '00012345'
 
-    for ft, m in itertools.izip( filetuple, mode ):
-      res = _makeProductionLFN( JOB_ID, LFN_ROOT, ft, m, prodstring )
+    for ft in filetuple:
+      res = _makeProductionLFN( JOB_ID, LFN_ROOT, ft, prodstring )
       self.assertEqual( res, '/lhcb/MC/MC10/SIM/00012345/0005/00012345_00054321_1.sim' )
 
   #################################################
@@ -183,6 +179,22 @@ class ProductionDataSuccess( UtilitiesTestCase ):
       r = _applyMask( mask, dtl )
 
       self.assertEqual( r, res )
+
+
+  def test_getLogPath( self ):
+
+    wkf_commons = {'PRODUCTION_ID':12345,
+                   'JOB_ID':00001,
+                   'configName':'LHCb',
+                   'configVersion':'Collision11',
+                   'JobType':'MCSimulation'}
+
+    res = getLogPath( wkf_commons )
+
+    self.assertEqual( res, {'OK': True,
+                           'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
+                                     'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
+
 
 #############################################################################
 # Test Suite run
