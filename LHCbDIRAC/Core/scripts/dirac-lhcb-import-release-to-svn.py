@@ -19,7 +19,7 @@ version = ""
 userName = ""
 overwrite = False
 
-gRepos = { 'DIRAC' : '/tmp/tmpeC43Jk.git2svn.DIRAC/DIRAC', #'https://github.com/DIRACGrid/DIRAC.git',
+gRepos = { 'DIRAC' : 'https://github.com/DIRACGrid/DIRAC.git',
            'Web'   : 'https://github.com/DIRACGrid/DIRACWeb.git' }
 
 def setRepoName( opVal ):
@@ -51,7 +51,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 
 Script.registerSwitch( 'n:', 'name=', 'Name of the repo to import (by default DIRAC)', setRepoName )
 Script.registerSwitch( 'v:', 'version=', 'Version to import to SVN', setVersion )
-Script.registerSwitch( 'u:', 'usernname=', 'Username to commit to SVN', setUser )
+Script.registerSwitch( 'u:', 'username=', 'Username to commit to SVN', setUser )
 Script.registerSwitch( 't', 'overwrite', 'Import even if it has already been imported', setOverwrite )
 
 Script.disableCS()
@@ -75,7 +75,6 @@ if result[0]:
   gLogger.error( "Could not retrieve the list of tags. Maybe the base directory does not exist?" )
   sys.exit( 1 )
 tags = result[1].split( "\n" )
-print tags
 if "%s/" % version in tags:
   deleteTag = True
   gLogger.notice( "Version is already imported" )
@@ -92,7 +91,9 @@ gLogger.notice( "Workdir will be %s" % workDir )
 
 gLogger.notice( "Retrieving from Git.." )
 
-os.system( "git clone '%s' '%s'" % ( gRepos[ repoName], gitRepoDir ) )
+cmd = "git clone '%s' '%s'" % ( gRepos[ repoName ], gitRepoDir )
+print cmd
+os.system( cmd )
 
 isTag = not os.system( "(cd '%s'; git tag -l | grep -q '%s')" % ( gitRepoDir, version ) )
 if isTag:
@@ -123,7 +124,7 @@ if deleteTag:
     gLogger.error( "Could not delete previous tag" )
     sys.exit( 1 )
 
-def createSVNTag( repoName, tagSVNPath, sourceDir ):
+def createSVNTag( repoName, subDir, tagSVNPath, sourceDir ):
   result = distMaker.doLS( tagSVNPath )
   if result[0] == 0:
     if distMaker.doRM( tagSVNPath, ciMsg )[0]:
@@ -144,12 +145,28 @@ def createSVNTag( repoName, tagSVNPath, sourceDir ):
     else:
       shutil.copy( objPath, tagDir )
     os.system( "( cd '%s'; svn add '%s' > /dev/null )" % ( tagDir, objName ) )
+  cmtDir = os.path.join( tagDir, "cmt" )
+  if not os.path.isdir( cmtDir ):
+    os.makedirs( cmtDir )
+    os.system( "( cd '%s'; svn add '%s' > /dev/null )" % ( tagDir, cmtDir ) )
+  reqsFile = os.path.join( cmtDir, "requirements" )
+  try:
+    fd = open( reqsFile, "w" )
+    if subDir:
+      fd.write( "package %s\n\nuse DiracPolicy *\n" % subDir )
+    else:
+      fd.write( "package %s\n" % repoName )
+    fd.close()
+    os.system( "( cd '%s'; svn add '%s' > /dev/null )" % ( tagDir, reqsFile ) )
+  except Exception, excp:
+    gLogger.error( "Could not create cmt requirements file: %s" % str( excp ) )
+
   if os.system( "( cd '%s'; svn commit -m '%s' > /dev/null)" % ( tagDir, ciMsg ) ):
     gLogger.fatal( "Could not generate tag" )
     sys.exit( 1 )
   shutil.rmtree( tagDir )
 
-createSVNTag( repoName, "%s/tags/%s/%s" % ( repoName, repoName, version ), gitRepoDir )
+createSVNTag( repoName, "", "%s/tags/%s/%s" % ( repoName, repoName, version ), gitRepoDir )
 
 if repoName != "Web":
   gLogger.notice( "Creating system tags" )
@@ -158,7 +175,7 @@ if repoName != "Web":
     if not os.path.isdir( gitSystemPath ):
       continue
     gLogger.notice( "Creating system tag for %s" % systemName )
-    createSVNTag( repoName,
+    createSVNTag( repoName, systemName,
                   "%s/tags/%s/%s/%s" % ( repoName, repoName, systemName, version ),
                   gitSystemPath )
 
