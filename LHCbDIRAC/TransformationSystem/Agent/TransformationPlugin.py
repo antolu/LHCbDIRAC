@@ -417,13 +417,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( allTasks )
 
   def _MergeByRunWithFlush( self ):
-    return self._ByRun( plugin = "BySize", requireFlush = True )
+    return self._ByRunBySizeWithFlush()
 
   def _MergeByRun( self ):
     return self._ByRunBySize()
 
   def _ByRunBySize( self ):
     return self._ByRun( plugin = 'BySize' )
+
+  def _ByRunBySizeWithFlush( self ):
+    return self._ByRun( plugin = 'BySize', requireFlush = True )
 
   def _ByRunFileTypeSize( self ):
     return self._ByRun( param = 'FileType', plugin = 'BySize' )
