@@ -28,7 +28,8 @@ CREATE TABLE HCAgent(
   StartTime DATETIME,
   EndTime DATETIME,
   CounterTime DATETIME,
-  Reason VARCHAR(255) NOT NULL DEFAULT 'Unspecified',
+  AgentStatus VARCHAR(255) NOT NULL DEFAULT 'Unspecified',
+  FormerAgentStatus VARCHAR(255) NOT NULL DEFAULT 'Unspecified',
   Counter INT NOT NULL DEFAULT 0,
   PRIMARY KEY(SubmissionTime)
 ) Engine=InnoDB;
