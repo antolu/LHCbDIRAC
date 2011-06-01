@@ -82,18 +82,18 @@ class ResourceStatusAgentHandler(RequestHandler):
 ##############################################################################       
 
   types_getLastTest = [ StringType, StringType ]    
-  def export_getLastTest( self, siteName, reason ):
+  def export_getLastTest( self, siteName, agentStatus ):
     """ blah blah blah
     """   
     try:
-      gLogger.info("ResourceStatusAgentHandler.getLastTest: Attempting to get last test by siteName and reason")
+      gLogger.info("ResourceStatusAgentHandler.getLastTest: Attempting to get last test by siteName and agentStatus")
       try:
-        res = rsaDB.getTestList( siteName = siteName, reason = reason, last = True )
+        res = rsaDB.getTestList( siteName = siteName, agentStatus = agentStatus, last = True )
       except RSSAgentDBException, x:
         gLogger.error(whoRaised(x))
       except RSSException, x:
         gLogger.error(whoRaised(x))
-      gLogger.info("ResourceStatusAgentHandler.getLastTest: got last test by siteName and reason")
+      gLogger.info("ResourceStatusAgentHandler.getLastTest: got last test by siteName and agentStatus")
       return S_OK(res)
     except Exception:
       errorStr = where(self, self.export_getLastTest)
