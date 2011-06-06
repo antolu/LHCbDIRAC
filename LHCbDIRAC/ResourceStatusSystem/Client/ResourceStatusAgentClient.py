@@ -46,11 +46,11 @@ class ResourceStatusAgentClient:
 
 #############################################################################
 
-  def getLastTest( self, siteName, reason ):
+  def getLastTest( self, siteName, agentStatus ):
     """
     """
 
-    res = self.rsa.getLastTest( siteName, reason )
+    res = self.rsa.getLastTest( siteName, agentStatus )
     if not res['OK']:
       raise RSSException, where(self, self.getLastTest) + " " + res['Message']
 
