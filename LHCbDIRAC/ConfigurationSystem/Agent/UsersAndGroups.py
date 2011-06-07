@@ -317,6 +317,16 @@ class UsersAndGroups( AgentModule ):
         self.__adminMsgs[ 'Error' ].append( "Cannot modify user %s: %s" % ( user, result[ 'Message' ] ) )
         self.log.error( "Cannot modify user %s" % user )
 
+    if newUserNames:
+      self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
+      for newUser in newUserNames:
+        self.__adminMsgs[ 'Info' ].append( "  %s" % newUser )
+        self.__adminMsgs[ 'Info' ].append( "    + DN list:" )
+        for DN in usersData[newUser][ 'DN' ]:
+          self.__adminMsgs[ 'Info' ].append( "      DN = %s" % DN )
+          self.__adminMsgs[ 'Info' ].append( "      CA = %s" % usersData[newUser]['CA'] )
+        self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
+
     if usersWithMoreThanOneDN:
       self.__adminMsgs[ 'Info' ].append( "\nUsers with more than one DN:" )
       for uwmtod in sorted( usersWithMoreThanOneDN ):
@@ -339,16 +349,6 @@ class UsersAndGroups( AgentModule ):
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
       csapi.deleteUsers( obsoleteUserNames )
 
-
-
-    if newUserNames:
-      self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
-      for newUser in newUserNames:
-        self.__adminMsgs[ 'Info' ].append( "  %s" % newUser )
-        self.__adminMsgs[ 'Info' ].append( "    + DN list:" )
-        for DN in usersData[newUser][ 'DN' ]:
-          self.__adminMsgs[ 'Info' ].append( "      - %s" % DN )
-        self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
 
 
     result = csapi.commitChanges()
