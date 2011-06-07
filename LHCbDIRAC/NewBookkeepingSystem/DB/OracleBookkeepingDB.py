@@ -3149,6 +3149,6 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getRunProcPass(self, runnb):
-    command = "select * from table (BOOKKEEPINGORACLEDB.getRunProcPass(%d))"%(runnb)
+    command = "select distinct runnumber, processingpass from table (BOOKKEEPINGORACLEDB.getRunProcPass(%d))"%(runnb)
     return self.dbR_._query(command)
     #return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
