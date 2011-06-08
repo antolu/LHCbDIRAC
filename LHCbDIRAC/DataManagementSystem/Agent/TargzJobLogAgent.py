@@ -192,7 +192,7 @@ class TargzJobLogAgent( AgentModule ):
 
     oldpath = os.getcwd()
 
-    tarname = "/tmp/" + prod + "_" + sub + ".tgz"
+    tarname = "/opt/dirac/tmp/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + ".tgz"
 
     res = self.storageElement.getPfnForLfn( destFile )
