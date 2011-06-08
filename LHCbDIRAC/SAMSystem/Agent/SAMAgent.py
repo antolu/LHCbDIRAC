@@ -38,7 +38,7 @@ class SAMAgent( AgentModule ):
     gMonitor.registerActivity( "BannedSites", "Banned Sites", "SAMAgent", "Sites", gMonitor.OP_SUM, 3600 * 2 )
     gMonitor.registerActivity( "DeletedJobs", "Deleted Jobs", "SAMAgent", "Jobs", gMonitor.OP_SUM, 3600 * 2 )
 
-    return result
+    return S_OK()
 
   def execute( self ):
 
