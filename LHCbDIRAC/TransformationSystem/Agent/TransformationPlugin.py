@@ -33,60 +33,162 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __logError( self, message, param = '' ):
     gLogger.error( self.plugin + ": " + message, param )
 
-  def _checkAncestors( self, filesReplicas, ancestorDepth ):
-    """ Check ancestor availability on sites. Returns a list of SEs where all the ancestors are present
+  def _RAWShares( self ):
     """
-    # Get the ancestors from the BK
-    res = getAncestorFiles( filesReplicas.keys(), ancestorDepth )
-    if not res['OK']:
-      self.__logWarn( res['Message'] )
-      return res
-    ancestorDict = res['Value']
+    Plugin for replicating RAW data to Tier1s according to shares, excluding CERN which is the source of transfers...
+    """
+    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'PIC-RAW', 'RAL-RAW', 'SARA-RAW']
+    sourceSE = 'CERN-RAW'
+    transID = self.params['TransformationID']
 
-    # Get the replicas for all the ancestors
-    allAncestors = []
-    for ancestors in ancestorDict.values():
-      allAncestors.extend( ancestors )
-    rm = ReplicaManager()
-    startTime = time.time()
-    res = rm.getActiveReplicas( allAncestors )
+    # Get the requested shares from the CS
+    res = self._getShares( 'RAW' )
+    shareOnSE = True
+    if not res['OK']:
+      res = self._getShares( 'CPU' )
+      shareOnSE = False
+      if not res['OK']:
+        return res
+    targetShares = res['Value']
+    # Remove the CERN component and renormalise
+    if 'LCG.CERN.ch' in targetShares:
+      targetShares.pop( 'LCG.CERN.ch' )
+    targetShares = self._normaliseShares( targetShares )
+    self.__logInfo( "Obtained the following target shares (%):" )
+    for site in sortList( targetShares.keys() ):
+      self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), targetShares[site] ) )
+
+    # Ensure that our files only have one existing replica at CERN
+    replicaGroups = self._getFileGroups( self.data )
+    alreadyReplicated = {}
+    for replicaSE, lfns in replicaGroups.items():
+      existingSEs = replicaSE.split( ',' )
+      if len( existingSEs ) > 1:
+        for lfn in lfns:
+          self.data.pop( lfn )
+        if sourceSE in existingSEs:
+          existingSEs.remove( sourceSE )
+        targetSE = existingSEs[0]
+        alreadyReplicated.setdefault( targetSE, [] ).extend( lfns )
+    for se, lfns in alreadyReplicated.items():
+      self.__logInfo( "Attempting to update %s files to Processed at %s" % ( len( lfns ), se ) )
+      res = self.__groupByRunAndParam( lfns, param = 'Standard' )
+      if not res['OK']:
+        return res
+      runFileDict = res['Value']
+      for runID in sortList( runFileDict.keys() ):
+        res = self.transClient.setTransformationRunsSite( transID, runID, se )
+        if not res['OK']:
+          self.__logError( "Failed to assign TransformationRun site", res['Message'] )
+          return res
+      self.transClient.setFileUsedSEForTransformation( self.params['TransformationID'], se, lfns )
+
+    # Get the existing destinations from the transformationDB
+    res = self._getExistingCounters( requestedSites = targetShares.keys(), useSE = shareOnSE )
+    if not res['OK']:
+      self.__logError( "Failed to get existing file share", res['Message'] )
+      return res
+    existingCount = res['Value']
+    if existingCount:
+      self.__logInfo( "Existing storage element utilization (%):" )
+      normalisedExistingCount = self._normaliseShares( existingCount )
+      for site in sortList( normalisedExistingCount.keys() ):
+        self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), normalisedExistingCount[site] ) )
+
+    # Group the remaining data by run
+    res = self.__groupByRunAndParam( self.data, param = 'Standard' )
     if not res['OK']:
       return res
-    for lfn in res['Value']['Failed'].keys():
-      self.data.pop( lfn )
-    self.__logInfo( "Replica results for %d files obtained in %.2f seconds" % ( len( res['Value']['Successful'] ), time.time() - startTime ) )
-    ancestorReplicas = res['Value']['Successful']
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      return S_OK( [] )
 
-    seSiteCache = {}
-    dataLfns = self.data.keys()
-    ancestorSites = []
-    for lfn in dataLfns:
-      lfnSEs = self.data[lfn].keys()
-      lfnSites = {}
-      for se in lfnSEs:
-        seSiteCache.setdefault( se, self._getSiteForSE( se )['Value'] )
-        lfnSites[seSiteCache[se]] = se
-      for ancestorLfn in ancestorDict[lfn]:
-        ancestorSEs = ancestorReplicas[ancestorLfn]
-        for se in ancestorSEs:
-          seSiteCache.setdefault( se, self._getSiteForSE( se )['Value'] )
-          ancestorSites.append( seSiteCache[se] )
-        for lfnSite in lfnSites.keys():
-          if not lfnSite in ancestorSites:
-            if lfnSites[lfnSite] in self.data[lfn]:
-              self.data[lfn].pop( lfnSites[lfnSite] )
-    ancestorProblems = []
-    for lfn, replicas in self.data.items():
-      if len( replicas ) == 0:
-        self.__logError( "File ancestors not found at corresponding sites", lfn )
-        ancestorProblems.append( lfn )
-    return S_OK()
+    # For each of the runs determine the destination of any previous files
+    runSEDict = {}
+    res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runFileDict.keys()} )
+    if not res['OK']:
+      self.__logError( "Failed to obtain TransformationRuns", res['Message'] )
+      return res
+    for runDict in res['Value']:
+      runSEDict[runDict['RunNumber']] = runDict['SelectedSite']
+
+    # Choose the destination SE
+    tasks = []
+    for runID in [run for run in sortList( runFileDict.keys() ) if run in runSEDict]:
+      runLfns = runFileDict[runID][None]
+      assignedSE = None
+      if runSEDict[runID]:
+        assignedSE = runSEDict[runID]
+        if shareOnSE:
+          targetSite = assignedSE
+        else:
+          res = getSitesForSE( assignedSE, gridName = 'LCG' )
+          if  res['OK']:
+            targetSites = [site for site in res['Value'] if site in targetShares]
+            if targetSites:
+              targetSite = targetSites[0]
+            else:
+              assignedSE = None
+      else:
+        res = self._getNextSite( existingCount, targetShares )
+        if not res['OK']:
+          self.__logError( "Failed to get next destination SE", res['Message'] )
+        else:
+          targetSite = res['Value']
+          if shareOnSE:
+            assignedSE = targetSite
+          else:
+            res = getSEsForSite( targetSite )
+            if res['OK']:
+              targetSEs = [se for se in res['Value'] if se in possibleTargets]
+              if targetSEs:
+                assignedSE = targetSEs[0]
+          if assignedSE:
+            self.__logDebug( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), assignedSE ) )
+
+      if assignedSE and assignedSE in possibleTargets:
+      # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
+        res = self.transClient.setTransformationRunsSite( transID, runID, assignedSE )
+        if not res['OK']:
+          self.__logError( "Failed to assign TransformationRun site", res['Message'] )
+        else:
+          #Create the tasks
+          tasks.append( ( assignedSE, runLfns ) )
+          existingCount[targetSite] = existingCount.setdefault( targetSite, 0 ) + len( runLfns )
+    return S_OK( tasks )
+
+  def _getExistingCounters( self, normalise = False, requestedSites = [], useSE = False ):
+    res = self.transClient.getCounters( 'TransformationFiles', ['UsedSE'], {'TransformationID':self.params['TransformationID']} )
+    if not res['OK']:
+      return res
+    usageDict = {}
+    for usedDict, count in res['Value']:
+      usedSE = usedDict['UsedSE']
+      if usedSE != 'Unknown':
+        usageDict[usedSE] = count
+    if requestedSites:
+      siteDict = {}
+      for se, count in usageDict.items():
+        res = getSitesForSE( se, gridName = 'LCG' )
+        if not res['OK']:
+          return res
+        sites = [site for site in res['Value'] if site in requestedSites]
+        if useSE and len( sites ) > 0:
+          sites = [se]
+        # Don't double count sites if they share the same SE
+        for site in sites:
+          siteDict[site] = siteDict.setdefault( site, 0 ) + count / float( len( sites ) )
+      usageDict = siteDict.copy()
+    if normalise:
+      usageDict = self._normaliseShares( usageDict )
+    return S_OK( usageDict )
 
   def _AtomicRun( self ):
     #possibleTargets = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
     transID = self.params['TransformationID']
     # Get the requested shares from the CS
-    res = self._getShares( 'CPU', True )
+    res = self._getShares( 'CPU', normalise = True )
     if not res['OK']:
       return res
     cpuShares = res['Value']
@@ -166,6 +268,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           existingCount[targetSite] = existingCount.setdefault( targetSite, 0 ) + len( runLfns )
           runSEDict[runID] = targetSite
           runUpdate[runID] = True
+          self.__logInfo( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), targetSite ) )
 
     # Create the tasks
     tasks = []
@@ -223,118 +326,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runDict.setdefault( runNumber, {} ).setdefault( paramValue, [] ).append( lfn )
     return S_OK( runDict )
 
-  def _RAWShares( self ):
-    """
-    Plugin for replicating RAW data to Tier1s according to shares, excluding CERN which is the source of transfers...
-    """
-    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
-    sourceSE = 'CERN-RAW'
-    transID = self.params['TransformationID']
-
-    # Get the requested shares from the CS
-    res = self._getShares( 'CPU' )
-    if not res['OK']:
-      return res
-    cpuShares = res['Value']
-    # Remove the CERN component and renormalise
-    if 'LCG.CERN.ch' in cpuShares:
-      cpuShares.pop( 'LCG.CERN.ch' )
-    cpuShares = self._normaliseShares( cpuShares )
-    self.__logInfo( "Obtained the following target shares (%):" )
-    for site in sortList( cpuShares.keys() ):
-      self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), cpuShares[site] ) )
-
-    # Ensure that our files only have one existing replica at CERN
-    replicaGroups = self._getFileGroups( self.data )
-    alreadyReplicated = {}
-    for replicaSE, lfns in replicaGroups.items():
-      existingSEs = replicaSE.split( ',' )
-      if len( existingSEs ) > 1:
-        for lfn in lfns:
-          self.data.pop( lfn )
-        if sourceSE in existingSEs:
-          existingSEs.remove( sourceSE )
-        targetSE = existingSEs[0]
-        alreadyReplicated.setdefault( targetSE, [] ).extend( lfns )
-    for se, lfns in alreadyReplicated.items():
-      self.__logInfo( "Attempting to update %s files to Processed at %s" % ( len( lfns ), se ) )
-      res = self.__groupByRun( lfns )
-      if not res['OK']:
-        return res
-      runFileDict = res['Value']
-      for runID in sortList( runFileDict.keys() ):
-        res = self.transClient.setTransformationRunsSite( transID, runID, se )
-        if not res['OK']:
-          self.__logError( "Failed to assign TransformationRun site", res['Message'] )
-          return res
-      self.transClient.setFileUsedSEForTransformation( self.params['TransformationID'], se, lfns )
-
-    # Get the existing destinations from the transformationDB
-    res = self._getExistingCounters( requestedSites = cpuShares.keys() )
-    if not res['OK']:
-      self.__logError( "Failed to get existing file share", res['Message'] )
-      return res
-    existingCount = res['Value']
-    if existingCount:
-      self.__logInfo( "Existing storage element utilization (%):" )
-      normalisedExistingCount = self._normaliseShares( existingCount )
-      for se in sortList( normalisedExistingCount.keys() ):
-        self.__logInfo( "%s: %.1f" % ( se.ljust( 15 ), normalisedExistingCount[se] ) )
-
-    # Group the remaining data by run
-    res = self.__groupByRun( self.data )
-    if not res['OK']:
-      return res
-    runFileDict = res['Value']
-    if not runFileDict:
-      # No files, no tasks!
-      return S_OK( [] )
-
-    # For each of the runs determine the destination of any previous files
-    runSEDict = {}
-    res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runFileDict.keys()} )
-    if not res['OK']:
-      self.__logError( "Failed to obtain TransformationRuns", res['Message'] )
-      return res
-    for runDict in res['Value']:
-      runSEDict[runDict['RunNumber']] = runDict['SelectedSite']
-
-    # Choose the destination SE
-    tasks = []
-    for runID in [run for run in sortList( runFileDict.keys() ) if run in runSEDict]:
-      runLfns = runFileDict[runID]
-      assignedSE = None
-      if runSEDict[runID]:
-        assignedSE = runSEDict[runID]
-        res = getSitesForSE( assignedSE, gridName = 'LCG' )
-        if  res['OK']:
-          targetSites = [site for site in res['Value'] if site in cpuShares]
-          if targetSites:
-            targetSite = targetSites[0]
-          else:
-            assignedSE = None
-      else:
-        res = self._getNextSite( existingCount, cpuShares )
-        if not res['OK']:
-          self.__logError( "Failed to get next destination SE", res['Message'] )
-        else:
-          targetSite = res['Value']
-          res = getSEsForSite( targetSite )
-          if res['OK']:
-            targetSEs = [se for se in res['Value'] if se in possibleTargets]
-            if targetSEs:
-              assignedSE = targetSEs[0]
-
-      if assignedSE:
-      # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
-        res = self.transClient.setTransformationRunsSite( transID, runID, assignedSE )
-        if not res['OK']:
-          self.__logError( "Failed to assign TransformationRun site", res['Message'] )
-        else:
-          #Create the tasks
-          tasks.append( ( assignedSE, runLfns ) )
-          existingCount[targetSite] = existingCount.setdefault( targetSite, 0 ) + len( runLfns )
-    return S_OK( tasks )
 
   def __getFilesStatForRun( self, transID, runID ):
     selectDict = {'TransformationID':transID}
@@ -362,6 +353,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not queryProdID:
         self.__logWarn( "Could not find ancestor production for transformation %d. Flush impossible" % transID )
         requireFlush = False
+      elif type( queryProdID ) != type( [] ):
+        queryProdID = [queryProdID]
     res = self.__groupByRunAndParam( self.data, param = param )
     if not res['OK']:
       return res
