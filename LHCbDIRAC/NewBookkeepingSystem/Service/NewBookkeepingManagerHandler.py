@@ -926,10 +926,6 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if value['OK'] == True:
       nbOfFiles = value['Value']
 
-    value = dataMGMT_.getSizeOfFiles( prodid )
-    if value['OK'] == True:
-      sizeofFiles = value['Value']
-
     value = dataMGMT_.getNumberOfEvents( prodid )
     if value['OK'] == True:
       nbOfEvents = value['Value']

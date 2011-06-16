@@ -3078,7 +3078,7 @@ and files.qualityid= dataquality.qualityid'
 
 
     if stepname != default:
-      condition += " and s.stepname='%s' " % ( stepname )
+      condition += " and s.processingpass='%s' " % ( stepname )
 
     command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion, s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step \
                 from steps s, productionscontainer prod, stepscontainer cont \
