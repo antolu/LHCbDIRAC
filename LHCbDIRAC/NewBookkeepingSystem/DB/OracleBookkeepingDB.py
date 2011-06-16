@@ -2414,23 +2414,36 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers( self, simdesc, datataking, procPass, ftype, evt, configName = 'ALL', configVersion = 'ALL', production = 'ALL', flag = 'ALL', startDate = None, endDate = None, nbofEvents = False, startRunID = None, endRunID = None, runnumbers = [], replicaFlag = 'Yes' ):
-    configid = None
+
     condition = ''
 
-    if configName != 'ALL' and configVersion != 'ALL':
-      command = ' select configurationid from configurations where configurations.ConfigName=\'' + configName + '\' and \
-                    configurations.ConfigVersion=\'' + configVersion + '\''
-      res = self.dbR_._query( command )
-      if not res['OK']:
-        return S_ERROR( res['Message'] )
-      elif len( res['Value'] ) == 0:
-        return S_ERROR( 'Config name and version dosnt exist!' )
+
+    tables = ' jobs j, files f'
+    yes = False
+    if configName != default:
+      condition += " and c.configname='%s' " % ( configName )
+      yes = True
+
+    if configVersion != default:
+      condition += " and c.configversion='%s' " % ( configVersion )
+      yes = True
+
+    if yes:
+      condition += ' and j.configurationid=c.configurationid'
+      tables += ' ,configurations c '
+
+    if simdesc != 'ALL':
+      conddescription = simdesc
+    else:
+      conddescription = datataking
+
+    sim_dq_conditions = ''
+    if conddescription != default:
+      retVal = self._getConditionString( conddescription, 'prod' )
+      if retVal['OK']:
+        sim_dq_conditions = retVal['Value']
       else:
-        configid = res['Value'][0][0]
-        if configid != 0:
-          condition = ' and j.configurationid=' + str( configid )
-        else:
-          return S_ERROR( 'Wrong configuration name and version!' )
+        return retVal
 
     if production != 'ALL':
       if type( production ) == types.ListType:
@@ -2452,63 +2465,40 @@ and files.qualityid= dataquality.qualityid'
         cond = cond[:-3] + ')'
         condition += cond
 
-    tables = ' files f,jobs j '
-    if procPass != 'ALL':
-      if not re.search( '^/', procPass ): procPass = procPass.replace( procPass, '/%s' % procPass )
-      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='%s'"%(procPass.split('/')[1], procPass)
-      retVal = self.dbR_._query(command)
-      if not retVal['OK']:
-        return retVal
-      pro = '('
-      for i in retVal['Value']:
-        pro += "%s," % ( str( i[0] ) )
-      pro = pro[:-1]
-      pro += ')'
 
-      condition += " and j.production=prod.production \
-                     and prod.processingid in %s"%(pro);
-      tables += ',productionscontainer prod'
-
+    fcond = ''
+    tables2 = ' ,filetypes ftypes '
+    tables += ' ,filetypes ftypes '
     if ftype != 'ALL':
       if type( ftype ) == types.ListType:
-        condition += ' and '
-        cond = ' ( '
         for i in ftype:
-          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str( i ) + '\''
-          res = self.dbR_._query( fileType )
-          if not res['OK']:
-            gLogger.error( 'File Type not found:', res['Message'] )
-          elif len( res['Value'] ) == 0:
-            return S_ERROR( 'File type not found!' + str( i ) )
-          else:
-            ftypeId = res['Value'][0][0]
-            cond += ' f.FileTypeId=' + str( ftypeId ) + ' or '
-        cond = cond[:-3] + ')'
-        condition += cond
-      elif type( ftype ) == types.StringType:
-        fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str( ftype ) + '\''
-        res = self.dbR_._query( fileType )
-        if not res['OK']:
-          gLogger.error( 'File Type not found:', res['Message'] )
-        elif len( res['Value'] ) == 0:
-          return S_ERROR( 'File type not found!' + str( ftype ) )
-        else:
-          ftypeId = res['Value'][0][0]
-          condition += ' and f.FileTypeId=' + str( ftypeId )
+          condition += " and ftypes.Name='%s'"%(str( i ))
+          fcond += " and ftypes.Name='%s'"%(str( i ))
 
+      elif type( ftype ) == types.StringType:
+        condition += " and ftypes.Name='%s'"%(str( ftype ))
+        fcond += " and ftypes.Name='%s'"%(str( ftype ))
+      fcond += 'and bview.filetypeid=ftypes.filetypeid '
+      condition += ' and f.filetypeid=ftypes.filetypeid '
+    econd = ''
     if evt != 0:
       if type( evt ) in ( types.ListType, types.TupleType ):
-        condition += ' and '
-        cond = ' ( '
-        for i in evt:
-          cond += ' f.eventtypeid=' + str( i ) + ' or '
-        cond = cond[:-3] + ')'
-        condition += cond
+        econd += " and bview.eventtypeid=%s"%(str( i ))
+
       elif type( evt ) in ( types.StringTypes + ( types.IntType, types.LongType ) ):
-        condition += ' and f.eventtypeid=' + str( evt )
+        econd += " and bview.eventtypeid='%s'"%(str( evt ))
+
+    if procPass != 'ALL':
+      if not re.search( '^/', procPass ): procPass = procPass.replace( procPass, '/%s' % procPass )
+      condition += " and j.production in (select bview.production from productionscontainer prod, ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
+                     START WITH id in (select distinct id from processing where name='%s') \
+                                           CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                         where v.path='%s') proc, prodview bview %s \
+                             where \
+                               prod.processingid=proc.id and \
+                               bview.production=prod.production \
+                               %s %s %s \
+                )"%(procPass.split('/')[1], procPass, tables2, fcond, econd, sim_dq_conditions)
 
     if startDate != None:
       condition += ' and f.inserttimestamp >= TO_TIMESTAMP (\'' + str( startDate ) + '\',\'YYYY-MM-DD HH24:MI:SS\')'
@@ -2552,33 +2542,7 @@ and files.qualityid= dataquality.qualityid'
     if endRunID != None:
       condition += ' and j.runnumber<=' + str( endRunID )
 
-    if replicaFlag in ['Yes', 'No']:
-      condition += ' and f.gotreplica=\'' + replicaFlag + '\''
-
-
-    if simdesc != 'ALL':
-      condition += " and prod.simid=sim.simid and j.production=prod.production and \
-                     sim.simdescription='%s' "%(simdesc)
-      if re.search('productionscontainer',tables):
-        tables += ',simulationconditions sim'
-      else:
-        tables += ',simulationconditions sim, productionscontainer prod'
-
-
-    if datataking != 'ALL':
-      condition += " and prod.DAQPERIODID =daq.daqperiodid and j.production=prod.production and \
-                    daq.description='%s' "%(datataking)
-      if re.search('productionscontainer',tables):
-        tables += ',data_taking_conditions daq'
-      else:
-        tables += ',data_taking_conditions daq, productionscontainer prod'
-
-
-    if nbofEvents:
-      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid and f.visibilityflag='Y' and f.gotreplica='Yes' %s " % ( tables, condition )
-
-    else:
-      command = " select distinct f.filename, f.eventstat, j.eventinputstat, j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity from %s where f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % ( tables, condition )
+    command = " select distinct f.filename, f.eventstat, j.eventinputstat, j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity from %s where f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % ( tables, condition )
 
     res = self.dbR_._query( command )
 
