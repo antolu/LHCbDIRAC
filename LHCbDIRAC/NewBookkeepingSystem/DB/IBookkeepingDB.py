@@ -494,3 +494,7 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getProcessingPassId(self, fullpath):
     gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getRunNbFiles(self, runid, eventtype):
+    gLogger.error('This method is not implemented!')

@@ -693,3 +693,8 @@ class BookkeepingClient:
   def getRunProcPass(self, dict):
     server = self.__getServer()
     return server.getRunProcPass(dict)
+
+  #############################################################################
+  def getRunNbFiles(self, dict):
+    server = self.__getServer()
+    return server.getRunNbFiles( dict )

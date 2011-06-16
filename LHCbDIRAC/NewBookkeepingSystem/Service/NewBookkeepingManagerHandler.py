@@ -1426,3 +1426,15 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getProcessingPassId = [StringType]
   def export_getProcessingPassId(self, fullpath):
     return dataMGMT_.getProcessingPassId(fullpath)
+
+  #############################################################################
+  types_getRunNbFiles = [DictType]
+  def export_getRunNbFiles(self, dict):
+    if dict.has_key('RunNumber'):
+      runnb = dict['RunNumber']
+
+    evt = 'ALL'
+    if dict.has_key('EventTypeId'):
+      evt = dict['EventTypeId']
+
+    return dataMGMT_.getRunNbFiles(runnb, evt)

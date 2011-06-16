@@ -3152,3 +3152,12 @@ and files.qualityid= dataquality.qualityid'
     command = "select distinct runnumber, processingpass from table (BOOKKEEPINGORACLEDB.getRunProcPass(%d))"%(runnb)
     return self.dbR_._query(command)
     #return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
+
+  #############################################################################
+  def getRunNbFiles(self, runid, eventtype):
+    condition = ''
+    if eventtype != default:
+      condition = ' and f.eventtypeid=%s'%(str(eventtype))
+
+    command = ' select count(*) from jobs j, files f where j.jobid=f.jobid and j.production<0 and j.runnumber=%s %s'%(str(runid),condition)
+    return self.dbR_._query(command)

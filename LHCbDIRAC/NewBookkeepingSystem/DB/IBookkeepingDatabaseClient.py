@@ -498,3 +498,7 @@ class IBookkeepingDatabaseClient( object ):
   #############################################################################
   def getProcessingPassId(self, fullpath):
     return self.getManager().getProcessingPassId(fullpath)
+
+  #############################################################################
+  def getRunNbFiles(self, runid, eventtype):
+    return self.getManager().getRunNbFiles(runid, eventtype)
