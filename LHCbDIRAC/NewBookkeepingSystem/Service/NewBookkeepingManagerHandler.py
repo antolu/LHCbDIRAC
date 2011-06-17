@@ -1433,4 +1433,8 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if dict.has_key('EventTypeId'):
       evt = dict['EventTypeId']
 
-    return dataMGMT_.getRunNbFiles(runnb, evt)
+    retVal = dataMGMT_.getRunNbFiles(runnb, evt)
+    if retVal['OK']:
+      return S_OK(retVal['Value'][0][0])
+    else:
+      return retVal
