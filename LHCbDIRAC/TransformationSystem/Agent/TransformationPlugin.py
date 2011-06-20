@@ -246,7 +246,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                   runUpdate[runID] = True
 
     # Choose the destination site for new runs
-    for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict.keys()]:
+    for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict]:
       runLfns = runFileDict[runID]
       distinctSEs = []
       candidates = []
@@ -254,11 +254,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         for se in [se for se in self.data[lfn].keys() if se not in distinctSEs]:
           res = getSitesForSE( se, gridName = 'LCG' )
           if res['OK']:
+            distinctSEs.append( se )
             for site in [site for site in res['Value'] if site in targetSites and site not in candidates]:
               candidates.append( site )
-              distinctSEs.append( se )
-      if len( candidates ) < 2:
-        self.__logInfo( "Two candidate site not found for %d" % runID )
+      if len( distinctSEs ) < 2:
+        self.__logInfo( "Not found two candidate SEs for run %d, skipped" % runID )
       else:
         res = self._getNextSite( existingCount, cpuShares, randomize( candidates ) )
         if not res['OK']:
@@ -279,6 +279,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
         if not res['OK']:
           self.__logError( "Failed to assign TransformationRun site", res['Message'] )
+          continue
       res = getSEsForSite( targetSite )
       if  res['OK']:
         possibleSEs = res['Value']
@@ -393,10 +394,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               paramStr = " (%s : %s) " % ( param, paramValue )
             else:
               paramStr = " "
+            queryProds = ','.join( [str( q ) for q in queryProdID] )
             if runProcessed[runID]:
-              gLogger.info( "All files processed for run %d in production(s) %s" % ( runID, ','.join( queryProdID ) ) )
+              gLogger.info( "All files processed for run %d in production(s) %s" % ( runID, queryProds ) )
             else:
-              gLogger.debug( "Not all files processed for run %d in production(s) %s" % ( runID, ','.join( queryProdID ) ) )
+              gLogger.debug( "Not all files processed for run %d in production(s) %s" % ( runID, queryProds ) )
           if runProcessed[runID]:
             gLogger.info( "Flushing %d files%sfor run %d in transformation %d" % ( len( runParamReplicas ), paramStr, runID, transID ) )
             status = 'Flush'
