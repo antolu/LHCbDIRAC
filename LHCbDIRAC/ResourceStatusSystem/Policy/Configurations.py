@@ -9,7 +9,7 @@
 
 __RCSID__ = "$Id: "
 
-from DIRAC.ResourceStatusSystem.PolicySystem.Configurations import \
+from DIRAC.ResourceStatusSystem.Policy.Configurations import \
     ValidRes, ValidStatus,  \
     ValidSiteType, ValidResourceType, ValidServiceType
 
@@ -603,7 +603,7 @@ Policies = {
 #     },
   'OnStorageElementPropagation' :
     { 'Description' : "How the storage element's nodes are behaving in the RSS",
-      'Granularity' : ['StorageElement'],
+      'Granularity' : ['StorageElementRead','StorageElementWrite'],
       'Status' : ValidStatus,
       'FormerStatus' : ValidStatus,
       'SiteType' : ValidSiteType,
@@ -628,7 +628,7 @@ Policies = {
 #     },
   'TransferQuality' :
     { 'Description' : "SE transfer quality",
-      'Granularity' : ['StorageElement'],
+      'Granularity' : ['StorageElementRead','StorageElementWrite'],
       'Status' : ValidStatus,
       'FormerStatus' : ValidStatus,
       'SiteType' : ValidSiteType,
@@ -651,7 +651,7 @@ Policies = {
      },
   'SEOccupancy' :
     { 'Description' : "SE occupancy",
-      'Granularity' : ['StorageElement'],
+      'Granularity' : ['StorageElementRead','StorageElementWrite'],
       'Status' : ValidStatus,
       'FormerStatus' : ValidStatus,
       'SiteType' : ValidSiteType,
@@ -666,7 +666,7 @@ Policies = {
      },
   'SEQueuedTransfers' :
     { 'Description' : "Queued transfers on the SE",
-      'Granularity' : ['StorageElement'],
+      'Granularity' : ['StorageElementRead','StorageElementWrite'],
       'Status' : ValidStatus,
       'FormerStatus' : ValidStatus,
       'SiteType' : ['T0'],
@@ -710,13 +710,13 @@ Policies = {
       'ServiceType' : ValidServiceType,
       'commandIn' : None,
       'args' : None,
-      'ResourceType' : ValidResourceType,
+      #'ResourceType' : ValidResourceType,
      }
 }
 
 Policy_Types = {
   'Resource_PolType' :
-    { 'Granularity' : ['Site', 'Service', 'Resource', 'StorageElement'],
+    { 'Granularity' : ['Site', 'Service', 'Resource', 'StorageElementRead','StorageElementWrite'],
       'Status' : ValidStatus,
       'FormerStatus' : ValidStatus,
       'NewStatus' : ValidStatus,
@@ -734,7 +734,7 @@ Policy_Types = {
       'ResourceType' : ValidResourceType,
      },
   'Alarm_PolType_SE' :
-    { 'Granularity' : ['StorageElement'],
+    { 'Granularity' : ['StorageElementRead', 'StorageElementWrite'],
       'Status' : ['Banned'],
       'FormerStatus' : ValidStatus,
       'NewStatus' : ['Banned'],
@@ -778,27 +778,27 @@ views_panels = {
 # Clients cache
 #############################################################################
 
-Commands_ClientsCache = [
-  ( 'ClientsCache_Command', 'JobsEffSimpleEveryOne_Command' ),
-  ( 'ClientsCache_Command', 'PilotsEffSimpleEverySites_Command' ),
-  #('ClientsCache_Command', 'TransferQualityEverySEs_Command'),
-  ( 'ClientsCache_Command', 'DTEverySites_Command' ),
-  ( 'ClientsCache_Command', 'DTEveryResources_Command' )
-  ]
-
-Commands_AccountingCache = [
-  ( 'AccountingCache_Command', 'TransferQualityByDestSplitted_Command', ( 2, ), 'Always' ),
-  ( 'AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command', ( 2, ), 'Always' ),
-  ( 'AccountingCache_Command', 'TransferQualityByDestSplittedSite_Command', ( 24, ), 'Hourly' ),
-  #('AccountingCache_Command', 'TransferQualityBySourceSplittedSite_Command', (24, ), 'Hourly'),
-  ( 'AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'FailedJobsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'SuccessfullPilotsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'FailedPilotsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'SuccessfullPilotsByCESplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'FailedPilotsByCESplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 168, ), 'Hourly' ),
-  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 720, ), 'Daily' ),
-  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 8760, ), 'Daily' ),
-  ]
+#Commands_ClientsCache = [
+#  ( 'ClientsCache_Command', 'JobsEffSimpleEveryOne_Command' ),
+#  ( 'ClientsCache_Command', 'PilotsEffSimpleEverySites_Command' ),
+#  #('ClientsCache_Command', 'TransferQualityEverySEs_Command'),
+#  ( 'ClientsCache_Command', 'DTEverySites_Command' ),
+#  ( 'ClientsCache_Command', 'DTEveryResources_Command' )
+#  ]
+#
+#Commands_AccountingCache = [
+#  ( 'AccountingCache_Command', 'TransferQualityByDestSplitted_Command', ( 2, ), 'Always' ),
+#  ( 'AccountingCache_Command', 'FailedTransfersBySourceSplitted_Command', ( 2, ), 'Always' ),
+#  ( 'AccountingCache_Command', 'TransferQualityByDestSplittedSite_Command', ( 24, ), 'Hourly' ),
+#  #('AccountingCache_Command', 'TransferQualityBySourceSplittedSite_Command', (24, ), 'Hourly'),
+#  ( 'AccountingCache_Command', 'SuccessfullJobsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'FailedJobsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'SuccessfullPilotsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'FailedPilotsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'SuccessfullPilotsByCESplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'FailedPilotsByCESplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 24, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 168, ), 'Hourly' ),
+#  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 720, ), 'Daily' ),
+#  ( 'AccountingCache_Command', 'RunningJobsBySiteSplitted_Command', ( 8760, ), 'Daily' ),
+#  ]
