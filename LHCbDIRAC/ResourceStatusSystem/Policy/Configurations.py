@@ -9,193 +9,12 @@
 
 __RCSID__ = "$Id: "
 
+from DIRAC.ResourceStatusSystem.Utilities import CS
+
 from DIRAC.ResourceStatusSystem.Policy.Configurations import \
-    ValidRes, ValidStatus,  \
-    ValidSiteType, ValidResourceType, ValidServiceType
+    ValidStatus, ValidSiteType, ValidResourceType, ValidServiceType
 
-#############################################################################
-# policies parameters
-#############################################################################
-
-DTinHours                   = 12
-
-# --- Pilots Efficiency policy --- #
-HIGH_PILOTS_NUMBER          = 60
-MEDIUM_PILOTS_NUMBER        = 20
-GOOD_PILOTS_EFFICIENCY      = 90
-MEDIUM_PILOTS_EFFICIENCY    = 30
-MAX_PILOTS_PERIOD_WINDOW    = 720
-SHORT_PILOTS_PERIOD_WINDOW  = 2
-MEDIUM_PILOTS_PERIOD_WINDOW = 8
-LARGE_PILOTS_PERIOD_WINDOW  = 48
-
-# --- Jobs Efficiency policy --- #
-HIGH_JOBS_NUMBER            = 60
-MEDIUM_JOBS_NUMBER          = 20
-GOOD_JOBS_EFFICIENCY        = 90
-MEDIUM_JOBS_EFFICIENCY      = 30
-MAX_JOBS_PERIOD_WINDOW      = 720
-SHORT_JOBS_PERIOD_WINDOW    = 2
-MEDIUM_JOBS_PERIOD_WINDOW   = 8
-LARGE_JOBS_PERIOD_WINDOW    = 48
-
-# --- SE transfer quality --- #
-Transfer_QUALITY_LOW        = 60
-Transfer_QUALITY_HIGH       = 90
-
-
-#############################################################################
-# site/services/resource checking frequency
-#############################################################################
-
-Sites_check_freq = {  'T0_ACTIVE_CHECK_FREQUENCY': 6, \
-                      'T0_PROBING_CHECK_FREQUENCY': 5, \
-                      'T0_BAD_CHECK_FREQUENCY' : 5, \
-                      'T0_BANNED_CHECK_FREQUENCY' : 5, \
-                      'T1_ACTIVE_CHECK_FREQUENCY' : 8, \
-                      'T1_PROBING_CHECK_FREQUENCY' : 7, \
-                      'T1_BAD_CHECK_FREQUENCY' : 7, \
-                      'T1_BANNED_CHECK_FREQUENCY' : 8, \
-                      'T2_ACTIVE_CHECK_FREQUENCY' : 22, \
-                      'T2_PROBING_CHECK_FREQUENCY' : 20, \
-                      'T2_BAD_CHECK_FREQUENCY' : 15 , \
-                      'T2_BANNED_CHECK_FREQUENCY' : 22 }
-
-Services_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 8, \
-                       'T0_PROBING_CHECK_FREQUENCY': 7, \
-                       'T0_BAD_CHECK_FREQUENCY' : 7, \
-                       'T0_BANNED_CHECK_FREQUENCY' : 8, \
-                       'T1_ACTIVE_CHECK_FREQUENCY' : 12, \
-                       'T1_PROBING_CHECK_FREQUENCY' : 10, \
-                       'T1_BAD_CHECK_FREQUENCY' : 10, \
-                       'T1_BANNED_CHECK_FREQUENCY' : 12, \
-                       'T2_ACTIVE_CHECK_FREQUENCY' : 22, \
-                       'T2_PROBING_CHECK_FREQUENCY' : 15, \
-                       'T2_BAD_CHECK_FREQUENCY' : 15, \
-                       'T2_BANNED_CHECK_FREQUENCY' : 22 }
-
-Resources_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 8, \
-                        'T0_PROBING_CHECK_FREQUENCY': 8, \
-                        'T0_BAD_CHECK_FREQUENCY' : 8, \
-                        'T0_BANNED_CHECK_FREQUENCY' : 8, \
-                        'T1_ACTIVE_CHECK_FREQUENCY' : 10, \
-                        'T1_PROBING_CHECK_FREQUENCY' : 10, \
-                        'T1_BAD_CHECK_FREQUENCY' : 10, \
-                        'T1_BANNED_CHECK_FREQUENCY' : 10, \
-                        'T2_ACTIVE_CHECK_FREQUENCY' : 22, \
-                        'T2_PROBING_CHECK_FREQUENCY' : 15, \
-                        'T2_BAD_CHECK_FREQUENCY' : 15, \
-                        'T2_BANNED_CHECK_FREQUENCY' : 22 }
-
-StorageElements_check_freq = {'T0_ACTIVE_CHECK_FREQUENCY': 10, \
-                              'T0_PROBING_CHECK_FREQUENCY': 10, \
-                              'T0_BAD_CHECK_FREQUENCY' : 10, \
-                              'T0_BANNED_CHECK_FREQUENCY' : 10, \
-                              'T1_ACTIVE_CHECK_FREQUENCY' : 12, \
-                              'T1_PROBING_CHECK_FREQUENCY' : 12, \
-                              'T1_BAD_CHECK_FREQUENCY' : 12, \
-                              'T1_BANNED_CHECK_FREQUENCY' : 12, \
-                              'T2_ACTIVE_CHECK_FREQUENCY' : 35, \
-                              'T2_PROBING_CHECK_FREQUENCY' : 25, \
-                              'T2_BAD_CHECK_FREQUENCY' : 25, \
-                              'T2_BANNED_CHECK_FREQUENCY' : 35 }
-
-#############################################################################
-# alarms and notifications
-#############################################################################
-
-AssigneeGroups = {
-  'VladRobGreigJoel_PROD-Mail':
-  {'Users': ['roma', 'santinel', 'joel'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['Service'],
-   'SiteType': ValidSiteType,
-   'ServiceType': ValidServiceType,
-   'ResourceType': ValidResourceType,
-   'Notifications': ['Mail']
-   },
-#  'VladRobGreigJoel_PROD-Web':
-#  {'Users': ['roma', 'santinel', 'joel'],
-#   'Setup': ['LHCb-Production'],
-#   'Granularity': ['Site', 'Service'],
-#   'SiteType': ValidSiteType,
-#   'ServiceType': ValidServiceType,
-#   'ResourceType': ValidResourceType,
-#   'Notifications': ['Web']
-#   },
-  'VladRobGreigJoel_PROD-Mail-2':
-  {'Users': ['roma', 'santinel', 'joel'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['Resource'],
-   'SiteType': ValidSiteType,
-   'ServiceType': ValidServiceType,
-   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'],
-   'Notifications': ['Mail']
-   },
-#  'VladRobGreigJoel_PROD-Web-2':
-#  {'Users': ['roma', 'santinel', 'joel'],
-#   'Setup': ['LHCb-Production'],
-#   'Granularity': ['Resource'],
-#   'SiteType': ValidSiteType,
-#   'ServiceType': ValidServiceType,
-#   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'],
-#   'Notifications': ['Web']
-#   },
-#  'VladRob_DEV':
-#  {'Users': ['roma', 'santinel'],
-#   'Setup': ['LHCb-Development', 'LHCb-Certification'],
-#   'Granularity': ValidRes,
-#   'SiteType': [],
-#   'ServiceType': ValidServiceType,
-#   'ResourceType': ValidResourceType,
-#   'Notifications': ['Web']
-#   },
-  'me_PROD-Mail':
-  {'Users': ['fstagni'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ValidRes,
-   'SiteType': ValidSiteType,
-   'ServiceType': ValidServiceType,
-   'ResourceType': ValidResourceType,
-   'Notifications': ['Mail']
-   },
-#  'me_PROD-Web':
-#  {'Users': ['fstagni'],
-#   'Setup': ['LHCb-Production'],
-#   'Granularity': ValidRes,
-#   'SiteType': ValidSiteType,
-#   'ServiceType': ValidServiceType,
-#   'ResourceType': ValidResourceType,
-#   'Notifications': ['Web']
-#   },
-  'me_DEV':
-  {'Users': ['fstagni'],
-   'Setup': ['LHCb-Development', 'LHCb-Certification'],
-   'Granularity': ValidRes,
-   'SiteType': ValidSiteType,
-   'ServiceType': ValidServiceType,
-   'ResourceType': ValidResourceType,
-   'Notifications': ['Mail']
-   },
-  'Carlos_PROD_SE':
-  {'Users': ['rsantana'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['StorageElement'],
-   'SiteType': ValidSiteType,
-   'ServiceType': ValidServiceType,
-   'ResourceType': ValidResourceType,
-   'Notifications': ['Mail']
-   },
-  'Carlos_PROD_Res':
-  {'Users': ['rsantana'],
-   'Setup': ['LHCb-Production'],
-   'Granularity': ['Resource'],
-   'SiteType': ValidSiteType,
-   'ServiceType': ValidServiceType,
-   'ResourceType': ['SE', 'LFC_C', 'LFC_L', 'FTS'],
-   'Notifications': ['Mail']
-   },
-}
+pp = CS.getTypedDictRootedAt("PolicyParameters")
 
 #############################################################################
 # policies evaluated
@@ -231,7 +50,7 @@ Policies = {
       'module' : 'DT_Policy',
       'commandInNewRes' : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
       'commandIn' : ( 'GOCDBStatus_Command', 'DTCached_Command' ),
-      'args' : ( DTinHours, ),
+      'args' : ( pp["DTinHours"], ),
       'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatus_Command', 'DTInfo_Cached_Command' ),
                                     'args': None}},
                       ],

@@ -10,6 +10,9 @@ __RCSID__ = "$Id: "
 import unittest
 from datetime import datetime
 
+from DIRAC.Core.Base import Script
+Script.parseCommandLine()
+
 from DIRAC.ResourceStatusSystem.Utilities.mock                            import Mock
 from LHCbDIRAC.ResourceStatusSystem.Policy.DT_Policy                      import DT_Policy
 from LHCbDIRAC.ResourceStatusSystem.Policy.AlwaysFalse_Policy             import AlwaysFalse_Policy
