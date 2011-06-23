@@ -762,6 +762,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
     transID = self.params['TransformationID']
+    mandatorySEs = self.__getListFromString( mandatorySEs )
     secondarySEs = self.__getListFromString( secondarySEs )
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
