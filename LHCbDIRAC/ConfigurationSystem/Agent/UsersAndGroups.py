@@ -85,6 +85,11 @@ class UsersAndGroups( AgentModule ):
     lfcDNs = result[ 'Value' ]
     for user in usersData:
       for userDN in usersData[ user ][ 'DN' ]:
+        found = False
+        for indDN in lfcDNs:
+          if not str( indDN ).find( userDN ):
+            found = True
+            break
         if userDN not in lfcDNs:
           self.log.info( 'DN "%s" need to be registered in LFC for user %s' % ( userDN, user ) )
           if user not in usersToBeRegistered:
