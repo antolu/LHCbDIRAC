@@ -259,7 +259,7 @@ class JobReader:
     gLogger.info( "Read Simulation Conditions" )
     simcond = doc.getElementsByTagName( 'SimulationCondition' )
     if len( simcond ) != 1:
-      gLogger.warn( "To many Simulation conditions!!" )
+      gLogger.warn( "Too many Simulation conditions!!" )
     else:
       simParam = SimulationConditions()
       node = simcond[0]
@@ -278,7 +278,7 @@ class JobReader:
     gLogger.info( "Read DataTaking Conditions" )
     DAQcond = doc.getElementsByTagName( 'DataTakingConditions' )
     if len( DAQcond ) != 1:
-      gLogger.warn( "To many DataTaking conditions!!" )
+      gLogger.warn( "Too many DataTaking conditions!!" )
     else:
       DAQParam = DataTakingConditions()
       node = DAQcond[0]
