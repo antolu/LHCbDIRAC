@@ -366,6 +366,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not res['OK']:
       return res
     # Loop on all runs that have new files
+    inputData = self.data.copy()
     for run in res['Value']:
       runID = run['RunNumber']
       runStatus = run['Status']
@@ -373,8 +374,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for paramValue in sortList( paramDict.keys() ):
         runParamLfns = paramDict[paramValue]
         runParamReplicas = {}
-        for lfn in runParamLfns:
-          runParamReplicas[lfn] = self.data.get( lfn, {} )
+        for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
+            runParamReplicas[lfn ] = inputData[lfn]
         self.data = runParamReplicas
         status = runStatus
         if transStatus == 'Flush':
