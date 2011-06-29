@@ -375,7 +375,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         runParamLfns = paramDict[paramValue]
         runParamReplicas = {}
         for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
-            runParamReplicas[lfn ] = inputData[lfn]
+            runParamReplicas[lfn ] = {}
+            for se in inputData[lfn]:
+              if not self.__isArchive( se ) and not self.__isFailover( se ):
+                runParamReplicas[lfn][se] = inputData[lfn][se]
         self.data = runParamReplicas
         status = runStatus
         if transStatus == 'Flush':
