@@ -1284,6 +1284,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
 
     result = {}
     retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers( simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag )
+    summary = 0
     if not retVal['OK']:
       return S_ERROR( retVal['Message'] )
     else:

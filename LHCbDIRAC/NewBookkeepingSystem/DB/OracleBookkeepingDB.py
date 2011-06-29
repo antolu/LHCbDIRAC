@@ -2484,9 +2484,11 @@ and files.qualityid= dataquality.qualityid'
     if evt != 0:
       if type( evt ) in ( types.ListType, types.TupleType ):
         econd += " and bview.eventtypeid=%s"%(str( i ))
+        condition += " and f.eventtypeid=%s"%(str( i ))
 
       elif type( evt ) in ( types.StringTypes + ( types.IntType, types.LongType ) ):
         econd += " and bview.eventtypeid='%s'"%(str( evt ))
+        condition += " and f.eventtypeid=%s"%(str( evt ))
 
     if procPass != 'ALL':
       if not re.search( '^/', procPass ): procPass = procPass.replace( procPass, '/%s' % procPass )
