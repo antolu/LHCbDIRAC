@@ -47,7 +47,7 @@ class SEUsageAgent( AgentModule ):
                                 'originURL': "http://web.grid.sara.nl/space_tokens", # without final slash
                                 'targetPath': InputFilesLocation + 'downloadedFiles/SARA/',
                                 'pathToInputFiles': InputFilesLocation + 'goodFormat/SARA/',
-                                'alternativeStorageName': 'NIKHEF' }
+                                'StorageName': 'SARA' }
 
 
     return S_OK()
@@ -190,7 +190,7 @@ class SEUsageAgent( AgentModule ):
     pathToInputFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
     if not os.path.isdir( pathToInputFiles ):
       os.makedirs( pathToInputFiles )
-    alternativeStorageName = self.siteConfig[ site ][ 'alternativeStorageName' ] # i.e. for SARA it's NIKHEF
+    StorageName = self.siteConfig[ site ][ 'StorageName' ] # i.e. for SARA it's NIKHEF
     if pathToInputFiles[-1] != "/":
       pathToInputFiles = "%s/" % pathToInputFiles
     gLogger.info( "Reading input files for site %s " % site )
@@ -223,7 +223,7 @@ class SEUsageAgent( AgentModule ):
       # manipulate the input file to create a directory summary file (one row per directory)
       for siteNaming in suffix.keys():
         if siteNaming in inputFileP1:
-          SE = alternativeStorageName + suffix[siteNaming] # i.e. transforms LHCb_USER into NIKHEF-USER
+          SE = StorageName + suffix[siteNaming] # i.e. SARA-USER = SARA + -USER
           gLogger.info( "SE name in DIRAC terminology: %s " % SE )
           break
       fileP2 = pathToInputFiles + SE + '.txt'
@@ -259,7 +259,8 @@ class SEUsageAgent( AgentModule ):
         PFNfilePath = splitLine[1]
         res = self.getLFNPath( SEName, PFNfilePath )
         if not res[ 'OK' ]:
-          gLogger.info( "ERROR: could not retrieve LFN for PFN %s" % PFNfilePath )
+          gLogger.error( "getLFNPath returned: %s " % res )
+          gLogger.error( "ERROR: could not retrieve LFN for PFN %s" % PFNfilePath )
           continue
         filePath = res[ 'Value' ]
         #gLogger.debug("filePath: %s" %filePath)
@@ -322,11 +323,11 @@ class SEUsageAgent( AgentModule ):
       LFN = PFNfilePath.split( SEPath )[1]
       for p in prefixes:
         if p in LFN:
-          gLogger.info( "Remove the initial prefix %s from LFN: %s" % ( p, LFN ) )
+          #gLogger.info( "Remove the initial prefix %s from LFN: %s" % ( p, LFN ) )
           length = len( p )
           LFN = LFN[ length: ]
     except:
-      gLogger.error( "ERROR retrieving LFN from PFN %s" % PFNfilePath )
+      gLogger.error( "ERROR retrieving LFN from PFN = %s, SEPath = %s " % ( PFNfilePath, SEPath ) )
       return S_ERROR( "Could not retrieve LFN" )
     # additional check on the LFN format:
     if not LFN.startswith( '/lhcb' ):
