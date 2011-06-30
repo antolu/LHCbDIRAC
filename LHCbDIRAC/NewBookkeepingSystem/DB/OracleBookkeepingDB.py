@@ -2269,12 +2269,19 @@ and files.qualityid= dataquality.qualityid'
 
     if len( runnumbers ) > 0:
       if type( runnumbers ) == types.ListType:
-        condition += ' and '
         cond = ' ( '
         for i in runnumbers:
           cond += 'j.runnumber=' + str( i ) + ' or '
         cond = cond[:-3] + ')'
-        condition += cond
+      if startRunID == None and endRunID == None:
+        condition += " and %s "%(cond)
+      elif startRunID != None and endRunID != None:
+        condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % ( str( startRunID ), str( endRunID ), cond)
+    else:
+      if startRunID != None:
+        condition += ' and j.runnumber>=' + str( startRunID )
+      if endRunID != None:
+        condition += ' and j.runnumber<=' + str( endRunID )
 
     tables = ' files f,jobs j '
     if procPass != 'ALL':
@@ -2371,10 +2378,6 @@ and files.qualityid= dataquality.qualityid'
 
         condition += ' and f.qualityid=' + str( quality )
 
-    if startRunID != None:
-      condition += ' and j.runnumber>=' + str( startRunID )
-    if endRunID != None:
-      condition += ' and j.runnumber<=' + str( endRunID )
 
     if replicaFlag in ['Yes', 'No']:
       condition += ' and f.gotreplica=\'' + replicaFlag + '\''
