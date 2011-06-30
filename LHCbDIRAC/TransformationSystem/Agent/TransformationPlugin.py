@@ -342,8 +342,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           processed += 1
     return ( files, processed )
 
+  def _LHCbStandard( self ):
+    return self._groupByReplicas()
 
-  def _ByRun( self, param = '', plugin = 'Standard', requireFlush = False ):
+  def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     transID = self.params['TransformationID']
     if requireFlush:
       runProcessed = {}
