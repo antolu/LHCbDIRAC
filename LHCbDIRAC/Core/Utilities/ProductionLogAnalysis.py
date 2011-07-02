@@ -82,7 +82,8 @@ def checkApplicationEvents( applicationName, logString ):
   """
   # Check that the number of events handled is correct
   if applicationName.lower() == 'lhcb':
-    return checkLHCbEvents( logString )
+    return S_OK()
+    #return checkLHCbEvents( logString )
   if applicationName.lower() == 'gauss':
     return checkGaussEvents( logString )
   if applicationName.lower() == 'boole':
