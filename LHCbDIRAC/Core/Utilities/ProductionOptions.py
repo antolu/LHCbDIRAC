@@ -96,6 +96,8 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
   elif appName.lower() == 'merge':
     #options.append('EventSelector.PrintFreq = 200')
     options.append( 'OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
+    if appType.lower() == 'fmdst':
+      options.append( 'EventSelector().PrintFreq = 1000' )
     return options
 
   elif appName.lower() == 'moore':
