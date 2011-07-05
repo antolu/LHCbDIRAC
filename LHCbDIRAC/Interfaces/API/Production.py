@@ -286,16 +286,16 @@ class Production():
         raise TypeError, 'Application type not recognised'
       if inputDataType.lower() == 'digi':
         if not outputSE:
-          outputSE = 'Tier1_MC_M-DST'
+          outputSE = 'Tier1_MC-DST'
           self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
       elif inputDataType.lower() == 'fetc':
         #Must rely on data type for fetc only
         if not outputSE:
           if dataType.lower() == 'mc':
-            outputSE = 'Tier1_MC_M-DST'
+            outputSE = 'Tier1_MC-DST'
             self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
           else:
-            outputSE = 'Tier1_M-DST' #for real data master dst
+            outputSE = 'Tier1-DST' #for real data master dst
             self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
@@ -335,34 +335,30 @@ class Production():
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 0
 
-    inputDataTypes = ['rdst', 'dst', 'sdst']
-    if not inputDataType.lower() in inputDataTypes and not appType.lower() in ['merge', 'setc']:
-      raise TypeError, 'Only %s input data types supported' % ( string.join( inputDataTypes, ', ' ) )
-
-    if inputDataType.lower() in ['rdst', 'sdst']:
-      dataType = 'DATA'
-      if not outputSE:
-        outputSE = 'Tier1_M-DST'
-        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-    elif inputDataType.lower() == 'dst':
+    if inputDataType.lower() == 'dst':
       if not dataType:
         raise TypeError, 'Must clarify MC / DATA for DST->DST processing'
       if not outputSE:
         if dataType.upper() == 'MC':
-          outputSE = 'Tier1_MC_M-DST'
-          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          outputSE = 'Tier1_MC-DST'
+          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
         else:
-          outputSE = 'Tier1_M-DST'
-          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          outputSE = 'Tier1-DST'
+          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+    else:
+      dataType = 'DATA'
+      if not outputSE:
+        outputSE = 'Tier1-DST'
+        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if appType.lower() in ['merge']: #,'mdst']:
       if not outputSE:
-        outputSE = 'Tier1_M-DST'
+        outputSE = 'Tier1-DST'
         self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if appType.lower() in ['setc', 'mdst']:
       if not outputSE:
-        outputSE = 'Tier1_M-DST'
+        outputSE = 'Tier1-DST'
         self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
@@ -411,7 +407,7 @@ class Production():
       raise TypeError, 'Only RAW and DIGI input data type currently supported'
 
     if not outputSE:
-      outputSE = 'Tier1_MC_M-DST'
+      outputSE = 'Tier1_MC-DST'
       if inputDataType.lower() == 'digi':
         outputSE = 'Tier1-RDST' #convention for intermediate outputs that are not saved by default
 
@@ -455,7 +451,7 @@ class Production():
     #optionsFile = ''
     appType = inputDataType
     if not outputSE:
-      outputSE = 'Tier1_MC_M-DST'
+      outputSE = 'Tier1_MC-DST'
       self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if not overrideOpts:
