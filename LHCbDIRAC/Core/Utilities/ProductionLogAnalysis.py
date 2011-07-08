@@ -269,7 +269,9 @@ def getEventsProcessed( logString, service ):
       If the string is not found an error is returned
   """
   global numberOfEventsInput
-  possibleServices = ['DaVinciInit', 'DaVinciInitAlg', 'DaVinciMonitor', 'BrunelInit', 'BrunelEventCount', 'ChargedProtoPAlg', 'BooleInit', 'GaussGen', 'GaussSim', 'L0Muon']
+  possibleServices = ['DaVinciInit', 'DaVinciInitAlg', 'DaVinciMonitor', 
+                      'BrunelInit', 'BrunelEventCount', 'ChargedProtoPAlg', 
+                      'BooleInit', 'GaussGen', 'GaussSim', 'L0Muon', 'LbAppInit']
   if not service in possibleServices:
     gLogger.error( "Requested service not available.", service )
     return S_ERROR( "Requested service '%s' not available" % service )
@@ -316,15 +318,33 @@ def checkLHCbEvents( logString ):
   """ Obtain event information from the application log and determine whether the
       LHCb job generated the correct number of events.
   """
+  global numberOfEventsOutput
   global numberOfEventsInput
   global firstStepInputEvents
-  # Get the last event processed
+  
+  # Get the last event read (at least the one that is written
   lastEvent = getLastEventSummary( logString )['Value']
   if not lastEvent:
     return S_ERROR( 'No Events Processed' )
 
-  numberOfEventsInput = str( lastEvent )
-  firstStepInputEvents = numberOfEventsInput
+  # Get the number of requested events
+  res = getRequestedEvents( logString )
+  if not res['OK']:
+    gLogger.info("Using old style logs for LHCb, can continue")
+    requestedEvents = 0
+  else:
+    requestedEvents = res['Value']
+    # Get the number of events processed by DaVinci
+    res = getEventsProcessed( logString, 'LbAppInit' )
+    if not res['OK']:
+      res = getLastFile( logString )
+      if res['OK']:
+        lastFile = res['Value']
+        dataSummary[lastFile] = 'ApplicationCrash'
+      gLogger.error( "Crash after event %s" % lastEvent )
+      return S_ERROR( 'Crash During Execution' )
+  
+    processedEvents = res['Value']
 
   # Get the number of events output by LHCb
   res = getEventsOutput( logString, 'InputCopyStream' )
@@ -332,8 +352,26 @@ def checkLHCbEvents( logString ):
     return S_ERROR( 'No Events Processed' )
 
   outputEvents = res['Value']
-  if outputEvents != lastEvent:
-    return S_ERROR( "Processed Events Do Not Match" )
+
+  numberOfEventsInput = numberOfEventsOutput = outputEvents 
+  firstStepInputEvents = str( lastEvent )
+
+  # Get whether all events in the input file were processed
+  noMoreEvents = re.findall( 'No more events in event selection', logString )
+
+  # If were are to process all the files in the input then ensure that all were read
+  if ( not requestedEvents ) and ( not noMoreEvents ):
+    return S_ERROR( "Not All Input Events Processed" )
+  # If we are to process a given number of events ensure the target was met
+  if requestedEvents:
+    try:
+      if requestedEvents != processedEvents:
+        return S_ERROR( "Too Few Events Processed" )
+    except NameError:
+      gLogger.warn( "Got requested events, not the processed events" )
+    
+  if outputEvents < lastEvent:
+    return S_ERROR( "Processed events are less than the number of events in output" )
   # If there were no events processed
   if outputEvents == 0:
     return S_ERROR( 'No Events Processed' )

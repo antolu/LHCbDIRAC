@@ -94,10 +94,20 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
       options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
 
   elif appName.lower() == 'merge':
-    #options.append('EventSelector.PrintFreq = 200')
+    options.append( 'from Configurables import LbAppInit' )
+    options.append( 'MyAlg = LbAppInit()' )
+    options.append( 'MyAlg.PrintEventTime = True' )
+    options.append( 'MyAlg.PreloadGeometry = False' )
+    options.append( 'MyAlg.SingleSeed = False' )
+    #TODO: needed here or after?
+    options.append( "ApplicationMgr().TopAlg += [ MyAlg ]" )
+    options.append( "from Configurables import LHCbApp" )
+    options.append( "l = LHCbApp()" )
+
     options.append( 'OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
     if appType.lower() == 'fmdst':
       options.append( 'EventSelector().PrintFreq = 1000' )
+    
     return options
 
   elif appName.lower() == 'moore':
@@ -152,7 +162,14 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
     optionsLines.append( "GaussGen.FirstEventNumber = %s" % ( firstEventNumber ) )
 
   if numberOfEvents != 0:
-      optionsLines.append( "ApplicationMgr().EvtMax = %s" % ( numberOfEvents ) )
+    optionsLines.append( "ApplicationMgr().EvtMax = %s" % ( numberOfEvents ) )
+
+  if applicationName.lower() == 'lhcb':
+    #TODO: fix
+#    optionsLines.append( "ApplicationMgr().TopAlg += [ MyAlg ]" )
+#    optionsLines.append( "from Configurables import LHCbApp" )
+#    optionsLines.append( "l = LHCbApp()" )
+    pass
 
   finalLines = string.join( optionsLines, '\n' ) + '\n'
   return S_OK( finalLines )
