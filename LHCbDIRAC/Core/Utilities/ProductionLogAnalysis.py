@@ -82,8 +82,7 @@ def checkApplicationEvents( applicationName, logString ):
   """
   # Check that the number of events handled is correct
   if applicationName.lower() == 'lhcb':
-    return S_OK()
-    #return checkLHCbEvents( logString )
+    return checkLHCbEvents( logString )
   if applicationName.lower() == 'gauss':
     return checkGaussEvents( logString )
   if applicationName.lower() == 'boole':
@@ -369,6 +368,12 @@ def checkLHCbEvents( logString ):
         return S_ERROR( "Too Few Events Processed" )
     except NameError:
       gLogger.warn( "Got requested events, not the processed events" )
+
+  try:
+    if processedEvents != outputEvents:
+      return S_ERROR( "Input events differ from the number of events in output" )
+  except NameError:
+    gLogger.warn( "Got requested events, not the processed events" )
     
   if outputEvents < lastEvent:
     return S_ERROR( "Processed events are less than the number of events in output" )

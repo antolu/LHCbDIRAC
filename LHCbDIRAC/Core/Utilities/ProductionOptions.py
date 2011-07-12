@@ -34,6 +34,9 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
   #General options
   dddbOpt = "LHCbApp().DDDBtag = \"%s\"" % ( ddDB )
   conddbOpt = "LHCbApp().CondDBtag = \"%s\"" % ( condDB )
+  
+  options.append( "LHCbApp().XMLSummary='summary%s.xml'" %appName )
+  
   evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
 #  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append( "HistogramPersistencySvc().OutputFile = \"%s\"" % ( histogram ) )
@@ -96,15 +99,14 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
   elif appName.lower() == 'merge':
     options.append( 'from Configurables import LbAppInit' )
     options.append( 'MyAlg = LbAppInit()' )
-    options.append( 'MyAlg.PrintEventTime = True' )
-    options.append( 'MyAlg.PreloadGeometry = False' )
-    options.append( 'MyAlg.SingleSeed = False' )
-    #TODO: needed here or after?
+#    options.append( 'MyAlg.PrintEventTime = True' )
+#    options.append( 'MyAlg.PreloadGeometry = False' )
+#    options.append( 'MyAlg.SingleSeed = False' )
     options.append( "ApplicationMgr().TopAlg += [ MyAlg ]" )
     options.append( "from Configurables import LHCbApp" )
     options.append( "l = LHCbApp()" )
-
     options.append( 'OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
+
     if appType.lower() == 'fmdst':
       options.append( 'EventSelector().PrintFreq = 1000' )
     
@@ -134,6 +136,7 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
   return options
 
 #############################################################################
+
 def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOptions = '', runNumber = 0, firstEventNumber = 1, jobType = '' ):
   """ Return the standard options for a Gaudi application project to be used at run time
       by the workflow modules.  The input data options field is a python list (output of
@@ -164,17 +167,11 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
   if numberOfEvents != 0:
     optionsLines.append( "ApplicationMgr().EvtMax = %s" % ( numberOfEvents ) )
 
-  if applicationName.lower() == 'lhcb':
-    #TODO: fix
-#    optionsLines.append( "ApplicationMgr().TopAlg += [ MyAlg ]" )
-#    optionsLines.append( "from Configurables import LHCbApp" )
-#    optionsLines.append( "l = LHCbApp()" )
-    pass
-
   finalLines = string.join( optionsLines, '\n' ) + '\n'
   return S_OK( finalLines )
 
 #############################################################################
+
 def getDataOptions( applicationName, inputDataList, inputDataType, poolXMLCatalogName ):
   """Given a list of input data and a specified input data type this function will
      return the correctly formatted EventSelector options for Gaudi applications
