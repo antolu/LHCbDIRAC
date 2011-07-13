@@ -35,7 +35,7 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
   dddbOpt = "LHCbApp().DDDBtag = \"%s\"" % ( ddDB )
   conddbOpt = "LHCbApp().CondDBtag = \"%s\"" % ( condDB )
   
-  options.append( "LHCbApp().XMLSummary='summary%s.xml'" %appName )
+#  options.append( "LHCbApp().XMLSummary='summary%s.xml'" %appName )
   
   evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
 #  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")

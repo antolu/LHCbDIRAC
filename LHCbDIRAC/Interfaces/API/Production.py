@@ -24,7 +24,7 @@ from DIRAC                                            import gConfig
 
 from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
-from LHCbDIRAC.Worfklow.Utilities.Utils import *
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 
 COMPONENT_NAME = 'LHCbSystem/Client/Production'
 
@@ -87,16 +87,17 @@ class Production():
       self.__setDefaults()
 
   #############################################################################
+  
   def __setDefaults( self ):
     """Sets some default parameters.
     """
 
-    # Location: DIRAC.Interfaces.API.Job
-    self.LHCbJob.setType( 'MCSimulation' )
-    self.LHCbJob.setSystemConfig( self.systemConfig )
-    self.LHCbJob.setCPUTime( '1000000' )
-    self.LHCbJob.setLogLevel( 'verbose' )
-    self.LHCbJob.setJobGroup( '@{PRODUCTION_ID}' )
+    #TODO: see for others to be put here
+    self.setJobParameters({'Type':'MCSimulation', 
+                           'SystemConfig':self.systemConfig, 
+                           'CPUTime': '1000000',
+                           'LogLevel': 'verbose',
+                           'JobGroup': '@{PRODUCTION_ID}' })
 
     self.setFileMask( '' )
 
@@ -121,6 +122,19 @@ class Production():
     self._setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
 
   #############################################################################
+
+  def setJobParameters(self, parametersDict):
+    """ Set an (LHCb)Job parameter
+    
+        The parametersDict is in the form {'parameterName': 'value'} 
+        Each parameter calls LHCbJob.setparameterName(value) 
+    """
+    
+    for parameter in parametersDict.keys():
+      getattr( self.LHCbJob, 'set' + parameter )(parametersDict[parameter])
+  
+  #############################################################################
+  
   def _setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
@@ -133,6 +147,7 @@ class Production():
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description )
 
   #############################################################################
+  
   def __getEventType( self, eventType ):
     """ Checks whether or not the global event type should be set.
     """
@@ -147,6 +162,7 @@ class Production():
     return eventType
 
   #############################################################################
+  
   def __checkArguments( self, extraPackages, optionsFile ):
     """ Checks for typos in the structure of standard arguments to workflows.
         In case of any non-standard settings will raise an exception preventing
@@ -185,6 +201,7 @@ class Production():
     return S_OK()
 
   #############################################################################
+  
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
                    extraPackages = '', outputSE = None, histograms = False, overrideOpts = '', extraOpts = '',
                    appType = 'sim', condDBTag = 'global', ddDBTag = 'global',
@@ -652,6 +669,8 @@ class Production():
     self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
     self.ioDict[self.LHCbJob.gaudiStepCount] = gaudiStepInstance.getName()
+    
+    return gaudiStepInstance
 
   #############################################################################
   def __addSoftwarePackages( self, nameVersion ):

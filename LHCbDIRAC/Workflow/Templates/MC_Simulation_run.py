@@ -199,7 +199,7 @@ if outputFileMask:
 production = Production()
 
 if sysConfig:
-  production.setSystemConfig( sysConfig )
+  production.setJobParameters( { 'SystemConfig': sysConfig } )
 
 production.setProdType( 'MCSimulation' )
 wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
@@ -456,7 +456,7 @@ gLogger.info( prodDescription )
 production.setWorkflowDescription( prodDescription )
 #production.addFinalizationStep( outputDataStep = outputDataStep )
 production.addFinalizationStep()
-production.setCPUTime( cpu )
+production.setJobParameters( { 'CPUTime': cpu } )
 production.setProdGroup( '{{pDsc}}' )
 production.setProdPriority( priority )
 production.setOutputMode( 'Any' )
@@ -536,7 +536,7 @@ inputBKQuery = { 'SimulationConditions'     : 'All',
 
 mergeProd = Production()
 if sysConfig:
-  mergeProd.setSystemConfig( sysConfig )
+  mergeProd.setJobParameters( {"SystemConfig": sysConfig } )
 
 mergeProd.setProdType( 'Merge' )
 mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( finalAppType, evtType, prodID, mergingGroupSize )
