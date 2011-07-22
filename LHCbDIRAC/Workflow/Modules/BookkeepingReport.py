@@ -16,6 +16,8 @@ import DIRAC
 
 import os, time, re, string, socket
 
+from xml.dom.minidom import Document
+
 class BookkeepingReport( ModuleBase ):
 
   def __init__( self ):
@@ -159,7 +161,8 @@ class BookkeepingReport( ModuleBase ):
     self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
     bfilename = 'bookkeeping_' + self.STEP_ID + '.xml'
     bfile = open( bfilename, 'w' )
-    print >> bfile, self.makeBookkeepingXMLString()
+#    print >> bfile, self.makeBookkeepingXMLString()
+    print >> bfile, self.makeBookkeepingXML()
     bfile.close()
 
     return S_OK()
@@ -170,16 +173,16 @@ class BookkeepingReport( ModuleBase ):
                      '" Value="' + str( value ) + '" Type="' + str( ptype ) + '"/>\n'
 
 
-  def makeBookkeepingXMLString( self ):
+  def makeBookkeepingXML( self ):
 
     dataTypes = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
-    gLogger.info( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( dataTypes, ', ' ) ) )
+    gLogger.info( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( dataTypes, ', ' ) ))
 
-    ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
-    ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
+    ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ))
+    ltime = time.strftime( "%H:%M",    time.localtime( time.time() ))
     if self.step_commons.has_key( 'StartTime' ):
-      ldatestart = time.strftime( "%Y-%m-%d", time.localtime( self.step_commons['StartTime'] ) )
-      ltimestart = time.strftime( "%H:%M", time.localtime( self.step_commons['StartTime'] ) )
+      ldatestart = time.strftime( "%Y-%m-%d", time.localtime( self.step_commons['StartTime'] ))
+      ltimestart = time.strftime( "%H:%M",    time.localtime( self.step_commons['StartTime'] ))
 
     # Timing
     exectime = 0
@@ -187,86 +190,159 @@ class BookkeepingReport( ModuleBase ):
       exectime = time.time() - self.step_commons['StartTime']
     cputime = 0
     if self.step_commons.has_key( 'StartStats' ):
-      stats = os.times()
-      cputime = stats[0] + stats[2] - self.step_commons['StartStats'][0] - self.step_commons['StartStats'][2]
-
-    s = ''
-    s = s + '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
-    s = s + '<!DOCTYPE Job SYSTEM "book.dtd">\n'
+      stats   = os.times()
+      cputime = stats[ 0 ] + stats[ 2 ] - self.step_commons[ 'StartStats' ][ 0 ] - self.step_commons[ 'StartStats' ][ 2 ]
 
     # Get the Config name from the environment if any
     if self.workflow_commons.has_key( 'configName' ):
-      configName = self.workflow_commons['configName']
-      configVersion = self.workflow_commons['configVersion']
+      configName    = self.workflow_commons[ 'configName' ]
+      configVersion = self.workflow_commons[ 'configVersion' ]
     else:
-      configName = self.applicationName
+      configName    = self.applicationName
       configVersion = self.applicationVersion
 
-    s = s + '<Job ConfigName="' + configName + \
-          '" ConfigVersion="' + configVersion + \
-          '" Date="' + ldate + \
-          '" Time="' + ltime + '">\n'
-
-    s = s + self.__parameter_string( "CPUTIME", cputime, 'Info' )
-    s = s + self.__parameter_string( "ExecTime", exectime, 'Info' )
+    # Generate XML document
+    doc = Document()
+    
+    ## LOCAL FUNCTION TO SPEED UP XML GENERATION
+    def addChildNode( parentNode, tag, returnChildren, *args ):
+      '''
+      Params
+        :parentNode:
+          node where the new node is going to be appended
+        :tag: 
+          name if the XML element to be created
+        :returnChildren:
+          flag to return or not the children node, used to avoid unused variables
+        :*args:
+          possible attributes of the element 
+      '''
+      
+      ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
+                       'Parameter', 'Replica', 'SimulationCondition' ]    
+ 
+      def genJobDict( configName, configVersion, ldate, ltime):
+        return {
+                "ConfigName"   : configName,    
+                "ConfigVersion": configVersion, 
+                "Date"         : ldate,         
+                "Time"         : ltime         
+               } 
+      def genTypedParameterDict( name, value, type = "Info" ):
+        return {
+                "Name"  : name,
+                "Value" : value,
+                "Type"  : type
+                }
+      def genInputFileDict( name ):
+        return {
+                "Name" : name
+                }  
+      def genOutputFileDict( name, typeName, typeVersion ):
+        return {
+                "Name"        : name,
+                "TypeName"    : typeName,
+                "TypeVersion" : typeVersion
+                }      
+      def genParameterDict( name, value ):
+        return {
+                "Name"  : name,
+                "Value" : value
+                }  
+      def genReplicaDict( name, location = "Web"):
+        return {
+                "Name"     : name,
+                "Location" : location
+                }
+      def genSimulationConditionDict():
+        return {}
+ 
+      if not tag in ALLOWED_TAGS:
+        self.log.error( 'XML tag not valid %s' % tag )
+        dict = {}
+      else:  
+        dict = locals()[ 'gen%sDict'%tag ]( *args )
+      
+      childNode = Document().createElement( tag )
+      for k,v in dict.items():
+        childNode.setAttribute( k, v )  
+      parentNode.appendChild( childNode )
+      
+      if returnChildren:
+        return ( parentNode, childNode )
+      return parentNode 
+    ## END LOCAL FUNCTION TO SPEED UP XML GENERATION 
+    
+    jobAttributes = ( configName, configVersion, ldate, ltime )
+    doc,job = addChildNode( doc, "Job", 1, *jobAttributes ) 
+    
+    typedParams = []
+    typedParams.append( ( "CPUTIME",  cputime ))
+    typedParams.append( ( "ExecTime", exectime ))
 
     nodeInfo = self.getNodeInformation()
     if nodeInfo['OK']:
-      s = s + self.__parameter_string( "WNMODEL", nodeInfo['ModelName'], 'Info' )
-      s = s + self.__parameter_string( "WNMEMORY", nodeInfo['Memory(kB)'], 'Info' )
-      s = s + self.__parameter_string( "WNCPUPOWER", nodeInfo['CPU(MHz)'], 'Info' )
-      s = s + self.__parameter_string( "WNCACHE", nodeInfo['CacheSize(kB)'], 'Info' )
-
-    s = s + self.__parameter_string( "WNCPUHS06", gConfig.getValue( '/LocalSite/CPUNormalizationFactor', '1' ), 'Info' )
-    s = s + self.__parameter_string( "Production", self.PRODUCTION_ID, 'Info' )
-    s = s + self.__parameter_string( "DiracJobId", self.JOB_ID, 'Info' )
-    s = s + self.__parameter_string( "Name", self.STEP_ID, 'Info' )
-    s = s + self.__parameter_string( "JobStart", ldatestart + ' ' + ltimestart, 'Info' )
-    s = s + self.__parameter_string( "JobEnd", ldate + ' ' + ltime, 'Info' )
-    s = s + self.__parameter_string( "Location", DIRAC.siteName(), 'Info' )
-    s = s + self.__parameter_string( "JobType", self.jobType, "Info" )
-
+      
+      typedParams.append( ( "WNMODEL",    nodeInfo[ "ModelName" ]     ))
+      typedParams.append( ( "WNMEMORY",   nodeInfo[ "Memory(kB)" ]    ))
+      typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ]      ))
+      typedParams.append( ( "WNCACHE",    nodeInfo[ "CacheSize(kB)" ] ))
+      
+    tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
+    typedParams.append( ( "WNCPUHS06",  tempVar                             ))      
+    typedParams.append( ( "Production", self.PRODUCTION_ID                  ))
+    typedParams.append( ( "DiracJobId", self.JOB_ID                         ))
+    typedParams.append( ( "Name",       self.STEP_ID                        ))
+    typedParams.append( ( "JobStart",   '%s %s' % ( ldatestart, ltimestart )))
+    typedParams.append( ( "JobEnd",     '%s %s' % ( ldate, ltime           )))
+    typedParams.append( ( "Location",   DIRAC.siteName()                    ))
+    typedParams.append( ( "JobType",    self.jobType                        ))
+        
 #    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
-
     host = None
     if os.environ.has_key( "HOSTNAME" ):
-      host = os.environ["HOSTNAME"]
+      host = os.environ[ "HOSTNAME" ]
     elif os.environ.has_key( "HOST" ):
-      host = os.environ["HOST"]
+      host = os.environ[ "HOST" ]
     if host is not None:
-      s = s + self.__parameter_string( 'WorkerNode', host, 'Info' )
+      typedParams.append( self.genTypedParamDict( "WorkerNode", host ))
 
     if  os.environ.has_key( 'XMLDDDB_VERSION' ):
-      s = s + self.__parameter_string( "GeometryVersion", os.environ["XMLDDDB_VERSION"], 'Info' )
+      typedParams.append( ( "GeometryVersion", os.environ[ "XMLDDDB_VERSION" ] ))
 
-    s = s + self.__parameter_string( "ProgramName", self.applicationName, 'Info' )
-    s = s + self.__parameter_string( "ProgramVersion", self.applicationVersion, 'Info' )
+    typedParams.append( ( "ProgramName",    self.applicationName    ))
+    typedParams.append( ( "ProgramVersion", self.applicationVersion ))
 
     # DIRAC version
-    s = s + self.__parameter_string( 'DiracVersion', 'v' + str( DIRAC.majorVersion ) + 'r' + str( DIRAC.minorVersion ) + 'p' + str( DIRAC.patchLevel ), 'Info' )
+    tempVar = "v%dr%dp%d" % ( DIRAC.majorVersion, DIRAC.minorVersion, DIRAC.patchLevel )
+    typedParams.append( ( "DiracVersion", tempVar ))
 
     if self.firstEventNumber != None:
-      s = s + self.__parameter_string( 'FirstEventNumber', self.firstEventNumber, "Info" )
+      typedParams.append( ( "FirstEventNumber", self.firstEventNumber ))
     else:
-      s = s + self.__parameter_string( 'FirstEventNumber', "1", "Info" )
+      typedParams.append( ( "FirstEventNumber", 1                     ))
 
     if self.numberOfEvents != None:
-      s = s + self.__parameter_string( 'StatisticsRequested', self.numberOfEvents, "Info" )
+      typedParams.append( ( "StatisticsRequested", self.numberOfEvents ))
 
     if self.numberOfEventsInput != None:
-      s = s + self.__parameter_string( 'NumberOfEvents', self.numberOfEventsInput, "Info" )
+      typedParams.append( ( "NumberOfEvents", self.numberOfEventsInput ))
     else:
-      s = s + self.__parameter_string( 'NumberOfEvents', self.numberOfEvents, "Info" )
+      typedParams.append( ( "NumberOfEvents", self.numberOfEvents      ))
+
+    # Add TypedParameters to the XML file
+    for typedParam in typedParams:
+      job = addChildNode( job, "TypedParameter", 0, *typedParam ) 
 
     if self.inputData:
       intermediateInputs = False
       for inputname in self.inputData.split( ';' ):
         for bkLFN in self.bkLFNs:
           if os.path.basename( bkLFN ) == os.path.basename( inputname ):
-            s = s + '  <InputFile    Name="' + bkLFN + '"/>\n'
+            job = addChildNode( job, "InputFile", 0, bkLFN )
             intermediateInputs = True
         if not intermediateInputs:
-          s = s + '  <InputFile    Name="' + inputname.replace( 'LFN:', '' ) + '"/>\n'
+          job = addChildNode( job, "InputFile", 0, inputname.replace( 'LFN:', '' ) )  
 
     ####################################################################
     # Output files
@@ -279,8 +355,8 @@ class BookkeepingReport( ModuleBase ):
     else:
       self.log.warn( 'BookkeepingReport: no eventType specified' )
       eventtype = 'Unknown'
-    self.log.info( 'Event type = %s' % ( str( self.eventType ) ) )
-    self.log.info( 'stats = %s' % ( str( self.numberOfEventsOutput ) ) )
+    self.log.info( 'Event type = %s' % ( str( self.eventType ) ))
+    self.log.info( 'stats = %s' % ( str( self.numberOfEventsOutput ) ))
 
     if self.numberOfEventsOutput != '':
       statistics = self.numberOfEventsOutput
@@ -292,20 +368,20 @@ class BookkeepingReport( ModuleBase ):
       self.log.warn( 'BookkeepingReport: no numberOfEvents specified' )
       statistics = "0"
 
-
-    outputs = []
-    count = 0
+    outputs    = []
+    count      = 0
     bkTypeDict = {}
-    while ( count < len( self.listoutput ) ):
+    while ( count < len( self.listoutput )):
       if self.listoutput[count].has_key( 'outputDataName' ):
-        outputs.append( ( ( self.listoutput[count]['outputDataName'] ), ( self.listoutput[count]['outputDataSE'] ), ( self.listoutput[count]['outputDataType'] ) ) )
-      if self.listoutput[count].has_key( 'outputBKType' ):
-        bkTypeDict[self.listoutput[count]['outputDataName']] = self.listoutput[count]['outputBKType']
+        outputs.append( ( ( self.listoutput[ count ][ 'outputDataName' ] ), 
+                          ( self.listoutput[ count ][ 'outputDataSE' ] ), ( self.listoutput[ count ][ 'outputDataType' ] ) ))
+      if self.listoutput[ count ].has_key( 'outputBKType' ):
+        bkTypeDict[ self.listoutput[ count ][ 'outputDataName' ]] = self.listoutput[ count ][ 'outputBKType' ]
       count = count + 1
     outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
     self.log.info( outputs )
     if type( self.logFilePath ) == type( [] ):
-      self.logFilePath = self.logFilePath[0]
+      self.logFilePath = self.logFilePath[ 0 ]
 
     for output, outputse, outputtype in list( outputs ):
       self.log.info( 'Looking at output %s %s %s' % ( output, outputse, outputtype ) )
@@ -314,12 +390,12 @@ class BookkeepingReport( ModuleBase ):
       fileStats = statistics
       if bkTypeDict.has_key( output ):
         typeVersion = 'ROOT_All'
-        typeName = string.upper( bkTypeDict[output] )
+        typeName    = string.upper( bkTypeDict[ output ] )
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
         if self.workflow_commons.has_key( 'StreamEvents' ):
-          streamEvents = self.workflow_commons['StreamEvents']
+          streamEvents = self.workflow_commons[ 'StreamEvents' ]
           if streamEvents.has_key( typeName ):
-            fileStats = streamEvents[typeName]
+            fileStats = streamEvents[ typeName ]
             self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
 
       if not os.path.exists( output ):
@@ -328,39 +404,39 @@ class BookkeepingReport( ModuleBase ):
       # Output file size
       if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
         try:
-          outputsize = str( os.path.getsize( output ) )
+          outputsize = str( os.path.getsize( output ))
         except:
           outputsize = '0'
       else:
         outputsize = self.step_commons[ 'size' ][ output ]
 
       if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
-        comm = 'md5sum ' + str( output )
+        comm        = 'md5sum ' + str( output )
         resultTuple = shellCall( 0, comm )
-        status = resultTuple['Value'][0]
-        out = resultTuple['Value'][1]
+        status      = resultTuple[ 'Value' ][ 0 ]
+        out         = resultTuple[ 'Value' ][ 1 ]
       else:
         status = 0
-        out = self.step_commons[ 'md5' ][ output ]
+        out    = self.step_commons[ 'md5' ][ output ]
 
       if status:
-        self.log.info( "Failed to get md5sum of %s" % str( output ) )
-        self.log.info( str( out ) )
+        self.log.info( "Failed to get md5sum of %s" % str( output ))
+        self.log.info( str( out ))
         md5sum = '000000000000000000000000000000000000'
       else:
-        md5sum = out.split()[0]
+        md5sum = out.split()[ 0 ]
 
       if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
         guidResult = getGUID( output )
-        guid = ''
-        if not guidResult['OK']:
-          self.log.error( 'Could not find GUID for %s with message' % ( output ), guidResult['Message'] )
-        elif guidResult['generated']:
-          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ', string.join( guidResult['generated'], ', ' ) )
-          guid = guidResult['Value'][output]
+        guid       = ''
+        if not guidResult[ 'OK' ]:
+          self.log.error( 'Could not find GUID for %s with message' % ( output ), guidResult[ 'Message' ] )
+        elif guidResult[ 'generated' ]:
+          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ', string.join( guidResult[ 'generated' ], ', ' ))
+          guid = guidResult[ 'Value' ][ output ]
         else:
-          guid = guidResult['Value'][output]
-          self.log.info( 'Setting POOL XML catalog GUID for %s to %s' % ( output, guid ) )
+          guid = guidResult[ 'Value' ][ output ]
+          self.log.info( 'Setting POOL XML catalog GUID for %s to %s' % ( output, guid ))
       else:
         guid = self.step_commons[ 'guid' ][ output ]
 
@@ -383,21 +459,22 @@ class BookkeepingReport( ModuleBase ):
       if typeName.upper() == 'HIST':
         typeVersion = '0'
         oldTypeName = typeName
-        typeName = '%sHIST' % ( self.applicationName.upper() )
+        typeName    = '%sHIST' % ( self.applicationName.upper() )
 
-      s = s + '  <OutputFile   Name="' + lfn + '" TypeName="' + typeName + '" TypeVersion="' + typeVersion + '">\n'
+      # Add Output to the XML file
+      oFileAttributes = ( lfn, typeName, typeVersion)
+      job,oFile       = addChildNode( job, "OutputFile", 1, *oFileAttributes ) 
 
       #HIST is in the dataTypes e.g. we may have new names in the future ;)
       if oldTypeName:
         typeName = oldTypeName
 
       if typeName in dataTypes:
-        s = s + '    <Parameter  Name="EventTypeId"     Value="' + eventtype + '"/>\n'
-        s = s + '    <Parameter  Name="EventStat"       Value="' + str( fileStats ) + '"/>\n'
-
+        oFile = addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype        ))
+        oFile = addChildNode( oFile, "Parameter", 0, *( "EventStat",   str( fileStats ) ))
+        
       if typeName in dataTypes or 'HIST' in typeName:
-        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
-
+        oFile = addChildNode( oFile, "Parameter", 0, *( "FileSize",    outputsize       ))
 
       ############################################################
       # Log file replica information
@@ -406,22 +483,270 @@ class BookkeepingReport( ModuleBase ):
           logfile = self.applicationLog
           if logfile == output:
             logurl = 'http://lhcb-logs.cern.ch/storage'
-            url = logurl + self.logFilePath + '/' + self.applicationLog
-            s = s + '    <Replica Name="' + url + '" Location="Web"/>\n'
+            url    = logurl + self.logFilePath + '/' + self.applicationLog
+            oFile  = addChildNode( oFile, "Replica", 0, url )
 
-      s = s + '    <Parameter  Name="MD5Sum"        Value="' + md5sum + '"/>\n'
-      s = s + '    <Parameter  Name="Guid"        Value="' + guid + '"/>\n'
-      s = s + '  </OutputFile>\n'
+      oFile = addChildNode( oFile, "Parameter", 0, *( "MD5Sum", md5sum ))
+      oFile = addChildNode( oFile, "Parameter", 0, *( "Guid",   guid   ))
+
     if self.applicationName == "Gauss":
-        s = self.makeBeamConditions( s )
-
-    s = s + '</Job>'
-    return s
-
-  def makeBeamConditions( self, sbeam ):
-      sbeam = sbeam + '  <SimulationCondition>\n'
-      sbeam = sbeam + '    <Parameter Name="SimDescription"   Value="' + self.simDescription + '"/>\n'
-      sbeam = sbeam + '  </SimulationCondition>\n'
-      return sbeam
+      job,sim    = addChildNode( job, "SimulationCondition", 1 )
+      sim        = addChildNode( sim, "Parameter", 0, *( "SimDescription", self.simDescription ))
+      
+    return doc.toprettyxml( indent = "  ", encoding = "ISO-8859-1" )
+  
+#  def makeBookkeepingXMLString( self ):
+#
+#    dataTypes = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
+#    gLogger.info( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( string.join( dataTypes, ', ' ) ) )
+#
+#    ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
+#    ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
+#    if self.step_commons.has_key( 'StartTime' ):
+#      ldatestart = time.strftime( "%Y-%m-%d", time.localtime( self.step_commons['StartTime'] ) )
+#      ltimestart = time.strftime( "%H:%M", time.localtime( self.step_commons['StartTime'] ) )
+#
+#    # Timing
+#    exectime = 0
+#    if self.step_commons.has_key( 'StartTime' ):
+#      exectime = time.time() - self.step_commons['StartTime']
+#    cputime = 0
+#    if self.step_commons.has_key( 'StartStats' ):
+#      stats = os.times()
+#      cputime = stats[0] + stats[2] - self.step_commons['StartStats'][0] - self.step_commons['StartStats'][2]
+#
+#    s = ''
+#    s = s + '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
+#    s = s + '<!DOCTYPE Job SYSTEM "book.dtd">\n'
+#
+#    # Get the Config name from the environment if any
+#    if self.workflow_commons.has_key( 'configName' ):
+#      configName = self.workflow_commons['configName']
+#      configVersion = self.workflow_commons['configVersion']
+#    else:
+#      configName = self.applicationName
+#      configVersion = self.applicationVersion
+#
+#    s = s + '<Job ConfigName="' + configName + \
+#          '" ConfigVersion="' + configVersion + \
+#          '" Date="' + ldate + \
+#          '" Time="' + ltime + '">\n'
+#
+#    s = s + self.__parameter_string( "CPUTIME", cputime, 'Info' )
+#    s = s + self.__parameter_string( "ExecTime", exectime, 'Info' )
+#
+#    nodeInfo = self.getNodeInformation()
+#    if nodeInfo['OK']:
+#      s = s + self.__parameter_string( "WNMODEL", nodeInfo['ModelName'], 'Info' )
+#      s = s + self.__parameter_string( "WNMEMORY", nodeInfo['Memory(kB)'], 'Info' )
+#      s = s + self.__parameter_string( "WNCPUPOWER", nodeInfo['CPU(MHz)'], 'Info' )
+#      s = s + self.__parameter_string( "WNCACHE", nodeInfo['CacheSize(kB)'], 'Info' )
+#
+#    s = s + self.__parameter_string( "WNCPUHS06", gConfig.getValue( '/LocalSite/CPUNormalizationFactor', '1' ), 'Info' )
+#    s = s + self.__parameter_string( "Production", self.PRODUCTION_ID, 'Info' )
+#    s = s + self.__parameter_string( "DiracJobId", self.JOB_ID, 'Info' )
+#    s = s + self.__parameter_string( "Name", self.STEP_ID, 'Info' )
+#    s = s + self.__parameter_string( "JobStart", ldatestart + ' ' + ltimestart, 'Info' )
+#    s = s + self.__parameter_string( "JobEnd", ldate + ' ' + ltime, 'Info' )
+#    s = s + self.__parameter_string( "Location", DIRAC.siteName(), 'Info' )
+#    s = s + self.__parameter_string( "JobType", self.jobType, "Info" )
+#
+##    s = s+self.__parameter_string('EventInputStat',self.firstStepInput,'Info')
+#
+#    host = None
+#    if os.environ.has_key( "HOSTNAME" ):
+#      host = os.environ["HOSTNAME"]
+#    elif os.environ.has_key( "HOST" ):
+#      host = os.environ["HOST"]
+#    if host is not None:
+#      s = s + self.__parameter_string( 'WorkerNode', host, 'Info' )
+#
+#    if  os.environ.has_key( 'XMLDDDB_VERSION' ):
+#      s = s + self.__parameter_string( "GeometryVersion", os.environ["XMLDDDB_VERSION"], 'Info' )
+#
+#    s = s + self.__parameter_string( "ProgramName", self.applicationName, 'Info' )
+#    s = s + self.__parameter_string( "ProgramVersion", self.applicationVersion, 'Info' )
+#
+#    # DIRAC version
+#    s = s + self.__parameter_string( 'DiracVersion', 'v' + str( DIRAC.majorVersion ) + 'r' + str( DIRAC.minorVersion ) + 'p' + str( DIRAC.patchLevel ), 'Info' )
+#
+#    if self.firstEventNumber != None:
+#      s = s + self.__parameter_string( 'FirstEventNumber', self.firstEventNumber, "Info" )
+#    else:
+#      s = s + self.__parameter_string( 'FirstEventNumber', "1", "Info" )
+#
+#    if self.numberOfEvents != None:
+#      s = s + self.__parameter_string( 'StatisticsRequested', self.numberOfEvents, "Info" )
+#
+#    if self.numberOfEventsInput != None:
+#      s = s + self.__parameter_string( 'NumberOfEvents', self.numberOfEventsInput, "Info" )
+#    else:
+#      s = s + self.__parameter_string( 'NumberOfEvents', self.numberOfEvents, "Info" )
+#
+#    if self.inputData:
+#      intermediateInputs = False
+#      for inputname in self.inputData.split( ';' ):
+#        for bkLFN in self.bkLFNs:
+#          if os.path.basename( bkLFN ) == os.path.basename( inputname ):
+#            s = s + '  <InputFile    Name="' + bkLFN + '"/>\n'
+#            intermediateInputs = True
+#        if not intermediateInputs:
+#          s = s + '  <InputFile    Name="' + inputname.replace( 'LFN:', '' ) + '"/>\n'
+#
+#    ####################################################################
+#    # Output files
+#    # Define DATA TYPES - ugly! should find another way to do that
+#
+#    statistics = "0"
+#
+#    if self.eventType != None:
+#      eventtype = self.eventType
+#    else:
+#      self.log.warn( 'BookkeepingReport: no eventType specified' )
+#      eventtype = 'Unknown'
+#    self.log.info( 'Event type = %s' % ( str( self.eventType ) ) )
+#    self.log.info( 'stats = %s' % ( str( self.numberOfEventsOutput ) ) )
+#
+#    if self.numberOfEventsOutput != '':
+#      statistics = self.numberOfEventsOutput
+#    elif self.numberOfEventsInput != '':
+#      statistics = self.numberOfEventsInput
+#    elif self.numberOfEvents != '':
+#      statistics = self.numberOfEvents
+#    else:
+#      self.log.warn( 'BookkeepingReport: no numberOfEvents specified' )
+#      statistics = "0"
+#
+#
+#    outputs = []
+#    count = 0
+#    bkTypeDict = {}
+#    while ( count < len( self.listoutput ) ):
+#      if self.listoutput[count].has_key( 'outputDataName' ):
+#        outputs.append( ( ( self.listoutput[count]['outputDataName'] ), ( self.listoutput[count]['outputDataSE'] ), ( self.listoutput[count]['outputDataType'] ) ) )
+#      if self.listoutput[count].has_key( 'outputBKType' ):
+#        bkTypeDict[self.listoutput[count]['outputDataName']] = self.listoutput[count]['outputBKType']
+#      count = count + 1
+#    outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
+#    self.log.info( outputs )
+#    if type( self.logFilePath ) == type( [] ):
+#      self.logFilePath = self.logFilePath[0]
+#
+#    for output, outputse, outputtype in list( outputs ):
+#      self.log.info( 'Looking at output %s %s %s' % ( output, outputse, outputtype ) )
+#      typeName = outputtype.upper()
+#      typeVersion = '1'
+#      fileStats = statistics
+#      if bkTypeDict.has_key( output ):
+#        typeVersion = 'ROOT_All'
+#        typeName = string.upper( bkTypeDict[output] )
+#        self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
+#        if self.workflow_commons.has_key( 'StreamEvents' ):
+#          streamEvents = self.workflow_commons['StreamEvents']
+#          if streamEvents.has_key( typeName ):
+#            fileStats = streamEvents[typeName]
+#            self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
+#
+#      if not os.path.exists( output ):
+#        self.log.error( 'File does not exist:' , output )
+#        continue
+#      # Output file size
+#      if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
+#        try:
+#          outputsize = str( os.path.getsize( output ) )
+#        except:
+#          outputsize = '0'
+#      else:
+#        outputsize = self.step_commons[ 'size' ][ output ]
+#
+#      if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
+#        comm = 'md5sum ' + str( output )
+#        resultTuple = shellCall( 0, comm )
+#        status = resultTuple['Value'][0]
+#        out = resultTuple['Value'][1]
+#      else:
+#        status = 0
+#        out = self.step_commons[ 'md5' ][ output ]
+#
+#      if status:
+#        self.log.info( "Failed to get md5sum of %s" % str( output ) )
+#        self.log.info( str( out ) )
+#        md5sum = '000000000000000000000000000000000000'
+#      else:
+#        md5sum = out.split()[0]
+#
+#      if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
+#        guidResult = getGUID( output )
+#        guid = ''
+#        if not guidResult['OK']:
+#          self.log.error( 'Could not find GUID for %s with message' % ( output ), guidResult['Message'] )
+#        elif guidResult['generated']:
+#          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ', string.join( guidResult['generated'], ', ' ) )
+#          guid = guidResult['Value'][output]
+#        else:
+#          guid = guidResult['Value'][output]
+#          self.log.info( 'Setting POOL XML catalog GUID for %s to %s' % ( output, guid ) )
+#      else:
+#        guid = self.step_commons[ 'guid' ][ output ]
+#
+#      if not guid:
+#        return S_ERROR( 'No GUID found for %s' % output )
+#
+#      # find the constructed lfn
+#      lfn = ''
+#      if not re.search( '.log$', output ):
+#        for outputLFN in self.bkLFNs:
+#          if os.path.basename( outputLFN ) == output:
+#            lfn = outputLFN
+#        if not lfn:
+#          return S_ERROR( 'Could not find LFN for %s' % output )
+#      else:
+#        lfn = '%s/%s' % ( self.logFilePath, self.applicationLog )
+#
+#      #Fix for histograms
+#      oldTypeName = None
+#      if typeName.upper() == 'HIST':
+#        typeVersion = '0'
+#        oldTypeName = typeName
+#        typeName = '%sHIST' % ( self.applicationName.upper() )
+#
+#      s = s + '  <OutputFile   Name="' + lfn + '" TypeName="' + typeName + '" TypeVersion="' + typeVersion + '">\n'
+#
+#      #HIST is in the dataTypes e.g. we may have new names in the future ;)
+#      if oldTypeName:
+#        typeName = oldTypeName
+#
+#      if typeName in dataTypes:
+#        s = s + '    <Parameter  Name="EventTypeId"     Value="' + eventtype + '"/>\n'
+#        s = s + '    <Parameter  Name="EventStat"       Value="' + str( fileStats ) + '"/>\n'
+#
+#      if typeName in dataTypes or 'HIST' in typeName:
+#        s = s + '    <Parameter  Name="FileSize"        Value="' + outputsize + '"/>\n'
+#
+#
+#      ############################################################
+#      # Log file replica information
+##      if typeName == "LOG":
+#      if self.applicationLog != None:
+#          logfile = self.applicationLog
+#          if logfile == output:
+#            logurl = 'http://lhcb-logs.cern.ch/storage'
+#            url = logurl + self.logFilePath + '/' + self.applicationLog
+#            s = s + '    <Replica Name="' + url + '" Location="Web"/>\n'
+#
+#      s = s + '    <Parameter  Name="MD5Sum"        Value="' + md5sum + '"/>\n'
+#      s = s + '    <Parameter  Name="Guid"        Value="' + guid + '"/>\n'
+#      s = s + '  </OutputFile>\n'
+#    if self.applicationName == "Gauss":
+#        s = self.makeBeamConditions( s )
+#
+#    s = s + '</Job>'
+#    return s
+#
+#  def makeBeamConditions( self, sbeam ):
+#      sbeam = sbeam + '  <SimulationCondition>\n'
+#      sbeam = sbeam + '    <Parameter Name="SimDescription"   Value="' + self.simDescription + '"/>\n'
+#      sbeam = sbeam + '  </SimulationCondition>\n'
+#      return sbeam
 
 
