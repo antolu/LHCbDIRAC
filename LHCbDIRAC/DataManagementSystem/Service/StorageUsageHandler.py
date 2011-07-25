@@ -48,10 +48,10 @@ class StorageUsageHandler( RequestHandler ):
     """ Exports the method to remove entries from the se_Usage table """
     return storageUsageDB.removeDirFromSe_Usage( dirPaths )
 
-  types_removeDirFromSe_DarkDir = []
-  def export_removeDirFromSe_DarkDir( self, dirPaths ):
-    """ Exports the method to remove entries from the se_DarkDirectory table """
-    return storageUsageDB.removeDirFromSe_DarkDir( dirPaths )
+  types_removeDirFromProblematicDirs = []
+  def export_removeDirFromProblematicDirs( self, dirPaths ):
+    """ Exports the method to remove entries from the problematicDirs table """
+    return storageUsageDB.removeDirFromProblematicDirs( dirPaths )
 
   ##################################################################
   #
@@ -204,12 +204,12 @@ class StorageUsageHandler( RequestHandler ):
     return storageUsageDB.purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList )
 
   ###
-  # methods to deal with DarkData directory: se_DarkDirectories
+  # methods to deal with problematicDirs directory: problematicDirs
   ###
-  types_publishToDarkDir = []
-  def export_publishToDarkDir( self, directoryDict ):
-    """ Export the publishToDarkDir DB method, which inserts/updates row into the  se_DarkDirectories """
-    return storageUsageDB.publishToDarkDir( directoryDict )
+  types_publishToProblematicDirs = []
+  def export_publishToProblematicDirs( self, directoryDict ):
+    """ Export the publishToProblematicDirs DB method, which inserts/updates row into the  problematicDirs """
+    return storageUsageDB.publishToProblematicDirs( directoryDict )
   ###
   # methods to deal with se_Usage table
   ###
