@@ -58,16 +58,18 @@ class StorageUsageDB( DB ):
                                         'PrimaryKey' : [ 'DID', 'SEName' ],
                                         }
 
-    self.__tablesDesc[ 'se_DarkDirectories' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
+    self.__tablesDesc[ 'problematicDirs' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
                                                        'Path' : 'VARCHAR(255) NOT NULL',
                                                        'SEName' : 'VARCHAR(32) NOT NULL',
-                                                       'Files' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'SRMFiles' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'LFCFiles' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'SRMSize' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'LFCSize' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'Problem' : 'VARCHAR(255) NOT NULL',
                                                        'Updated' : 'DATETIME NOT NULL'
                                                    },
                                         'PrimaryKey' : [ 'DID'],
                                         }
-
 
     for tableName in self.__tablesDesc:
       if not tableName in tablesInDB:
@@ -117,15 +119,18 @@ class StorageUsageDB( DB ):
     return S_OK()
 
   ####
-  # Insert/update to se_DarkDirectories
+  # Insert/update to problematicDirs
   ####
-  def publishToDarkDir( self, directoryDict ):
-    """ Publish an entry into the dark data directory """
+  def publishToProblematicDirs( self, directoryDict ):
+    """ Publish an entry into the problematic data directory """
     for path in directoryDict.keys():
-      SeName = directoryDict[ path ][ 'SEName']
+      SeName = directoryDict[ path ][ 'SEName' ]
+      problem = directoryDict[ path ][ 'Problem' ]
       try:
-        files = int( directoryDict[ path ][ 'Files' ] )
-        size = int( directoryDict[ path ][ 'Size'] )
+        SRMfiles = int( directoryDict[ path ][ 'Files' ] )
+        SRMsize = int( directoryDict[ path ][ 'Size'] )
+        LFCfiles = int( directoryDict[ path ]['LFCFiles' ] )
+        LFCsize = int( directoryDict[ path ]['LFCSize'] )
       except  ValueError:
         return S_ERROR( "ERROR: Files and Size have to be integer!" )
     # check if the tuple (path,SE) already exists in the table
@@ -133,28 +138,30 @@ class StorageUsageDB( DB ):
         path = "%s/" % path
       sqlPath = self._escapeString( path )['Value']
       sqlSeName = self._escapeString( SeName )['Value']
-      sqlCmd = "SELECT DID FROM se_DarkDirectories WHERE Path=%s and SEName=%s" % ( sqlPath, sqlSeName )
+      sqlProblem = self._escapeString( problem )['Value']
+      sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s and SEName=%s" % ( sqlPath, sqlSeName )
       self.log.info( "sqlCmd: %s" % sqlCmd )
       result = self._query( sqlCmd )
       if not result[ 'OK' ]:
-        self.log.error( "Failed to query se_DarkDirectories" )
+        self.log.error( "Failed to query problematicDirs" )
         return result
       DID = result['Value']
       if DID:
         # there is an entry for (path, SEname), make an update of the row
-        sqlCmd = "UPDATE `se_DarkDirectories` SET Files=%d, Size=%d, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( files, size, sqlPath, sqlSeName )
+        #sqlCmd = "UPDATE `problematicDirs` SET SRMFiles=%d, SRMSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( SRMfiles, SRMsize, sqlProblem, sqlPath, sqlSeName )
+        sqlCmd = "UPDATE `problematicDirs` SET SRMFiles=%d, SRMSize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( SRMfiles, SRMsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSeName )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
-          self.log.error( "Cannot update row (%s, %s) in se_DarkDirectories" % ( path, SeName ) )
+          self.log.error( "Cannot update row (%s, %s) in problematicDirs" % ( path, SeName ) )
           return result
       else:
         # entry is not there, make an insert of a new row
-        sqlCmd = "INSERT INTO se_DarkDirectories (Path, SEName, Files, Size, Updated) VALUES ( %s, %s, %d, %d, UTC_TIMESTAMP())" % ( sqlPath, sqlSeName, files, size )
+        sqlCmd = "INSERT INTO problematicDirs (Path, SEName, SRMFiles, SRMSize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSeName, SRMfiles, SRMsize, LFCfiles, LFCsize, sqlProblem )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
-          self.log.error( "Cannot insert row (%s, %s) in se_DarkDirectories" % ( path, SeName ) )
+          self.log.error( "Cannot insert row (%s, %s) in problematicDirs" % ( path, SeName ) )
           return result
     return S_OK()
   ###
@@ -230,16 +237,16 @@ class StorageUsageDB( DB ):
       return result
     return S_OK( dict( result[ 'Value' ] ) )
 
-  def __getIDsFromDarkDirs( self, dirList ):
-    """ Get the ID from the se_DarkDirectories tables, for a given tuple (Path,SE) """
+  def __getIDsFromProblematicDirs( self, dirList ):
+    """ Get the ID from the problematicDirs table, for a given tuple (Path,SE) """
     dirPath = dirList.keys()[ 0 ]
     if dirPath[-1] != "/":
       dirPath = "%s/" % dirPath
     SE = dirList[ dirPath ][ 'SEName' ]
     sqlSE = self._escapeString( SE )[ 'Value' ]
     sqlPath = self._escapeString( dirPath )[ 'Value' ]
-    sqlCmd = "SELECT Path, DID FROM se_DarkDirectories WHERE Path=%s AND SEName=%s" % ( sqlPath, sqlSE )
-    self.log.info( "in getIDsFromDarkDirs query %s" % sqlCmd )
+    sqlCmd = "SELECT Path, DID FROM problematicDirs WHERE Path=%s AND SEName=%s" % ( sqlPath, sqlSE )
+    self.log.info( "in __getIDsFromProblematicDirs query %s" % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
       return result
@@ -323,9 +330,9 @@ class StorageUsageDB( DB ):
 
   def removeDirFromSe_Usage( self, dirDict ):
     """ Remove the entry corresponding to the tuple (path, SE) from the se_Usage table.
-     This function is typically called when a directory is found to be a dark data, and before inserting it into the 
-    se_DarkDirectories table, it is necessary to remove it from the se_Usage table, if it exists there. In general, one same directory can only exist into either the
-     se_Usage or the se_DarkDirectories. """
+     This function is typically called when a directory is found to be a problematic directory, and before inserting it into the problematicDirs
+     table, it is necessary to remove it from the se_Usage table, if it exists there. In general, one same directory can only exist into either the
+     se_Usage or the problematicDirs table. """
     deletedDirs = 0
     result = self.__getIDsFromSe_Usage( dirDict )
     if not result[ 'OK' ]:
@@ -343,15 +350,15 @@ class StorageUsageDB( DB ):
       return result
     return S_OK( deletedDirs )
 
-  def removeDirFromSe_DarkDir( self, dirDict ):
-    """ Remove an entry from the se_DarkDirectories table. This is typically used when a directory is found to be correctly registered in the FC
-    and it was previously inserted in the dark data table: before inserting the entry into the se_Usage table, it has to be removed
-    from the se_DarkDirectories """
+  def removeDirFromProblematicDirs( self, dirDict ):
+    """ Remove an entry from the problematicDirs table. This is typically used when a directory is found to be correctly registered in the FC
+    and it was previously inserted in the problematic data table: before inserting the entry into the se_Usage table, it has to be removed
+    from the problematicDirs """
     deletedDirs = 0
-    result = self.__getIDsFromDarkDirs( dirDict )
+    result = self.__getIDsFromProblematicDirs( dirDict )
     if not result[ 'OK' ]:
       return result
-    self.log.info( "sqlCmd result for getIDsFromDarkDirs is: %s" % result )
+    self.log.info( "sqlCmd result for __getIDsFromProblematicDirs is: %s" % result )
     dirIDs = result[ 'Value' ]
     if not dirIDs:
       self.log.info( "No directory to remove" )
@@ -361,7 +368,7 @@ class StorageUsageDB( DB ):
       return S_ERROR( "There should not be more than 1 match for a tuple (path,SE)!!" )
     self.log.info( "remove directories: %s" % dirIDs )
     sqlIDs = ", ".join( [ str( dirIDs[ path ] ) for path in dirIDs ] )
-    sqlCmd = "DELETE FROM se_DarkDirectories WHERE DID in ( %s )" % ( sqlIDs )
+    sqlCmd = "DELETE FROM problematicDirs WHERE DID in ( %s )" % ( sqlIDs )
     result = self._update( sqlCmd )
     if not result[ 'OK' ]:
       return result
