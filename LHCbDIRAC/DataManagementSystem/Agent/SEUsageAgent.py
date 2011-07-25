@@ -16,9 +16,8 @@ from types import *
 
 def alarmTimeoutHandler( *args ):
   raise Exception( 'Timeout' )
-
+#
 AGENT_NAME = 'DataManagement/SEUsageAgent'
-#InputFilesLocation = '/home/dirac/SEUsageAgentInputFiles/'
 
 class SEUsageAgent( AgentModule ):
   def initialize( self ):
@@ -56,7 +55,7 @@ class SEUsageAgent( AgentModule ):
     """ Loops on the input files to read the content of Storage Elements, process them, and store the result into the DB.
     It reads directory by directory (every row of the input file being a directory).
     If the directory exists in the StorageUsage su_Directory table, and if a replica also exists for the given SE in the su_SEUsage table, then the directory and
-    its usage are stored in the replica table (the se_Usage table) together with the insertion time, otherwise it is added to the dark data table (se_DarkDirectories) """
+    its usage are stored in the replica table (the se_Usage table) together with the insertion time, otherwise it is added to the problematic data table (problematicDirs) """
     gLogger.info( "SEUsageAgent: start the execute method\n" )
 
     siteList = self.siteConfig.keys()
@@ -96,7 +95,11 @@ class SEUsageAgent( AgentModule ):
           # oneDirDict = {LFNPath: {'SEName: se, 'Files':files, 'Size':size, 'Updated',updated }}
           # use this format for consistency with already existing methods of StorageUsageDB which take in input a dictionary like this
           gLogger.info( "SEUsageAgent: processing directory: %s" % ( oneDirDict ) )
-          # initialize the isRegistered flag as False. Change it to true if a replica is found in the same SE.
+          # initialize the isRegistered flag. Change it according to the checks SRM vs LFC
+          # possible values of isRegistered flag are:
+          # NotRegisteredInFC: data not registered in FC
+          # RegisteredInFC: data correctly registered in FC
+          # MissingDataFromSE: the directory exists in the LFC for that SE, but there is less data on the SE than what reported in the FC
           isRegistered = False
           gLogger.info( "SEUsageAgent: check if dirName exists in su_Directory: %s" % dirPath )
           res = self.__storageUsage.getIDs( oneDirDict )
@@ -104,8 +107,8 @@ class SEUsageAgent( AgentModule ):
             gLogger.info( "SEUsageAgent: ERROR failed to get DID from StorageUsageDB.su_Directory table for dir: %s " % dirPath )
             continue
           elif not res['Value']:
-            gLogger.info( "SEUsageAgent: NO LFN registered in the LFC for the given path %s => insert the entry in the se_DarkDirectory table and delete this entry from the replicas table" % dirPath )
-            isRegistered = False
+            gLogger.info( "SEUsageAgent: NO LFN registered in the LFC for the given path %s => insert the entry in the problematicDirs table and delete this entry from the replicas table" % dirPath )
+            isRegistered = 'NotRegisteredInFC'
           else:
             value = res['Value']
             gLogger.info( "SEUsageAgent: directory LFN  is registered in the LFC, output of getIDs is %s" % value )
@@ -115,24 +118,38 @@ class SEUsageAgent( AgentModule ):
             res = self.__storageUsage.getAllReplicasInFC( dir )
             if not res['OK']:
               gLogger.info( "SEUsageAgent: ERROR failed to get replicas for %s directory " % dir )
-              isRegistered = False
               continue
             elif not res['Value']:
-              gLogger.info( "SEUsageAgent: NO replica found for %s on any SE! Anomalous case: the LFN is registered in the FC but with NO replica! For the time being, insert it intose_DarkDirectories table " % dir )
+              gLogger.info( "SEUsageAgent: NO replica found for %s on any SE! Anomalous case: the LFN is registered in the FC but with NO replica! For the time being, insert it into problematicDirs table " % dir )
               # we should decide what to do in this case. This might happen, but it is a problem at FC level... TBD!
-              isRegistered = False
+              isRegistered = 'NotRegisteredInFC'
             else: # got some replicas! let's see if there is one for this SE
               for lfn in res['Value'].keys():
                 for se in res['Value'][lfn].keys():
                   if SEName in se:
                     gLogger.info( "SEUsageAgent: the replica at SE= %s is registered in the FC!" % SEName )
-                    isRegistered = True
+                    # check also whether the number of files and total directory size match:
+                    gLogger.info( "replica meta-data: %s" % res['Value'][lfn][ se ] )
+                    LFCFiles = int( res['Value'][lfn][ se ]['Files'] )
+                    LFCSize = int( res['Value'][lfn][ se ]['Size'] )
+                    SRMFiles = int( oneDirDict[ lfn ][ 'Files' ] )
+                    SRMSize = int( oneDirDict[ lfn ]['Size'] )
+                    gLogger.info( "LFCFiles = %d LFCSize = %d SRMFiles = %d SRMSize = %d" % ( LFCFiles, LFCSize, SRMFiles, SRMSize ) )
+                    if LFCFiles == SRMFiles and LFCSize == SRMSize:
+                      gLogger.info( "Number of files and total size matches with what reported by LFC" )
+                      isRegistered = 'RegisteredInFC'
+                    else:
+                      gLogger.info( "Directory registered, but mismatch in number of files or size!" )
+                      isRegistered = 'MissingDataFromSE'
                     break
 
           gLogger.info( "SEUsageAgent: isRegistered flag is %s" % isRegistered )
-        # now insert the entry into the dark data table, or the replicas table according the isRegistered flag.
+        # now insert the entry into the problematicDirs table, or the replicas table according the isRegistered flag.
           if not isRegistered:
-            gLogger.info( "SEUsageAgent: dark data! Add the entry %s to se_DarkDirectories table. Before (if necessary) remove it from se_Usage table" % ( dirPath ) )
+            gLogger.error( "ERROR: the isRegistered flag could not be updated for this directory: %s " % oneDirDict )
+            continue
+          if isRegistered == 'NotRegisteredInFC' or isRegistered == 'MissingDataFromSE':
+            gLogger.info( "SEUsageAgent: problematic directory! Add the entry %s to problematicDirs table. Before (if necessary) remove it from se_Usage table" % ( dirPath ) )
             res = self.__storageUsage.removeDirFromSe_Usage( oneDirDict )
             if not res[ 'OK' ]:
               gLogger.error( "SEUsageAgent: ERROR failed to remove from se_Usage table: %s" % oneDirDict )
@@ -143,30 +160,38 @@ class SEUsageAgent( AgentModule ):
                 gLogger.info( "SEUsageAgent: entry %s correctly removed from se_Usage table" % oneDirDict )
               else:
                 gLogger.info( "SEUsageAgent: entry %s was NOT in se_Usage table" % oneDirDict )
-              res = self.__storageUsage.publishToDarkDir( oneDirDict )
+              #update the oneDirDict and insert into problematicDirs
+              oneDirDict[ dirPath ][ 'Problem' ] = isRegistered
+              oneDirDict[ dirPath ][ 'LFCFiles'] = LFCFiles
+              oneDirDict[ dirPath ][ 'LFCSize' ] = LFCSize
+              res = self.__storageUsage.publishToProblematicDirs( oneDirDict )
               if not res['OK']:
-                gLogger.error( "SEUsageAgent: failed to publish entry %s to se_DarkDirectories table" % dirPath )
+                gLogger.error( "SEUsageAgent: failed to publish entry %s to problematicDirs table" % dirPath )
               else:
-                gLogger.info( "SEUsageAgent: entry %s correctly published to Dark Directories table" % oneDirDict )
-          else: # publish to se_Usage table!
-            # before, remove it from dark data dir!!!
-            gLogger.info( "SEUsageAgent: replica %s is registered! remove from se_DarkDirectories (if necessary) and  publish to se_Usage table" % dirPath )
-            res = self.__storageUsage.removeDirFromSe_DarkDir( oneDirDict )
+                gLogger.info( "SEUsageAgent: entry %s correctly published to problematicDirs table" % oneDirDict )
+          elif isRegistered == 'RegisteredInFC': # publish to se_Usage table!
+            gLogger.info( "SEUsageAgent: replica %s is registered! remove from problematicDirs (if necessary) and  publish to se_Usage table" % dirPath )
+            res = self.__storageUsage.removeDirFromProblematicDirs( oneDirDict )
             if not res[ 'OK' ]:
-              gLogger.error( "SEUsageAgent: ERROR failed to remove from se_DarkDirectories: %s" % oneDirDict )
+              gLogger.error( "SEUsageAgent: ERROR failed to remove from problematicDirs: %s" % oneDirDict )
               continue
             else:
               removedDirs = res[ 'Value' ]
               if removedDirs:
-                gLogger.info( "SEUsageAgent: entry %s correctly removed from se_DarkDirectories" % oneDirDict )
+                gLogger.info( "SEUsageAgent: entry %s correctly removed from problematicDirs" % oneDirDict )
               else:
-                gLogger.info( "SEUsageAgent: entry %s was NOT in se_DarkDirectories" % oneDirDict )
+                gLogger.info( "SEUsageAgent: entry %s was NOT in problematicDirs" % oneDirDict )
               res = self.__storageUsage.publishToSEReplicas( oneDirDict )
               if not res['OK']:
                 gLogger.info( "SEUsageAgent: failed to publish %s entry to se_Usage table" % oneDirDict )
               else:
                 gLogger.info( "SEUsageAgent: entry %s correctly published to se_Usage" % oneDirDict )
-      return S_OK()
+          else:
+            gLogger.error( "Unknown value of isRegistered flag: %s " % isRegistered )
+
+        gLogger.debug( "Finished loop on file: %s " % fileP3 )
+      gLogger.debug( "Finished loop for site: %s " % site )
+    return S_OK()
 
 
 
@@ -190,7 +215,7 @@ class SEUsageAgent( AgentModule ):
     pathToInputFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
     if not os.path.isdir( pathToInputFiles ):
       os.makedirs( pathToInputFiles )
-    StorageName = self.siteConfig[ site ][ 'StorageName' ] # i.e. for SARA it's NIKHEF
+    StorageName = self.siteConfig[ site ][ 'StorageName' ]
     if pathToInputFiles[-1] != "/":
       pathToInputFiles = "%s/" % pathToInputFiles
     gLogger.info( "Reading input files for site %s " % site )
