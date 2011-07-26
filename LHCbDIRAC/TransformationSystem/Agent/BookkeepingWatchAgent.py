@@ -71,9 +71,9 @@ class BookkeepingWatchAgent( AgentModule ):
         pickle.dump( self.fullTimeLog, f )
         pickle.dump( self.bkQueries, f )
         f.close()
-        self.__logVerbose( "successfully dumped Log into %s", self.pickleFile )
-      except:
-        self.__logError( "fail to dump Log into %s", self.pickleFile )
+        self.__logVerbose( "successfully dumped Log into %s" %self.pickleFile )
+      except Exception, e:
+        self.__logError( "fail to dump Log into %s: %s" %(self.pickleFile, e) )
 
   ##############################################################################
   def execute( self ):
