@@ -8,10 +8,15 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import CS, Utils
 
 import xml.dom
+import time
+import lcg_util
 
 __RCSID__ = "$Id: $"
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
+
+# FIXME: Add to CS
+xml_path = "/afs/cern.ch/user/v/vibernar/www/sls/storage_space/"
 
 def xml_append(doc, tag, value=None, elt=None, **kw):
   new_elt = doc.createElement(tag)
@@ -26,15 +31,29 @@ def xml_append(doc, tag, value=None, elt=None, **kw):
     return doc.documentElement.appendChild(new_elt)
 
 class SpaceTokenOccupancyTest(object):
-  def __init__(self, site, space_token, url):
-    self.site = site
-    self.space_token = space_token
-    self.url = url
+  def __init__(self, site, space_token, endpoint):
+    self.site         = site
+    self.space_token  = space_token
+    self.id           = site.split(".")[1] + "-" + space_token
+    self.endpoint     = endpoint
     self.availability = 0
-    self.free = 0
-    self.total = 0
-    self.timestamp = ""
-    self.validity = ""
+    self.free         = 0
+    self.total        = 0
+    self.guaranteed   = 0
+    self.timestamp    = time.strftime("%Y-%m-%dT%H:%M:%S")
+    self.validity     = 'PT0M'
+
+    answer = lcg_util.lcg_stmd(space_token, endpoint, True, 0)
+    if answer[0] == 0:
+      output = answer[1][0]
+      self.total      = float(output['totalsize']) / 2**40 # Bytes to Terabytes
+      self.guaranteed = float(output['guaranteedsize']) / 2**40
+      self.free       = float(output['unusedsize']) / 2**40
+      self.validity   = 'PT13H'
+      self.availability = 100 if self.free > 4 else (self.free*100/self.total if self.total != 0 else 0)
+
+    self.xml()
+    self.dashboard()
 
   def xml(self):
     impl = xml.dom.getDOMImplementation()
@@ -46,9 +65,10 @@ class SpaceTokenOccupancyTest(object):
     doc.documentElement.setAttribute("xsi:schemaLocation",
                                      "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
 
-    xml_append(doc, "id", self.site)
+    xml_append(doc, "id", self.id)
     xml_append(doc, "availability", self.availability)
     elt = xml_append(doc, "availabilitythresholds")
+    # FIXME: Put the thresholds into the CS
     xml_append(doc, "threshold", value=15, elt=elt, level="available")
     xml_append(doc, "threshold", value=10, elt=elt, level="affected")
     xml_append(doc, "threshold", value=5, elt=elt, level="degraded")
@@ -67,9 +87,18 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt=elt)
     xml_append(doc, "timestamp", self.timestamp)
 
+    try:
+      xmlfile = open(self.id + ".xml", "w")
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
 
-    return doc
-
+  def dashboard(self):
+    try:
+      dbfile = open(self.id + "_space_monitor", "w")
+      dbfile.write(self.id + ' ' + str(self.total) + ' ' + str(self.guaranteed) + ' ' + str(self.free) + '\n')
+    finally:
+      dbfile.close()
 
 class SLSAgent(AgentModule):
 
@@ -99,14 +128,8 @@ class SLSAgent(AgentModule):
       except KeyError:
         pass
 
-
     for k in res:
       for st in res[k]:
-        st_test = SpaceTokenOccupancyTest(k, st, res[k][st])
-        print st_test.xml().toprettyxml(indent="  ", encoding="utf-8")
-
-    # for k in res:
-    #   print k
-    # print len(res), res
+        SpaceTokenOccupancyTest(k, st, res[k][st])
 
     return S_OK()
