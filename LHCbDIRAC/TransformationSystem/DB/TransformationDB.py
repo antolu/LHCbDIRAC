@@ -30,7 +30,7 @@ class TransformationDB( DIRACTransformationDB ):
     DIRACTransformationDB.__init__( self, dbname, dbconfig, maxQueueSize )
     self.lock = threading.Lock()
     self.dbname = dbname
-    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible']
+    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible','RunNumbers']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
 
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
@@ -200,6 +200,7 @@ class TransformationDB( DIRACTransformationDB ):
       req = "SELECT BkQueryID,%s FROM BkQueries WHERE BkQueryID=%d" % ( fieldsString, int( bkQueryID ) )
     else:
       req = "SELECT BkQueryID,%s FROM BkQueries" % ( fieldsString )
+      
     result = self._query( req, connection )
     if not result['OK']:
       return result
@@ -227,6 +228,27 @@ class TransformationDB( DIRACTransformationDB ):
       return S_OK( bkDict )
     else:
       return S_OK( resultDict )
+
+  # 
+  # extends DIRAC.__insertExistingTransformationFiles
+  # Does not add userSE and adds runNumber
+  # 
+  def __insertExistingTransformationFiles( self, transID, fileTuples, connection = False ):
+    req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
+    candidates = False
+    for tuple in fileTuples:
+      lfn, originalID, fileID, status, taskID, targetSE, usedSE, errorCount, lastUpdate, insertTime, runNumber = tuple[:11]
+      if status != 'Unused':
+        candidates = True
+        if not re.search( '-', status ):
+          status = "%s-%d" % ( status, originalID )
+          if taskID:
+            taskID = str( int( originalID ) ).zfill( 8 ) + '_' + str( int( taskID ) ).zfill( 8 )
+        req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID, targetSE, runNumber )
+    req = req.rstrip( "," )
+    if not candidates:
+      return S_OK()
+    return self._update( req, connection )
 
   #############################################################################
   #
