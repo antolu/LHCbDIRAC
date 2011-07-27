@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-start.py $
-# File :   dirac-production-start
-# Author : Stuart Paterson
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-action.py $
+# File :   dirac-production-action
+# Author : Mario Ubeda Garcia
 ########################################################################
 """
   Start or stop the production(s)
