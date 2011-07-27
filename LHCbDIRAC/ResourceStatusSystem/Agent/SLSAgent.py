@@ -15,8 +15,7 @@ __RCSID__ = "$Id: $"
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
-# FIXME: Add to CS
-xml_path = "/afs/cern.ch/user/v/vibernar/www/sls/storage_space/"
+impl = xml.dom.getDOMImplementation()
 
 def xml_append(doc, tag, value=None, elt=None, **kw):
   new_elt = doc.createElement(tag)
@@ -31,7 +30,8 @@ def xml_append(doc, tag, value=None, elt=None, **kw):
     return doc.documentElement.appendChild(new_elt)
 
 class SpaceTokenOccupancyTest(object):
-  def __init__(self, site, space_token, endpoint):
+  def __init__(self, site, space_token, endpoint, xmlpath):
+    self.xmlpath      = xmlpath
     self.site         = site
     self.space_token  = space_token
     self.id           = site.split(".")[1] + "-" + space_token
@@ -56,7 +56,6 @@ class SpaceTokenOccupancyTest(object):
     self.dashboard()
 
   def xml(self):
-    impl = xml.dom.getDOMImplementation()
     doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
                                "serviceupdate",
                                None)
@@ -88,21 +87,129 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "timestamp", self.timestamp)
 
     try:
-      xmlfile = open(self.id + ".xml", "w")
+      xmlfile = open(self.xmlpath + self.id + ".xml", "w")
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
       xmlfile.close()
 
   def dashboard(self):
     try:
-      dbfile = open(self.id + "_space_monitor", "w")
+      dbfile = open(self.xmlpath + self.id + "_space_monitor", "w")
       dbfile.write(self.id + ' ' + str(self.total) + ' ' + str(self.guaranteed) + ' ' + str(self.free) + '\n')
     finally:
       dbfile.close()
 
+class DIRACTest(object):
+  def __init__(self, xmlpath):
+    from DIRAC import gConfig
+    self.setup = gConfig.getValue('DIRAC/Setup')
+    self.xmlpath = xmlpath
+
+    # Run xml_gw
+    self.xml_gw()
+
+    # For each service, run XML...
+    systems = CS.getTypedDictRootedAt(root="", relpath="/Systems")
+    services = []
+    for s in systems:
+      try:
+        sys, srv = systems[s][self.setup]['URLs'].split("/")[-2:]
+        services.append((sys, srv))
+      except KeyError:
+        pass
+
+    for (sys, srv) in services:
+      self.xml_sensor(sys, srv)
+
+
+
+  # XML GENERATORS
+
+  def xml_gw(self):
+    try:
+      sites = gConfig.getSections('/Resources/Sites/LCG')['Value']
+    except KeyError:
+      # FIXME: log, etc...
+      print "SLSAgent, DIRACTest: Unable to query CS."
+      sites = []
+
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                               "serviceupdate",
+                               None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+
+    xml_append(doc, "id", "Framework_Gateway")
+    # FIXME: Add to CS
+    xml_append(doc, "webpage",
+               "https://lhcbweb.pic.es/DIRAC/LHCb-Production/diracAdmin/info/general/diracOverview")
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+
+    if sites == []:
+      xml_append(doc, "availability", 0)
+      xml_append(doc, "notes",
+                 "Retrieved 0 sites out of the Configuration Service.\
+ Please check the CS is up and running otherwise is the Gateway")
+
+    else:
+      xml_append(doc, "availability", 100)
+      xml_append(doc, "notes", "Retrieved "+str(len(sites))+"\
+ sites out of the Configuration Service through the Gateway")
+
+    try:
+      xmlfile = open(self.xmlpath + "Framework_Gateway.xml", "w")
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+  def xml_sensor(self, system, service):
+    from DIRAC.Interfaces.API.Dirac import Dirac
+    dirac = Dirac()
+
+    res = dirac.ping(system, service)
+    assert(res)
+
+    try:
+      import urlparse
+      host = urlparse.urlparse(res['Value']['service url']).netloc.split(":")[0]
+    except KeyError:
+      host = "unknown.cern.ch"
+
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                               "serviceupdate",
+                               None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    xml_append(doc, "id", system + "_" + service)
+    xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+
+    if res['OK']:
+      res = res['Value']
+      xml_append(doc, "availability", 100)
+      elt = xml_append(doc, "data")
+      xml_append(doc, "numericvalue", res['service uptime'], elt=elt,
+                 name="Service Uptime", desc="Seconds since last restart of service")
+      xml_append(doc, "numericvalue", res['host uptime'], elt=elt,
+                 name="Host Uptime", desc="Seconds since last restart of machine")
+      xml_append(doc, "numericvalue", res['load'].split()[0], elt=elt,
+                 name="Load", desc="Instantaneous load")
+      xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
+
+    else:
+      xml_append(doc, "availability", 0)
+      xml_append(doc, "notes", res['Message'])
+
+    try:
+      xmlfile = open(self.xmlpath + system + "_" + service + ".xml", "w")
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+
 class SLSAgent(AgentModule):
 
   def execute(self):
+
+    # SpaceTokenOccupancyTest #########################
 
     site_of_localSE = Utils.dict_invert(CS.getTypedDictRootedAt(root="", relpath="/Resources/SiteLocalSEMapping"))
     storageElts = CS.getTypedDictRootedAt(root="", relpath="/Resources/StorageElements")
@@ -130,6 +237,10 @@ class SLSAgent(AgentModule):
 
     for k in res:
       for st in res[k]:
-        SpaceTokenOccupancyTest(k, st, res[k][st])
+        # FIXME: Add xmlpath to CS
+        SpaceTokenOccupancyTest(k, st, res[k][st],
+                                xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
+
+    #################################################
 
     return S_OK()
