@@ -235,15 +235,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.__logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
         else:
           if res['Value']:
-            lfnSEs = []
+            lfnSEs = {}
             for dict in res['Value']:
-              lfnSEs.append( {dict['LFN']: [dict['UsedSE']]} )
+              lfnSEs[dict['LFN']] = [dict['UsedSE']]
             sortedSEs = self.__sortExistingSEs( lfnSEs.keys(), lfnSEs )
             res = getSitesForSE( sortedSEs[0], gridName = 'LCG' )
             if  res['OK']:
               for site in [site for site in res['Value'] if site in targetSites]:
-                  runSEDict[runID] = site
-                  runUpdate[runID] = True
+                runSEDict[runID] = site
+                runUpdate[runID] = True
 
     # Choose the destination site for new runs
     for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict]:
@@ -281,13 +281,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.__logError( "Failed to assign TransformationRun site", res['Message'] )
           continue
       res = getSEsForSite( targetSite )
-      if  res['OK']:
+      if not res['OK']:
+        self.__logError( "Failed to get SEs for site", res['Message'] )
+      else:
         possibleSEs = res['Value']
         for lfn in sortList( runFileDict[runID] ):
           if len( self.data[lfn] ) >= 2:
             for se in [se for se in self.data[lfn].keys() if se in possibleSEs]:
-                tasks.append( ( se, [lfn] ) )
-                break
+              tasks.append( ( se, [lfn] ) )
+              break
 
     return S_OK( tasks )
 
