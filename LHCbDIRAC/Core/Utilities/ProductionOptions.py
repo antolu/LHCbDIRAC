@@ -16,7 +16,7 @@ import string, re
 gLogger = gLogger.getSubLogger( 'ProductionOptions' )
 
 #############################################################################
-def getOptions( appName, appType, extraOpts = None, inputType = None,
+def getOptions( appName, outputFileType, extraOpts = None, inputType = None,
                 histogram = '@{applicationName}_@{STEP_ID}_Hist.root',
                 condDB = '@{CondDBTag}', ddDB = '@{DDDBTag}', production = True ):
   """ Simple function to create the default options for a given project name.
@@ -32,21 +32,21 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
     ddDB = '@{DDDBTag}'
 
   #General options
+  options.append( "from Configurables import LHCbApp" )
+  options.append( "LHCbApp().XMLSummary='summary%s_@{STEP_ID}.xml'" %appName )
   dddbOpt = "LHCbApp().DDDBtag = \"%s\"" % ( ddDB )
   conddbOpt = "LHCbApp().CondDBtag = \"%s\"" % ( condDB )
-  
-#  options.append( "LHCbApp().XMLSummary='summary%s.xml'" %appName )
-  
+ 
   evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
 #  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append( "HistogramPersistencySvc().OutputFile = \"%s\"" % ( histogram ) )
   if appName.lower() == 'gauss':
     options.append( "OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
   elif appName.lower() == 'boole':
-    if appType.lower() == 'mdf':
+    if outputFileType.lower() == 'mdf':
       options.append( "OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\"" )
       options.append( "OutputStream(\"RawWriter\").OutputLevel = INFO" )
-    elif appType.lower() == 'xdigi':
+    elif outputFileType.lower() == 'xdigi':
       #no explicit output type like Brunel for Boole...
       options.append( 'from Configurables import Boole' )
       options.append( 'Boole().DigiType = "Extended"' )
@@ -57,13 +57,13 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
     options.append( "Brunel().NoWarnings = True" )
     options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
     options.append( "from Configurables import Brunel" )
-    if appType.lower() == 'xdst':
+    if outputFileType.lower() == 'xdst':
       options.append( "Brunel().OutputType = 'XDST'" )
-    elif appType.lower() == 'dst':
+    elif outputFileType.lower() == 'dst':
       options.append( "Brunel().OutputType = 'DST'" )
-    elif appType.lower() == 'rdst':
+    elif outputFileType.lower() == 'rdst':
       options.append( "Brunel().OutputType = 'RDST'" )
-    elif appType.lower() == 'sdst':
+    elif outputFileType.lower() == 'sdst':
       options.append( "Brunel().OutputType = 'SDST'" )
 #    options.append("from Configurables import RecInit")
 #    options.append('RecInit("Brunel").PrintFreq = 100')
@@ -75,39 +75,35 @@ def getOptions( appName, appType, extraOpts = None, inputType = None,
     #for the stripping some options override the above Gaudi level setting
     options.append( "DaVinci().HistogramFile = \"%s\"" % ( histogram ) )
     # If we want to generate an FETC for the first step of the stripping workflow
-    if appType.lower() == 'fetc' or appType.lower() == 'setc':
+    if outputFileType.lower() == 'fetc' or outputFileType.lower() == 'setc':
       options.append( "DaVinci().ETCFile = \"@{outputData}\"" )
-    elif appType.lower() == 'dst' and inputType not in ['sdst', 'dst']: #e.g. not stripping
+    elif outputFileType.lower() == 'dst' and inputType not in ['sdst', 'dst']: #e.g. not stripping
       options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-    elif appType.lower() == 'mdst':
+    elif outputFileType.lower() == 'mdst':
       options.append( 'from Configurables import MicroDSTWriter' )
       options.append( 'MicroDSTWriter("BetaSMicroDST").OutputFileSuffix  = \'@{STEP_ID}\'' )
-    elif appType.lower() == 'fmdst':
+    elif outputFileType.lower() == 'fmdst':
       options.append( 'from KaliCalo.Configuration import KaliPi0Conf' )
       options.append( 'KaliPi0Conf(FemtoDST = \'@{outputData}\', PrintFreq = 10000, OutputLevel = ERROR)' )
-    elif appType.lower() == 'davincihist':
+    elif outputFileType.lower() == 'davincihist':
       options.append( 'from Configurables import InputCopyStream' )
       options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
       options.append( 'DaVinci().MoniSequence.append(InputCopyStream())' )
-    elif appType.lower() == 'merge':
+    elif outputFileType.lower() == 'merge':
       options.append( 'from Configurables import InputCopyStream' )
       options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
-    elif ( re.match( '[a-z,A-Z,.]*dst', appType.lower() ) or appType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
+    elif ( re.match( '[a-z,A-Z,.]*dst', outputFileType.lower() ) or outputFileType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
       options.append( 'from Configurables import SelDSTWriter' )
       options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
 
   elif appName.lower() == 'merge':
     options.append( 'from Configurables import LbAppInit' )
     options.append( 'MyAlg = LbAppInit()' )
-#    options.append( 'MyAlg.PrintEventTime = True' )
-#    options.append( 'MyAlg.PreloadGeometry = False' )
-#    options.append( 'MyAlg.SingleSeed = False' )
     options.append( "ApplicationMgr().TopAlg += [ MyAlg ]" )
     options.append( "from Configurables import LHCbApp" )
-    options.append( "l = LHCbApp()" )
     options.append( 'OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
 
-    if appType.lower() == 'fmdst':
+    if outputFileType.lower() == 'fmdst':
       options.append( 'EventSelector().PrintFreq = 1000' )
     
     return options

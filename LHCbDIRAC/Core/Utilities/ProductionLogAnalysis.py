@@ -245,7 +245,7 @@ def getEventsOutput( logString, writer ):
        If the string is not found an error is returned
   """
   global numberOfEventsOutput
-  possibleWriters = ['FSRWriter', 'DigiWriter', 'RawWriter', 'GaussTape', 'DstWriter', 'InputCopyStream']
+  possibleWriters = ['Writer', 'DigiWriter', 'RawWriter', 'GaussTape', 'DstWriter', 'InputCopyStream']
   if not writer in possibleWriters:
     gLogger.error( "Requested writer not available.", writer )
     return S_ERROR( "Requested writer not available" )
@@ -295,6 +295,7 @@ def checkMooreEvents( logString ):
       the Moore job generated the correct number of events.
   """
   global firstStepInputEvents
+  global numberOfEventsOutput  
   global dataSummary
   # Get the last event processed
   lastEvent = getLastEventSummary( logString )['Value']
@@ -310,6 +311,13 @@ def checkMooreEvents( logString ):
     gLogger.error( "Crash in event %s" % lastEvent )
     return S_ERROR( 'Crash During Execution' )
 
+  # Get the number of events output by Moore
+  res = getEventsOutput( logString, 'Writer' )
+  if not res['OK']:
+    return res
+
+  numberOfEventsOutput = res['Value']
+  
   return S_OK()
 
 #############################################################################
@@ -509,7 +517,7 @@ def checkBrunelEvents( logString ):
   # Get the number of events output by Brunel
   res = getEventsOutput( logString, 'DstWriter' )
   if not res['OK']:
-    return S_ERROR( 'No Events Output' )
+    return res
   outputEvents = res['Value']
   # Get whether all events in the input file were processed
   noMoreEvents = re.findall( 'No more events in event selection', logString )
@@ -526,9 +534,6 @@ def checkBrunelEvents( logString ):
     gLogger.verbose( 'Last reported event %s != processed events %s' % ( lastEvent, processedEvents ) )
     if processedEvents > 100 and lastEvent < 0.9 * processedEvents:
       return S_ERROR( "Processed Events Do Not Match" )
-  # If there were no events processed
-  if processedEvents == 0:
-    return S_ERROR( "No Events Processed" )
   # If the output events are not equal to the processed events be sure there were no failed events
   if outputEvents != processedEvents:
     gLogger.warn( 'Number of processed events %s does not match output events %s (considered OK for Brunel)' % ( processedEvents, outputEvents ) )

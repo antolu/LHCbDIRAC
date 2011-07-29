@@ -17,11 +17,10 @@ class OutputDataPolicy:
     jobDescription = self.paramDict['Job']
     prodID = self.paramDict['TransformationID']
     jobID = self.paramDict['TaskID']
-    inputData = self.paramDict['InputData']
 
     job = Job( jobDescription )
     result = preSubmissionLFNs( job._getParameters(), job.createCode(),
-                               productionID = prodID, jobID = jobID, inputData = inputData )
+                               productionID = prodID, jobID = jobID )
     if not result['OK']:
       gLogger.error( result )
     return result
