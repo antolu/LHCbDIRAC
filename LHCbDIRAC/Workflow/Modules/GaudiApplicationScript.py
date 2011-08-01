@@ -28,22 +28,22 @@ class GaudiApplicationScript( ModuleBase ):
   #############################################################################
   def __init__( self ):
     self.version = __RCSID__
-    self.log = gLogger.getSubLogger( "GaudiApplicationScript" )
-    self.result = S_ERROR()
-    self.jobID = None
-    self.root = None
+    self.log     = gLogger.getSubLogger( "GaudiApplicationScript" )
+    self.result  = S_ERROR()
+    self.jobID   = None
+    self.root    = None
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
     #Set defaults for all workflow parameters here
-    self.script = None
-    self.arguments = ''
-    self.systemConfig = ''
-    self.applicationLog = ''
-    self.applicationName = ''
+    self.script             = None
+    self.arguments          = ''
+    self.systemConfig       = ''
+    self.applicationLog     = ''
+    self.applicationName    = ''
     self.applicationVersion = ''
-    self.systemConfig = ''
-    self.poolXMLCatName = 'pool_xml_catalog.xml'
+    self.systemConfig       = ''
+    self.poolXMLCatName     = 'pool_xml_catalog.xml'
 
   #############################################################################
   def resolveInputVariables( self ):
@@ -56,9 +56,9 @@ class GaudiApplicationScript( ModuleBase ):
       self.log.warn( 'No SystemConfig defined' )
 
     if self.step_commons.has_key( 'applicationName' ):
-      self.applicationName = self.step_commons['applicationName']
+      self.applicationName    = self.step_commons['applicationName']
       self.applicationVersion = self.step_commons['applicationVersion']
-      self.applicationLog = self.step_commons['applicationLog']
+      self.applicationLog     = self.step_commons['applicationLog']
     else:
       self.log.warn( 'No applicationName defined' )
 
@@ -126,7 +126,9 @@ class GaudiApplicationScript( ModuleBase ):
 
     #Set some parameter names
     dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
+#    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
     scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
+#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
     coreDumpName = '%s_Step%s' % ( self.applicationName, self.STEP_NUMBER )
 
     #Wrap final execution command with defaults
