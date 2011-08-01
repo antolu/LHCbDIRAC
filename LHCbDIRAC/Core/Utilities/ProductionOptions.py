@@ -216,11 +216,12 @@ def printOptions( project = '', printOutput = True ):
       Gauss, Boole, Brunel, DaVinci and Merge (case insensitive).
   """
   appDict = {}
-  appDict['Gauss'] = ['sim;None']
-  appDict['Boole'] = ['mdf;sim', 'digi;sim']
-  appDict['Brunel'] = ['dst;digi', 'rdst;mdf', 'dst;fetc', 'xdst;digi']
-  appDict['DaVinci'] = ['dst;rdst', 'dst;dst', 'fetc;rdst']
-  appDict['Merge'] = ['dst;dst']
+  appDict[ 'Gauss' ]   = [ 'sim;None'                                      ]
+  appDict[ 'Boole' ]   = [ 'mdf;sim',  'digi;sim'                          ]
+  appDict[ 'Brunel' ]  = [ 'dst;digi', 'rdst;mdf', 'dst;fetc', 'xdst;digi' ]
+  appDict[ 'DaVinci' ] = [ 'dst;rdst', 'dst;dst',  'fetc;rdst'             ]
+  appDict[ 'Merge' ]   = [ 'dst;dst'                                       ]
+  
   apps = appDict.keys()
   apps.sort()
 
@@ -248,10 +249,10 @@ def getTestOptions( projectName ):
       for a simple test job as a computing exercise only.
   """
   testOpts = {}
-  testOpts['gauss'] = '$GAUSSROOT/tests/options/testGauss-gen-10evts-defaults.py'
-  testOpts['boole'] = '$BOOLEROOT/tests/options/testBoole-defaults.py'
-  testOpts['brunel'] = '$BRUNELROOT/tests/options/testBrunel-defaults.py'
-  testOpts['davinci'] = '$DAVINCIROOT/options/DaVinci-MC09.py'
+  testOpts[ 'gauss' ]   = '$GAUSSROOT/tests/options/testGauss-gen-10evts-defaults.py'
+  testOpts[ 'boole' ]   = '$BOOLEROOT/tests/options/testBoole-defaults.py'
+  testOpts[ 'brunel' ]  = '$BRUNELROOT/tests/options/testBrunel-defaults.py'
+  testOpts[ 'davinci' ] = '$DAVINCIROOT/options/DaVinci-MC09.py'
 
   apps = testOpts.keys()
 
