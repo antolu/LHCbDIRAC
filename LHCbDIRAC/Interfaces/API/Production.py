@@ -61,28 +61,29 @@ class Production():
       from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
       self.transformation = Transformation()
 
-    self.prodVersion = __RCSID__
-    self.csSection = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
+    self.prodVersion            = __RCSID__
+    self.csSection              = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
     self.LHCbJob.gaudiStepCount = 0
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
+#    defaultHistName    = '@{STEP_ID}_@{applicationName}_Hist.root'
     self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
-    self.histogramSE = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
-    self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
+    self.histogramSE   = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
+    self.systemConfig  = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
-    self.defaultProdID = '12345'
-    self.defaultProdJobID = '12345'
-    self.ioDict = {}
-    self.name = 'unspecifiedWorkflow'
-    self.firstEventType = ''
-    self.bkSteps = {}
-    self.prodGroup = ''
-    self.plugin = ''
-    self.inputFileMask = ''
-    self.inputBKSelection = {}
-    self.jobFileGroupSize = 0
+    self.defaultProdID      = '12345'
+    self.defaultProdJobID   = '12345'
+    self.ioDict             = {}
+    self.name               = 'unspecifiedWorkflow'
+    self.firstEventType     = ''
+    self.bkSteps            = {}
+    self.prodGroup          = ''
+    self.plugin             = ''
+    self.inputFileMask      = ''
+    self.inputBKSelection   = {}
+    self.jobFileGroupSize   = 0
     self.ancestorProduction = ''
-    self.importLine = """LHCbDIRAC.Workflow.Modules"""
+    self.importLine         = """LHCbDIRAC.Workflow.Modules"""
     if not script:
       self.__setDefaults()
 
@@ -93,11 +94,12 @@ class Production():
     """
 
     #TODO: see for others to be put here
-    self.setJobParameters({'Type':'MCSimulation', 
-                           'SystemConfig':self.systemConfig, 
-                           'CPUTime': '1000000',
-                           'LogLevel': 'verbose',
-                           'JobGroup': '@{PRODUCTION_ID}' })
+    self.setJobParameters({
+                           'Type'          : 'MCSimulation', 
+                           'SystemConfig' : self.systemConfig, 
+                           'CPUTime'      : '1000000',
+                           'LogLevel'     : 'verbose',
+                           'JobGroup'     : '@{PRODUCTION_ID}' })
 
     self.setFileMask( '' )
 
@@ -507,7 +509,7 @@ class Production():
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
       modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
-                                                                                    'AnalyseLogFile',
+                                                                                    'AnalyseXMLLogFile',
                                                                                     'ErrorLogging',
                                                                                     'BookkeepingReport'] )
       #pName, pType, pValue, pDesc
@@ -557,7 +559,10 @@ class Production():
                    ['optionsLine', optionsLine],
                    ['optionsLinePrev', 'None'],
                    ['numberOfEvents', numberOfEvents],
-                   ['eventType', eventType],
+                   ['eventType', eventType], 
+#                  Failed attempt to standarise output names
+#                   ['applicationLog', '@{STEP_ID}_@{applicationName}_Logs.log'],
+#                   ['outputData', '@{STEP_ID}_@{applicationName}_Data.@{applicationType}'],
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
                    ]
