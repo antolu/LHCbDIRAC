@@ -29,25 +29,25 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self ).__init__( self.log )
 
     self.STEP_NUMBER = ''
-    self.version = __RCSID__
-    self.debug = True
+    self.version     = __RCSID__
+    self.debug       = True
 
-    self.optfile = ''
-    self.systemConfig = ''
-    self.applicationLog = ''
+    self.optfile         = ''
+    self.systemConfig    = ''
+    self.applicationLog  = ''
     self.applicationName = ''
-    self.inputDataType = 'MDF'
-    self.numberOfEvents = 0
-    self.inputData = '' # to be resolved
-    self.InputData = '' # from the (JDL WMS approach)
-    self.outputData = ''
-    self.poolXMLCatName = 'pool_xml_catalog.xml'
-    self.generator_name = ''
-    self.optionsLine = ''
-    self.extraPackages = ''
+    self.inputDataType   = 'MDF'
+    self.numberOfEvents  = 0
+    self.inputData       = '' # to be resolved
+    self.InputData       = '' # from the (JDL WMS approach)
+    self.outputData      = ''
+    self.poolXMLCatName  = 'pool_xml_catalog.xml'
+    self.generator_name  = ''
+    self.optionsLine     = ''
+    self.extraPackages   = ''
     self.applicationType = ''
-    self.jobType = ''
-    self.stdError = ''
+    self.jobType         = ''
+    self.stdError        = ''
 
   #############################################################################
 
@@ -212,7 +212,9 @@ class GaudiApplication( ModuleBase ):
 
     #Set some parameter names
     dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
-    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
+#    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
+    scriptName   = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
+#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
     coreDumpName = '%s_Step%s' % ( self.applicationName, self.STEP_NUMBER )
 
     #Wrap final execution command with defaults
