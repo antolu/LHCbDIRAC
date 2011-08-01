@@ -7,28 +7,17 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.DISET.RPCClient  import RPCClient
 
 from DIRAC.ResourceStatusSystem.Utilities import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities.Utils import xml_append
 
-import xml.dom
+import xml.dom, xml.sax
 import time
-import urlparse
+import urlparse, urllib
 
 __RCSID__ = "$Id: $"
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 impl = xml.dom.getDOMImplementation()
-
-def xml_append(doc, tag, value=None, elt=None, **kw):
-  new_elt = doc.createElement(tag)
-  for k in kw:
-    new_elt.setAttribute(k, kw[k])
-  if value != None:
-    textnode = doc.createTextNode(str(value))
-    new_elt.appendChild(textnode)
-  if elt != None:
-    return elt.appendChild(new_elt)
-  else:
-    return doc.documentElement.appendChild(new_elt)
 
 class SpaceTokenOccupancyTest(object):
   def __init__(self, xmlpath):
@@ -72,7 +61,7 @@ class SpaceTokenOccupancyTest(object):
     return res
 
   def generate_xml_and_dashboard(self, se, st, url,fake=True):
-    id_ = se + "_" + st
+    id_          = se + "_" + st
     total        = 0
     guaranteed   = 0
     free         = 0
@@ -120,15 +109,15 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
+    xmlfile = open(self.xmlpath + id_ + ".xml", "w")
     try:
-      xmlfile = open(self.xmlpath + id_ + ".xml", "w")
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
       xmlfile.close()
 
     # Dashboard
+    dbfile = open(self.xmlpath + id_ + "_space_monitor", "w")
     try:
-      dbfile = open(self.xmlpath + id_ + "_space_monitor", "w")
       dbfile.write(id_ + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
     finally:
       dbfile.close()
@@ -193,8 +182,8 @@ class DIRACTest(object):
       xml_append(doc, "notes", "Retrieved "+str(len(sites))+"\
  sites out of the Configuration Service through the Gateway")
 
+    xmlfile = open(self.xmlpath + "Framework_Gateway.xml", "w")
     try:
-      xmlfile = open(self.xmlpath + "Framework_Gateway.xml", "w")
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
       xmlfile.close()
@@ -235,8 +224,8 @@ class DIRACTest(object):
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
 
+    xmlfile = open(self.xmlpath + system + "_" + service + ".xml", "w")
     try:
-      xmlfile = open(self.xmlpath + system + "_" + service + ".xml", "w")
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
       xmlfile.close()
@@ -283,12 +272,160 @@ class DIRACTest(object):
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
 
+    xmlfile = open(self.xmlpath + site + "_" + service + ".xml", "w")
     try:
-      xmlfile = open(self.xmlpath + site + "_" + service + ".xml", "w")
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
       xmlfile.close()
 
+class LOGSETest(object):
+  def __init__(self, xmlpath):
+    self.xmlpath = xmlpath
+    self.entities = "volhcb15" # FIXME: Get from CS
+    self.lemon_url = "http://lemon-gateway.cern.ch/lemon-xml/xml_gateway.php" # FIXME: Get from CS
+
+    # Generate XML files
+
+    self.partition("log_se_partition.xml")
+    self.gridftpd("log_se_gridftpd.xml")
+    self.cert("log_se_cert.xml")
+    self.httpd("log_se_httpd.xml")
+
+  # LOG SE Partition
+  def partition(self, filename):
+    input_xml = self.getxml(entities=self.entities, metrics=9104) # FIXME: Get metrics from CS
+    handler = self.LemonHandler()
+    xml.sax.parse(input_xml, handler)
+
+    for d in handler.data:
+      if d['data'][0] == "/data":
+        ts = int(d['ts'])
+        space = d['data'][3]
+        percent = int(d['data'][4])
+
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                              "serviceupdate",
+                              None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    xml_append(doc, "id", "log_se_partition")
+    xml_append(doc, "validityduration", "PT12H")
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
+    xml_append(doc, "availability", (100 if percent < 90 else (5 if percent < 99 else 0)))
+    elt = xml_append(doc, "data")
+    xml_append(doc, "numericvalue", percent, elt=elt, name="LogSE data partition used")
+    xml_append(doc, "numericvalue", space, elt=elt, name="Total space on data partition")
+
+    xmlfile = open(self.xmlpath + filename, "w")
+    try:
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+  # LOG SE GridFTPd
+  def gridftpd(self, filename):
+    input_xml = self.getxml(entities=self.entities, metrics=34) # FIXME: Get metrics from CS
+    handler = self.LemonHandler()
+    xml.sax.parse(input_xml, handler)
+    data = handler.data[0]
+
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                              "serviceupdate",
+                              None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    xml_append(doc, "id", "log_se_gridftp")
+    xml_append(doc, "validityduration", "PT2H")
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+
+    xmlfile = open(self.xmlpath + filename, "w")
+    try:
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+  # LOG SE Cert
+  def cert(self, filename):
+    input_xml = self.getxml(entities=self.entities, metrics=810) # FIXME: Get metrics from CS
+    handler = self.LemonHandler()
+    xml.sax.parse(input_xml, handler)
+    data = handler.data[0]
+
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                              "serviceupdate",
+                              None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    xml_append(doc, "id", "log_se_cert")
+    xml_append(doc, "validityduration", "PT24H")
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+
+    xmlfile = open(self.xmlpath + filename, "w")
+    try:
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+  # LOG SE HTTPd
+  def httpd(self, filename):
+    input_xml = self.getxml(entities=self.entities, metrics=4019) # FIXME: Get metrics from CS
+    handler = self.LemonHandler()
+    xml.sax.parse(input_xml, handler)
+    data = handler.data[0]
+
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                              "serviceupdate",
+                              None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    xml_append(doc, "id", "log_se_httpd")
+    xml_append(doc, "validityduration", "PT2H")
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+
+    xmlfile = open(self.xmlpath + filename, "w")
+    try:
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+  def getxml(self, **kw):
+    params = urllib.urlencode(kw)
+    xml = urllib.urlopen(self.lemon_url, params)
+    return xml
+
+  class LemonHandler(xml.sax.handler.ContentHandler):
+    def __init__(self):
+      xml.sax.handler.ContentHandler.__init__(self)
+      self.node     = ""
+      self.metric   = -1
+      self.ts       = 0
+      self.cur_list = []
+      self.inside_d = False
+      self.data     = []
+
+    def startElement(self, name, attrs):
+      if name == "data":
+        self.node = attrs.getValue("node")
+
+      elif name == "metric":
+        self.metric = int(attrs.getValue("id"))
+
+      elif name == "d":
+        self.inside_d = True
+
+      elif name == "r":
+        self.ts = int(attrs.getValue("ts"))
+        self.cur_list = []
+
+    def endElement(self, name):
+      if name == "r":
+        self.data.append({ 'node':self.node, 'metric':self.metric, 'ts':self.ts, 'data':self.cur_list })
+
+      elif name == "d":
+        self.inside_d = False
+
+    def characters(self, content):
+      if self.inside_d:
+        self.cur_list.append(content)
 
 class SLSAgent(AgentModule):
 
@@ -297,5 +434,5 @@ class SLSAgent(AgentModule):
     # FIXME: Get xmlpath from CS
     SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
     DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
-
+    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
     return S_OK()
