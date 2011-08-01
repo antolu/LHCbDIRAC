@@ -31,23 +31,23 @@ class ErrorLogging( ModuleBase ):
     self.log = gLogger.getSubLogger( "ErrorLogging" )
     super( ErrorLogging, self ).__init__( self.log )
 
-    self.version = __RCSID__
+    self.version            = __RCSID__
     #Step parameters
-    self.applicationName = ''
+    self.applicationName    = ''
     self.applicationVersion = ''
-    self.applicationLog = ''
+    self.applicationLog     = ''
     #Workflow commons parameters
-    self.request = None
-    self.productionID = None
-    self.prodJobID = None
-    self.systemConfig = ''
+    self.request            = None
+    self.productionID       = None
+    self.prodJobID          = None
+    self.systemConfig       = ''
     #Internal parameters
-    self.executable = '$APPCONFIGROOT/scripts/LogErr.py'
-    self.errorLogFile = ''
-    self.errorLogName = ''
-    self.stdError = ''
+    self.executable         = '$APPCONFIGROOT/scripts/LogErr.py'
+    self.errorLogFile       = ''
+    self.errorLogName       = ''
+    self.stdError           = ''
     #Error log parameters
-    self.defaultName = 'errors.html'
+    self.defaultName        = 'errors.html'
 
   #############################################################################
 
@@ -101,6 +101,8 @@ class ErrorLogging( ModuleBase ):
 
     self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.stepNumber )
     self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.stepNumber )
+#    self.errorLogFile = '%s_%s_%s_%s_ErrorLog-%s.log' % ( self.productionID, self.prodJobID, self.stepNumber, self.applicationName, self.applicationVersion )
+#    self.errorLogName = '%s_%s_%s_%s_Errors-%s.html' % ( self.productionID, self.prodJobID, self.stepNumber, self.applicationName, self.applicationVersion )
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
@@ -133,8 +135,10 @@ class ErrorLogging( ModuleBase ):
     command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog, self.applicationName, self.applicationVersion )
 
     #Set some parameter names
-    dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.stepNumber )
     scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.stepNumber )
+    dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.stepNumber )
+#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
+#    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
     coreDumpName = 'ErrorLogging_Step%s' % ( self.stepNumber )
 
     #Wrap final execution command with defaults
