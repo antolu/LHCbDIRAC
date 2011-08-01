@@ -137,7 +137,7 @@ for svnPackage in List.fromChar( svnPackages ):
 
     if not svnVersion in buildCFG[ 'Versions' ].listSections():
       gLogger.error( 'Version does not exist:', svnVersion )
-      gLogger.error( 'Available versions:', ', '.join( buildCFG.listSections() ) )
+      gLogger.error( 'Available versions:', ', '.join( buildCFG['Versions'].listSections() ) )
       continue
 
     versionCFG = buildCFG[ 'Versions' ][svnVersion]
