@@ -418,7 +418,10 @@ class LOGSETest(object):
 
     def endElement(self, name):
       if name == "r":
-        self.data.append({ 'node':self.node, 'metric':self.metric, 'ts':self.ts, 'data':self.cur_list })
+        self.data.append({ 'node'   : self.node,
+                           'metric' : self.metric,
+                           'ts'     : self.ts,
+                           'data'   : self.cur_list })
 
       elif name == "d":
         self.inside_d = False
@@ -427,12 +430,30 @@ class LOGSETest(object):
       if self.inside_d:
         self.cur_list.append(content)
 
+class LFCReplicaTest(object):
+  from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
+  from DIRAC.Core.Utilities.File                    import makeGuid
+  import lfc
+  def __init__(self, path, timeout):
+    self.path       = path
+    self.timeout    = timeout
+    self.cfg        = CS.getTypedDictRootedAt(
+      root="", relpath="/Resources/FileCatalogs/LcgFileCatalogCombined")
+    self.master_lfc = LcgFileCatalogClient(self.cfg['LcgGfalInfosys'], self.cfg['MasterHost'])
+    self.ro_mirrors = []
+
+    # Load the list of mirrors
+    for site in self.cfg:
+      if type(self.cfg[site]) == dict:
+        self.ro_mirrors.append(self.cfg[site]['ReadOnly'])
+
 class SLSAgent(AgentModule):
 
   def execute(self):
 
-    # FIXME: Get xmlpath from CS
+    # FIXME: Get parameters from CS
     SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
     DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
     LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
+    #LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
