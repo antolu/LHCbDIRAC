@@ -31,9 +31,9 @@ import string, re, os
 #numberOfEventsOutput = 0
 #firstStepInputEvents = 0
                                 
-def analyseXMLLogFile( fileName, stepName, prod, job, jobType, applicationName = '' ):
+def analyseXMLLogFile( fileName, applicationName = '', stepName = '', prod = '', job = '', jobType = '' ):
   
-  analyser = AnalyseXMLLogFile( fileName, stepName, prod, job, jobType, applicationName )
+  analyser = AnalyseXMLLogFile( fileName, applicationName, stepName, prod, job, jobType )
   return analyser.analise()
   
 class AnalyseXMLLogFile:
@@ -87,7 +87,7 @@ class AnalyseXMLLogFile:
     'DstWriter', 'InputCopyStream'
   ]
   
-  def __init__( self, fileName, stepName, prod, job, jobType, applicationName = '',  ):
+  def __init__( self, fileName, applicationName, stepName, prod, job, jobType ):
     
     self.fileName             = fileName
     self.fileString           = ''
@@ -112,6 +112,10 @@ class AnalyseXMLLogFile:
     #For the production case the application name will always be given, for the
     #standalone utility this may not always be true so try to guess
     res = self.__guessAppName()
+    if not res[ 'OK' ]:
+      return res
+    
+    res = self.__guessStepID()
     if not res[ 'OK' ]:
       return res
     
@@ -219,6 +223,36 @@ class AnalyseXMLLogFile:
 
     return S_OK()
 
+  def __guessStepID( self ):
+    ''' If we have no stepName, prodName and jobName ( typically from the
+        script ), we try to get them from the log file name. This is a horrible
+        practice, and if the syntax changes, this will crash.
+    '''
+    
+    if self.prodName and self.jobName and self.stepName:
+      return S_OK()
+    
+    self.gLogger.info( 'Guessing production, job and step from %s' % self.fileName )
+    
+    # We know that the log file names look like this:
+    # <AppName>_<prodName>_<jobName>_<stepName>.log
+       
+    guess = self.fileName
+    guess = guess.replace( '.log', '')
+    guess = guess.split( '_' )
+    
+    if len(guess) != 4:
+      self.gLogger.error( 'Could not guess production, job and step from %s' % self.fileName )
+      return S_ERROR( 'Production, job and step params missing' )
+    
+    self.prodName = guess[ 1 ]
+    self.jobName  = guess[ 2 ]
+    self.stepName = guess[ 3 ]
+    
+    self.gLogger.info( 'Guessed prod: %s, job: %s and step: %s' % ( self.prodName, self.jobName, self.stepName ) )
+    
+    return S_OK()
+    
 ################################################################################
 
   def __checkGaudiErrors( self ):
