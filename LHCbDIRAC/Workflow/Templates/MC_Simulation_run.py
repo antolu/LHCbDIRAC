@@ -454,7 +454,6 @@ prodDescription = '%s for BK %s %s event type %s with %s events per job and fina
                    application file type %s.' % ( prodDescription, configName, configVersion, evtType, events, finalAppType )
 gLogger.info( prodDescription )
 production.setWorkflowDescription( prodDescription )
-#production.addFinalizationStep( outputDataStep = outputDataStep )
 production.addFinalizationStep()
 production.setJobParameters( { 'CPUTime': cpu } )
 production.setProdGroup( '{{pDsc}}' )
@@ -548,9 +547,12 @@ mergeProd.addMergeStep( mergingVersion, eventType = '{{eventType}}', inputDataTy
                        inputProduction = prodID, inputData = [],
                        condDBTag = mergingCondDB, ddDBTag = mergingDDDB,
                        stepID = mergingStepID, stepName = mergingStepName, stepVisible = mergingStepVisible )
-mergeProd.addFinalizationStep( removeInputData = True )
+mergeProd.addFinalizationStep( ['UploadOutputData', 
+                                'UploadLogFile',
+                                'FailoverRequest',
+                                'RemoveInputData'] )
 mergeProd.setInputBKSelection( inputBKQuery )
-mergeProd.setInputDataPolicy( 'download' )
+mergeProd.setJobParameters( {"InputDataPolicy": 'download' } ) 
 mergeProd.setJobFileGroupSize( mergingGroupSize )
 mergeProd.setProdGroup( '{{pDsc}}' )
 mergeProd.setProdPriority( mergingPriority )

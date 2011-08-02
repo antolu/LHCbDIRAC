@@ -2,7 +2,8 @@
 # $HeadURL$
 ########################################################################
 
-"""  The General.py Template will try to create a general template, to be used for all kind of requests
+"""  The General.py Template will try to create a general template, 
+     to be used for all kind of requests
 
 """
 

@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/MC_Simulation_run.py $
+# $HeadURL:
 ########################################################################
 
 """  The MC Simulation Template creates workflows for the following simulation
@@ -32,7 +32,22 @@
      
 """
 
-__RCSID__ = "$Id:$"
+"""
+Recipe:
+. Put here only the options: OK
+  the initializations should go out
+  also the stepsList creation
+. Get the list of Bk steps (in a dictionary) : OK
+. Translate the Bk steps in production steps : OK
+  use TemplatesUtilities._splitIntoProductionSteps() (ready and tested)
+. Make the correlation between production steps and productions to be created
+  this would require user input
+. Create the production objects requested
+. call TemplatesUtilities.builProductiondWorkflow() with the list of assigned production steps
+"""
+
+
+__RCSID__ = "$Id: MC_simulation_optionsOnly_run.py 41262 2011-07-13 12:37:51Z fstagni $"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble
@@ -43,6 +58,8 @@ Script.parseCommandLine()
 args = Script.getPositionalArgs()
 
 import DIRAC
+
+from LHCbDIRAC.Workflow.Templates.TemplatesUtilities import *
 
 from DIRAC import gLogger, gConfig
 gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
@@ -108,7 +125,18 @@ outputsCERN = eval( outputsCERN )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 
+
 stepsList = []
-for i in range(1,8):
-  stepsList.append(int('{{p%dStep}}' %i))
-  
+
+stepsList.append( '{{p1Step}}' )
+stepsList.append( '{{p2Step}}' )
+stepsList.append( '{{p3Step}}' )
+stepsList.append( '{{p4Step}}' )
+stepsList.append( '{{p5Step}}' )
+stepsList.append( '{{p6Step}}' )
+stepsList.append( '{{p7Step}}' )
+
+#get a list of steps dictionaries
+stepsDictList = resolveSteps( stepsList )
+
+

@@ -195,7 +195,7 @@ production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 brunelOptions = "{{p1Opt}}"
 if useOracle:
   if not 'useoracle.py' in brunelOptions.lower():
-    brunelOptions = brunelOptions + ';$APPCONFIGOPTS/UseOracle.py'
+    brunelOptions = brunelOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
 
 brunelOutput = BKClient.getStepOutputFiles( int( '{{p1Step}}' ) )
 if not brunelOutput:

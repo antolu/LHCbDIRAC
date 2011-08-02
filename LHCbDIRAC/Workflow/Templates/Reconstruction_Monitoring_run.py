@@ -66,6 +66,7 @@ recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO: Group size or number of files pe
 recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/False (False if merging)#False}}'
 recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
+recoType = '{{RecoType#PROD-RECO: DataReconstruction or DataReprocessing#DataReconstruction}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -110,11 +111,6 @@ inputDataList = []
 
 BKscriptFlag = False
 
-#The below are fixed for the EXPRESS stream
-if express:
-  recoType = "EXPRESS"
-else:
-  recoType = "FULL"
 recoIDPolicy = 'download'
 
 if not publishFlag:
@@ -194,9 +190,12 @@ if sysConfig:
   production.setSystemConfig( sysConfig )
 
 production.setCPUTime( recoCPU )
-production.setProdType( 'DataReconstruction' )
+production.setProdType( recoType )
 wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) ) #Rest can be taken from the details in the monitoring
-production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
+if express:
+  production.setWorkflowName( 'EXPRESS_%s_%s' % ( wkfName, appendName ) )
+else:
+  production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
 production.setWorkflowDescription( "%sRealdataFULLreconstructionproduction." % ( prodGroup.replace( ' ', '' ) ) )
 production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
 production.setInputBKSelection( recoInputBKQuery )
@@ -205,10 +204,10 @@ production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 brunelOptions = "{{p1Opt}}"
 if useOracle:
   if not 'useoracle.py' in brunelOptions.lower():
-    brunelOptions = brunelOptions + ';$APPCONFIGOPTS/UseOracle.py'
+    brunelOptions = brunelOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
 
 brunelOutput = BKClient.getStepOutputFiles( int( '{{p1Step}}' ) )
-if not brunelOutput:
+if not brunelOutput['OK']:
   gLogger.error( 'Error getting res from BKK: %s', brunelOutput['Message'] )
   DIRAC.exit( 2 )
 
@@ -241,11 +240,11 @@ if "{{p2Ver}}":
   daVinciOptions = "{{p2Opt}}"
   if useOracle:
     if not 'useoracle.py' in daVinciOptions.lower():
-      daVinciOptions = daVinciOptions + ';$APPCONFIGOPTS/UseOracle.py'
+      daVinciOptions = daVinciOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
 
 
   daVinciInput = BKClient.getStepInputFiles( int( '{{p2Step}}' ) )
-  if not daVinciInput:
+  if not daVinciInput['OK']:
     gLogger.error( 'Error getting res from BKK: %s', daVinciInput['Message'] )
     DIRAC.exit( 2 )
 
@@ -256,7 +255,7 @@ if "{{p2Ver}}":
     DIRAC.exit( 2 )
 
   daVinciOutput = BKClient.getStepOutputFiles( int( '{{p2Step}}' ) )
-  if not daVinciOutput:
+  if not daVinciOutput['OK']:
     gLogger.error( 'Error getting res from BKK: %s', daVinciOutput['Message'] )
     DIRAC.exit( 2 )
 

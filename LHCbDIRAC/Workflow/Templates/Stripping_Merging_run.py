@@ -141,7 +141,7 @@ elif twoSteps:
     if mergeApp.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
+          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -164,7 +164,7 @@ elif oneStep:
     strippOptions = "{{p1Opt}}"
     if useOracle:
       if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
+        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
     strippFileType = '{{inFileType}}'
@@ -181,7 +181,7 @@ elif oneStep:
     if useOracle:
       if mergeApp.lower() == 'davinci':
         if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
+          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
