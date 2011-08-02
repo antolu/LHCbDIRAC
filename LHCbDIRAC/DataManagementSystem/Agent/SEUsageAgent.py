@@ -378,11 +378,15 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "Reading from file %s\n and writing to: %s" % ( fullPathFileP1, fileP2 ) )
       totalLines = 0 # counts all lines in input
       processedLines = 0 # counts all processed lines
+      dirac_dir_lines = 0
       for line in open( fullPathFileP1, "r" ).readlines():
         totalLines += 1
         try:
           splitLine = line.split( '|' )
           filePath = splitLine[0].rstrip()
+          if 'dirac_directory' in filePath:
+            dirac_dir_lines += 1
+            continue
           size = splitLine[1].lstrip()
           updated = splitLine[2].lstrip()
           newLine = filePath + ' ' + size + ' ' + updated
@@ -392,12 +396,11 @@ class SEUsageAgent( AgentModule ):
           gLogger.error( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
           continue
       fP2.flush()
-      gLogger.info( "Total lines: %d , correctly processed: %d " % ( totalLines, processedLines ) )
+      gLogger.info( "Total lines: %d , correctly processed: %d, dirac_directory found %d " % ( totalLines, processedLines, dirac_dir_lines ) )
     # close output files:
     for st in outputFileMerged.keys():
       p2 = outputFileMerged[ st ]['pointerToMergedFile' ]
       p2.close()
-
 
     # produce directory summaries:
     mergedFilesList = os.listdir( pathToInputFiles )
