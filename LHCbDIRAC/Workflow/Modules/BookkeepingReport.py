@@ -70,9 +70,9 @@ class BookkeepingReport( ModuleBase ):
       return result
 
     self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
-    #bfilename = 'bookkeeping_' + self.STEP_ID + '.xml'
+    bfilename = 'bookkeeping_' + self.STEP_ID + '.xml'
     #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.STEP_NUMBER )
-    bfilename = '%s_%s_Bookkeeping.xml' % ( self.STEP_ID, self.applicationName )
+    #bfilename = '%s_%s_Bookkeeping.xml' % ( self.STEP_ID, self.applicationName )
     bfile     = open( bfilename, 'w' )
     print >> bfile, self.__makeBookkeepingXML()
     bfile.close()
