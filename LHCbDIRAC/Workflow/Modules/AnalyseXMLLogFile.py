@@ -90,9 +90,9 @@ class AnalyseXMLLogFile( ModuleBase ):
 
         return S_ERROR( '%s %s Core Dump' % ( self.applicationName, self.applicationVersion ) )
 
-    result = analyseXMLLogFile( self.applicationLog, 
-                                self.STEP_ID, self.PRODUCTION_ID, self.JOB_ID, self.jobType, 
-                                self.applicationName )
+    result = analyseXMLLogFile( self.applicationLog, self.applicationName,
+                                self.STEP_ID, self.PRODUCTION_ID, self.JOB_ID, 
+                                self.jobType )
     if not result['OK']:
       self.log.error( result )
       if result.has_key( 'Data' ):
