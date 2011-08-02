@@ -60,10 +60,11 @@ class StorageUsageDB( DB ):
 
     self.__tablesDesc[ 'problematicDirs' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
                                                        'Path' : 'VARCHAR(255) NOT NULL',
-                                                       'SEName' : 'VARCHAR(32) NOT NULL',
-                                                       'SRMFiles' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'Site' : 'VARCHAR(32) NOT NULL',
+                                                       'SpaceToken' : 'VARCHAR(32) NOT NULL',
+                                                       'SEFiles' : 'INTEGER UNSIGNED NOT NULL',
                                                        'LFCFiles' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'SRMSize' : 'BIGINT UNSIGNED NOT NULL',
+                                                       'SESize' : 'BIGINT UNSIGNED NOT NULL',
                                                        'LFCSize' : 'BIGINT UNSIGNED NOT NULL',
                                                        'Problem' : 'VARCHAR(255) NOT NULL',
                                                        'Updated' : 'DATETIME NOT NULL'
@@ -124,11 +125,13 @@ class StorageUsageDB( DB ):
   def publishToProblematicDirs( self, directoryDict ):
     """ Publish an entry into the problematic data directory """
     for path in directoryDict.keys():
-      SeName = directoryDict[ path ][ 'SEName' ]
+      #SeName = directoryDict[ path ][ 'SEName' ]
+      spaceToken = directoryDict[ path ][ 'SEName' ]
       problem = directoryDict[ path ][ 'Problem' ]
+      site = directoryDict[ path ][ 'Site']
       try:
-        SRMfiles = int( directoryDict[ path ][ 'Files' ] )
-        SRMsize = int( directoryDict[ path ][ 'Size'] )
+        SEfiles = int( directoryDict[ path ][ 'Files' ] )
+        SEsize = int( directoryDict[ path ][ 'Size'] )
         LFCfiles = int( directoryDict[ path ]['LFCFiles' ] )
         LFCsize = int( directoryDict[ path ]['LFCSize'] )
       except  ValueError:
@@ -137,9 +140,12 @@ class StorageUsageDB( DB ):
       if path[-1] != "/":
         path = "%s/" % path
       sqlPath = self._escapeString( path )['Value']
-      sqlSeName = self._escapeString( SeName )['Value']
+      #sqlSeName = self._escapeString( SeName )['Value']
+      sqlSpaceToken = self._escapeString( spaceToken )['Value']
       sqlProblem = self._escapeString( problem )['Value']
-      sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s and SEName=%s" % ( sqlPath, sqlSeName )
+      sqlSite = self._escapeString( site )['Value']
+      #sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s and SEName=%s" % ( sqlPath, sqlSeName )
+      sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s and Site=%s and SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
       self.log.info( "sqlCmd: %s" % sqlCmd )
       result = self._query( sqlCmd )
       if not result[ 'OK' ]:
@@ -148,20 +154,21 @@ class StorageUsageDB( DB ):
       DID = result['Value']
       if DID:
         # there is an entry for (path, SEname), make an update of the row
-        #sqlCmd = "UPDATE `problematicDirs` SET SRMFiles=%d, SRMSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( SRMfiles, SRMsize, sqlProblem, sqlPath, sqlSeName )
-        sqlCmd = "UPDATE `problematicDirs` SET SRMFiles=%d, SRMSize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( SRMfiles, SRMsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSeName )
+        #sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSeName )
+        sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and Site = %s and SpaceToken=%s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSite, sqlSpaceToken )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
-          self.log.error( "Cannot update row (%s, %s) in problematicDirs" % ( path, SeName ) )
+          self.log.error( "Cannot update row (%s, %s) in problematicDirs" % ( path, site ) )
           return result
       else:
         # entry is not there, make an insert of a new row
-        sqlCmd = "INSERT INTO problematicDirs (Path, SEName, SRMFiles, SRMSize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSeName, SRMfiles, SRMsize, LFCfiles, LFCsize, sqlProblem )
+        #sqlCmd = "INSERT INTO problematicDirs (Path, SEName, SEFiles, SESize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSeName, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem )
+        sqlCmd = "INSERT INTO problematicDirs (Path, Site, SpaceToken, SEFiles, SESize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSite, sqlSpaceToken, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
-          self.log.error( "Cannot insert row (%s, %s) in problematicDirs" % ( path, SeName ) )
+          self.log.error( "Cannot insert row (%s, %s) in problematicDirs" % ( path, site ) )
           return result
     return S_OK()
   ###
@@ -239,13 +246,19 @@ class StorageUsageDB( DB ):
 
   def __getIDsFromProblematicDirs( self, dirList ):
     """ Get the ID from the problematicDirs table, for a given tuple (Path,SE) """
+    self.log.info( "entry to be removed: %s" % dirList )
     dirPath = dirList.keys()[ 0 ]
     if dirPath[-1] != "/":
       dirPath = "%s/" % dirPath
-    SE = dirList[ dirPath ][ 'SEName' ]
-    sqlSE = self._escapeString( SE )[ 'Value' ]
+    #SE = dirList[ dirPath ][ 'SEName' ]
+    #sqlSE = self._escapeString( SE )[ 'Value' ]
+    spaceToken = dirList[ dirPath ][ 'SEName' ]
+    sqlSpaceToken = self._escapeString( spaceToken )[ 'Value' ]
     sqlPath = self._escapeString( dirPath )[ 'Value' ]
-    sqlCmd = "SELECT Path, DID FROM problematicDirs WHERE Path=%s AND SEName=%s" % ( sqlPath, sqlSE )
+    site = dirList[ dirPath ]['Site']
+    sqlSite = self._escapeString( site )[ 'Value' ]
+    #sqlCmd = "SELECT Path, DID FROM problematicDirs WHERE Path=%s AND SEName=%s" % ( sqlPath, sqlSE )
+    sqlCmd = "SELECT Path, DID FROM problematicDirs WHERE Path=%s AND Site=%s and SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
     self.log.info( "in __getIDsFromProblematicDirs query %s" % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
@@ -542,7 +555,7 @@ class StorageUsageDB( DB ):
     return S_OK( Data )
 
   def getRunSummaryPerSE( self, run ):
-    """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the 
+    """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the
     run's file are stored is like:  /lhcb/data/[YEAR]/RAW/[STREAM]/[PARTITION]/[ACTIVITY]/[RUNNO]/"""
     sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '/lhcb/data/%%/RAW/%%/%%/%%/%d/' GROUP BY su.SEName" % ( run )
     gLogger.info( "getRunSummaryPerSE: sqlCmd is %s " % sqlCmd )
