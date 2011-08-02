@@ -299,7 +299,7 @@ class GaudiApplication( ModuleBase ):
 
   def _findOutputs( self, stepOutput ):
     """ Find which outputs of those in stepOutput (what are expected to be produced) are effectively produced.
-        stepOutput, as called here, corresponds to step_commons['listoutputs']
+        stepOutput, as called here, corresponds to step_commons['listoutput']
 
         stepOutput =
         [{'outputDataType': 'BHADRON.DST',

@@ -152,6 +152,7 @@ class UploadLogFile( ModuleBase ):
     if res['OK']:
       self.log.info( 'Successfully upload log directory to %s' % self.logSE )
       # TODO: The logURL should be constructed using the LogSE and StorageElement()
+      # FS: Tried, not available ATM in Dirac
       #storageElement = StorageElement(self.logSE)
       #pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
       #logURL = getPfnForProtocol(res['Value'],'http')['Value']
