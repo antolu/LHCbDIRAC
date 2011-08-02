@@ -125,18 +125,18 @@ class Production():
 
   #############################################################################
 
-  def setJobParameters(self, parametersDict):
+  def setJobParameters( self, parametersDict ):
     """ Set an (LHCb)Job parameter
     
         The parametersDict is in the form {'parameterName': 'value'} 
         Each parameter calls LHCbJob.setparameterName(value) 
     """
-    
+
     for parameter in parametersDict.keys():
-      getattr( self.LHCbJob, 'set' + parameter )(parametersDict[parameter])
-  
+      getattr( self.LHCbJob, 'set' + parameter )( parametersDict[parameter] )
+
   #############################################################################
-  
+
   def _setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
@@ -149,7 +149,7 @@ class Production():
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description )
 
   #############################################################################
-  
+
   def __getEventType( self, eventType ):
     """ Checks whether or not the global event type should be set.
     """
@@ -164,7 +164,7 @@ class Production():
     return eventType
 
   #############################################################################
-  
+
   def __checkArguments( self, extraPackages, optionsFile ):
     """ Checks for typos in the structure of standard arguments to workflows.
         In case of any non-standard settings will raise an exception preventing
@@ -203,7 +203,7 @@ class Production():
     return S_OK()
 
   #############################################################################
-  
+
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
                    extraPackages = '', outputSE = None, histograms = False, overrideOpts = '', extraOpts = '',
                    appType = 'sim', condDBTag = 'global', ddDBTag = 'global',
@@ -453,6 +453,7 @@ class Production():
 
 
   #############################################################################
+
   def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts', inputProduction = '',
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
                    inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
@@ -490,6 +491,79 @@ class Production():
                        firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
                        stepID, stepName, stepVisible )
     #if using LHCb to merge we won't want to abandon the output
+
+  #############################################################################
+
+  #NEW: try to put here common stuff of the addXXXXStep
+  def addApplicationStep( self, stepDict, outputSE, eventType, extraPackages, optionsFile, overrideOpts ):
+    """ stepDict contains everything that is in the step, for this production, e.g.:
+        {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1', 
+        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 
+        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 
+        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+        'fileTypesIn': ['SDST'], 
+        'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
+        
+        Note: this step treated here does not necessarily corresponds to a step of the BKK:
+        the case where they should be different is the merging case.
+    """
+
+    #common to all
+    eventType = self.__getEventType( eventType ) #only to be reported in the BKK (and eventually by the StepAccounting
+    self.__checkArguments( extraPackages, optionsFile )
+    #firstEventNumber is useless here (set by GaudiApplication module for Gauss only
+
+    outputFilesDict = self._constructOutputFilesDict( stepDict['fileTypesOut'], outputSE )
+
+    #TODO: FS: horrible way of dealing with options. I should really eliminate this file and use something smarter. 
+    if not overrideOpts:
+
+      if len( stepDict['fileTypesIn'] ) > 1:
+        raise ValueError, "too many input file types"
+      inputDataType = stepDict['fileTypesIn'][0]
+
+      fileTypesOut = stepDict['fileTypesOut']
+      for ft in fileTypesOut:
+        if 'hist' in ft.lower():
+          fileTypesOut.remove( ft )
+
+      if len( fileTypesOut ) == 1:
+        outputFileType = fileTypesOut[0]
+      else:
+        outputFileType = 'stripping'
+
+      optionsLine = getOptions( stepDict['ApplicationName'], outputFileType, inputType = inputDataType,
+                                histogram = self.histogramName, condDB = stepDict['CONDDB'], ddDB = stepDict['DDDB'] )
+      self.LHCbJob.log.verbose( 'Default options for DaVinci are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
+      optionsLine = string.join( optionsLine, ';' )
+    else:
+      optionsLine = overrideOpts
+
+
+
+
+
+
+
+  def _constructOutputFilesDict( self, filesList, outputSE ):
+    """ build list of dictionary of output files, including HIST case, and fix outputSE for file
+    """
+
+    outputList = []
+
+    for fileType in filesList:
+      fileDict = {}
+      if 'hist' in fileType.lower():
+        fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
+        fileDict['outputDataSE'] = outputSE
+      else:
+        fileDict['outputDataName'] = self.histogramName
+        fileDict['outputDataSE'] = self.histogramSE
+      fileDict['outputDataType'] = fileType.lower()
+
+      outputList.append( fileDict )
+
+    return outputList
 
   #############################################################################
 
@@ -624,10 +698,6 @@ class Production():
 
       outputList.append( gaudiStepOutputItem )
 
-#    gaudiStepOutput['outputDataName'] = '@{STEP_ID}.@{applicationType}'
-#    gaudiStepOutput['outputDataType'] = '@{applicationType}'
-#    gaudiStepOutput['outputDataSE'] = outputSE
-
     if histograms:
       histoFile = {}
       histoFile['outputDataName'] = self.histogramName
@@ -674,7 +744,7 @@ class Production():
     self.__addBKPassStep()
     #to keep track of the inputs / outputs for a given workflow track the step number and name
     self.ioDict[self.LHCbJob.gaudiStepCount] = gaudiStepInstance.getName()
-    
+
     return gaudiStepInstance
 
   #############################################################################

@@ -8,6 +8,6 @@
 <path>/LHCbDIRAC</path>
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
-<path>/afs/cern.ch/user/f/fstagni/cmtuser/LHCbDirac_DEV</path>
+<path>/home/toffo/DIRAC-Code</path>
 </pydev_pathproperty>
 </pydev_project>
