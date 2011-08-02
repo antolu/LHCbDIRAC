@@ -8,6 +8,7 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
 from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
+from DIRAC.Core.Utilities.SiteSEMapping                import getSEsForSite
 from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
 from DIRAC.Core.Utilities.List import sortList
 
@@ -16,7 +17,7 @@ from types import *
 
 def alarmTimeoutHandler( *args ):
   raise Exception( 'Timeout' )
-#
+
 AGENT_NAME = 'DataManagement/SEUsageAgent'
 
 class SEUsageAgent( AgentModule ):
@@ -41,14 +42,47 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "ERROR! could not create directory %s" % InputFilesLocation )
       return S_ERROR()
 
+    site = 'SARA'
+    #self.FCUpdateLatency = 172800 # TO BE IMPLEMENTED: keep into account a latency for having the StorageUsage up to date (ignore any inconsistency relative to directory where last update is more recent that this delay)
+    self.spaceTokens = {}
+    self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':['SARA-RAW', 'SARA-RDST', 'SARA-ARCHIVE']},
+                                 'LHCb-Disk' : {'year': '2011', 'DiracSEs':['SARA-DST', 'SARA_M-DST', 'SARA_MC_M-DST', 'SARA_MC-DST', 'SARA-FAILOVER']},
+                                 'LHCb_USER' : {'year': '2011', 'DiracSEs':['SARA-USER']},
+                                 'LHCb_RAW' : {'year': '2010', 'DiracSEs':['SARA-RAW']},
+                                 'LHCb_RDST' : {'year': '2010', 'DiracSEs':['SARA-RDST']},
+                                 'LHCb_M-DST': {'year': '2010', 'DiracSEs':['SARA_M-DST']},
+                                 'LHCb_DST'  : {'year': '2010', 'DiracSEs':['SARA-DST']},
+                                 'LHCb_MC_M-DST': {'year': '2010', 'DiracSEs':['SARA_MC_M-DST']},
+                                 'LHCb_MC_DST'  : {'year': '2010', 'DiracSEs': ['SARA_MC-DST']},
+                                 'LHCb_FAILOVER' : {'year': '2010', 'DiracSEs' : ['SARA-FAILOVER']}
+                                 }
+    spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )# STs to skip during checks
+    for st in self.spaceTokens[ site ].keys():
+      if st in spaceTokToIgnore:
+        self.spaceTokens[ site ][ st ]['Check'] = False
+      else:
+        self.spaceTokens[ site ][ st ]['Check'] = True
+
     self.siteConfig = {}
-    self.siteConfig['SARA'] = { 'originFileName': "LHCb.tar.bz2",
+    self.siteConfig[ site ] = { 'originFileName': "LHCb.tar.bz2",
                                 'originURL': "http://web.grid.sara.nl/space_tokens", # without final slash
                                 'targetPath': InputFilesLocation + 'downloadedFiles/SARA/',
                                 'pathToInputFiles': InputFilesLocation + 'goodFormat/SARA/',
-                                'StorageName': 'SARA' }
+                                'StorageName': 'SARA' ,
+                                'DiracName': 'LCG.SARA.nl'}
+    res = getSEsForSite( site )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get SEs for site %s ' % site )
+      return S_ERROR()
+    SEs = res['Value']
+    gLogger.info( "SEs: %s" % SEs )
 
-
+    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( 'SARA-RAW' ) )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get configuration for SE SARA-RAW' )
+    self.siteConfig[ site ][ 'SEs'] = SEs
+    self.siteConfig[ site ][ 'SAPath'] = res['Value']
+    gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
     return S_OK()
 
   def execute( self ):
@@ -77,10 +111,11 @@ class SEUsageAgent( AgentModule ):
         fullPathFileP3 = pathToSummary + fileP3
         if 'dirSummary' not in fileP3:
           continue
+        gLogger.info( "Start to scan file %s" % fullPathFileP3 )
         for line in open( fullPathFileP3, "r" ).readlines():
           splitLine = line.split()
           try:
-            SEName = splitLine[ 0 ]
+            spaceToken = splitLine[ 0 ]
             dirPath = splitLine[ 1 ]
             files = splitLine[ 2 ]
             size = splitLine[ 3 ]
@@ -89,18 +124,22 @@ class SEUsageAgent( AgentModule ):
             continue
           #oneDirDict = {dirPath: self.dirDict[ t ]} # dict where the key is simply the LFN path.
           oneDirDict = {}
-          oneDirDict[ dirPath ] = { 'SEName': SEName, 'Files': files, 'Size': size , 'Updated': 'na' }
-
+          oneDirDict[ dirPath ] = { 'SEName': spaceToken, 'Files': files, 'Size': size , 'Updated': 'na' }
           # the format of the entry to be processed must be:
           # oneDirDict = {LFNPath: {'SEName: se, 'Files':files, 'Size':size, 'Updated',updated }}
           # use this format for consistency with already existing methods of StorageUsageDB which take in input a dictionary like this
+          if 'failover' in dirPath:
+            # TO BE FIXED HOW TO DEAL WITH FAILOVER!!!!!
+            continue
           gLogger.info( "SEUsageAgent: processing directory: %s" % ( oneDirDict ) )
-          # initialize the isRegistered flag. Change it according to the checks SRM vs LFC
+          # initialize the isRegistered flag. Change it according to the checks SE vs LFC
           # possible values of isRegistered flag are:
           # NotRegisteredInFC: data not registered in FC
           # RegisteredInFC: data correctly registered in FC
           # MissingDataFromSE: the directory exists in the LFC for that SE, but there is less data on the SE than what reported in the FC
           isRegistered = False
+          LFCFiles = -1
+          LFCSize = -1
           gLogger.info( "SEUsageAgent: check if dirName exists in su_Directory: %s" % dirPath )
           res = self.__storageUsage.getIDs( oneDirDict )
           if not res['OK']:
@@ -124,31 +163,41 @@ class SEUsageAgent( AgentModule ):
               # we should decide what to do in this case. This might happen, but it is a problem at FC level... TBD!
               isRegistered = 'NotRegisteredInFC'
             else: # got some replicas! let's see if there is one for this SE
+              associatedDiracSEs = self.spaceTokens[ site ][spaceToken]['DiracSEs']
+              gLogger.info( "SpaceToken: %s list of its DiracSEs: %s" % ( spaceToken, associatedDiracSEs ) )
+              LFCFiles = 0
+              LFCSize = 0
               for lfn in res['Value'].keys():
                 for se in res['Value'][lfn].keys():
-                  if SEName in se:
-                    gLogger.info( "SEUsageAgent: the replica at SE= %s is registered in the FC!" % SEName )
-                    # check also whether the number of files and total directory size match:
-                    gLogger.info( "replica meta-data: %s" % res['Value'][lfn][ se ] )
-                    LFCFiles = int( res['Value'][lfn][ se ]['Files'] )
-                    LFCSize = int( res['Value'][lfn][ se ]['Size'] )
-                    SRMFiles = int( oneDirDict[ lfn ][ 'Files' ] )
-                    SRMSize = int( oneDirDict[ lfn ]['Size'] )
-                    gLogger.info( "LFCFiles = %d LFCSize = %d SRMFiles = %d SRMSize = %d" % ( LFCFiles, LFCSize, SRMFiles, SRMSize ) )
-                    if LFCFiles == SRMFiles and LFCSize == SRMSize:
-                      gLogger.info( "Number of files and total size matches with what reported by LFC" )
-                      isRegistered = 'RegisteredInFC'
-                    else:
-                      gLogger.info( "Directory registered, but mismatch in number of files or size!" )
-                      isRegistered = 'MissingDataFromSE'
-                    break
+                  gLogger.info( "SpaceToken: %s se: %s" % ( spaceToken, se ) )
+                  if se in associatedDiracSEs:
+                    LFCFiles += int( res['Value'][lfn][ se ]['Files'] )
+                    LFCSize += int( res['Value'][lfn][ se ]['Size'] )
+                    gLogger.info( "==> the replica is registered in the FC with DiracSE= %s" % se )
+              # check also whether the number of files and total directory size match:
+              SESize = int( oneDirDict[ lfn ]['Size'] )
+              SEFiles = int( oneDirDict[ lfn ]['Files'] )
+              gLogger.info( "LFCFiles = %d LFCSize = %d SEFiles = %d SESize = %d" % ( LFCFiles, LFCSize, SEFiles, SESize ) )
+              if SESize > LFCSize:
+                gLogger.info( "Data on SE exceeds what reported in LFC! some data not registered in LFC" )
+                isRegistered = 'NotRegisteredInFC'
+              elif SESize < LFCSize:
+                gLogger.info( "Data on LFC exceeds what reported by SE dump! missing data from storage" )
+                isRegistered = 'MissingDataFromSE'
+              elif LFCFiles == SEFiles and LFCSize == SESize:
+                gLogger.info( "Number of files and total size matches with what reported by LFC" )
+                isRegistered = 'RegisteredInFC'
+              else:
+                gLogger.info( "Unexpected case: SESize = LFCSize but SEFiles != LFCFiles" )
+                isRegistered = 'InconsistentFilesSize'
 
           gLogger.info( "SEUsageAgent: isRegistered flag is %s" % isRegistered )
+          oneDirDict[ dirPath ][ 'Site'] = site
         # now insert the entry into the problematicDirs table, or the replicas table according the isRegistered flag.
           if not isRegistered:
             gLogger.error( "ERROR: the isRegistered flag could not be updated for this directory: %s " % oneDirDict )
             continue
-          if isRegistered == 'NotRegisteredInFC' or isRegistered == 'MissingDataFromSE':
+          if isRegistered == 'NotRegisteredInFC' or isRegistered == 'MissingDataFromSE' or isRegistered == 'InconsistentFilesSize':
             gLogger.info( "SEUsageAgent: problematic directory! Add the entry %s to problematicDirs table. Before (if necessary) remove it from se_Usage table" % ( dirPath ) )
             res = self.__storageUsage.removeDirFromSe_Usage( oneDirDict )
             if not res[ 'OK' ]:
@@ -189,16 +238,20 @@ class SEUsageAgent( AgentModule ):
           else:
             gLogger.error( "Unknown value of isRegistered flag: %s " % isRegistered )
 
-        gLogger.debug( "Finished loop on file: %s " % fileP3 )
-      gLogger.debug( "Finished loop for site: %s " % site )
-    return S_OK()
+        gLogger.info( "Finished loop on file: %s " % fileP3 )
 
+      gLogger.info( "Finished loop for site: %s " % site )
+      # query problematicDirs table to get a summary of directories with the flag: NotRegisteredInFC
+      res = __storageUsage.getProblematicDirsSummary( site )
+      # query problematicDirs table to get a summary of directories with the flag: MissingDataFromSE
+
+    return S_OK()
 
 
   def readInputFile( self, site ):
     """ Download, read and parse input files with SEs content.
         Write down the results to  ASCII files.
-        There are 2 phases in the manipulation of input files:
+        There are 3 phases in the manipulation of input files:
         phase 1- it is directly the format of the DB query output, right after uncompressing the tar file provided by the site:
         PFN | size | update (ms)
         phase 2- one row per file, with format: SE PFN size update
@@ -221,6 +274,23 @@ class SEUsageAgent( AgentModule ):
     gLogger.info( "Reading input files for site %s " % site )
     gLogger.info( "originFileName: %s , originURL: %s ,targetPath: %s , pathToInputFiles: %s " % ( originFileName, originURL, targetPath, pathToInputFiles ) )
 
+    if targetPath[-1] != "/":
+      targetPath = "%s/" % targetPath
+    targetPathForDownload = targetPath + 'LHCb/'
+    gLogger.info( "Target path to download input files: %s" % targetPathForDownload )
+    # delete all existing files in the target directory if necessary:
+    try:
+      previousFiles = os.listdir( targetPathForDownload )
+      gLogger.info( "Found these files: %s" % previousFiles )
+    except:
+      gLogger.info( "no leftover to remove. Proceed downloading input files..." )
+    if previousFiles:
+      gLogger.info( "delete these files: %s " % previousFiles )
+      for file in previousFiles:
+        fullPath = targetPathForDownload + file
+        gLogger.info( "removing %s" % fullPath )
+        os.remove( fullPath )
+
     # Download input data made available by the sites. Reuse the code of dirac-install: urlretrieveTimeout, downloadAndExtractTarball
     res = self.downloadAndExtractTarball( originFileName, originURL, targetPath )
     if not res:
@@ -231,31 +301,81 @@ class SEUsageAgent( AgentModule ):
 
     if targetPath[-1] != "/":
       targetPath = "%s/" % targetPath
-    InputFilesListP1 = os.listdir( targetPath + 'LHCb/' )
-    gLogger.debug( "List of raw input files %s " % InputFilesListP1 )
-    suffix = {'LHCb_FAILOVER': '-FAILOVER', 'LHCb_USER':'-USER', 'LHCb_MC_M-DST': '_MC_M-DST', 'LHCb_MC_DST': '_MC-DST', 'LHCb_M-DST':'_M-DST', 'LHCb_RDST':'-RDST', 'LHCb_RAW':'-RAW', 'LHCb_DST':'-DST', 'LHCb_HISTOS':'-HIST'}
 
+    InputFilesListP1 = os.listdir( targetPathForDownload )
+    gLogger.info( "List of raw input files %s " % InputFilesListP1 )
+
+    # delete all leftovers of previous runs from the pathToInputFiles
+    try:
+      previousParsedFiles = os.listdir( pathToInputFiles )
+      gLogger.info( "Found these files: %s" % previousParsedFiles )
+    except:
+      gLogger.info( "no leftover to remove. Proceed to parse the input files..." )
+    if previousParsedFiles:
+      gLogger.info( "delete these files: %s " % previousParsedFiles )
+      for file in previousParsedFiles:
+        fullPath = pathToInputFiles + file
+        gLogger.info( "removing %s" % fullPath )
+        os.remove( fullPath )
+
+    # if necessary, merge the files in order to have one file per space token: LHCb-Tape, LHCb-Disk, LHCb_USER
+    # this is necessary in the transition phase while there are still some data on the old space tokens of 2010
+    gLogger.info( "Merge the input files to have one file per space token" )
     # Loop on N files relative to the site (one file for each space token)
-    for inputFileP1 in InputFilesListP1:
-      if 'USER' in inputFileP1:
-        #### THIS IS ONLY A TEMPORARY TRICK TO SPEED UP DEBUGGING!!!!!
-        gLogger.info( "WARNING!!!!! Skip users files for the time being (until in development)" )
-        continue
-      self.dirDict = {}
+    # previously open files for writing
+    # every input file corresponds to one space token
+    # whereas for the output, there is one file per NEW space token, so a merging is done
 
+    diskST = ['LHCb-Disk', 'LHCb_M-DST', 'LHCb_DST', 'LHCb_MC_M-DST', 'LHCb_MC_DST', 'LHCb_FAILOVER']
+    tapeST = ['LHCb-Tape', 'LHCb_RAW', 'LHCb_RDST']
+    outputFileMerged = {}
+    for st in self.spaceTokens[ site ].keys():
+      if not self.spaceTokens[ site ][ st ][ 'Check']:
+        gLogger.info( "Skip this space token: %s" % st )
+        continue
+      outputFileMerged[ st ] = {}
+      if self.spaceTokens[ site ][ st ][ 'year'] == '2011':
+        gLogger.info( "Preparing output files for space tokens: %s" % st )
+        # merged file:
+        fileP2Merged = pathToInputFiles + st + '.Merged.txt'
+        outputFileMerged[ st ]['MergedFileName'] = fileP2Merged
+        gLogger.info( "Opening file %s in w mode" % fileP2Merged )
+        fP2Merged = open( fileP2Merged, "w" )
+        outputFileMerged[ st ]['pointerToMergedFile' ] = fP2Merged
+        # directory summary file:
+        fileP3DirSummary = pathToInputFiles + st + '.dirSummary.txt'
+        outputFileMerged[ st ]['DirSummaryFileName'] = fileP3DirSummary
+        gLogger.info( "Opening file %s in w mode" % fileP3DirSummary )
+        fP3DirSummary = open( fileP3DirSummary, "w" )
+        outputFileMerged[ st ]['pointerToDirSummaryFile' ] = fP3DirSummary
+    for st in diskST:
+      try:
+        outputFileMerged[ st ] = outputFileMerged[ 'LHCb-Disk']
+      except:
+        gLogger.error( "no pointer to file for st=%s " % st )
+    for st in tapeST:
+      try:
+        outputFileMerged[ st ] = outputFileMerged['LHCb-Tape']
+      except:
+        gLogger.error( "no pointer to file for st=%s " % st )
+    gLogger.info( "Parsed output files : " )
+    for st in outputFileMerged.keys():
+      gLogger.info( "space token: %s -> \n  %s\n %s  " % ( st, outputFileMerged[ st ]['MergedFileName'], outputFileMerged[ st ]['DirSummaryFileName'] ) )
+
+    for inputFileP1 in InputFilesListP1:
       # the expected input file line is: pfn | size | date
       #/pnfs/grid.sara.nl/data/lhcb/data/2010/CHARMCONTROL.DST/00009283/0000/00009283_00000384_1.charmcontrol.dst          |   831797381 | 1296022620555
       # manipulate the input file to create a directory summary file (one row per directory)
-      for siteNaming in suffix.keys():
-        if siteNaming in inputFileP1:
-          SE = StorageName + suffix[siteNaming] # i.e. SARA-USER = SARA + -USER
-          gLogger.info( "SE name in DIRAC terminology: %s " % SE )
-          break
-      fileP2 = pathToInputFiles + SE + '.txt'
-      gLogger.debug( "Opening file %s in w mode" % fileP2 )
-      fP2 = open( fileP2, "w" )
+      splitFile = inputFileP1.split( '.' )
+      st = splitFile[ 0 ]
+      if not self.spaceTokens[ site ][ st ][ 'Check']:
+        gLogger.info( "Skip this space token: %s" % st )
+        continue
+      gLogger.info( "+++++ processing input file for space token: %s " % st )
+      fP2 = outputFileMerged[ st ]['pointerToMergedFile' ]
+      fileP2 = outputFileMerged[ st ]['MergedFileName']
       fullPathFileP1 = targetPath + 'LHCb/' + inputFileP1
-      gLogger.debug( "Reading from file %s" % fullPathFileP1 )
+      gLogger.info( "Reading from file %s\n and writing to: %s" % ( fullPathFileP1, fileP2 ) )
       totalLines = 0 # counts all lines in input
       processedLines = 0 # counts all processed lines
       for line in open( fullPathFileP1, "r" ).readlines():
@@ -265,24 +385,41 @@ class SEUsageAgent( AgentModule ):
           filePath = splitLine[0].rstrip()
           size = splitLine[1].lstrip()
           updated = splitLine[2].lstrip()
-          newLine = SE + ' ' + filePath + ' ' + size + ' ' + updated
+          newLine = filePath + ' ' + size + ' ' + updated
           fP2.write( "%s" % newLine )
           processedLines += 1
         except:
-          gLogger.info( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
+          gLogger.error( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
           continue
-      fP2.close()
-      gLogger.info( "File %s: total lines: %d correctly processed: %d " % ( fullPathFileP1, totalLines, processedLines ) )
+      fP2.flush()
+      gLogger.info( "Total lines: %d , correctly processed: %d " % ( totalLines, processedLines ) )
+    # close output files:
+    for st in outputFileMerged.keys():
+      p2 = outputFileMerged[ st ]['pointerToMergedFile' ]
+      p2.close()
 
-      gLogger.debug( "Reading from fileP2 %s " % fileP2 )
+
+    # produce directory summaries:
+    mergedFilesList = os.listdir( pathToInputFiles )
+    for file in mergedFilesList:
+      if 'Merged' not in file:
+        continue
+      fileP2 = pathToInputFiles + file
+      gLogger.info( "Reading from Merged file fileP2 %s " % fileP2 )
+      for spaceTok in self.spaceTokens[ site ].keys():
+        if spaceTok in fileP2:
+          st = spaceTok
+          break
+
+      gLogger.info( "Space token: %s" % st )
       totalLines = 0 # counts all lines in input
       processedLines = 0 # counts all processed lines
+      self.dirDict = {}
       for line in open( fileP2, "r" ).readlines():
         totalLines += 1
         splitLine = line.split()
-        SEName = splitLine[0]
-        PFNfilePath = splitLine[1]
-        res = self.getLFNPath( SEName, PFNfilePath )
+        PFNfilePath = splitLine[ 0 ]
+        res = self.getLFNPath( site, PFNfilePath )
         if not res[ 'OK' ]:
           gLogger.error( "getLFNPath returned: %s " % res )
           gLogger.error( "ERROR: could not retrieve LFN for PFN %s" % PFNfilePath )
@@ -293,7 +430,7 @@ class SEUsageAgent( AgentModule ):
           gLogger.info( "SEUsageAgent: it was not possible to get the LFN for PFN=%s, skip this line" % PFNfilePath )
           continue
         updated = defaultDate
-        size = int( splitLine[2] )
+        size = int( splitLine[ 1 ] )
         # currently the creation data is NOT stored in the DB. The time stamp stored for every entry is the insertion time
         #updatedMS = int( splitLine[3] )*1./1000
         #updatedTuple = time.gmtime( updatedMS ) # convert to tuple format in UTC. Still to be checked which format the DB requires
@@ -312,36 +449,32 @@ class SEUsageAgent( AgentModule ):
         self.dirDict[ basePath ][ 'Size' ] += size
         processedLines += 1
 
-      gLogger.info( "File %s: total lines: %d correctly processed: %d " % ( fileP2, totalLines, processedLines ) )
-
-      # create the directory summary file
-      fileP3 = pathToInputFiles + SE + '.dirSummary.txt'
-      gLogger.debug( "Opening fileP3 %s in w mode" % fileP3 )
-      fP3 = open( fileP3, "w" )
+      gLogger.info( "total lines: %d,  correctly processed: %d " % ( totalLines, processedLines ) )
+      # write to directory summary file
+      fileP3 = outputFileMerged[ st ]['DirSummaryFileName']
+      fP3 = outputFileMerged[ st ]['pointerToDirSummaryFile' ]
+      gLogger.info( "Writing to file %s" % fileP3 )
       for basePath in self.dirDict.keys():
-        summaryLine = SEName + ' ' + basePath + ' ' + str( self.dirDict[ basePath ][ 'Files' ] ) + ' ' + str( self.dirDict[ basePath ][ 'Size' ] )
+        summaryLine = st + ' ' + basePath + ' ' + str( self.dirDict[ basePath ][ 'Files' ] ) + ' ' + str( self.dirDict[ basePath ][ 'Size' ] )
         gLogger.debug( "Writing summaryLine %s" % summaryLine )
         fP3.write( "%s\n" % summaryLine )
+      fP3.flush()
       fP3.close()
 
       gLogger.debug( "SEUsageAgent: ----------------summary of ReadInputFile-------------------------" )
       for k in self.dirDict.keys():
-        gLogger.debug( "SEUsageAgent: (lfn,SE): %s-%s files=%d size=%d updated=%s" % ( k, SEName , self.dirDict[ k ][ 'Files' ], self.dirDict[ k ][ 'Size' ], self.dirDict[ k ][ 'Updated' ] ) )
+        gLogger.debug( "SEUsageAgent: (lfn,st): %s-%s files=%d size=%d updated=%s" % ( k, st , self.dirDict[ k ][ 'Files' ], self.dirDict[ k ][ 'Size' ], self.dirDict[ k ][ 'Updated' ] ) )
 
     return 0
 
 
-  def getLFNPath( self, ST, PFNfilePath ):
+  def getLFNPath( self, site, PFNfilePath ):
     """ Given a PFN returns the LFN, stripping the suffix relative to the particular site.
         Important: usually the transformation is done simply removing the SApath of the site, except for ARCHIVED and FREEZED
         datasets: in this case the PFN is: <old SAPath>/lhcb/archive/<LFN> and <old SAPath>/lhcb/freezer/<LFN>
         so, in order to get the lfn also the 'lhcb/archive/' or '/lhcb/freezer' string should be removed
           """
-    #gLogger.info( "Get the path from the CS:" )
-    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( ST ) )
-    if not res[ 'OK' ]:
-      return S_ERROR( "Could not retrieve path from CS" )
-    SEPath = res[ 'Value' ]
+    SEPath = self.siteConfig[ site ][ 'SAPath']
     prefixes = ['/lhcb/archive', '/lhcb/freezer']
     LFN = 'None'
     try:
@@ -439,4 +572,25 @@ class SEUsageAgent( AgentModule ):
     #Delete tar
     os.unlink( tarPath )
     return True
+
+  def mergeInputFiles( self, dir, inputFilesList ):
+    """ In the transition phase, after the migration to new space tokens schema in April 2011, there are still data in the 'old' space tokens of 2010.
+    The situation at sites is that new and old space token contain data, until the data on old space tokens will be removed.
+    In this situation it might happend that some data registered at a given Dirac SE (e.g. CERN-DST) has some data
+    on the new LHCb-Disk and some data on the old LHCb-DST. So, it is necessary to merge these files to sum the total
+    number of files and total size per directory """
+
+    diskData = []
+    tapeData = []
+    diskST = ['LHCb-Disk', 'LHCb_M-DST', 'LHCb_DST', 'LHCb_MC_M-DST', 'LHCb_MC_DST', 'LHCb-FAILOVER']
+    tapeST = ['LHCb-Tape', 'LHCb_RAW', 'LHCb-RDST']
+    for file in inputFilesList:
+      splitFile = file.split( '.' )
+      spaceToken = splitFile[ 0 ]
+      if spaceToken in diskST:
+        diskData.append( file )
+      elif spaceToken in tapeST:
+        tapeData.append( file )
+      else:
+        gLogger.error( "error! space token: %s " % spaceToken )
 
