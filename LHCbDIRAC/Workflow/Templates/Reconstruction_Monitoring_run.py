@@ -187,9 +187,9 @@ if threeSteps:
 production = Production( BKKClientIn = BKClient )
 
 if sysConfig:
-  production.setSystemConfig( sysConfig )
+  production.setJobParameters( { 'SystemConfig': sysConfig } )
 
-production.setCPUTime( recoCPU )
+production.setJobParameters( {'CPUTime': recoCPU } )
 production.setProdType( recoType )
 wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) ) #Rest can be taken from the details in the monitoring
 if express:
@@ -278,7 +278,9 @@ if "{{p2Ver}}":
                             inputDataType = daVinciInput.lower(), histograms = histograms,
                             stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
-production.addFinalizationStep()
+production.addFinalizationStep( ['UploadOutputData',
+                                 'FailoverRequest',
+                                 'UploadLogFile'] )
 production.setProdGroup( prodGroup )
 production.setProdPriority( recoPriority )
 production.setProdPlugin( recoPlugin )

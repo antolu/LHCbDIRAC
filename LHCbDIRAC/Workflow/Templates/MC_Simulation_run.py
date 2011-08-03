@@ -75,7 +75,6 @@ cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
 priority = '{{MCPriority#PROD-MC: Production priority#4}}'
 extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
 finalAppType = '{{MCFinalAppType#PROD-MC: final file type to produce and merge e.g. DST,XDST,GEN,SIM...#ALLSTREAMS.DST}}'
-defaultOutput = '{{DefaultOutput#Prod-MC: upload un-merged output (leave blank for default)#}}'
 
 mergingFlag = '{{MergingEnable#PROD-Merging: enable flag Boolean True/False#True}}' #True/False
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
@@ -130,15 +129,9 @@ else:
   publishFlag = True
   testFlag = False
 
-if not defaultOutput:#Use computing model default unless CERN is requested
-  defaultOutputSE = 'Tier1_RDST' # for all intermediate outputs
-  brunelDataSE = 'Tier1_MC-DST'
-  daVinciDataSE = 'Tier1_MC-DST'
-
-if outputsCERN:
-  defaultOutputSE = 'CERN-RDST'
-  brunelDataSE = 'CERN_MC-DST'
-  daVinciDataSE = 'CERN_MC-DST'
+defaultOutputSE = 'CERN-RDST'
+brunelDataSE = 'CERN_MC-DST'
+daVinciDataSE = 'CERN_MC-DST'
 
 mcRequestTracking = 1
 mcreplicationFlag = replicationFlag
@@ -156,7 +149,7 @@ if not publishFlag:
 if testFlag:
   configName = 'certification'
   configVersion = 'test'
-  events = '5'
+  events = '3'
   mergingGroupSize = '1'
   mcreplicationFlag = False
   replicationFlag = False
@@ -262,7 +255,6 @@ if sixSteps:
   mergingStepVisible = '{{p6Vis}}'
   decided = True
 
-
 if fiveSteps and not decided:
   if not mergingFlag and not localTestFlag:
     gLogger.error( 'Five steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
@@ -271,7 +263,6 @@ if fiveSteps and not decided:
     gLogger.error( 'Five steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
     DIRAC.exit( 2 )
 
-  prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
   production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
                           extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
                           outputSE = defaultOutputSE, appType = gaussAppType,
@@ -279,14 +270,27 @@ if fiveSteps and not decided:
   production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
                           condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
                           stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-  mooreOpts = '{{p3Opt}}'
-  production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                          condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-                          stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-  brunelOpts = '{{p4Opt}}'
-  production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
-                           outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
-                           stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
+  if threeSteps.lower() == 'moore' and fourSteps.lower() == 'brunel':
+    prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
+    mooreOpts = '{{p3Opt}}'
+    production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
+                            condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
+                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+    brunelOpts = '{{p4Opt}}'
+    production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
+                             outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
+                             stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
+  elif threeSteps.lower() == 'brunel' and fourSteps.lower() == 'davinci':
+    prodDescription = 'A five step workflow Gauss->Boole->Brunel->DaVinci + Merging'
+    brunelOpts = '{{p3Opt}}'
+    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
+                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}',
+                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+    daVinciOpts = '{{p4Opt}}'
+    production.addDaVinciStep( '{{p4Ver}}', finalAppType.lower(), daVinciOpts, extraPackages = '{{p4EP}}', inputDataType = 'dst',
+                              dataType = 'MC',
+                              outputSE = daVinciDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
+                             stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
   mergingVersion = '{{p5Ver}}'
   merginCondDB = '{{p5CDb}}'
   mergingDDDB = '{{p5DDDb}}'
@@ -294,66 +298,42 @@ if fiveSteps and not decided:
   mergingStepName = '{{p5Name}}'
   mergingStepVisible = '{{p5Vis}}'
   decided = True
-#
-#if fourSteps and not decided:
-#  if not mergingFlag and threeSteps.lower() == 'moore':
-#    prodDescription = 'A four step workflow Gauss->Boole->Moore-Brunel without merging'
-#    production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-#                            extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-#                            outputSE = defaultOutputSE, appType = gaussAppType,
-#                            stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-#    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-#                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-#                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-#    mooreOpts = '{{p3Opt}}'
-#    production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-#                            condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-#                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-#    brunelOpts = '{{p4Opt}}'
-#    production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
-#                             outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
-#                             stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
-#    decided = True
-#  elif not mergingFlag and threeSteps.lower() == 'brunel':
-#    prodDescription = 'A three step workflow Gauss->Boole->Brunel without merging'
-#    production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-#                            extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-#                            outputSE = defaultOutputSE, appType = gaussAppType,
-#                            stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-#    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-#                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-#                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-#    brunelOpts = '{{p3Opt}}'
-#    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-#                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}',
-#                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-#    decided = True
-#  elif mergingFlag and fourSteps.lower() == mergingApp.lower():
-#    #Will likely disappear eventually as Moore will start to be used everywhere
-#    prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
-#    production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-#                            extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-#                            outputSE = defaultOutputSE, appType = gaussAppType,
-#                            stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-#    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-#                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-#                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-#    brunelOpts = '{{p3Opt}}'
-#    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-#                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}',
-#                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-#    mergingVersion = '{{p4Ver}}'
-#    mergingCondDB = '{{p4CDb}}'
-#    mergingDDDB = '{{p4DDDb}}'
-#    mergingStepID = '{{p4Step}}'
-#    mergingStepName = '{{p4Name}}'
-#    mergingStepVisible = '{{p4Vis}}'
-#    decided = True
-#  else:
-#    #So far ignoring possible Gauss->Boole->Moore + Merging combination (never requested).
-#    gLogger.error( 'Four steps requested but workflow is neither Gauss->Boole->Brunel +Merging, \
-#                   Gauss->Boole->Brunel without Merging, or Gauss->Boole->Moore->Brunel, not sure what to do! Exiting...' )
-#    DIRAC.exit( 2 )
+
+if fourSteps and not decided:
+  if not mergingFlag and not localTestFlag:
+    gLogger.error( 'Four steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
+    DIRAC.exit( 2 )
+  if not fourSteps.lower() == mergingApp.lower():
+    gLogger.error( 'Four steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
+    DIRAC.exit( 2 )
+
+  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
+                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
+                          outputSE = defaultOutputSE, appType = gaussAppType,
+                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
+  production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
+                          condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
+                          stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
+
+  if threeSteps.lower() == 'moore':
+    prodDescription = 'A four step workflow Gauss->Boole->Moore + Merging'
+    mooreOpts = '{{p3Opt}}'
+    production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
+                            condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
+                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+  elif threeSteps.lower() == 'brunel':
+    prodDescription = 'A four step workflow Gauss->Boole->Brunel + Merging'
+    brunelOpts = '{{p3Opt}}'
+    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
+                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}',
+                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+  mergingVersion = '{{p4Ver}}'
+  merginCondDB = '{{p4CDb}}'
+  mergingDDDB = '{{p4DDDb}}'
+  mergingStepID = '{{p4Step}}'
+  mergingStepName = '{{p4Name}}'
+  mergingStepVisible = '{{p4Vis}}'
+  decided = True
 #
 #if threeSteps and not decided:
 #  if not mergingFlag and threeSteps.lower() == 'brunel':
@@ -454,7 +434,9 @@ prodDescription = '%s for BK %s %s event type %s with %s events per job and fina
                    application file type %s.' % ( prodDescription, configName, configVersion, evtType, events, finalAppType )
 gLogger.info( prodDescription )
 production.setWorkflowDescription( prodDescription )
-production.addFinalizationStep()
+production.addFinalizationStep( ['UploadOutputData',
+                                 'FailoverRequest',
+                                 'UploadLogFile'] )
 production.setJobParameters( { 'CPUTime': cpu } )
 production.setProdGroup( '{{pDsc}}' )
 production.setProdPriority( priority )
@@ -544,15 +526,14 @@ mergeProd.setWorkflowDescription( 'MC workflow for merging outputs from a previo
 mergeProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
 mergeProd.setDBTags( mergingCondDB, mergingDDDB )
 mergeProd.addMergeStep( mergingVersion, eventType = '{{eventType}}', inputDataType = finalAppType.lower(),
-                       inputProduction = prodID, inputData = [],
-                       condDBTag = mergingCondDB, ddDBTag = mergingDDDB,
+                       inputData = [], condDBTag = mergingCondDB, ddDBTag = mergingDDDB,
                        stepID = mergingStepID, stepName = mergingStepName, stepVisible = mergingStepVisible )
-mergeProd.addFinalizationStep( ['UploadOutputData', 
-                                'UploadLogFile',
+mergeProd.addFinalizationStep( ['UploadOutputData',
                                 'FailoverRequest',
-                                'RemoveInputData'] )
+                                'RemoveInputData',
+                                'UploadLogFile'] )
 mergeProd.setInputBKSelection( inputBKQuery )
-mergeProd.setJobParameters( {"InputDataPolicy": 'download' } ) 
+mergeProd.setJobParameters( {"InputDataPolicy": 'download' } )
 mergeProd.setJobFileGroupSize( mergingGroupSize )
 mergeProd.setProdGroup( '{{pDsc}}' )
 mergeProd.setProdPriority( mergingPriority )

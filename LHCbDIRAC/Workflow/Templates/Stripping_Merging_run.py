@@ -310,7 +310,7 @@ if strippEnabled:
   if sysConfig:
     production.setSystemConfig( sysConfig )
 
-  production.setCPUTime( strippCPU )
+  production.setJobParameters( { 'CPUTime': strippCPU } )
   production.setProdType( 'DataStripping' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
   production.setWorkflowName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
@@ -318,7 +318,7 @@ if strippEnabled:
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( strippInputBKQuery )
   production.setDBTags( strippCDb, strippDDDb )
-  production.setInputDataPolicy( strippIDPolicy )
+  production.setJobParameters( {'InputDataPolicy': strippIDPolicy } )
   production.setProdPlugin( strippPlugin )
 
   if strippInput.lower() == 'sdst':
@@ -331,7 +331,9 @@ if strippEnabled:
                              histograms = True, extraOutput = strippEO,
                              stepID = strippStep, stepName = strippName, stepVisible = strippVisibility )
 
-  production.addFinalizationStep()
+  production.addFinalizationStep( ['UploadOutputData',
+                                   'FailoverRequest',
+                                   'UploadLogFile'] )
   production.setProdGroup( prodGroup )
   production.setProdPriority( stripp_priority )
   production.setJobFileGroupSize( strippFilesPerJob )
@@ -504,7 +506,7 @@ if mergingEnabled:
   mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStreamsList, wkfName, appendName ) )
 
   if sysConfig:
-    mergeProd.setSystemConfig( sysConfig )
+    mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
   mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStreamsList, strippProdID ) )
   mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
@@ -526,9 +528,17 @@ if mergingEnabled:
     gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
     DIRAC.exit( 2 )
 
-  mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+  if mergeRemoveInputsFlag:
+    mergeProd.addFinalizationStep( ['UploadOutputData',
+                                    'FailoverRequest',
+                                    'RemoveInputData',
+                                    'UploadLogFile'] )
+  else:
+    mergeProd.addFinalizationStep( ['UploadOutputData',
+                                    'FailoverRequest',
+                                    'UploadLogFile'] )
   mergeProd.setInputBKSelection( mergeBKQuery )
-  mergeProd.setInputDataPolicy( mergeIDPolicy )
+  mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
   mergeProd.setProdGroup( prodGroup )
   mergeProd.setProdPriority( mergePriority )
   mergeProd.setJobFileGroupSize( mergeFileSize )
