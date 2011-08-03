@@ -135,6 +135,24 @@ class AnalyseXMLLogFile:
       res['Data'] = self.dataSummary
       return res
 
+    # Check that on the XML summary : success = True
+    res = self.__checkSuccess()
+    if not res['OK']:
+      res['Data'] = self.dataSummary
+      return res
+
+    # Check that on the XML summary : step = finalize
+    res = self.__checkStep()
+    if not res['OK']:
+      res['Data'] = self.dataSummary
+      return res
+ 
+    # Checks that all input files have been read
+    res = self.__checkReadInputFiles()
+    if not res['OK']:
+      res['Data'] = self.dataSummary
+      return res
+
     # Check that the number of events handled is correct
     res = self.__checkApplicationEvents()
     if not res['OK']:
@@ -197,10 +215,7 @@ class AnalyseXMLLogFile:
       self.xmlTree = summary.parse( self.xmlFileName )
     except Exception, e:
       return S_ERROR( 'Error parsing xml summary: %s' % e )
-     
-    self.numberOfEventsInput  = self.__getInputEvents()
-    self.numberOfEventsOutput = self.__getOutputEvents()   
-      
+          
     return S_OK()
 
   def __guessAppName( self ):
@@ -252,7 +267,9 @@ class AnalyseXMLLogFile:
     self.gLogger.info( 'Guessed prod: %s, job: %s and step: %s' % ( self.prodName, self.jobName, self.stepName ) )
     
     return S_OK()
-    
+
+################################################################################
+## CHECKS    
 ################################################################################
 
   def __checkGaudiErrors( self ):
@@ -309,13 +326,107 @@ class AnalyseXMLLogFile:
     return S_OK()
 
 ################################################################################
-## CHECKS
+
+  def __checkSuccess( self ):
+    """Checks that the XML summary reports success == True
+    """
+    
+    res = self.__getSuccess()
+    if not res[ 'OK' ]:
+      self.gLogger.error( 'XMLSummary success bad formated %s' % res[ 'Message' ] )  
+      return res
+    
+    if not res['Value'] == 'True':  
+      self.gLogger.error( 'XMLSummary did NOT succeed ( success = False )' )
+      return S_ERROR( False )
+    
+    self.gLogger.info( 'XMLSummary reports success = True ' )  
+    return res  
+
+################################################################################
+
+  def __checkStep( self ):
+    """Checks that the XML summary reports step == finalize
+    """
+
+    res = self.__getStep()
+    if not res[ 'OK' ]:
+      self.gLogger.error( 'XMLSummary step bad formated %s' % res[ 'Message' ] )  
+      return res
+    
+    if res['Value'] != 'finalize':  
+      self.gLogger.error( 'XMLSummary reports step did not finalize' )
+      return S_ERROR( res['Value'] )
+    
+    self.gLogger.info( 'XMLSummary reports step finalized' )  
+    return res  
+
+################################################################################
+
+  def __checkReadInputFiles( self ):
+    """Checks that every input file has reached the full status.
+       Four possible statuses of the files:
+       - full : the file has been fully read
+       - part : the file has been partially read
+       - mult : the file has been read multiple times
+       - fail : failure while reading the file
+    """
+
+    res = self.__getInputStatus()
+    if not res[ 'OK' ]:
+      self.gLogger.error( 'XMLSummary bad formated %s' % res[ 'Message' ] )  
+      return res
+
+    fileCounter = {
+                   'full'  : 0,
+                   'part'  : 0,
+                   'mult'  : 0,
+                   'fail'  : 0,
+                   'other' : 0
+                   }
+
+    for file,status in res[ 'Value' ]:
+      
+      if status == 'fail':
+        self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'fail' ] += 1  
+
+      elif status == 'mult':
+        self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'mult' ] += 1  
+
+      elif status == 'part':
+        self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'part' ] += 1  
+
+      elif status == 'full':
+        #If it is Ok, we do not print anything
+        #self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'full' ] += 1  
+  
+      # This should never happen, but just in case
+      else:
+        self.gLogger.error( 'File %s is on unknown status: %s' % ( file,status ) )
+        fileCounter[ 'other'] += 1    
+     
+    files = [ '%d file(s) on %s status' % (v,k) for k,v in fileCounter.items()]
+    filesMsg =  ', '.join( files )
+    self.gLogger.info( filesMsg )
+
+    if fileCounter[ 'full' ] != len( fileCounter ):
+      return S_ERROR( filesMsg )
+    
+    return S_OK()
+
 ################################################################################
 
   def __checkApplicationEvents( self ):
     """ Internally calls the correctly named method to check the number of
         events in an application log file.
     """
+    
+    self.numberOfEventsInput  = self.__getInputEvents()[ 'Value' ]
+    self.numberOfEventsOutput = self.__getOutputEvents()[ 'Value' ]   
     
     # 'private' functions starting with '__' are mangled by Python
     try:
@@ -643,6 +754,62 @@ class AnalyseXMLLogFile:
 
 #### BEGIN: XML - FSR functions
 
+  def __getSuccess( self ):
+    '''
+       Checks that the element success is unique and returns
+       its value
+       
+       <success>True/False</success>    
+    '''
+    
+    sum = self.xmlTree[ 0 ]
+    
+    successXML = sum.childrens( 'success' )
+    if len( successXML ) != 1:
+      return S_ERROR( 'Nr of success items != 1' ) 
+    
+    return S_OK( successXML[ 0 ].value )
+
+  def __getStep( self ):
+    '''
+       Checks that the element step is unique and returns
+       its value
+       
+       <step>finalize/x/y...</step>    
+    '''
+    
+    sum = self.xmlTree[ 0 ]
+    
+    stepXML = sum.childrens( 'step' )
+    if len( stepXML ) != 1:
+      return S_ERROR( 'Nr of step items != 1' ) 
+    
+    return S_OK( stepXML[ 0 ].value )
+
+  def __getInputStatus( self ):
+    '''
+      We know beforehand the structure of the XML, which makes our life
+      easier.
+      
+      < summary >
+        ...
+        < input >
+        ...
+    '''
+    
+    files = []
+    
+    sum = self.xmlTree[ 0 ]
+    
+    for input in sum.childrens( 'input' ):
+      for file in input.childrens( 'file' ):
+        try:
+          files.append( ( file.attributes[ 'name' ], file.attributes[ 'status' ] ) ) 
+        except Exception, e:
+          return S_ERROR( 'Bad formatted file keys. %s' % e ) 
+ 
+    return S_OK( files )
+ 
   def __getInputEvents( self ):
     '''
       We know beforehand the structure of the XML, which makes our life
@@ -661,7 +828,7 @@ class AnalyseXMLLogFile:
       for file in input.childrens( 'file' ):
         inputEvents += int( file.value )    
     
-    return inputEvents
+    return S_OK( inputEvents )
   
 ####  
 
@@ -684,146 +851,146 @@ class AnalyseXMLLogFile:
       for file in output.childrens( 'file' ):
         outputEvents += int( file.value )     
     
-    return outputEvents
+    return S_OK( outputEvents )
 
 #### END: XML - FSR functions
-
-  def __getRequestedEvents( self ):
-    """ Determine the number of requested events from the application log. The log should contain one of two strings:
-  
-        Requested to process all events on input file   or
-        Requested to process x events
-  
-        If neither of these strings are found an error is returned
-    """
-    exp = re.compile( r"Requested to process ([0-9]+|all)" )
-    findline = re.search( exp, self.fileString )
-    if not findline:
-      self.gLogger.error( "Could not determine requested events." )
-      return S_ERROR( "Could Not Determine Requested Events" )
-    events = findline.group( 1 )
-    if events == 'all':
-      requestedEvents = 0
-      self.gLogger.info( 'Determined the number of requested events to be "all".' )
-    else:
-      requestedEvents = int( events )
-      self.gLogger.info( 'Determined the number of requested events to be %s.' % requestedEvents )
-    return S_OK( requestedEvents )    
-
-####
-
-  def __getLastEvent( self ):
-    """ Determine the last event handled from the application log. The log should contain the string:
-
-         Nr. in job = x
-
-        If this string is not found then 0 is returned
-    """
-    """ DaVinci does not write out each event but instead give a summary every x events. The log should contain the string:
-
-        Reading Event record
-
-        If this string is not found then 0 is returned
-    """
-    
-    regex = self.__APPLICATION_LAST_EVENT__[ self.applicationName ]
-    
-    exp = re.compile( regex )
-    list = re.findall( exp, self.fileString )
-    if not list:
-      event = 0
-    else:
-      event = int( list[-1] )
-    self.gLogger.info( "Determined the number of events to be %s." % event )
-    return S_OK( event )
-
-####
-
-  def __getEventsProcessed( self, service ):
-    """ Determine the number of events reported processed by the supplied service. The log should contain the string:
-
-        Service          SUCCESS x events processed
-
-        If the string is not found an error is returned
-    """
-    
-    if not service in self.__POSSIBLE_SERVICES__:
-      msg = "Requested service '%s' not available" % service
-      self.gLogger.error( msg )
-      return S_ERROR( msg )
-    
-    exp = re.compile( r"%s\s+SUCCESS (\d+) events processed" % service )
-    if service == 'L0Muon':
-      exp = re.compile( r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" % service )
-
-    findline = re.search( exp, self.fileString )
-    if not findline:
-      if not re.search( 'Alg$', service ):
-        return self.__getEventsProcessed( '%sAlg' % service )
-      
-      msg = "Could not determine events processed."
-      self.gLogger.error( msg )
-      return S_ERROR( msg )
-
-    eventsProcessed = int( findline.group( 1 ) )
-    self.gLogger.info( "Determined the number of events processed to be %s." % eventsProcessed )
-    
-    return S_OK( eventsProcessed )
-
-####
-
-  def __getEventsOutput( self, writer ):
-    """  Determine the number of events written out by the supplied writer. The log should contain the string:
-  
-         Writer            INFO Events output: x
-  
-         If the string is not found an error is returned
-    """
-    
-    if not writer in self.__POSSIBLE_WRITERS__:
-      msg = 'Requested writer "%s" not available.' % writer
-      self.gLogger.error( msg )
-      return S_ERROR( msg )
-    
-    exp = re.compile( r"%s\s+INFO Events output: (\d+)" % writer )
-    findline = re.search( exp, self.fileString )
-    
-    if not findline:
-      msg = 'Could not determine events output.'
-      self.gLogger.warn( msg )
-      return S_ERROR( msg )
-    
-    writtenEvents = int( findline.group( 1 ) )
-    self.gLogger.info( "Determined the number of events written to be %s." % writtenEvents )
-    
-    return S_OK( writtenEvents )
-
-####
-
-  def __getLastFile( self ):
-    """ Determine the last input file opened from the application log.
-    """
-    files = self.__getInputFiles()[ 'Value' ]
-    if files:
-      return S_OK( files[ -1 ] )
-    return S_ERROR( "No input files opened" )
-
-####
-
-  def __getInputFiles( self ):
-    """ Determine the list of input files accessed from the application log. The log should contain a string like:
-
-        Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='filename'
-
-        In the event that the file name contains LFN: this is removed.
-    """
-    exp = re.compile( r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'" )
-    files = re.findall( exp, self.fileString )
-    strippedFiles = []
-    for file in files: 
-      strippedFiles.append( file.replace( 'LFN:', '' ) )
-    return S_OK( strippedFiles )
-  
+#
+#  def __getRequestedEvents( self ):
+#    """ Determine the number of requested events from the application log. The log should contain one of two strings:
+#  
+#        Requested to process all events on input file   or
+#        Requested to process x events
+#  
+#        If neither of these strings are found an error is returned
+#    """
+#    exp = re.compile( r"Requested to process ([0-9]+|all)" )
+#    findline = re.search( exp, self.fileString )
+#    if not findline:
+#      self.gLogger.error( "Could not determine requested events." )
+#      return S_ERROR( "Could Not Determine Requested Events" )
+#    events = findline.group( 1 )
+#    if events == 'all':
+#      requestedEvents = 0
+#      self.gLogger.info( 'Determined the number of requested events to be "all".' )
+#    else:
+#      requestedEvents = int( events )
+#      self.gLogger.info( 'Determined the number of requested events to be %s.' % requestedEvents )
+#    return S_OK( requestedEvents )    
+#
+#####
+#
+#  def __getLastEvent( self ):
+#    """ Determine the last event handled from the application log. The log should contain the string:
+#
+#         Nr. in job = x
+#
+#        If this string is not found then 0 is returned
+#    """
+#    """ DaVinci does not write out each event but instead give a summary every x events. The log should contain the string:
+#
+#        Reading Event record
+#
+#        If this string is not found then 0 is returned
+#    """
+#    
+#    regex = self.__APPLICATION_LAST_EVENT__[ self.applicationName ]
+#    
+#    exp = re.compile( regex )
+#    list = re.findall( exp, self.fileString )
+#    if not list:
+#      event = 0
+#    else:
+#      event = int( list[-1] )
+#    self.gLogger.info( "Determined the number of events to be %s." % event )
+#    return S_OK( event )
+#
+#####
+#
+#  def __getEventsProcessed( self, service ):
+#    """ Determine the number of events reported processed by the supplied service. The log should contain the string:
+#
+#        Service          SUCCESS x events processed
+#
+#        If the string is not found an error is returned
+#    """
+#    
+#    if not service in self.__POSSIBLE_SERVICES__:
+#      msg = "Requested service '%s' not available" % service
+#      self.gLogger.error( msg )
+#      return S_ERROR( msg )
+#    
+#    exp = re.compile( r"%s\s+SUCCESS (\d+) events processed" % service )
+#    if service == 'L0Muon':
+#      exp = re.compile( r"%s\s+INFO - Total number of events processed\s+:\s+(\d+)" % service )
+#
+#    findline = re.search( exp, self.fileString )
+#    if not findline:
+#      if not re.search( 'Alg$', service ):
+#        return self.__getEventsProcessed( '%sAlg' % service )
+#      
+#      msg = "Could not determine events processed."
+#      self.gLogger.error( msg )
+#      return S_ERROR( msg )
+#
+#    eventsProcessed = int( findline.group( 1 ) )
+#    self.gLogger.info( "Determined the number of events processed to be %s." % eventsProcessed )
+#    
+#    return S_OK( eventsProcessed )
+#
+#####
+#
+#  def __getEventsOutput( self, writer ):
+#    """  Determine the number of events written out by the supplied writer. The log should contain the string:
+#  
+#         Writer            INFO Events output: x
+#  
+#         If the string is not found an error is returned
+#    """
+#    
+#    if not writer in self.__POSSIBLE_WRITERS__:
+#      msg = 'Requested writer "%s" not available.' % writer
+#      self.gLogger.error( msg )
+#      return S_ERROR( msg )
+#    
+#    exp = re.compile( r"%s\s+INFO Events output: (\d+)" % writer )
+#    findline = re.search( exp, self.fileString )
+#    
+#    if not findline:
+#      msg = 'Could not determine events output.'
+#      self.gLogger.warn( msg )
+#      return S_ERROR( msg )
+#    
+#    writtenEvents = int( findline.group( 1 ) )
+#    self.gLogger.info( "Determined the number of events written to be %s." % writtenEvents )
+#    
+#    return S_OK( writtenEvents )
+#
+#####
+#
+#  def __getLastFile( self ):
+#    """ Determine the last input file opened from the application log.
+#    """
+#    files = self.__getInputFiles()[ 'Value' ]
+#    if files:
+#      return S_OK( files[ -1 ] )
+#    return S_ERROR( "No input files opened" )
+#
+#####
+#
+#  def __getInputFiles( self ):
+#    """ Determine the list of input files accessed from the application log. The log should contain a string like:
+#
+#        Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='filename'
+#
+#        In the event that the file name contains LFN: this is removed.
+#    """
+#    exp = re.compile( r"Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='(\S+)'" )
+#    files = re.findall( exp, self.fileString )
+#    strippedFiles = []
+#    for file in files: 
+#      strippedFiles.append( file.replace( 'LFN:', '' ) )
+#    return S_OK( strippedFiles )
+#  
 ################################################################################
 ################################################################################
 ################################################################################
