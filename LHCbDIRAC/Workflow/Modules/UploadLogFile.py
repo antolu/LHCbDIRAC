@@ -8,12 +8,14 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
-from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
-from DIRAC.Core.Utilities.Subprocess                       import shellCall
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+from DIRAC.Core.Utilities.Subprocess import shellCall
 
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-from LHCbDIRAC.Core.Utilities.ProductionData               import getLogPath
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
+from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath
+
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
@@ -23,11 +25,12 @@ import os, shutil, glob, string, random
 class UploadLogFile( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     """Module initialization.
     """
 
-    self.log = gLogger.getSubLogger( 'UploadLogFile' )
+    self.log = gLogger.getSubLogger( "UploadLogFile" )
     super( UploadLogFile, self ).__init__( self.log )
 
     self.version = __RCSID__
@@ -46,6 +49,7 @@ class UploadLogFile( ModuleBase ):
     self.rm = ReplicaManager()
 
 ######################################################################
+
   def resolveInputVariables( self ):
 
     if self.workflow_commons.has_key( 'LogFilePath' ) and self.workflow_commons.has_key( 'LogTargetPath' ):
@@ -73,9 +77,8 @@ class UploadLogFile( ModuleBase ):
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    return S_OK( 'Parameters resolved' )
-
 ######################################################################
+
   def execute( self ):
     """ Main executon method
     """
@@ -104,6 +107,7 @@ class UploadLogFile( ModuleBase ):
     return res
 
   #############################################################################
+
   def finalize( self ):
     """ finalize method performs final operations after all the job
         steps were executed. Only production jobs are treated.
@@ -149,6 +153,9 @@ class UploadLogFile( ModuleBase ):
     self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
     res = self.rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
     self.log.verbose( res )
+    logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
+    self.setJobParameter( 'Log URL', logURL )
+    self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     if res['OK']:
       self.log.info( 'Successfully upload log directory to %s' % self.logSE )
       # TODO: The logURL should be constructed using the LogSE and StorageElement()
@@ -156,45 +163,29 @@ class UploadLogFile( ModuleBase ):
       #storageElement = StorageElement(self.logSE)
       #pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
       #logURL = getPfnForProtocol(res['Value'],'http')['Value']
-      logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
-      self.setJobParameter( 'Log URL', logURL )
-      self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
       return S_OK()
 
     #########################################
     # Recover the logs to a failover storage element
     self.log.error( 'Completely failed to upload log files to %s with message "%s", will attempt upload to failover SE' % ( self.logSE, res['Message'] ) )
 
-    ######### REALLY NASTY TEMPORARY CODE #######################
-    # TODO: Use tar module if available
-    tarFileDir = self.logdir
-    self.logLFNPath = '%s.gz' % self.logLFNPath
+    #make a tar file
     tarFileName = os.path.basename( self.logLFNPath )
-    start = os.getcwd()
-    os.chdir( self.logdir )
-    logTarFiles = os.listdir( self.logdir )
-    comm = 'tar czvf %s %s' % ( tarFileName, string.join( logTarFiles, ' ' ) )
-    res = shellCall( 0, comm )
-    os.chdir( start )
-    if not res['OK']:
-      self.log.error( 'Failed to create tar file from directory', '%s %s' % ( self.logdir, res['Message'] ) )
-      self.setApplicationStatus( 'Failed To Create Log Tar Dir' )
-      return S_OK()
-    if res['Value'][0]: #i.e. non-zero status
-      self.log.error( 'Failed to create tar file from directory', '%s %s' % ( self.logdir, res['Value'] ) )
-      self.setApplicationStatus( 'Failed To Create Log Tar Dir' )
+    try:
+      tarFiles( tarFileName, selectedFiles, compression = 'gz' )
+    except:
+      self.log.error( 'Failed to create tar of log files' )
+      self.setApplicationStatus( 'Failed to create tar of log files' )
       return S_OK()
 
-    ############################################################
-    logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
-    self.setJobParameter( 'Log URL', logURL )
-    self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
-
+    ############################################################W
     #Instantiate the failover transfer client with the global request object
     failoverTransfer = FailoverTransfer( self.request )
     random.shuffle( self.failoverSEs )
     self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName, string.join( self.failoverSEs, ', ' ) ) )
-    result = failoverTransfer.transferAndRegisterFile( tarFileName, '%s/%s' % ( tarFileDir, tarFileName ), self.logLFNPath, self.failoverSEs, fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
+    result = failoverTransfer.transferAndRegisterFile( tarFileName, '%s/%s' % ( self.logdir, tarFileName ), self.logLFNPath,
+                                                       self.failoverSEs, fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
+
     if not result['OK']:
       self.log.error( 'Failed to upload logs to all destinations' )
       self.setApplicationStatus( 'Failed To Upload Logs' )
@@ -218,6 +209,7 @@ class UploadLogFile( ModuleBase ):
     return S_OK()
 
   #############################################################################
+
   def determineRelevantFiles( self ):
     """ The files which are below a configurable size will be stored in the logs.
         This will typically pick up everything in the working directory minus the output data files.
@@ -252,6 +244,7 @@ class UploadLogFile( ModuleBase ):
       return S_ERROR( 'Could not determine log files' )
 
   #############################################################################
+
   def populateLogDirectory( self, selectedFiles ):
     """ A temporary directory is created for all the selected files.
         These files are then copied into this directory before being uploaded
@@ -288,10 +281,11 @@ class UploadLogFile( ModuleBase ):
       return S_OK()
 
   #############################################################################
+
   def createLogUploadRequest( self, targetSE, logFileLFN ):
     """ Set a request to upload job log files from the output sandbox
     """
-    self.log.info( 'Setting log upload request for %s at %s' % ( targetSE, logFileLFN ) )
+    self.log.info( 'Setting log upload request for %s at %s' % ( logFileLFN, targetSE ) )
     res = self.request.addSubRequest( {'Attributes':{'Operation':'uploadLogFiles',
                                                        'TargetSE':targetSE,
                                                       'ExecutionOrder':0}},
@@ -299,13 +293,27 @@ class UploadLogFile( ModuleBase ):
     if not res['OK']:
       return res
     index = res['Value']
-    fileDict = {}
-    fileDict['Status'] = 'Waiting'
-    fileDict['LFN'] = logFileLFN
+    fileDict = {'Status': 'Waiting', 'LFN': logFileLFN}
     result = self.request.setSubRequestFiles( index, 'logupload', [fileDict] )
+
+
+
+    self.log.info( 'Setting log removal request for s' % ( logFileLFN ) )
+    result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
+                                                       'TargetSE':result['Value']['UploadedSE'],
+                                                       'ExecutionOrder':1}},
+                                         'removal' )
+    if not result['OK']:
+      return res
+    index = result['Value']
+    fileDict = {'LFN':logFileLFN, 'PFN':'', 'Status':'Waiting'}
+    resukt = self.request.setSubRequestFiles( index, 'removal', [fileDict] )
+
+
     return S_OK()
 
   #############################################################################
+
   def __setLogFilePermissions( self, logDir ):
     """ Sets the permissions of all the files in the log directory to ensure
         they are readable.
@@ -322,6 +330,7 @@ class UploadLogFile( ModuleBase ):
     return S_OK()
 
   #############################################################################
+
   def __createLogIndex( self, selectedFiles ):
     """ Create a log index page for browsing the log files.
     """
