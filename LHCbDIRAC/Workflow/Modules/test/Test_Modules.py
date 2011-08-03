@@ -1,4 +1,5 @@
 import unittest, itertools, os
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -10,6 +11,8 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
     self.ga = GaudiApplication()
+
+
 
 #############################################################################
 # ModuleBase.py
@@ -139,24 +142,6 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 
   #################################################
 
-  def test__lowerExtension( self ):
-
-    open( 'foo.tXt', 'w' ).close()
-    open( 'BAR.txt', 'w' ).close()
-    open( 'FooBAR.eXT.TXT', 'w' ).close()
-
-    self.ga._lowerExtension()
-
-    self.assert_( 'foo.txt' in os.listdir( '.' ) )
-    self.assert_( 'BAR.txt' in os.listdir( '.' ) )
-    self.assert_( 'FooBAR.ext.txt' in os.listdir( '.' ) )
-
-    os.remove( 'foo.txt' )
-    os.remove( 'BAR.txt' )
-    os.remove( 'FooBAR.ext.txt' )
-
-  #################################################
-
   def test__findOutputs( self ):
 
     open( 'aaa.Bhadron.dst', 'w' ).close()
@@ -207,6 +192,33 @@ class GaudiApplicationSuccess( ModulesTestCase ):
     os.remove( 'prova.txt' )
 
 
+#############################################################################
+# ModulesUtilities.py
+#############################################################################
+
+class ModulesUtilitiesSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_lowerExtension( self ):
+
+    open( 'foo.tXt', 'w' ).close()
+    open( 'BAR.txt', 'w' ).close()
+    open( 'FooBAR.eXT.TXT', 'w' ).close()
+
+    lowerExtension()
+
+    self.assert_( 'foo.txt' in os.listdir( '.' ) )
+    self.assert_( 'BAR.txt' in os.listdir( '.' ) )
+    self.assert_( 'FooBAR.ext.txt' in os.listdir( '.' ) )
+
+    os.remove( 'foo.txt' )
+    os.remove( 'BAR.txt' )
+    os.remove( 'FooBAR.ext.txt' )
+
+  #################################################
+
+
 
 #############################################################################
 # Test Suite run 
@@ -216,6 +228,7 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

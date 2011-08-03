@@ -7,13 +7,13 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
-from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
+from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.ProductionData               import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
@@ -34,7 +34,6 @@ class UploadOutputData( ModuleBase ):
     self.commandTimeOut = 10 * 60
     self.jobID = ''
     self.jobType = ''
-    self.enable = True
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
@@ -56,19 +55,6 @@ class UploadOutputData( ModuleBase ):
     """
     self.log.verbose( self.workflow_commons )
     self.log.verbose( self.step_commons )
-
-    if self.step_commons.has_key( 'Enable' ):
-      self.enable = self.step_commons['Enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
-
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
-    else:
-      self.log.info( 'No WMS JobID found, disabling module via control flag' )
-      self.enable = False
 
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
@@ -115,8 +101,6 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
 
-    return S_OK( 'Parameters resolved' )
-
   #############################################################################
 
   def execute( self ):
@@ -124,8 +108,7 @@ class UploadOutputData( ModuleBase ):
     """
 
     self.log.info( 'Initializing %s' % self.version )
-    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
-      return S_OK()
+
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
@@ -176,9 +159,9 @@ class UploadOutputData( ModuleBase ):
         self.log.info( '%s = %s' % ( n, v ) )
 
     #At this point can exit and see exactly what the module would have uploaded
-    if not self.enable:
-      self.log.info( 'Module is disabled by control flag, would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
-      return S_OK( 'Module is disabled by control flag' )
+    if not self._enableModule():
+      self.log.info( 'Would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
+      return S_OK()
 
     #Prior to uploading any files must check (for productions with input data) that no descendent files
     #already exist with replica flag in the BK.  The result structure is:
@@ -209,7 +192,9 @@ class UploadOutputData( ModuleBase ):
     failover = {}
     for fileName, metadata in final.items():
       self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
-      result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = 'LcgFileCatalogCombined' )
+      result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'],
+                                                         metadata['resolvedSE'], fileGUID = metadata['guid'],
+                                                         fileCatalog = 'LcgFileCatalogCombined' )
       if not result['OK']:
         self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
         failover[fileName] = metadata
@@ -229,7 +214,9 @@ class UploadOutputData( ModuleBase ):
       random.shuffle( self.failoverSEs )
       targetSE = metadata['resolvedSE'][0]
       metadata['resolvedSE'] = self.failoverSEs
-      result = failoverTransfer.transferAndRegisterFileFailover( fileName, metadata['localpath'], metadata['lfn'], targetSE, metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = 'LcgFileCatalogCombined' )
+      result = failoverTransfer.transferAndRegisterFileFailover( fileName, metadata['localpath'], metadata['lfn'],
+                                                                 targetSE, metadata['resolvedSE'], fileGUID = metadata['guid'],
+                                                                 fileCatalog = 'LcgFileCatalogCombined' )
       if not result['OK']:
         self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
         cleanUp = True

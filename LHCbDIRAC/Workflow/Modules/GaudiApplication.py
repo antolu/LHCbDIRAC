@@ -13,6 +13,7 @@ from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOption
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis         import getDaVinciStreamEvents
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
 from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
@@ -29,25 +30,25 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self ).__init__( self.log )
 
     self.STEP_NUMBER = ''
-    self.version     = __RCSID__
-    self.debug       = True
+    self.version = __RCSID__
+    self.debug = True
 
-    self.optfile         = ''
-    self.systemConfig    = ''
-    self.applicationLog  = ''
+    self.optfile = ''
+    self.systemConfig = ''
+    self.applicationLog = ''
     self.applicationName = ''
-    self.inputDataType   = 'MDF'
-    self.numberOfEvents  = 0
-    self.inputData       = '' # to be resolved
-    self.InputData       = '' # from the (JDL WMS approach)
-    self.outputData      = ''
-    self.poolXMLCatName  = 'pool_xml_catalog.xml'
-    self.generator_name  = ''
-    self.optionsLine     = ''
-    self.extraPackages   = ''
+    self.inputDataType = 'MDF'
+    self.numberOfEvents = 0
+    self.inputData = '' # to be resolved
+    self.InputData = '' # from the (JDL WMS approach)
+    self.outputData = ''
+    self.poolXMLCatName = 'pool_xml_catalog.xml'
+    self.generator_name = ''
+    self.optionsLine = ''
+    self.extraPackages = ''
     self.applicationType = ''
-    self.jobType         = ''
-    self.stdError        = ''
+    self.jobType = ''
+    self.stdError = ''
 
   #############################################################################
 
@@ -213,7 +214,7 @@ class GaudiApplication( ModuleBase ):
     #Set some parameter names
     dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
 #    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-    scriptName   = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
+    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
 #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
     coreDumpName = '%s_Step%s' % ( self.applicationName, self.STEP_NUMBER )
 
@@ -249,7 +250,7 @@ class GaudiApplication( ModuleBase ):
 
     #I want to have only files with lower case extension
     #decided NOT to use it for the moment
-#    self._lowerExtension()
+#    lowerExtension()
 
     self.log.info( "Going to manage %s output" % self.applicationName )
     self._manageGaudiAppOutput()
@@ -520,34 +521,5 @@ class GaudiApplication( ModuleBase ):
   #   for line in loglines:
   #     log.write( "%s\n" %line )
   #   log.close()
-
-  #############################################################################
-
-  def _lowerExtension( self ):
-    """
-      Lowers the file extension of the produced files (on disk!). 
-      E.g.: fileName.EXTens.ION -> fileName.extens.ion
-      
-      Unused at the moment
-    """
-
-    filesInDir = [x for x in os.listdir( '.' ) if not os.path.isdir( x )]
-
-    lowers = []
-
-    for file in filesInDir:
-      splitted = file.split( '.' )
-      if len( splitted ) > 1:
-        lowered = ''
-        for toBeLowered in splitted[1:]:
-          lowered = lowered + '.' + toBeLowered.lower()
-          final = splitted[0] + lowered
-      else:
-        final = splitted[0]
-      lowers.append( ( file, final ) )
-
-    for file in lowers:
-      os.rename( file[0], file[1] )
-
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
