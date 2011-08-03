@@ -61,45 +61,47 @@ class Production():
       from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
       self.transformation = Transformation()
 
-    self.prodVersion            = __RCSID__
-    self.csSection              = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
+    self.prodVersion = __RCSID__
+    self.csSection = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
     self.LHCbJob.gaudiStepCount = 0
+    self.LHCbJob.addToOutputSandbox.append( '*.log' )
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
 #    defaultHistName    = '@{STEP_ID}_@{applicationName}_Hist.root'
     self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
-    self.histogramSE   = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
-    self.systemConfig  = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
+    self.histogramSE = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
+    self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
-    self.defaultProdID      = '12345'
-    self.defaultProdJobID   = '12345'
-    self.ioDict             = {}
-    self.name               = 'unspecifiedWorkflow'
-    self.firstEventType     = ''
-    self.bkSteps            = {}
-    self.prodGroup          = ''
-    self.plugin             = ''
-    self.inputFileMask      = ''
-    self.inputBKSelection   = {}
-    self.jobFileGroupSize   = 0
+    self.defaultProdID = '12345'
+    self.defaultProdJobID = '12345'
+    self.ioDict = {}
+    self.name = 'unspecifiedWorkflow'
+    self.firstEventType = ''
+    self.bkSteps = {}
+    self.prodGroup = ''
+    self.plugin = ''
+    self.inputFileMask = ''
+    self.inputBKSelection = {}
+    self.jobFileGroupSize = 0
     self.ancestorProduction = ''
-    self.importLine         = """LHCbDIRAC.Workflow.Modules"""
+    self.importLine = """LHCbDIRAC.Workflow.Modules"""
     if not script:
       self.__setDefaults()
 
   #############################################################################
-  
+
   def __setDefaults( self ):
     """Sets some default parameters.
     """
 
     #TODO: see for others to be put here
-    self.setJobParameters({
-                           'Type'          : 'MCSimulation', 
-                           'SystemConfig' : self.systemConfig, 
+    self.setJobParameters( {
+                           'Type'          : 'MCSimulation',
+                           'SystemConfig' : self.systemConfig,
                            'CPUTime'      : '1000000',
                            'LogLevel'     : 'verbose',
-                           'JobGroup'     : '@{PRODUCTION_ID}' })
+                           'JobGroup'     : '@{PRODUCTION_ID}'
+                           } )
 
     self.setFileMask( '' )
 
@@ -241,6 +243,7 @@ class Production():
     gaussStep.setValue( 'generatorName', generatorName )
 
   #############################################################################
+
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    outputSE = None, histograms = False, inputData = 'previousStep', overrideOpts = '',
                    extraOpts = '', extraOutputFile = [], condDBTag = 'global', ddDBTag = 'global',
@@ -284,6 +287,7 @@ class Production():
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible )
 
   #############################################################################
+
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                     inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
                     overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
@@ -339,6 +343,7 @@ class Production():
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible )
 
   #############################################################################
+
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
                      overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
@@ -406,6 +411,7 @@ class Production():
                        stepID, stepName, stepVisible )
 
   #############################################################################
+
   def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
                    overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
@@ -454,7 +460,7 @@ class Production():
 
   #############################################################################
 
-  def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts', inputProduction = '',
+  def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts',
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
                    inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
                    condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
@@ -633,7 +639,7 @@ class Production():
                    ['optionsLine', optionsLine],
                    ['optionsLinePrev', 'None'],
                    ['numberOfEvents', numberOfEvents],
-                   ['eventType', eventType], 
+                   ['eventType', eventType],
 #                  Failed attempt to standarise output names
 #                   ['applicationLog', '@{STEP_ID}_@{applicationName}_Logs.log'],
 #                   ['outputData', '@{STEP_ID}_@{applicationName}_Data.@{applicationType}'],
@@ -779,8 +785,8 @@ class Production():
 
       if not modulesList:
         modulesNameList = gConfig.getValue( '%s/FinalizationStep_Modules' % self.csSection, ['UploadOutputData',
-                                                                                             'UploadLogFile',
-                                                                                             'FailoverRequest'] )
+                                                                                             'FailoverRequest',
+                                                                                             'UploadLogFile'] )
       else:
         modulesNameList = modulesList
 
@@ -815,7 +821,7 @@ class Production():
     # this "name" is the xml file 
     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     j = LHCbJob( name )
-    # it makes a job (a Worklow, with Parameters, out of the xml file
+    # it makes a job (a Worklow, with Parameters), out of the xml file
 
     if DiracLHCb is not None:
       diracLHCb = DiracLHCb
@@ -1395,27 +1401,7 @@ class Production():
     return result
 
   #############################################################################
-  def setAlignmentDBLFN( self, lfn ):
-    """ Set the input LFN to be used for the alignment conditions database'
-    """
-    if not re.search( "LFN:", lfn ):
-      lfn = "LFN:%s" % lfn
-    self.LHCbJob.log.info( 'Setting alignment DB LFN to %s' % lfn )
-    self._setParameter( 'InputSandbox', 'JDL', lfn, 'AlignmentDB' )
 
-  #############################################################################
-  def setWorkflowLib( self, tag ):
-    """Set workflow lib version for the production.
-    """
-    if not tag:
-      tag = gConfig.getValue( '%s/WorkflowLibVersion' % ( self.csSection ), 'v9r9' )
-      self.LHCbJob.log.verbose( 'Setting workflow library tag to %s' % tag )
-
-    lfn = 'LFN:/lhcb/applications/WorkflowLib-wkf-TAG.tar.gz'.replace( 'TAG', tag )
-    self.LHCbJob.log.info( 'Setting workflow library LFN to %s' % lfn )
-    self._setParameter( 'InputSandbox', 'JDL', lfn, 'WorkflowLibVersion' )
-
-  #############################################################################
   def setFileMask( self, fileMask, stepMask = '' ):
     """Output data related parameters.
     """
@@ -1429,6 +1415,7 @@ class Production():
     self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
 
   #############################################################################
+
   def setWorkflowName( self, name ):
     """Set workflow name.
     """
@@ -1436,18 +1423,21 @@ class Production():
     self.name = name
 
   #############################################################################
+
   def setWorkflowDescription( self, desc ):
     """Set workflow dscription.
     """
     self.LHCbJob.workflow.setDescription( desc )
 
   #############################################################################
+
   def setProdType( self, prodType ):
     """Set prod type.
     """
     self.LHCbJob.setType( prodType )
 
   #############################################################################
+
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
@@ -1460,12 +1450,14 @@ class Production():
     self.LHCbJob.setBannedSites( tier1s )
 
   #############################################################################
+
   def setTargetSite( self, site ):
     """ Sets destination for all jobs.
     """
     self.LHCbJob.setDestination( site )
 
   #############################################################################
+
   def setOutputMode( self, outputMode ):
     """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
     """
@@ -1474,6 +1466,7 @@ class Production():
     self._setParameter( 'outputMode', 'string', outputMode.lower().capitalize(), 'SEResolutionPolicy' )
 
   #############################################################################
+
   def setBKParameters( self, configName, configVersion, groupDescription, conditions ):
     """ Sets BK parameters for production.
     """
@@ -1484,25 +1477,29 @@ class Production():
     self._setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
 
   #############################################################################
+
   def setDBTags( self, conditions = 'sim-20090112', detector = 'head-20090112' ):
-    """ Sets destination for all jobs.
+    """ Sets DB tags
     """
     self._setParameter( 'CondDBTag', 'string', conditions.replace( ' ', '' ), 'CondDBTag' )
     self._setParameter( 'DDDBTag', 'string', detector.replace( ' ', '' ), 'DetDescTag' )
 
   #############################################################################
+
   def setParentRequest( self, parentID ):
     """ Sets the parent request ID for a production.
     """
     self._setParameter( 'TransformationFamily', 'string', str( parentID ).replace( ' ', '' ), 'ParentRequestID' )
 
   #############################################################################
+
   def setProdPriority( self, priority ):
     """ Sets destination for all jobs.
     """
     self._setParameter( 'Priority', 'JDL', str( priority ), 'UserPriority' )
 
   #############################################################################
+
   def setProdGroup( self, group ):
     """ Sets a user defined tag for the production as appears on the monitoring page
     """
@@ -1510,24 +1507,28 @@ class Production():
     self._setParameter( 'ProcessingType', 'JDL', str( group ), 'ProductionGroupOrType' )
 
   #############################################################################
+
   def setProdPlugin( self, plugin ):
     """ Sets the plugin to be used to creating the production jobs
     """
     self.plugin = plugin
 
   #############################################################################
+
   def setInputFileMask( self, fileMask ):
     """ Sets the input data selection when using file mask.
     """
     self.inputFileMask = fileMask
 
   #############################################################################
+
   def setInputBKSelection( self, bkQuery ):
     """ Sets the input data selection when using the bookkeeping.
     """
     self.inputBKSelection = bkQuery
 
   #############################################################################
+
   def setJobFileGroupSize( self, gb ):
     """ Sets the number of gb to be input to each job created (e.g. for merging productions)
         This parameter is used also as number of input files (e.g. for stripping/reco), so pay attention
@@ -1535,12 +1536,14 @@ class Production():
     self.jobFileGroupSize = gb
 
   #############################################################################
+
   def setAncestorProduction( self, prod ):
     """ Sets the original production from which this is to be derived
     """
     self.ancestorProduction = prod
 
   #############################################################################
+
   def setWorkflowString( self, wfString ):
     """ Uses the supplied string to create the workflow
     """
@@ -1548,12 +1551,14 @@ class Production():
     self.name = self.LHCbJob.workflow.getName()
 
   #############################################################################
+
   def disableCPUCheck( self ):
     """ Uses the supplied string to create the workflow
     """
     self._setParameter( 'DisableCPUCheck', 'JDL', 'True', 'DisableWatchdogCPUCheck' )
 
   #############################################################################  
+
   def setSimulationEvents( self, eventsTotal, eventsPerTask ):
     """ In order to set the EventsPerTask and MaxNumberOfTasks parameters for 
         MC simulation productions.
