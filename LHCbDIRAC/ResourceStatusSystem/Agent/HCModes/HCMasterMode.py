@@ -1,9 +1,18 @@
-from DIRAC import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.ResourceStatusSystem.Agent.HCModes.HCBaseMode import HCBaseMode
+"""
+LHCbDIRAC/ResourceStatusSystem/Agent/HCModes/HCMasterMode.py
+"""
 
+__RCSID__ = "$Id:$"
+
+# First, pythonic stuff
+import time
 from datetime import datetime, timedelta
 
-import time
+# Second, DIRAC stuff
+from DIRAC import gLogger, S_OK, S_ERROR
+
+# Third, LHCbDIRAC stuff
+from LHCbDIRAC.ResourceStatusSystem.Agent.HCModes.HCBaseMode import HCBaseMode
 
 class HCMasterMode( HCBaseMode ):
   
@@ -14,7 +23,7 @@ class HCMasterMode( HCBaseMode ):
     self.LOCK_TOKEN    = self._getLockToken()['Value']
     self.UNLOCK_TOKEN  = self._getUnLockToken()['Value']
   
-#############################################################################  
+################################################################################  
   
   def updateScheduledTests( self ):
     '''
@@ -29,6 +38,7 @@ class HCMasterMode( HCBaseMode ):
     We do not care here if crashed on HC or not, we just lock the site
     and set it as HCongoing. Next function will handle it.  
     '''
+    
     scheduled         = self._getTestList( agentStatus = 'HCscheduled' )['Value']
     formerAgentStatus = 'HCscheduled'
     
@@ -118,7 +128,7 @@ class HCMasterMode( HCBaseMode ):
               
     return S_OK()  
 
-#############################################################################           
+################################################################################           
            
   def updateOngoingTests(self):
     '''
@@ -187,7 +197,7 @@ class HCMasterMode( HCBaseMode ):
       ## SANITY CHECK
       ## Site used in HC must be the same as we have on the HCAgent table
       if site_db != site:
-        gLogger.info( '      sanity check failed: test %d has %s (HC retrieved), %s (HCAgent table)' % ( testID, site_db, site ) )
+        gLogger.info( '      sanity check failed: test %d has %s (HC retrieved),%s (HCAgent table)' % ( testID, site_db, site ) )
         if resource_db == '':
           self._unLockToken( 'Site', site )
         else:
@@ -202,7 +212,8 @@ class HCMasterMode( HCBaseMode ):
       
       # We do not care about seconds
       if endTime.replace( second = 0 ) != endTime_db.replace( second = 0 ):
-        gLogger.warning( '      endTime modified : test %d has %s (HC retrieved), %s (HCAgent table)' % ( testID, endTime_db, endTime ) )
+        gLogger.warn( '      endTime modified : test %d has %s (HC retrieved),\
+                        %s (HCAgent table)' % ( testID, endTime_db, endTime ) )
         #self._lockSite( site, endTime )
         
       if testStatus == 'error':
@@ -270,7 +281,7 @@ class HCMasterMode( HCBaseMode ):
       
     return S_OK()   
 
-############################################################################# 
+################################################################################ 
 
   def updateLastFinishedTests( self ):
     '''
@@ -332,7 +343,7 @@ class HCMasterMode( HCBaseMode ):
     
     return S_OK()
             
-#############################################################################
+################################################################################
 
   def checkQuarantine( self ):
     '''
@@ -365,9 +376,9 @@ class HCMasterMode( HCBaseMode ):
       
     now = datetime.now()
 
-    #############################################################################
+    ############################################################################
     ## FAILURES SECTION
-    #############################################################################
+    ############################################################################
     
     if failures:
       
@@ -395,9 +406,9 @@ class HCMasterMode( HCBaseMode ):
         gLogger.error( 'Failures > endPrevent' )
         return S_ERROR( 'Check Agent Break' )
 
-    #############################################################################
+    ############################################################################
     ## PREVENTS SECTION
-    #############################################################################
+    ############################################################################
     
     if prevents:
       
@@ -437,7 +448,7 @@ class HCMasterMode( HCBaseMode ):
    
     return S_OK( ( False,'+ No worries' ) )
 
-#############################################################################
+################################################################################
 
   def submitTests( self ):
 
@@ -448,7 +459,7 @@ class HCMasterMode( HCBaseMode ):
       return self.submitTestsToCE()
     return toSite  
 
-#############################################################################
+################################################################################
 
   def submitTestsToSite( self ):
     '''
@@ -532,7 +543,7 @@ class HCMasterMode( HCBaseMode ):
     
     return S_OK()    
   
-#############################################################################
+################################################################################
 
   def submitTestsToCE( self ):
     '''
@@ -621,69 +632,8 @@ class HCMasterMode( HCBaseMode ):
     if not ceFlag:
       gLogger.info( '  + No Probing & unlocked CEs.' )  
     
-    return S_OK()    
+    return S_OK()      
 
-    
-#    
-#    sites = self._getResources('Sites')
-#    
-#    gLogger.info( '>>> SUBMITTING TESTS' )
-#      
-#    siteFlag = False  
-#      
-#    for siteTuple in sites:
-#
-#      if siteTuple[1] == 'Probing':
-#        if siteTuple[4] == self.UNLOCK_TOKEN :
-#
-#          site = siteTuple[0]
-#          
-#          now  = datetime.now()
-#            
-#          st = self._checkStartTime( site )
-#          if st['OK']: 
-#            counter, agentStatus, starttime = st['Value']
-#          else: 
-#            # IF there is something bad, put it into skipped
-#            agentStatus = 'HCskipped'     
-#
-#          if not agentStatus == 'HCscheduled':
-#            continue
-#            
-#          self._addTest( site, now, agentStatus )
-#          
-#          siteFlag = True
-#          
-#          """
-#             Duration must be an INT (put it into seconds)
-#          """
-#          durationSecs = int( self.testDuration * 3600 )
-#
-#          res = self.hc.sendTest( siteTuple[0], starttime = starttime , duration = durationSecs, template = 2 )                         
-#            
-#          # If we detect any error, we stop submitting until next round  
-#          if self._detectErrors( res, now, site, 'HCscheduled' )['Value']:
-#            return S_ERROR()  
-#            
-#          gLogger.info( '      submission : Ok' )
-#              
-#          resp = res[1]['response']    
-#              
-#          testStatus = resp['status']
-#          startTime  = resp['starttime']
-#          endTime    = resp['endtime']
-#          testID     = resp['id']
-#                           
-#          self._updateTest(now, testID = testID, testStatus = testStatus, startTime = startTime, 
-#                                   endTime = endTime, agentStatus = agentStatus, formerAgentStatus = 'Undefined',
-#                                   counterTime = endTime, counter = counter)
-#          
-#          # Do not bother excessively HC, and also ensure submissionTime is different !!
-#          time.sleep( 5 )
-#                            
-#    if not siteFlag:
-#      gLogger.info( '  + No Probing & unlocked sites.' )  
-#    
-#    return S_OK()    
-  
-#############################################################################
+################################################################################
+
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
