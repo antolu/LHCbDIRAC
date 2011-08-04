@@ -10,8 +10,8 @@ import stomp
 import Queue
 
 # Second, DIRAC stuff
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC                                      import gLogger, S_OK, S_ERROR
+from DIRAC.Core.Base.AgentModule                import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities.Utils import where
 
 # Third, LHCbDIRAC stuff
