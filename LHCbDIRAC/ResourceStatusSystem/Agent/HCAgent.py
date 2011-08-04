@@ -1,43 +1,65 @@
-########################################################################
-# $HeadURL:  $
-########################################################################
+"""
+LHCbDIRAC/ResourceStatusSystem/Agent/HCAgent.py
+"""
 
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
+__RCSID__ = "$Id:$"
 
-from DIRAC.ResourceStatusSystem.Utilities.CS import getSetup
-from DIRAC.ResourceStatusSystem.Utilities.Utils import where
+# First, pythonic stuff
+# ...
 
+# Second, DIRAC stuff
+from DIRAC                                          import gLogger, S_OK, S_ERROR
+from DIRAC.Core.Base.AgentModule                    import AgentModule
+from DIRAC.Interfaces.API.DiracAdmin                import DiracAdmin
+from DIRAC.ResourceStatusSystem.Utilities.CS        import getSetup
+from DIRAC.ResourceStatusSystem.Utilities.Utils     import where
 from DIRAC.ResourceStatusSystem.DB.ResourceStatusDB import ResourceStatusDB
 
-from LHCbDIRAC.ResourceStatusSystem.DB.ResourceStatusAgentDB import ResourceStatusAgentDB
-from LHCbDIRAC.ResourceStatusSystem.Client.HCClient import HCClient
-
-from datetime import datetime, timedelta
-
-from LHCbDIRAC.ResourceStatusSystem.Agent.HCModes import HCMasterMode, HCSlaveMode
-
-import time
-
-__RCSID__ = "$Id: $"
+# Third, LHCbDIRAC stuff
+from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
+from LHCbDIRAC.ResourceStatusSystem.Client.HCClient         import HCClient
+from LHCbDIRAC.ResourceStatusSystem.Agent.HCModes           import HCMasterMode, HCSlaveMode
 
 AGENT_NAME = 'ResourceStatus/HCAgent'
 
 class HCAgent(AgentModule):
-  """ Class HCAgent looks for sites on Probing state,
-      with tokenOwner = RS_SVC and sends a test. After,
-      'locks' the site with tokenOwner == RS_HOLD
-  """
+  ''' 
+  Class HCAgent. This agent is in charge of submitting HammerCloud tests when
+  needed. It shows a different behavior depending on the setup, being
+  LHCb-Production the only setup where tests can actually be submitted. Other
+  setups just fake it.
+ 
+  The agent submits test to a Site, or to an specific CE on a site. The conditions
+  for a Site or a CE to be eligible are:
+  
+    - `Probing` state on the RSS tables.
+    - `RS_SVC` tokenOwner on the RSS tables.
+  
+  Once the test is submitted, the Site or CE is `locked` changing the tokenOwner
+  to RS_Hold.
+  
+  The agent overwrites the parent methods:
+
+  - initialize
+  - execute
+  '''
+
+################################################################################
 
   def initialize(self):
-    """ Standard constructor
-    """
+    ''' 
+    Method executed when the agent is launched.
+    Initializes all modules needed to run any of the different modes of the agent.
+    Then, depending on the setup, starts a MasterMode or a SlaveMode. The first
+    one is the one used on production, the other one is only used to debug - it 
+    does not submit tests.
+    '''
     
     try:
-      self.rsDB  = ResourceStatusDB()
-      self.rsaDB = ResourceStatusAgentDB()
-      self.hc    = HCClient()
+      
+      self.rsDB = ResourceStatusDB()
+      self.rmDB = ResourceManagementDB()
+      self.hc   = HCClient()
       
       self.diracAdmin = DiracAdmin()
       self.setup = None
@@ -57,39 +79,51 @@ class HCAgent(AgentModule):
         self.mode = HCSlaveMode.HCSlaveMode  
         
       self.mode = self.mode( setup = self.setup, rssDB = self.rsDB, 
-                             rsaDB = self.rsaDB, hcClient = self.hc, 
-                             diracAdmin = self.diracAdmin, maxCounterAlarm = self.MAX_COUNTER_ALARM, 
-                             testDuration = self.TEST_DURATION, pollingTime = self.POLLING_TIME )  
+                             rmDB = self.rmDB, hcClient = self.hc, 
+                             diracAdmin = self.diracAdmin, 
+                             maxCounterAlarm = self.MAX_COUNTER_ALARM, 
+                             testDuration = self.TEST_DURATION, 
+                             pollingTime = self.POLLING_TIME )  
         
-      gLogger.info( "TEST_DURATION: %s minutes" % self.TEST_DURATION )  
+      gLogger.info( "TEST_DURATION: %s minutes"   % self.TEST_DURATION )  
       gLogger.info( "MAX_COUNTER_ALARM: %s jumps" % self.MAX_COUNTER_ALARM )
         
       return S_OK()
 
-    except Exception:
-      errorStr = "HCAgent initialization"
-      gLogger.exception( errorStr )
+    except Exception, x:
+      gLogger.error( "HCAgent initialization crash" )
+      errorStr = where( self, self.initialize )
+      gLogger.exception( errorStr, lException = x )
       return S_ERROR( errorStr )
     
-
-#############################################################################
+################################################################################
               
   def execute( self ):
-    """
-      The main HCAgent execution method.
-      The agent shows a completely different behavior depending on the setup.
-      If it is LHCb-Production, we submit tests. If not, it just prints some
-        information. 
-    """
+    '''
+    At every execution this method will run the selected mode, which comprises the
+    following steps:
+    
+    - updateScheduledTests     
+    - updateOngoingTests       
+    - updateLastFinishedTests  
+    - checkQuarantine          
+    - submitTests              
+    - monitorTests
+    
+    The steps may be or may be not implemented, depending on the mode. Check them
+    for details.             
+    '''
     
     try:
       
       return self.mode.run()
                 
     except Exception, x:
-      errorStr = where(self, self.execute)
-      gLogger.exception(errorStr, lException = x)
+      gLogger.error( "HCAgent execution crash" )
+      errorStr = where( self, self.execute )
+      gLogger.exception( errorStr, lException = x )
       return S_ERROR()
-            
  
-#############################################################################
+################################################################################
+
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
