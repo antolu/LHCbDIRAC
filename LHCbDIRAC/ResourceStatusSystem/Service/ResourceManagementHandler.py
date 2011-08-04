@@ -41,6 +41,8 @@ def initializeResourceManagementHandler( serviceInfo ):
    
   return S_OK()
 
+################################################################################
+
 class ResourceManagementHandler( DIRACResourceManagementHandler ):
   '''
   Class ResourceManagementHandler, extension of the class with the same name
@@ -59,6 +61,8 @@ class ResourceManagementHandler( DIRACResourceManagementHandler ):
   - updateMonitoringTest          C
   - getMonitoringTestList         C  
   '''
+
+################################################################################
     
   def __init__( self, *args, **kargs ):
     '''
