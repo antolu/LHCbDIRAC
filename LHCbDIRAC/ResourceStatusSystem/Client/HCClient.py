@@ -1,157 +1,236 @@
-import xmlrpclib
+"""
+LHCbDIRAC/ResourceStatusSystem/Client/HCClient.py
+"""
 
+__RCSID__ = "$Id:$"
+
+# First, pythonic stuff
+import xmlrpclib
 from datetime import datetime
 
+# Second, DIRAC stuff
+# ...
+
+# Third, LHCbDIRAC stuff
+# ...
+
+################################################################################
+# TYPE checkers
+################################################################################
+
 def checkInt( name, value ):
+  '''
+  If value is not of type `int`, raise Exception
+  '''
+  
   if not isinstance( value, int ):
     raise Exception( 'Wrong %s, expected int.' % name )
   return value
 
 def checkBool( name, value ):
+  '''
+  If value is not of type `bool`, raise Exception
+  '''
+  
   if not isinstance( value, bool ):
     raise Exception( 'Wrong %s, expected bool.' % name )
   return value
 
 def checkDatetime( name, value ):
+  '''
+  If value is not of type `datetime`, raise Exception
+  '''
+    
   if not isinstance( value, datetime ):
     raise Exception( 'Wrong %s, expected datetime.' % name )
   return value.strftime( "%Y-%m-%d %H:%M:%S" )
 
 def checkDict( name, value ):
+  '''
+  If value is not of type `dict`, raise Exception
+  '''
+  
   if not isinstance( value, dict ):
     raise Exception( 'Wrong %s, expected dict.' % name )
   return value
 
+################################################################################
+# END TYPE checkers
+################################################################################
 
 class HCClient:
+  '''
+  Class HCClient. It creates a connection to the HammerCloud XMLRPC server.
   
-#############################################################################
+  The available methods are:
+  
+  - getTemplate
+  - getResults
+  - getSummarizedResults
+  - getTest
+  - sendTest
+  
+  If something goes wrong on the XMLRPC server, but it returns an message, it is 
+  expected a message with the following format:
+  
+    ( False,{'type': xyz ,'response': xyz })
+    
+  Being the type one of the following:
+  
+  - FORMAT   : wrong type
+  - MISSING  : parameter missing
+  - UNKNOWN  : something else happened
+  
+  plus if there is a connection problem, the client returns the type
+  
+  - SUBMISSION : problem with the connection 
+  '''
+  
+################################################################################  
+  
+  # URL for the HC XML RPC server
+  __RPC_SERVER__ = "http://hammercloud.cern.ch/hc/xmlrpc"
+  
+################################################################################
   
   def __init__( self ):
-    """ 
-      Initialize HCClient, creates ServerProxy to send XML-RPCs to the HC Server.
-    """
-    self.rpc_srv = xmlrpclib.ServerProxy( "http://hammercloud.cern.ch/hc/xmlrpc" )
+    ''' 
+    Initialize HCClient, creates ServerProxy to send XML-RPCs to the HC Server.
+    '''
+    
+    self.rpc_srv = xmlrpclib.ServerProxy( self.__RPC_SERVER__ )
 
-#############################################################################
+################################################################################
    
   def getTemplates( self, detailed = 0, verbose = 0 ):
-    """
-      Returns a list of templates with basic information, 
-      of the given application - in this case lhcb.
+    '''
+    Returns a list of templates with basic information, 
+    of the given application - in this case lhcb.
       
-      :Parameters:
-        `detailed`
-          optional parameter, which will return extra information per template. 
+    :params:
+      :attr: `detailed` : int - if 1 returns extra information per template ( optional )  
       
-      :return:
-        [True, [{'template':Dict},..]] | [False, {'response':'msg'}] 
-        
-    """
+      :attr: `verbose` : int - if 1 prints result ( optional )
+      
+    :return:
+      [True, [{'template':Dict},..]] | [False, {'response':'msg'}]     
+    '''
     
     try:
-      res = self.rpc_srv.getTemplates({ 'app':'lhcb', 'detailed':detailed })
+    
+      res = self.rpc_srv.getTemplates({ 'app' : 'lhcb', 'detailed' : detailed })
       if verbose:
         print res
       return res
+    
     except Exception, e:
-      return [ False, { 'type':'SUBMISSION', 'response':e }]
+      return [ False, { 'type' : 'SUBMISSION', 'response' : e } ]
    
-#############################################################################   
+################################################################################   
    
   def getResults( self, test, detailed = 0, verbose = 0 ):
-    """
-      Returns a list of results with basic information, 
-      of the given application -in this case lhcb, and a 
-      given test.
+    '''
+    Returns a list of results with basic information, of the given application 
+    -in this case lhcb, and a given test.
+    
+    :params:
+      :attr: `test` : int - test ID
+    
+      :attr: `detailed` : int - if 1 returns extra information per result ( optional )  
       
-      :Parameters:
-        `test`
-          test ID
-              
-        `detailed`
-          optional parameter, which will return extra information per result. 
+      :attr: `verbose` : int - if 1 prints result ( optional )
       
-      :return:
+    :return:
         [True, {'results':[{},..]}] | [False, {'response':'msg'}] 
-        
-    """
+    '''
     
     try:
+      
       res = self.rpc_srv.getResults({ 'app':'lhcb', 'test':test, 'detailed':detailed })
       if verbose:  
         print res
       return res
+    
     except Exception, e:
-      return [ False, { 'type':'SUBMISSION', 'response':e }]
+      return [ False, { 'type' : 'SUBMISSION', 'response' : e } ]
    
-#############################################################################   
+################################################################################   
    
   def getSummarizedResults( self, test, detailed = 0, verbose = 0 ):
-    """
-      Returns a list of summarized results with basic information, 
-      of the given application -in this case lhcb, and a 
-      given test.
+    '''
+    Returns a list of summarized results with basic information, 
+    of the given application -in this case lhcb, and a 
+    given test.
       
-      :Parameters:
-        `test`
-          test ID
-              
-        `detailed`
-          optional parameter, which will return extra information per summarized result. 
+    :params:
+      :attr: `test` : int - test ID
+    
+      :attr: `detailed` : int - if 1 returns extra information per summarized 
+                 result ( optional )  
       
-      :return:
-        [True, {'summary':[{}]}] | [False, {'response':'msg'}] 
-        
-    """
+      :attr: `verbose` : int - if 1 prints result ( optional )    
+      
+    :return:
+      [True, {'summary':[{}]}] | [False, {'response':'msg'}]  
+    '''
     
     try:
+      
       res = self.rpc_srv.getSummarizedResults({ 'app':'lhcb', 'test':test, 'detailed':detailed })
       if verbose:
         print res 
       return res
+    
     except Exception, e:
       return [ False, { 'type':'SUBMISSION', 'response':e }]
     
-#############################################################################  
+################################################################################  
   
   def getTest( self, test, verbose = 0 ):
-    """
-      Returns test basic information.
+    '''
+    Returns test basic information.
       
-      :Parameters:
-        `test`
-          test ID
-              
-      :return:
-        [True, {'test':{}}] | [False, {'response':'msg'}] 
-        
-    """
+    :params:
+      :attr: `test` : int - test ID
+
+      :attr: `verbose` : int - if 1 prints result ( optional )    
+                    
+    :return:
+      [True, {'test':{}}] | [False, {'response':'msg'}]    
+    '''
+    
     try:
+    
       res = self.rpc_srv.getTest({ 'app':'lhcb', 'test':test })
       if verbose:   
         print res
       return res
+    
     except Exception, e:
       return [ False, { 'type':'SUBMISSION', 'response':e }]
     
-#############################################################################   
+################################################################################   
    
   def sendTest( self, site, *args, **kwargs ):
-    """
-      Sends a test to a single site.
+    '''
+    Sends a test to a single site.
             
-      :Parameters:
-        `site`
-          site name where are we going to send the test.
+    :params:
+      :attr: `site` : string - site name where are we going to send the test.
       
-        `*args`
-          TO BE IMPLEMENTED
+      :attr: `*args`
       
-      :return:
-        [True,{'id':ID}]|[False,{'response':'msg'}]
+      :attr: `**kwargs` : dict - accepts the following:
+                 template : int
+                 duration : int
+                 description : string
+                 starttime : datetime
+                 extraargs : string
+        
+    :return:
+      [True,{'id':ID}]|[False,{'response':'msg'}]
       
-    """
+    '''
     
     site = HCSite( site )
     
@@ -165,15 +244,15 @@ class HCClient:
     except Exception, e:
       return [ False, { 'type':'SUBMISSION', 'response':e }]
     
-#############################################################################
+################################################################################
 
-#############################################################################
-
-
-    
 class HCSite:
+  '''
+  Class HCSite. Its only purpose is to ensure the validity and format of the
+  parameters being sent to the XMLRPC server.
+  '''
   
-#############################################################################  
+################################################################################  
   
   def __init__( self,
                 siteName,
@@ -182,6 +261,17 @@ class HCSite:
                 num_datasets_per_bulk = 1,
                 min_queue_depth       = 0,
                 max_running_jobs      = 1 ):
+    '''
+    Class constructor
+    
+    :params:
+      :attr: `siteName` : string - name of the site
+      :attr: `resubmit_enabled` : bool - HC paramter that enables resubmission
+      :attr: `resubmit_force` : bool - HC paramter that forces resubmission
+      :attr: `num_datasets_per_bulk` : int - nr. of jobs sent at time0
+      :attr: `min_queue_depth` : int - max number of submitted not running jobs
+      :attr: `max_running_jobs` : int - max number of running jobs         
+    '''  
     
     self.name                  = siteName
     self.resubmit_enabled      = resubmit_enabled
@@ -190,23 +280,22 @@ class HCSite:
     self.min_queue_depth       = min_queue_depth
     self.max_running_jobs      = max_running_jobs
     
-#############################################################################
+################################################################################
 
   def toDict( self ):
+    '''
+    Default values at server are:
+    - resubmit_enabled      : True
+    - resubmit_force        : False
+    - num_datasets_per_bulk : 1
+    - min_queue_depth       : 0
+    - max_running_jobs      : 1
     
-    """
-      Default values at server are:
-       - resubmit_enabled      : True
-       - resubmit_force        : False
-       - num_datasets_per_bulk : 1
-       - min_queue_depth       : 0
-       - max_running_jobs      : 1
+    If we are sending values by default, we omit this and
+    send only new/changed values.
     
-      If we are sending values by default, we omit this and
-      send only new/changed values.
-    
-      We also check types before creating the dict. 
-    """
+    We also check types before creating the dict. 
+    '''
     
     dict = {
             'name'        : self.name
@@ -234,32 +323,34 @@ class HCSite:
     
     return dict
 
-#############################################################################
-
+################################################################################
 
 class HCTest:
+  '''
+  Class HCTest. Its only purpose is to ensure the validity and format of the
+  parameters being sent to the XMLRPC server.
+  '''
 
-#############################################################################
+################################################################################
   
-  def __init__( self, sites, template = 1, duration = 3600, description = 'RSS test', 
-                starttime = None, extraargs = '' ):
-    
-    """
-      Initialize HC Test model
+  def __init__( self, sites, template = 1, duration = 3600, 
+                description = 'RSS test', starttime = None, extraargs = '' ):
+    '''
+    Initialize HC Test model
       
-      :Parameters:
-        `template`
-          template ID used to configure the test.
-        
-        `sites`
-          HCSite or HCSites list, where the test is going to be submitted
-        
-        `duration`
-          test duration (seconds)
-          
-        `description`
-          description used on HC to describe test.
-    """
+    :params:
+      :attr: `sites` : string / list(string) - site(s) where the test is sent
+    
+      :attr: `template` : int - HC template used to generate the test
+      
+      :attr: `duration` : int - test duration in seconds
+      
+      :attr: `description` : string - meaningful description for the test
+      
+      :attr: `starttime` : datetime - test starttime
+      
+      :attr: `extraargs` : string - extraargs for the HC algorithm
+    '''
     
     self.__app          = 'lhcb'  
     self.description    = description
@@ -269,14 +360,13 @@ class HCTest:
     self.starttime      = starttime
     self.extraargs      = extraargs
 
-#############################################################################
+################################################################################
 
   def toDict( self ):
-    
-    """
-      Generate dictionary with all information needed in the
-      Server side to generate a test.
-    """
+    '''
+    Generate dictionary with all information needed in the
+    server side to generate a test.
+    '''
     
     dict = {
             'app'          : self.__app,
@@ -295,13 +385,12 @@ class HCTest:
         
     return dict
 
-#############################################################################
+################################################################################
 
   def checkSitesList( self, value ):  
-    
-    """
-      Check if the sites is either a HCSite or a list of HCSites
-    """
+    '''
+    Check if the sites is either a HCSite or a list of HCSites
+    '''
     
     if not isinstance( value, list ):
       if not isinstance( value, HCSite ):
@@ -313,14 +402,6 @@ class HCTest:
     
     return value
   
-#############################################################################
-  
-  def rebootUniverse( self ):
-    
-    """
-      Unless you know what are you doing, do not reboot the universe please.
-    """
-    
-    return 42
-    
-#############################################################################  
+################################################################################
+
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
