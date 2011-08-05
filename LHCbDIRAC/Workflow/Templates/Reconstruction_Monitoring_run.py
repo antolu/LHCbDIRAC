@@ -117,7 +117,10 @@ if not publishFlag:
   if express:
     recoTestData = 'LFN:/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/87667/087667_0000000017.raw'
   else:
-    recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/87667/087667_0000000019.raw'
+    #this is 1380Gev MagUp
+    recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
+    #this I don't know
+    #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/87667/087667_0000000019.raw'
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
   BKscriptFlag = True
@@ -284,7 +287,7 @@ production.addFinalizationStep( ['UploadOutputData',
 production.setProdGroup( prodGroup )
 production.setProdPriority( recoPriority )
 production.setProdPlugin( recoPlugin )
-production.setInputDataPolicy( recoIDPolicy )
+production.setJobParameters( { 'InputDataPolicy': recoIDPolicy } )
 if express:
   gLogger.info( 'EXPRESS: Forcing destination site LCG.CERN.ch for production' )
   production.setDestination( 'LCG.CERN.ch' )
