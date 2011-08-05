@@ -4,7 +4,7 @@
  Test a plugin
 """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 class fakeClient:
   def __init__( self, trans, transID, transBKQuery ):

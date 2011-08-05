@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/MicroDST_StreamedData_run.py $
+# $HeadURL$
 ########################################################################
 
 """  The MicroDST template for streamed data.

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: BookkeepingManagerHandler.py 29467 2010-10-15 15:32:29Z zmathe $
+# $Id$
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py 29467 2010-10-15 15:32:29Z zmathe $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.Agent.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager

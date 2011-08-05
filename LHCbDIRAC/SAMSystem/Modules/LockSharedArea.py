@@ -6,7 +6,7 @@
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id: LockSharedArea.py 18161 2009-11-11 12:07:09Z acasajus $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM

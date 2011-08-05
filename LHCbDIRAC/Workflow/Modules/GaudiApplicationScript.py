@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Modules/GaudiApplicationScript.py $
+# $HeadURL$
 # File :   GaudiApplicationScript.py
 # Author : Stuart Paterson
 ########################################################################

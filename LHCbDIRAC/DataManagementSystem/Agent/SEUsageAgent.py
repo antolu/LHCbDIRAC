@@ -1,6 +1,6 @@
 """  SEUsageAgent browses the SEs to determine their content and store it into a DB.
 """
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule

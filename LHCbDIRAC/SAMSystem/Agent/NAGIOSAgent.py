@@ -1,8 +1,8 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/SAMSystem/Agent/NAGIOSAgent.py $
+# $HeadURL$
 ########################################################################
 
-__RCSID__ = "$Id: NAGIOSAgent.py 18857 2009-12-02 12:07:41Z atsareg $"
+__RCSID__ = "$Id$"
 
 """  SAM Agent submits SAM jobs
 """

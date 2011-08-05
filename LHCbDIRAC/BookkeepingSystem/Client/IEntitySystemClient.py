@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IEntitySystemClient.py 18173 2009-11-11 14:01:58Z zmathe $
+# $Id$
 ########################################################################
 
 
@@ -10,7 +10,7 @@
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemStateless           import IEntitySystemStateless  
 
-__RCSID__ = "$Id: IEntitySystemClient.py 18173 2009-11-11 14:01:58Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class IEntitySystemClient(IEntitySystemStateless):

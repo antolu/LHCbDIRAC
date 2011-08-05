@@ -1,6 +1,6 @@
 """ DISET request handler base class for the DatasetDB."""
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from types import *
 from DIRAC.Core.DISET.RequestHandler import RequestHandler

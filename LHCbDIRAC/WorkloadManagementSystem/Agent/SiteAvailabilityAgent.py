@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/LHCbSystem/Agent/SiteAvailabilityAgent.py $
+# $HeadURL$
 # File :   SiteAvailabilityAgent.py
 # Author : Stuart Paterson
 ########################################################################
@@ -13,7 +13,7 @@
       *UNDER DEVELOPMENT*
 """
 
-__RCSID__ = "$Id: SiteAvailabilityAgent.py 18191 2009-11-11 16:46:41Z paterson $"
+__RCSID__ = "$Id$"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 

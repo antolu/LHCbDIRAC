@@ -1,6 +1,6 @@
 """ ProductionManagerHandler is the implementation of the Production service """
 # $Id$
-__RCSID__ = "$Revision: 1.56 $"
+__RCSID__ = "$Revision$"
 
 from DIRAC                                                                     import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                                           import RequestHandler

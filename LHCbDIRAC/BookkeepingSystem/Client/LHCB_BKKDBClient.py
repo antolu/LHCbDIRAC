@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBClient.py 25993 2010-06-09 14:41:07Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -10,7 +10,7 @@
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager        
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py 25993 2010-06-09 14:41:07Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class LHCB_BKKDBClient(BaseESClient):

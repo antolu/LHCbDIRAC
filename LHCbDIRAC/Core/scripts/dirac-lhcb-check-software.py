@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Core/scripts/dirac-lhcb-check-software.py $
+# $HeadURL$
 # File :    dirac-lhcb-check-software
 # Author :  Joel Closier
 ########################################################################
 """
   Script to check if a package and version exist in the list of software distributed on the GRID
 """
-__RCSID__ = "$Id: dirac-lhcb-check-software.py 18700 2009-11-30 13:48:50Z paterson $"
+__RCSID__ = "$Id$"
 
 import sys, string
 import DIRAC

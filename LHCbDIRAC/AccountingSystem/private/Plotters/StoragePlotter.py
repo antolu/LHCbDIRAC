@@ -1,4 +1,4 @@
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage

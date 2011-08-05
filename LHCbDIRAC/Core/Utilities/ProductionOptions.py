@@ -33,10 +33,10 @@ def getOptions( appName, outputFileType, extraOpts = None, inputType = None,
 
   #General options
   options.append( "from Configurables import LHCbApp" )
-  options.append( "LHCbApp().XMLSummary='summary%s_@{STEP_ID}.xml'" %appName )
+  options.append( "LHCbApp().XMLSummary='summary%s_@{STEP_ID}.xml'" % appName )
   dddbOpt = "LHCbApp().DDDBtag = \"%s\"" % ( ddDB )
   conddbOpt = "LHCbApp().CondDBtag = \"%s\"" % ( condDB )
- 
+
   evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
 #  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
   options.append( "HistogramPersistencySvc().OutputFile = \"%s\"" % ( histogram ) )
@@ -105,7 +105,7 @@ def getOptions( appName, outputFileType, extraOpts = None, inputType = None,
 
     if outputFileType.lower() == 'fmdst':
       options.append( 'EventSelector().PrintFreq = 1000' )
-    
+
     return options
 
   elif appName.lower() == 'moore':
@@ -155,7 +155,7 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
   if inputDataOptions:
     optionsLines += inputDataOptions
 
-  if applicationName == 'Gauss' and not jobType.lower() == 'user':
+  if applicationName.lower() == 'gauss' and not jobType.lower() == 'user':
     optionsLines.append( "GaussGen = GenInit(\"GaussGen\")" )
     optionsLines.append( "GaussGen.RunNumber = %s" % ( runNumber ) )
     optionsLines.append( "GaussGen.FirstEventNumber = %s" % ( firstEventNumber ) )
@@ -216,12 +216,12 @@ def printOptions( project = '', printOutput = True ):
       Gauss, Boole, Brunel, DaVinci and Merge (case insensitive).
   """
   appDict = {}
-  appDict[ 'Gauss' ]   = [ 'sim;None'                                      ]
-  appDict[ 'Boole' ]   = [ 'mdf;sim',  'digi;sim'                          ]
-  appDict[ 'Brunel' ]  = [ 'dst;digi', 'rdst;mdf', 'dst;fetc', 'xdst;digi' ]
-  appDict[ 'DaVinci' ] = [ 'dst;rdst', 'dst;dst',  'fetc;rdst'             ]
-  appDict[ 'Merge' ]   = [ 'dst;dst'                                       ]
-  
+  appDict[ 'Gauss' ] = [ 'sim;None'                                      ]
+  appDict[ 'Boole' ] = [ 'mdf;sim', 'digi;sim'                          ]
+  appDict[ 'Brunel' ] = [ 'dst;digi', 'rdst;mdf', 'dst;fetc', 'xdst;digi' ]
+  appDict[ 'DaVinci' ] = [ 'dst;rdst', 'dst;dst', 'fetc;rdst'             ]
+  appDict[ 'Merge' ] = [ 'dst;dst'                                       ]
+
   apps = appDict.keys()
   apps.sort()
 
@@ -249,9 +249,9 @@ def getTestOptions( projectName ):
       for a simple test job as a computing exercise only.
   """
   testOpts = {}
-  testOpts[ 'gauss' ]   = '$GAUSSROOT/tests/options/testGauss-gen-10evts-defaults.py'
-  testOpts[ 'boole' ]   = '$BOOLEROOT/tests/options/testBoole-defaults.py'
-  testOpts[ 'brunel' ]  = '$BRUNELROOT/tests/options/testBrunel-defaults.py'
+  testOpts[ 'gauss' ] = '$GAUSSROOT/tests/options/testGauss-gen-10evts-defaults.py'
+  testOpts[ 'boole' ] = '$BOOLEROOT/tests/options/testBoole-defaults.py'
+  testOpts[ 'brunel' ] = '$BRUNELROOT/tests/options/testBrunel-defaults.py'
   testOpts[ 'davinci' ] = '$DAVINCIROOT/options/DaVinci-MC09.py'
 
   apps = testOpts.keys()

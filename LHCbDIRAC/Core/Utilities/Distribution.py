@@ -1,5 +1,5 @@
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/Core/Utilities/Distribution.py $
-__RCSID__ = "$Id: Distribution.py 36064 2011-03-18 12:54:31Z rgracian $"
+# $HeadURL$
+__RCSID__ = "$Id$"
 
 import urllib2, re, tarfile, os, types, sys, subprocess, urlparse, tempfile
 

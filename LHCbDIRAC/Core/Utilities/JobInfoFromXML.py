@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Core/Utilities/JobInfoFromXML.py $
+# $HeadURL$
 # File :   JobOutputLFN.py
 # Author : Vladimir Romanovsky
 ########################################################################

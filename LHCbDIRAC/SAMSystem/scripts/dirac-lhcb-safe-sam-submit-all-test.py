@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/SAMSystem/scripts/dirac-lhcb-safe-sam-submit-all.py $
+# $HeadURL$
 # File :    dirac-lhcb-safe-sam-submit-all
 # Author :  Stuart Paterson
 ########################################################################
-__RCSID__ = "$Id: dirac-lhcb-safe-sam-submit-all.py 18764 2009-12-01 13:19:40Z paterson $"
+__RCSID__ = "$Id$"
 import sys
 import DIRAC
 from DIRAC.Core.Base import Script

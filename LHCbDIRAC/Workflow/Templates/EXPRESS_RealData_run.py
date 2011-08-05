@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/FULL_RealData_Merging_run.py $
+# $HeadURL$
 ########################################################################
 
 

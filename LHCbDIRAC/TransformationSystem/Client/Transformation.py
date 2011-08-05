@@ -1,4 +1,4 @@
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/Interfaces/API/Transformation.py $
+# $HeadURL$
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script

@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: AnalyseLogFile.py 39685 2011-05-26 17:21:36Z fstagni $
+# $Id$
 ########################################################################
 
 """ Analyse log file module
 """
 
-__RCSID__ = "$Id: AnalyseLogFile.py 39685 2011-05-26 17:21:36Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, re, glob
 
@@ -26,24 +26,24 @@ class AnalyseXMLLogFile( ModuleBase ):
     """Module initialization.
     """
 
-    self.log = gLogger.getSubLogger( 'AnalyseLogFile' )
+    self.log = gLogger.getSubLogger( 'AnalyseXMLLogFile' )
     super( AnalyseXMLLogFile, self ).__init__( self.log )
 
-    self.version              = __RCSID__
-    self.site                 = DIRAC.siteName()
-    self.systemConfig         = ''
-    self.numberOfEventsInput  = ''
+    self.version = __RCSID__
+    self.site = DIRAC.siteName()
+    self.systemConfig = ''
+    self.numberOfEventsInput = ''
     self.numberOfEventsOutput = ''
-    self.numberOfEvents       = ''
-    self.applicationName      = ''
-    self.JOB_ID               = '' #default for a prod workflow
-    self.PRODUCTION_ID        = '' #default for a prod workflow
-    self.applicationLog       = ''
-    self.applicationVersion   = ''
-    self.logFilePath          = ''
-    self.coreFile             = ''
-    self.logString            = ''
-    self.jobType              = ''
+    self.numberOfEvents = ''
+    self.applicationName = ''
+    self.JOB_ID = '' #default for a prod workflow
+    self.PRODUCTION_ID = '' #default for a prod workflow
+    self.applicationLog = ''
+    self.applicationVersion = ''
+    self.logFilePath = ''
+    self.coreFile = ''
+    self.logString = ''
+    self.jobType = ''
 #    self.stepName             = ''
 
     #Resolved to be the input data of the current step
@@ -85,13 +85,13 @@ class AnalyseXMLLogFile( ModuleBase ):
         self.__finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile )
         self.__updateFileStatus( self.jobInputData, 'ApplicationCrash' )
         # return S_OK if the Step already failed to avoid overwriting the error
-        if not self.stepStatus['OK']: 
+        if not self.stepStatus['OK']:
           return S_OK()
 
         return S_ERROR( '%s %s Core Dump' % ( self.applicationName, self.applicationVersion ) )
 
     result = analyseXMLLogFile( self.applicationLog, self.applicationName,
-                                self.STEP_ID, self.PRODUCTION_ID, self.JOB_ID, 
+                                self.STEP_ID, self.PRODUCTION_ID, self.JOB_ID,
                                 self.jobType )
     if not result['OK']:
       self.log.error( result )
@@ -136,7 +136,7 @@ class AnalyseXMLLogFile( ModuleBase ):
     self.log.info( 'Log file %s, %s' % ( self.applicationLog, result['Value'] ) )
     self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-    self.step_commons['numberOfEventsInput']  = self.numberOfEventsInput
+    self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
     self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
     return self.__updateFileStatus( self.jobInputData, "Processed" )
 

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESManager.py 18173 2009-11-11 14:01:58Z zmathe $
+# $Id$
 ########################################################################
 
 
@@ -10,7 +10,7 @@ Base Entity System Manager
 from DIRAC                                                                   import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemManager                 import IEntitySystemManager 
 import os
-__RCSID__ = "$Id: BaseESManager.py 18173 2009-11-11 14:01:58Z zmathe $"
+__RCSID__ = "$Id$"
 
 ############################################################################# 
 class BaseESManager(IEntitySystemManager):

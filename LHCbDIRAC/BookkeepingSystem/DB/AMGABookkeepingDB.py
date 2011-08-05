@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: AMGABookkeepingDB.py 18174 2009-11-11 14:02:08Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.DB.DB                                   import 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 
-__RCSID__ = "$Id: AMGABookkeepingDB.py 18174 2009-11-11 14:02:08Z zmathe $"
+__RCSID__ = "$Id$"
 
 class AMGABookkeepingDB(IBookkeepingDB):
   

@@ -2,7 +2,7 @@
 
 """ DIRAC ProductionDB class is a front-end to the LHCb production specific database """
 
-__RCSID__ = "$Revision: 1.65 $"
+__RCSID__ = "$Revision$"
 
 from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Base.DB                                             import DB

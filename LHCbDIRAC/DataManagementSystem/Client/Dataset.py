@@ -1,6 +1,6 @@
 """ Dataset class allows the creation and management of datasets. """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Catalog.FileCatalog        import FileCatalog

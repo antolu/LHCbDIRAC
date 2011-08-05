@@ -4,7 +4,7 @@
 # File :    dirac-lhcb-sam-submit-all
 # Author :  Stuart Paterson
 ########################################################################
-__RCSID__ = "$Id: dirac-lhcb-sam-submit-all.py 18813 2009-12-01 14:46:33Z paterson $"
+__RCSID__ = "$Id$"
 import sys
 import DIRAC
 from DIRAC.Core.Base import Script

@@ -2,7 +2,7 @@
 LHCbDIRAC/ResourceStatusSystem/Agent/HCAgent.py
 """
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id$"
 
 # First, pythonic stuff
 # ...

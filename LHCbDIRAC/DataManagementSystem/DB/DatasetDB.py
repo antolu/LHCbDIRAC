@@ -1,6 +1,6 @@
 """ DIRAC Dataset DB
 """
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 import threading
 

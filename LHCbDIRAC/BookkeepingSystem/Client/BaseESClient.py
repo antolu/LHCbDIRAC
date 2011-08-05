@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BaseESClient.py 18173 2009-11-11 14:01:58Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemClient                  imp
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py 18173 2009-11-11 14:01:58Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class BaseESClient(IEntitySystemClient):

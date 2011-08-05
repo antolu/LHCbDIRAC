@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/WorkloadManagementSystem/Agent/BKInputDataAgent.py $
+# $HeadURL$
 # File :   StorageSummaryAgent.py
 ########################################################################
 
@@ -11,7 +11,7 @@
       can be inserted in a new DB table and made visible via the web portal.
 """
 
-__RCSID__ = "$Id: StorageSummaryAgent.py 31247 2010-12-04 10:32:34Z rgracian $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.AgentModule                                        import AgentModule
 from DIRAC.Core.Utilities.List                                          import sortList, intListToString

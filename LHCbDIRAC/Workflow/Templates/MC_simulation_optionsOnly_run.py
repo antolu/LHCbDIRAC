@@ -47,7 +47,7 @@ Recipe:
 """
 
 
-__RCSID__ = "$Id: MC_simulation_optionsOnly_run.py 41262 2011-07-13 12:37:51Z fstagni $"
+__RCSID__ = "$Id$"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble

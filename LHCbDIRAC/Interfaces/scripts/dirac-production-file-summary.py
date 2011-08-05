@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-file-summary.py $
+# $HeadURL$
 # File :   dirac-production-file-summary
 # Author : Stuart Paterson
 ########################################################################
 __RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.1 $"
+__VERSION__ = "$Revision$"
 import sys,string
 import DIRAC
 from DIRAC.Core.Base import Script

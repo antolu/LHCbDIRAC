@@ -10,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: DiracSAM.py 18161 2009-11-11 12:07:09Z acasajus $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Interfaces.API.Dirac                         import Dirac, gLogger, gConfig, S_OK, S_ERROR
 from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob              import LHCbSAMJob

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: FileManager.py 18172 2009-11-11 14:01:45Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -14,7 +14,7 @@ import os
 import types
 import shutil
 
-__RCSID__ = "$Id: FileManager.py 18172 2009-11-11 14:01:45Z zmathe $"
+__RCSID__ = "$Id$"
 
 class FileManager(IFileManager):
   

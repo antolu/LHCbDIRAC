@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/ProductionManagementSystem/scripts/dirac-production-check-outputs.py $
+# $HeadURL$
 # File :    dirac-production-set-endrun.py
 # Author :  R. Graciani
 ########################################################################
 """
   Set the Start or End Run for a given Transformation
 """
-__RCSID__ = '$Id: dirac-production-set-run.py 32419 2011-01-12 17:27:33Z rgracian $'
+__RCSID__ = '$Id$'
 
 from DIRAC.Core.Base import Script
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],

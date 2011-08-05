@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Core/Utilities/ClientTools.py $
+# $HeadURL$
 # File :   ClientTools.py
 ########################################################################
 

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: ErrorReporterMgmt.py 18172 2009-11-11 14:01:45Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -11,7 +11,7 @@ from DIRAC                                                         import gLogge
 from DIRAC.ConfigurationSystem.Client.Config                       import gConfig
 import os
 
-__RCSID__ = "$Id: ErrorReporterMgmt.py 18172 2009-11-11 14:01:45Z zmathe $"
+__RCSID__ = "$Id$"
 
 
 

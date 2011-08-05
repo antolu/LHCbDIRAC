@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/ProductionManagementSystem/Agent/DataRecovery.py $
+# $HeadURL$
 ########################################################################
 
 """ In general for data processing producitons we need to completely abandon the 'by hand'

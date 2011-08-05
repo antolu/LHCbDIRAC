@@ -34,7 +34,7 @@
     print 'Submission Result: ',jobID
 """
 
-__RCSID__ = "$Id: LHCbSAMJob.py 18191 2009-11-11 16:46:41Z paterson $"
+__RCSID__ = "$Id$"
 
 import string, os
 

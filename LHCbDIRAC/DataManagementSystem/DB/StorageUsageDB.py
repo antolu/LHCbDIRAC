@@ -1,7 +1,7 @@
 """ StorageUsageDB class is a front-end to the Storage Usage Database.
 """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from types import *
 

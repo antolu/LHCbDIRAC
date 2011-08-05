@@ -6,7 +6,7 @@
 """ LHCb RunTestScript SAM Test Module
 """
 
-__RCSID__ = "$Id: RunTestScript.py 18161 2009-11-11 12:07:09Z acasajus $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger

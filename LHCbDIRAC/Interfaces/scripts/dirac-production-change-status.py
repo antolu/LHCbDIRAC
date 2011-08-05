@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-change-status.py $
+# $HeadURL$
 # File :   dirac-production-change-status
 # Author : Stuart Paterson
 ########################################################################
 __RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.3 $"
+__VERSION__ = "$Revision$"
 
 import string
 

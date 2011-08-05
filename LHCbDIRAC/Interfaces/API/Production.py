@@ -365,15 +365,15 @@ class Production():
       if not outputSE:
         if dataType.upper() == 'MC':
           outputSE = 'Tier1_MC-DST'
-          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
         else:
           outputSE = 'Tier1-DST'
-          self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
     else:
       dataType = 'DATA'
       if not outputSE:
         outputSE = 'Tier1-DST'
-        self.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if appType.lower() in ['merge']: #,'mdst']:
       if not outputSE:
@@ -861,10 +861,7 @@ class Production():
 
     prodWorkflow = Workflow( prodXMLFile )
     if not bkPassInfo:
-      try:
-        bkPassInfo = prodWorkflow.findParameter( 'BKProcessingPass' ).getValue()
-      except Exception:
-        return S_ERROR( 'Could not determine BKProcessingPass from workflow' )
+      bkPassInfo = prodWorkflow.findParameter( 'BKProcessingPass' ).getValue()
     if not groupDescription:
       groupDescription = prodWorkflow.findParameter( 'groupDescription' ).getValue()
 
@@ -880,9 +877,6 @@ class Production():
     parameters['GroupSize'] = self.jobFileGroupSize
 
     if parameters['JobType'].lower() == 'mcsimulation':
-      # A.T. EventsPerTask is considered immutable by Andrew
-      #if prodWorkflow.findParameter('EventsPerTask'):
-      #  parameters['EventsPerTask']=prodWorkflow.findParameter('EventsPerTask').getValue()
       if prodWorkflow.findParameter( 'MaxNumberOfTasks' ):
         parameters['MaxNumberOfTasks'] = prodWorkflow.findParameter( 'MaxNumberOfTasks' ).getValue()
 
@@ -900,7 +894,7 @@ class Production():
         parameters['eventType'] = i.findParameter( 'eventType' ).getValue()
 
     if not parameters.has_key( 'eventType' ):
-      return S_ERROR( 'Could not determine eventType from workflow' )
+      raise ValueError, 'Could not determine eventType from workflow'
 
     parameters['BKCondition'] = prodWorkflow.findParameter( 'conditions' ).getValue()
 
@@ -908,7 +902,7 @@ class Production():
       res = self.transClient.getBookkeepingQueryForTransformation( int( prodID ) )
       if not res['OK']:
         self.LHCbJob.log.error( res )
-        return S_ERROR( 'Could not obtain production info' )
+        raise ValueError, 'Could not obtain production info'
       bkInputQuery = res['Value']
 
     parameters['BKInputQuery'] = bkInputQuery
@@ -977,9 +971,12 @@ class Production():
     infoString = string.join( info, '\n' )
     parameters['DetailedInfo'] = infoString
 
-    return S_OK( parameters )
+    self.LHCbJob.log.verbose( 'Parameters that will be added: %s' % parameters )
+
+    return parameters
 
   #############################################################################
+
   def create( self, publish = True, fileMask = '', bkQuery = {}, groupSize = 1, derivedProduction = 0,
               bkScript = True, wfString = '', requestID = 0, reqUsed = 0,
               transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0, transformationPlugin = '' ):
@@ -1000,6 +997,8 @@ class Production():
         The workflow XML is created regardless of the flags.
     """
     #Needs to be revisited in order to disentangle the many operations.
+
+    #FIXME: requestID is the same as the parameter TransformationFamily. Why having 2? What for the Derived productions?
     if not parentRequestID:
       parentRequestID = requestID
 

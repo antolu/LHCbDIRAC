@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingDatabaseClient.py 18174 2009-11-11 14:02:08Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -10,7 +10,7 @@ from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDatabaseClient             impor
 from LHCbDIRAC.BookkeepingSystem.DB.OracleBookkeepingDB                    import OracleBookkeepingDB
 from DIRAC                                                                 import gLogger, S_OK, S_ERROR
 
-__RCSID__ = "$Id: BookkeepingDatabaseClient.py 18174 2009-11-11 14:02:08Z zmathe $"
+__RCSID__ = "$Id$"
 
 class BookkeepingDatabaseClient(IBookkeepingDatabaseClient):
   

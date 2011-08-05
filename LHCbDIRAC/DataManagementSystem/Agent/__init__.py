@@ -1,2 +1,2 @@
 """ LHCbDIRAC.DataManagementSystem.Agent package """
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"

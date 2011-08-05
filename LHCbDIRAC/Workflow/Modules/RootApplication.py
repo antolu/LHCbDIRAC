@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Modules/RootApplication.py $
+# $HeadURL$
 ########################################################################
 
 """ Root Application Class """

@@ -3,7 +3,7 @@
     DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 """
-__RCSID__ = "$Revision: 1.23 $"
+__RCSID__ = "$Revision$"
 
 # Defined states:
 #'New'

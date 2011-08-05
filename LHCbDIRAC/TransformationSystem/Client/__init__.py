@@ -1,2 +1,2 @@
 # $Id$
-__RCSID__ = "$Revision: 1.4 $"
+__RCSID__ = "$Revision$"

@@ -3,7 +3,7 @@
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision: 1.10 $"
+__RCSID__ = "$Revision$"
 
 import os
 import re

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py 29467 2010-10-15 15:32:29Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -13,7 +13,7 @@ from DIRAC.Core.Utilities            import DEncode
 import types,cPickle,os, tempfile
 
 
-__RCSID__ = "$Id: BookkeepingClient.py 29467 2010-10-15 15:32:29Z zmathe $"
+__RCSID__ = "$Id$"
 
 class BookkeepingClient:
 

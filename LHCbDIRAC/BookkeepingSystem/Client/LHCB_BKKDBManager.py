@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: LHCB_BKKDBManager.py 29467 2010-10-15 15:32:29Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -16,7 +16,7 @@ import os
 import types
 import sys
 
-__RCSID__ = "$Id: LHCB_BKKDBManager.py 29467 2010-10-15 15:32:29Z zmathe $"
+__RCSID__ = "$Id$"
 
 INTERNAL_PATH_SEPARATOR = "/"
 

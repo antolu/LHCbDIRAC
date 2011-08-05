@@ -13,7 +13,7 @@ import xml.dom, xml.sax
 import time
 import urlparse, urllib
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 

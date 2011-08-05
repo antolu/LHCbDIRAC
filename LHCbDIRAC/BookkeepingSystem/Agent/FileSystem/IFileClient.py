@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IFileClient.py 18172 2009-11-11 14:01:45Z zmathe $
+# $Id$
 ########################################################################
 
 """
@@ -8,7 +8,7 @@
 
 from LHCbDIRAC.BookkeepingSystem.Agent.FileSystem.IFileManager import IFileManager
 
-__RCSID__ = "$Id: IFileClient.py 18172 2009-11-11 14:01:45Z zmathe $"
+__RCSID__ = "$Id$"
 
 class IFileClient(object):
   

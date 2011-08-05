@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/MC_Simulation_run.py $
+# $HeadURL$
 ########################################################################
 
 """  The MC Simulation Template creates workflows for the following simulation

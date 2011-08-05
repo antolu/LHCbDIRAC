@@ -1,7 +1,7 @@
 """  UserStorageQuotaAgent obtains the usage by each user from the StorageUsageDB and compares with a quota present in the CS.
 """
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/DataManagementSystem/Agent/UserStorageQuotaAgent.py $
-__RCSID__ = "$Id: UserStorageQuotaAgent.py 18161 2009-11-11 12:07:09Z acasajus $"
+# $HeadURL$
+__RCSID__ = "$Id$"
 
 from DIRAC  import gLogger, gConfig, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule

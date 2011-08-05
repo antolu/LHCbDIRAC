@@ -1,4 +1,4 @@
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Client                     import Client
 class StorageUsageClient( Client ):

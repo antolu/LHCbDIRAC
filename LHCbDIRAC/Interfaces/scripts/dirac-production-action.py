@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-action.py $
+# $HeadURL$
 # File :   dirac-production-action
 # Author : Mario Ubeda Garcia
 ########################################################################
@@ -8,8 +8,8 @@
   Start or stop the production(s)
 """
 
-__RCSID__   = "$Id: $"
-__VERSION__ = "$Revision: $"
+__RCSID__   = "$Id$"
+__VERSION__ = "$Revision$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

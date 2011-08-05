@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-set-agent-type.py $
+# $HeadURL$
 # File :   dirac-production-set-agent-type
 # Author : Mario Ubeda Garcia
 ########################################################################
 """
   Set the Agent Type for a(the) given transformation(s)
 """
-__RCSID__   = "$Id: $"
-__VERSION__ = "$Revision: $"
+__RCSID__   = "$Id$"
+__VERSION__ = "$Revision$"
 import DIRAC
 from DIRAC.Core.Base import Script
 

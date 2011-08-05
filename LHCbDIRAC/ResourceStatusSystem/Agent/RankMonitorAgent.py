@@ -1,8 +1,8 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/ResourceStatusSystem/Agent/RANKMonitoringAgent.py $
+# $HeadURL$
 ########################################################################
 
-__RCSID__ = "$Id: RANKMonitoringAgent.py 18832 2009-12-01 16:40:02Z atsareg $"
+__RCSID__ = "$Id$"
 
 """ Queries BDII to pick out information about RANK.
 """

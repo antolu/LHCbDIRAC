@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Core/Utilities/XMLTreeParser.py $
+# $HeadURL$
 # File :   XMLTreeParser.py
 ########################################################################
 
@@ -7,7 +7,7 @@
    pythonic style. A tree ox XMLNodes.  
 """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 import xml.dom.minidom
 

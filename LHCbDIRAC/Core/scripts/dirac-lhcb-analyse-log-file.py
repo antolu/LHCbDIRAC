@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Core/scripts/dirac-lhcb-run-test-job.py $
+# $HeadURL$
 # File :    dirac-lhcb-analyse-log-file.py
 # Author :  Stuart Paterson
 ########################################################################
 """
   Perform comprehensive checks on the supplied log file if it exists.
 """
-__RCSID__ = "$Id:  dirac-lhcb-analyse-log-file.py 23248 2010-03-18 07:57:40Z paterson $"
+__RCSID__ = "$Id$"
 
 import sys, string, os, shutil
 

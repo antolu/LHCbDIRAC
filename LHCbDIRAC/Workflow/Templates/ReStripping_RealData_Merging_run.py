@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/ReStripping_RealData_Merging_run.py $
+# $HeadURL$
 ########################################################################
 
 """ Template for the re-stripping.

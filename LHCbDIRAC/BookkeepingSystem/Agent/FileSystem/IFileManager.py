@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: IFileManager.py 21961 2010-02-21 22:27:58Z rgracian $
+# $Id$
 ########################################################################
 
 """
@@ -9,7 +9,7 @@
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 import os
 
-__RCSID__ = "$Id: IFileManager.py 21961 2010-02-21 22:27:58Z rgracian $"
+__RCSID__ = "$Id$"
 
 
 class IFileManager(object):

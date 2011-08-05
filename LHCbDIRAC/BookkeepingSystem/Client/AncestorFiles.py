@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC/BookkeepingSystem/bk_2010101501/Client/AncestorFiles.py $
+# $HeadURL$
 # File :   AncestorFiles.py
 # Author : Stuart Paterson
 ########################################################################
@@ -8,7 +8,7 @@
       LFN with a given ancestor depth.  
 """
 
-__RCSID__ = "$Id: AncestorFiles.py 18700 2009-11-30 13:48:50Z paterson $"
+__RCSID__ = "$Id$"
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/Core/scripts/dirac-create-svn-tag.py $
+# $HeadURL$
 # File :    dirac-create-svn-tag
 # Author :  Adria Casajus
 ########################################################################
 """
   Tag a new release in SVN
 """
-__RCSID__ = "$Id: dirac-create-svn-tag.py 33646 2011-02-08 16:55:40Z acasajus $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base      import Script

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/scripts/dirac-production-mc-extend.py $
+# $HeadURL$
 # File :   dirac-production-mc-extend
 # Author : Stuart Paterson
 ########################################################################
 __RCSID__   = "$Id$"
-__VERSION__ = "$Revision: 1.1 $"
+__VERSION__ = "$Revision$"
 import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction

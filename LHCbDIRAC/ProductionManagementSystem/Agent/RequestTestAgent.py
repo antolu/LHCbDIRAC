@@ -6,7 +6,7 @@
     and perform the test locally.
 """
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.AgentModule    import AgentModule
 from DIRAC.Core.DISET.RPCClient     import RPCClient

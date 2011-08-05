@@ -1,5 +1,5 @@
 #################################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Workflow/Templates/Certification_Testing_run.py $
+# $HeadURL$
 #################################################################################
 
 """  The Certification Testing Template creates productions that aim

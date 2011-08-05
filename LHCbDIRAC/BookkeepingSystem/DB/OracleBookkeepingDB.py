@@ -1,11 +1,11 @@
 ########################################################################
-# $Id: OracleBookkeepingDB.py 29467 2010-10-15 15:32:29Z zmathe $
+# $Id$
 ########################################################################
 """
 
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 29467 2010-10-15 15:32:29Z zmathe $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDB                   import IBookkeepingDB
 from types                                                           import *

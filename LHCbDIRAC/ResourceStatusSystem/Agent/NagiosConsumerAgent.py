@@ -2,7 +2,7 @@
 LHCbDIRAC/ResourceStatusSystem/Agent/NagiosConsumerAgent.py
 """
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id$"
 
 # First, pythonic stuff
 # External package that allows to connect to ActiveMQ using stomp protocol
