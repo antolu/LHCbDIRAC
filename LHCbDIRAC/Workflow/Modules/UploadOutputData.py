@@ -110,9 +110,6 @@ class UploadOutputData( ModuleBase ):
     self.log.info( 'Initializing %s' % self.version )
 
     result = self.resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
@@ -308,6 +305,7 @@ class UploadOutputData( ModuleBase ):
     return S_OK( 'Output data uploaded' )
 
   #############################################################################
+
   def checkInputsNotAlreadyProcessed( self, inputData, productionID ):
     """ Checks that the input files for the job were not already processed by
         another job i.e. that there are no other descendent files for the 
@@ -345,6 +343,7 @@ class UploadOutputData( ModuleBase ):
     return S_OK( 'Outputs can be uploaded' )
 
   #############################################################################
+
   def setBKRegistrationRequest( self, lfn, error = '' ):
     """ Set a BK registration request for changing the replica flag.  Uses the
         global request object.  
