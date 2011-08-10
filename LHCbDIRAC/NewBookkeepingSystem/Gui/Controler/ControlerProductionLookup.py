@@ -10,23 +10,23 @@ from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                          impo
 from PyQt4.QtGui                                                     import *
 __RCSID__ = "$Id$"
 
-#############################################################################  
+#############################################################################
 class ControlerProductionLookup(ControlerAbstract):
-  
-  #############################################################################  
+
+  #############################################################################
   def __init__(self, widget, parent):
     super(ControlerProductionLookup, self).__init__(widget, parent)
     self.__model = None
     self.__list = []
-  
-  #############################################################################  
+
+  #############################################################################
   def messageFromParent(self, message):
     if message.action()=='list':
       self.__list = []
       self.__model = message['items']
       widget = self.getWidget()
       keys = self.__model.getChildren().keys()
-      
+
       keys.sort()
       keys.reverse()
       for i in keys:
@@ -35,12 +35,12 @@ class ControlerProductionLookup(ControlerAbstract):
       widget.show()
     else:
       print 'Unknown message!',message.action()
-  
-  #############################################################################  
+
+  #############################################################################
   def messageFromChild(self, sender, message):
     pass
-  
-  #############################################################################  
+
+  #############################################################################
   def close(self):
     widget = self.getWidget()
     indexes = widget.getListView().selectedIndexes()
@@ -58,15 +58,15 @@ class ControlerProductionLookup(ControlerAbstract):
         message = Message({'action':'showOneProduction','paths':selected})
         self.getParent().messageFromChild(self, message)
     else:
-      QMessageBox.information(self.getWidget(), "More information...", "Please select a production!",QMessageBox.Ok)
+      QMessageBox.information(self.getWidget(), "More information...", "Please select a production or run number!",QMessageBox.Ok)
     widget.close()
-   
-  #############################################################################  
-  def cancel(self): 
+
+  #############################################################################
+  def cancel(self):
     self.getWidget().getListView().reset()
     self.getWidget().close()
-    
-  
+
+
   def all(self):
     widget = self.getWidget()
     data = widget.getModel().getAllData()
@@ -76,8 +76,8 @@ class ControlerProductionLookup(ControlerAbstract):
     message = Message({'action':'showAllProduction','items':parent})
     self.getParent().messageFromChild(self, message)
     self.getWidget().close()
-    
-  #############################################################################  
+
+  #############################################################################
   def textChanged(self):
     widget = self.getWidget()
     pattern = str(widget.getLineEdit().text())
