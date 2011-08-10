@@ -1823,7 +1823,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
 
   #############################################################################
   def getRunInformations( self, runnb ):
-    command = 'select distinct j.fillnumber, conf.configname, conf.configversion, daq.description, j.jobstart, j.jobend \
+    command = 'select distinct j.fillnumber, conf.configname, conf.configversion, daq.description, j.jobstart, j.jobend, j.tck \
         from jobs j, configurations conf,data_taking_conditions daq, productionscontainer prod \
          where j.configurationid=conf.configurationid and j.production<0 and prod.daqperiodid=daq.daqperiodid and j.production=prod.production and j.runnumber='+str(runnb)
     retVal = self.dbR_._query(command)
@@ -1836,6 +1836,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     result['DataTakingDescription'] = value[0][3]
     result['RunStart'] = value[0][4]
     result['RunEnd'] = value[0][5]
+    result['Tck'] = value[0][6]
 
     retVal = self.getRunProcessingPass( runnb )
     if retVal['OK']:
@@ -1876,6 +1877,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
     result['Stream'] = stream
     result['luminosity'] = luminosity
     result['InstLuminosity'] = ilumi
+
     return S_OK( result )
 
   #############################################################################
@@ -2557,7 +2559,9 @@ and files.qualityid= dataquality.qualityid'
   def getFilesSumary( self, configName, configVersion, conddescription = default, processing = default, evt = default, production = default, filetype = default, quality = default, runnb = default ):
 
     condition = ''
+    tables = ' jobs j, files f'
     if configName != default:
+      tables += ' , configurations c'
       condition += " and c.configname='%s' " % ( configName )
 
     if configVersion != default:
@@ -2568,14 +2572,13 @@ and files.qualityid= dataquality.qualityid'
       retVal = self._getConditionString( conddescription, 'prod' )
       if retVal['OK']:
         sim_dq_conditions = retVal['Value']
-        condition += sim_dq_conditions
       else:
         return retVal
 
-    tables = ''
+    econd = ''
     if evt != default:
-      tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid '%(evt)
+      econd += " and bview.eventtypeid='%s'"%(str( evt ))
+      condition += " and f.eventtypeid=%s"%(str( evt ))
 
     if production != default:
       condition += ' and j.production=' + str( production )
@@ -2583,8 +2586,16 @@ and files.qualityid= dataquality.qualityid'
     if runnb != default:
       condition += ' and j.runnumber=' + str( runnb )
 
+
+    tables += ' ,filetypes ftypes '
+    tables2 = ''
+    fcond = ''
     if filetype != default:
-      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (str( filetype ))
+      tables2 = ' ,filetypes ftypes '
+      condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'"%(str( filetype ))
+      fcond += " and ftypes.Name='%s'"%(str( filetype ))
+      fcond += 'and bview.filetypeid=ftypes.filetypeid '
+
 
     if quality != 'ALL':
       tables += ' , dataquality d'
@@ -2615,23 +2626,18 @@ and files.qualityid= dataquality.qualityid'
       condition += ' and d.qualityid=f.qualityid '
 
     if processing != default:
-      command = "select distinct prod.processingid from productionscontainer prod where \
-           prod.processingid in (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
-         START WITH id in (select distinct id from processing where name='%s') \
-         CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-        where v.path='%s') %s"%(processing.split('/')[1], processing, sim_dq_conditions)
-      retVal = self.dbR_._query(command)
-      if not retVal['OK']:
-        return retVal
-      pro = '('
-      for i in retVal['Value']:
-        pro += "%s," % ( str( i[0] ) )
-      pro = pro[:-1]
-      pro += (')')
+      if not re.search( '^/', processing ): processing = processing.replace(processing, '/%s' %processing )
+      condition += " and j.production in (select bview.production from productionscontainer prod, ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
+                     START WITH id in (select distinct id from processing where name='%s') \
+                                           CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                         where v.path='%s') proc, prodview bview %s \
+                             where \
+                               prod.processingid=proc.id and \
+                               bview.production=prod.production \
+                               %s %s %s \
+                )"%(processing.split('/')[1], processing, tables2, fcond, econd, sim_dq_conditions)
 
-      condition += " and prod.processingid in %s"%(pro)
-
-    command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from files f, jobs j, productionscontainer prod, configurations c, filetypes ftypes %s  where \
+    command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
     ftypes.filetypeid=f.filetypeid and \
     f.gotreplica='Yes' and \
