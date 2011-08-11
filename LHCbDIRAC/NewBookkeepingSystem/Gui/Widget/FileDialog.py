@@ -153,7 +153,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     #print data
              #['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
     header = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
-    'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity']
+    'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity', 'TCK']
     data.update(self.__model)
     keys = data.keys()
     keys.sort()

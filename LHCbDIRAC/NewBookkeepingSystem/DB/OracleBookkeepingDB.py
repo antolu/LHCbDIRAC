@@ -664,7 +664,7 @@ class OracleBookkeepingDB( IBookkeepingDB ):
       condition += " and prod.processingid in %s" % ( pro )
 
     command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
-    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes %s  where \
+    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes %s  where \
     j.jobid=f.jobid and \
     d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
