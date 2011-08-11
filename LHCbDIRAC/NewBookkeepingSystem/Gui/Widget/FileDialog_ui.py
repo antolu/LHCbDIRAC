@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Mon Oct 11 18:44:23 2010
-#      by: PyQt4 UI code generator 4.4.4
+# Created: Thu Aug 11 14:25:15 2011
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -183,6 +183,17 @@ class Ui_FileDialog(object):
         self.label_20.setObjectName("label_20")
         self.gridlayout6.addWidget(self.label_20, 4, 0, 1, 1)
         self.gridlayout5.addLayout(self.gridlayout6, 0, 0, 1, 1)
+        self.groupBox_4 = QtGui.QGroupBox(self.groupBox_2)
+        self.groupBox_4.setObjectName("groupBox_4")
+        self.gridLayout = QtGui.QGridLayout(self.groupBox_4)
+        self.gridLayout.setObjectName("gridLayout")
+        self.label_21 = QtGui.QLabel(self.groupBox_4)
+        self.label_21.setObjectName("label_21")
+        self.gridLayout.addWidget(self.label_21, 0, 0, 1, 1)
+        self.tckcombo = QtGui.QComboBox(self.groupBox_4)
+        self.tckcombo.setObjectName("tckcombo")
+        self.gridLayout.addWidget(self.tckcombo, 0, 1, 1, 1)
+        self.gridlayout5.addWidget(self.groupBox_4, 1, 0, 1, 1)
         self.gridlayout.addWidget(self.groupBox_2, 2, 1, 1, 3)
         self.advancedSave = QtGui.QPushButton(FileDialog)
         self.advancedSave.setObjectName("advancedSave")
@@ -224,6 +235,8 @@ class Ui_FileDialog(object):
         self.label_16.setText(QtGui.QApplication.translate("FileDialog", "EventInputStat", None, QtGui.QApplication.UnicodeUTF8))
         self.label_19.setText(QtGui.QApplication.translate("FileDialog", "TotalLuminosity", None, QtGui.QApplication.UnicodeUTF8))
         self.label_20.setText(QtGui.QApplication.translate("FileDialog", "Luminosity", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_4.setTitle(QtGui.QApplication.translate("FileDialog", "Filter(s)", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_21.setText(QtGui.QApplication.translate("FileDialog", "TCK", None, QtGui.QApplication.UnicodeUTF8))
         self.advancedSave.setText(QtGui.QApplication.translate("FileDialog", "Advanced Save..", None, QtGui.QApplication.UnicodeUTF8))
         self.saveButton.setText(QtGui.QApplication.translate("FileDialog", "Save Files...", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("FileDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
