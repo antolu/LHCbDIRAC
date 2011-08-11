@@ -107,4 +107,4 @@ class NagiosAgent(AgentModule):
   def execute(self):
     t = Topo(xmlpath='/afs/cern.ch/user/v/vibernar/www/nagios/lhcb_topology.xml')
     t.topo_gen()
-    return S_OK
+    return S_OK()
