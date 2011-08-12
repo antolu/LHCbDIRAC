@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FilterWidget.ui'
 #
-# Created: Fri Aug 12 14:58:02 2011
+# Created: Fri Aug 12 18:00:20 2011
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,5 +34,5 @@ class Ui_FilterWidget(object):
     def retranslateUi(self, FilterWidget):
         FilterWidget.setWindowTitle(QtGui.QApplication.translate("FilterWidget", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.allButton.setText(QtGui.QApplication.translate("FilterWidget", "All", None, QtGui.QApplication.UnicodeUTF8))
-        self.okButton.setText(QtGui.QApplication.translate("FilterWidget", "OK", None, QtGui.QApplication.UnicodeUTF8))
+        self.okButton.setText(QtGui.QApplication.translate("FilterWidget", "ApplyFilter", None, QtGui.QApplication.UnicodeUTF8))
 
