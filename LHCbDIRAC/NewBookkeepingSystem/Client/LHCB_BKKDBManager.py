@@ -599,8 +599,8 @@ class LHCB_BKKDBManager( BaseESManager ):
     result = self.__getFiles( dict, SortDict, StartItem, Maxitems )
     for record in result['Records']:
       value = {'name':record[0], 'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
-               'FileType':dict['FileType'], 'EventTypeId':dict['EventTypeId'], 'RunNumber':record[8], 'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[10],
-               'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14], 'InstLuminosity':record[15],'TCK':record[16]}
+               'FileType':dict['FileType'], 'EventTypeId':dict['EventTypeId'], 'RunNumber':record[9], 'FillNumber':record[10], 'FullStat':record[11], 'DataqualityFlag':record[12],
+               'EventInputStat':record[13], 'TotalLuminosity':record[14], 'Luminosity':record[15], 'InstLuminosity':record[16],'TCK':record[17]}
 
       self.files_ += [record[0]]
       entityList += [self._getEntityFromPath( path, value, levels, 'List of files', dict, 'getFiles' )]

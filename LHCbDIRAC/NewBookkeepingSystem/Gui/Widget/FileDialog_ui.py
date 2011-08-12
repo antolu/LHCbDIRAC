@@ -2,18 +2,19 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Thu Aug 11 14:25:15 2011
+# Created: Fri Aug 12 12:16:23 2011
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FilterWidget  import FilterWidget
 
 class Ui_FileDialog(object):
     def setupUi(self, FileDialog):
         FileDialog.setObjectName("FileDialog")
         FileDialog.setWindowModality(QtCore.Qt.ApplicationModal)
-        FileDialog.resize(713, 651)
+        FileDialog.resize(892, 874)
         FileDialog.setModal(False)
         self.gridlayout = QtGui.QGridLayout(FileDialog)
         self.gridlayout.setObjectName("gridlayout")
@@ -187,12 +188,20 @@ class Ui_FileDialog(object):
         self.groupBox_4.setObjectName("groupBox_4")
         self.gridLayout = QtGui.QGridLayout(self.groupBox_4)
         self.gridLayout.setObjectName("gridLayout")
-        self.label_21 = QtGui.QLabel(self.groupBox_4)
-        self.label_21.setObjectName("label_21")
-        self.gridLayout.addWidget(self.label_21, 0, 0, 1, 1)
+        self.tckButton = QtGui.QPushButton(self.groupBox_4)
+        self.tckButton.setObjectName("tckButton")
+        self.gridLayout.addWidget(self.tckButton, 0, 0, 1, 1)
+        self.tckcloseButton = QtGui.QToolButton(self.groupBox_4)
+        self.tckcloseButton.setObjectName("tckcloseButton")
+        self.gridLayout.addWidget(self.tckcloseButton, 0, 1, 1, 1)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem, 0, 2, 1, 1)
         self.tckcombo = QtGui.QComboBox(self.groupBox_4)
         self.tckcombo.setObjectName("tckcombo")
-        self.gridLayout.addWidget(self.tckcombo, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.tckcombo, 0, 3, 1, 1)
+        self.filterWidget = FilterWidget(self.groupBox_4)
+        self.filterWidget.setObjectName("filterWidget")
+        self.gridLayout.addWidget(self.filterWidget, 1, 0, 1, 4)
         self.gridlayout5.addWidget(self.groupBox_4, 1, 0, 1, 1)
         self.gridlayout.addWidget(self.groupBox_2, 2, 1, 1, 3)
         self.advancedSave = QtGui.QPushButton(FileDialog)
@@ -236,7 +245,8 @@ class Ui_FileDialog(object):
         self.label_19.setText(QtGui.QApplication.translate("FileDialog", "TotalLuminosity", None, QtGui.QApplication.UnicodeUTF8))
         self.label_20.setText(QtGui.QApplication.translate("FileDialog", "Luminosity", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_4.setTitle(QtGui.QApplication.translate("FileDialog", "Filter(s)", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_21.setText(QtGui.QApplication.translate("FileDialog", "TCK", None, QtGui.QApplication.UnicodeUTF8))
+        self.tckButton.setText(QtGui.QApplication.translate("FileDialog", "TCK", None, QtGui.QApplication.UnicodeUTF8))
+        self.tckcloseButton.setText(QtGui.QApplication.translate("FileDialog", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.advancedSave.setText(QtGui.QApplication.translate("FileDialog", "Advanced Save..", None, QtGui.QApplication.UnicodeUTF8))
         self.saveButton.setText(QtGui.QApplication.translate("FileDialog", "Save Files...", None, QtGui.QApplication.UnicodeUTF8))
         self.closeButton.setText(QtGui.QApplication.translate("FileDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))

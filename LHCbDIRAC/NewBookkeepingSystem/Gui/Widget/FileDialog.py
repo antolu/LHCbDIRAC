@@ -21,10 +21,12 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################
   def __init__(self, parent = None):
     QDialog.__init__(self, parent)
+
     self.setupUi(self)
     #flags = 0
     #flags = Qt.Window | Qt.WindowMinimizeButtonHint;
     #self.setWindowFlags( flags )
+    self.hideTckFilter()
     self.__controler = ControlerFileDialog(self, parent.getControler())
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.close)
     self.connect(self.saveButton, SIGNAL("clicked()"), self.__controler.save)
@@ -66,6 +68,21 @@ class FileDialog(QDialog, Ui_FileDialog):
 
     self.__historyDialog = HistoryDialog(self)
     self.__controler.addChild('HistoryDialog',self.__historyDialog.getControler())
+
+    self.connect(self.tckcombo, SIGNAL('currentIndexChanged(QString)'), self.getControler().tckChanged)
+    self.__proxy = QSortFilterProxyModel()
+
+    self.connect(self.tckButton, SIGNAL("clicked()"), self.__controler.tckButtonPressed)
+    self.connect(self.tckcloseButton, SIGNAL("clicked()"), self.__controler.hideFilterWidget)
+
+    self.filterWidget.setupControler(self)
+    self.__controler.addChild('TckFilterWidget',self.filterWidget.getControler())
+
+    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
+    closeIcon = QIcon(picturesPath+"/images/reloadpage.png")
+    self.tckcloseButton.setIcon(closeIcon)
+    filterIcon = QIcon(picturesPath+"/images/filter.png")
+    self.tckButton.setIcon(filterIcon)
 
   #############################################################################
   def closeEvent (self, event ):
@@ -186,7 +203,11 @@ class FileDialog(QDialog, Ui_FileDialog):
     # set the table model
     tm = TableModel(tabledata, header, self)
 
-    self.tableView.setModel(tm)
+
+    self.__proxy.setSourceModel(tm)
+
+
+    self.tableView.setModel(self.__proxy)
     self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.tableView.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
@@ -222,6 +243,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     for row in xrange(nrows):
         self.tableView.setRowHeight(row, 18)
 
+    self.__proxy.sort (0,Qt.AscendingOrder)
     # enable sorting
     # this doesn't work
     #tv.setSortingEnabled(True)
@@ -242,6 +264,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     #saveDialog.setFileMode(QFileDialog.AnyFile)
     #saveDialog.setViewMode(QFileDialog.Detail)
 
+    ext = ''
     if (saveDialog.exec_()):
       filename = str(saveDialog.selectedFiles()[0])
       ext = saveDialog.selectedFilter()
@@ -298,7 +321,72 @@ class FileDialog(QDialog, Ui_FileDialog):
 
     self.progrnameandversion.setText('')
 
+  #############################################################################
   def clearTable(self):
     #self.tableView().clear()
     self.__model = {}
 
+  #############################################################################
+  def fillTckFilter(self, data):
+    tcks = data + ['All']
+
+    self.tckcombo.clear()
+    j = 0
+    for i in tcks:
+      self.tckcombo.addItem (i, QVariant(i))
+      if i == 'All':
+        self.tckcombo.setCurrentIndex(j)
+      j += 1
+    #self.tckcombo.view().setSelectionMode(QAbstractItemView.MultiSelection)
+
+  #############################################################################
+  def applyFilter(self, data):
+    if data == 'All':
+      self.__proxy.clear()
+      self.__proxy.invalidateFilter()
+      if self.tckcombo.count() > 1:
+        filter = '\\b'
+        cond = '('
+        for i in range(self.tckcombo.count()):
+          cond += self.tckcombo.itemText(i)
+          cond +='|'
+        cond=cond[:-1]
+        filter += cond +')\\b'
+        self.__proxy.setFilterKeyColumn(15)
+        self.__proxy.setFilterRegExp(filter)
+        for row in xrange(self.__proxy.rowCount()):
+          self.tableView.setRowHeight(row, 18)
+    else:
+      self.__proxy.setFilterKeyColumn(15)
+      filter = '%s'%(data)
+      self.__proxy.setFilterRegExp(filter)
+      for row in xrange(self.__proxy.rowCount()):
+        self.tableView.setRowHeight(row, 18)
+
+  def applyListFilter(self, data):
+      filter = '\\b'
+      cond = '('
+      for i in data:
+        cond += i
+        cond +='|'
+      cond=cond[:-1]
+      filter += cond +')\\b'
+      self.__proxy.setFilterKeyColumn(15)
+      self.__proxy.setFilterRegExp(filter)
+      for row in xrange(self.__proxy.rowCount()):
+        self.tableView.setRowHeight(row, 18)
+
+
+  #############################################################################
+  def showTckFilter(self):
+    self.tckButton.hide()
+    self.tckcloseButton.show()
+    self.tckcombo.hide()
+    self.filterWidget.show()
+
+  #############################################################################
+  def hideTckFilter(self):
+    self.tckButton.show()
+    self.tckcloseButton.hide()
+    self.tckcombo.show()
+    self.filterWidget.hide()
