@@ -2563,6 +2563,7 @@ and files.qualityid= dataquality.qualityid'
     if configName != default:
       tables += ' , configurations c'
       condition += " and c.configname='%s' " % ( configName )
+      condition += ' and j.configurationid=c.configurationid '
 
     if configVersion != default:
       condition += " and c.configversion='%s' " % ( configVersion )
@@ -2642,8 +2643,7 @@ and files.qualityid= dataquality.qualityid'
     ftypes.filetypeid=f.filetypeid and \
     f.gotreplica='Yes' and \
     f.visibilityflag='Y' and \
-    ftypes.filetypeid=f.filetypeid and \
-    j.configurationid=c.configurationid %s"%(tables,condition)
+    ftypes.filetypeid=f.filetypeid  %s"%(tables,condition)
     return self.dbR_._query(command)
 
   #############################################################################

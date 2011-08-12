@@ -35,7 +35,7 @@ class ControlerFilterWidget(ControlerAbstract):
   def textChanged(self):
     widget = self.getWidget()
     pattern = str(widget.getLineEdit().text())
-    new_list = [item for item in self.__list if item.find(pattern) == 0]
+    new_list = [item for item in self.__model if item.find(pattern) == 0]
     widget.getModel().setAllData(new_list)
 
 

@@ -17,14 +17,14 @@ __RCSID__ = "$Id$"
 
 #from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 
-#############################################################################  
+#############################################################################
 class TreeWidget(QWidget, Ui_TreeWidget):
-  
-  #############################################################################  
+
+  #############################################################################
   def __init__(self, parent = None):
     """
     Constructor
-    
+
     @param parent parent widget (QWidget)
     """
     self.__controler = None
@@ -40,32 +40,33 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.connect(self.runLookup, SIGNAL("clicked()"), self.__controler.runRadioButton)
     self.connect(self.bookmarksButton, SIGNAL("clicked()"), self.__controler.bookmarksButtonPressed)
     self.connect(self.closeButton, SIGNAL("clicked()"), self.__controler.hidewidget)
-    
+
     self.tree.setupControler()
-    
+
     picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
     bookmarksIcon = QIcon(picturesPath+"/images/bookmarks2.png")
     self.bookmarksButton.setIcon(bookmarksIcon)
-    
+
     closeIcon = QIcon(picturesPath+"/images/reloadpage.png")
     self.closeButton.setIcon(closeIcon)
     self.closeButton.hide()
-    
+
     self.standardQuery.setChecked(True)
     self.connect(self.standardQuery, SIGNAL("clicked()"), self.__controler.standardQuery)
     self.connect(self.advancedQuery, SIGNAL("clicked()"), self.__controler.advancedQuery)
-    
+
     self.__dialog = ProcessingPassDialog(self)
     self.__controler.addChild('ProcessingPassDialog',self.__dialog.getControler())
-    
+
     self.__infodialog = InfoDialog(self)
     self.__controler.addChild('InfoDialog', self.__infodialog.getControler())
-    
+
     self.__fileDialog = FileDialog(self)
+    self.__fileDialog.setWindowFlags(Qt.Window)
     self.__controler.addChild('FileDialog',self.__fileDialog.getControler())
     self.Bookmarks.setupControler(self)
     self.__controler.addChild('Bookmarks', self.Bookmarks.getControler())
-    
+
     #self.__dialog.show()
     #self.__dialog.hide()
     '''
@@ -80,74 +81,74 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     '''
     self.tree.header().setResizeMode(1, QHeaderView.ResizeToContents)
     self.tree.header().setResizeMode(0, QHeaderView.ResizeToContents)
-    
-  
+
+
   #############################################################################
   def showBookmarks(self):
     self.bookmarksButton.hide()
     self.closeButton.show()
     self.Bookmarks.show()
-  
+
   def hidewidget(self):
     self.bookmarksButton.show()
     self.closeButton.hide()
     self.Bookmarks.hide()
-  
-  #############################################################################  
+
+  #############################################################################
   def getTree(self):
     return self.tree
-  
-  #############################################################################  
+
+  #############################################################################
   def getControler(self):
     return self.__controler
-  
-  #############################################################################  
+
+  #############################################################################
   def setAdvancedQueryValue(self):
     if self.advancedQuery.isChecked():
       self.advancedQuery.setChecked(False)
     else:
       self.advancedQuery.setChecked(True)
-      
-  #############################################################################  
+
+  #############################################################################
   def setStandardQueryValue(self):
     if self.standardQuery.isChecked():
       self.standardQuery.setChecked(False)
     else:
       self.standardQuery.setChecked(True)
-  
+
   #############################################################################
   def getPageSize(self):
     return self.pageSize.text()
-  
+
   #############################################################################
   def runLookupRadioButtonIsChecked(self):
     return self.runLookup.isChecked()
-  
+
   #############################################################################
   def productionLookupRadioButtonIsChecked(self):
     return self.productionRadioButton.isChecked()
-  
+
   #############################################################################
   def setSimRadioButton(self):
     if self.configNameRadioButton.isChecked():
       self.configNameRadioButton.setChecked(False)
     else:
       self.configNameRadioButton.setChecked(True)
-  
+
   #############################################################################
   def setEvtButton(self):
     if self.radioButton_2.isChecked():
       self.radioButton_2.setChecked(False)
     else:
       self.radioButton_2.setChecked(True)
-  
+
   #############################################################################
   def setProdButton(self):
     if self.productionRadioButton.isChecked():
       self.productionRadioButton.setChecked(False)
     else:
       self.productionRadioButton.setChecked(True)
-  
+
   #############################################################################
   def setRunButton(self):
     if self.runLookup.isChecked():

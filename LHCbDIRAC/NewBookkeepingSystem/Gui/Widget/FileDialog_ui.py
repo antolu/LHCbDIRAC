@@ -13,9 +13,9 @@ from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FilterWidget  import FilterWidget
 class Ui_FileDialog(object):
     def setupUi(self, FileDialog):
         FileDialog.setObjectName("FileDialog")
-        FileDialog.setWindowModality(QtCore.Qt.ApplicationModal)
+        #FileDialog.setWindowModality(QtCore.Qt.ApplicationModal)
         FileDialog.resize(713, 651)
-        FileDialog.setModal(False)
+        #FileDialog.setModal(False)
         self.gridLayout_2 = QtGui.QGridLayout(FileDialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.tableView = QtGui.QTableView(FileDialog)

@@ -6,6 +6,7 @@ from PyQt4.QtCore                                                             im
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FilterWidget_ui                import Ui_FilterWidget
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FilterListModel                import FilterListModel
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerFilterWidget       import ControlerFilterWidget
+
 import DIRAC,os
 
 __RCSID__ = "$Id: $"
