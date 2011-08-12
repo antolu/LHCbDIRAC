@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FileDialog.ui'
 #
-# Created: Fri Aug 12 12:16:23 2011
+# Created: Fri Aug 12 15:39:48 2011
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,7 +14,7 @@ class Ui_FileDialog(object):
     def setupUi(self, FileDialog):
         FileDialog.setObjectName("FileDialog")
         FileDialog.setWindowModality(QtCore.Qt.ApplicationModal)
-        FileDialog.resize(892, 874)
+        FileDialog.resize(713, 651)
         FileDialog.setModal(False)
         self.gridlayout = QtGui.QGridLayout(FileDialog)
         self.gridlayout.setObjectName("gridlayout")
