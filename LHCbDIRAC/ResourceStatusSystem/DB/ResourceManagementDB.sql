@@ -39,25 +39,35 @@ CREATE TABLE HammerCloudTests(
 
 drop table if exists SLSServices;
 create table SLSServices (
-       ID serial,
-       Url varchar(64) not null,
-       Item varchar(32) not null,
+       System varchar(64) not null,
+       Service varchar(32) not null,
        TStamp DATETIME not null,
        Availability TINYINT unsigned not null,
-       ServiceUptime INT unsigned not null,
-       HostUptime INT unsigned not null,
-       primary key (ID)
+       ServiceUptime INT unsigned,
+       HostUptime INT unsigned,
+       InstantLoad DECIMAL(10,5) unsigned,
+       primary key (System,Service)
+) Engine=InnoDB;
+
+drop table if exists SLST1Services;
+create table SLST1Services (
+       Site varchar(64) not null,
+       Service varchar(32) not null,
+       TStamp DATETIME not null,
+       Availability TINYINT unsigned not null,
+       ServiceUptime INT unsigned,
+       HostUptime INT unsigned,
+       primary key (Site,Service)
 ) Engine=InnoDB;
 
 drop table if exists SLSLogSE;
 create table SLSLogSE (
-       ID             varchar(64) not null,
+       ID             varchar(64) primary key,
        TStamp         DATETIME not null,
        ValidityDuration VARCHAR(32) not null,
        Availability TINYINT UNSIGNED not null,
        DataPartitionUsed INT UNSIGNED not null,
-       DataPartitionTotal INT UNSIGNED not null,
-       primary key (ID)
+       DataPartitionTotal INT UNSIGNED not null
 ) Engine=InnoDB;
 
 drop table if exists SLSStorage;

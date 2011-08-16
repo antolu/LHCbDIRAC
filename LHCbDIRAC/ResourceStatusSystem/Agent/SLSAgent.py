@@ -1,13 +1,20 @@
-from DIRAC import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC import gLogger, gConfig, S_OK
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.DISET.RPCClient  import RPCClient
+from DIRAC.Core.Base.AgentModule                            import AgentModule
+from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
-from DIRAC.ResourceStatusSystem.Utilities import CS, Utils
-from DIRAC.ResourceStatusSystem.Utilities.Utils import xml_append
+from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
+
+# For replicas test
+
+from DIRAC.Core.Utilities.File                    import makeGuid
+
+# For caching to DB
+from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
 
 import xml.dom, xml.sax
 import time
@@ -78,6 +85,8 @@ class SpaceTokenOccupancyTest(object):
         free         = float(output['unusedsize']) / 2**40
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
         validity     = 'PT13H'
+    else:
+      gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
 
     doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
                                "serviceupdate",
@@ -125,28 +134,38 @@ class SpaceTokenOccupancyTest(object):
 
 class DIRACTest(object):
   def __init__(self, xmlpath):
-    self.setup = CS.getValue('DIRAC/Setup')
-    self.xmlpath = xmlpath
+    self.setup     = CS.getValue('DIRAC/Setup')
+    self.setupDict = CS.getTypedDictRootedAt(root="/DIRAC/Setups", relpath=self.setup)
+    self.xmlpath   = xmlpath
+    self.rmDB      = ResourceManagementDB()
 
-    # Run xml_gw
-    self.xml_gw()
+#    self.xml_gw()
+#    self.run_xml_sensors()
+    self.run_t1_xml_sensors()
 
-    # For each service of each system, run xml_sensors...
+  def run_xml_sensors(self):
+        # For each service of each system, run xml_sensors...
     systems = CS.getTypedDictRootedAt(root="", relpath="/Systems")
-    services = []
-    for s in systems:
+    discovered_services = []
+    for sys in systems:
       try:
-        sys, srv = systems[s][self.setup]['URLs'].split("/")[-2:]
-        services.append((sys, srv))
+        services = systems[sys][self.setupDict[sys]]['Services']
+        for k in services:
+          discovered_services.append((sys, k))
       except KeyError:
-        pass
+        gLogger.warn("DIRACTest: No /Systems/%s/%s/Services in CS." % (sys, self.setupDict[sys]))
 
-    for (sys, srv) in services:
+    gLogger.info("DIRACTest: discovered %d services" % len(discovered_services))
+
+    for (sys, srv) in discovered_services:
       self.xml_sensor(sys, srv)
 
+  def run_t1_xml_sensors(self):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
     request_management_urls = Utils.list_(CS.getValue("/Systems/RequestManagement/Development/URLs/allURLS"))
     configuration_urls      = Utils.list_(CS.getValue("/DIRAC/Configuration/Servers"))
+    gLogger.info("DIRACTest: discovered %d request management url(s) and %d configuration url(s)"
+                 % (len(request_management_urls),len(configuration_urls)))
     for url in request_management_urls + configuration_urls:
       self.xml_t1_sensor(url)
 
@@ -156,8 +175,7 @@ class DIRACTest(object):
     try:
       sites = gConfig.getSections('/Resources/Sites/LCG')['Value']
     except KeyError:
-      # FIXME: log, etc...
-      print "SLSAgent, DIRACTest: Unable to query CS."
+      gLogger.error("SLSAgent, DIRACTest: Unable to query CS")
       sites = []
 
     doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
@@ -193,7 +211,6 @@ class DIRACTest(object):
     dirac = Dirac()
 
     res = dirac.ping(system, service)
-    assert(res)
 
     try:
       host = urlparse.urlparse(res['Value']['service url']).netloc.split(":")[0]
@@ -220,15 +237,24 @@ class DIRACTest(object):
                  name="Load", desc="Instantaneous load")
       xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
 
+      # Fill database
+      self.rmDB.updateSLSServices(system, service, 100,
+                                  res['service uptime'], res['host uptime'], res['load'].split()[0])
+      gLogger.info("%s/%s successfully pinged" % (system, service))
+
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
+      self.rmDB.updateSLSServices(system, service, 0, Utils.SQLValues.null, Utils.SQLValues.null, Utils.SQLValues.null)
+      gLogger.info("%s/%s does not respond to ping" % (system, service))
 
     xmlfile = open(self.xmlpath + system + "_" + service + ".xml", "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
       xmlfile.close()
+
+
 
   def xml_t1_sensor(self, url):
     parsed = urlparse.urlparse(url)
@@ -259,6 +285,8 @@ class DIRACTest(object):
       xml_append(doc, "numericvalue", res['host uptime'], elt=elt,
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
+      self.rmDB.updateSLST1Services(site, service, 100, res['service uptime'], res['host uptime'])
+
       if system == "RequestManagement":
         for k,v in res2["Value"].items():
           xml_append(doc, "numericvalue", v["Assigned"], elt=elt,
@@ -268,9 +296,14 @@ class DIRACTest(object):
           xml_append(doc, "numericvalue", v["Done"], elt=elt,
                      name=k + " - Done", desc="Number of Done " + k + "requests")
 
+      gLogger.info("%s/%s successfully pinged" % (site, service))
+
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
+      self.rmDB.updateSLST1Services(site, service, 0, Utils.SQLValues.null, Utils.SQLValues.null)
+
+      gLogger.info("%s/%s does not respond to ping" % (site, service))
 
     xmlfile = open(self.xmlpath + site + "_" + service + ".xml", "w")
     try:
@@ -431,18 +464,23 @@ class LOGSETest(object):
         self.cur_list.append(content)
 
 class LFCReplicaTest(object):
-  from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
-  from DIRAC.Core.Utilities.File                    import makeGuid
-  import lfc
-  def __init__(self, path, timeout):
+  def __init__(self, path, timeout, fake=True):
     self.path       = path
     self.timeout    = timeout
     self.cfg        = CS.getTypedDictRootedAt(
       root="", relpath="/Resources/FileCatalogs/LcgFileCatalogCombined")
-    self.master_lfc = LcgFileCatalogClient(self.cfg['LcgGfalInfosys'], self.cfg['MasterHost'])
     self.ro_mirrors = []
 
-    # Load the list of mirrors
+    if not fake: # If not fake, run it!
+      import lfc
+      from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
+      self.master_lfc = LcgFileCatalogClient(self.cfg['LcgGfalInfosys'], self.cfg['MasterHost'])
+      self.run_test()
+    else:
+      gLogger.warn("LFCReplicaTest runs in fake mode, nothing is done")
+
+  def run_test(self):
+  # Load the list of mirrors
     for site in self.cfg:
       if type(self.cfg[site]) == dict:
         self.ro_mirrors.append(self.cfg[site]['ReadOnly'])
@@ -451,8 +489,8 @@ class LFCReplicaTest(object):
     for mirror in self.ro_mirrors:
       lfn =  '/lhcb/test/lfc-replication/%s/testFile.%s' % (mirror,time.time())
       if not self.register_dummy(lfn):
-        print "Error: "+lfn+" is already in the master or can't be registered \
-there...check your voms role is prodution \n"
+        gLogger.error("Error: "+lfn+" is already in the master or can't be registered \
+there...check your voms role is prodution \n")
         continue
 
       # Try to open a session
@@ -501,7 +539,7 @@ there...check your voms role is prodution \n"
     reps = {}
     rc, replica_objs = lfc.lfc_getreplica("/grid" + lfn, "", "")
     if rc:
-      print lfc.sstrerror(lfc.cvar.serrno)
+      gLogger.error(lfc.sstrerror(lfc.cvar.serrno))
     else:
       for r in replica_objs:
         SE = r.host
@@ -540,8 +578,8 @@ there...check your voms role is prodution \n"
   def time_to_remove_rep(self, lfn):
     start_time = time.time()
     while not lfc.lfc_access("/grid" + lfn, 0): # rc = 0 if accessible
-        if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-        else                                         : return self.timeout
+      if (time.time() - start_time < self.timeout) : time.sleep(0.1)
+      else                                         : return self.timeout
     return time.time() - start_time
 
 class SLSAgent(AgentModule):
@@ -549,8 +587,8 @@ class SLSAgent(AgentModule):
   def execute(self):
 
     # FIXME: Get parameters from CS
-    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
+    # SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
     DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
-    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
-    #LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
+    # LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
+    # LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()

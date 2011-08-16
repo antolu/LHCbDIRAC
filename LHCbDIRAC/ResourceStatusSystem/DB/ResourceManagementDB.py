@@ -13,6 +13,7 @@ from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import \
 from DIRAC.ResourceStatusSystem.Utilities.Exceptions import RSSException
 from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import RSSManagementDBException
 from DIRAC.ResourceStatusSystem.Utilities.Utils import where
+from DIRAC.ResourceStatusSystem.Utilities import Utils
 
 # Third, LHCbDIRAC stuff
 # ...
@@ -338,20 +339,34 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
 # END MonitoringTest functions
 ################################################################################
 
-  def updateSLSServices(self, url, item, avail, service_uptime, host_uptime):
-    req = "INSERT INTO SLSServices (Url, Item, TStamp, Availability, ServiceUptime, \
-HostUptime) VALUES (%s, %s, NOW(), %d, %d, %d)" % (url, item, avail, service_uptime, host_uptime)
+  def updateSLSServices(self, system, service, avail, service_uptime, host_uptime, load):
 
-    req += " ON DUPLICATE KEY UPDATE TStamp=NOW(), Availability=%s, \
-ServiceUptime=%s, HostUptime=%s" % (avail, service_uptime, host_uptime)
+    req = Utils.sql_insert_update("SLSServices", ["System", "Service"], System=system, Service=service,
+                                  Availability=avail, TStamp=Utils.SQLParam("NOW()"),
+                                  ServiceUptime=service_uptime,
+                                  HostUptime=host_uptime,
+                                  InstantLoad=load)
 
-    resQuery = self.db._query(req)
+    resQuery = self.db._update(req)
+
     if not resQuery['OK']:
       raise RSSManagementDBException, where(self, self.updateSLSServices) + resQuery['Message']
-    if not resQuery['Value']:
-      return []
+    return resQuery['Value']
 
-    return resQuery['Value'][0]
+  def updateSLST1Services(self, site, service, avail, service_uptime, host_uptime):
+
+    req = Utils.sql_insert_update("SLST1Services", ["Site", "Service"], Site=site, Service=service,
+                                  Availability=avail, TStamp=Utils.SQLParam("NOW()"),
+                                  ServiceUptime=service_uptime,
+                                  HostUptime=host_uptime)
+
+    resQuery = self.db._update(req)
+
+    if not resQuery['OK']:
+      raise RSSManagementDBException, where(self, self.updateSLSServices) + resQuery['Message']
+    return resQuery['Value']
+
+
 
   def getSLSServices(self, url=""):
     req = "SELECT Url, Item, TStamp, Availability, ServiceUptime, HostUptime FROM SLSServices"
