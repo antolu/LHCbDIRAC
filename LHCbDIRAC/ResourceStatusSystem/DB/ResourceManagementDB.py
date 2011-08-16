@@ -339,6 +339,13 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
 # END MonitoringTest functions
 ################################################################################
 
+  def _doUpdate(self, req):
+    res = self.db._update(req)
+    if not res['OK']:
+      raise RSSManagementDBException, where(self, self.updateSLSServices) + res['Message']
+    return res['Value']
+
+
   def updateSLSServices(self, system, service, avail, service_uptime, host_uptime, load):
 
     req = Utils.sql_insert_update("SLSServices", ["System", "Service"], System=system, Service=service,
@@ -347,11 +354,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                                   HostUptime=host_uptime,
                                   InstantLoad=load)
 
-    resQuery = self.db._update(req)
-
-    if not resQuery['OK']:
-      raise RSSManagementDBException, where(self, self.updateSLSServices) + resQuery['Message']
-    return resQuery['Value']
+    self._doUpdate(req)
 
   def updateSLST1Services(self, site, service, avail, service_uptime, host_uptime):
 
@@ -360,12 +363,15 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                                   ServiceUptime=service_uptime,
                                   HostUptime=host_uptime)
 
-    resQuery = self.db._update(req)
+    self._doUpdate(req)
 
-    if not resQuery['OK']:
-      raise RSSManagementDBException, where(self, self.updateSLSServices) + resQuery['Message']
-    return resQuery['Value']
 
+  def updateSLSLogSE(self, id_, validity, avail, used, total):
+    req = Utils.sql_insert_update("SLSLogSE", ["ID"], ID=id_, TStamp=Utils.SQLValues.now,
+                                  ValidityDuration=validity, Availability=avail,
+                                  DataPartitionUsed=used, DataPartitionTotal=total)
+
+    self._doUpdate(req)
 
 
   def getSLSServices(self, url=""):

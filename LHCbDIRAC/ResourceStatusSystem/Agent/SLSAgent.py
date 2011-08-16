@@ -139,8 +139,8 @@ class DIRACTest(object):
     self.xmlpath   = xmlpath
     self.rmDB      = ResourceManagementDB()
 
-#    self.xml_gw()
-#    self.run_xml_sensors()
+    self.xml_gw()
+    self.run_xml_sensors()
     self.run_t1_xml_sensors()
 
   def run_xml_sensors(self):
@@ -316,6 +316,7 @@ class LOGSETest(object):
     self.xmlpath = xmlpath
     self.entities = "volhcb15" # FIXME: Get from CS
     self.lemon_url = "http://lemon-gateway.cern.ch/lemon-xml/xml_gateway.php" # FIXME: Get from CS
+    self.rmDB      = ResourceManagementDB()
 
     # Generate XML files
 
@@ -348,6 +349,10 @@ class LOGSETest(object):
     xml_append(doc, "numericvalue", percent, elt=elt, name="LogSE data partition used")
     xml_append(doc, "numericvalue", space, elt=elt, name="Total space on data partition")
 
+    self.rmDB.updateSLSLogSE("partition", "PT12H", (100 if percent < 90 else (5 if percent < 99 else 0)),
+                             percent, space)
+    gLogger.info("LogSE partition test done")
+
     xmlfile = open(self.xmlpath + filename, "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
@@ -369,6 +374,11 @@ class LOGSETest(object):
     xml_append(doc, "validityduration", "PT2H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+
+    self.rmDB.updateSLSLogSE("gridftp", "PT2H", int(round(float(data['data'][0])*100)),
+                             Utils.SQLValues.null, Utils.SQLValues.null)
+    gLogger.info("LogSE gridftp test done")
+
 
     xmlfile = open(self.xmlpath + filename, "w")
     try:
@@ -392,6 +402,10 @@ class LOGSETest(object):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
+    self.rmDB.updateSLSLogSE("cert", "PT24H", int(round(float(data['data'][0])*100)),
+                             Utils.SQLValues.null, Utils.SQLValues.null)
+    gLogger.info("LogSE cert test done")
+
     xmlfile = open(self.xmlpath + filename, "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
@@ -413,6 +427,10 @@ class LOGSETest(object):
     xml_append(doc, "validityduration", "PT2H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+
+    self.rmDB.updateSLSLogSE("httpd", "PT2H", int(round(float(data['data'][0])*100)),
+                             Utils.SQLValues.null, Utils.SQLValues.null)
+    gLogger.info("LogSE httpd test done")
 
     xmlfile = open(self.xmlpath + filename, "w")
     try:
@@ -588,7 +606,7 @@ class SLSAgent(AgentModule):
 
     # FIXME: Get parameters from CS
     # SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
-    DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
-    # LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
-    # LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
+    # DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
+    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
+    # Lfcreplicatest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
