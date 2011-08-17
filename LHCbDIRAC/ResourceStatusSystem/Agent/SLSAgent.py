@@ -30,6 +30,7 @@ class SpaceTokenOccupancyTest(object):
   def __init__(self, xmlpath):
     self.xmlpath      = xmlpath
     self.SEs          = self.generate_SE_dict()
+    self.rmDB         = ResourceManagementDB()
 
     for se in self.SEs:
       for st in self.SEs[se]:
@@ -117,6 +118,9 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "numericvalue", value=str(total), elt=elt, name="Total space")
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+
+    self.rmDB.updateSLSStorage(se, st, availability, "PT27M", validity, total, guaranteed, free)
+    gLogger.info("SpaceTokenOccupancyTest: %s-%s done." % (se, st))
 
     xmlfile = open(self.xmlpath + id_ + ".xml", "w")
     try:
@@ -605,8 +609,8 @@ class SLSAgent(AgentModule):
   def execute(self):
 
     # FIXME: Get parameters from CS
-    # SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
+    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
     # DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
-    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
+    # LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
     # Lfcreplicatest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()

@@ -354,7 +354,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                                   HostUptime=host_uptime,
                                   InstantLoad=load)
 
-    self._doUpdate(req)
+    return self._doUpdate(req)
 
   def updateSLST1Services(self, site, service, avail, service_uptime, host_uptime):
 
@@ -363,7 +363,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                                   ServiceUptime=service_uptime,
                                   HostUptime=host_uptime)
 
-    self._doUpdate(req)
+    return self._doUpdate(req)
 
 
   def updateSLSLogSE(self, id_, validity, avail, used, total):
@@ -371,8 +371,16 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                                   ValidityDuration=validity, Availability=avail,
                                   DataPartitionUsed=used, DataPartitionTotal=total)
 
-    self._doUpdate(req)
+    return self._doUpdate(req)
 
+
+  def updateSLSStorage(self, site, sp_tok, avail, refresh, validity, total, guaranteed, free):
+    req = Utils.sql_insert_update("SLSStorage", ["Site","Token"], Site=site, Token=sp_tok,
+                                  Availability=avail, RefreshPeriod=refresh,
+                                  TStamp=Utils.SQLValues.now, ValidityDuration=validity,
+                                  TotalSpace=total, GuaranteedSpace=guaranteed, FreeSpace=free)
+
+    return self._doUpdate(req)
 
   def getSLSServices(self, url=""):
     req = "SELECT Url, Item, TStamp, Availability, ServiceUptime, HostUptime FROM SLSServices"

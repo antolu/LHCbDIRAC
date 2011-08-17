@@ -65,24 +65,21 @@ create table SLSLogSE (
        ID varchar(32) primary key,
        TStamp         DATETIME not null,
        ValidityDuration VARCHAR(32) not null,
-       Availability DECIMAL(4.2) UNSIGNED not null,
+       Availability DECIMAL(4,2) UNSIGNED not null,
        DataPartitionUsed DECIMAL(4,2) UNSIGNED,
        DataPartitionTotal INT UNSIGNED
 ) Engine=InnoDB;
 
 drop table if exists SLSStorage;
 create table SLSStorage (
-       ID serial,
-       Url varchar(64) not null,
-       Item varchar(32) not null,
+       Site varchar(64) not null,
+       Token varchar(32) not null,
        TStamp DATETIME not null,
-       Availability TINYINT UNSIGNED not null,
+       Availability DECIMAL(4,2) UNSIGNED,
        RefreshPeriod varchar(32) not null,
        ValidityDuration varchar(32) not null,
-       FreeSpace int unsigned not null,
-       OccupiedSpace int unsigned not null,
-       TotalSpace int unsigned not null,
-       Consumed   int unsigned not null,
-       Capacity   int unsigned not null,
-       primary key (ID)
+       TotalSpace int unsigned,
+       GuaranteedSpace int unsigned,
+       FreeSpace int unsigned,
+       primary key (Site, Token)
 ) Engine=InnoDB;
