@@ -6,8 +6,8 @@ Script.parseCommandLine()
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
-from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
-from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
+from LHCbDIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
 # For replicas test
 
@@ -19,6 +19,7 @@ from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManag
 import xml.dom, xml.sax
 import time
 import urlparse, urllib
+import sys
 
 __RCSID__ = "$Id$"
 
@@ -68,7 +69,7 @@ class SpaceTokenOccupancyTest(object):
 
     return res
 
-  def generate_xml_and_dashboard(self, se, st, url,fake=True):
+  def generate_xml_and_dashboard(self, se, st, url,fake=False):
     id_          = se + "_" + st
     total        = 0
     guaranteed   = 0
@@ -79,6 +80,7 @@ class SpaceTokenOccupancyTest(object):
     if not fake:
       import lcg_util
       answer = lcg_util.lcg_stmd(st, url, True, 0)
+      
       if answer[0] == 0:
         output       = answer[1][0]
         total        = float(output['totalsize']) / 2**40 # Bytes to Terabytes
@@ -86,6 +88,9 @@ class SpaceTokenOccupancyTest(object):
         free         = float(output['unusedsize']) / 2**40
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
         validity     = 'PT13H'
+      else:
+        gLogger.info("StorageSpace: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
+        
     else:
       gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
 
@@ -148,7 +153,7 @@ class DIRACTest(object):
     self.run_t1_xml_sensors()
 
   def run_xml_sensors(self):
-        # For each service of each system, run xml_sensors...
+    # For each service of each system, run xml_sensors...
     systems = CS.getTypedDictRootedAt(root="", relpath="/Systems")
     discovered_services = []
     for sys in systems:
@@ -157,7 +162,10 @@ class DIRACTest(object):
         for k in services:
           discovered_services.append((sys, k))
       except KeyError:
-        gLogger.warn("DIRACTest: No /Systems/%s/%s/Services in CS." % (sys, self.setupDict[sys]))
+        try:
+          gLogger.warn("DIRACTest: No /Systems/%s/%s/Services in CS." % (sys, self.setupDict[sys]))
+        except KeyError:
+          gLogger.warn("DIRACTest: No /Systems/%s in CS." % sys)
 
     gLogger.info("DIRACTest: discovered %d services" % len(discovered_services))
 
@@ -262,8 +270,12 @@ class DIRACTest(object):
 
   def xml_t1_sensor(self, url):
     parsed = urlparse.urlparse(url)
-    system, service = parsed.path.strip("/").split("/")
-    site = parsed.netloc.split(":")[0]
+    if sys.version_info >= (2,6):
+      system, service = parsed.path.strip("/").split("/")
+      site = parsed.netloc.split(":")[0]
+    else:
+      site, system, service = parsed[2].strip("/").split("/")
+      site = site.split(":")[0]
 
     pinger = RPCClient(url)
     res = pinger.ping()
@@ -486,7 +498,7 @@ class LOGSETest(object):
         self.cur_list.append(content)
 
 class LFCReplicaTest(object):
-  def __init__(self, path, timeout, fake=True):
+  def __init__(self, path, timeout, fake=False):
     self.path       = path
     self.timeout    = timeout
     self.cfg        = CS.getTypedDictRootedAt(
@@ -555,6 +567,8 @@ there...check your voms role is prodution \n")
   def register_dummy(self, lfn, size=0, SE="CERN-USER", guid=makeGuid(), chksum=""):
     pfn = self.pfn_of_token(SE) + lfn
     res = self.master_lfc.addFile((lfn, pfn, size, SE, guid, chksum))
+    if not res['OK']:
+      gLogger.info("register_dummy: %s" % res['Message'])
     return res['OK'] and res['Value']['Successful'].has_key(lfn)
 
   def get_replica(self, lfn):
@@ -572,6 +586,8 @@ there...check your voms role is prodution \n")
   def remove_replica(self, lfn, SE="CERN-USER"):
     pfn = self.pfn_of_token(SE) + lfn
     res = self.master_lfc.removeReplica((lfn, pfn, SE))
+    if res['OK'] == False:
+      gLogger.info("remove_replica: %s" % res['Message'])
     return res['OK'] and res['Value']['Successful'].has_key(lfn)
 
   def remove_file(self, lfn):
@@ -607,10 +623,10 @@ there...check your voms role is prodution \n")
 class SLSAgent(AgentModule):
 
   def execute(self):
-
+    
     # FIXME: Get parameters from CS
-    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
-    # DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
-    # LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
-    # Lfcreplicatest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
+    #    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
+    #    DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
+    #    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
+    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()

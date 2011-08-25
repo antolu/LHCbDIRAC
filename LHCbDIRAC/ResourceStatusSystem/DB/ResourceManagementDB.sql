@@ -42,7 +42,7 @@ create table SLSServices (
        System varchar(64) not null,
        Service varchar(32) not null,
        TStamp DATETIME not null,
-       Availability DECIMAL(4,2) unsigned not null,
+       Availability DECIMAL(3) unsigned not null,
        ServiceUptime INT unsigned,
        HostUptime INT unsigned,
        InstantLoad DECIMAL(10,5) unsigned,
@@ -54,7 +54,7 @@ create table SLST1Services (
        Site varchar(64) not null,
        Service varchar(32) not null,
        TStamp DATETIME not null,
-       Availability DECIMAL(4,2) unsigned not null,
+       Availability DECIMAL(3) unsigned not null,
        ServiceUptime INT unsigned,
        HostUptime INT unsigned,
        primary key (Site,Service)
@@ -65,8 +65,8 @@ create table SLSLogSE (
        ID varchar(32) primary key,
        TStamp         DATETIME not null,
        ValidityDuration VARCHAR(32) not null,
-       Availability DECIMAL(4,2) UNSIGNED not null,
-       DataPartitionUsed DECIMAL(4,2) UNSIGNED,
+       Availability DECIMAL(3) UNSIGNED not null,
+       DataPartitionUsed DECIMAL(3) UNSIGNED,
        DataPartitionTotal INT UNSIGNED
 ) Engine=InnoDB;
 
@@ -75,7 +75,7 @@ create table SLSStorage (
        Site varchar(64) not null,
        Token varchar(32) not null,
        TStamp DATETIME not null,
-       Availability DECIMAL(4,2) UNSIGNED,
+       Availability DECIMAL(3) UNSIGNED,
        RefreshPeriod varchar(32) not null,
        ValidityDuration varchar(32) not null,
        TotalSpace int unsigned,

@@ -1,6 +1,6 @@
 from DIRAC                                   import S_OK
 from DIRAC.Core.Utilities                    import List
-from DIRAC.ResourceStatusSystem.Utilities    import Utils
+from LHCbDIRAC.ResourceStatusSystem.Utilities    import Utils
 from DIRAC import gConfig
 
 g_BaseRegistrySection   = "/Registry"

@@ -103,7 +103,8 @@ def convertTime(t, inTo = None):
 ############################
 
 from itertools import imap
-import copy, ast
+import copy
+import sys
 
 id_fun = lambda x: x
 
@@ -118,8 +119,11 @@ def voimport(base_mod, voext):
 # (Duck) type checking
 
 def isiterable(obj):
-  import collections
-  return isinstance(obj,collections.Iterable)
+  if sys.version_info >= (2,6):
+    import collections
+    return isinstance(obj,collections.Iterable)
+  else:
+    return type(obj) in (list, tuple, dict)
 
 # Type conversion
 
@@ -133,8 +137,11 @@ def typedobj_of_string(s):
   if s == "":
     return s
   try:
-    return ast.literal_eval(s)
-  except (ValueError, SyntaxError): # Probably it's just a string
+    if sys.version_info < (2,6): return eval(s)
+    else                       :
+      import ast
+      return ast.literal_eval(s)
+  except (ValueError, SyntaxError, NameError): # Probably it's just a string
     return s
 
 # String utils
@@ -230,8 +237,7 @@ def dict_split(d):
 def dict_invert(dict_):
   res = {}
   for k in dict_:
-    if not isiterable(dict_[k]):
-      dict_[k] = [dict_[k]]
+    dict_[k] = list_(dict_[k])
     for i in dict_[k]:
       try:
         res[i].append(k)
