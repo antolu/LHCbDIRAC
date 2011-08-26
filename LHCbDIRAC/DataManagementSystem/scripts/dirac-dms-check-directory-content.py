@@ -11,6 +11,7 @@ prods = []
 prodID = ''
 Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit )
 Script.registerSwitch( "D:", "Dir=", "  directory to be checked" )
+Script.registerSwitch( "f:", "Output=", " output file" )
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -22,12 +23,17 @@ Script.parseCommandLine( ignoreErrors = False )
 #from DIRAC.DataManagementSystem.Client.DataIntegrityClient     import DataIntegrityClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
 
+outputFileName = 'dirac-dms-chec-dir-cont.out'
+
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() == "u" or switch[0].lower() == "unit":
     unit = switch[1]
   if switch[0] == "D" or switch[0].lower() == "dir":
     dir = switch[1]
-
+  if switch[0] == "f" or switch[0].lower() == "output":
+    outputFile = switch[1]
+    outputFileName = outputFile
+  
 if not dir:
   print 'One directory should be provided!'
   Script.showHelp()
@@ -67,6 +73,8 @@ allFiles = {}
 dirContents = res['Value']['Successful'][currentDir]
 allFiles.update( dirContents['Files'] )
 
+fp = open( outputFileName, "w")
+
 zeroReplicaFiles = []
 zeroSizeFiles = []
 allReplicaDict = {}
@@ -74,8 +82,9 @@ allMetadataDict = {}
 problematicFiles = {}
 replicasPerSE = {}
 for lfn, lfnDict in allFiles.items():
-  print '----------------'
+  fp.write("-----------------------------------------------------------------\n")
   print 'LFN: %s ' % lfn
+  fp.write("LFN: %s\n" % lfn )
   lfnReplicas = {}
   for se, replicaDict in lfnDict['Replicas'].items():
     #print 'SE: %s -- replica: %s ' % ( se, replicaDict )
@@ -87,17 +96,17 @@ for lfn, lfnDict in allFiles.items():
   allMetadataDict[lfn] = lfnDict['MetaData']
   if lfnDict['MetaData']['Size'] == 0:
     zeroSizeFiles.append( lfn )
-  print 'All replicas: %s ' % lfnReplicas
+  fp.write("All replicas: %s \n"  % lfnReplicas )
   # check each replica if it is exists on the storage
   for se in lfnReplicas:
     if se not in replicasPerSE.keys():
       replicasPerSE[ se ] = []
     pfn = lfnReplicas[ se ]
     replicasPerSE[ se ].append( pfn )
-    print 'Checking on storage PFN, SE: %s %s' % ( pfn, se )
+    fp.write("Checking on storage PFN, SE: %s %s\n" % ( pfn, se ) )
     res = rm.getStorageFileMetadata( pfn, se )
     if not res['OK']:
-      print 'ERROR: could not get storage file metadata!'
+      fp.write("ERROR: could not get storage file metadata!\n")
       if lfn not in problematicFiles.keys():
         problematicFiles[lfn] = {}
       if 'BadReplicas' not in problematicFiles[lfn]:
@@ -105,22 +114,26 @@ for lfn, lfnDict in allFiles.items():
       problematicFiles[lfn]['BadReplicas'].append( pfn )
       continue
     if pfn in res['Value']['Failed']:
-      print 'ERROR: the PFN has some problem!'
+      fp.write("ERROR: the PFN has some problem!\n")
     elif pfn in res['Value']['Successful']:
-      print 'Replica is ok'
+      fp.write("Replica is ok\n")
+  fp.flush()
 
-print 'Replicas per SE:'
+fp.write(" ++++++++++++++++++++++++++++++ Final summary ++++++++++++++++++++++++++\n")
+fp.write("Replicas per SE:\n")
 for se in replicasPerSE.keys():
-  print 'SE: %s has %d replicas:' % ( se, len( replicasPerSE[ se ] ) )
+  fp.write("SE: %s has %d replicas:\n" % ( se, len( replicasPerSE[ se ] ) ) )
   for r in replicasPerSE[ se ]:
-    print r
-  print 'SE: %s has %d replicas: %s ' % ( se, len( replicasPerSE[ se ] ), replicasPerSE[ se ] )
+    fp.write("%s\n" % r )
 if zeroReplicaFiles:
-  print 'Files with zero replicas: %s ' % zeroReplicaFiles
+  fp.write("Files with zero replicas: %s \n" % zeroReplicaFiles )
 if  zeroSizeFiles:
-  print 'Files with zero size: %s' % zeroSizeFiles
+  fp.write("Files with zero size: %s\n" % zeroSizeFiles )
 if problematicFiles:
-  print 'Found some problematic replicas: %s ' % problematicFiles
+  fp.write("Found some problematic replicas: %s \n" % problematicFiles )
 else:
-  print 'All replicas in LFC have been checked on Storage. Ok!'
+  fp.write("All replicas in LFC have been checked on Storage. Ok!!\n")
+
+fp.close()
 DIRAC.exit( 0 )
+
