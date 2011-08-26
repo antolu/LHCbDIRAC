@@ -125,8 +125,7 @@ class StorageUsageDB( DB ):
   def publishToProblematicDirs( self, directoryDict ):
     """ Publish an entry into the problematic data directory """
     for path in directoryDict.keys():
-      #SeName = directoryDict[ path ][ 'SEName' ]
-      spaceToken = directoryDict[ path ][ 'SEName' ]
+      spaceToken = directoryDict[ path ][ 'SpaceToken' ]
       problem = directoryDict[ path ][ 'Problem' ]
       site = directoryDict[ path ][ 'Site']
       try:
@@ -136,16 +135,14 @@ class StorageUsageDB( DB ):
         LFCsize = int( directoryDict[ path ]['LFCSize'] )
       except  ValueError:
         return S_ERROR( "ERROR: Files and Size have to be integer!" )
-    # check if the tuple (path,SE) already exists in the table
+    # check if the tuple (path,Site,SpaceToken) already exists in the table
       if path[-1] != "/":
         path = "%s/" % path
       sqlPath = self._escapeString( path )['Value']
-      #sqlSeName = self._escapeString( SeName )['Value']
       sqlSpaceToken = self._escapeString( spaceToken )['Value']
       sqlProblem = self._escapeString( problem )['Value']
       sqlSite = self._escapeString( site )['Value']
-      #sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s and SEName=%s" % ( sqlPath, sqlSeName )
-      sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s and Site=%s and SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
+      sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s AND Site=%s AND SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
       self.log.info( "sqlCmd: %s" % sqlCmd )
       result = self._query( sqlCmd )
       if not result[ 'OK' ]:
@@ -153,8 +150,7 @@ class StorageUsageDB( DB ):
         return result
       DID = result['Value']
       if DID:
-        # there is an entry for (path, SEname), make an update of the row
-        #sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and SEName = %s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSeName )
+        # there is an entry for (path, Site, SpaceToken), make an update of the row
         sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and Site = %s and SpaceToken=%s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSite, sqlSpaceToken )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
@@ -163,7 +159,6 @@ class StorageUsageDB( DB ):
           return result
       else:
         # entry is not there, make an insert of a new row
-        #sqlCmd = "INSERT INTO problematicDirs (Path, SEName, SEFiles, SESize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSeName, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem )
         sqlCmd = "INSERT INTO problematicDirs (Path, Site, SpaceToken, SEFiles, SESize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSite, sqlSpaceToken, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
@@ -201,7 +196,6 @@ class StorageUsageDB( DB ):
         except  ValueError:
           return S_ERROR( "ERROR: DID should be integer!" )
         # there is an entry for (path, SEname), make an update of the row
-        #sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=%s WHERE DID=%d AND SEName=%s" % (files, size, sqlUpdate, DID, sqlSeName)
         sqlCmd = "UPDATE `se_Usage` SET Files=%d, Size=%d, Updated=UTC_TIMESTAMP() WHERE DID=%d AND SEName=%s" % ( files, size, DID, sqlSeName )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
@@ -220,7 +214,6 @@ class StorageUsageDB( DB ):
             DID = int( result[ 'Value' ][ dir ] )
           except ValueError:
             return S_ERROR( "ERROR: DID should be integer!" )
-        #sqlCmd = "INSERT INTO se_Usage (DID, SEName, Files, Size, Updated) VALUES ( %d, %s, %d, %d, %s)" % (DID, sqlSeName, files, size, sqlUpdate)
         sqlCmd = "INSERT INTO se_Usage (DID, SEName, Files, Size, Updated) VALUES ( %d, %s, %d, %d, UTC_TIMESTAMP())" % ( DID, sqlSeName, files, size )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
@@ -250,14 +243,12 @@ class StorageUsageDB( DB ):
     dirPath = dirList.keys()[ 0 ]
     if dirPath[-1] != "/":
       dirPath = "%s/" % dirPath
-    #SE = dirList[ dirPath ][ 'SEName' ]
-    #sqlSE = self._escapeString( SE )[ 'Value' ]
-    spaceToken = dirList[ dirPath ][ 'SEName' ]
+    #spaceToken = dirList[ dirPath ][ 'SEName' ]
+    spaceToken = dirList[ dirPath ][ 'SpaceToken' ]
     sqlSpaceToken = self._escapeString( spaceToken )[ 'Value' ]
     sqlPath = self._escapeString( dirPath )[ 'Value' ]
     site = dirList[ dirPath ]['Site']
     sqlSite = self._escapeString( site )[ 'Value' ]
-    #sqlCmd = "SELECT Path, DID FROM problematicDirs WHERE Path=%s AND SEName=%s" % ( sqlPath, sqlSE )
     sqlCmd = "SELECT Path, DID FROM problematicDirs WHERE Path=%s AND Site=%s and SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
     self.log.info( "in __getIDsFromProblematicDirs query %s" % sqlCmd )
     result = self._query( sqlCmd )
@@ -270,10 +261,36 @@ class StorageUsageDB( DB ):
     dirPath = dirList.keys()[ 0 ]
     if dirPath[-1] != "/":
       dirPath = "%s/" % dirPath
-    SE = dirList[ dirPath ][ 'SEName' ]
-    sqlSE = self._escapeString( SE )[ 'Value' ]
+
+    # take into account that SEName might not be available
+    SE = ''
+    site = ''
+    try:
+      SE = dirList[ dirPath ][ 'SEName' ]
+    except KeyError:
+      self.log.info( "SEName attribute not available!" )
+    if not SE:
+      self.log.info( "The SEName attribute is not available. Try to get the Site attribute.." )
+      try:
+        site = dirList[ dirPath ]['Site']
+      except KeyError:
+        self.log.info( "Site attribute not available!" )
+    if SE:
+      sqlSE = self._escapeString( SE )[ 'Value' ]
+    else:
+      sqlSE = ''
+    if site:
+      sqlSite = self._escapeString( site )[ 'Value' ]
+    else:
+      sqlSite = ''
     sqlPath = self._escapeString( dirPath )[ 'Value' ]
-    sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID AND d.Path=%s and r.SEName=%s" % ( sqlPath, sqlSE )
+    if sqlSE:
+      sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID AND d.Path=%s AND r.SEName=%s" % ( sqlPath, sqlSE )
+    elif sqlSite:
+      sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID AND d.Path=%s AND r.SEName LIKE '%s%%'" % ( sqlPath, sqlSite )
+    else:
+      self.log.error( "Not enough information to formulate the query: either Site or SEName should be provided " )
+      return S_ERROR()
     self.log.info( "in __getIDsFromSe_Usage query %s" % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
