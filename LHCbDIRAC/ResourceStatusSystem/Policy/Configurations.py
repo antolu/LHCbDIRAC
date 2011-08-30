@@ -10,7 +10,6 @@
 __RCSID__ = "$Id: "
 
 from DIRAC.ResourceStatusSystem.Utilities import CS
-
 from DIRAC.ResourceStatusSystem import ValidStatus, ValidSiteType, ValidResourceType, ValidServiceType
 
 pp = CS.getTypedDictRootedAt("PolicyParameters")
@@ -531,15 +530,4 @@ Policies = {
       'args' : None,
       #'ResourceType' : ValidResourceType,
      }
-}
-
-#############################################################################
-# Web views
-#############################################################################
-
-views_panels = {
-  'Site' : ['Site_Panel', 'Service_Computing_Panel', 'Service_Storage_Panel',
-            'Service_VOMS_Panel', 'Service_VO-BOX_Panel'],
-  'Resource' : ['Resource_Panel'],
-  'StorageElement' : ['SE_Panel']
 }
