@@ -11,8 +11,7 @@ __RCSID__ = "$Id: "
 
 from DIRAC.ResourceStatusSystem.Utilities import CS
 
-from DIRAC.ResourceStatusSystem.Policy.Configurations import \
-    ValidStatus, ValidSiteType, ValidResourceType, ValidServiceType
+from DIRAC.ResourceStatusSystem import ValidStatus, ValidSiteType, ValidResourceType, ValidServiceType
 
 pp = CS.getTypedDictRootedAt("PolicyParameters")
 
@@ -32,6 +31,7 @@ Policies = {
       'module' : 'DT_Policy',
       'commandIn' : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
       'args' : None,
+
 #      'Site_Panel' : [ {'WebLink': {'Command': 'DT_Link',
 #                                    'args': None}}
 #                      ],
