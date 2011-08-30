@@ -2,7 +2,7 @@
 # $HeadURL:
 ########################################################################
 
-""" DIRAC.ResourceStatusSystem.Policy.Configurations Module
+""" LHCbDIRAC.ResourceStatusSystem.Policy.Configurations Module
 
     collects everything needed to configure policies
 """
