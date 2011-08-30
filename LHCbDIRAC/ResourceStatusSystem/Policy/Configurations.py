@@ -533,54 +533,6 @@ Policies = {
      }
 }
 
-Policy_Types = {
-  'Resource_PolType' :
-    { 'Granularity' : ['Site', 'Service', 'Resource', 'StorageElementRead','StorageElementWrite'],
-      'Status' : ValidStatus,
-      'FormerStatus' : ValidStatus,
-      'NewStatus' : ValidStatus,
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-     },
-  'Alarm_PolType' :
-    { 'Granularity' : ['Site', 'Service', 'Resource'],
-      'Status' : ['Banned'],
-      'FormerStatus' : ValidStatus,
-      'NewStatus' : ['Banned'],
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-     },
-  'Alarm_PolType_SE' :
-    { 'Granularity' : ['StorageElementRead', 'StorageElementWrite'],
-      'Status' : ['Banned'],
-      'FormerStatus' : ValidStatus,
-      'NewStatus' : ['Banned'],
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-     },
-  'RealBan_PolType' :
-    { 'Granularity' : [],
-      'Status' : ValidStatus,
-      'FormerStatus' : ValidStatus,
-      'NewStatus' : ['Active', 'Banned'],
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-     },
-  'Collective_PolType' :
-    { 'Granularity' : [],
-      'Status' : ValidStatus,
-      'FormerStatus' : ValidStatus,
-      'NewStatus' : ValidStatus,
-      'SiteType' : ValidSiteType,
-      'ServiceType' : ValidServiceType,
-      'ResourceType' : ValidResourceType,
-     }
-}
-
 #############################################################################
 # Web views
 #############################################################################
