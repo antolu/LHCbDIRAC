@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '../qt_resources/FileDialog.ui'
 #
-# Created: Fri Sep  2 16:36:57 2011
+# Created: Fri Sep  2 17:30:45 2011
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ class Ui_FileDialog(object):
     def setupUi(self, FileDialog):
         FileDialog.setObjectName("FileDialog")
         FileDialog.setWindowModality(QtCore.Qt.ApplicationModal)
-        FileDialog.resize(713, 948)
+        FileDialog.resize(713, 958)
         FileDialog.setModal(False)
         self.gridLayout_2 = QtGui.QGridLayout(FileDialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -194,6 +194,9 @@ class Ui_FileDialog(object):
         self.tckButton.setObjectName("tckButton")
         self.gridLayout.addWidget(self.tckButton, 0, 0, 1, 1)
         self.tckcloseButton = QtGui.QToolButton(self.groupBox_4)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/icons/images/reloadpage.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.tckcloseButton.setIcon(icon1)
         self.tckcloseButton.setObjectName("tckcloseButton")
         self.gridLayout.addWidget(self.tckcloseButton, 0, 1, 1, 1)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -207,27 +210,27 @@ class Ui_FileDialog(object):
         self.gridlayout4.addWidget(self.groupBox_4, 1, 0, 1, 1)
         self.gridLayout_2.addWidget(self.groupBox_2, 3, 1, 2, 3)
         self.nextButton = QtGui.QPushButton(FileDialog)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/icons/images/files3.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.nextButton.setIcon(icon1)
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(":/icons/images/files3.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.nextButton.setIcon(icon2)
         self.nextButton.setObjectName("nextButton")
         self.gridLayout_2.addWidget(self.nextButton, 5, 0, 1, 1)
         self.advancedSave = QtGui.QPushButton(FileDialog)
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/icons/images/file-save-as-48x48.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.advancedSave.setIcon(icon2)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/icons/images/file-save-as-48x48.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.advancedSave.setIcon(icon3)
         self.advancedSave.setObjectName("advancedSave")
         self.gridLayout_2.addWidget(self.advancedSave, 5, 1, 1, 1)
         self.saveButton = QtGui.QPushButton(FileDialog)
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icons/images/save.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.saveButton.setIcon(icon3)
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap(":/icons/images/save.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.saveButton.setIcon(icon4)
         self.saveButton.setObjectName("saveButton")
         self.gridLayout_2.addWidget(self.saveButton, 5, 2, 1, 1)
         self.closeButton = QtGui.QPushButton(FileDialog)
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/icons/images/close.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.closeButton.setIcon(icon4)
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap(":/icons/images/close.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.closeButton.setIcon(icon5)
         self.closeButton.setObjectName("closeButton")
         self.gridLayout_2.addWidget(self.closeButton, 5, 3, 1, 1)
 
