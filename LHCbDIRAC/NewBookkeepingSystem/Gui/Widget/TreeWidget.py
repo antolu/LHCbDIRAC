@@ -5,13 +5,12 @@
 from PyQt4.QtCore  import *
 from PyQt4.QtGui   import *
 
-from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreeWidget_ui              import Ui_TreeWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.Ui_TreeWidget              import Ui_TreeWidget
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item                        import Item
-import LHCbDIRAC, os
 
 __RCSID__ = "$Id$"
 
@@ -43,12 +42,6 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
     self.tree.setupControler()
 
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/Widget'
-    bookmarksIcon = QIcon(picturesPath+"/images/bookmarks2.png")
-    self.bookmarksButton.setIcon(bookmarksIcon)
-
-    closeIcon = QIcon(picturesPath+"/images/reloadpage.png")
-    self.closeButton.setIcon(closeIcon)
     self.closeButton.hide()
 
     self.standardQuery.setChecked(True)
@@ -155,3 +148,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
       self.runLookup.setChecked(False)
     else:
       self.runLookup.setChecked(True)
+
+  #############################################################################
+  def headerItem(self):
+    return self.tree.headerItem()

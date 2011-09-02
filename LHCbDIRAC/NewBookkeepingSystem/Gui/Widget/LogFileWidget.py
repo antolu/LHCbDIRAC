@@ -7,12 +7,12 @@ __RCSID__ = "$Id$"
 
 import sys
 
-from PyQt4                                                               import QtCore, QtGui
-from HttpWidget_ui                                                       import Ui_HttpWidget
+from PyQt4                                                                  import QtCore, QtGui
+from Ui_HttpWidget                                                          import Ui_HttpWidget
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerLogInfo          import ControlerLogInfo
 
 class LogFileWidget(QtGui.QDialog):
-  
+
   def __init__(self, parent=None):
     super(LogFileWidget, self).__init__(parent)
     self.ui = Ui_HttpWidget()
@@ -31,7 +31,7 @@ class LogFileWidget(QtGui.QDialog):
     self.ui.webView.setUrl(QtCore.QUrl(url))
 
     self.__controler = ControlerLogInfo(self, parent.getControler())
-    
+
     # history buttons:
     self.ui.back.setEnabled(False)
     self.ui.next.setEnabled(False)
@@ -48,22 +48,22 @@ class LogFileWidget(QtGui.QDialog):
 
     QtCore.QMetaObject.connectSlotsByName(self)
 
-  #############################################################################  
+  #############################################################################
   def getControler(self):
     return self.__controler
-  
-  #############################################################################  
+
+  #############################################################################
   def setUrl(self, url):
     self.ui.url.setText(url)
     self.reload_page()
-  
-  #############################################################################  
+
+  #############################################################################
   def setUrlUsingStorage(self, url):
     newurl = 'http://lhcb-logs.cern.ch/storage'+url
     self.ui.url.setText(newurl)
     self.reload_page()
-    
-  #############################################################################  
+
+  #############################################################################
   def url_changed(self):
     """
     Url have been changed by user
@@ -78,10 +78,10 @@ class LogFileWidget(QtGui.QDialog):
       self.ui.next.setEnabled(True)
     else:
       self.ui.next.setEnabled(False)
-  
+
     url = self.ui.url.text()
     self.ui.webView.setUrl(QtCore.QUrl(url))
-                
+
   def stop_page(self):
     """
     Stop loading the page
@@ -114,7 +114,7 @@ class LogFileWidget(QtGui.QDialog):
       self.ui.next.setEnabled(True)
     else:
       self.ui.next.setEnabled(False)
-  
+
     self.ui.url.setText(url.toString())
 
   def load_progress(self, load):

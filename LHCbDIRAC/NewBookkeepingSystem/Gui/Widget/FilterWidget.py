@@ -3,11 +3,10 @@
 ########################################################################
 from PyQt4.QtGui                                                              import *
 from PyQt4.QtCore                                                             import *
-from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FilterWidget_ui                import Ui_FilterWidget
+from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.Ui_FilterWidget                import Ui_FilterWidget
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.FilterListModel                import FilterListModel
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Controler.ControlerFilterWidget       import ControlerFilterWidget
 
-import DIRAC,os
 
 __RCSID__ = "$Id: $"
 
@@ -15,7 +14,7 @@ __RCSID__ = "$Id: $"
 class FilterWidget(QWidget, Ui_FilterWidget):
 
   #############################################################################
-  def __init__(self,parent = None):
+  def __init__(self, parent=None):
     QWidget.__init__(self, parent)
     self.setupUi(self)
     self.__model = FilterListModel(self)
@@ -51,3 +50,4 @@ class FilterWidget(QWidget, Ui_FilterWidget):
   #############################################################################
   def getModel(self):
     return self.__model
+
