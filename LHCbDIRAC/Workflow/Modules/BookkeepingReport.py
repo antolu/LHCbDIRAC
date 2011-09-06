@@ -7,7 +7,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC                                   import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.Subprocess         import shellCall
-from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID
+from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID, getType
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
@@ -401,7 +401,7 @@ class BookkeepingReport( ModuleBase ):
       typeVersion = '1'
       fileStats = statistics
       if bkTypeDict.has_key( output ):
-        typeVersion = 'ROOT_All'
+        typeVersion = getType( output )
         typeName = bkTypeDict[ output ].upper()
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
         if self.workflow_commons.has_key( 'StreamEvents' ):
