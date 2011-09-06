@@ -1108,140 +1108,152 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getLFNsByProduction', [prodid])
 
   #############################################################################
-  def getAncestors(self, lfn, depth):
-    logicalFileNames = {}
-    ancestorList = {}
-    logicalFileNames['Failed'] = []
-    jobsId = []
-    job_id = -1
-    if depth < 1:
-      return S_OK({'Failed:':lfn})
-    odepth = depth
-    gLogger.debug('original', lfn)
-    for fileName in lfn:
-      depth = odepth
-      jobsId = []
-      gLogger.debug('filename', fileName)
-      jobsId = []
+  def getAncestorHelper( self,fileName, files, depth, counter):
+    failed = []
+    if counter < depth:
+      counter += 1
       result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId', LongType, [fileName])
       if not result["OK"]:
         gLogger.error('Ancestor', result['Message'])
       else:
         job_id = int(result['Value'])
       if job_id != 0:
-        jobsId = [job_id]
-        files = []
-        while (depth - 1) and jobsId:
-          for job_id in jobsId:
-            command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid=' + str(job_id)
-            jobsId = []
-            res = self.dbR_._query(command)
-            if not res['OK']:
-              gLogger.error('Ancestor', result["Message"])
-            else:
-              dbResult = res['Value']
-              for record in dbResult:
-                jobsId += [record[1]]
-                if record[2] != 'No':
-                  files += [record[0]]
-          depth -= 1
-
-        ancestorList[fileName] = files
+        command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid=' + str(job_id)
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Ancestor', result["Message"])
+        else:
+          dbResult = res['Value']
+          for record in dbResult:
+            if record[2] != 'No':
+              files += [record[0]]
+              self.getAncestorHelper(record[0], files, depth, counter)
       else:
-        logicalFileNames['Failed'] += [fileName]
-      logicalFileNames['Successful'] = ancestorList
-    return S_OK(logicalFileNames)
+        failed += [fileName]
+    return failed
 
   #############################################################################
-  def getAllAncestors(self, lfn, depth):
-    logicalFileNames = {}
-    ancestorList = {}
-    logicalFileNames['Failed'] = []
-    jobsId = []
-    job_id = -1
+  def getAncestors(self, lfn, depth):
+    odepth = -1
     if depth > 10:
       depth = 10
     elif depth < 1:
       depth = 1
-    odepth = depth
+      odepth = depth
+    else:
+      odepth = depth + 1
+
+    logicalFileNames = {}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
     gLogger.debug('original', lfn)
     for fileName in lfn:
       depth = odepth
-      jobsId = []
-      gLogger.debug('filename', fileName)
-      jobsId = []
+      files = []
+      failed = self.getAncestorHelper(fileName, files, depth,  0)
+      logicalFileNames['Failed'] = failed
+      if len(files) > 0:
+        ancestorList[fileName] = files
+    logicalFileNames['Successful'] = ancestorList
+    return S_OK(logicalFileNames)
+
+  #############################################################################
+  def getAllAncestorHelper( self,fileName, files, depth, counter):
+    failed = []
+    if counter < depth:
+      counter += 1
       result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobIdWithoutReplicaCheck', LongType, [fileName])
       if not result["OK"]:
         gLogger.error('Ancestor', result['Message'])
       else:
         job_id = int(result['Value'])
       if job_id != 0:
-        jobsId = [job_id]
-        files = []
-        while (depth - 1) and jobsId:
-          for job_id in jobsId:
-            command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid=' + str(job_id)
-            jobsId = []
-            res = self.dbR_._query(command)
-            if not res['OK']:
-              gLogger.error('Ancestor', result["Message"])
-            else:
-              dbResult = res['Value']
-              for record in dbResult:
-                jobsId += [record[1]]
-                files += [record[0]]
-          depth -= 1
-
-        ancestorList[fileName] = files
+        command = command = 'select files.fileName,files.jobid, files.gotreplica from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid=%s'% ( str(job_id) )
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Ancestor', result["Message"])
+        else:
+          dbResult = res['Value']
+          for record in dbResult:
+            files += [record[0]]
+            self.getAllAncestorHelper(record[0], files, depth, counter)
       else:
-        logicalFileNames['Failed'] += [fileName]
-      logicalFileNames['Successful'] = ancestorList
-    return S_OK(logicalFileNames)
+        failed += [fileName]
+    return failed
 
   #############################################################################
-  def getAllAncestorsWithFileMetaData(self, lfn, depth):
-    logicalFileNames = {}
-    ancestorList = {}
-    logicalFileNames['Failed'] = []
-    jobsId = []
-    job_id = -1
+  def getAllAncestors(self, lfn, depth):
+    odepth = -1
     if depth > 10:
       depth = 10
     elif depth < 1:
       depth = 1
-    odepth = depth
+      odepth = depth
+    else:
+      odepth = depth + 1
+
+    logicalFileNames = {}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
     gLogger.debug('original', lfn)
     for fileName in lfn:
       depth = odepth
-      jobsId = []
-      gLogger.debug('filename', fileName)
-      jobsId = []
-      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId', LongType, [fileName])
+      files = []
+      failed = self.getAllAncestorHelper(fileName, files, depth,  0)
+      logicalFileNames['Failed'] = failed
+      if len(files) > 0:
+        ancestorList[fileName] = files
+    logicalFileNames['Successful'] = ancestorList
+    return S_OK(logicalFileNames)
+
+
+  #############################################################################
+  def getAncestorHelperWithFileMetadata( self,fileName, files, depth, counter):
+    failed = []
+    if counter < depth:
+      counter += 1
+      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobIdWithoutReplicaCheck', LongType, [fileName])
       if not result["OK"]:
         gLogger.error('Ancestor', result['Message'])
       else:
         job_id = int(result['Value'])
       if job_id != 0:
-        jobsId = [job_id]
-        files = []
-        while (depth - 1) and jobsId:
-          for job_id in jobsId:
-            command = 'select files.fileName,files.jobid, files.gotreplica, files.eventstat, files.eventtypeid, files.luminosity, files.instLuminosity from inputfiles,files where inputfiles.fileid=files.fileid and inputfiles.jobid=' + str(job_id)
-            jobsId = []
-            res = self.dbR_._query(command)
-            if not res['OK']:
-              gLogger.error('Ancestor', result["Message"])
-            else:
-              dbResult = res['Value']
-              for record in dbResult:
-                jobsId += [record[1]]
-                files += [{'FileName':record[0], 'GotReplica':record[2], 'EventStat':record[3], 'EventType':record[4], 'Luminosity':record[5], 'InstLuminosity':record[6]}]
-          depth -= 1
-
-        ancestorList[fileName] = files
+        command = 'select files.fileName,files.jobid, files.gotreplica, files.eventstat, files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name from inputfiles,files, filetypes where inputfiles.fileid=files.fileid and files.filetypeid=filetypes.filetypeid and inputfiles.jobid=' + str(job_id)
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Ancestor', result["Message"])
+        else:
+          dbResult = res['Value']
+          for record in dbResult:
+            files += [{'FileName':record[0], 'GotReplica':record[2], 'EventStat':record[3], 'EventType':record[4], 'Luminosity':record[5], 'InstLuminosity':record[6],'FileType':record[7]}]
+            self.getAncestorHelperWithFileMetadata(record[0], files, depth, counter)
       else:
-        logicalFileNames['Failed'] += [fileName]
-      logicalFileNames['Successful'] = ancestorList
+        failed += [fileName]
+    return failed
+
+  #############################################################################
+  def getAllAncestorsWithFileMetaData(self, lfn, depth):
+    odepth = -1
+    if depth > 10:
+      depth = 10
+    elif depth < 1:
+      depth = 1
+      odepth = depth
+    else:
+      odepth = depth + 1
+
+    logicalFileNames = {}
+    ancestorList = {}
+    logicalFileNames['Failed'] = []
+    gLogger.debug('original', lfn)
+    for fileName in lfn:
+      depth = odepth
+      files = []
+      failed = self.getAncestorHelperWithFileMetadata(fileName, files, depth,  0)
+      logicalFileNames['Failed'] = failed
+      if len(files) > 0:
+        ancestorList[fileName] = files
+    logicalFileNames['Successful'] = ancestorList
     return S_OK(logicalFileNames)
 
   #############################################################################
