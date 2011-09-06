@@ -197,7 +197,7 @@ class IBookkeepingDatabaseClient( object ):
 
   #############################################################################
   def getAllAncestorsWithFileMetaData( self, lfn, depth ):
-    return self.getAllAncestorsWithFileMetaData( lfn, depth )
+    return self.getManager().getAllAncestorsWithFileMetaData( lfn, depth )
 
   #############################################################################
   def getAllDescendents( self, lfn, depth, production, checkreplica ):
