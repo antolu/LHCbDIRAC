@@ -19,13 +19,14 @@ from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManag
 import xml.dom, xml.sax
 import time
 import urlparse, urllib
-import sys
+import sys, re
 
 __RCSID__ = "$Id$"
 
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 impl = xml.dom.getDOMImplementation()
+xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
 
 class SpaceTokenOccupancyTest(object):
   def __init__(self, xmlpath):
@@ -129,7 +130,9 @@ class SpaceTokenOccupancyTest(object):
 
     xmlfile = open(self.xmlpath + id_ + ".xml", "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
+      prettyXml = xml_re.sub('>\g<1></', uglyXml)
+      xmlfile.write(prettyXml)
     finally:
       xmlfile.close()
 
@@ -262,7 +265,9 @@ class DIRACTest(object):
 
     xmlfile = open(self.xmlpath + system + "_" + service + ".xml", "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
+      prettyXml = xml_re.sub('>\g<1></', uglyXml)
+      xmlfile.write(prettyXml)
     finally:
       xmlfile.close()
 
@@ -323,7 +328,9 @@ class DIRACTest(object):
 
     xmlfile = open(self.xmlpath + site + "_" + service + ".xml", "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
+      prettyXml = xml_re.sub('>\g<1></', uglyXml)
+      xmlfile.write(prettyXml)
     finally:
       xmlfile.close()
 
@@ -566,7 +573,9 @@ there...check your voms role is prodution \n")
 
   def register_dummy(self, lfn, size=0, SE="CERN-USER", guid=makeGuid(), chksum=""):
     pfn = self.pfn_of_token(SE) + lfn
-    res = self.master_lfc.addFile((lfn, pfn, size, SE, guid, chksum))
+#    res = self.master_lfc.addFile(lfn, pfn, size, SE, guid, chksum)
+    res = self.master_lfc.addFile(lfn)
+
     if not res['OK']:
       gLogger.info("register_dummy: %s" % res['Message'])
     return res['OK'] and res['Value']['Successful'].has_key(lfn)
@@ -625,8 +634,8 @@ class SLSAgent(AgentModule):
   def execute(self):
     
     # FIXME: Get parameters from CS
-    #    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
-    #    DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
+    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
+    DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
     #    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
-    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
+    #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
