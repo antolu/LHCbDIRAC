@@ -11,111 +11,56 @@ if __name__ == "__main__":
 
   from DIRAC.Core.Base import Script
 
-  plugin = None
-  test = False
-  groupSize = 5
+  import DIRAC
+  from DIRAC.Core.Base import Script
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
   replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset" )
-  parameterSEs = ( "KeepSEs", "Archive1SEs", "Archive2SEs", "MandatorySEs", "SecondarySEs", "DestinationSEs", "FromSEs" )
 
-  Script.registerSwitch( "", "Plugin=", "   Plugin name (mandatory)" )
-  Script.registerSwitch( "P:", "Production=", "   Production ID to search (comma separated list)" )
-  Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod) [All]" )
-  Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path" )
-  Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
+  pluginScript = PluginScript()
+  pluginScript.registerPluginSwitches()
+  test = False
+  start = False
+  force = False
+  invisible = False
 
-  Script.registerSwitch( "", "SEs=", "   List of SEs (dest for replication, source for removal)" )
-  Script.registerSwitch( "", "Copies=", "   Number of copies in the list of SEs" )
-  Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}" )
-  Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas (for plugins %s)" % str( removalPlugins ) )
-  for param in parameterSEs[1:]:
-    Script.registerSwitch( "", param + '=', "   List of SEs for the corresponding parameter of the plugin" )
-  Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
 
-  Script.registerSwitch( "R:", "Request=", "   Assign request number [<id of query production>]" )
-  Script.registerSwitch( "", "Invisible", "Before creating the transformation, set the files in the BKQuery as invisible" )
+  Script.registerSwitch( "", "Invisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
+
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
   Script.parseCommandLine( ignoreErrors = True )
 
-  prods = None
-  fileType = None
-  bkQuery = None
-  requestID = 0
-  start = False
-  pluginParams = {}
-  listSEs = None
-  nbCopies = None
-  keepSEs = None
-  runs = None
-  force = False
-  invisible = False
+  plugin = pluginScript.getOption( 'Plugin' )
+  prods = pluginScript.getOption( 'Productions' )
+  requestID = pluginScript.getOption( 'RequestID' )
+  fileType = pluginScript.getOption( 'FileType' )
+  pluginParams = pluginScript.getOption( 'Parameters', {} )
+  for key in pluginScript.options:
+      if key.endswith( "SE" ) or key.endswith( "SEs" ):
+        pluginParams[key] = pluginScript.options[key]
+  nbCopies = pluginScript.getOption( 'Replicas' )
+  groupSize = pluginScript.getOption( 'GroupSize' )
+  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                       'Usage:',
+                                       '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
+
 
   switches = Script.getUnprocessedSwitches()
   import DIRAC
   for switch in switches:
     opt = switch[0].lower()
     val = switch[1]
-    for param in parameterSEs:
-      if opt == param.lower():
-        if val.lower() == 'none':
-          val = []
-        else:
-          val = val.split( ',' )
-        pluginParams[param] = val
-    if opt in ( "p", "production" ):
-      prods = []
-      for prod in val.split( ',' ):
-        if prod.find( ':' ) > 0:
-          pLimits = prod.split( ':' )
-          for p in range( int( pLimits[0] ), int( pLimits[1] ) + 1 ):
-            prods.append( str( p ) )
-        else:
-          prods.append( prod )
-    elif opt in ( "f", "filetype" ):
-      fileType = val.split( ',' )
-    elif opt in ( "b", "bkquery" ):
-      bkQuery = val
-    elif opt in ( 'r', 'request' ):
-      try:
-        requestID = int( val )
-      except:
-        print "--Request requires an integer"
-        DIRAC.exit( 2 )
-    elif opt in ( 'p', 'plugin' ):
-      plugin = val
-    elif opt in ( 's', 'start' ):
+    if opt in ( 's', 'start' ):
       start = True
-    elif opt == "ses":
-      listSEs = val.split( ',' )
-    elif opt == "copies":
-      try:
-        nbCopies = int( val )
-      except:
-        print "--Copies must be an integer"
-        DIRAC.exit( 2 )
     elif opt == 'test':
       test = True
-    elif opt == 'parameters':
-      try:
-        pluginParams = eval( val )
-      except:
-        print "Error parsing parameters: ", val
-        DIRAC.exit( 2 )
-    elif opt in ( 'g', 'groupsize' ):
-      if float( int( val ) ) == int( val ):
-        groupSize = int( val )
-      else:
-        groupSize = float( val )
-    elif opt in ( 'r', 'run' ):
-      runs = val.split( ':' )
-      if len( runs ) == 1:
-        runs.append( runs[0] )
     elif opt == "force":
       force = True
     elif opt == "invisible":
@@ -127,7 +72,6 @@ if __name__ == "__main__":
     DIRAC.exit( 0 )
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import buildBKQuery, testBKQuery
 
   transType = None
   if plugin in removalPlugins:
@@ -142,34 +86,35 @@ if __name__ == "__main__":
   # Create the transformation
   transformation = Transformation()
 
-  ( transBKQuery, reqID ) = buildBKQuery( bkQuery, prods, fileType, runs )
+  visible = True
+  if plugin == "DestroyDataset" or prods:
+    visible = False
+  transBKQuery = pluginScript.buildBKQuery( visible = visible )
   if not transBKQuery:
+    print "No BK query was given..."
     Script.showhelp()
     DIRAC.exit( 2 )
-  if plugin == "DestroyDataset":
-    transBKQuery.pop( 'Visible' )
 
+  reqID = pluginScript.getRequestID()
   if not requestID and reqID:
     requestID = reqID
 
   transformation.setType( transType )
 
-  # Add parameters
-  if nbCopies != None:
-    pluginParams['NumberOfReplicas'] = nbCopies
-
   transGroup = plugin
   transName = transType
-
   if prods:
     if not fileType:
       fileType = ["All"]
-    longName = transGroup + " of " + ','.join( fileType ) + " for productions %s " % str( ','.join( prods ) )
-    transName += '-' + '/'.join( fileType ) + '-' + '/'.join( prods )
-  elif not bkQuery:
+    prodsStr = ','.join( [str( p ) for p in prods] )
+    fileStr = ','.join( fileType )
+    longName = transGroup + " of " + fileStr + " for productions %s " % prodsStr
+    transName += '-' + fileStr + '-' + prodsStr
+  elif 'BKQuery' not in pluginScript.options:
     longName = transGroup + "for fileType " + str( transBKQuery['FileType'] )
     transName += '-' + str( transBKQuery['FileType'] )
   else:
+    bkQuery = pluginScript.options['BKQuery']
     longName = transGroup + " for BKQuery " + bkQuery
     transName += '-' + bkQuery
 
@@ -187,6 +132,10 @@ if __name__ == "__main__":
     else:
       transBody = "removal;replicaRemoval"
     transformation.setBody( transBody )
+
+  # Add parameters
+  if nbCopies != None:
+    pluginParams['NumberOfReplicas'] = nbCopies
 
   if pluginParams:
     for key, val in pluginParams.items():
@@ -212,7 +161,7 @@ if __name__ == "__main__":
 
   if transBKQuery:
     print "Executing the BK query..."
-    lfns = testBKQuery( transBKQuery, transType )
+    lfns = pluginScript.getLFNsForBKQuery( printSEUsage = ( transType == 'Removal' ), visible = visible )
     nfiles = len( lfns )
   else:
     print "No BK query provided..."
@@ -236,7 +185,7 @@ if __name__ == "__main__":
     from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     res = BookkeepingClient().setFilesInvisible( lfns )
     if res['OK']:
-      print "%d files we successfully set invisible in the BK" % len( lfns )
+      print "%d files were successfully set invisible in the BK" % len( lfns )
       transBKQuery.pop( "Visible" )
       transformation.setBkQuery( transBKQuery )
     else:
