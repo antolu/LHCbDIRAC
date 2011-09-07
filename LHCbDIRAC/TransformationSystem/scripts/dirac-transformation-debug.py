@@ -32,14 +32,22 @@ byTasks = False
 dumpFiles = False
 status = None
 lfnList = None
+taskList = None
+resetRuns = None
+runList = None
+kickRequests = False
 from DIRAC.Core.Base import Script
 
 infoList = ["Files", "Runs", "Tasks"]
 statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC"]
 Script.registerSwitch( 'i:', 'Info=', "Specify what to print out from %s" % str( infoList ) )
 Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
-Script.registerSwitch( 'l:', 'LFNs=', "Specify a list of LFNs" )
+Script.registerSwitch( 'l:', 'LFNs=', "Specify a (list of) LFNs" )
+Script.registerSwitch( '', 'Runs=', "Specify a (list of) runss" )
+Script.registerSwitch( '', 'Tasks=', "Specify a (list of) tasks" )
 Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with care!)" )
+Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
+Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs in a file' )
 
 Script.parseCommandLine( ignoreErrors = True )
 import DIRAC
@@ -64,20 +72,29 @@ for switch in switches:
             elif val == "Tasks":
                 byTasks = True
     elif opt == 'status':
-        val = val.capitalize()
         if val not in statusList:
-            print "Unknown status... Select in %s" % str( statusList )
+            print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
             DIRAC.exit( 0 )
         status = val.capitalize()
     elif opt in ( 'l', 'lfns' ):
         lfnList = val.split( ',' )
+    elif opt in ( 'l', 'runs' ):
+        runList = val.split( ',' )
     elif opt == 'resetruns':
         resetRuns = "Active"
         byRun = True
     elif opt in ( 'v', 'verbose' ):
         verbose = True
+    elif opt == 'tasks':
+        taskList = val.split( ',' )
+    elif opt == 'kickrequests':
+        kickRequests = True
+    elif opt == 'dumpfiles':
+        dumpFiles = True
 
 if lfnList:
+    listFiles = True
+if dumpFiles:
     listFiles = True
 
 args = Script.getPositionalArgs()
@@ -86,26 +103,32 @@ if not len( args ):
     print "Specify transformation number..."
     DIRAC.exit( 0 )
 else:
-    ids = args[0].split( ":" )
-    id1 = int( ids[0] )
-    if len( ids ) > 1:
-        id2 = int( ids[1] )
-    else:
-        id2 = id1
+    ids = args[0].split( "," )
+    idList = []
+    for id in ids:
+        r = id.split( ':' )
+        if len( r ) > 1:
+            for i in range( int( r[0] ), int( r[1] ) + 1 ):
+                idList.append( i )
+        else:
+            idList.append( int( r[0] ) )
 
-#print id1,id2,status
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
 import DIRAC
+import datetime
 
 transClient = TransformationClient()
 reqClient = RequestClient()
 rm = ReplicaManager()
+dmTransTypes = ( "Replication", "Removal" )
+now = datetime.datetime.utcnow()
+timeLimit = now - datetime.timedelta( hours = 2 )
 
-for id in range( id1, id2 + 1 ):
+for id in idList:
     res = transClient.getTransformation( id )
     if not res['OK']:
         print "Couldn't find transformation", id
@@ -115,7 +138,7 @@ for id in range( id1, id2 + 1 ):
         transType = res['Value']['Type']
         transBody = res['Value']['Body']
         transPlugin = res['Value']['Plugin']
-        if transType in ["Replication", "Removal"]:
+        if transType in dmTransTypes:
             taskType = "Request"
         else:
             taskType = "Job"
@@ -130,10 +153,12 @@ for id in range( id1, id2 + 1 ):
     else:
         print "No BKQuery for this transformation"
         queryProduction = None
-    if not byRun:
-        res = {'OK':True}
+    if runList:
+        runs = []
+        for run in runList:
+            runs.append( {'RunNumber':run} )
+    elif not byRun:
         runs = [{'RunNumber': 0}]
-
     else:
         res = transClient.getTransformationRuns( {'TransformationID':id} )
         if res['OK']:
@@ -144,12 +169,20 @@ for id in range( id1, id2 + 1 ):
                 runs = res['Value']
     SEStat = {"Total":0}
     allFiles = []
+    toBeKicked = 0
     for runDict in runs:
         runID = runDict['RunNumber']
         SEs = runDict.get( 'SelectedSite', 'None' ).split( ',' )
         runStatus = runDict.get( 'Status' )
         if verbose and byRun: print '\nRun:', runID, 'SelectedSite:', SEs, 'Status:', runStatus
         filesList = getFilesForRun( id, runID, status, lfnList )
+        filesList.sort()
+        if lfnList and len( lfnList ) != len( filesList ):
+            foundFiles = [fileDict['LFN'] for fileDict in filesList]
+            print "Some files were not found in transformation (%d):" % ( len( lfnList ) - len( filesList ) )
+            for lfn in lfnList:
+                if lfn not in foundFiles:
+                    print '\t', lfn
         if len( filesList ):
             if runID or verbose:
                 ( files, processed ) = filesProcessed( id, runID )
@@ -168,54 +201,50 @@ for id in range( id1, id2 + 1 ):
             prString = "%d files found" % len( filesList )
             if status:
                 prString += " with status %s" % status
-            print prString
+            print prString + '\n'
             for fileDict in filesList:
                 taskID = fileDict['TaskID']
-                if not taskDict.has_key( taskID ):
-                    taskDict[taskID] = []
-                taskDict[taskID].append( fileDict['LFN'] )
-                if listFiles:
+                taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
+                if listFiles and not taskList:
                     print "LFN:", fileDict['LFN'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
             if verbose: print "Tasks:", taskDict.keys()
-            for taskID in taskDict.keys():
+            for taskID in [t for t in taskDict if not taskList or t in taskList]:
                 res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskID} )
                 if res['OK'] and res['Value']:
                     task = res['Value'][0]
                     lfns = taskDict[taskID]
                     allFiles += lfns
                     replicas = {}
-                    for lfnChunk in breakListIntoChunks( lfns, 200 ):
-                        res = rm.getReplicas( lfnChunk )
-                        if res['OK']:
-                            replicas.update( res['Value']['Successful'] )
+                    if transType in dmTransTypes:
+                        for lfnChunk in breakListIntoChunks( lfns, 200 ):
+                            res = rm.getReplicas( lfnChunk )
+                            if res['OK']:
+                                replicas.update( res['Value']['Successful'] )
                     nfiles = len( lfns )
                     targetSE = task.get( 'TargetSE', None )
                     # Accounting per SE
                     listSEs = targetSE.split( ',' )
                     statComment = ''
-                    for rep in replicas.keys():
+                    taskCompleted = True
+                    for rep in replicas:
                         SEStat["Total"] += 1
                         if not replicas[rep]:
-                            if not SEStat.has_key( None ):
-                                SEStat[None] = 0
-                            SEStat[None] += 1
+                            SEStat[None] = SEStat.setdefault( None, 0 ) + 1
                         for se in listSEs:
                             if transType == "Replication":
                                 statComment = "missing"
                                 if se not in replicas[rep]:
-                                    if not SEStat.has_key( se ):
-                                        SEStat[se] = 0
-                                    SEStat[se] += 1
+                                    SEStat[se] = SEStat.setdefault( se, 0 ) + 1
+                                    taskCompleted = False
                             elif transType == "Removal":
                                 statComment = "remaining"
                                 if se in replicas[rep]:
-                                    if not SEStat.has_key( se ):
-                                        SEStat[se] = 0
-                                    SEStat[se] += 1
+                                    SEStat[se] = SEStat.setdefault( se, 0 ) + 1
+                                    taskCompleted = False
                             else:
-                                if not SEStat.has_key( se ):
-                                    SEStat[se] = 0
-                                SEStat[se] += 1
+                                statComment = "absent"
+                                if se not in replicas[rep]:
+                                    SEStat[se] = SEStat.setdefault( se, 0 ) + 1
 
                     if byTasks:
                         prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
@@ -226,29 +255,76 @@ for id in range( id1, id2 + 1 ):
                             prString += " - TargetSE: %s" % targetSE
                         print prString
                         if taskType == "Request":
-                            res = reqClient.getRequestStatus( int( task['ExternalID'] ) )
+                            requestID = int( task['ExternalID'] )
+                            res = reqClient.getRequestInfo( requestID )
                             if res['OK']:
-                                print "Request status:", res['Value']
-                            res = reqClient.getRequestInfo( int( task['ExternalID'] ) )
-                            if res['OK']:
-                                print "Request info:", res['Value']
-                            res = reqClient.getRequestFileStatus( int( task['ExternalID'] ), taskDict[taskID] )
+                                requestName = res['Value'][2]
+                            else:
+                                requestName = None
+                            if task['ExternalStatus'] == 'Failed':
+                                if kickRequests:
+                                    res = transClient.setFileStatusForTransformation( id, 'Unused', lfns )
+                                    if res['OK']:
+                                        print "Task is failed: %d files reset Unused" % len( lfns )
+                                else:
+                                    print "Task is failed: %d files could be reset Unused: use --KickRequest option" % len( lfns )
+                            if taskCompleted and requestName:
+                                prString = "Task %s is completed: no %s files" % ( requestName, statComment )
+                                if kickRequests and requestName:
+                                    res = reqClient.setRequestStatus( requestName, 'Done' )
+                                    if res['OK']:
+                                        prString += ": request set to Done"
+                                        res = transClient.setFileStatusForTransformation( id, 'Processed', lfns )
+                                        if res['OK']:
+                                            prString += " - %d files set Processed" % len( lfns )
+                                else:
+                                    prString += " - To mark them done, use option --KickRequests"
+                                print prString
+                            res = reqClient.getRequestFileStatus( requestID, taskDict[taskID] )
                             if res['OK']:
                                 reqFiles = res['Value']
                                 statFiles = {}
                                 for lfn, stat in reqFiles.items():
-                                    if not statFiles.has_key( stat ):
-                                        statFiles[stat] = 0
-                                    statFiles[stat] += 1
+                                    statFiles[stat] = statFiles.setdefault( stat, 0 ) + 1
                                 stats = statFiles.keys()
                                 stats.sort()
                                 for stat in stats:
                                     print "%s: %d files" % ( stat, statFiles[stat] )
+                            selectDict = { 'RequestID':requestID}
+                            res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
+                            if res['OK']:
+                                params = res['Value']['ParameterNames']
+                                records = res['Value']['Records']
+                                for rec in records:
+                                    subReqDict = {}
+                                    subReqStr = ''
+                                    conj = ''
+                                    for i in range( len( params ) ):
+                                        subReqDict.update( { params[i]:rec[i] } )
+                                        subReqStr += conj + params[i] + ': ' + rec[i]
+                                        conj = ', '
 
-    if SEStat["Total"]:
+                                    if subReqDict['Status'] == 'Assigned' and subReqDict['LastUpdateTime'] < str( timeLimit ):
+                                        print subReqStr
+                                        toBeKicked += 1
+                                        if kickRequests:
+                                            res = reqClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
+                                            if res['OK']:
+                                                print 'Request %d reset Waiting' % requestID
+                        print ""
+        elif not byRun:
+            print "No files found with given criteria"
+
+    if toBeKicked:
+        if kickRequests:
+            print "%d requests have been kicked" % toBeKicked
+        else:
+            print "%d requests are eligible to be kicked (use option --KickRequests)" % toBeKicked
+
+    if SEStat["Total"] and transType in dmTransTypes:
         print "%d files found in tasks" % SEStat["Total"]
         SEStat.pop( "Total" )
-        if SEStat.has_key( None ):
+        if None in SEStat:
             print "Found without replicas:", SEStat[None], "files"
             SEStat.pop( None )
         print "Statistics per %s SE:" % statComment
