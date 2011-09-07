@@ -58,19 +58,15 @@ class SEUsageAgent( AgentModule ):
                                  'LHCb_FAILOVER' : {'year': '2010', 'DiracSEs' : ['SARA-FAILOVER']}
                                  }
     spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )# STs to skip during checks
-    for st in self.spaceTokens[ site ].keys():
-      if st in spaceTokToIgnore:
-        self.spaceTokens[ site ][ st ]['Check'] = False
-      else:
-        self.spaceTokens[ site ][ st ]['Check'] = True
-
 
     self.siteConfig[ site ] = { 'originFileName': "LHCb.tar.bz2",
                                 'originURL': "http://web.grid.sara.nl/space_tokens", # without final slash
                                 'targetPath': InputFilesLocation + 'downloadedFiles/SARA/',
                                 'pathToInputFiles': InputFilesLocation + 'goodFormat/SARA/',
                                 'StorageName': 'SARA' ,
-                                'DiracName': 'LCG.SARA.nl'}
+                                'DiracName': 'LCG.SARA.nl',
+                                'FileNameType': 'PFN' 
+                               }
     res = getSEsForSite( site )
     if not res[ 'OK' ]:
       gLogger.error( 'could not get SEs for site %s ' % site )
@@ -84,30 +80,56 @@ class SEUsageAgent( AgentModule ):
     self.siteConfig[ site ][ 'SEs'] = SEs
     self.siteConfig[ site ][ 'SAPath'] = res['Value']
     gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
-
+    #......................................
     site = 'CERN'
     self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':['CERN-RAW', 'CERN-RDST', 'CERN-ARCHIVE'], 'ServiceClass': 'lhcbtape'},
                                  'LHCb-Disk' : {'year': '2011', 'DiracSEs':['CERN-DST', 'CERN_M-DST', 'CERN_MC_M-DST', 'CERN_MC-DST', 'CERN-FAILOVER', 'CERN-FREEZER', 'CERN-HIST'], 'ServiceClass': 'lhcbdisk'},
                                  'LHCb_USER' : {'year': '2011', 'DiracSEs':['CERN-USER'], 'ServiceClass':'lhcbuser'},
                                 }
-    for st in self.spaceTokens[ site ].keys():
-      if st in spaceTokToIgnore:
-        self.spaceTokens[ site ][ st ]['Check'] = False
-      else:
-        self.spaceTokens[ site ][ st ]['Check'] = True
 
     self.siteConfig[ site ] = {'originFileName': ['lhcb.lhcbtape.last', 'lhcb.lhcbdisk.last', 'lhcb.lhcbuser.last'],
                                'originURL': 'http://castorold.web.cern.ch/castorold/DiskPoolDump/',
                                'targetPath': InputFilesLocation + 'downloadedFiles/CERN/',
                                'pathToInputFiles': InputFilesLocation + 'goodFormat/CERN/',
                                'StorageName' : 'CERN',
-                               'DiracName': 'LCG.CERN.ch'
+                               'DiracName': 'LCG.CERN.ch',
+                                'FileNameType': 'PFN' 
                                }
     res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( 'CERN-RAW' ) )
     if not res[ 'OK' ]:
       gLogger.error( 'could not get configuration for SE CERN-RAW' )
     self.siteConfig[ site ][ 'SAPath'] = res['Value']
     gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
+
+    
+    #......................................
+    site = 'CNAF'
+    self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':['CNAF-RAW', 'CNAF-RDST', 'CNAF-ARCHIVE']},
+                                 'LHCb-Disk' : {'year': '2011', 'DiracSEs':['CNAF-DST', 'CNAF_M-DST', 'CNAF_MC_M-DST', 'CNAF_MC-DST', 'CNAF-FAILOVER']},
+                                 'LHCb_USER' : {'year': '2011', 'DiracSEs':['CNAF-USER']},
+                                }
+
+    self.siteConfig[ site ] = {'originFileName': "LHCb.tar.bz2",
+                               'originURL': 'http://lemon.cr.cnaf.infn.it/VO/',
+                               'targetPath': InputFilesLocation + 'downloadedFiles/' + site + '/',
+                               'pathToInputFiles': InputFilesLocation + 'goodFormat/' + site + '/',
+                               'StorageName' : site,
+                               'DiracName': 'LCG.CNAF.it',
+                                'FileNameType': 'LFN' 
+                               }
+    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( 'CNAF-RAW' ) )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get configuration for SE CERN-RAW' )
+    self.siteConfig[ site ][ 'SAPath'] = res['Value']
+    gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
+    #......................................
+    for site in self.siteConfig.keys():
+      for st in self.spaceTokens[ site ].keys():
+        if st in spaceTokToIgnore:
+          self.spaceTokens[ site ][ st ]['Check'] = False
+        else:
+          self.spaceTokens[ site ][ st ]['Check'] = True
+    #......................................
 
     return S_OK()
 
@@ -124,8 +146,8 @@ class SEUsageAgent( AgentModule ):
     # Read the input files:
     for site in siteList:
       # ONLY FOR DEBUGGING!
-      #if site != 'CERN':
-      #  continue
+      if site != 'CNAF':
+        continue
       gLogger.info( "Reading input files for site: %s" % site )
       if site == 'CERN':
         res = self.readInputFileCERN( site )
@@ -209,7 +231,7 @@ class SEUsageAgent( AgentModule ):
               LFCFiles = 0
               LFCSize = 0
               for lfn in res['Value'].keys():
-                matchedSE = []
+                matchedSE = ''
                 for se in res['Value'][lfn].keys():
                   gLogger.info( "SpaceToken: %s -- se: %s" % ( spaceToken, se ) )
                   if se in associatedDiracSEs:
@@ -222,8 +244,10 @@ class SEUsageAgent( AgentModule ):
                     LFCFiles += int( res['Value'][lfn][ se ]['Files'] )
                     LFCSize += int( res['Value'][lfn][ se ]['Size'] )
                     gLogger.info( "==> the replica is registered in the FC with DiracSE= %s" % se )
-                    #matchedSE = se
-                    matchedSE.append( se )
+                    if not matchedSE:
+                      matchedSE = se
+                    else:
+                      matchedSE = matchedSE + '.and.' + se
               # check also whether the number of files and total directory size match:
               SESize = int( oneDirDict[ dirPath ]['Size'] )
               SEFiles = int( oneDirDict[ dirPath ]['Files'] )
@@ -330,6 +354,7 @@ class SEUsageAgent( AgentModule ):
     targetPathForDownload = targetPath + 'LHCb/'
     gLogger.info( "Target path to download input files: %s" % targetPathForDownload )
     # delete all existing files in the target directory if necessary:
+    previousFiles = []
     try:
       previousFiles = os.listdir( targetPathForDownload )
       gLogger.info( "Found these files: %s" % previousFiles )
@@ -417,11 +442,20 @@ class SEUsageAgent( AgentModule ):
       # the expected input file line is: pfn | size | date
       #/pnfs/grid.sara.nl/data/lhcb/data/2010/CHARMCONTROL.DST/00009283/0000/00009283_00000384_1.charmcontrol.dst          |   831797381 | 1296022620555
       # manipulate the input file to create a directory summary file (one row per directory)
+      # hack necessary to deal with SARA's storage dumps:
+      if 'files-outside-space-tokens.txt' in inputFileP1:
+        continue
+      #splitFile = inputFileP1.split( '-' )
       splitFile = inputFileP1.split( '.' )
       st = splitFile[ 0 ]
       if not self.spaceTokens[ site ][ st ][ 'Check']:
         gLogger.info( "Skip this space token: %s" % st )
         continue
+      if 'INACTIVE' in inputFileP1:
+        if 'LHCb_MC_M-DST' in inputFileP1 or 'LHCb_M-DST' in inputFileP1:
+          gLogger.info( "File will be analysed, even if space token is inactive")
+        else:
+          gLogger.info("Skip this file")
       gLogger.info( "+++++ processing input file for space token: %s " % st )
       fP2 = outputFileMerged[ st ]['pointerToMergedFile' ]
       fileP2 = outputFileMerged[ st ]['MergedFileName']
@@ -441,7 +475,8 @@ class SEUsageAgent( AgentModule ):
           size = splitLine[1].lstrip()
           updated = splitLine[2].lstrip()
           newLine = filePath + ' ' + size + ' ' + updated
-          fP2.write( "%s" % newLine )
+          fP2.write( "%s\n" % newLine )
+          #fP2.write( "%s" % newLine )
           processedLines += 1
         except:
           gLogger.error( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
@@ -461,6 +496,7 @@ class SEUsageAgent( AgentModule ):
       fileP2 = pathToInputFiles + file
       gLogger.info( "Reading from Merged file fileP2 %s " % fileP2 )
       for spaceTok in self.spaceTokens[ site ].keys():
+        gLogger.debug( "..check for space token: %s" % spaceTok )
         if spaceTok in fileP2:
           st = spaceTok
           break
@@ -470,15 +506,19 @@ class SEUsageAgent( AgentModule ):
       processedLines = 0 # counts all processed lines
       self.dirDict = {}
       for line in open( fileP2, "r" ).readlines():
+        gLogger.debug( "..processing line: %s" % line )
         totalLines += 1
         splitLine = line.split()
-        PFNfilePath = splitLine[ 0 ]
-        res = self.getLFNPath( site, PFNfilePath )
-        if not res[ 'OK' ]:
-          gLogger.error( "getLFNPath returned: %s " % res )
-          gLogger.error( "ERROR: could not retrieve LFN for PFN %s" % PFNfilePath )
-          continue
-        filePath = res[ 'Value' ]
+        providedFilePath = splitLine[ 0 ]
+        filePath = ''
+        if self.siteConfig[ site ]['FileNameType'] == 'LFN':
+          filePath = providedFilePath
+        elif self.siteConfig[ site ]['FileNameType'] == 'PFN':
+          res = self.getLFNPath( site, providedFilePath )
+          if not res[ 'OK' ]:
+            gLogger.error( "ERROR getLFNPath returned: %s " % res )
+            continue
+          filePath = res[ 'Value' ]
         #gLogger.debug("filePath: %s" %filePath)
         if not filePath:
           gLogger.info( "SEUsageAgent: it was not possible to get the LFN for PFN=%s, skip this line" % PFNfilePath )
@@ -510,7 +550,7 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "Writing to file %s" % fileP3 )
       for basePath in self.dirDict.keys():
         summaryLine = st + ' ' + basePath + ' ' + str( self.dirDict[ basePath ][ 'Files' ] ) + ' ' + str( self.dirDict[ basePath ][ 'Size' ] )
-        gLogger.debug( "Writing summaryLine %s" % summaryLine )
+        gLogger.info( "Writing summaryLine %s" % summaryLine )
         fP3.write( "%s\n" % summaryLine )
       fP3.flush()
       fP3.close()
