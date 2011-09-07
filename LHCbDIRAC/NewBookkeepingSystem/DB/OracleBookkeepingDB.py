@@ -1112,7 +1112,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     failed = []
     if counter < depth:
       counter += 1
-      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobId', LongType, [fileName])
+      result = self.dbR_.executeStoredFunctions('BKK_MONITORING.getJobIdWithoutReplicaCheck', LongType, [fileName])
       if not result["OK"]:
         gLogger.error('Ancestor', result['Message'])
       else:
@@ -1127,7 +1127,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           for record in dbResult:
             if record[2] != 'No':
               files += [record[0]]
-              self.getAncestorHelper(record[0], files, depth, counter)
+            self.getAncestorHelper(record[0], files, depth, counter)
       else:
         failed += [fileName]
     return failed
