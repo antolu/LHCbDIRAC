@@ -271,7 +271,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if res['Value']:
             lfnSEs = {}
             for dict in res['Value']:
-              lfnSEs[dict['LFN']] = [dict['UsedSE']] )
+              lfnSEs[dict['LFN']] = [dict['UsedSE']]
             sortedSEs = self.__sortExistingSEs( lfnSEs.keys(), lfnSEs )
             res = getSitesForSE( sortedSEs[0], gridName = 'LCG' )
             if  res['OK']:
