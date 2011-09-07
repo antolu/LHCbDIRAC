@@ -7,13 +7,14 @@
 __RCSID__ = "$Id$"
 
 class fakeClient:
-  def __init__( self, trans, transID, transBKQuery ):
+  def __init__( self, trans, transID, lfns, aIfProd ):
     self.trans = trans
     self.transID = transID
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     self.transClient = TransformationClient()
+    self.asIfProd = asIfProd
 
-    ( self.files, self.replicas ) = self.prepareForPlugin( transBKQuery )
+    ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
 
   def getReplicas( self ):
     return self.replicas
@@ -22,7 +23,10 @@ class fakeClient:
     return self.files
 
   def getCounters( self, table, attrList, condDict ):
-    possibleTargets = ['CERN-RAW', 'CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
+    if condDict['TransformationID'] == self.transID:
+      condDict['TransformationID'] = self.asIfProd
+      return self.transClient.getCounters( table, attrList, condDict )
+    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
     counters = []
     for se in possibleTargets:
       counters.append( ( {'UsedSE':se}, 1 ) )
@@ -42,16 +46,54 @@ class fakeClient:
   def getTransformationFiles( self, condDict = None ):
     if condDict['TransformationID'] == self.transID:
       transFiles = []
-      if condDict.has_key( 'Status' ) and not 'Unused' in condDict['Status']:
+      if 'Status' in condDict and 'Unused' not in condDict['Status']:
         return DIRAC.S_OK( transFiles )
-      if condDict.has_key( 'RunNumber' ):
+      runs = None
+      if 'RunNumber' in condDict:
         runs = condDict['RunNumber']
-        for file in self.files:
-          if file['RunNumber'] in runs:
-            transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
-        return DIRAC.S_OK( transFiles )
+        if type( runs ) != type( [] ):
+          runs = [runs]
+      for file in self.files:
+        if not runs or file['RunNumber'] in runs:
+          transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
+      return DIRAC.S_OK( transFiles )
     else:
       return self.transClient.getTransformationFiles( condDict = condDict )
+
+  def getTransformationFilesCount( self, transID, field, selection = None ):
+    if transID == self.transID or selection['TransformationID'] == self.transID:
+      if field != 'Status':
+        return DIRAC.S_ERROR( 'Not implemented for field ' + field )
+      runs = None
+      if 'RunNumber' in selection:
+        runs = selection['RunNumber']
+        if type( runs ) != type( [] ):
+          runs = [runs]
+      counters = {'Unused':0}
+      for file in self.files:
+        if not runs or file['RunNumber'] in runs:
+          counters['Unused'] += 1
+      counters['Total'] = counters['Unused']
+      return DIRAC.S_OK( counters )
+    else:
+      return self.transClient.getTransformationFilesCount( transID, field, selection = selection )
+
+  def getTransformationRunStats( self, transIDs ):
+    counters = {}
+    for transID in transIDs:
+      if transID == self.transID:
+        for file in self.files:
+          runID = file['RunNumber']
+          counters[transID][runID]['Unused'] = counters.setdefault( transID, {} ).setdefault( runID, {} ).setdefault( 'Unused', 0 ) + 1
+        for runID in counters[transID]:
+          counters[transID][runID]['Total'] = counters[transID][runID]['Unused']
+      else:
+        res = self.transClient.getTransformationRunStats( transIDs )
+        if res['OK']:
+          counters.update( res['Value'] )
+        else:
+          return res
+    return DIRAC.S_OK( counters )
 
   def setTransformationRunStatus( self, transID, runID, status ):
     return DIRAC.S_OK()
@@ -62,12 +104,11 @@ class fakeClient:
   def setFileStatusForTransformation( self, transID, status, lfns ):
     return DIRAC.S_OK()
 
-  def prepareForPlugin( self, transBKQuery ):
+  def prepareForPlugin( self, lfns ):
 
     from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     bk = BookkeepingClient()
     type = self.trans.getType()['Value']
-    lfns = testBKQuery( transBKQuery, type )
     if not lfns:
       return ( None, None )
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -82,37 +123,45 @@ class fakeClient:
         files.append( runDict )
     replicas = {}
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
+      #print lfnChunk
       if type.lower() in ( "replication", "removal" ):
         res = rm.getReplicas( lfnChunk )
       else:
         res = rm.getActiveReplicas( lfnChunk )
+      #print res
       if res['OK']:
         replicas.update( res['Value']['Successful'] )
     return ( files, replicas )
 
 if __name__ == "__main__":
 
-  from DIRAC.Core.Base import Script
+  def printFinalSEs( transType, location, targets ):
+    targets = targets.split( ',' )
+    if transType == "Removal":
+      remain = []
+      for l in location:
+        r = ','.join( [se for se in l.split( ',' ) if not se in targets] )
+        remain.append( r )
+      print "    Remaining SEs:", remain
+    if transType == "Replication":
+      total = []
+      for l in location:
+        r = l + ',' + ','.join( [se for se in targets if not se in l.split( ',' )] )
+        total.append( r )
+      print "    Final SEs:", total
 
-  plugin = None
+  import DIRAC
+  from DIRAC.Core.Base import Script
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
   replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset" )
-  parameterSEs = ( "KeepSEs", "Archive1SEs", "Archive2SEs", "MandatorySEs", "SecondarySEs", "DestinationSEs", "FromSEs" )
-  groupSize = 5
 
-  Script.registerSwitch( "", "Plugin=", "   Plugin name (mandatory)" )
-  Script.registerSwitch( "t:", "Type=", "   Transformation type [Replication] (Removal automatic)" )
-  Script.registerSwitch( "P:", "Production=", "   Production ID to search (comma separated list)" )
-  Script.registerSwitch( "f:", "FileType=", "   File type (to be used with --Prod) [All]" )
-  Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path" )
-  Script.registerSwitch( "r:", "Run=", "   Run or range of runs (r1:r2)" )
+  pluginScript = PluginScript()
+  pluginScript.registerPluginSwitches()
 
-  Script.registerSwitch( "", "NumberOfReplicas=", "   Number of copies to create or to remove" )
-  Script.registerSwitch( "k:", "KeepSEs=", "   List of SEs where to keep replicas (for plugins %s)" % str( removalPlugins ) )
-  for param in parameterSEs[1:]:
-    Script.registerSwitch( "", param + '=', "   List of SEs for the corresponding parameter of the plugin" )
-  Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) [%d]" % groupSize )
-  Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}" )
+  Script.registerSwitch( '', 'AsIfProduction=', '   Production # that this test using as source of information' )
+  Script.registerSwitch( '', 'AllFiles', '   Sets visible = False (useful if files were marked invisible)' )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -120,67 +169,23 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = True )
 
-  prods = None
-  fileType = None
-  bkQuery = None
-  requestID = 0
-  pluginParams = {}
-  nbCopies = None
-  runs = None
-
+  asIfProd = None
+  allFiles = False
   switches = Script.getUnprocessedSwitches()
-  import DIRAC
-  for switch in switches:
-    opt = switch[0].lower()
-    val = switch[1]
-    for param in parameterSEs:
-      if opt == param.lower():
-        if val.lower() == 'none':
-          val = []
-        else:
-          val = val.split( ',' )
-        pluginParams[param] = val
-    if opt in ( "p", "production" ):
-      prods = []
-      for prod in val.split( ',' ):
-        if prod.find( ':' ) > 0:
-          pLimits = prod.split( ':' )
-          for p in range( int( pLimits[0] ), int( pLimits[1] ) + 1 ):
-            prods.append( str( p ) )
-        else:
-          prods.append( prod )
-    elif opt in ( "f", "filetype" ):
-      fileType = val.split( ',' )
-    elif opt in ( "b", "bkquery" ):
-      bkQuery = val
-    elif opt in ( 'p', 'plugin' ):
-      plugin = val
-    elif opt == "numberofreplicas":
-      try:
-        nbCopies = int( val )
-      except:
-        print "--NumberOfReplicas must be an integer"
-        DIRAC.exit( 2 )
-    elif opt == 'parameters':
-      try:
-        pluginParams = eval( val )
-      except:
-        print "Error parsing parameters: ", val
-        DIRAC.exit( 2 )
-    elif opt == "type":
-      transType = val
-    elif opt in ( 'g', 'groupsize' ):
-      val = float( val )
-      if float( int( val ) ) == val:
-        groupSize = int( val )
-      else:
-        groupSize = val
-    elif opt in ( 'r', 'run' ):
-      runs = val.split( ':' )
-      if len( runs ) == 1:
-        runs.append( runs[0] )
-    elif opt in ( 't', 'type' ):
-      transType = val
+  for opt, val in switches:
+    if opt == 'AsIfProduction':
+      asIfProd = int( val )
+    elif opt == 'AllFiles':
+      allFiles = True
+  #print pluginScript.options
+  plugin = pluginScript.options.get( 'Plugin' )
+  requestID = pluginScript.options.get( 'RequestID', 0 )
+  pluginParams = pluginScript.options.get( 'Parameters', {} )
+  for key in pluginScript.options:
+      if key.endswith( "SE" ) or key.endswith( "SEs" ):
+        pluginParams[key] = pluginScript.options[key]
+  nbCopies = pluginScript.options.get( 'Replicas' )
+  groupSize = pluginScript.options.get( 'GroupSize' )
 
   if not plugin:
     print "Plugin is a mandatory argument..."
@@ -189,14 +194,18 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import buildBKQuery, testBKQuery
   # Create the transformation
   transformation = Transformation()
 
-  ( transBKQuery, reqID ) = buildBKQuery( bkQuery, prods, fileType, runs )
+  visible = True
+  if allFiles or plugin == "DestroyDataset" or pluginScript.options.get( 'Productions' ) or plugin not in removalPlugins + replicationPlugins:
+    visible = False
+  transBKQuery = pluginScript.buildBKQuery( visible = visible )
   if not transBKQuery:
-    Script.showhelp()
+    print "No BK query was given..."
+    Script.showHelp()
     DIRAC.exit( 2 )
+  reqID = pluginScript.getRequestID()
 
   if not requestID and reqID:
     requestID = reqID
@@ -209,8 +218,6 @@ if __name__ == "__main__":
   else:
     transType = "Processing"
   transformation.setType( transType )
-  if plugin == "DestroyDataset" or prods:
-    transBKQuery.pop( 'Visible' )
 
   # Add parameters
   if nbCopies != None:
@@ -245,7 +252,9 @@ if __name__ == "__main__":
   pluginParams['Status'] = "Active"
   if not pluginParams.has_key( "GroupSize" ):
     pluginParams['GroupSize'] = groupSize
-  fakeClient = fakeClient( transformation, transID, transBKQuery )
+  # Create a fake transformation client
+  lfns = pluginScript.getLFNsForBKQuery( printSEUsage = ( transType == 'Removal' ), visible = visible )
+  fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   oplugin = TransformationPlugin( plugin, transClient = fakeClient )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
@@ -260,27 +269,35 @@ if __name__ == "__main__":
   if res['OK']:
     print len( res['Value'] ), "tasks created"
     i = 0
+    previousTask = { 'First': 0, 'SEs':None, 'Location':None, 'Tasks': 0 }
     for task in res['Value']:
       i += 1
       location = []
       for lfn in task[1]:
         l = ','.join( sortList( replicas[lfn].keys() ) )
+        #print "LFN", lfn, l
         if not l in location:
           location.append( l )
-      targets = task[0].split( ',' )
-      print i, '- Target SEs:', task[0], "- %d files" % len( task[1] ), " - Current locations:", location
-      if transType == "Removal":
-        remain = []
-        for l in location:
-          r = ','.join( [se for se in l.split( ',' ) if not se in targets] )
-          remain.append( r )
-        print "    Remaining SEs:", remain
-      if transType == "Replication":
-        total = []
-        for l in location:
-          r = l + ',' + ','.join( [se for se in targets if not se in l.split( ',' )] )
-          total.append( r )
-        print "    Final SEs:", total
+      if len( task[1] ) == 1:
+        if previousTask['Tasks']:
+          if task[0] == previousTask['SEs'] and location == previousTask['Location']:
+            previousTask['Tasks'] += 1
+            continue
+          else:
+            print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+            printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
+        previousTask = { 'First': i, 'SEs':task[0], 'Location':location, 'Tasks': 1 }
+      else:
+        if previousTask['Tasks']:
+            print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+            printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
+            previousTask = { 'First': 0, 'SEs':None, 'Location':None, 'Tasks': 0 }
+        print i, '- Target SEs:', task[0], "- %d files" % len( task[1] ), " - Current locations:", location
+        printFinalSEs( transType, location, task[0] )
+    if previousTask['Tasks']:
+      i += 1
+      print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+      printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
   else:
     print res['Message']
   DIRAC.exit( 0 )
