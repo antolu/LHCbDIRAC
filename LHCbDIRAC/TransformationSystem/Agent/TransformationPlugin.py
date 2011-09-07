@@ -4,7 +4,6 @@ from DIRAC                                                             import gC
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
-from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles                  import getAncestorFiles
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 import time, types
@@ -16,13 +15,19 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __init__( self, plugin, transClient = None, replicaManager = None ):
     if not transClient:
       self.transClient = TransformationClient()
+    self.bk = BookkeepingClient()
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
+    self.transformationRunStats = {}
+    self.debug = True
 
   def __logVerbose( self, message, param = '' ):
     gLogger.verbose( self.plugin + ": " + message, param )
 
   def __logDebug( self, message, param = '' ):
-    gLogger.debug( self.plugin + ": " + message, param )
+    if self.debug:
+      gLogger.info( self.plugin + ": " + message, param )
+    else:
+      gLogger.debug( self.plugin + ": " + message, param )
 
   def __logInfo( self, message, param = '' ):
     gLogger.info( self.plugin + ": " + message, param )
@@ -167,15 +172,22 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       usedSE = usedDict['UsedSE']
       if usedSE != 'Unknown':
         usageDict[usedSE] = count
+    if 'NIKHEF-RAW' in usageDict:
+      usageDict['SARA-RAW'] = usageDict.setdefault( 'SARA-RAW', 0 ) + usageDict['NIKHEF-RAW']
+      usageDict.pop( 'NIKHEF-RAW' )
     if requestedSites:
       siteDict = {}
       for se, count in usageDict.items():
-        res = getSitesForSE( se, gridName = 'LCG' )
-        if not res['OK']:
-          return res
-        sites = [site for site in res['Value'] if site in requestedSites]
-        if useSE and len( sites ) > 0:
+        if not useSE:
+          res = getSitesForSE( se, gridName = 'LCG' )
+          if not res['OK']:
+            return res
+          sites = [site for site in res['Value'] if site in requestedSites]
+        elif se in requestedSites:
           sites = [se]
+        else:
+          self.__logWarn( "%s is in counters but not in required list" % se )
+          sites = []
         # Don't double count sites if they share the same SE
         for site in sites:
           siteDict[site] = siteDict.setdefault( site, 0 ) + count / float( len( sites ) )
@@ -185,20 +197,42 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( usageDict )
 
   def _AtomicRun( self ):
-    #possibleTargets = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
     transID = self.params['TransformationID']
     # Get the requested shares from the CS
-    res = self._getShares( 'CPU', normalise = True )
+    backupSE = 'CERN-RAW'
+    res = self._getShares( 'CPUforRAW' )
+    cpuForRaw = True
     if not res['OK']:
-      return res
-    cpuShares = res['Value']
-    targetSites = sortList( cpuShares.keys() )
+      res = self._getShares( 'CPU', normalise = True )
+      cpuForRaw = False
+      if not res['OK']:
+        return res
+      cpuShares = res['Value']
+      targetSites = sortList( cpuShares.keys() )
+    else:
+      rawFraction = res['Value']
+      targetSites = sortList( rawFraction.keys() )
+      result = self._getShares( 'RAW', normalise = True )
+      if result['OK']:
+        rawShares = result['Value']
+        tier1Fraction = 0.
+        cpuShares = {}
+        for se in [se for se in rawShares if se in rawFraction]:
+          cpuShares[se] = rawShares[se] * rawFraction[se]
+          tier1Fraction += cpuShares[se]
+        cpuShares[backupSE] = 100. - tier1Fraction
+      else:
+        rawShares = None
+    if cpuForRaw:
+      self.__logInfo( "Fraction of RAW to be processed at each SE (%):" )
+      for site in targetSites:
+        self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), 100. * rawFraction[site] ) )
     self.__logInfo( "Obtained the following target shares (%):" )
-    for site in targetSites:
+    for site in sortList( cpuShares.keys() ):
       self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), cpuShares[site] ) )
 
     # Get the existing destinations from the transformationDB
-    res = self._getExistingCounters( requestedSites = targetSites )
+    res = self._getExistingCounters( requestedSites = targetSites + [backupSE], useSE = cpuForRaw )
     if not res['OK']:
       self.__logError( "Failed to get executed share", res['Message'] )
       return res
@@ -237,13 +271,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if res['Value']:
             lfnSEs = {}
             for dict in res['Value']:
-              lfnSEs[dict['LFN']] = [dict['UsedSE']]
+              lfnSEs[dict['LFN']] = [dict['UsedSE']] )
             sortedSEs = self.__sortExistingSEs( lfnSEs.keys(), lfnSEs )
             res = getSitesForSE( sortedSEs[0], gridName = 'LCG' )
             if  res['OK']:
               for site in [site for site in res['Value'] if site in targetSites]:
-                runSEDict[runID] = site
-                runUpdate[runID] = True
+                  runSEDict[runID] = site
+                  runUpdate[runID] = True
 
     # Choose the destination site for new runs
     for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict]:
@@ -252,19 +286,49 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       candidates = []
       for lfn in runLfns:
         for se in [se for se in self.data[lfn].keys() if se not in distinctSEs]:
-          res = getSitesForSE( se, gridName = 'LCG' )
-          if res['OK']:
+          if cpuForRaw:
             distinctSEs.append( se )
-            for site in [site for site in res['Value'] if site in targetSites and site not in candidates]:
-              candidates.append( site )
+          else:
+            res = getSitesForSE( se, gridName = 'LCG' )
+            if res['OK']:
+              distinctSEs.append( se )
+              for site in [site for site in res['Value'] if site in targetSites and site not in candidates]:
+                candidates.append( site )
       if len( distinctSEs ) < 2:
         self.__logInfo( "Not found two candidate SEs for run %d, skipped" % runID )
       else:
-        res = self._getNextSite( existingCount, cpuShares, randomize( candidates ) )
-        if not res['OK']:
-          self.__logError( "Failed to get next destination SE", res['Message'] )
+        if cpuForRaw:
+          seProbs = {}
+          prob = 0.
+          if backupSE not in distinctSEs:
+            self.__logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
+            backupSE = None
+          distinctSEs = sortList( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
+          for se in distinctSEs:
+            prob += rawFraction[se] / len( distinctSEs )
+            seProbs[se] = prob
+          if backupSE:
+            seProbs[backupSE] = 1.
+            distinctSEs.append( backupSE )
+          # get a random number between 0 and 1
+          import random
+          rand = random.uniform( 0., 1. )
+          strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
+          self.__logDebug( "SE probs =%s, random number = %.3f" % ( strProbs, rand ) )
+          for se in distinctSEs:
+            if rand <= seProbs[se]:
+              selectedSE = se
+              break
+          self.__logDebug( "Selected SE for reconstruction is %s", selectedSE )
+          targetSite = selectedSE
         else:
-          targetSite = res['Value']
+          res = self._getNextSite( existingCount, cpuShares, randomize( candidates ) )
+          if not res['OK']:
+            self.__logError( "Failed to get next destination SE", res['Message'] )
+            targetSite = None
+          else:
+            targetSite = res['Value']
+        if targetSite:
           existingCount[targetSite] = existingCount.setdefault( targetSite, 0 ) + len( runLfns )
           runSEDict[runID] = targetSite
           runUpdate[runID] = True
@@ -280,16 +344,20 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not res['OK']:
           self.__logError( "Failed to assign TransformationRun site", res['Message'] )
           continue
-      res = getSEsForSite( targetSite )
-      if not res['OK']:
-        self.__logError( "Failed to get SEs for site", res['Message'] )
+      if cpuForRaw:
+        possibleSEs = [targetSite]
       else:
-        possibleSEs = res['Value']
+        res = getSEsForSite( targetSite )
+        if  res['OK']:
+          possibleSEs = res['Value']
+        else:
+          possibleSEs = None
+      if possibleSEs:
         for lfn in sortList( runFileDict[runID] ):
           if len( self.data[lfn] ) >= 2:
             for se in [se for se in self.data[lfn].keys() if se in possibleSEs]:
-              tasks.append( ( se, [lfn] ) )
-              break
+                tasks.append( ( se, [lfn] ) )
+                break
 
     return S_OK( tasks )
 
@@ -325,41 +393,37 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runNumber = metadata.get( "RunNumber", 0 )
       if runNumber == None:
         runNumber = 0
-      paramValue = metadata.get( param )
-      runDict.setdefault( runNumber, {} ).setdefault( paramValue, [] ).append( lfn )
+      runDict.setdefault( runNumber, {} ).setdefault( metadata.get( param ), [] ).append( lfn )
     return S_OK( runDict )
 
-
-  def __getFilesStatForRun( self, transID, runID ):
-    selectDict = {'TransformationID':transID}
-    if runID:
-      selectDict['RunNumber'] = runID
-    res = self.transClient.getTransformationFiles( selectDict )
-    files = 0
-    processed = 0
-    if res['OK']:
-      for fileDict in res['Value']:
-        files += 1
-        if fileDict['Status'] == "Processed":
-          processed += 1
-    return ( files, processed )
+  def __getRAWAncestorsForRun( self, transID, runID, param = '', paramValue = '' ):
+    res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
+    if not res['OK']:
+      return []
+    lfns = [f['LFN'] for f in res['Value']]
+    if param:
+      res = self.__getBookkeepingMetadata( lfns )
+      if not res['OK']:
+        return []
+      metadata = res['Value']
+      lfns = [f for f in metadata if metadata[f][param] == paramValue]
+    # To be changed when fixed in BK...
+    res = self.bk.getAncestors( lfns, depth = 10 )
+    if not res['OK']:
+      return []
+    ancestorDict = res['Value']['Successful']
+    ancestors = [f for lfn in ancestorDict for f in ancestorDict[lfn] ]
+    res = self.__getBookkeepingMetadata( ancestors )
+    if not res['OK']:
+      return []
+    metadata = res['Value']
+    return [f for f in metadata if metadata[f]['FileType'] == 'RAW']
 
   def _LHCbStandard( self ):
     return self._groupByReplicas()
 
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     transID = self.params['TransformationID']
-    if requireFlush:
-      runProcessed = {}
-      res = self.transClient.getBookkeepingQueryForTransformation( transID )
-      queryProdID = None
-      if res['OK']:
-        queryProdID = res['Value'].get( 'ProductionID' )
-      if not queryProdID:
-        self.__logWarn( "Could not find ancestor production for transformation %d. Flush impossible" % transID )
-        requireFlush = False
-      elif type( queryProdID ) != type( [] ):
-        queryProdID = [queryProdID]
     res = self.__groupByRunAndParam( self.data, param = param )
     if not res['OK']:
       return res
@@ -375,55 +439,68 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runID = run['RunNumber']
       runStatus = run['Status']
       paramDict = runDict.get( runID, {} )
+      runRAWFiles = {}
+      runEvtType = {}
       for paramValue in sortList( paramDict.keys() ):
         runParamLfns = paramDict[paramValue]
+        runFlush = requireFlush
+        if runFlush:
+          if paramValue:
+            paramStr = " (%s : %s) " % ( param, paramValue )
+          else:
+            paramStr = " "
+          if paramValue not in runEvtType:
+            lfn = runParamLfns[0]
+            res = self.__getBookkeepingMetadata( [lfn] )
+            if res['OK']:
+              runEvtType[paramValue] = res['Value'][lfn].get( 'EventTypeId', 90000000 )
+              self.__logDebug( 'Event type for transformation %d%s: %s' % ( transID, paramStr, str( runEvtType[paramValue] ) ) )
+            else:
+              self.__logWarn( "Can't determine event type for transformation %d%s, can't flush" % ( transID, paramStr ) )
+              runFlush = False
+          evtType = runEvtType[paramValue]
         runParamReplicas = {}
         for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
             runParamReplicas[lfn ] = {}
             for se in inputData[lfn]:
-              if not self.__isArchive( se ) and not self.__isFailover( se ):
+              if not self.__isArchive( se ):
                 runParamReplicas[lfn][se] = inputData[lfn][se]
         self.data = runParamReplicas
         status = runStatus
         if transStatus == 'Flush':
           status = 'Flush'
-        elif requireFlush:
-          # If all files in that run have been processed by the mother production, flush
-          if runID not in runProcessed:
-            processingStats = [0, 0]
-            for prod in queryProdID:
-              ( files, processed ) = self.__getFilesStatForRun( prod, runID )
-              processingStats[0] += files
-              processingStats[1] += processed
-            files = processingStats[0]
-            processed = processingStats[1]
-            runProcessed[runID] = ( files and files == processed )
-            if paramValue:
-              paramStr = " (%s : %s) " % ( param, paramValue )
-            else:
-              paramStr = " "
-            queryProds = ','.join( [str( q ) for q in queryProdID] )
-            if runProcessed[runID]:
-              gLogger.info( "All files processed for run %d in production(s) %s" % ( runID, queryProds ) )
-            else:
-              gLogger.debug( "Not all files processed for run %d in production(s) %s" % ( runID, queryProds ) )
-          if runProcessed[runID]:
-            gLogger.info( "Flushing %d files%sfor run %d in transformation %d" % ( len( runParamReplicas ), paramStr, runID, transID ) )
+        elif runFlush:
+          # If all files in that run have been processed and received, flush
+          # Get the number of RAW files in that run
+          if evtType not in runRAWFiles:
+            res = self.bk.getRunNbFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
+            if not res['OK']:
+              self.__logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
+              continue
+            runRAWFiles[evtType] = res['Value']
+            self.__logDebug( "Run %d has %d RAW files" % ( runID, runRAWFiles[evtType] ) )
+          rawFiles = runRAWFiles[evtType]
+          ancestorRawFiles = len( self.__getRAWAncestorsForRun( transID, runID, param, paramValue ) )
+          runProcessed = ( ancestorRawFiles == rawFiles )
+          if runProcessed:
+            # The whole run was processed by the parent production and we received all files
+            self.__logInfo( "All RAW files (%d) ready for run %d, transformation %d,%s- Flushing %d files" % ( rawFiles, runID, transID, paramStr, len( runParamReplicas ) ) )
             status = 'Flush'
             self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
+          else:
+            self.__logDebug( "Only %d files available for run %d in transformation %d" % ( ancestorRawFiles, runID, transID ) )
         self.params['Status'] = status
+        #print "Calling",plugin,"with",self.data
         res = eval( 'self._%s()' % plugin )
         self.params['Status'] = transStatus
         if not res['OK']:
           return res
         allTasks.extend( res['Value'] )
+    self.data = inputData
     return S_OK( allTasks )
 
-  def _MergeByRunWithFlush( self ):
-    return self._ByRunBySizeWithFlush()
-
-  def _MergeByRun( self ):
-    return self._ByRunBySize()
+  def _ByRunWithFlush( self ):
+    return self._ByRun( requireFlush = True )
 
   def _ByRunBySize( self ):
     return self._ByRun( plugin = 'BySize' )
@@ -431,28 +508,46 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ByRunBySizeWithFlush( self ):
     return self._ByRun( plugin = 'BySize', requireFlush = True )
 
+  def _ByRunSize( self ):
+    return self._ByRun( plugin = 'BySize' )
+
+  def _MergeByRun( self ):
+    return self._ByRunSize()
+
+  def _ByRunSizeWithFlush( self ):
+    return self._ByRun( plugin = 'BySize', requireFlush = True )
+
+  def _MergeByRunWithFlush( self ):
+    return self._ByRunSizeWithFlush()
+
+  def _ByRunFileType( self ):
+    return self._ByRun( param = 'FileType' )
+
+  def _ByRunFileTypeWithFlush( self ):
+    return self._ByRun( param = 'FileType', requireFlush = True )
+
   def _ByRunFileTypeSize( self ):
     return self._ByRun( param = 'FileType', plugin = 'BySize' )
 
   def _ByRunFileTypeSizeWithFlush( self ):
     return self._ByRun( param = 'FileType', plugin = 'BySize', requireFlush = True )
 
-  def _ByRunFileType( self ):
-    return self._ByRun( param = 'FileType' )
+  def _ByRunEventType( self ):
+    return self._ByRun( param = 'EventTypeId' )
+
+  def _ByRunEventTypeWithFlush( self ):
+    return self._ByRun( param = 'EventTypeId', requireFlush = True )
 
   def _ByRunEventTypeSize( self ):
     return self._ByRun( param = 'EventTypeId', plugin = 'BySize' )
 
-  def _ByRunEventType( self ):
-    return self._ByRun( param = 'EventTypeId' )
+  def _ByRunEventTypeSizeWithFlush( self ):
+    return self._ByRun( param = 'EventTypeId', plugin = 'BySize', requireFlush = True )
 
   def __getBookkeepingMetadata( self, lfns ):
-    bk = BookkeepingClient()
     start = time.time()
-    res = bk.getFileMetadata( lfns )
+    res = self.bk.getFileMetadata( lfns )
     self.__logVerbose( "Obtained BK file metadata in %.2f seconds" % ( time.time() - start ) )
-    if not res['OK']:
-      self.__logError( "Failed to get bookkeeping metadata", res['Message'] )
     return res
 
   def __isArchive( self, se ):
@@ -770,7 +865,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
     transID = self.params['TransformationID']
-    mandatorySEs = self.__getListFromString( mandatorySEs )
     secondarySEs = self.__getListFromString( secondarySEs )
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
