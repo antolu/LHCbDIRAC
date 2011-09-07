@@ -12,13 +12,13 @@ from DIRAC.TransformationSystem.Agent.TransformationPlugin               import 
 
 class TransformationPlugin( DIRACTransformationPlugin ):
 
-  def __init__( self, plugin, transClient = None, replicaManager = None ):
+  def __init__( self, plugin, transClient = None, replicaManager = None, debug = False ):
     if not transClient:
       self.transClient = TransformationClient()
     self.bk = BookkeepingClient()
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
     self.transformationRunStats = {}
-    self.debug = False
+    self.debug = debug
 
   def __logVerbose( self, message, param = '' ):
     gLogger.verbose( self.plugin + ": " + message, param )
@@ -608,22 +608,22 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     targetSEs = []
     self.__logDebug( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, existingSEs ) )
     # Ensure that we have a archive1 copy
-    if not [se for se in archive1SEs if se in existingSEs]:
-      ( ses, targetSites ) = self.__selectSEs( randomize( archive1ActiveSEs ), 1, targetSites )
-      self.__logDebug( "Archive1SEs: %s" % ses )
-      if len( ses ) < 1 :
-        self.__logError( 'Cannot select archive1SE in active SEs' )
-        return None
-      targetSEs += ses
+    archive1Existing = [se for se in archive1SEs if se in existingSEs]
+    ( ses, targetSites ) = self.__selectSEs( archive1Existing + randomize( archive1ActiveSEs ), 1, targetSites )
+    self.__logDebug( "Archive1SEs: %s" % ses )
+    if len( ses ) < 1 :
+      self.__logError( 'Cannot select archive1SE in active SEs' )
+      return None
+    targetSEs += ses
 
     # ... and an Archive2 copy
-    if not [se for se in archive2SEs if se in existingSEs]:
-      ( ses, targetSites ) = self.__selectSEs( randomize( archive2ActiveSEs ), 1, targetSites )
-      self.__logDebug( "Archive2SEs: %s" % ses )
-      if len( ses ) < 1 :
-        self.__logError( 'Cannot select archive2SE in active SEs' )
-        return None
-      targetSEs += ses
+    archive2Existing = [se for se in archive2SEs if se in existingSEs]
+    ( ses, targetSites ) = self.__selectSEs( archive2Existing + randomize( archive2ActiveSEs ), 1, targetSites )
+    self.__logDebug( "Archive2SEs: %s" % ses )
+    if len( ses ) < 1 :
+      self.__logError( 'Cannot select archive2SE in active SEs' )
+      return None
+    targetSEs += ses
 
     # Now select the secondary copies
     # Missing secondary copies, make a list of candidates, without already existing SEs
@@ -734,6 +734,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # this may happen when all files are in FAILOVER
         if  existingSEs:
           # Now select the target SEs
+          self.__logDebug( "Selecting SEs for %d files: %s" % ( len( runLfns ), str( runLfns ) ) )
           stringTargetSEs = self.__setTargetSEs( numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False )
           runUpdate[runID] = True
 
