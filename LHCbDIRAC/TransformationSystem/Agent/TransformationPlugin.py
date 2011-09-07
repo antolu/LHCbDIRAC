@@ -18,7 +18,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.bk = BookkeepingClient()
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
     self.transformationRunStats = {}
-    self.debug = True
+    self.debug = False
 
   def __logVerbose( self, message, param = '' ):
     gLogger.verbose( self.plugin + ": " + message, param )
