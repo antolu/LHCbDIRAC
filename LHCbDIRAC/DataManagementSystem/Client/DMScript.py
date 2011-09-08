@@ -326,21 +326,25 @@ class DMScript():
     elif 'Visible' in bkQuery:
       bkQuery.pop( 'Visible' )
     if 'ConditionDescription' not in bkQuery and 'DataTakingConditions' in bkQuery:
-       bkQuery['ConditionDescription'] = bkQuery['DataTakingConditions']
+      bkQuery['ConditionDescription'] = bkQuery['DataTakingConditions']
     res = self.bk.getProductions( bkQuery )
     if not res['OK']:
       return []
     fileTypes = bkQuery.get( 'FileType', None )
     if type( fileTypes ) == type( '' ):
       fileTypes = [fileTypes]
-    prodList = []
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     transClient = TransformationClient()
-    for prod in [prod for p in res['Value']['Records'] for prod in p]:
+    prodList = [prod for p in res['Value']['Records'] for prod in p]
+    pList = []
+    for prod in prodList:
       res = transClient.getBookkeepingQueryForTransformation( prod )
       if res['OK']:
         prodBKQuery = res['Value']
         if not fileTypes or prodBKQuery['FileType'] in fileTypes:
-          prodList.append( prod )
-    return prodList
+          pList.append( prod )
+    if not pList:
+      return prodList
+    else:
+      return pList
 
