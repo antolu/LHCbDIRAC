@@ -21,7 +21,6 @@ from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 import sys, re
 
 from DIRAC  import S_OK, S_ERROR
@@ -42,7 +41,6 @@ class StorageHistoryAgent( AgentModule ):
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
     self.bkClient = BookkeepingClient()
-    self.suClient = StorageUsageClient()
     return S_OK()
 
   def execute( self ):
@@ -90,6 +88,12 @@ class StorageHistoryAgent( AgentModule ):
                                                                    userCatalogData[ user ][ 'Size' ] / ( 1024.0 ** 3 ),
                                                                    userCatalogData[ user ][ 'Files' ] ) )
     self.log.notice( "Sending %s records to accounting for user storage" % numRows )
+    res = gDataStoreClient.commit()
+    if not res[ 'OK' ]:
+      self.log.notice( "ERROR: committing UserStorage records: %s " % res )
+      return S_ERROR( res )
+    else:
+      self.log.notice( "%s records for UserStorage type successfully committed" % numRows )
 
     ###
     # Accounting records relative to the general Storage type:
@@ -164,6 +168,13 @@ class StorageHistoryAgent( AgentModule ):
         self.log.debug( "Directory: %s SE: %s  physical size: %.4f TB (%d files)" % ( directory, se, physicalSize / ftb, physicalFiles ) )
 
     self.log.notice( "Sending %s records to accounting for top level directories storage" % numRows )
+    res = gDataStoreClient.commit()
+    if not res[ 'OK' ]:
+      self.log.notice( "ERROR: committing Storage records: %s " % res )
+      return S_ERROR( res )
+    else:
+      self.log.notice( "%s records for Storage type successfully committed" % numRows )
+
 
     ###
     # Accounting records relative to the DataStorage type:
@@ -178,6 +189,11 @@ class StorageHistoryAgent( AgentModule ):
     reportForDataManager = '/tmp/reportForDataManager.txt'
     self.report = open( reportForDataManager, "w" )
     self.sesOfInterest = ''
+
+    # counter for DataStorage records, commit to the accounting in bunches of self.limitForCommit records
+    self.totalRecords = 0
+    self.recordsToCommit = 0
+    self.limitForCommit = 200
 
     bkDict = {}
     self.numDataRows = 0 # count the total number of records sent to the accounting
@@ -226,6 +242,7 @@ class StorageHistoryAgent( AgentModule ):
     if not res[ 'OK' ]:
       self.log.notice( "ERROR: commit returned: %s " % res )
       return S_ERROR( res )
+    self.log.notice( "End of full BKK browsing: total records sent to accounting for DataStorage:  %d " % self.totalRecords )
     return S_OK()
 
 
@@ -331,7 +348,8 @@ class StorageHistoryAgent( AgentModule ):
           for prodFileType in prodFileTypes:
             # get the LOGICAL usage with getSummary, except for raw data
             if not rawDataFlag:
-              res = self.suClient.getSummary( dataPath, prodFileType, prodID )
+              #res = self.suClient.getSummary( dataPath, prodFileType, prodID )
+              res = self.__stDB.getSummary( dataPath, prodFileType, prodID )
               if not res[ 'OK' ]:
                 self.log.error( "ERROR: getSummary failed with message: %s" % ( res['Message'] ) )
                 return S_ERROR( res )
@@ -364,10 +382,12 @@ class StorageHistoryAgent( AgentModule ):
             # get the storage usage in terms of PFNs:
             if not rawDataFlag:
               self.log.notice( "Calling getStorageSummary with path= %s prodFileType= %s prodID= %d " % ( dataPath, prodFileType, prodID ) )
-              res = self.suClient.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
+              #res = self.suClient.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
+              res = self.__stDB.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
             else: # RAW data
               self.log.notice( "Calling getRunSummaryPerSE with run= %d " % ( runNo ) )
-              res = self.suClient.getRunSummaryPerSE( runNo )
+              #res = self.suClient.getRunSummaryPerSE( runNo )
+              res = self.__stDB.getRunSummaryPerSE( runNo )
             if not res[ 'OK' ]:
               self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
               return S_ERROR( res )
@@ -403,6 +423,8 @@ class StorageHistoryAgent( AgentModule ):
               if not res[ 'OK']:
                 self.log.notice( "ERROR: In getDataTakingConditionsAndSU addRegister returned: %s" % res )
               self.numDataRows += 1
+              self.totalRecords += 1
+              self.recordsToCommit += 1
               if seName not in my_total_perSE.keys():
                 my_total_perSE[ seName ] = {}
                 my_total_perSE[seName][ 'Size' ] = 0
@@ -426,10 +448,14 @@ class StorageHistoryAgent( AgentModule ):
           continue
       if QUICKLOOP: # for debugging
         break
-    res = gDataStoreClient.commit()
-    if not res[ 'OK' ]:
-      self.log.error( "Accounting ERROR: commit returned %s" % res )
-    self.log.notice( "In getDataTakingConditionsAndSU commit returned: %s" % res )
+    if self.recordsToCommit > self.limitForCommit:
+      res = gDataStoreClient.commit()
+      if not res[ 'OK' ]:
+        self.log.error( "Accounting ERROR: commit returned %s" % res )
+      else:
+        self.log.notice( "%d records committed " % self.recordsToCommit )
+        self.recordsToCommit = 0
+      self.log.notice( "In getDataTakingConditionsAndSU commit returned: %s" % res )
     return S_OK()
 
 #..............................................................................................................
