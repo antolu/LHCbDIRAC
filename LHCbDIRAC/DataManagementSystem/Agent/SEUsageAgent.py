@@ -32,6 +32,7 @@ class SEUsageAgent( AgentModule ):
     self.am_setModuleParam( "shifterProxy", "DataManager" )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( rootPath, AGENT_NAME ) )
     InputFilesLocation = self.am_getOption( 'InputFilesLocation' )
+    self.activeSites = self.am_getOption( 'ActiveSites' )
     # check that this directory exists:
     if not os.path.isdir( InputFilesLocation ):
       gLogger.info( "Create the directory to download input files: %s" % InputFilesLocation )
@@ -139,14 +140,15 @@ class SEUsageAgent( AgentModule ):
     If the directory exists in the StorageUsage su_Directory table, and if a replica also exists for the given SE in the su_SEUsage table, then the directory and
     its usage are stored in the replica table (the se_Usage table) together with the insertion time, otherwise it is added to the problematic data table (problematicDirs) """
     gLogger.info( "SEUsageAgent: start the execute method\n" )
+    gLogger.info( "Sites active for checks: %s " % self.activeSites )
 
     specialReplicas = ['archive', 'freezer', 'failover']
     siteList = self.siteConfig.keys()
     siteList.sort()
     # Read the input files:
     for site in siteList:
-      # ONLY FOR DEBUGGING!
-      if site != 'CNAF':
+      if self.siteConfig[ site ][ 'DiracName' ] not in self.activeSites:
+        gLogger.info( "Skip site %s as it is not included in the configuration" % site )
         continue
       gLogger.info( "Reading input files for site: %s" % site )
       if site == 'CERN':
@@ -177,7 +179,6 @@ class SEUsageAgent( AgentModule ):
           except:
             gLogger.error( "ERROR in input data format. Line is: %s" % line )
             continue
-          #oneDirDict = {dirPath: self.dirDict[ t ]} # dict where the key is simply the LFN path.
           oneDirDict = {}
           dirPath = StorageDirPath
           specialRep = ''
@@ -187,11 +188,8 @@ class SEUsageAgent( AgentModule ):
               dirPath = StorageDirPath.split( prefix )[1] # strip the initial prefix, to get the LFN as registered in the LFC
               specialRep = sr
               gLogger.info( "prefix: %s \n StorageDirPath: %s\n dirPath: %s" % ( prefix, StorageDirPath, dirPath ) )
-          #oneDirDict[ dirPath ] = { 'SEName': spaceToken, 'Files': files, 'Size': size , 'Updated': 'na' }
           oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size , 'Updated': 'na', 'Site': site, 'SpecialReplica': specialRep }
-          # because the DIRAC SE cannot be stated. but then requires a modification of StorageUsageDB.getIDsFromSe_Usage
-          # the format of the entry to be processed must be:
-          # oneDirDict = {LFNPath: {'SEName: se, 'Files':files, 'Size':size, 'Updated',updated }}
+          # the format of the entry to be processed must be a dictionary with LFN path as key
           # use this format for consistency with already existing methods of StorageUsageDB which take in input a dictionary like this
           gLogger.info( "SEUsageAgent: processing directory: %s" % ( oneDirDict ) )
           # initialize the isRegistered flag. Change it according to the checks SE vs LFC
