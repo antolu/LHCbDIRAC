@@ -663,7 +663,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _LHCbDSTBroadcast( self ):
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
     archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_M-DST'] )
+    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN-DST'] )
     secondarySEs = self.params.get( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST', 'PIC-DST', 'RAL-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 4 ) )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
@@ -671,7 +671,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _LHCbMCDSTBroadcast( self ):
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
     archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST'] )
+    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC-DST'] )
     secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
@@ -769,7 +769,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     transID = self.params['TransformationID']
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
     archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST'] )
+    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC-DST'] )
     secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
 
