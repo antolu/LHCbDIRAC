@@ -650,9 +650,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       existingSEs = self.data[lfn].keys()
       existingSites = self._getSitesForSEs( [se for se in existingSEs if not se.endswith( '-ARCHIVE' )] )
       # Discard existing SEs
-      neededSEs = [se for se in targetSEs if se not in existingSEs ]
+      ses = [se for se in targetSEs if se not in existingSEs ]
       # discard SEs at sites where already normal replica
-      neededSEs = [se for se in neededSEs if self.__isArchive( se ) or self._getSiteForSE( se )['Value'] not in existingSites]
+      neededSEs = [se for se in ses if self.__isArchive( se ) or self._getSiteForSE( se )['Value'] not in existingSites]
       stringTargetSEs = ','.join( sortList( neededSEs ) )
       if not neededSEs:
         alreadyCompleted.append( lfn )
@@ -840,12 +840,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return targetSEs + sameSEs
 
   def _ReplicateDataset( self ):
-    destSEs = self.params.get( 'DestinationSEs' )
-    if not destSEs:
-      self.__logInfo( "_ReplicateDataset plugin: no destination SEs" )
-      return S_OK( [] )
+    destSEs = self.__getListFromString( self.params.get( 'DestinationSEs' ) )
+    secondarySEs = self.__getListFromString( self.params.get( 'SecondarySEs', [] ) )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
-    return self.__simpleReplication( destSEs, [], numberOfCopies )
+    if not destSEs:
+      destSEs = self.__getListFromString( self.params.get( 'MandatorySEs' ) )
+      if not destSEs:
+        self.__logInfo( "_ReplicateDataset plugin: no destination SEs" )
+        return S_OK( [] )
+    return self.__simpleReplication( destSEs, secondarySEs, numberOfCopies )
 
   def _ArchiveDataset( self ):
     archive1SEs = self.params.get( 'Archive1SEs', [] )
@@ -876,8 +879,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     replicaGroups = self._getFileGroups( self.data )
 
-    storageElementGroups = {}
-
+    alreadyCompleted = []
+    fileTargetSEs = {}
     for replicaSE, lfnGroup in replicaGroups.items():
       existingSEs = replicaSE.split( ',' )
       # If there is no choice on the SEs, send all files at once, otherwise make chunks
@@ -887,11 +890,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
       for lfns in lfnChunks:
-        candidateSEs = mandatorySEs + self.__closerSEs( existingSEs, activeSecondarySEs )
+        candidateSEs = self.__closerSEs( existingSEs, activeSecondarySEs )
         # Remove existing SEs from list of candidates
         ncand = len( candidateSEs )
         candidateSEs = [se for se in candidateSEs if se not in existingSEs]
         needToCopy = numberOfCopies - ( ncand - len( candidateSEs ) )
+        stillMandatory = [se for se in mandatorySEs if se not in candidateSEs]
+        candidateSEs = stillMandatory + candidateSEs
+        needToCopy = max( needToCopy, len( stillMandatory ) )
         targetSEs = []
         if needToCopy > 0:
           if needToCopy <= len( candidateSEs ):
@@ -903,12 +909,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             otherSEs = [se for se in secondarySEs if se not in targetSEs]
             if otherSEs:
               targetSEs += otherSEs[0:min( needToCopy, len( otherSEs ) )]
+        else:
+          alreadyCompleted += lfns
         if targetSEs:
           stringTargetSEs = ','.join( sortList( targetSEs ) )
-          storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
-        else:
-          self.__logInfo( "Found %s files that are already completed" % len( lfns ) )
-          self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+          #Now assign the individual files to their targets
+          ( chunkFileTargetSEs, completed ) = self.__assignTargetToLfns( lfns, stringTargetSEs )
+          alreadyCompleted += completed
+          fileTargetSEs.update( chunkFileTargetSEs )
+
+    # Update the status of the already done files
+    if alreadyCompleted:
+      self.__logInfo( "Found %s files that are already completed" % len( alreadyCompleted ) )
+      self.transClient.setFileStatusForTransformation( transID, 'Processed', alreadyCompleted )
+
+    # Now group all of the files by their target SEs
+    storageElementGroups = {}
+    for lfn, stringTargetSEs in fileTargetSEs.items():
+      storageElementGroups.setdefault( stringTargetSEs, [] ).append( lfn )
 
     return S_OK( self.__createTasks( storageElementGroups ) )
 
