@@ -3143,3 +3143,13 @@ and files.qualityid= dataquality.qualityid'
     command = ' select count(*) from jobs j, files f where j.jobid=f.jobid and j.production<0 and j.runnumber=%s %s' % (str(runid), condition)
     return self.dbR_._query(command)
 
+  #############################################################################
+  def getTypeVersion(self, lfn):
+    res = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getTypeVesrsion', [lfn] )
+    if res['OK']:
+      result =  []
+      if len(res['Value']) > 0:
+        result = res['Value'][0][0]
+      return S_OK(result)
+    else:
+      return res

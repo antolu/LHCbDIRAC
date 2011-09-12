@@ -698,3 +698,8 @@ class BookkeepingClient:
   def getRunNbFiles(self, dict):
     server = self.__getServer()
     return server.getRunNbFiles( dict )
+
+  #############################################################################
+  def getTypeVersion(self, lfn):
+    server = self.__getServer()
+    return server.getTypeVersion(lfn)

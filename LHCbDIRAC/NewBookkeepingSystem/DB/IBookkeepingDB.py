@@ -498,3 +498,7 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getRunNbFiles(self, runid, eventtype):
     gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getTypeVersion(self, lfn):
+    gLogger.error('This method is not implemented!')

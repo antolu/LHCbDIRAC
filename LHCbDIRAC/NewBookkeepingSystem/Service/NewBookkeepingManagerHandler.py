@@ -1439,3 +1439,8 @@ class NewBookkeepingManagerHandler( RequestHandler ):
       return S_OK(retVal['Value'][0][0])
     else:
       return retVal
+
+  #############################################################################
+  types_getTypeVersion = [StringType]
+  def export_getTypeVersion(self, lfn):
+    return dataMGMT_.getTypeVersion(lfn)

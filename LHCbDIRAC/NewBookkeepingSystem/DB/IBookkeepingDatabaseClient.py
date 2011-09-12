@@ -502,3 +502,7 @@ class IBookkeepingDatabaseClient( object ):
   #############################################################################
   def getRunNbFiles(self, runid, eventtype):
     return self.getManager().getRunNbFiles(runid, eventtype)
+
+  #############################################################################
+  def getTypeVersion(self, lfn):
+    return self.getManager().getTypeVersion(lfn)
