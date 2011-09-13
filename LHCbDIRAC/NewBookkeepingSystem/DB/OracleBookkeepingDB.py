@@ -1415,7 +1415,6 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
     result = self.dbR_.executeStoredFunctions('BOOKKEEPINGORACLEDB.checkFileTypeAndVersion', LongType, [type, version])
-    print result
     '''
     if result['OK']:
       res = result['Value']
