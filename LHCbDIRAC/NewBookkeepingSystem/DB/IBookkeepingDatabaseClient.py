@@ -248,8 +248,8 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().deleteFiles( lfns )
 
   #############################################################################
-  def insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity ):
-    return self.getManager().insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity )
+  def insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings ):
+    return self.getManager().insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings )
 
   #############################################################################
   def getSimConditions( self ):

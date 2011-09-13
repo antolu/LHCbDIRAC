@@ -254,7 +254,7 @@ class IBookkeepingDB( object ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
-  def insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity ):
+  def insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
