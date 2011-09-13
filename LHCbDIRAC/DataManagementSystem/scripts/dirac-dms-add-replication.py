@@ -9,14 +9,12 @@ __RCSID__ = "$Id$"
 
 if __name__ == "__main__":
 
-  from DIRAC.Core.Base import Script
-
   import DIRAC
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
 
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
-  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset" )
+  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares" )
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
@@ -136,6 +134,8 @@ if __name__ == "__main__":
   # Add parameters
   if nbCopies != None:
     pluginParams['NumberOfReplicas'] = nbCopies
+  if groupSize != None and 'GroupSize' not in pluginParams:
+    pluginParams['GroupSize'] = groupSize
 
   if pluginParams:
     for key, val in pluginParams.items():

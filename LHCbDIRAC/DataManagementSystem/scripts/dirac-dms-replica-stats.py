@@ -33,13 +33,17 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.registerSwitch( "S:", "Size", "   Get the LFN size [No]" )
+  Script.registerSwitch( '', 'Invisible', '   Show invisible files [No]' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
   Script.parseCommandLine( ignoreErrors = False )
 
   getSize = False
+  visible = True
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
+    if switch[0] == 'Invisible':
+      visible = False
 
   directories = dmScript.options.get( 'Directory' )
 
@@ -53,6 +57,7 @@ if __name__ == "__main__":
 
   rm = ReplicaManager()
 
+  repStats = {}
   lfnReplicas = {}
   if directories:
     for directory in directories:
@@ -62,17 +67,20 @@ if __name__ == "__main__":
         continue
       lfnReplicas.update( res['Value'] )
   else:
-    res = rm.getReplicas( dmScript.getLFNsForBKQuery( visible = True ) )
+    res = rm.getReplicas( dmScript.getLFNsForBKQuery( visible = visible ) )
     if not res['OK']:
       print res['Message']
       DIRAC.exit( 2 )
     lfnReplicas = res['Value']['Successful']
+    if res['Value']['Failed']:
+      repStats[0] = len( res['Value']['Failed'] )
 
   if not lfnReplicas:
-    print "No files found...."
+    print "No files found that have a replica...."
+    if repStats.get( 0 ):
+      print "%d files found without a replica" % repStats[0]
     DIRAC.exit( 2 )
 
-  repStats = {}
   repSEs = {}
   repSites = {}
   maxRep = 0
@@ -125,10 +133,14 @@ if __name__ == "__main__":
 
   GB = 1000. * 1000. * 1000.
   TB = GB * 1000.
-  if totSize:
-    print "%d files found (%.3f GB) in" % ( nfiles, totSize / GB ), directories
+  if directories:
+    dirStr = " in %s" % str( directories )
   else:
-    print "%d files found in" % ( nfiles ), directories
+    dirStr = " with replicas"
+  if totSize:
+    print "%d files found (%.3f GB)%s" % ( nfiles, totSize / GB, dirStr )
+  else:
+    print "%d files found%s" % ( nfiles, dirStr )
   print "\nReplica statistics:"
   if repStats.has_key( -100 ):
     print "Failover replicas:", repStats[-100], "files"

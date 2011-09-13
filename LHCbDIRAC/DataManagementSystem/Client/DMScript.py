@@ -2,6 +2,8 @@
 DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
 """
 
+__RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
+
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -23,10 +25,10 @@ def printResult( dictionary, offset = 0, shift = 0, empty = "Empty directory" ):
   for key in sortList( dictionary.keys() ):
     value = dictionary[key]
     if type( value ) == type( {} ):
-      if not value == {}:
+      if value != {}:
         print key.rjust( center ), ' : '
         printResult( value, offset = offset, shift = shift, empty = empty )
-      elif key not in ['Failed', 'Successful']:
+      elif key not in ( 'Failed', 'Successful' ):
         print key.rjust( center ), ' : ', empty
     else:
       print key.rjust( center ), ' : ', str( value ).ljust( value_max )
@@ -40,6 +42,8 @@ class DMScript():
     self.bkFields = [ "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" ]
     self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
     self.bk = BookkeepingClient()
+    self.bkFileTypes = []
+    self.options['ExceptFileType'] = []
 
   def registerDMSwitches( self ) :
     self.registerBKSwitches()
@@ -89,11 +93,15 @@ class DMScript():
     return DIRAC.S_OK()
 
   def setFileType( self, arg ):
-    self.options['FileType'] = arg.split( ',' )
+    fileTypes = arg.split( ',' )
+    if 'HIST' in fileTypes:
+      self.__excludeHistFiles()
+      fileTypes.pop( 'HIST' )
+    self.options['FileType'] += fileTypes
     return DIRAC.S_OK()
 
   def setExceptFileType( self, arg ):
-    self.options['ExceptFileType'] = arg.split( ',' )
+    self.options['ExceptFileType'] += arg.split( ',' )
     return DIRAC.S_OK()
 
   def setBKQuery( self, arg ):
@@ -152,6 +160,18 @@ class DMScript():
   def getOption( self, switch, default = None ):
     return self.options.get( switch, default )
 
+  def __excludeHistFiles( self ):
+    self.__setBKFileTypes()
+    self.options['ExceptFileType'] += [ft for ft in self.bkFileTypes if ft.endswith( 'HIST' )]
+
+  def __setBKFileTypes( self ):
+    if not self.bkFileTypes:
+      res = self.bk.getAvailableFileTypes()
+      if res['OK']:
+        dbresult = res['Value']
+        for record in dbresult['Records']:
+          self.bkFileTypes.append( record[0] )
+
   def buildBKQuery( self, visible = True ):
     bkQuery = self.options.get( 'BKQuery' )
     prods = self.options.get( 'Productions' )
@@ -202,6 +222,7 @@ class DMScript():
     return self.bkQueryDict
 
   def __fileType( self, fileType = None ):
+    self.__setBKFileTypes()
     if not fileType:
       fileType = self.options.get( 'FileType' )
       if not fileType:
@@ -215,13 +236,7 @@ class DMScript():
       if fileType.lower().find( "all." ) == 0:
         ext = '.' + fileType.split( '.' )[1]
         fileType = []
-        res = self.bk.getAvailableFileTypes()
-
-        if res['OK']:
-          dbresult = res['Value']
-          for record in dbresult['Records']:
-            if record[0].endswith( ext ):
-              expandedTypes.append( record[0] )
+        expandedTypes = [ft for ft in self.bkFileTypes if ft.endswith( ext )]
       else:
         expandedTypes.append( fileType )
     if len( expandedTypes ) == 1:
@@ -248,6 +263,34 @@ class DMScript():
   def getLFNsForBKQuery( self, printSEUsage = False, printOutput = True, visible = True ):
     return self.__makeBKQuery( printSEUsage = printSEUsage, printOutput = printOutput, visible = visible )[0]
 
+  def __getFilesFromBK( self, bkDict, printOutput ):
+    self.__setBKFileTypes()
+    res = self.bk.getFilesWithGivenDataSets( bkDict )
+    lfns = []
+    lfnSize = 0
+    if res['OK']:
+      lfns = res['Value']
+      exceptFiles = self.options.get( 'ExceptFileType' )
+      if exceptFiles:
+        res = self.bk.getFileMetadata( lfns )
+        if res['OK']:
+          metadata = res['Value']
+          lfns = [lfn for lfn in metadata if metadata[lfn]['FileType'] not in exceptFiles]
+        else:
+          metadata = {}
+      if printOutput:
+        if exceptFiles:
+          lfnSize = 0
+          for lfn in lfns:
+            lfnSize += metadata[lfn]['FileSize']
+        else:
+          bkDict.update( {"FileSize":True} )
+          res = self.bk.getFilesWithGivenDataSets( bkDict )
+          if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
+            lfnSize = res['Value'][0]
+    lfnSize /= 1000000000000.
+    return ( lfns, lfnSize )
+
   def __makeBKQuery( self, printSEUsage = False, printOutput = True, visible = True ):
     from DIRAC.Core.DISET.RPCClient                                  import RPCClient
     bkQueryDict = self.bkQueryDict
@@ -264,25 +307,12 @@ class DMScript():
       lfnSize = 0
       for prod in prods:
         bkDict['ProductionID'] = prod
-        res = self.bk.getFilesWithGivenDataSets( bkDict )
-        if res['OK']:
-          lfns += res['Value']
-          if printOutput:
-            bkDict.update( {"FileSize":True} )
-            res = self.bk.getFilesWithGivenDataSets( bkDict )
-            if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
-              lfnSize += res['Value'][0] / 1000000000000.
+        lfnList, size = self.__getFilesFromBK( bkDict, printOutput )
+        lfns += lfnList
+        lfnSize += size
     else:
       bkDict = bkQueryDict.copy()
-      res = self.bk.getFilesWithGivenDataSets( bkDict )
-      if res['OK']:
-        lfns = res['Value']
-        if printOutput:
-          bkDict.update( {"FileSize":True} )
-          res = self.bk.getFilesWithGivenDataSets( bkDict )
-          lfnSize = 0
-          if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
-            lfnSize = res['Value'][0] / 1000000000000.
+      lfns, lfnSize = self.__getFilesFromBK( bkDict, printOutput )
     if len( lfns ) == 0:
       print "No files found for BK query..."
       return ( [], [] )
