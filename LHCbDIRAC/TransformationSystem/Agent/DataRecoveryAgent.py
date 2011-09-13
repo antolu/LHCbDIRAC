@@ -32,7 +32,6 @@ from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestC
 from DIRAC.Core.Utilities.List                                   import uniqueElements
 from DIRAC.Core.Utilities.Time                                   import timeInterval, dateTime
 from DIRAC.Core.DISET.RPCClient                                  import RPCClient
-from DIRAC.Interfaces.API.Dirac                                  import Dirac
 
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
@@ -53,7 +52,6 @@ class DataRecoveryAgent( AgentModule ):
     self.transClient = TransformationClient( 'TransformationDB' )
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
-    self.Dirac = Dirac()
     self.taskIDName = 'TaskID'
     self.externalStatus = 'ExternalStatus'
     self.externalID = 'ExternalID'
@@ -187,7 +185,6 @@ class DataRecoveryAgent( AgentModule ):
       jobsWithFilesOKToUpdate = result['Value']['jobfiledictok']
       jobsWithProblematicFiles = result['Value']['jobfiledictproblematic']
       jobsWithDescendentsInBK = result['Value']['replicaflagproblematic']
-      jobsWithDescendentsOK = result['Value']['jobsuccess']
 
       self.log.info( '====> Transformation %s total jobs that can be updated now: %s' % ( transformation, len( jobsWithFilesOKToUpdate.keys() ) ) )
       self.log.info( '====> Transformation %s total jobs with problematic descendent files but no replica flags: %s' % ( transformation, len( jobsWithProblematicFiles.keys() ) ) )
@@ -204,19 +201,6 @@ class DataRecoveryAgent( AgentModule ):
           continue
       else:
         self.log.info( 'There are no files without problematic descendents to update for production %s in this cycle' % transformation )
-
-      filesToUpdate = []
-      for job, fileList in jobsWithDescendentsOK.items():
-        filesToUpdate += fileList
-
-      if filesToUpdate:
-        self.log.info( "%d files set to Processed for production %s" % ( len( filesToUpdate ), transformation ) )
-        result = self.updateFileStatus( transformation, filesToUpdate, 'Processed' )
-        if not result['OK']:
-          self.log.error( 'Processed files were not updated with result:\n%s' % ( result ) )
-          continue
-      else:
-        self.log.info( 'There are no files with all OK descendents to update for production %s in this cycle' % transformation )
 
       if problematicFiles:
         if self.removalOKFlag:
@@ -252,7 +236,7 @@ class DataRecoveryAgent( AgentModule ):
           self.log.info( 'Job %s, Files %s' % ( n, v ) )
 
     if not self.enableFlag:
-      self.log.info( '%s is disabled by configuration option EnableFlag\nTherefore no "one-way" operations such as ProductionDB updates are performed.' % ( AGENT_NAME ) )
+      self.log.info( '%s is disabled by configuration option EnableFlag\ntherefore no "one-way" operations such as ProductionDB updates are performed.' % ( AGENT_NAME ) )
 
     return S_OK()
 
@@ -282,7 +266,7 @@ class DataRecoveryAgent( AgentModule ):
       return res
     resDict = {}
     for fileDict in res['Value']:
-      if 'LFN' not in fileDict or self.taskIDName not in fileDict or 'LastUpdate' not in fileDict:
+      if not fileDict.has_key( 'LFN' ) or not fileDict.has_key( self.taskIDName ) or not fileDict.has_key( 'LastUpdate' ):
         self.log.info( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( self.taskIDName, fileDict ) )
         continue
       lfn = fileDict['LFN']
@@ -320,7 +304,7 @@ class DataRecoveryAgent( AgentModule ):
     for jobDict in res['Value']:
       missingKey = False
       for key in [self.taskIDName, self.externalID, 'LastUpdateTime', self.externalStatus, 'InputVector']:
-        if key not in jobDict:
+        if not jobDict.has_key( key ):
           self.log.info( 'Missing key %s for job dictionary, the following is available:\n%s' % ( key, jobDict ) )
           missingKey = True
           continue
@@ -389,9 +373,8 @@ class DataRecoveryAgent( AgentModule ):
     """
     toRemove = []
     problematicJobs = []
-    hasNotAllOutput = []
+    hasReplicaFlag = []
     bkNotReachable = []
-    successfulJobs = []
     for job, fileList in jobFileDict.items():
       if not fileList:
         continue
@@ -408,17 +391,10 @@ class DataRecoveryAgent( AgentModule ):
         bkNotReachable.append( job )
         continue
       jobFiles = result['Value']['Successful'].keys()
-      res = self.Dirac.getJobJDL( job )
-      if not res['OK']:
-        self.log.warn( 'Cannot get JDL for jobs %s', job )
-        outputData = []
-      else:
-        outputData = res['Value'].get( 'ProductionOutputData', [] )
-      hasAllReplicas = []
       for fname in jobFiles:
         descendents = result['Value']['Successful'][fname]
         # IMPORTANT: Descendents of input files can be found with or without replica flags
-        if  descendents:
+        if descendents:
           metadata = self.bkClient.getFileMetadata( descendents )
           if not metadata['OK']:
             self.log.error( 'Could not get metadata from BK with result:\n%s' % ( metadata ) )
@@ -428,63 +404,48 @@ class DataRecoveryAgent( AgentModule ):
             continue
 
           #need to take a decision based on any one descendent having a replica flag
-          descendentsWithReplicas = []
+          descendentsWithReplicas = False
           for d in descendents:
             if metadata['Value'][d]['GotReplica'].lower() == 'yes':
-              descendentsWithReplicas.append( d )
+              descendentsWithReplicas = True
               self.log.verbose( 'Descendent file for %s has replica flag:\n%s => %s' % ( job, fname, d ) )
 
           if descendentsWithReplicas:
             #    With replica flag <====> Job could be OK and files processed, should investigate by hand
-            # get the required output data for that jobs
-            problematic = []
-            if outputData:
-              problematic = [f for f in outputData if f not in descendentsWithReplicas]
-            if problematic:
-              hasNotAllOutput.append( job )
-            else:
-              hasAllReplicas.append( fname )
+            hasReplicaFlag.append( job )
           else:
             #    Without replica flag <====> All data can be removed and a job recreated
             problematicJobs.append( job )
             toRemove += descendents
-      if not [f for f in jobFiles if f not in hasAllReplicas]:
-        self.log.info( "Job %s has successfully uploaded all its outputData, set input files as Processed" % job )
-        successfulJobs.append( job )
 
     if toRemove:
       self.log.info( 'Found %s descendent files of transformation %s without BK replica flag to be removed:\n%s' % ( len( toRemove ), transformation, string.join( toRemove, '\n' ) ) )
 
-    if hasNotAllOutput:
-      self.log.info( 'Found %s jobs with descendent files that do have a BK replica flag, but not all output data' % ( len( hasNotAllOutput ) ) )
+    if hasReplicaFlag:
+      self.log.info( 'Found %s jobs with descendent files that do have a BK replica flag' % ( len( hasReplicaFlag ) ) )
 
     #Now resolve files that can be updated safely (e.g. even if the removalFlag is False these are updated as nothing is to be removed ;)
     problematic = {}
     for probJob in problematicJobs:
-      if probJob in jobFileDict:
-        problematic[probJob] = jobFileDict[probJob]
+      if jobFileDict.has_key( probJob ):
+        pfiles = jobFileDict[probJob]
+        problematic[probJob] = pfiles
         del jobFileDict[probJob]
 
     #Finally resolve the jobs and files for which a descendent has a replica flag
     replicaFlagProblematic = {}
-    for probJob in hasNotAllOutput:
-      if probJob in jobFileDict:
-        replicaFlagProblematic[probJob] = jobFileDict[probJob]
+    for probJob in hasReplicaFlag:
+      if jobFileDict.has_key( probJob ):
+        pfiles = jobFileDict[probJob]
+        replicaFlagProblematic[probJob] = pfiles
         del jobFileDict[probJob]
 
-    # Jobs that are fully OK but in status failed:
-    successful = {}
-    for probJob in successfulJobs:
-      if probJob in jobFileDict:
-        successful[probJob] = jobFileDict[probJob]
-        del jobFileDict[probJob]
-
-    #Remove jobs for which the BK could not be contacted from the jobFileDict
+    #Remove files for which the BK could not be contacted from the jobFileDict
     for removeMe in bkNotReachable:
-      if removeMe in jobFileDict:
+      if jobFileDict.has_key( removeMe ):
         del jobFileDict[removeMe]
 
-    result = {'toremove':toRemove, 'jobsuccess': successful, 'jobfiledictok':jobFileDict, 'jobfiledictproblematic':problematic, 'replicaflagproblematic':replicaFlagProblematic}
+    result = {'toremove':toRemove, 'jobfiledictok':jobFileDict, 'jobfiledictproblematic':problematic, 'replicaflagproblematic':replicaFlagProblematic}
     return S_OK( result )
 
   ############################################################################
