@@ -1,5 +1,8 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
+
+__RCSID__ = "$Id$"
+
 from DIRAC                                                             import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize

@@ -7,7 +7,7 @@
 __RCSID__ = "$Id$"
 
 class fakeClient:
-  def __init__( self, trans, transID, lfns, aIfProd ):
+  def __init__( self, trans, transID, lfns, asIfProd ):
     self.trans = trans
     self.transID = transID
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -23,8 +23,9 @@ class fakeClient:
     return self.files
 
   def getCounters( self, table, attrList, condDict ):
-    if condDict['TransformationID'] == self.transID:
+    if condDict['TransformationID'] == self.transID and self.asIfProd:
       condDict['TransformationID'] = self.asIfProd
+    if condDict['TransformationID'] != self.transID:
       return self.transClient.getCounters( table, attrList, condDict )
     possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
     counters = []
@@ -104,6 +105,9 @@ class fakeClient:
   def setFileStatusForTransformation( self, transID, status, lfns ):
     return DIRAC.S_OK()
 
+  def setFileUsedSEForTransformation( self, transID, se, lfns ):
+    return DIRAC.S_OK()
+
   def prepareForPlugin( self, lfns ):
 
     from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -155,13 +159,14 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
 
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
-  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset" )
+  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares" )
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
 
   Script.registerSwitch( '', 'AsIfProduction=', '   Production # that this test using as source of information' )
   Script.registerSwitch( '', 'AllFiles', '   Sets visible = False (useful if files were marked invisible)' )
+  Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin' )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -171,12 +176,15 @@ if __name__ == "__main__":
 
   asIfProd = None
   allFiles = False
+  debugPlugin = False
   switches = Script.getUnprocessedSwitches()
   for opt, val in switches:
     if opt == 'AsIfProduction':
       asIfProd = int( val )
     elif opt == 'AllFiles':
       allFiles = True
+    elif opt == 'Debug':
+      debugPlugin = True
   #print pluginScript.options
   plugin = pluginScript.options.get( 'Plugin' )
   requestID = pluginScript.options.get( 'RequestID', 0 )
@@ -255,7 +263,7 @@ if __name__ == "__main__":
   # Create a fake transformation client
   lfns = pluginScript.getLFNsForBKQuery( printSEUsage = ( transType == 'Removal' ), visible = visible )
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
-  oplugin = TransformationPlugin( plugin, transClient = fakeClient )
+  oplugin = TransformationPlugin( plugin, transClient = fakeClient, debug = debugPlugin )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   files = fakeClient.getFiles()
