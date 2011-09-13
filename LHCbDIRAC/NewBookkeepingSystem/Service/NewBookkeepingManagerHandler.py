@@ -756,9 +756,9 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     return dataMGMT_.deleteFiles( lfns )
 
   #############################################################################
-  types_insertSimConditions = [StringType, StringType, StringType, StringType, StringType, StringType, StringType]
-  def export_insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity ):
-    return dataMGMT_.insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity )
+  types_insertSimConditions = [StringType, StringType, StringType, StringType, StringType, StringType, StringType, StringType]
+  def export_insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings ):
+    return dataMGMT_.insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings )
 
   #############################################################################
   types_getSimConditions = []

@@ -403,9 +403,9 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity ):
+  def insertSimConditions( self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings ):
     server = self.__getServer()
-    result = server.insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity )
+    result = server.insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings )
     return result
 
   #############################################################################
