@@ -16,12 +16,14 @@
 
 __RCSID__ = "$Id$"
 
+import DIRAC
+from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
-from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
-import DIRAC
 
-import re, string, types
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
+import string, types
 
 COMPONENT_NAME = 'LHCbInputDataResolution'
 
@@ -34,6 +36,7 @@ class InputDataResolution:
     self.arguments = argumentsDict
     self.name = COMPONENT_NAME
     self.log = gLogger.getSubLogger( self.name )
+    self.bkkClient = BookkeepingClient()
 
   #############################################################################
   def execute( self ):
@@ -63,19 +66,22 @@ class InputDataResolution:
     if not result['Successful']:
       return S_ERROR( 'Could not access any requested input data' )
 
-    #TODO: Must define file types in order to pass to POOL XML catalogue.  In the longer
-    #term this will be derived from file catalog metadata information but for now is based
-    #on the file extension types.
     resolvedData = result['Successful']
     tmpDict = {}
     for lfn, mdata in resolvedData.items():
       tmpDict[lfn] = mdata
-      if re.search( '.raw$', lfn ):
-        tmpDict[lfn]['pfntype'] = 'MDF'
-        self.log.verbose( 'Adding PFN file type %s for LFN:%s' % ( 'MDF', lfn ) )
-      else:
-        tmpDict[lfn]['pfntype'] = 'ROOT_All'
-        self.log.verbose( 'Adding PFN file type %s for LFN:%s' % ( 'ROOT_All', lfn ) )
+
+      typeVersion = self.bkkClient.getTypeVersion( lfn )
+      if not typeVersion['OK']:
+        return typeVersion
+
+      typeVersion = typeVersion['Value']
+
+      #FIXME: hopefully this will NOT needed in the future!
+      if typeVersion == '1': typeVersion = 'MDF'
+
+      self.log.verbose( 'Adding PFN file type %s for LFN:%s' % ( typeVersion, lfn ) )
+      tmpDict[lfn]['pfntype'] = typeVersion
 
     resolvedData = tmpDict
 
@@ -86,7 +92,7 @@ class InputDataResolution:
     tmpDict = {}
     for lfn, mdata in resolvedData.items():
       tmpDict[lfn] = mdata
-      if re.search( '.raw$', lfn ):
+      if tmpDict[lfn]['pfntype'] == 'MDF':
         tmpDict[lfn].update( {'turl':'mdf:%s' % ( resolvedData[lfn]['turl'] )} )
         self.log.info( 'Prepending mdf: to TURL for %s' % lfn )
 
