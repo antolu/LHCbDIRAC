@@ -25,7 +25,7 @@ class IBookkeepingDB( object ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
-  def insertFileTypes( self, ftype, desc ):
+  def insertFileTypes( self, ftype, desc, fileType ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################

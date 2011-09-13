@@ -29,8 +29,8 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getAvailableFileTypes()
 
   #############################################################################
-  def insertFileTypes( self, ftype, desc ):
-    return self.getManager().insertFileTypes( ftype, desc )
+  def insertFileTypes( self, ftype, desc, fileType ):
+    return self.getManager().insertFileTypes( ftype, desc, fileType )
 
   #############################################################################
   def insertStep( self, dict ):

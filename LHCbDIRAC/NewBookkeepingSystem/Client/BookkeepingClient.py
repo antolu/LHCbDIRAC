@@ -67,9 +67,9 @@ class BookkeepingClient:
     return retVal
 
   #############################################################################
-  def insertFileTypes( self, ftype, desc ):
+  def insertFileTypes( self, ftype, desc, fileType ):
     server = self.__getServer()
-    return server.insertFileTypes( ftype, desc )
+    return server.insertFileTypes( ftype, desc, fileType )
 
   #############################################################################
   def insertStep( self, dict ):

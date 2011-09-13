@@ -116,7 +116,7 @@ class XMLFilesReaderManager:
       if not result['OK']:
         return S_ERROR( "The type " + str( typeName ) + ", version " + str( typeVersion ) + "is missing.\n" )
       else:
-        typeID = long( result['Value'][0][0] )
+        typeID = long( result['Value'] )
         file.setTypeID( typeID )
 
       params = file.getFileParams()

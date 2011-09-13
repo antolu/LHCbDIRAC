@@ -161,8 +161,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailableFileTypes', [])
 
   #############################################################################
-  def insertFileTypes(self, ftype, desc):
-    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertFileTypes', LongType, [ftype, desc, 'ROOT_All'])
+  def insertFileTypes(self, ftype, desc, fileType):
+    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertFileTypes', LongType, [ftype, desc, fileType])
 
   #############################################################################
   def insertStep(self, dict):
@@ -1414,7 +1414,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def checkFileTypeAndVersion(self, type, version): #fileTypeAndFileTypeVersion(self, type, version):
-    result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.checkFileTypeAndVersion', [type, version])
+    result = self.dbR_.executeStoredFunctions('BOOKKEEPINGORACLEDB.checkFileTypeAndVersion', LongType, [type, version])
+    print result
+    '''
     if result['OK']:
       res = result['Value']
       if len(res) != 0:
@@ -1424,7 +1426,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return S_ERROR("File type not found!" + str(type))
     else:
       return S_ERROR(result['Message'])
-
+    '''
     return result
 
 

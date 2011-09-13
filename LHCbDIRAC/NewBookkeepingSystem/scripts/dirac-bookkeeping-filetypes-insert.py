@@ -45,11 +45,12 @@ exitCode = 0
 
 ftype = raw_input( "FileType: " )
 desc = raw_input( "Description: " )
+version = raw_input( "File type version: " )
 print 'Do you want to add this new file type? (yes or no)'
 value = raw_input( 'Choice:' )
 choice = value.lower()
 if choice in ['yes', 'y']:
-  
+
   fileTypesList = gConfig.getValue( filetypeSection, [] )
   if not fileTypesList:
     print 'ERROR: Could not get value for %s' % ( filetypeSection )
@@ -61,7 +62,7 @@ if choice in ['yes', 'y']:
     fileTypesList.append( ftype.upper() )
     changeCS( filetypeSection, fileTypesList )
     modifiedCS = True
-  res = bk.insertFileTypes( ftype.upper(), desc )
+  res = bk.insertFileTypes( ftype.upper(), desc, version )
   if res['OK']:
     print 'The file types added successfully!'
   else:

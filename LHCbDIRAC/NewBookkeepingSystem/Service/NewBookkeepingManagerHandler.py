@@ -148,9 +148,9 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     return dataMGMT_.getAvailableFileTypes()
 
   #############################################################################
-  types_insertFileTypes = [StringType, StringType]
-  def export_insertFileTypes( self, ftype, desc ):
-    return dataMGMT_.insertFileTypes( ftype, desc )
+  types_insertFileTypes = [StringType, StringType, StringType]
+  def export_insertFileTypes( self, ftype, desc, fileType ):
+    return dataMGMT_.insertFileTypes( ftype, desc, fileType )
 
   #############################################################################
   types_insertStep = [DictType]
