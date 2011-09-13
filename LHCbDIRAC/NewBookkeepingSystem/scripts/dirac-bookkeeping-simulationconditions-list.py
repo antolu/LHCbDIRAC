@@ -33,6 +33,8 @@ if res['OK']:
     print '  MagneticField: ' + str( record[5] ).ljust( 10 )
     print '  DetectorCond: ' + str( record[6] ).ljust( 10 )
     print '  Luminosity: ' + str( record[7] ).ljust( 10 )
+    print '  G4settings: ' + str( record[8] ).ljust( 10 )
+
 else:
   print 'ERROR:', res['Message']
 

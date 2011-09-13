@@ -28,11 +28,12 @@ generator = raw_input( "Generator: " )
 magneticField = raw_input( "MagneticField: " )
 detectorCond = raw_input( "DetectorCond: " )
 luminosity = raw_input( "Luminosity: " )
+G4settings = raw_input( "G4settings: " )
 print 'Do you want to add these new simulation conditions? (yes or no)'
 value = raw_input( 'Choice:' )
 choice = value.lower()
 if choice in ['yes', 'y']:
-  res = bk.insertSimConditions( desc, beamcond, beamEnergy, generator, magneticField, detectorCond, luminosity )
+  res = bk.insertSimConditions( desc, beamcond, beamEnergy, generator, magneticField, detectorCond, luminosity, G4settings )
   if res['OK']:
     print 'The simulation conditions added successfully!'
   else:
