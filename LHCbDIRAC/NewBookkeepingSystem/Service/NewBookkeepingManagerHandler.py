@@ -226,9 +226,9 @@ class NewBookkeepingManagerHandler( RequestHandler ):
       if len( values ) > 0:
         for record in values:
           if record[0] != None:
-            sim_records += [[record[0], record[2], record[3], record[4], record[5], record[6], record[7], record[8]]]
+            sim_records += [[record[0], record[2], record[3], record[4], record[5], record[6], record[7], record[8], record[9]]]
           elif record[1] != None:
-            daq_records += [[record[1], record[9], record[10], record[11], record[12], record[13], record[14], record[15], record[16], record[17], record[18], record[19], record[20], record[21], record[22], record[23], record[24], record[25]]]
+            daq_records += [[record[1], record[10], record[11], record[12], record[13], record[14], record[15], record[16], record[17], record[18], record[19], record[20], record[21], record[22], record[23], record[24], record[25], record[26]]]
           else:
             return S_ERROR( "Condition does not existis!" )
       return S_OK( [{'ParameterNames':sim_parameters, 'Records':sim_records, 'TotalRecords':len( sim_records )}, {'ParameterNames':daq_parameters, 'Records':daq_records, 'TotalRecords':len( daq_records )}] )

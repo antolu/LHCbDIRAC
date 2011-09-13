@@ -12,7 +12,8 @@ from types                                                           import *
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
-from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
+#from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
+from LHCbDIRAC.NewBookkeepingSystem.DB.OracleDB                      import OracleDB
 import datetime
 import types, re
 global ALLOWED_ALL
