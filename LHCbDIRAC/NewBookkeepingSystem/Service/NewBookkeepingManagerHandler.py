@@ -217,7 +217,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     retVal = dataMGMT_.getConditions( configName, configVersion, evt )
     if retVal['OK']:
       values = retVal['Value']
-      sim_parameters = ['SimId', 'Description', 'BeamCondition', 'BeamEnergy', 'Generator', 'MagneticField', 'DetectorCondition', 'Luminosity' ]
+      sim_parameters = ['SimId', 'Description', 'BeamCondition', 'BeamEnergy', 'Generator', 'MagneticField', 'DetectorCondition', 'Luminosity', 'G4settings' ]
       daq_parameters = ['DaqperiodId', 'Description', 'BeamCondition', 'BeanEnergy', 'MagneticField', 'VELO', 'IT', 'TT', 'OT', 'RICH1',
                           'RICH2', 'SPD_PRS', 'ECAL', 'HCAL', 'MUON', 'L0', 'HLT', 'VeloPosition']
       sim_records = []
