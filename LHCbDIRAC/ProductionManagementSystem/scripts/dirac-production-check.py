@@ -144,15 +144,18 @@ def loopOverProds( prodID, fromDate, status ):
   if res['OK']:
     val = res['Value']
     print "\nProduction %s Info:" % ( prodID )
-    infs = val['Production Info']
-    if infs != None:
-      for info in infs:
-        print "Type: %s, Date: %s, EventType: %s" % ( info[0], info[1], info[2] )
-        j = 1
-        for i in range( 1, 7 ):
-          j += 2
-          if info[j] and info[j + 1]:
-            print "Step %s: %s %s" % ( i, info[j], info[j + 1] )
+
+    info = val['Production informations'][0]
+    print "ConfigName: %s, ConfigVersion: %s, EventType: %s" % ( info[0], info[1], info[2] )
+
+    steps = val['Steps']
+    print "Steps used:"
+    for step in steps:
+      print "  Name: %s" % step[0]
+      print "  Application: %s %s" % ( step[1], step[2] )
+      print "  Options %s, config: %s" % ( step[3], step[6] )
+      print "  CondDB: %s, DDDB: %s" % ( step[4], step[5] )
+
     events = val['Number of events']
     print ""
     for event in events:
@@ -173,11 +176,11 @@ def loopOverProds( prodID, fromDate, status ):
 
 # Collect Job data:
 if sequentialProds:
-    for prodID in range( prodIDLow, prodIDHigh + 1 ):
-        loopOverProds( prodID, fromDate, optionJobStatus )
+  for prodID in range( prodIDLow, prodIDHigh + 1 ):
+    loopOverProds( prodID, fromDate, optionJobStatus )
 else:
-    for prodID in args:
-        loopOverProds( int( prodID ), fromDate, optionJobStatus )
+  for prodID in args:
+    loopOverProds( int( prodID ), fromDate, optionJobStatus )
 
 
 DIRAC.exit( exitCode )
