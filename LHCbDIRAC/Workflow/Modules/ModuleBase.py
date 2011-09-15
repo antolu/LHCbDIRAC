@@ -67,6 +67,7 @@ class ModuleBase( object ):
     return jobStatus
 
   #############################################################################
+
   def sendStoredStatusInfo( self ):
     """Wraps around sendStoredStatusInfo of state update client
     """
@@ -86,6 +87,7 @@ class ModuleBase( object ):
     return sendStatus
 
   #############################################################################
+
   def setJobParameter( self, name, value, sendFlag = True ):
     """Wraps around setJobParameter of state update client
     """
@@ -106,6 +108,7 @@ class ModuleBase( object ):
     return jobParam
 
   #############################################################################
+
   def sendStoredJobParameters( self ):
     """Wraps around sendStoredJobParameters of state update client
     """
@@ -125,6 +128,7 @@ class ModuleBase( object ):
     return sendStatus
 
   #############################################################################
+
   def setFileStatus( self, production, lfn, status ):
     """ set the file status for the given production in the Production Database
     """
@@ -144,6 +148,7 @@ class ModuleBase( object ):
     return result
 
   #############################################################################
+
   def setReplicaProblematic( self, lfn, se, pfn = '', reason = 'Access failure' ):
     """ Set replica status to Problematic in the File Catalog
     """
@@ -166,6 +171,7 @@ class ModuleBase( object ):
     return S_OK()
 
   #############################################################################
+
   def getCandidateFiles( self, outputList, outputLFNs, fileMask, stepMask = '' ):
     """ Returns list of candidate files to upload, check if some outputs are missing.
         
@@ -341,3 +347,14 @@ class ModuleBase( object ):
       return True
 
   #############################################################################
+
+  def _checkWFAndStepStatus( self, workflowStatus, stepStatus ):
+
+    if not workflowStatus['OK'] or not stepStatus['OK']:
+      self.log.info( 'Skip this module, failure detected in a previous step :' )
+      self.log.info( 'Workflow status : %s' % ( workflowStatus ) )
+      self.log.info( 'Step Status %s' % ( stepStatus ) )
+      return S_OK()
+
+  #############################################################################
+
