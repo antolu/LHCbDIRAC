@@ -38,7 +38,7 @@ class DataQualityDialog(QDialog, Ui_DataQualityDialog):
     for i in values:
       self.__checkboses.append(QCheckBox(self.groupBox))
       self.__checkboses[j].setObjectName("checkBox")
-      self.gridlayout1.addWidget(self.__checkboses[j],j + 1,0,1,1)
+      self.dataQualityLayout.addWidget(self.__checkboses[j],j + 1,0,1,1)
       self.__checkboses[j].setText(QApplication.translate("DataQualityDialog", i, None, QApplication.UnicodeUTF8))
       self.__checkboses[j].setChecked(values[i])
       j += 1

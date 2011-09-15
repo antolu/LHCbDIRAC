@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>204</width>
-    <height>203</height>
+    <height>208</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,36 +33,7 @@
      <property name="title">
       <string>Flags</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox">
-        <property name="text">
-         <string>OK</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_2">
-        <property name="text">
-         <string>MAYBE</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QCheckBox" name="checkBox_3">
-        <property name="text">
-         <string>BAD</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QCheckBox" name="checkBox_4">
-        <property name="text">
-         <string>EXPRESS_OK</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <layout class="QGridLayout" name="dataQualityLayout"/>
     </widget>
    </item>
   </layout>
