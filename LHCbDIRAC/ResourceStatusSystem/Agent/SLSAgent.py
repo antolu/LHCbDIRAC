@@ -28,6 +28,36 @@ AGENT_NAME = 'ResourceStatus/SLSAgent'
 impl = xml.dom.getDOMImplementation()
 xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
 
+#### Helper functions to send a warning mail to a site (for space-token test)
+
+def get_pledged_value_for_token(st):
+  val = gConfig.getValue("/Resources/StorageElements/"+st+"/PledgedSpace")
+  return (val if val != None else 0)
+
+def contact_mail_of_site(site):
+  infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/Sites/LCG")
+  try:
+    return infos[site]['Mail']
+  except KeyError:
+    gLogger.warn("Unable to get contact mail for site %s" % site)
+    return ""
+
+def send_mail_to_site(site, pledged, token, total):
+  from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+  nc = NotificationClient()
+  subject = "Site %s provide insufficient space for space-token %s" % (site, token)
+  body =  """
+Hi ! Our RSS monitoring systems informs us that your site %s has
+pledged %d TB to the space-token %s, but in reality, only %d TB of
+space is available. Thanks to solve the problem if possible.
+
+""" % (site, pledged, token, total)
+  address = contact_mail_of_site(site)
+  if address != "":
+    res = nc.sendMail(address, subject, body)
+    if res['OK'] == False:
+      gLogger.warn("Unable to send mail to site %s: %s" % (site, res['Message']))
+
 class SpaceTokenOccupancyTest(object):
   def __init__(self, xmlpath):
     self.xmlpath      = xmlpath
@@ -81,7 +111,7 @@ class SpaceTokenOccupancyTest(object):
     if not fake:
       import lcg_util
       answer = lcg_util.lcg_stmd(st, url, True, 0)
-      
+
       if answer[0] == 0:
         output       = answer[1][0]
         total        = float(output['totalsize']) / 2**40 # Bytes to Terabytes
@@ -91,7 +121,7 @@ class SpaceTokenOccupancyTest(object):
         validity     = 'PT13H'
       else:
         gLogger.info("StorageSpace: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
-        
+
     else:
       gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
 
@@ -135,6 +165,12 @@ class SpaceTokenOccupancyTest(object):
       xmlfile.write(prettyXml)
     finally:
       xmlfile.close()
+
+    # Send notifications
+    pledged = get_pledged_value_for_token(st)
+    if not fake and total < pledged:
+      send_mail_to_site(se, pledged, st, total)
+
 
     # Dashboard
     dbfile = open(self.xmlpath + id_ + "_space_monitor", "w")
@@ -632,7 +668,7 @@ there...check your voms role is prodution \n")
 class SLSAgent(AgentModule):
 
   def execute(self):
-    
+
     # FIXME: Get parameters from CS
     SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
     DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
