@@ -35,7 +35,7 @@ class DataQualityDialog(QDialog, Ui_DataQualityDialog):
 
     self.__checkboses = []
     j = 0
-    print 'COOOLLL'
+
     for i in values:
       self.__checkboses.append(QCheckBox(self.groupBox))
       self.__checkboses[j].setObjectName("checkBox")
