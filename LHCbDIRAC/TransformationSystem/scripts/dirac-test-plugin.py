@@ -266,6 +266,16 @@ if __name__ == "__main__":
   oplugin = TransformationPlugin( plugin, transClient = fakeClient, debug = debugPlugin )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
+  # Special case of RAW files registered in CERN-RDST...
+  if plugin == "AtomicRun":
+    for lfn in [lfn for lfn in replicas if "CERN-RDST" in replicas[lfn]]:
+      ses = {}
+      for se in replicas[lfn]:
+        pfn = replicas[lfn][se]
+        if se == "CERN-RDST":
+          se = "CERN-RAW"
+        ses[se] = pfn
+      replicas[lfn] = ses
   files = fakeClient.getFiles()
   if not replicas:
     print "No replicas were found, exit..."
@@ -287,12 +297,18 @@ if __name__ == "__main__":
         if not l in location:
           location.append( l )
       if len( task[1] ) == 1:
+        # Only 1 file in task
         if previousTask['Tasks']:
           if task[0] == previousTask['SEs'] and location == previousTask['Location']:
+            # Accumulate tasks for the same site and with same origin
             previousTask['Tasks'] += 1
             continue
           else:
-            print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+            # Print out previous tasks
+            if i - previousTask['First'] == 1:
+              print '%d' % previousTask['First'], '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+            else:
+              print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
             printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
         previousTask = { 'First': i, 'SEs':task[0], 'Location':location, 'Tasks': 1 }
       else:
@@ -304,7 +320,10 @@ if __name__ == "__main__":
         printFinalSEs( transType, location, task[0] )
     if previousTask['Tasks']:
       i += 1
-      print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+      if i - previousTask['First'] == 1:
+        print '%d' % previousTask['First'], '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+      else:
+        print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
       printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
   else:
     print res['Message']
