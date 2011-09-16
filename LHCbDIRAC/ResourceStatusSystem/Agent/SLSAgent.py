@@ -499,8 +499,8 @@ class LOGSETest(object):
 
   def getxml(self, **kw):
     params = urllib.urlencode(kw)
-    xml = urllib.urlopen(self.lemon_url, params)
-    return xml
+    xml_ = urllib.urlopen(self.lemon_url, params)
+    return xml_
 
   class LemonHandler(xml.sax.handler.ContentHandler):
     def __init__(self):
@@ -665,6 +665,51 @@ there...check your voms role is prodution \n")
       else                                         : return self.timeout
     return time.time() - start_time
 
+class CondDBTest(object):
+  def __init__(self, xmlpath):
+    self.xmlpath = xmlpath
+    # Get ConDB infos
+    self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
+
+    # For each CondDB, run the test and generate XML file
+    for site in self.CDB_infos:
+      self.dblookup(site)
+
+  def dblookup(self, site):
+    """The magic function that does a db lookup taking a site as an
+    argument. Writing it is the main difficulty :))
+    Calls generate_xml with the right parameters...
+    """
+    regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
+    time_ = 0.0 # FIXME: Implement
+    availability = 0 #FIXME: Implement
+    self.generate_xml(site, time_, availability)
+
+  def generate_xml(self, site, time_, availability):
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                              "serviceupdate",
+                              None)
+    xml_append(doc, "id", site + "CondDB")
+    xml_append(doc, "availability", availability)
+    elt = xml_append(doc, "availabilitythresholds")
+    xml_append(doc, "threshold", 5, elt=elt, level="degraded")
+    xml_append(doc, "threshold", 10, elt=elt, level="affected")
+    xml_append(doc, "threshold", 15, elt=elt, level="available")
+    xml_append(doc, "refreshperiod", "PT27M")
+    xml_append(doc, "validityduration", 'PT13H')
+    elt2 = xml_append(doc, "data")
+    xml_append(doc, "numericvalue", str(time_), elt=elt2, name="Time to access CondDB")
+    xml_append(doc, "textvalue", "ConditionDB access timex", elt=elt2)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+
+    xmlfile = open(self.xmlpath + site + ".xml", "w")
+    try:
+      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
+      prettyXml = xml_re.sub('>\g<1></', uglyXml)
+      xmlfile.write(prettyXml)
+    finally:
+      xmlfile.close()
+
 class SLSAgent(AgentModule):
 
   def execute(self):
@@ -673,5 +718,6 @@ class SLSAgent(AgentModule):
     SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
     DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
     #    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
+    #    CondDBTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/condDB/")
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
