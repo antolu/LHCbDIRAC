@@ -443,7 +443,6 @@ class SEUsageAgent( AgentModule ):
       # hack necessary to deal with SARA's storage dumps:
       if 'files-outside-space-tokens.txt' in inputFileP1:
         continue
-      #splitFile = inputFileP1.split( '-' )
       splitFile = inputFileP1.split( '.' )
       st = splitFile[ 0 ]
       if not self.spaceTokens[ site ][ st ][ 'Check']:
@@ -473,8 +472,9 @@ class SEUsageAgent( AgentModule ):
           size = splitLine[1].lstrip()
           updated = splitLine[2].lstrip()
           newLine = filePath + ' ' + size + ' ' + updated
-          fP2.write( "%s\n" % newLine )
-          #fP2.write( "%s" % newLine )
+          if newLine[-1] != "\n":
+            newLine = "%s\n" % newLine
+          fP2.write( "%s" % newLine )
           processedLines += 1
         except:
           gLogger.error( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
@@ -717,7 +717,7 @@ class SEUsageAgent( AgentModule ):
       p2 = outputFileMerged[ st ]['pointerToMergedFile' ]
       p2.close()
 
-    # produce directory summaries:
+    gLogger.info("--------------------- Produce directory summaries files:")
     mergedFilesList = os.listdir( pathToInputFiles )
     for file in mergedFilesList:
       if 'Merged' not in file:
@@ -734,6 +734,8 @@ class SEUsageAgent( AgentModule ):
       processedLines = 0 # counts all processed lines
       self.dirDict = {}
       for line in open( fileP2, "r" ).readlines():
+        if not line:
+          continue # skip empty lines
         totalLines += 1
         splitLine = line.split()
         PFNfilePath = splitLine[ 0 ]
