@@ -711,8 +711,8 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
 
     # Generate shell snipplet that will run the test
     env_script = """#!/bin/bash
-source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh
-SetupProject LHCb v31r5 --use-grid
+. /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh
+. SetupProject.sh LHCb v31r5 --use-grid
 gaudirun.py options.py > result.log
 """
     env_file = open("run_condDB_test.sh", "w")
@@ -770,6 +770,15 @@ gaudirun.py options.py > result.log
     elt2 = xml_append(doc, "role", name="reader")
     xml_append(doc, "parameter", elt=elt2, name="user", value=self.CDB_infos[site]["Username"])
     xml_append(doc, "parameter", elt=elt2, name="password", value=self.CDB_infos[site]["Password"])
+
+    elt = xml_append(doc, "connection", name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb")
+    xml_append(doc, "parameter", elt=elt, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt=elt, name="password", value=self.CDB_infos[site]["Password"])
+    elt2 = xml_append(doc, "role", name="reader")
+    xml_append(doc, "parameter", elt=elt2, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt=elt2, name="password", value=self.CDB_infos[site]["Password"])
+
+
     xmlfile = open("authentication.xml", "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
