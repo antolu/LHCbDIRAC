@@ -727,6 +727,7 @@ gaudirun.py options.py > result.log
 
     # Go back to previous directory
     os.chdir(oldcwd)
+    ### END OF TEST
 
   def run_test(self, site):
     # Generate the dblookup.xml and authentication.xml files needed by gaudirun.py
@@ -734,22 +735,26 @@ gaudirun.py options.py > result.log
     self.generate_authentication_file(site)
 
     # Run the shell snipplet that will output to result.log
-    import time
-    a = time.time()
     ret = subprocess.call(["bash", "run_condDB_test.sh"])
-    print "subprocess returns value %d in %d seconds" % (ret,time.time()-a)
-    
 
-    # See result, for now.
-#    res = open("result.log")
-#    print res.read()
+    if ret == 0:
+      try:
+        res = open("result.log", "r")
+        res_string = res.read()
+      finally:
+        res.close()
 
-#    regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
+        regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
+        reRes = regExp.search(res_string)
+        loadTime = float(reRes.group(6))
+        availability = 100
 
-#    time_ = 0.0 # FIXME: Implement
-#    availability = 0 #FIXME: Implement
+    else:
+      loadTime = 0
+      availability = 0
 
-    #self.generate_xml(site, time_, availability)
+    # Generate XML file
+    self.generate_xml(site, loadTime, availability)
 
   def generate_lookup_file(self, site):
     doc = impl.createDocument(None, "servicelist", None)
