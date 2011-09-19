@@ -734,17 +734,20 @@ gaudirun.py options.py > result.log
     self.generate_authentication_file(site)
 
     # Run the shell snipplet that will output to result.log
-    sp = subprocess.Popen("run_condDB_test.sh", executable="bash")
-    sp.wait()
+    import time
+    a = time.time()
+    ret = subprocess.call(["bash", "run_condDB_test.sh"])
+    print "subprocess returns value %d in %d seconds" % (ret,time.time()-a)
+    
 
     # See result, for now.
-    res = open("result.log")
-    print res.read()
+#    res = open("result.log")
+#    print res.read()
 
-    regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
+#    regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
 
-    time_ = 0.0 # FIXME: Implement
-    availability = 0 #FIXME: Implement
+#    time_ = 0.0 # FIXME: Implement
+#    availability = 0 #FIXME: Implement
 
     #self.generate_xml(site, time_, availability)
 
