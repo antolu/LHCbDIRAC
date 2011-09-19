@@ -6,9 +6,12 @@ __RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 import DIRAC
 from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities.List                                         import sortList
 
 def printResult( dictionary, offset = 0, shift = 0, empty = "Empty directory" ):
-  from DIRAC.Core.Utilities.List                                         import sortList
+  printDMResultDict( dictionary, offset, shift, empty )
+
+def printDMResultDict( dictionary, offset = 0, shift = 0, empty = "Empty directory" ):
   """ Dictionary pretty printing """
   key_max = 0
   value_max = 0
@@ -39,11 +42,12 @@ class DMScript():
   bkQueryDict = {}
   def __init__( self ):
     from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-    self.bkFields = [ "ConfigName", "ConfigVersion", "DataTakingConditions", "ProcessingPass", "EventType", "FileType" ]
+    self.bkFields = [ "ConfigName", "ConfigVersion", "ConditionDescription", "ProcessingPass", "EventType", "FileType" ]
     self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
     self.bk = BookkeepingClient()
     self.bkFileTypes = []
     self.options['ExceptFileType'] = []
+    self.prodCacheForBKQuery = {}
 
   def registerDMSwitches( self ) :
     self.registerBKSwitches()
@@ -94,10 +98,7 @@ class DMScript():
 
   def setFileType( self, arg ):
     fileTypes = arg.split( ',' )
-    if 'HIST' in fileTypes:
-      self.__excludeHistFiles()
-      fileTypes.pop( 'HIST' )
-    self.options['FileType'] += fileTypes
+    self.options['FileType'] = fileTypes
     return DIRAC.S_OK()
 
   def setExceptFileType( self, arg ):
@@ -119,6 +120,7 @@ class DMScript():
         if i in self.bkFields + self.extraBKitems and j:
           self.bkQueryDict[i] = j
     except:
+      self.bkQueryDict = {}
       self.options['BKQuery'] = arg
     return DIRAC.S_OK()
 
@@ -160,10 +162,6 @@ class DMScript():
   def getOption( self, switch, default = None ):
     return self.options.get( switch, default )
 
-  def __excludeHistFiles( self ):
-    self.__setBKFileTypes()
-    self.options['ExceptFileType'] += [ft for ft in self.bkFileTypes if ft.endswith( 'HIST' )]
-
   def __setBKFileTypes( self ):
     if not self.bkFileTypes:
       res = self.bk.getAvailableFileTypes()
@@ -171,55 +169,99 @@ class DMScript():
         dbresult = res['Value']
         for record in dbresult['Records']:
           self.bkFileTypes.append( record[0] )
+          if record[0].endswith( 'HIST' ):
+            self.options['ExceptFileType'].append( record[0] )
 
   def buildBKQuery( self, visible = True ):
-    bkQuery = self.options.get( 'BKQuery' )
+    import os
+    if self.bkQueryDict:
+      return self.bkQueryDict
+    bkPath = self.options.get( 'BKQuery' )
     prods = self.options.get( 'Productions' )
     runs = self.options.get( 'Runs' )
-    if not bkQuery and not prods and not runs:
+    if not bkPath and not prods and not runs:
       return {}
     fileType = None
     if visible:
-      bkQueryDict = {'Visible': 'Yes'}
+      bkQuery = {'Visible': 'Yes'}
     else:
-      bkQueryDict = {}
+      bkQuery = {}
     if runs:
       if runs[0]:
-        bkQueryDict['StartRun'] = runs[0]
+        bkQuery['StartRun'] = runs[0]
       if runs[1]:
-        bkQueryDict['EndRun'] = runs[1]
+        bkQuery['EndRun'] = runs[1]
 
-    if bkQuery:
-      bkQuery = bkQuery.replace( "RealData", "Real Data" )
-      if bkQuery[0] == '/':
-        bkQuery = bkQuery[1:].replace( "RealData", "Real Data" )
-      bk = bkQuery.split( '/' )
-      missingNodes = len( self.bkFields ) - len( bk )
-      if missingNodes > 0:
-        bk += missingNodes * ['']
-      if bk[0] != 'MC' and not bk[-2]:
-        # Set default event type to real data
-        bk[-2] = '90000000'
-      try:
-        bkNodes = [bk[0], bk[1], bk[2], '/' + '/'.join( bk[3:-2] ), bk[-2], bk[-1]]
-      except:
-        print "Incorrect BKQuery...\nSyntax: %s" % '/'.join( self.bkFields )
-        return ( None, None )
-      if bkNodes[0] == "MC" or bk[-2][0] != '9':
-        self.bkFields[2] = "SimulationConditions"
-      for i in range( len( self.bkFields ) ):
-          if bkNodes[i] and bkNodes[i] != '/' and not bkNodes[i].upper().endswith( 'ALL' ):
-            bkQueryDict[self.bkFields[i]] = bkNodes[i]
-      fileType = bkQueryDict.get( 'FileType' )
+    ###### Query given as a path /ConfigName/ConfigVersion/ConditionDescription/ProcessingPass/EventType/FileType ######
+    if bkPath:
+      if bkPath[0] != '/':
+        return {}
+      bkPath = bkPath.replace( "RealData", "Real Data" )
+      bk = bkPath.split( '/' )[1:] + len( self.bkFields ) * ['']
+      i = 0
+      processingPass = '/'
+      for b in bk:
+        if self.bkFields[i] == 'ProcessingPass':
+          if b != '' and b.upper() != 'ALL' and not b.isdigit():
+            processingPass = os.path.join( processingPass, b )
+            continue
+          if processingPass != '':
+            bkQuery[self.bkFields[i]] = processingPass
+          i += 1
+        if b != '':
+          bkQuery[self.bkFields[i]] = b
+        i += 1
+        if i == len( self.bkFields ):
+          break
 
+      # Set default event type to real data
+      if bkQuery['ConfigName'] != 'MC' and not bkQuery.get( 'EventType' ):
+        bkQuery['EventType'] = '90000000'
+      # Set conditions
+      bkQuery = self.setBKConditions( bkQuery, bkQuery.get( 'ConditionDescription' ) )
+      # Set both event type entries
+      if 'EventType' in bkQuery:
+        bkQuery['EventTypeId'] = bkQuery['EventType']
+
+    ###### Query given as a list of production ######
     if prods and str( prods[0] ).upper() != 'ALL':
-        bkQueryDict.setdefault( 'ProductionID', [] ).extend( prods )
-    fileType = self.__fileType( fileType )
-    if fileType:
-      bkQueryDict['FileType'] = fileType
+        bkQuery.setdefault( 'ProductionID', [] ).extend( prods )
 
-    self.bkQueryDict.update( bkQueryDict )
+    # Set the file type(s) taking into account excludes file types
+    fileType = self.__fileType( bkQuery.get( 'FileType' ) )
+    if fileType:
+      bkQuery['FileType'] = fileType
+    elif 'FileType' in bkQuery:
+      # The requested file type is not available: set an impossible type
+      bkQuery['FileType'] = 'None'
+
+    # Remove all "ALL"'s in the dict
+    for i in bkQuery.copy():
+      if type( bkQuery[i] ) == type( '' ) and bkQuery[i].upper() == 'ALL':
+        bkQuery.pop( i )
+    # Keep a copy of the BK dictionary and return it to the user
+    self.bkQueryDict = bkQuery.copy()
+    #print bkQuery
     return self.bkQueryDict
+
+  def setBKConditions( self, bkQuery = bkQueryDict, cond = None ):
+    """ Set the dictionary items for a given condition, or remove it (cond=None) """
+    # There are two items in the dictionary: ConditionDescription and Simulation/DataTaking-Conditions
+    eventType = bkQuery.get( 'EventType', 'ALL' )
+    if bkQuery['ConfigName'] == 'MC' or ( eventType.upper() != 'ALL' and eventType[0] != '9' ):
+      conditionsKey = 'SimulationConditions'
+    else:
+      conditionsKey = 'DataTakingConditions'
+    if cond == None:
+      try:
+        bkQuery.pop( 'ConditionDescription' )
+        bkQuery.pop( conditionKey )
+      except:
+        pass
+    else:
+      bkQuery['ConditionDescription'] = cond
+      bkQuery[conditionsKey] = bkQuery['ConditionDescription']
+    return bkQuery
 
   def __fileType( self, fileType = None ):
     self.__setBKFileTypes()
@@ -231,26 +273,32 @@ class DMScript():
       fileTypes = fileType
     else:
       fileTypes = fileType.split( ',' )
+    if fileTypes[0].upper() == "ALL":
+      fileTypes = self.bkFileTypes
     expandedTypes = []
     for fileType in fileTypes:
       if fileType.lower().find( "all." ) == 0:
         ext = '.' + fileType.split( '.' )[1]
         fileType = []
-        expandedTypes = [ft for ft in self.bkFileTypes if ft.endswith( ext )]
+        expandedTypes += [ft for ft in self.bkFileTypes if ft.endswith( ext )]
       else:
         expandedTypes.append( fileType )
+    expandedTypes = [t for t in expandedTypes if t not in self.options.get( 'ExceptFileType', [] )]
     if len( expandedTypes ) == 1:
-      expandedTypes = expandedTypes[0]
+      return expandedTypes[0]
     else:
-      expandedTypes = [t for t in expandedTypes if t not in self.options.get( 'ExceptFileType', [] ) and not t.endswith( 'HIST' )]
-    return expandedTypes
+      return expandedTypes
 
-  def getRequestID( self ):
+  def getRequestID( self, prod = None ):
+    """ Get the request ID for a single production """
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-    prods = self.options.get( 'Productions', [] )
+    if not prod:
+      prod = self.options.get( 'Productions', [] )
     requestID = None
-    if type( prods ) == type( '' ):
-      prods = [prods]
+    if type( prod ) == type( '' ):
+      prods = [prod]
+    else:
+      prods = prod
     if len( prods ) == 1 and str( prods[0] ).upper() != 'ALL':
           res = TransformationClient().getTransformation( prods[0] )
           if res['OK']:
@@ -263,33 +311,83 @@ class DMScript():
   def getLFNsForBKQuery( self, printSEUsage = False, printOutput = True, visible = True ):
     return self.__makeBKQuery( printSEUsage = printSEUsage, printOutput = printOutput, visible = visible )[0]
 
-  def __getFilesFromBK( self, bkDict, printOutput ):
+  def getFilesFromBK( self, bkQuery = bkQueryDict, printOutput = False ):
     self.__setBKFileTypes()
-    res = self.bk.getFilesWithGivenDataSets( bkDict )
+    query = bkQuery.copy()
+    res = self.bk.getFilesWithGivenDataSets( query )
     lfns = []
     lfnSize = 0
     if res['OK']:
       lfns = res['Value']
       exceptFiles = self.options.get( 'ExceptFileType' )
-      if exceptFiles:
-        res = self.bk.getFileMetadata( lfns )
+      if exceptFiles and not query.get( 'FileType' ):
+        query['FileType'] = exceptFiles
+        res = self.bk.getFilesWithGivenDataSets( query )
+        if 'FileType' in bkQuery:
+          query['FileType'] = bkQuery['FileType']
+        else:
+          query.pop( 'FileType' )
         if res['OK']:
-          metadata = res['Value']
-          lfns = [lfn for lfn in metadata if metadata[lfn]['FileType'] not in exceptFiles]
+          lfnsExcept = [lfn for lfn in res['Value'] if lfn in lfns]
+        if lfnsExcept:
+          print "***** WARNING ***** Found %d files in BK query that will be excluded (in %s)!" % ( len( lfnsExcept ), str( exceptFiles ) )
+          print "                    If creating a transformation, set '--FileType ALL'"
+          lfns = [lfn for lfn in lfns if lfn not in lfnsExcept]
         else:
-          metadata = {}
+          exceptFiles = False
       if printOutput:
+        query["FileSize"] = True
+        res = self.bk.getFilesWithGivenDataSets( query )
+        if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
+          lfnSize = res['Value'][0]
         if exceptFiles:
-          lfnSize = 0
-          for lfn in lfns:
-            lfnSize += metadata[lfn]['FileSize']
-        else:
-          bkDict.update( {"FileSize":True} )
-          res = self.bk.getFilesWithGivenDataSets( bkDict )
+          query['FileType'] = exceptFiles
+          res = self.bk.getFilesWithGivenDataSets( query )
           if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
-            lfnSize = res['Value'][0]
+            lfnSize -= res['Value'][0]
+
     lfnSize /= 1000000000000.
     return ( lfns, lfnSize )
+
+  def getLFNSize( self, bkQuery = bkQueryDict, visible = True ):
+    query = bkQuery.copy()
+    if visible:
+      query['Visible'] = 'Yes'
+    elif 'Visible' in query:
+      query.pop( 'Visible' )
+    query.update( {"FileSize":True} )
+    res = self.bk.getFilesWithGivenDataSets( query )
+    if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
+      lfnSize = res['Value'][0]
+    else:
+      lfnSize = 0
+    return lfnSize
+
+  def getNumberOfFiles( self, bkQuery = bkQueryDict, visible = True ):
+    fileTypes = bkQuery.get( 'FileType' )
+    if not fileTypes:
+      fileTypes = ['']
+    elif type( fileTypes ) != type( [] ):
+      fileTypes = [fileTypes]
+    query = bkQuery.copy()
+    if visible:
+      query['Visible'] = 'Yes'
+    elif 'Visible' in query:
+      query.pop( 'Visible' )
+    nbFiles = 0
+    size = 0
+    for fileType in fileTypes:
+      if fileType:
+        query['FileType'] = fileType
+        res = self.bk.getFilesSumary( query )
+        #print res
+        if res['OK']:
+          res = res['Value']
+          ind = res['ParameterNames'].index( 'NbofFiles' )
+          nbFiles += res['Records'][0][ind]
+          ind = res['ParameterNames'].index( 'FileSize' )
+          size += res['Records'][0][ind]
+    return nbFiles, size
 
   def __makeBKQuery( self, printSEUsage = False, printOutput = True, visible = True ):
     from DIRAC.Core.DISET.RPCClient                                  import RPCClient
@@ -301,18 +399,18 @@ class DMScript():
     elif 'Visible' in bkQueryDict:
       bkQueryDict.pop( 'Visible' )
     prods = bkQueryDict.get( 'ProductionID' )
-    lfns = []
+    bkQuery = bkQueryDict.copy()
     if prods and type( prods ) == type( [] ):
-      bkDict = bkQueryDict.copy()
+      # It's faster to loop on a list of prods than query the BK with a list as argument
+      lfns = []
       lfnSize = 0
       for prod in prods:
-        bkDict['ProductionID'] = prod
-        lfnList, size = self.__getFilesFromBK( bkDict, printOutput )
+        bkQuery['ProductionID'] = prod
+        lfnList, size = self.getFilesFromBK( bkQuery, printOutput )
         lfns += lfnList
         lfnSize += size
     else:
-      bkDict = bkQueryDict.copy()
-      lfns, lfnSize = self.__getFilesFromBK( bkDict, printOutput )
+      lfns, lfnSize = self.getFilesFromBK( bkQuery, printOutput )
     if len( lfns ) == 0:
       print "No files found for BK query..."
       return ( [], [] )
@@ -324,7 +422,9 @@ class DMScript():
       dirs[dir] = dirs.setdefault( dir, 0 ) + 1
     if printOutput:
       print "\n%d files (%.1f TB) in directories:" % ( len( lfns ), lfnSize )
-      for dir in dirs.keys():
+      dirSorted = dirs.keys()
+      dirSorted.sort()
+      for dir in dirSorted:
         print dir, dirs[dir], "files"
 
       if printSEUsage:
@@ -349,32 +449,113 @@ class DMScript():
     return ( lfns, dirs.keys() )
 
   def getProductionsFromBKQuery( self, bkQuery = bkQueryDict, visible = True ):
-    if not bkQuery:
-      bkQuery = self.buildBKQuery( visible = visible )
+    query = bkQuery.copy()
+    if not query:
+      query = self.buildBKQuery( visible = visible )
     elif visible:
-      bkQuery['Visible'] = 'Yes'
-    elif 'Visible' in bkQuery:
-      bkQuery.pop( 'Visible' )
-    if 'ConditionDescription' not in bkQuery and 'DataTakingConditions' in bkQuery:
-      bkQuery['ConditionDescription'] = bkQuery['DataTakingConditions']
-    res = self.bk.getProductions( bkQuery )
+      query['Visible'] = 'Yes'
+    elif 'Visible' in query:
+      query.pop( 'Visible' )
+    for key in ( 'DataTakingConditions', 'SimulationConditions' ):
+      if 'ConditionDescription' not in query and key in query:
+        query['ConditionDescription'] = query[key]
+        query.pop( key )
+    bkStr = str( query )
+    if bkStr in self.prodCacheForBKQuery:
+      return self.prodCacheForBKQuery[bkStr]
+    res = self.bk.getProductions( query )
     if not res['OK']:
       return []
-    fileTypes = bkQuery.get( 'FileType', None )
-    if type( fileTypes ) == type( '' ):
+    prodList = [prod for p in res['Value']['Records'] for prod in p]
+    fileTypes = query.get( 'FileType', None )
+    if type( fileTypes ) != type( [] ):
       fileTypes = [fileTypes]
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     transClient = TransformationClient()
-    prodList = [prod for p in res['Value']['Records'] for prod in p]
     pList = []
-    for prod in prodList:
-      res = transClient.getBookkeepingQueryForTransformation( prod )
-      if res['OK']:
-        prodBKQuery = res['Value']
-        if not fileTypes or prodBKQuery['FileType'] in fileTypes:
-          pList.append( prod )
+    if fileTypes:
+      for prod in prodList:
+        res = transClient.getBookkeepingQueryForTransformation( prod )
+        if res['OK']:
+          prodBKQuery = res['Value']
+          if prodBKQuery['FileType'] in fileTypes:
+            pList.append( prod )
     if not pList:
-      return prodList
-    else:
-      return pList
+      pList = prodList
+    self.prodCacheForBKQuery[bkStr] = pList
+    return pList
 
+  def getBKConditions( self, bkQuery = bkQueryDict ):
+    for conditionsKey in ( 'ConditionDescription', "DataTakingConditions", "SimulationConditions" ):
+      conditions = bkQuery.get( conditionsKey )
+      if conditions:
+        if type( conditions ) != type( [] ):
+          conditions = [conditions]
+        return conditions
+    res = self.bk.getConditions( bkQuery )['Value']
+    conditions = []
+    for r in res:
+      ind = r['ParameterNames'].index( 'Description' )
+      if r['Records']:
+        conditions += [p[ind] for p in r['Records']]
+        break
+    return sortList( conditions )
+
+  def getBKEventTypes( self, bkQuery = bkQueryDict ):
+    eventType = bkQuery.get( "EventType" )
+    if eventType:
+      if type( eventType ) != type( [] ):
+        eventType = [eventType]
+      return eventType
+    res = self.bk.getEventTypes( bkQuery )['Value']
+    ind = res['ParameterNames'].index( 'EventTypeId' )
+    return sortList( [f[ind] for f in res['Records']] )
+
+  def getBKFileTypes( self, bkQuery = bkQueryDict ):
+    fileTypes = bkQuery.get( 'FileType' )
+    if not fileTypes:
+      res = self.bk.getFileTypes( bkQuery )
+      #print bkQuery, res
+      if res['OK']:
+        res = res['Value']
+        ind = res['ParameterNames'].index( 'FileTypes' )
+        fileTypes = [f[ind] for f in res['Records']]
+    fileTypes = self.__fileType( fileTypes )
+    if type( fileTypes ) != type( [] ):
+      fileTypes = [fileTypes]
+    else:
+      fileTypes.sort()
+    return fileTypes
+
+  def getBKProcessingPasses( self, bkQuery = bkQueryDict ):
+    import os
+    query = bkQuery.copy()
+    if 'ConditionDescription' not in query and 'DataTakingConditions' in query:
+      query['ConditionDescription'] = query['DataTakingConditions']
+    if 'ConditionDescription' not in query and 'SimulationConditions' in query:
+      query['ConditionDescription'] = query['SimulationConditions']
+    initialPP = query.get( 'ProcessingPass', '/' )
+    #print query
+    res = self.bk.getProcessingPass( query, initialPP )
+    if res['OK']:
+      passes = res['Value']
+    else:
+      return [initialPP]
+    processingPass = []
+    #print passes
+    for r in passes:
+      if 'Name' in r['ParameterNames']:
+        ind = r['ParameterNames'].index( 'Name' )
+        processingPass += [os.path.join( initialPP, f[ind] ) for f in r['Records']]
+    nextProcessingPass = []
+    for p in processingPass:
+      query['ProcessingPass'] = p
+      nextProcessingPass += self.getBKProcessingPasses( query )
+    processingPass += [p for p in nextProcessingPass if p not in processingPass]
+    if initialPP not in processingPass and initialPP != '/':
+      processingPass.append( initialPP )
+    for p in ( '/Real Data', '/' ):
+      if p in processingPass:
+        processingPass.remove( p )
+    #print initialPP, sortList(processingPass)
+    return sortList( processingPass )

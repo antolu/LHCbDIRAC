@@ -33,7 +33,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.registerSwitch( "S:", "Size", "   Get the LFN size [No]" )
-  Script.registerSwitch( '', 'Invisible', '   Show invisible files [No]' )
+  Script.registerSwitch( '', 'Invisible', '   Show invisible files also [No]' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
   Script.parseCommandLine( ignoreErrors = False )
 
