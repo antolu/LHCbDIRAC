@@ -21,7 +21,7 @@ from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
-import sys, re
+import os, sys, re
 
 from DIRAC  import S_OK, S_ERROR
 
@@ -175,10 +175,9 @@ class StorageHistoryAgent( AgentModule ):
     else:
       self.log.notice( "%s records for Storage type successfully committed" % numRows )
 
-
-    ###
-    # Accounting records relative to the DataStorage type:
-    ###
+    self.log.notice("-------------------------------------------------------------------------------------\n")
+    self.log.notice("Generate accounting records for DataStorage type ")
+    self.log.notice("-------------------------------------------------------------------------------------\n")
     # work flow:
     # 1- queries the BKK client to get the set of data taking conditions relative to: eventType=93000000,ConfigVersion': 'Collision10', 'ConfigName': 'LHCb'.
     # 2- loops on the data taking conditions and retrieve for each of them the set of all existing processing passes.
@@ -194,11 +193,77 @@ class StorageHistoryAgent( AgentModule ):
     self.totalRecords = 0
     self.recordsToCommit = 0
     self.limitForCommit = 200
+   
+    self.eventTypeDescription = {}
+    self.persistentDictList = [] # persistency Bookkeeping dictionary    
+    self.log.notice(" Try to read persistentDict from disk..")
+    self.bkkDictFile = '/opt/dirac/work/DataManagement/StorageHistoryAgent/bkkPersistentDict.txt'
+    
+    if not os.path.exists(self.bkkDictFile):
+      self.log.notice("Could not read persistent Bkk dictionary from file => regenerate the dictionary")
+      res = self.generateBookkeepingDictionary()
+      if not res[ 'OK' ]:
+        self.log.error("ERROR! %s " % res )
+        return S_ERROR( res )
+    
+    self.log.notice("Reading Bookkeeping persistent dictionary from file %s " % self.bkkDictFile )
+    for line in open( self.bkkDictFile , "r" ).readlines():
+      thisList = eval( line )
+      self.persistentDictList.append( thisList ) # list of Bkk dictionaries
+    totalBookkeepingQueries = len( self.persistentDictList )
+    processedBookkeepingQueries = 0
+    self.log.notice("Total number of cached Bookkeeping queries to be processed: %d " % totalBookkeepingQueries ) 
+    self.numDataRows = 0 # count the total number of records sent to the accounting
+    self.dict1 = {}
+    for bkkDict in self.persistentDictList:
+      #self.log.notice("Bkk dictionary : %s " % bkkDict)
+      self.dict1[ 'ConfigName' ] = bkkDict[ 'ConfigName' ]
+      self.dict1[ 'ConfigVersion' ] = bkkDict[ 'ConfigVersion' ]
+      self.dict1[ 'EventTypeId' ] = bkkDict[ 'EventTypeId' ]
+      self.dict1[ 'EventTypeDescription' ] = bkkDict[ 'EventTypeDescription' ]
+      self.dict1[ 'dataTypeFlag' ] = bkkDict[ 'dataTypeFlag' ]
+      self.dict1[ 'ConditionDescription' ] = bkkDict[ 'ConditionDescription' ]
+      # loop on processing pass
+      self.proPassTuples = []
+      self.getProcessingPass( bkkDict, '/' )  # this function stores in the self.proPassTuples variable a list of processing pass tuples.
+      for proPassTuple in sortList( self.proPassTuples ): # loop on processing passes
+        rawDataFlag = False # True only for RAW data
+        self.log.notice( "proPassTuple: %s" % proPassTuple )
+        if proPassTuple == '/Real Data': #RAW DATA
+          rawDataFlag = True
+ 
+        self.dict1['ProcessingPass'] = proPassTuple
+        self.dict1['rawDataFlag'] = rawDataFlag
+        self.log.notice( "Call getStorageUsage with dict: %s " % self.dict1 )          
+        res = self.getStorageUsage()
+        if not res[ 'OK' ]:
+          self.log.error( "ERROR!! self.getStorageUsage returned ERROR! %s" % res )
+          #return S_ERROR( res )
+          continue
+      processedBookkeepingQueries += 1
+      progress = 1.0*processedBookkeepingQueries/totalBookkeepingQueries
+      self.log.notice("Bookkeeping queries processed so far: %d ( %f of total queries ) " % ( processedBookkeepingQueries, progress ) )
+
+
+    self.log.notice( "Sending %d records to DataStore for the DataStorage type" % self.numDataRows )
+    res = gDataStoreClient.commit()
+    if not res[ 'OK' ]:
+      self.log.notice( "ERROR: commit returned: %s " % res )
+      return S_ERROR( res )
+    self.log.notice("-------------------------------------------------------------------------------------\n")
+    self.log.notice("------ End of cycle report ----------------------------------------------------------\n")
+    self.log.notice( "End of full BKK browsing: total records sent to accounting for DataStorage:  %d " % self.totalRecords )
+    self.log.notice( "Total Bookkeeping queries to process: %d and correctly processed: %d " %(totalBookkeepingQueries, processedBookkeepingQueries) )
+    return S_OK()
+
+#..................................................................................
+  def generateBookkeepingDictionary( self ):
+    """ Generate the list of Bkk dictionaries and store them on disk """
+
 
     bkDict = {}
-    self.numDataRows = 0 # count the total number of records sent to the accounting
-    self.eventTypeDescription = {}
-    numRows = 0
+    mainBkDict = {}
+    count = 0
     res = self.bkClient.getAvailableConfigNames()
     if not res[ 'OK' ]:
       return S_ERROR( res )
@@ -214,240 +279,192 @@ class StorageHistoryAgent( AgentModule ):
       for v in configVersions:  # loop on configVersions
         configVersion = v[ 0 ]
         bkDict[ 'ConfigVersion' ] = configVersion
+        self.log.notice( " Getting event types for %s " % bkDict )
         res = self.bkClient.getEventTypes ( bkDict )
         if not res[ 'OK' ]:
           return S_ERROR( res )
         eventTypes = res['Value']['Records']
-        self.log.notice( " ConfigName, ConfigVersion:  %s , %s" % ( configName, configVersion ) )
         self.log.notice( "--> EventTypes: %s " % eventTypes )
         for ev in eventTypes:
           eventTypeId = ev[ 0 ]
           bkDict[ 'EventTypeId' ] = eventTypeId
-          self.eventTypeDescription[ eventTypeId ] = ev[ 1 ]
-          self.log.notice( "Call getDataTakingConditionsAndSU with dict: %s " % bkDict )
-          self.dict1 = bkDict
-          res = self.getDataTakingConditionsAndSU()
+          bkDict[ 'EventTypeDescription' ] = ev[ 1 ]
+          self.log.notice( " Getting conditions for %s " % bkDict )
+          res = self.bkClient.getConditions( bkDict )
           if not res[ 'OK' ]:
-            self.log.error( "getDataTakingConditionsAndSU returned ERROR! %s" % res )
-            #return S_ERROR( res )
-            continue
-          if QUICKLOOP:# for debugging purpose (will be removed later)
-            break
-        if QUICKLOOP:# for debugging purpose (will be removed later)
-          break
-      if QUICKLOOP:# for debugging purpose (will be removed later)
-        break
-    self.log.notice( "Sending %d records to DataStore for the DataStorage type" % self.numDataRows )
-    res = gDataStoreClient.commit()
-    if not res[ 'OK' ]:
-      self.log.notice( "ERROR: commit returned: %s " % res )
-      return S_ERROR( res )
-    self.log.notice( "End of full BKK browsing: total records sent to accounting for DataStorage:  %d " % self.totalRecords )
-    return S_OK()
+            return S_ERROR( res )
+          # res['Value'][0] stores SIMULATION CONDITIONS: filled only for simulated data
+          # res['Value'][1] stores DATA TAKING CONDITIONS: filled only for real data
+          if ( res['Value'][1]['TotalRecords'] + res['Value'][0]['TotalRecords'] == 0 ):
+            self.log.error( "ERROR: empty getConditions query for dict1= %s" % bkDict )
+            return S_OK( res )
+          dataTypeFlag = '' # either RealData or SimData
+          if res['Value'][1]['TotalRecords'] > 0:
+            self.log.notice( "Returned conditions are relative to REAL DATA for dict= %s" % bkDict )
+            index = 1
+            dataTypeFlag = 'RealData'
+          elif res['Value'][0]['TotalRecords'] > 0:
+            self.log.notice( "Returned conditions are relative to SIMULATED DATA for dict= %s" % bkDict )
+            index = 0
+            dataTypeFlag = 'SimData'
+          records = res[ 'Value' ][ index ][ 'Records' ] # records is a list of Data taking conditions tuples
+          for dataTakingTuple in records:
+            dataTakingCond = dataTakingTuple[ 1 ]   # Description
+            bkDict[ 'ConditionDescription' ] = dataTakingCond
+            bkDict[ 'dataTypeFlag' ] = dataTypeFlag
+ 
+            count += 1
+            mainBkDict[ count ] = {}
+            mainBkDict[ count ]['ConfigName'] = bkDict['ConfigName']
+            mainBkDict[ count ]['ConfigVersion'] = bkDict['ConfigVersion']
+            mainBkDict[ count ]['EventTypeId'] = bkDict['EventTypeId']
+            mainBkDict[ count ]['EventTypeDescription'] = bkDict['EventTypeDescription']
+            mainBkDict[ count ]['dataTypeFlag'] = bkDict['dataTypeFlag']
+            mainBkDict[ count ]['ConditionDescription'] = bkDict['ConditionDescription']
 
+    fp = open( self.bkkDictFile, "w")
+    for k in mainBkDict.keys():
+      fp.write( "%s\n" % mainBkDict[ k ] )
+    fp.close()
+    self.log.notice( "Bookkeeping persistent dictionary written to file: %s " % self.bkkDictFile )
 
+    return S_OK( mainBkDict )
 
+#....................................................................................................
 
-  def getDataTakingConditionsAndSU( self ):
+  def getStorageUsage( self ):
 
-    """ Takes in input a dictionary containing eventType and configName and configVersion, and compute the possible dataTaking conditions
-    - then calls the getProcPassWithCondTaking and get all the possible processing pass in a recursive way
-    - then gets all possible productions and event types and queries the StorageUsage service to get the space usage per SE
+    """ Takes in input a dictionary containing ConfigName, ConfigVersion, EventType, Conditions, ProcessingPass and gets the productions/runs
+    and file type, and then queries the StorageUsage service to get the space usage per SE
     """
 
-    res = self.bkClient.getConditions( self.dict1 )
     now = Time.dateTime()
-    eventTypeDesc = self.eventTypeDescription[ self.dict1['EventTypeId'] ] # needed to send it to accounting (instead of numeric ID)
+    eventTypeDesc = self.dict1['EventTypeDescription' ] # needed to send it to accounting (instead of numeric ID)
     eventTypeDesc = str( self.dict1['EventTypeId'] ) + '-' + eventTypeDesc
-    self.log.notice( "eventTypeDescription %s" % eventTypeDesc )
-    if not res[ 'OK' ]:
-      return S_ERROR( res )
-    # res['Value'][0] stores SIMULATION CONDITIONS: filled only for simulated data
-    # res['Value'][1] stores DATA TAKING CONDITIONS: filled only for real data
-    if ( res['Value'][1]['TotalRecords'] + res['Value'][0]['TotalRecords'] == 0 ):
-      self.log.notice( "WARNING: empty getConditions query for dict1= %s" % self.dict1 )
-      return S_OK( res )
-    dataTypeFlag = '' # either RealData or SimData
+    self.log.debug( "eventTypeDescription %s" % eventTypeDesc )
+    #dataTypeFlag = '' # either RealData or SimData
     LFCBasePath = {'RealData': '/lhcb/', 'SimData': '/lhcb/MC/'}
-    if res['Value'][1]['TotalRecords'] > 0:
-      self.log.notice( "Returned conditions are relative to REAL DATA for dict1= %s" % self.dict1 )
-      index = 1
-      dataTypeFlag = 'RealData'
-    elif res['Value'][0]['TotalRecords'] > 0:
-      self.log.notice( "Returned conditions are relative to SIMULATED DATA for dict1= %s" % self.dict1 )
-      index = 0
-      dataTypeFlag = 'SimData'
-    records = res[ 'Value' ][ index ][ 'Records' ]
-    # records is a list of Data taking conditions tuples
-    dataTakingConds = {}
-    for dataTakingTuple in records:
-      dataTakingCondID = dataTakingTuple[ 0 ] # numeric ID
-      dataTakingCond = dataTakingTuple[ 1 ]   # Description
-      if not dataTakingCond in dataTakingConds.keys():
-        dataTakingConds[ dataTakingCond ] = dataTakingCondID
-
-    processingPassTotals = {}
-    self.log.notice( "Starts loop on Conditions list: %s" % dataTakingConds.keys() )
-    for dataTakingCond in sortList( dataTakingConds.keys() ):
-      self.log.notice( "Processing DataTaking conditions: %s" % dataTakingCond )
-      self.report.write( "\n===============\ndataTakingCond= %s\n===============\n" % ( dataTakingCond ) )
-      self.proPassTuples = []
-      self.getProcPassWithCondTaking( dataTakingCond, '/' )  # this function stores in the self.proPassTuples variable a list of processing pass tuples.
-      processedProcessingPasses = []
-      for proPassTuple in sortList( self.proPassTuples ): # loop on processing passes
-        rawDataFlag = False # True only for RAW data
-        self.log.notice( "proPassTuple: %s" % proPassTuple )
-        if proPassTuple == '/Real Data': #RAW DATA
-          rawDataFlag = True
-        dict3 = {}
-        dict3[ 'ConfigName' ] = self.dict1[ 'ConfigName' ]
-        dict3[ 'ConfigVersion' ] = self.dict1[ 'ConfigVersion' ]
-        dict3[ 'EventTypeId' ] = self.dict1[ 'EventTypeId']
-        dict3[ 'ProcessingPass' ] = proPassTuple
-        dict3[ 'ConditionDescription'] = dataTakingCond
-        # get list of productions for every tuple (ConfigName, ConfigVersion, ProcessingPass, ConditionDescription)
-        res = self.bkClient.getProductions( dict3 )
-        self.log.notice( " dict3 : %s " % dict3 )
-        if not res[ 'OK' ]:
-          self.log.notice( "ERROR: could not get productions for dict %s Error: %s" % ( dict3, res['Message'] ) )
-          return S_ERROR( res )
-        productions = sortList( [x[0] for x in res[ 'Value' ][ 'Records' ]] )
-        if productions == []:
-          self.log.notice( "WARNING: EMPTY QUERY ! no Production available for dict3= %s" % dict3 )
+    dict3 = {}
+    dict3[ 'ConfigName' ] = self.dict1[ 'ConfigName' ]
+    dict3[ 'ConfigVersion' ] = self.dict1[ 'ConfigVersion' ]
+    dict3[ 'EventTypeId' ] = self.dict1[ 'EventTypeId']
+    dict3[ 'EventTypeDescription' ] = self.dict1[ 'EventTypeDescription' ]
+    dict3[ 'ProcessingPass' ] = self.dict1[ 'ProcessingPass' ]
+    dict3[ 'ConditionDescription'] = self.dict1[ 'ConditionDescription' ]
+    dict3[ 'dataTypeFlag' ] = self.dict1[ 'dataTypeFlag' ] 
+    dict3[ 'rawDataFlag'] = self.dict1[ 'rawDataFlag' ] # True for RAW data only
+    # get list of productions for every tuple (ConfigName, ConfigVersion, ProcessingPass, ConditionDescription)
+    self.log.notice( " Get productions for dict3 : %s " % dict3 )
+    res = self.bkClient.getProductions( dict3 )
+    if not res[ 'OK' ]:
+      self.log.error( "ERROR: could not get productions for dict %s Error: %s" % ( dict3, res['Message'] ) )
+      return S_ERROR( res )
+    productions = sortList( [x[0] for x in res[ 'Value' ][ 'Records' ]] )
+    if productions == []:
+      self.log.notice( "WARNING: EMPTY QUERY ! no Production available for dict3= %s" % dict3 )
+      return S_OK()
+    self.log.notice( "Got the productions list: %s" % productions )
+    for prodID in productions:
+      # get File Types (only for MC and reconstructed data, as for RAW data is only RAW)
+      if not dict3[ 'rawDataFlag']:
+      # gets the number of events and the fileType
+        #res = self.bkClient.getNumberOfEvents( prodID )
+        res = self.bkClient.getFileTypes( dict3 )
+        # returns a list of tuples of type: ('DAVINCIHIST', None, 91000000, 33154)
+        if not res['OK']:
+          self.log.notice( "ERROR getting number of events for prod %s, Error: %s" % ( prodID, res['Message'] ) )
           continue
-        self.report.write( "\n\t%s (%s)\n" % ( proPassTuple, intListToString( sortList( productions ) ) ) )
-        self.log.notice( "Got the productions list: %s" % productions )
-        my_total = 0
-        my_total_perSE = {}
-        for prodID in productions:
-          #self.log.notice( "Getting number of evts for prod: %s " % prodID )
-          res = self.bkClient.getNumberOfEvents( prodID )
-          # returns a list of tuples of type: ('DAVINCIHIST', None, 91000000, 33154)
-          if not res['OK']:
-            self.log.notice( "ERROR getting number of events for prod %s, Error: %s" % ( prodID, res['Message'] ) )
+        else:
+          for eventNumberTuple in res['Value']:
+            self.log.notice( "for prod %d got this events: %s" % ( prodID, eventNumberTuple ) )
+        #prodFileTypes = sortList( [x[0] for x in res['Value']] )
+        prodFileTypes = reduce(lambda x,y:x+y, res['Value']['Records'])
+        prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
+      # for raw data set the only file type as 'RAW'.
+      # for non-raw data, add the HIST, SETC, DST file type to the list (to be checked why)
+      #if not dict3[ 'rawDataFlag']:
+        prodFileTypes.append( 'HIST' )
+        if 'DST' not in prodFileTypes:
+          prodFileTypes.append( 'DST' )
+        if 'SETC' not in prodFileTypes:
+          prodFileTypes.append( 'SETC' )
+      else:
+        prodFileTypes = [ 'RAW' ]
+      self.log.notice( "For prod %d list of event types: %s" % ( prodID, prodFileTypes ) )
+      dataPath = LFCBasePath[ dict3[ 'dataTypeFlag'] ]
+      for prodFileType in prodFileTypes:
+        # get the LOGICAL usage with getSummary, except for raw data
+        if not dict3[ 'rawDataFlag']:
+          res = self.__stDB.getSummary( dataPath, prodFileType, prodID )
+          if not res[ 'OK' ]:
+            self.log.error( "ERROR: getSummary failed with message: %s" % ( res['Message'] ) )
+            return S_ERROR( res )
+          logicalFiles = 0
+          logicalSize = 0
+          logicalUsage = res[ 'Value' ]
+          for dir in logicalUsage.keys():
+            logicalFiles += logicalUsage[ dir]['Files']
+            logicalSize += logicalUsage[ dir ]['Size']
+        else: # for RAW data ask the Bkk to get the logical storage usage (size and number of LFNs)
+          if prodID < 0:
+            runNo = -1 * prodID
+          else:
+            self.log.error( "ERROR: For RAW data the returned productionID should be negative! prodID = %d" % prodID )
             continue
-          else:
-            for eventNumberTuple in res['Value']:
-              self.log.notice( "for prod %d got this events: %s" % ( prodID, eventNumberTuple ) )
-            #resFileType, resEvtNumber, resEventType, physEventNumber = eventNumberTuple
+          res = self.bkClient.getRunInformations( runNo )
+          if not res[ 'OK' ]:
+            self.log.error( "ERROR: getRunInformations failed with message: %s" % ( res['Message'] ) )
+            return S_ERROR( res )
+          logicalFiles = 0
+          logicalSize = 0
+          for size in res[ 'Value']['File size']:
+            logicalSize += size
+          for file in res['Value']['Number of file']:
+            logicalFiles += file
 
-          prodFileTypes = sortList( [x[0] for x in res['Value']] )
-          prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
-          # for raw data set the only file type as 'RAW'.
-          # for non-raw data, add the HIST, SETC, DST file type to the list (to be checked why)
-          if not rawDataFlag:
-            prodFileTypes.append( 'HIST' )
-            if 'DST' not in prodFileTypes:
-              prodFileTypes.append( 'DST' )
-            if 'SETC' not in prodFileTypes:
-              prodFileTypes.append( 'SETC' )
-          else:
-            prodFileTypes = [ 'RAW' ]
-          self.log.notice( "For prod %d list of event types: %s" % ( prodID, prodFileTypes ) )
-          dataPath = LFCBasePath[ dataTypeFlag ]
-          for prodFileType in prodFileTypes:
-            # get the LOGICAL usage with getSummary, except for raw data
-            if not rawDataFlag:
-              #res = self.suClient.getSummary( dataPath, prodFileType, prodID )
-              res = self.__stDB.getSummary( dataPath, prodFileType, prodID )
-              if not res[ 'OK' ]:
-                self.log.error( "ERROR: getSummary failed with message: %s" % ( res['Message'] ) )
-                return S_ERROR( res )
-              logicalFiles = 0
-              logicalSize = 0
-              logicalUsage = res[ 'Value' ]
-              for dir in logicalUsage.keys():
-                logicalFiles += logicalUsage[ dir]['Files']
-                logicalSize += logicalUsage[ dir ]['Size']
-            else: # for RAW data ask the Bkk to get the logical storage usage (size and number of LFNs)
-              if prodID < 0:
-                runNo = -1 * prodID
-              else:
-                self.log.error( "ERROR: For RAW data the returned productionID should be negative! prodID = %d" % prodID )
-                continue
-              res = self.bkClient.getRunInformations( runNo )
-              if not res[ 'OK' ]:
-                self.log.error( "ERROR: getRunInformations failed with message: %s" % ( res['Message'] ) )
-                return S_ERROR( res )
-              logicalFiles = 0
-              logicalSize = 0
-              for size in res[ 'Value']['File size']:
-                logicalSize += size
-              for file in res['Value']['Number of file']:
-                logicalFiles += file
+        self.log.notice( "Logical usage for fileType = %s, prod/run = %d => files: %d size: %f GB" % ( prodFileType, prodID, logicalFiles, logicalSize / byteToGB ) )
 
-
-            self.log.notice( "Logical usage for fileType = %s, prod/run = %d => files: %d size: %f GB" % ( prodFileType, prodID, logicalFiles, logicalSize / byteToGB ) )
-
-            # get the storage usage in terms of PFNs:
-            if not rawDataFlag:
-              self.log.notice( "Calling getStorageSummary with path= %s prodFileType= %s prodID= %d " % ( dataPath, prodFileType, prodID ) )
-              #res = self.suClient.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
-              res = self.__stDB.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
-            else: # RAW data
-              self.log.notice( "Calling getRunSummaryPerSE with run= %d " % ( runNo ) )
-              #res = self.suClient.getRunSummaryPerSE( runNo )
-              res = self.__stDB.getRunSummaryPerSE( runNo )
-            if not res[ 'OK' ]:
-              self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
-              return S_ERROR( res )
-            else:
-              self.log.notice( "Physical storage usage %s" % res['Value'] )
-            usageDict = res[ 'Value' ]
-            for seName in sortList( usageDict.keys() ):
-              files = usageDict[seName]['Files']
-              size = usageDict[seName]['Size']
-              # create a record to be sent to the accounting:
-              self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %d ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( self.dict1['ConfigName'] , self.dict1['ConfigVersion'], prodFileType, prodID, proPassTuple, dataTakingCond, eventTypeDesc, seName, files, size ) )
-              dataRecord = DataStorage()
-              dataRecord.setStartTime( now )
-              dataRecord.setEndTime( now )
-              dataRecord.setValueByKey( "DataType", self.dict1['ConfigName'] )
-              dataRecord.setValueByKey( "Activity", self.dict1['ConfigVersion'] )
-              dataRecord.setValueByKey( "FileType", prodFileType )
-              #if rawDataFlag:
-              #  res = dataRecord.setValueByKey( "Production", runNo )
-              #else:
-              res = dataRecord.setValueByKey( "Production", prodID )
-              if not res[ 'OK' ]:
-                self.log.notice( "Accounting ERROR prod %s , res= %s" % ( prodID, res ) )
-              dataRecord.setValueByKey( "ProcessingPass", proPassTuple )
-              dataRecord.setValueByKey( "Conditions", dataTakingCond )
-              dataRecord.setValueByKey( "EventType", eventTypeDesc )
-              dataRecord.setValueByKey( "StorageElement", seName )
-              dataRecord.setValueByKey( "PhysicalSize", size )
-              dataRecord.setValueByKey( "PhysicalFiles", files )
-              dataRecord.setValueByKey( "LogicalSize", logicalSize )
-              dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
-              res = gDataStoreClient.addRegister( dataRecord )
-              if not res[ 'OK']:
-                self.log.notice( "ERROR: In getDataTakingConditionsAndSU addRegister returned: %s" % res )
-              self.numDataRows += 1
-              self.totalRecords += 1
-              self.recordsToCommit += 1
-              if seName not in my_total_perSE.keys():
-                my_total_perSE[ seName ] = {}
-                my_total_perSE[seName][ 'Size' ] = 0
-                my_total_perSE[seName][ 'Files' ] = 0
-              my_total_perSE[seName][ 'Size' ] += size
-              my_total_perSE[seName][ 'Files' ] += files
-
-
-        self.report.write( "Totals per SE ( DataTakingCond=%s, ProcPass=%s )\n" % ( dataTakingCond, proPassTuple ) )
-        self.report.write( "   SE                       Size(GB) \n" )
-        tot_geral = 0
-        for SeTOT in sortList( my_total_perSE.keys() ):     # sortList(fileDict.keys()):
-          tot_SE = my_total_perSE[SeTOT][ 'Size' ] / byteToGB
-          tot_geral += tot_SE
-          self.report.write( "%s %s\n" % ( str( SeTOT ).ljust( 15 ), str( "%.1f" % ( tot_SE ) ).rjust( 20 ) ) )
-          self.report.write( "------------------------------------ \n" )
-        self.report.write( "%s %s\n\n" % ( str( "TOTAL" ).ljust( 15 ), str( "%.1f" % ( tot_geral ) ).rjust( 20 ) ) )
-        if not processingPassTotals.has_key( dataTakingCond ):
-          continue
-        if not processingPassTotals[dataTakingCond].has_key( proPassName ):
-          continue
-      if QUICKLOOP: # for debugging
-        break
+        # get the storage usage in terms of PFNs:
+        if not dict3[ 'rawDataFlag']:
+          self.log.notice( "Calling getStorageSummary with path= %s prodFileType= %s prodID= %d " % ( dataPath, prodFileType, prodID ) )
+          res = self.__stDB.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
+        else: # RAW data
+          self.log.notice( "Calling getRunSummaryPerSE with run= %d " % ( runNo ) )
+          res = self.__stDB.getRunSummaryPerSE( runNo )
+        if not res[ 'OK' ]:
+          self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
+          return S_ERROR( res )
+        else:
+          self.log.notice( "Physical storage usage %s" % res['Value'] )
+        usageDict = res[ 'Value' ]
+        for seName in sortList( usageDict.keys() ):
+          files = usageDict[seName]['Files']
+          size = usageDict[seName]['Size']
+          # create a record to be sent to the accounting:
+          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %d ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], prodFileType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, files, size ) )
+          dataRecord = DataStorage()
+          dataRecord.setStartTime( now )
+          dataRecord.setEndTime( now )
+          dataRecord.setValueByKey( "DataType", dict3['ConfigName'] )
+          dataRecord.setValueByKey( "Activity", dict3['ConfigVersion'] )
+          dataRecord.setValueByKey( "FileType", prodFileType )
+          res = dataRecord.setValueByKey( "Production", prodID )
+          if not res[ 'OK' ]:
+            self.log.notice( "Accounting ERROR prod %s , res= %s" % ( prodID, res ) )
+          dataRecord.setValueByKey( "ProcessingPass", dict3['ProcessingPass'] )
+          dataRecord.setValueByKey( "Conditions", dict3['ConditionDescription'] )
+          dataRecord.setValueByKey( "EventType", dict3['EventTypeDescription'] )
+          dataRecord.setValueByKey( "StorageElement", seName )
+          dataRecord.setValueByKey( "PhysicalSize", size )
+          dataRecord.setValueByKey( "PhysicalFiles", files )
+          dataRecord.setValueByKey( "LogicalSize", logicalSize )
+          dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
+          res = gDataStoreClient.addRegister( dataRecord )
+          if not res[ 'OK']:
+            self.log.notice( "ERROR: In getStorageUsage addRegister returned: %s" % res )
+          self.numDataRows += 1
+          self.totalRecords += 1
+          self.recordsToCommit += 1
     if self.recordsToCommit > self.limitForCommit:
       res = gDataStoreClient.commit()
       if not res[ 'OK' ]:
@@ -455,22 +472,25 @@ class StorageHistoryAgent( AgentModule ):
       else:
         self.log.notice( "%d records committed " % self.recordsToCommit )
         self.recordsToCommit = 0
-      self.log.notice( "In getDataTakingConditionsAndSU commit returned: %s" % res )
+      self.log.notice( "In getStorageUsage commit returned: %s" % res )
     return S_OK()
 
 #..............................................................................................................
 
 
 
-  def getProcPassWithCondTaking( self, dataTakingCond, path ):
-    # retrieves all processing pass recursively from the initial path '/', for a given data taking condition
+  def getProcessingPass( self, thisDict, path ):
+    # retrieves all processing pass recursively from the initial path '/', for the given bkk dictionary
 
     dict2 = {}
-    dict2[ 'ConfigName'] = self.dict1[ 'ConfigName' ]
-    dict2[ 'ConfigVersion'] = self.dict1[ 'ConfigVersion' ]
-    dict2[ 'EventTypeId' ] = self.dict1[ 'EventTypeId' ]
-    dict2[ 'ConditionDescription'] = dataTakingCond
-
+    #dict2[ 'ConfigName'] = self.dict1[ 'ConfigName' ]
+    #dict2[ 'ConfigVersion'] = self.dict1[ 'ConfigVersion' ]
+    #dict2[ 'EventTypeId' ] = self.dict1[ 'EventTypeId' ]
+    #dict2[ 'ConditionDescription'] = dataTakingCond
+    dict2[ 'ConfigName'] = thisDict[ 'ConfigName' ]
+    dict2[ 'ConfigVersion'] = thisDict[ 'ConfigVersion' ]
+    dict2[ 'EventTypeId' ] = thisDict[ 'EventTypeId' ]
+    dict2[ 'ConditionDescription'] = thisDict['ConditionDescription']
 
     res = self.bkClient.getProcessingPass( dict2, path )
     if not res[ 'OK' ]:
@@ -485,7 +505,7 @@ class StorageHistoryAgent( AgentModule ):
         else:
           newpath = "%s/%s" % ( path, rec[0] )
         self.proPassTuples += [newpath]
-        self.getProcPassWithCondTaking( dataTakingCond, newpath )
+        self.getProcessingPass( dict2, newpath )
 
     return S_OK()
 
