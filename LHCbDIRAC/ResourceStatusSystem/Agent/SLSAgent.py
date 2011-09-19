@@ -19,7 +19,7 @@ from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManag
 import xml.dom, xml.sax
 import time
 import urlparse, urllib
-import sys, re
+import sys, re, os, subprocess
 
 __RCSID__ = "$Id$"
 
@@ -666,24 +666,115 @@ there...check your voms role is prodution \n")
     return time.time() - start_time
 
 class CondDBTest(object):
-  def __init__(self, xmlpath):
+  def __init__(self, xmlpath, workDirectory):
     self.xmlpath = xmlpath
     # Get ConDB infos
     self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
 
+    # Go to work directory
+    oldcwd = os.getcwd()
+    os.chdir(workDirectory)
+
+    # Generate options file
+    options = """from Gaudi.Configuration import *
+from GaudiConf.Configuration import *
+
+from Configurables import LoadDDDB
+from Configurables import CondDB
+
+from Configurables import COOLConfSvc
+def disableLFC():
+    COOLConfSvc(UseLFCReplicaSvc = False)
+appendPostConfigAction(disableLFC)
+
+
+# ---------- option to use Oracle CondDB instead of SQLDDDB
+CondDB(UseOracle = True, IgnoreHeartBeat = True)
+
+LHCbApp(DataType = '2010')
+
+ApplicationMgr().EvtSel     = "NONE"
+ApplicationMgr().EvtMax     = 1
+
+ApplicationMgr().TopAlg  = [ "GaudiSequencer" ]
+GaudiSequencer().Members += [ "LoadDDDB" ]
+GaudiSequencer().MeasureTime = True
+
+# ---------- option to select only a subtree
+LoadDDDB(Node = '/dd/Structure/LHCb')
+"""
+    options_file = open("options.py", "w")
+    try:
+      options_file.write(options)
+    finally:
+      options_file.close()
+
+    # Generate shell snipplet that will run the test
+    env_script = """#!/bin/bash
+source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh
+SetupProject LHCb v31r5 --use-grid
+gaudirun.py options.py > result.log
+"""
+    env_file = open("run_condDB_test.sh", "w")
+    try:
+      env_file.write(env_script)
+    finally:
+      env_file.close()
+
     # For each CondDB, run the test and generate XML file
     for site in self.CDB_infos:
-      self.dblookup(site)
+      self.run_test(site)
 
-  def dblookup(self, site):
-    """The magic function that does a db lookup taking a site as an
-    argument. Writing it is the main difficulty :))
-    Calls generate_xml with the right parameters...
-    """
+    # Go back to previous directory
+    os.chdir(oldcwd)
+
+  def run_test(self, site):
+    # Generate the dblookup.xml and authentication.xml files needed by gaudirun.py
+    self.generate_lookup_file(site)
+    self.generate_authentication_file(site)
+
+    # Run the shell snipplet that will output to result.log
+    sp = subprocess.Popen("run_condDB_test.sh", executable="bash")
+    sp.wait()
+
+    # See result, for now.
+    res = open("result.log")
+    print res.read()
+
     regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
+
     time_ = 0.0 # FIXME: Implement
     availability = 0 #FIXME: Implement
-    self.generate_xml(site, time_, availability)
+
+    #self.generate_xml(site, time_, availability)
+
+  def generate_lookup_file(self, site):
+    doc = impl.createDocument(None, "servicelist", None)
+    elt = xml_append(doc, "logicalservice", name="CondDB")
+    xml_append(doc, "service", elt=elt, name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb",
+               accessMode="readonly", authentication="password")
+    elt2 = xml_append(doc, "logicalservice", name="CondDBOnline")
+    xml_append(doc, "service", elt=elt2, name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb",
+               accessMode="readonly", authentication="password")
+    xmlfile = open("dblookup.xml", "w")
+    try:
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
+
+  def generate_authentication_file(self, site):
+    doc = impl.createDocument(None, "connectionlist", None)
+    elt = xml_append(doc, "connection", name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb")
+    xml_append(doc, "parameter", elt=elt, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt=elt, name="password", value=self.CDB_infos[site]["Password"])
+    elt2 = xml_append(doc, "role", name="reader")
+    xml_append(doc, "parameter", elt=elt2, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt=elt2, name="password", value=self.CDB_infos[site]["Password"])
+    xmlfile = open("authentication.xml", "w")
+    try:
+      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+    finally:
+      xmlfile.close()
 
   def generate_xml(self, site, time_, availability):
     doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
@@ -715,9 +806,9 @@ class SLSAgent(AgentModule):
   def execute(self):
 
     # FIXME: Get parameters from CS
-    SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
-    DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
+    # SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
+    # DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
     #    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
-    #    CondDBTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/condDB/")
+    CondDBTest("/afs/cern.ch/user/v/vibernar/www/sls/condDB/", self.am_getWorkDirectory())
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
