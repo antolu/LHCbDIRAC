@@ -248,15 +248,15 @@ def dict_invert(dict_):
 
 # XML utils
 
-def xml_append(doc, tag, value=None, elt=None, **kw):
+def xml_append(doc, tag, value_=None, elt_=None, **kw):
   new_elt = doc.createElement(tag)
   for k in kw:
     new_elt.setAttribute(k, kw[k])
-  if value != None:
-    textnode = doc.createTextNode(str(value))
+  if value_ != None:
+    textnode = doc.createTextNode(str(value_))
     new_elt.appendChild(textnode)
-  if elt != None:
-    return elt.appendChild(new_elt)
+  if elt_ != None:
+    return elt_.appendChild(new_elt)
   else:
     return doc.documentElement.appendChild(new_elt)
 

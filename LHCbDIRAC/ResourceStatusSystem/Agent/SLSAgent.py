@@ -137,22 +137,22 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
     # FIXME: Put the thresholds into the CS
-    xml_append(doc, "threshold", value=15, elt=elt, level="available")
-    xml_append(doc, "threshold", value=10, elt=elt, level="affected")
-    xml_append(doc, "threshold", value=5, elt=elt, level="degraded")
+    xml_append(doc, "threshold", value_=15, elt_=elt, level="available")
+    xml_append(doc, "threshold", value_=10, elt_=elt, level="affected")
+    xml_append(doc, "threshold", value_=5, elt_=elt, level="degraded")
     xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
     xml_append(doc, "availabilitydesc", "FreeSpace less than 4TB implies 0%-99% ;\
   FreeSpace greater than  4TB is always  100%")
     xml_append(doc, "refreshperiod", "PT27M")
     xml_append(doc, "validityduration", validity)
     elt = xml_append(doc, "data")
-    elt2 = xml_append(doc, "grp", name="Space occupancy", elt=elt)
-    xml_append(doc, "numericvalue", value=str(total-free), elt=elt2, name="Consumed")
-    xml_append(doc, "numericvalue", value=str(total), elt=elt2, name="Capacity")
-    xml_append(doc, "numericvalue", value=str(free), elt=elt, name="Free space")
-    xml_append(doc, "numericvalue", value=str(total-free), elt=elt, name="Occupied space")
-    xml_append(doc, "numericvalue", value=str(total), elt=elt, name="Total space")
-    xml_append(doc, "textvalue", "Storage space for the specific space token", elt=elt)
+    elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
+    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt2, name="Consumed")
+    xml_append(doc, "numericvalue", value_=str(total), elt_=elt2, name="Capacity")
+    xml_append(doc, "numericvalue", value_=str(free), elt_=elt, name="Free space")
+    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
+    xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
+    xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
     self.rmDB.updateSLSStorage(se, st, availability, "PT27M", validity, total, guaranteed, free)
@@ -280,11 +280,11 @@ class DIRACTest(object):
       res = res['Value']
       xml_append(doc, "availability", 100)
       elt = xml_append(doc, "data")
-      xml_append(doc, "numericvalue", res['service uptime'], elt=elt,
+      xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
                  name="Service Uptime", desc="Seconds since last restart of service")
-      xml_append(doc, "numericvalue", res['host uptime'], elt=elt,
+      xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
                  name="Host Uptime", desc="Seconds since last restart of machine")
-      xml_append(doc, "numericvalue", res['load'].split()[0], elt=elt,
+      xml_append(doc, "numericvalue", res['load'].split()[0], elt_=elt,
                  name="Load", desc="Instantaneous load")
       xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
 
@@ -337,20 +337,20 @@ class DIRACTest(object):
       xml_append(doc, "notes", "Service " + url + " completely up and running")
 
       elt = xml_append(doc, "data")
-      xml_append(doc, "numericvalue", res['service uptime'], elt=elt,
+      xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
                  name="Service Uptime", desc="Seconds since last restart of service")
-      xml_append(doc, "numericvalue", res['host uptime'], elt=elt,
+      xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
       self.rmDB.updateSLST1Services(site, service, 100, res['service uptime'], res['host uptime'])
 
       if system == "RequestManagement":
         for k,v in res2["Value"].items():
-          xml_append(doc, "numericvalue", v["Assigned"], elt=elt,
+          xml_append(doc, "numericvalue", v["Assigned"], elt_=elt,
                      name=k + " - Assigned", desc="Number of Assigned " + k + "requests")
-          xml_append(doc, "numericvalue", v["Waiting"], elt=elt,
+          xml_append(doc, "numericvalue", v["Waiting"], elt_=elt,
                      name=k + " - Waiting", desc="Number of Waiting " + k + "requests")
-          xml_append(doc, "numericvalue", v["Done"], elt=elt,
+          xml_append(doc, "numericvalue", v["Done"], elt_=elt,
                      name=k + " - Done", desc="Number of Done " + k + "requests")
 
       gLogger.info("%s/%s successfully pinged" % (site, service))
@@ -405,8 +405,8 @@ class LOGSETest(object):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
     xml_append(doc, "availability", (100 if percent < 90 else (5 if percent < 99 else 0)))
     elt = xml_append(doc, "data")
-    xml_append(doc, "numericvalue", percent, elt=elt, name="LogSE data partition used")
-    xml_append(doc, "numericvalue", space, elt=elt, name="Total space on data partition")
+    xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
+    xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
 
     self.rmDB.updateSLSLogSE("partition", "PT12H", (100 if percent < 90 else (5 if percent < 99 else 0)),
                              percent, space)
@@ -751,10 +751,10 @@ gaudirun.py options.py > result.log
   def generate_lookup_file(self, site):
     doc = impl.createDocument(None, "servicelist", None)
     elt = xml_append(doc, "logicalservice", name="CondDB")
-    xml_append(doc, "service", elt=elt, name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb",
+    xml_append(doc, "service", elt_=elt, name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb",
                accessMode="readonly", authentication="password")
     elt2 = xml_append(doc, "logicalservice", name="CondDBOnline")
-    xml_append(doc, "service", elt=elt2, name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb",
+    xml_append(doc, "service", elt_=elt2, name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb",
                accessMode="readonly", authentication="password")
     xmlfile = open("dblookup.xml", "w")
     try:
@@ -765,18 +765,18 @@ gaudirun.py options.py > result.log
   def generate_authentication_file(self, site):
     doc = impl.createDocument(None, "connectionlist", None)
     elt = xml_append(doc, "connection", name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb")
-    xml_append(doc, "parameter", elt=elt, name="user", value=self.CDB_infos[site]["Username"])
-    xml_append(doc, "parameter", elt=elt, name="password", value=self.CDB_infos[site]["Password"])
+    xml_append(doc, "parameter", elt_=elt, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt, name="password", value=self.CDB_infos[site]["Password"])
     elt2 = xml_append(doc, "role", name="reader")
-    xml_append(doc, "parameter", elt=elt2, name="user", value=self.CDB_infos[site]["Username"])
-    xml_append(doc, "parameter", elt=elt2, name="password", value=self.CDB_infos[site]["Password"])
+    xml_append(doc, "parameter", elt_=elt2, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt2, name="password", value=self.CDB_infos[site]["Password"])
 
     elt = xml_append(doc, "connection", name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb")
-    xml_append(doc, "parameter", elt=elt, name="user", value=self.CDB_infos[site]["Username"])
-    xml_append(doc, "parameter", elt=elt, name="password", value=self.CDB_infos[site]["Password"])
+    xml_append(doc, "parameter", elt_=elt, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt, name="password", value=self.CDB_infos[site]["Password"])
     elt2 = xml_append(doc, "role", name="reader")
-    xml_append(doc, "parameter", elt=elt2, name="user", value=self.CDB_infos[site]["Username"])
-    xml_append(doc, "parameter", elt=elt2, name="password", value=self.CDB_infos[site]["Password"])
+    xml_append(doc, "parameter", elt_=elt2, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt2, name="password", value=self.CDB_infos[site]["Password"])
 
 
     xmlfile = open("authentication.xml", "w")
@@ -792,14 +792,14 @@ gaudirun.py options.py > result.log
     xml_append(doc, "id", site + "CondDB")
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
-    xml_append(doc, "threshold", 5, elt=elt, level="degraded")
-    xml_append(doc, "threshold", 10, elt=elt, level="affected")
-    xml_append(doc, "threshold", 15, elt=elt, level="available")
+    xml_append(doc, "threshold", 5, elt_=elt, level="degraded")
+    xml_append(doc, "threshold", 10, elt_=elt, level="affected")
+    xml_append(doc, "threshold", 15, elt_=elt, level="available")
     xml_append(doc, "refreshperiod", "PT27M")
     xml_append(doc, "validityduration", 'PT13H')
     elt2 = xml_append(doc, "data")
-    xml_append(doc, "numericvalue", str(time_), elt=elt2, name="Time to access CondDB")
-    xml_append(doc, "textvalue", "ConditionDB access timex", elt=elt2)
+    xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
+    xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
     xmlfile = open(self.xmlpath + site + ".xml", "w")
