@@ -2,7 +2,7 @@
 DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
 """
 
-__RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
+__RCSID__ = "$Id: DMScript.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 import DIRAC
 from DIRAC.Core.Base import Script
