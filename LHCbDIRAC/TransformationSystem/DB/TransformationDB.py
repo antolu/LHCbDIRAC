@@ -30,7 +30,7 @@ class TransformationDB( DIRACTransformationDB ):
     DIRACTransformationDB.__init__( self, dbname, dbconfig, maxQueueSize )
     self.lock = threading.Lock()
     self.dbname = dbname
-    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible','RunNumbers']
+    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible', 'RunNumbers']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
 
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
@@ -61,6 +61,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     res = self.__addBookkeepingQuery( queryDict, connection = connection )
     if not res['OK']:
+      print "not res ", res#canc
       return res
     bkQueryID = res['Value']
     res = self.__setTransformationQuery( transName, bkQueryID, author = author, connection = connection )
@@ -77,6 +78,7 @@ class TransformationDB( DIRACTransformationDB ):
     transID = res['Value']['TransformationID']
     res = self.__getTransformationBkQueryID( transID, connection = connection )
     if not res['OK']:
+      print "Esce qui"
       return res
     bkQueryID = res['Value']
     res = self.deleteTransformationParameter( transID, 'BkQueryID', author = author, connection = connection )
@@ -170,17 +172,17 @@ class TransformationDB( DIRACTransformationDB ):
       values.append( value )
 
     # Check for the already existing queries first
-    selections = []
-    for i in range( len( self.queryFields ) ):
-      selections.append( "%s= BINARY '%s'" % ( self.queryFields[i], values[i] ) )
-    selectionString = ' AND '.join( selections )
-    req = "SELECT BkQueryID FROM BkQueries WHERE %s" % selectionString
-    result = self._query( req, connection )
-    if not result['OK']:
-      return result
-    if result['Value']:
-      bkQueryID = result['Value'][0][0]
-      return S_OK( bkQueryID )
+#    selections = []
+#    for i in range( len( self.queryFields ) ):
+#      selections.append( "%s= BINARY '%s'" % ( self.queryFields[i], values[i] ) )
+#    selectionString = ' AND '.join( selections )
+#    req = "SELECT BkQueryID FROM BkQueries WHERE %s" % selectionString
+#    result = self._query( req, connection )
+#    if not result['OK']:
+#      return result
+#    if result['Value']:
+#      bkQueryID = result['Value'][0][0]
+#      return S_OK( bkQueryID )
 
     # Insert the new bk query
     values = ["'%s'" % x for x in values]
@@ -200,7 +202,7 @@ class TransformationDB( DIRACTransformationDB ):
       req = "SELECT BkQueryID,%s FROM BkQueries WHERE BkQueryID=%d" % ( fieldsString, int( bkQueryID ) )
     else:
       req = "SELECT BkQueryID,%s FROM BkQueries" % ( fieldsString )
-      
+
     result = self._query( req, connection )
     if not result['OK']:
       return result
