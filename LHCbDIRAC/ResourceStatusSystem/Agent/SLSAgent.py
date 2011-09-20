@@ -120,7 +120,7 @@ class SpaceTokenOccupancyTest(object):
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
         validity     = 'PT13H'
       else:
-        gLogger.info("StorageSpace: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
+        gLogger.info("StorageSpace: problew with lcg_util: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
 
     else:
       gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
@@ -823,9 +823,9 @@ class SLSAgent(AgentModule):
   def execute(self):
 
     # FIXME: Get parameters from CS
-    # SpaceTokenOccupancyTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/storage_space/")
-    # DIRACTest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/dirac_services/")
-    #    LOGSETest(xmlpath="/afs/cern.ch/user/v/vibernar/www/sls/log_se/")
-    CondDBTest("/afs/cern.ch/user/v/vibernar/www/sls/condDB/", self.am_getWorkDirectory())
+    SpaceTokenOccupancyTest(xmlpath="/opt/dirac/pro/webRoot/www/sls/storage_space/")
+#    DIRACTest(xmlpath="/opt/dirac/pro/webRoot/www/sls/dirac_services/")
+#    LOGSETest(xmlpath="/opt/dirac/pro/webRoot/www/sls/log_se/")
+#    CondDBTest("/opt/dirac/pro/webRoot/www/sls/condDB/", self.am_getWorkDirectory())
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
