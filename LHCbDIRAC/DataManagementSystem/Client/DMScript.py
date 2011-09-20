@@ -263,6 +263,18 @@ class DMScript():
       bkQuery[conditionsKey] = bkQuery['ConditionDescription']
     return bkQuery
 
+  def setBKFileType( self, bkQuery = bkQueryDict, fileTypes = None ):
+    if fileTypes == None:
+      try:
+        bkQuery.pop( 'FileType' )
+        bkQuery.pop( 'FileTypeId' )
+      except:
+        pass
+    else:
+      bkQuery['FileType'] = fileTypes
+      bkQuery['FileTypeID'] = fileTypes
+    return bkQuery
+
   def __fileType( self, fileType = None ):
     self.__setBKFileTypes()
     if not fileType:
@@ -507,11 +519,15 @@ class DMScript():
       if type( eventType ) != type( [] ):
         eventType = [eventType]
       return eventType
+    print bkQuery
     res = self.bk.getEventTypes( bkQuery )['Value']
     ind = res['ParameterNames'].index( 'EventTypeId' )
-    return sortList( [f[ind] for f in res['Records']] )
+    eventTypes = sortList( [f[ind] for f in res['Records']] )
+    print eventTypes
+    return eventTypes
 
   def getBKFileTypes( self, bkQuery = bkQueryDict ):
+    #print bkQuery
     fileTypes = bkQuery.get( 'FileType' )
     if not fileTypes:
       res = self.bk.getFileTypes( bkQuery )
@@ -527,35 +543,37 @@ class DMScript():
       fileTypes.sort()
     return fileTypes
 
-  def getBKProcessingPasses( self, bkQuery = bkQueryDict ):
+  def getBKProcessingPasses( self, bkQuery = bkQueryDict, processingPasses = {} ):
     import os
     query = bkQuery.copy()
-    if 'ConditionDescription' not in query and 'DataTakingConditions' in query:
-      query['ConditionDescription'] = query['DataTakingConditions']
-    if 'ConditionDescription' not in query and 'SimulationConditions' in query:
-      query['ConditionDescription'] = query['SimulationConditions']
     initialPP = query.get( 'ProcessingPass', '/' )
-    #print query
+    #print initialPP, query
     res = self.bk.getProcessingPass( query, initialPP )
-    if res['OK']:
-      passes = res['Value']
+    if not res['OK']:
+      return {}
+    r = res['Value'][0]
+    if 'Name' in r['ParameterNames']:
+      ind = r['ParameterNames'].index( 'Name' )
+      passes = [os.path.join( initialPP, f[ind] ) for f in r['Records']]
     else:
-      return [initialPP]
-    processingPass = []
-    #print passes
-    for r in passes:
-      if 'Name' in r['ParameterNames']:
-        ind = r['ParameterNames'].index( 'Name' )
-        processingPass += [os.path.join( initialPP, f[ind] ) for f in r['Records']]
-    nextProcessingPass = []
-    for p in processingPass:
-      query['ProcessingPass'] = p
-      nextProcessingPass += self.getBKProcessingPasses( query )
-    processingPass += [p for p in nextProcessingPass if p not in processingPass]
-    if initialPP not in processingPass and initialPP != '/':
-      processingPass.append( initialPP )
+      passes = []
+    r = res['Value'][1]
+    if 'EventTypeId' in r['ParameterNames']:
+      ind = r['ParameterNames'].index( 'EventTypeId' )
+      eventTypes = [str( f[ind] ) for f in r['Records']]
+    else:
+      eventTypes = []
+
+    if passes:
+      nextProcessingPasses = {}
+      for p in passes:
+        processingPasses[p] = []
+        query['ProcessingPass'] = p
+        nextProcessingPasses.update( self.getBKProcessingPasses( query ) )
+    if eventTypes:
+      processingPasses[initialPP] = eventTypes
     for p in ( '/Real Data', '/' ):
-      if p in processingPass:
-        processingPass.remove( p )
-    #print initialPP, sortList(processingPass)
-    return sortList( processingPass )
+      if p in processingPasses:
+        processingPasses.pop( p )
+    #print initialPP, sortList(processingPass.keys())
+    return processingPasses
