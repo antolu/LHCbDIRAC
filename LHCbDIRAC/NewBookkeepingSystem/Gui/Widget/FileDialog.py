@@ -57,6 +57,8 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.__controler.addChild('LogFileWidget',self.__log.getControler())
 
     self.__advancedSave = AdvancedSave(self)
+    self.__advancedSave.setFocus()
+
     self.__controler.addChild('AdvancedSave', self.__advancedSave.getControler())
 
     self.__historyDialog = HistoryDialog(self)
