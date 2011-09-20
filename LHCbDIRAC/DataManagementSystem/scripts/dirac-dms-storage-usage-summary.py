@@ -116,11 +116,18 @@ def browseBK( dmScript, scaleFactor ):
     query = dmScript.setBKConditions( query, cond )
     processingPasses = dmScript.getBKProcessingPasses( query )
     #print processingPasses
-    for processingPass in processingPasses:
+    for processingPass in [pp for pp in processingPasses if processingPasses[pp]]:
+      if bkQuery.get( 'EventTypeId' ):
+        eventTypes = bkQuery['EventTypeId']
+        if type( eventTypes ) != type( [] ):
+          eventTypes = [eventTypes]
+        eventTypes = [t for t in eventTypes if t in processingPasses[processingPass]]
+        if not eventTypes: continue
+      else:
+        eventTypes = processingPasses[processingPass]
       strPP = " - ProcessingPass %s" % processingPass
       writeInfo( strCond + strPP )
       query['ProcessingPass'] = processingPass
-      eventTypes = dmScript.getBKEventTypes( query )
       totalUsage = {}
       grandTotal = {}
       allProds = []
@@ -132,7 +139,7 @@ def browseBK( dmScript, scaleFactor ):
         fileTypes = dmScript.getBKFileTypes( query )
         #print fileTypes
         if None in fileTypes: continue
-        query['FileType'] = fileTypes
+        query = dmScript.setBKFileType( query, fileTypes )
         prods = dmScript.getProductionsFromBKQuery( query, visible = False )
         #print prods
         nbFiles, size = dmScript.getNumberOfFiles( query, visible = False )
@@ -144,8 +151,7 @@ def browseBK( dmScript, scaleFactor ):
           allProds += prods
           for prodID in prods:
             totalUsage, grandTotal = getStorageSummary( totalUsage, grandTotal, '', fileTypes, prodID, ses )
-        if 'FileType' not in bkQuery:
-          query.pop( 'FileType' )
+        query = dmScript.setBKFileType( query, bkQuery.get( 'FileType', bkQuery.get( 'FileTypeId' ) ) )
         if 'EventType' not in bkQuery:
           query.pop( 'EventType' )
       writeInfo( '' )
