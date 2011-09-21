@@ -59,7 +59,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     flags |= Qt.WindowCloseButtonHint
     flags |= Qt.WindowMinimizeButtonHint
     flags |= Qt.WindowMaximizeButtonHint
-    self.__fileDialog.setWindowFlags(flags)
+    #self.__fileDialog.setWindowFlags(flags)
 
     self.__controler.addChild('FileDialog',self.__fileDialog.getControler())
     self.Bookmarks.setupControler(self)
