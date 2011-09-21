@@ -23,7 +23,10 @@ class ControlerAdvancedSave(ControlerAbstract):
       widget = self.getWidget()
       widget.fillWindows(self.__sites)
       widget.setFocus()
+      widget.focusWidget()
       widget.show()
+      widget.setFocus()
+      widget.focusWidget()
     else:
       print 'Unknown messageaa!',message.action()
 
