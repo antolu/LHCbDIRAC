@@ -89,14 +89,8 @@ class LHCB_BKKDBManager( BaseESManager ):
 
     self.treeLevels_ = -1
     self.advancedQuery_ = False
-    print "First please choose which kind of queries you want to use!"
-    print "The default value is Configuration!"
-    print "The possible parameters:"
-    print self.getPossibleParameters()
-    print "For Example:"
-    print "client.setParameter('Processing Pass')"
-    print "If you need help, you will use client.help() command."
-
+    print 'WELCOME'
+    print "For more information use the 'help' command! "
     self.dataQualities_ = {}
     retVal = self.db_.getAvailableFileTypes()
     if not retVal['OK']:
