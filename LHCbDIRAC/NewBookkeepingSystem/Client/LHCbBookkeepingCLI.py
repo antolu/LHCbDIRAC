@@ -80,7 +80,17 @@ class LHCbBookkeepingCLI(cmd.Cmd):
 
   #############################################################################
   def help_ls(self):
-    print "list the current directory content"
+    print "Usage: ls [OPTION]... [FILE]..."
+    print "List information about the FILEs (the current directory by default)."
+    print " Available options: -a"
+    print 'Usage: ls or ls -a'
+    print 'ls -a [FILE]'
+
+  def help_cd(self):
+    print " cd <dir>"
+    print "cd .."
+    print "cd /"
+    print "cd"
 
   #############################################################################
   def do_ls(self, path):
