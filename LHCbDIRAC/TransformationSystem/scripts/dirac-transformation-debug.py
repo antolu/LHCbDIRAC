@@ -129,7 +129,7 @@ now = datetime.datetime.utcnow()
 timeLimit = now - datetime.timedelta( hours = 2 )
 
 for id in idList:
-    res = transClient.getTransformation( id )
+    res = transClient.getTransformation( id, extraParams = False )
     if not res['OK']:
         print "Couldn't find transformation", id
         continue
@@ -138,12 +138,15 @@ for id in idList:
         transType = res['Value']['Type']
         transBody = res['Value']['Body']
         transPlugin = res['Value']['Plugin']
+        strPlugin = transPlugin
+        if transType in ( 'Merge', 'DataStripping' ):
+            strPlugin += ', GroupSize: %s' % str( res['Value']['GroupSize'] )
         if transType in dmTransTypes:
             taskType = "Request"
         else:
             taskType = "Job"
         transGroup = res['Value']['TransformationGroup']
-    print "\n==============================\nTransformation", id, ":", transName, "of type", transType, "(plugin", transPlugin, ") in", transGroup
+    print "\n==============================\nTransformation", id, ":", transName, "of type", transType, "(plugin", strPlugin, ") in", transGroup
     if verbose:
         print "Transformation body:", transBody
     res = transClient.getBookkeepingQueryForTransformation( id )
