@@ -353,7 +353,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not res['OK']:
           self.__logError( "Failed to assign TransformationRun site", res['Message'] )
           continue
-      if cpuForRaw:
+      if cpuForRaw and not targetSite.startswith( 'LCG.' ):
         possibleSEs = [targetSite]
       else:
         res = getSEsForSite( targetSite )
@@ -500,7 +500,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             status = 'Flush'
             self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
           else:
-            self.__logDebug( "Only %d files available for run %d in transformation %d" % ( ancestorRawFiles, runID, transID ) )
+            self.__logDebug( "Only %d files (of %d) available for run %d in transformation %d" % ( ancestorRawFiles, rawFiles, runID, transID ) )
         self.params['Status'] = status
         #print "Calling",plugin,"with",self.data
         res = eval( 'self._%s()' % plugin )
