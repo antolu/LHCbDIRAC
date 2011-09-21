@@ -55,7 +55,11 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.__controler.addChild('InfoDialog', self.__infodialog.getControler())
 
     self.__fileDialog = FileDialog(self)
-    self.__fileDialog.setWindowFlags(Qt.Window)
+    flags = Qt.Window
+    flags |= Qt.WindowCloseButtonHint
+    flags |= Qt.WindowMinimizeButtonHint
+    flags |= Qt.WindowMaximizeButtonHint
+    self.__fileDialog.setWindowFlags(flags)
 
     self.__controler.addChild('FileDialog',self.__fileDialog.getControler())
     self.Bookmarks.setupControler(self)
