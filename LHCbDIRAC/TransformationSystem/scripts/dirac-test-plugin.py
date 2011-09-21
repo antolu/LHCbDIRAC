@@ -37,14 +37,21 @@ class fakeClient:
     return self.trans.getBkQuery()
 
   def getTransformationRuns( self, condDict ) :
-    transRuns = []
-    if condDict.has_key( 'RunNumber' ):
-      runs = condDict['RunNumber']
-      for run in runs:
-        transRuns.append( {'RunNumber':run, 'Status':"Active", "SelectedSite":None} )
-    return DIRAC.S_OK( transRuns )
+    if condDict['TransformationID'] == self.transID and self.asIfProd:
+      condDict['TransformationID'] = self.asIfProd
+    if condDict['TransformationID'] == self.transID:
+      transRuns = []
+      if condDict.has_key( 'RunNumber' ):
+        runs = condDict['RunNumber']
+        for run in runs:
+          transRuns.append( {'RunNumber':run, 'Status':"Active", "SelectedSite":None} )
+        return DIRAC.S_OK( transRuns )
+    else:
+      return self.transClient.getTransformationRuns( condDict )
 
   def getTransformationFiles( self, condDict = None ):
+    if condDict['TransformationID'] == self.transID and self.asIfProd:
+      condDict['TransformationID'] = self.asIfProd
     if condDict['TransformationID'] == self.transID:
       transFiles = []
       if 'Status' in condDict and 'Unused' not in condDict['Status']:
