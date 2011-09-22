@@ -2325,8 +2325,9 @@ and files.qualityid= dataquality.qualityid'
           elif len(res['Value']) == 0:
             return S_ERROR('File type not found!' + str(i))
           else:
-            ftypeId = res['Value'][0][0]
-            cond += ' f.FileTypeId=' + str(ftypeId) + ' or '
+            for j in res['Value']:
+              ftypeId =  j[0]
+              cond += ' f.FileTypeId=' + str(ftypeId) + ' or '
         cond = cond[:-3] + ')'
         condition += cond
       elif type(ftype) == types.StringType:
@@ -2336,9 +2337,15 @@ and files.qualityid= dataquality.qualityid'
           gLogger.error('File Type not found:', res['Message'])
         elif len(res['Value']) == 0:
           return S_ERROR('File type not found!' + str(ftype))
+        elif len(res['Value']) > 0:
+          cond = ' and ('
+          for i in res['Value']:
+            ftypeId =  i[0]
+            cond += ' f.FileTypeId=' + str(ftypeId) + ' or '
+          cond = cond[:-3] + ')'
+          condition += cond
         else:
-          ftypeId = res['Value'][0][0]
-          condition += ' and f.FileTypeId=' + str(ftypeId)
+          return S_ERROR('File type problem!')
 
     if evt != 0:
       if type(evt) in (types.ListType, types.TupleType):
