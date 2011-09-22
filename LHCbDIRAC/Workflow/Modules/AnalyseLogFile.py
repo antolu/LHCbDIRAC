@@ -9,11 +9,8 @@ __RCSID__ = "$Id$"
 
 import os, re, string, glob
 
-from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 from DIRAC.Resources.Catalog.PoolXMLFile                 import getGUID
-from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 
-from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis      import analyseLogFile
 from LHCbDIRAC.Core.Utilities.ProductionData             import getLogPath, constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 
@@ -38,8 +35,7 @@ class AnalyseLogFile( ModuleBase ):
     self.numberOfEventsOutput = ''
     self.numberOfEvents = ''
     self.applicationName = ''
-    self.JOB_ID = '' #default for a prod workflow
-    self.PRODUCTION_ID = '' #default for a prod workflow
+    self.job_id = '' #default for a prod workflow
     self.applicationLog = ''
     self.applicationVersion = ''
     self.logFilePath = ''
@@ -124,22 +120,24 @@ class AnalyseLogFile( ModuleBase ):
 
   #############################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None,
+               nc = None, rm = None, logAnalyser = None ):
     """ Main execution method. 
     """
 
-    self.log.info( 'Initializing %s' % ( self.version ) )
+    super( AnalyseLogFile, self ).execute( self.version,
+                                           production_id, prod_job_id, wms_job_id,
+                                           workflowStatus, stepStatus,
+                                           wf_commons, step_commons,
+                                           step_number, step_id )
 
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
-
-    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
-      if not self.numberOfEventsInput or not self.numberOfEventsOutput:
-        self.log.error( 'Number of events input = %s, number of events output = %s' % ( self.numberOfEventsInput, self.numberOfEventsOutput ) )
-        return S_ERROR()
-      return S_OK()
 
     if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
       self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
@@ -155,14 +153,19 @@ class AnalyseLogFile( ModuleBase ):
       if re.search( '^core.[0-9]+$', file ):
         self.coreFile = file
         self.log.error( 'Found a core dump file in the current working directory: %s' % ( self.coreFile ) )
-        self.finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % ( self.coreFile ) )
+        self.finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % ( self.coreFile ), nc, rm )
         self.updateFileStatus( self.jobInputData, 'ApplicationCrash' )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']: return S_OK()
 
         return S_ERROR( '%s %s Core Dump' % ( self.applicationName, self.applicationVersion ) )
 
-    result = analyseLogFile( self.applicationLog, self.applicationName )
+    if not logAnalyser:
+      from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis import analyseLogFile
+      result = analyseLogFile( self.applicationLog, self.applicationName )
+    else:
+      result = logAnalyser( self.applicationLog, self.applicationName )
+
     if not result['OK']:
       self.log.error( result )
       if result.has_key( 'Data' ):
@@ -175,7 +178,7 @@ class AnalyseLogFile( ModuleBase ):
         for lfn, status in fNameLFNs.items():
           self.jobInputData[lfn] = status
 
-      self.finalizeWithErrors( result['Message'] )
+      self.finalizeWithErrors( result['Message'], nc, rm )
       self.updateFileStatus( self.jobInputData, "Unused" )
       # return S_OK if the Step already failed to avoid overwriting the error
       if not self.stepStatus['OK']: return S_OK()
@@ -228,12 +231,12 @@ class AnalyseLogFile( ModuleBase ):
       else:
         stat = defaultStatus
         self.log.info( "%s will be updated to default status '%s'" % ( fileName, defaultStatus ) )
-      self.setFileStatus( int( self.PRODUCTION_ID ), fileName, stat )
+      self.setFileStatus( int( self.production_id ), fileName, stat )
     return S_OK()
 
   #############################################################################
 
-  def finalizeWithErrors( self, subj ):
+  def finalizeWithErrors( self, subj, nc, rm ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
@@ -258,8 +261,11 @@ class AnalyseLogFile( ModuleBase ):
 
     debugLFNs = result['Value']['DebugLFNs']
 
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
+
     #FIXME: This has to be reviewed... 
-    rm = ReplicaManager()
     try:
       if self.workflow_commons.has_key( 'emailAddress' ):
         mailAddress = self.workflow_commons['emailAddress']
@@ -270,11 +276,11 @@ class AnalyseLogFile( ModuleBase ):
     self.log.verbose( 'Will send errors by E-mail to %s' % ( mailAddress ) )
 
     subject = '[' + self.site + '][' + self.applicationName + '] ' + self.applicationVersion + \
-              ": " + subj + ' ' + self.PRODUCTION_ID + '_' + self.JOB_ID + ' JobID=' + str( self.jobID )
+              ": " + subj + ' ' + self.production_id + '_' + self.job_id + ' JobID=' + str( self.jobID )
     msg = 'The Application ' + self.applicationName + ' ' + self.applicationVersion + ' had a problem \n'
     msg = msg + 'at site ' + self.site + ' for platform ' + self.systemConfig + '\n'
     msg = msg + 'JobID is ' + str( self.jobID ) + '\n'
-    msg = msg + 'JobName is ' + self.PRODUCTION_ID + '_' + self.JOB_ID + '\n'
+    msg = msg + 'JobName is ' + self.production_id + '_' + self.job_id + '\n'
 
     if self.coreFile:
       self.log.info( 'Will attempt to upload core dump file: %s' % self.coreFile )
@@ -350,9 +356,11 @@ class AnalyseLogFile( ModuleBase ):
     if not self._WMSJob():
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End" % ( msg ) )
     else:
-      notifyClient = NotificationClient()
+      if not nc:
+        from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+        nc = NotificationClient()
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
-      res = notifyClient.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
+      res = nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
       if not res['OK']:
         self.log.warn( "The mail could not be sent" )
 

@@ -1,4 +1,8 @@
 import unittest, itertools, os
+
+import DIRAC.ResourceStatusSystem.test.fake_Logger
+from DIRAC.ResourceStatusSystem.Utilities.mock import Mock
+
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
 class ModulesTestCase( unittest.TestCase ):
@@ -6,13 +10,114 @@ class ModulesTestCase( unittest.TestCase ):
   """
   def setUp( self ):
 
+    self.maxDiff = None
+
+#    import sys
+#    sys.modules["DIRAC"] = DIRAC.ResourceStatusSystem.test.fake_Logger
+#    sys.modules["DIRAC.ResourceStatusSystem.Utilities.CS"] = DIRAC.ResourceStatusSystem.test.fake_Logger
+
+    jr_mock = Mock()
+    jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
+    jr_mock.generateRequest.return_value = {'OK': True, 'Value': 'pippo'}
+    jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
+
+    fr_mock = Mock()
+    fr_mock.getFiles.return_value = {}
+    fr_mock.setFileStatus.return_value = {'OK': True, 'Value': ''}
+    fr_mock.commit.return_value = {'OK': True, 'Value': ''}
+    fr_mock.generateRequest.return_value = {'OK': True, 'Value': ''}
+
+    rc_mock = Mock()
+    rc_mock.update.return_value = {'OK': True, 'Value': ''}
+    rc_mock.setDISETRequest.return_value = {'OK': True, 'Value': ''}
+    rc_mock.isEmpty.return_value = {'OK': True, 'Value': ''}
+    rc_mock.toXML.return_value = {'OK': True, 'Value': ''}
+    rc_mock.getDigest.return_value = {'OK': True, 'Value': ''}
+
+    ar_mock = Mock()
+    ar_mock.commit.return_value = {'OK': True, 'Value': ''}
+
+    self.rm_mock = Mock()
+    self.rm_mock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'}}}
+    self.rm_mock.getCatalogFileMetadata.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'}}}
+    self.rm_mock.removeFile.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.rm_mock.putStorageDirectory.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.rm_mock.addCatalogFile.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.rm_mock.putAndRegister.return_value = {'OK': True, 'Value': {'Failed':False}}
+
+    self.jsu_mock = Mock()
+    self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
+
+    self.jsu_mock = Mock()
+    self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
+
+    self.ft_mock = Mock()
+    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': ''}
+    self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': ''}
+    self.ft_mock.getRequestObject.return_value = {'OK': True, 'Value': ''}
+
+    self.bkc_mock = Mock()
+    self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
+
+    self.nc_mock = Mock()
+    self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
+
+    self.version = 'someVers'
+    self.prod_id = '123'
+    self.prod_job_id = '456'
+    self.wms_job_id = '12345'
+    self.workflowStatus = {'OK':True}
+    self.stepStatus = {'OK':True}
+    self.wf_commons = {'BookkeepingLFNs':'aa', 'LogFilePath':'bb', 'ProductionOutputData':'ProductionOutputData',
+                  'JobReport':jr_mock, 'FileReport':fr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock,
+                  'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir'}
+    self.step_commons = {'applicationName':'DaVinci', 'applicationVersion':'v1r0',
+                         'applicationLog':'appLog',
+                         'listoutput':[{'outputDataName':'someThing', 'outputDataSE':'aaa',
+                                       'outputDataType':'bbb'}]}
+    self.step_number = '321'
+    self.step_id = '%s_%s_%s' % ( self.prod_id, self.prod_job_id, self.step_number )
+
+
+
     from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
     self.mb = ModuleBase()
+
+    from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
+    self.alf = AnalyseLogFile()
+
+    from LHCbDIRAC.Workflow.Modules.AnalyseXMLLogFile import AnalyseXMLLogFile
+    self.axlf = AnalyseXMLLogFile()
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
     self.ga = GaudiApplication()
 
+    from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
+    self.bkr = BookkeepingReport()
 
+    from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
+    self.el = ErrorLogging()
+
+    from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
+    self.fr = FailoverRequest()
+
+    from LHCbDIRAC.Workflow.Modules.ProtocolAccessTest import ProtocolAccessTest
+    self.pat = ProtocolAccessTest()
+
+    from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
+    self.rid = RemoveInputData()
+
+    from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
+    self.sb = SendBookkeeping()
+
+    from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
+    self.uod = UploadOutputData()
+
+#    from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
+#    self.sa = StepAccounting()
+#
+    from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
+    self.ulf = UploadLogFile()
 
 #############################################################################
 # ModuleBase.py
@@ -120,25 +225,23 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
   def test__enableModule( self ):
 
-    self.assertFalse( self.mb._enableModule() )
-
-#############################################################################
-# AnalyseLogFile.py
-#############################################################################
-
-class AnalyseLogFileSuccess( ModulesTestCase ):
-
-  #################################################
-
-  def test_execute( self ):
-    pass
-
+    self.mb.execute( self.version, self.prod_id, self.prod_job_id, self.wms_job_id,
+                     self.workflowStatus, self.stepStatus,
+                     self.wf_commons, self.step_commons,
+                     self.step_number, self.step_id )
+    self.assertTrue( self.mb._enableModule() )
 
 #############################################################################
 # GaudiApplication.py
 #############################################################################
 
 class GaudiApplicationSuccess( ModulesTestCase ):
+
+  #################################################
+
+#  def test_execute( self ):
+#
+#    self.assertTrue( self.ga.execute() )
 
   #################################################
 
@@ -169,10 +272,8 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 
     out, bk = self.ga._findOutputs( stepOutput )
 
-    self.assertEqual( out, outExp )
-    self.assertEqual( bk, bkExp )
-
-
+    self.assert_( out == outExp )
+    self.assert_( bk == bkExp )
 
 
     stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'}]
@@ -181,8 +282,8 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 
     out, bk = self.ga._findOutputs( stepOutput )
 
-    self.assertEqual( out, outExp )
-    self.assertEqual( bk, bkExp )
+    self.assert_( out == outExp )
+    self.assert_( bk == bkExp )
 
 
 
@@ -218,7 +319,219 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
 
   #################################################
 
+#############################################################################
+# AnalyseLogFile.py
+#############################################################################
 
+class AnalyseLogFileSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    logAnalyser = Mock()
+    logAnalyser.return_value = {'OK':True, 'Value':''}
+
+    self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id,
+                                       self.nc_mock, self.rm_mock, logAnalyser ) )
+
+    logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+
+    self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id,
+                                       self.nc_mock, self.rm_mock, logAnalyser ) )
+
+    #TODO: make others cases tests!
+
+
+#############################################################################
+# AnalyseLogFile.py
+#############################################################################
+
+class AnalyseXMLLogFileSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    logAnalyser = Mock()
+    logAnalyser.return_value = {'OK':True, 'Value':''}
+
+    self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id,
+                                       self.nc_mock, self.rm_mock, logAnalyser ) )
+
+    logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+
+    self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id,
+                                       self.nc_mock, self.rm_mock, logAnalyser ) )
+
+    #TODO: make others cases tests!
+
+
+
+#############################################################################
+# BookkeepingReport.py
+#############################################################################
+
+class BookkeepingReportSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                      self.workflowStatus, self.stepStatus,
+                      self.wf_commons, self.step_commons,
+                      self.step_number, self.step_id, False )
+
+    #TODO: make a real test!
+
+#############################################################################
+# ErrorLogging.py
+#############################################################################
+
+class ErrorLoggingSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+    pass
+
+#    self.el.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+#                     self.workflowStatus, self.stepStatus,
+#                     self.wf_commons, self.step_commons,
+#                     self.step_number, self.step_id )
+
+    #TODO: make a real test!
+
+#############################################################################
+# FailoverRequest.py
+#############################################################################
+
+class FailoverRequestSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.assertTrue( self.fr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                      self.workflowStatus, self.stepStatus,
+                                      self.wf_commons, self.step_commons,
+                                      self.step_number, self.step_id ) )
+
+    #TODO: make others cases tests!
+
+#############################################################################
+# ProtocolAccessTest.py
+#############################################################################
+
+class ProtocolAccessTestSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.assertTrue( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id, self.rm_mock ) )
+
+    #TODO: make others cases tests!
+
+#############################################################################
+# RemoveInputData.py
+#############################################################################
+
+class RemoveInputDataSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id, self.rm_mock ) )
+
+    #TODO: make others cases tests!
+
+#############################################################################
+# SendBookkeeping.py
+#############################################################################
+
+class SendBookkeepingSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.assertTrue( self.sb.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                      self.workflowStatus, self.stepStatus,
+                                      self.wf_commons, self.step_commons,
+                                      self.step_number, self.step_id, self.bkc_mock ) )
+
+    #TODO: make others cases tests!
+
+#############################################################################
+# StepAccounting.py
+#############################################################################
+
+#class StepAccountingSuccess( ModulesTestCase ):
+#
+#  #################################################
+#
+#  def test_execute( self ):
+#
+#    self.assertTrue( self.sa.execute() )
+#
+#    #TODO: make others cases tests!
+
+#############################################################################
+# UploadLogFile.py
+#############################################################################
+
+class UploadLogFileSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id,
+                                       self.rm_mock, self.ft_mock ) )
+
+    #TODO: make others cases tests!
+
+#############################################################################
+# UploadOutputData.py
+#############################################################################
+
+class UploadOutputDataSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                       self.workflowStatus, self.stepStatus,
+                                       self.wf_commons, self.step_commons,
+                                       self.step_number, self.step_id,
+                                       self.rm_mock, self.ft_mock, self.bkc_mock ) )
+
+    #TODO: make others cases tests!
 
 #############################################################################
 # Test Suite run 
@@ -227,8 +540,19 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseXMLLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SendBookkeepingSuccess ) )
+##  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadLogFileSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadOutputDataSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

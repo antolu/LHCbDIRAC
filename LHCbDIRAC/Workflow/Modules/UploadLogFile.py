@@ -7,9 +7,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+
 from DIRAC.Core.Utilities.Subprocess import shellCall
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
@@ -34,10 +32,8 @@ class UploadLogFile( ModuleBase ):
     super( UploadLogFile, self ).__init__( self.log )
 
     self.version = __RCSID__
-    self.PRODUCTION_ID = None
-    self.JOB_ID = None
-    self.workflow_commons = None
     self.request = None
+    self.jobReport = None
 
     self.setup = gConfig.getValue( '/DIRAC/Setup' )
     self.logSE = gConfig.getValue( '/Operations/LogStorage/%s/LogSE' % ( self.setup ), 'LogSE' )
@@ -46,7 +42,7 @@ class UploadLogFile( ModuleBase ):
     self.logExtensions = gConfig.getValue( '/Operations/LogFiles/Extensions', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.diracLogo = gConfig.getValue( '/Operations/SAM/LogoURL', 'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
-    self.rm = ReplicaManager()
+
 
 ######################################################################
 
@@ -69,9 +65,13 @@ class UploadLogFile( ModuleBase ):
     if not type( self.logLFNPath ) == type( ' ' ):
       self.logLFNPath = self.logLFNPath[0]
 
+    if self.workflow_commons.has_key( 'JobReport' ):
+      self.jobReport = self.workflow_commons['JobReport']
+
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       self.request = RequestContainer()
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
@@ -79,16 +79,25 @@ class UploadLogFile( ModuleBase ):
 
 ######################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None, rm = None, ft = None ):
     """ Main executon method
     """
-    self.log.info( 'Initializing %s' % self.version )
-    # Add global reporting tool
+    super( UploadLogFile, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                          workflowStatus, stepStatus,
+                                          wf_commons, step_commons, step_number, step_id )
 
     if not self._enableModule():
       return S_OK()
 
+
     self.resolveInputVariables()
+
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
 
     res = shellCall( 0, 'ls -al' )
     if res['OK'] and res['Value'][0] == 0:
@@ -98,17 +107,24 @@ class UploadLogFile( ModuleBase ):
       self.log.error( 'Failed to list the log directory', str( res['Value'][2] ) )
 
     self.log.info( 'Job root is found to be %s' % ( self.root ) )
-    self.log.info( 'PRODUCTION_ID = %s, JOB_ID = %s ' % ( self.PRODUCTION_ID, self.JOB_ID ) )
-    self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.PRODUCTION_ID, self.JOB_ID ) )
+    self.log.info( 'PRODUCTION_ID = %s, JOB_ID = %s ' % ( self.production_id, self.prod_job_id ) )
+    self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.production_id, self.prod_job_id ) )
     self.log.info( 'Selected log files will be temporarily stored in %s' % self.logdir )
 
-    res = self.finalize()
+    #Instantiate the failover transfer client with the global request object
+    if not ft:
+      from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+      ft = FailoverTransfer( self.request )
+
+    res = self.finalize( rm, ft )
     self.workflow_commons['Request'] = self.request
+
+
     return res
 
   #############################################################################
 
-  def finalize( self ):
+  def finalize( self, rm, ft ):
     """ finalize method performs final operations after all the job
         steps were executed. Only production jobs are treated.
     """
@@ -129,7 +145,7 @@ class UploadLogFile( ModuleBase ):
     res = self.populateLogDirectory( selectedFiles )
     if not res['OK']:
       self.log.error( 'Completely failed to populate temporary log file directory.', res['Message'] )
-      self.setApplicationStatus( 'Failed To Populate Log Dir' )
+      self.setApplicationStatus( 'Failed To Populate Log Dir', jr = self.jobReport )
       return S_OK()
     self.log.info( '%s populated with log files.' % self.logdir )
 
@@ -151,10 +167,10 @@ class UploadLogFile( ModuleBase ):
     self.log.info( 'Transferring log files to the %s' % self.logSE )
     res = S_ERROR()
     self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
-    res = self.rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
+    res = rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
     self.log.verbose( res )
     logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
-    self.setJobParameter( 'Log URL', logURL )
+    self.setJobParameter( 'Log URL', logURL, jr = self.jobReport )
     self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     if res['OK']:
       self.log.info( 'Successfully upload log directory to %s' % self.logSE )
@@ -179,11 +195,9 @@ class UploadLogFile( ModuleBase ):
       return S_OK()
 
     ############################################################W
-    #Instantiate the failover transfer client with the global request object
-    failoverTransfer = FailoverTransfer( self.request )
     random.shuffle( self.failoverSEs )
     self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName, string.join( self.failoverSEs, ', ' ) ) )
-    result = failoverTransfer.transferAndRegisterFile( tarFileName, '%s/%s' % ( self.logdir, tarFileName ), self.logLFNPath,
+    result = ft.transferAndRegisterFile( tarFileName, '%s/%s' % ( self.logdir, tarFileName ), self.logLFNPath,
                                                        self.failoverSEs, fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
 
     if not result['OK']:
@@ -192,7 +206,7 @@ class UploadLogFile( ModuleBase ):
       return S_OK()
 
     #Now after all operations, retrieve potentially modified request object
-    result = failoverTransfer.getRequestObject()
+    result = ft.getRequestObject()
     if not result['OK']:
       self.log.error( result )
       return S_ERROR( 'Could not retrieve modified request' )
@@ -334,8 +348,8 @@ class UploadLogFile( ModuleBase ):
   def __createLogIndex( self, selectedFiles ):
     """ Create a log index page for browsing the log files.
     """
-    productionID = self.PRODUCTION_ID
-    prodJobID = self.JOB_ID
+    productionID = self.production_id
+    prodJobID = self.prod_job_id
     wmsJobID = self.jobID
 
     targetFile = '%s/index.html' % ( self.logdir )

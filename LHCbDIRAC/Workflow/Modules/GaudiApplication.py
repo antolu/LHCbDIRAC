@@ -5,15 +5,14 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Utilities.Subprocess                        import shellCall
-from DIRAC.Resources.Catalog.PoolXMLCatalog                 import PoolXMLCatalog
+from DIRAC.Core.Utilities.Subprocess  import shellCall
 
-from LHCbDIRAC.Core.Utilities.ProductionData                import constructProductionLFNs, _makeProductionLFN, _getLFNRoot
-from LHCbDIRAC.Core.Utilities.ProductionOptions             import getDataOptions, getModuleOptions
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment, addCommandDefaults, createDebugScript
-from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis         import getDaVinciStreamEvents
-from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
+from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis import getDaVinciStreamEvents
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+#from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
 from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
 import DIRAC
@@ -29,7 +28,6 @@ class GaudiApplication( ModuleBase ):
     self.log = gLogger.getSubLogger( "GaudiApplication" )
     super( GaudiApplication, self ).__init__( self.log )
 
-    self.STEP_NUMBER = ''
     self.version = __RCSID__
     self.debug = True
 
@@ -44,6 +42,7 @@ class GaudiApplication( ModuleBase ):
     self.outputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name = ''
+    self.optionsFile = ''
     self.optionsLine = ''
     self.extraPackages = ''
     self.applicationType = ''
@@ -128,19 +127,18 @@ class GaudiApplication( ModuleBase ):
 
   #############################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_id = None, step_number = None ):
     """ The main execution method of GaudiApplication.
     """
 
-    self.log.info( 'Initializing %s' % ( self.version ) )
+    super( GaudiApplication, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons, step_number, step_id )
 
-    #initialization
     self.resolveInputVariables()
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info( 'Skip this module, failure detected in a previous step :' )
-      self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
-      self.log.info( 'Step Status %s' % ( self.stepStatus ) )
-      return S_OK()
 
     if not self.applicationName or not self.applicationVersion:
       return S_ERROR( 'No Gaudi Application defined' )
@@ -155,10 +153,6 @@ class GaudiApplication( ModuleBase ):
     self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
     self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName, self.applicationVersion, self.systemConfig ) )
     self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
-
-    ## FIXME: need to agree what the name of the Online Farm is
-    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
-      return self.onlineExecute()
 
     if self.jobType.lower() == 'merge':
       #Disable the watchdog check in case the file uploading takes a long time
@@ -183,14 +177,15 @@ class GaudiApplication( ModuleBase ):
 
     #Prepare standard project run time options
     generatedOpts = 'gaudi_extra_options.py'
-    if os.path.exists( generatedOpts ): os.remove( generatedOpts )
+    if os.path.exists( generatedOpts ):
+      os.remove( generatedOpts )
 
     inputDataOpts = getDataOptions( self.applicationName, self.inputData, self.inputDataType, self.poolXMLCatName )['Value'] #always OK
     runNumberGauss = 0
     firstEventNumberGauss = 1
-    if self.applicationName.lower() == "gauss" and self.PRODUCTION_ID and self.JOB_ID:
-      runNumberGauss = int( self.PRODUCTION_ID ) * 100 + int( self.JOB_ID )
-      firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.JOB_ID ) - 1 ) + 1
+    if self.applicationName.lower() == "gauss" and self.production_id and self.prod_job_id:
+      runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
+      firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
     projectOpts = getModuleOptions( self.applicationName, self.numberOfEvents, inputDataOpts, self.optionsLine, runNumberGauss, firstEventNumberGauss, self.jobType )['Value'] #always OK
     self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
@@ -212,11 +207,11 @@ class GaudiApplication( ModuleBase ):
     print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
     #Set some parameter names
-    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
-#    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
-#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-    coreDumpName = '%s_Step%s' % ( self.applicationName, self.STEP_NUMBER )
+    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
+#    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.production_id, self.prod_job_id, self.step_number, self.applicationName, self.applicationVersion )
+    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
+#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.production_id, self.prod_job_id, self.step_number, self.applicationName, self.applicationVersion )
+    coreDumpName = '%s_Step%s' % ( self.applicationName, self.step_number )
 
     #Wrap final execution command with defaults
     finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
@@ -224,12 +219,12 @@ class GaudiApplication( ModuleBase ):
     #Create debug shell script to reproduce the application execution
     debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
     if debugResult['OK']:
-      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.STEP_NUMBER ) )
+      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
     if os.path.exists( self.applicationLog ): os.remove( self.applicationLog )
 
-    self.log.info( 'Running %s %s step %s' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER ) )
-    self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER ) )
+    self.log.info( 'Running %s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
+    self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
 #    result = {'OK':True,'Value':(0,'Disabled Execution','')}
     result = shellCall( 0, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput, bufferLimit = 20971520 )
     if not result['OK']:
@@ -343,7 +338,6 @@ class GaudiApplication( ModuleBase ):
 
   #############################################################################
 
-
   def redirectLogOutput( self, fd, message ):
     """ Callback function for the Subprocess.shellcall
         Manages log files
@@ -365,140 +359,6 @@ class GaudiApplication( ModuleBase ):
         self.log.error( "Application Log file not defined" )
       if fd == 1:
         self.stdError += message
-
-  #############################################################################
-  def onlineExecute( self ):
-    """Use for the Online Farm."""
-    import xmlrpclib
-    from operator import itemgetter
-    xmlrpcerror = "Cannot connect to RecoManager"
-    matcherror = "Cannot find slice in RecoManager"
-    inputoutputerror = "Input/Output data error"
-    # 0: checks
-    if not self.workflow_commons.has_key( 'configName' ):
-      return S_ERROR( inputoutputerror )
-    configName = self.workflow_commons['configName']
-    if self.workflow_commons.has_key( 'configVersion' ):
-      configVersion = self.workflow_commons['configVersion']
-    else:
-      configVersion = self.applicationVersion
-    if not self.step_commons.has_key( 'outputData' ):
-      return S_ERROR( inputoutputerror )
-    if not self.step_commons.has_key( 'listoutput' ):
-      return S_ERROR( inputoutputerror )
-    outputDataName = None
-    outputDataType = None
-    for output in self.step_commons[ 'listoutput' ]:
-      if output[ 'outputDataName' ] == self.step_commons[ 'outputData' ]:
-        outputDataName = output[ 'outputDataName' ]
-        outputDataType = output[ 'outputDataType' ]
-        break
-    if not ( outputDataType and outputDataName ):
-      return S_ERROR( inputoutputerror )
-    if not 'applicationLog' in self.step_commons:
-      return S_ERROR( "No log file specified" )
-    # First: Get the full requirements for the job.
-    bkProcessingPass = self.workflow_commons[ 'BKProcessingPass' ]
-    step = 'Step%d' % ( int( self.STEP_NUMBER ) - 1 )
-    bkProcessingPass[ step ][ 'ExtraPackages' ] = List.fromChar( bkProcessingPass[ step ][ 'ExtraPackages' ] , ';' )
-    bkProcessingPass[ step ][ 'OptionFiles' ] = List.fromChar( bkProcessingPass[ step ][ 'OptionFiles' ] , ';' )
-    # Second: get the application configuration from the RecoManager XMLRPC
-    recoManager = xmlrpclib.ServerProxy( 'http://storeio01.lbdaq.cern.ch:8889' )
-    # recoManager = DummyRPC()
-    try:
-      result = recoManager.sliceStatus()
-    except:
-      self.log.exception()
-      return S_ERROR( xmlrpcerror )
-    if not result[ 'OK' ]:
-      self.log.error( result[ 'Message' ] )
-      return S_ERROR( matcherror )
-    # Third: find slices which match the given configuration options
-    validSlices = {}
-    for sliceName in result[ 'Value' ]:
-      sliceConfig = result[ 'Value' ][ sliceName ][ 'config' ]
-      self.log.debug( 'Comparing:%s and %s' % ( bkProcessingPass[ step ] , sliceConfig ) )
-      if self.compareConfigs( bkProcessingPass[ step ] , sliceConfig ):
-        validSlices[ sliceName ] = result[ 'Value' ][ sliceName ][ 'availability' ]
-    if len( validSlices ) == 0:
-      self.log.error( "No slice found matching configuration" )
-      return S_ERROR( matcherror )
-    # Fourth: find which of the matching slices is better for job sending (more availability)
-    sliceName = sorted( validSlices.iteritems(), key = itemgetter( 1 ), reverse = True )[0][0]
-    # Fifth: submit the file and wait.
-    inputData = self.inputData.lstrip( 'LFN:' ).lstrip( 'lfn:' )
-    lfnRoot = _getLFNRoot( inputData, configName, configVersion )
-    outputFile = _makeProductionLFN( self.JOB_ID, lfnRoot, ( outputDataName, outputDataType ), self.PRODUCTION_ID )
-    outputFile = outputFile.lstrip( 'LFN:' ).lstrip( 'lfn:' )
-    poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
-    try:
-      guid = poolXMLCatalog.getGuidByLfn( inputData )
-    except:
-      self.log.exception()
-      return S_ERROR( "Error getting GUID for inputfile" )
-    logFile = os.path.abspath( self.step_commons[ 'applicationLog' ] )
-    try:
-      result = recoManager.submitJob( sliceName, inputData , outputFile , logFile, guid )
-    except:
-      self.log.exception()
-      return S_ERROR( xmlrpcerror )
-    if not result[ 'OK' ]:
-      # if 'fileID' in result['Value']:
-      #   fileID = result[ 'Value' ]
-      #   res = recoManager.getJobOutput(fileID)
-        # log = res['Value']['log']
-        # writeLogFromList( loglines )
-      self.log.error( "Error running job" , result[ 'Message' ] )
-      return S_ERROR( "Error submiting job" )
-    # The submission went well
-    if os.path.exists( self.applicationLog ):
-      os.remove( self.applicationLog )
-    self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER ) )
-    jobID = result[ 'Value' ]
-    retrycount = 0
-    while True:
-      time.sleep( 20 )
-      try:
-        ret = recoManager.jobStatus( jobID )
-      except:
-        self.log.exception()
-        return S_ERROR( xmlrpcerror )
-      if not ret[ 'OK' ]:
-        retrycount = retrycount + 1
-        if retrycount > 5:
-          return S_ERROR( ret[ 'Message' ] )
-        continue
-      retrycount = 0
-      jobstatus = ret[ 'Value' ]
-      if jobstatus in [ 'DONE' , 'ERROR' ]:
-        ret = recoManager.getJobOutput( jobID )
-        if not ret[ 'OK' ]:
-          outputError = "Error retrieving output of jobID: %s" % jobID
-          self.log.error( outputError , ret[ 'Message' ] )
-          return S_ERROR( outputError )
-        jobInfo = ret[ 'Value' ] # ( status , inputevents , outputevents , logfile , path )
-        # Hack: create symlink to output data
-        for path in jobInfo[ 'path' ].values():
-          os.symlink( path , os.path.basename( path ) )
-        self.step_commons[ 'numberOfEventsInput' ] = str( jobInfo[ 'eventsRead' ] )
-        self.step_commons[ 'numberOfEventsOutput' ] = str( jobInfo[ 'eventsWritten' ] )
-        self.step_commons[ 'md5' ] = jobInfo[ 'md5' ]
-        self.step_commons[ 'guid' ] = jobInfo[ 'guid' ]
-        # loglines = jobInfo[ 'log' ]
-        # writeLogFromList( loglines )
-        self.log.info( "Status after the application execution is %s" % jobstatus )
-        failed = False
-        if jobstatus == 'ERROR':
-          self.log.error( "%s execution completed with errors:" % self.applicationName )
-          failed = True
-        else:
-          self.log.info( "%s execution completed succesfully:" % self.applicationName )
-        if failed:
-          self.log.error( '%s Exited With Status %s' % ( self.applicationName, jobstatus ) )
-          return S_ERROR( '%s Exited With Status %s' % ( self.applicationName, jobstatus ) )
-        self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
-        print self.step_commons
-        return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
   #############################################################################
 

@@ -7,10 +7,6 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
@@ -59,6 +55,7 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       self.request = RequestContainer()
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
@@ -103,16 +100,27 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None,
+               rm = None, ft = None, bk = None ):
     """ Main execution function.
     """
 
-    self.log.info( 'Initializing %s' % self.version )
+    super( UploadOutputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons, step_number, step_id )
 
-    result = self.resolveInputVariables()
+    self.resolveInputVariables()
 
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
+    if not bk:
+      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      bkClient = BookkeepingClient()
+    else:
+      bkClient = bk
+
+    if not self._checkWFAndStepStatus():
       return S_OK( 'No output data upload attempted' )
 
     #Determine the final list of possible output files for the
@@ -178,7 +186,11 @@ class UploadOutputData( ModuleBase ):
     fopen.close()
 
     #Instantiate the failover transfer client with the global request object
-    failoverTransfer = FailoverTransfer( self.request )
+    if not ft:
+      from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+      failoverTransfer = FailoverTransfer( self.request )
+    else:
+      failoverTransfer = ft
 
     #Track which files are successfully uploaded (not to failover) via
     performBKRegistration = []
@@ -238,7 +250,7 @@ class UploadOutputData( ModuleBase ):
       return S_ERROR( 'Failed to upload output data' )
 
     #Now double-check prior to final BK replica flag setting that the input files are still not processed 
-    result = self.checkInputsNotAlreadyProcessed( self.inputData, self.PRODUCTION_ID )
+    result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
     if not result['OK']:
       lfns = []
       self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )
@@ -269,7 +281,6 @@ class UploadOutputData( ModuleBase ):
       bkXML = fopen.read()
       fopen.close()
       self.log.info( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-      bkClient = BookkeepingClient()
       result = bkClient.sendBookkeeping( bkFile, bkXML )
       self.log.verbose( result )
       if result['OK']:
@@ -289,7 +300,9 @@ class UploadOutputData( ModuleBase ):
         if not result['OK']:
           return result
     else:
-      rm = ReplicaManager()
+      if not rm:
+        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+        rm = ReplicaManager()
       result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
       self.log.verbose( result )
       if not result['OK']:
@@ -306,7 +319,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def checkInputsNotAlreadyProcessed( self, inputData, productionID ):
+  def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient ):
     """ Checks that the input files for the job were not already processed by
         another job i.e. that there are no other descendent files for the 
         current productionID having a BK replica flag.  
@@ -318,7 +331,6 @@ class UploadOutputData( ModuleBase ):
     prodID = str( productionID )
     prodID = prodID.lstrip( '0' )
     self.log.info( 'Will check BK descendents for input data of job prior to uploading outputs' )
-    bkClient = BookkeepingClient()
     start = time.time()
     result = bkClient.getAllDescendents( inputData, depth = 9, production = int( prodID ), checkreplica = True )
     timing = time.time() - start

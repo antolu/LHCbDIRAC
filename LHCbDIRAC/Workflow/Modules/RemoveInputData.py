@@ -7,13 +7,9 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-
-from DIRAC                                                 import S_OK, S_ERROR, gLogger
-
 import string, os
+from DIRAC                                                 import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
 class RemoveInputData( ModuleBase ):
 
@@ -27,10 +23,10 @@ class RemoveInputData( ModuleBase ):
     super( RemoveInputData, self ).__init__( self.log )
 
     self.version = __RCSID__
-    self.rm = ReplicaManager()
 
     #List all parameters here
     self.request = None
+    self.inputData = []
 
   #############################################################################
 
@@ -44,6 +40,7 @@ class RemoveInputData( ModuleBase ):
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       self.request = RequestContainer()
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
@@ -61,25 +58,30 @@ class RemoveInputData( ModuleBase ):
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
-  def execute( self ):
+
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+                workflowStatus = None, stepStatus = None,
+                wf_commons = None, step_commons = None,
+                step_number = None, step_id = None, rm = None ):
     """ Main execution function.
     """
 
-    self.log.info( 'Initializing %s' % self.version )
+    super( RemoveInputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                            workflowStatus, stepStatus,
+                                            wf_commons, step_commons, step_number, step_id )
 
     if not self._enableModule():
       return S_OK()
 
     self.resolveInputVariables()
 
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
-      return S_OK( 'No input data removal attempted since workflow status not ok' )
-
     #Try to remove the file list with failover if necessary
     failover = []
     self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputData ) )
-    result = self.rm.removeFile( self.inputData )
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
+    result = rm.removeFile( self.inputData )
     self.log.verbose( result )
     if not result['OK']:
       self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
@@ -97,6 +99,7 @@ class RemoveInputData( ModuleBase ):
     return S_OK( 'Input Data Removed' )
 
   #############################################################################
+
   def __setFileRemovalRequest( self, lfn ):
     """ Sets a removal request for a file including all replicas.
     """

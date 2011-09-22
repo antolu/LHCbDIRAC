@@ -27,9 +27,11 @@ class BookkeepingReport( ModuleBase ):
     '''
 
     self.log = gLogger.getSubLogger( "BookkeepingReport" )
+
     super( BookkeepingReport, self ).__init__( self.log )
 
     self.version = __RCSID__
+
     self.configName = ''
     self.configVersion = ''
     self.run_number = 0
@@ -42,7 +44,6 @@ class BookkeepingReport( ModuleBase ):
     self.poolXMLCatName = ''
     self.inputData = ''
     self.InputData = ''
-    self.JOB_ID = None # to check
     self.sourceData = ''
     self.applicationName = ''
     self.applicationLog = ''
@@ -57,42 +58,44 @@ class BookkeepingReport( ModuleBase ):
 
   ################################################################################
 
-  def execute( self, workflowStatus = None, stepStatus = None,
-               wf_commons = None, step_commons = None ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None, saveOnFile = True ):
 
-    self.log.info( 'Initializing ' + self.version )
+    super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons, step_number, step_id )
 
-    if not workflowStatus:
-      workflowStatus = self.workflowStatus
-    if not stepStatus:
-      stepStatus = self.stepStatus
-    if not wf_commons:
-      wf_commons = self.workflow_commons
-    if not step_commons:
-      step_commons = self.step_commons
+    if not self._checkWFAndStepStatus():
+      return S_OK()
 
-    self._checkWFAndStepStatus( workflowStatus, stepStatus )
-
-    result = self.__resolveInputVariables( wf_commons, step_commons )
+    result = self.__resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
 
-    self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
-    bfilename = 'bookkeeping_' + self.STEP_ID + '.xml'
-    #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.STEP_NUMBER )
-    #bfilename = '%s_%s_Bookkeeping.xml' % ( self.STEP_ID, self.applicationName )
-    bfile = open( bfilename, 'w' )
-    print >> bfile, self.__makeBookkeepingXML( wf_commons, step_commons )
-    bfile.close()
+    doc = self.__makeBookkeepingXML()
+
+    if saveOnFile:
+      self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
+      bfilename = 'bookkeeping_' + self.step_id + '.xml'
+      #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
+      #bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
+      bfile = open( bfilename, 'w' )
+      print >> bfile, doc
+      bfile.close()
+    else:
+      print doc
 
     return S_OK()
+
 
 ################################################################################
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def __resolveInputVariables( self, wf_commons, step_commons ):
+  def __resolveInputVariables( self ):
 
     ## VARS FROM WORKFLOW_COMMONS ##
 
@@ -106,23 +109,23 @@ class BookkeepingReport( ModuleBase ):
                 }
 
     for k, v in wf_vars.items():
-      if wf_commons.has_key( k ):
-        setattr( self, v, wf_commons[ k ] )
+      if self.workflow_commons.has_key( k ):
+        setattr( self, v, self.workflow_commons[ k ] )
 
-    if wf_commons.has_key( 'outputList' ):
+    if self.workflow_commons.has_key( 'outputList' ):
       for outputItem in self.listoutput:
-        if outputItem not in wf_commons['outputList']:
-          wf_commons['outputList'].append( outputItem )
+        if outputItem not in self.workflow_commons['outputList']:
+          self.workflow_commons['outputList'].append( outputItem )
     else:
-      wf_commons['outputList'] = self.listoutput
+      self.workflow_commons['outputList'] = self.listoutput
 
-    if wf_commons.has_key( 'BookkeepingLFNs' ) and \
-        wf_commons.has_key( 'LogFilePath' )    and \
-        wf_commons.has_key( 'ProductionOutputData' ):
+    if self.workflow_commons.has_key( 'BookkeepingLFNs' ) and \
+        self.workflow_commons.has_key( 'LogFilePath' )    and \
+        self.workflow_commons.has_key( 'ProductionOutputData' ):
 
-      self.logFilePath = wf_commons['LogFilePath']
-      self.bkLFNs = wf_commons['BookkeepingLFNs']
-      self.prodOutputLFNs = wf_commons['ProductionOutputData']
+      self.logFilePath = self.workflow_commons['LogFilePath']
+      self.bkLFNs = self.workflow_commons['BookkeepingLFNs']
+      self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
 
       if not type( self.bkLFNs ) == type( [] ):
         self.bkLFNs = [i.strip() for i in self.bkLFNs.split( ';' )]
@@ -131,7 +134,7 @@ class BookkeepingReport( ModuleBase ):
 
     else:
       self.log.info( 'LogFilePath / BookkeepingLFNs parameters not found, creating on the fly' )
-      result = constructProductionLFNs( wf_commons )
+      result = constructProductionLFNs( self.workflow_commons )
       if not result['OK']:
         self.log.error( 'Could not create production LFNs', result['Message'] )
         return result
@@ -150,19 +153,19 @@ class BookkeepingReport( ModuleBase ):
                  }
 
     for k, v in step_vars.items():
-      if step_commons.has_key( k ):
-        setattr( self, v, step_commons[ k ] )
+      if self.step_commons.has_key( k ):
+        setattr( self, v, self.step_commons[ k ] )
 
-    if step_commons.has_key( 'applicationName' ):
-      self.applicationName = step_commons['applicationName']
-      self.applicationVersion = step_commons['applicationVersion']
-      self.applicationLog = step_commons['applicationLog']
+    if self.step_commons.has_key( 'applicationName' ):
+      self.applicationName = self.step_commons['applicationName']
+      self.applicationVersion = self.step_commons['applicationVersion']
+      self.applicationLog = self.step_commons['applicationLog']
 
     self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
 
-    if step_commons.has_key( 'StartTime' ):
-      startTime = step_commons['StartTime']
+    if self.step_commons.has_key( 'StartTime' ):
+      startTime = self.step_commons['StartTime']
       self.ldatestart = time.strftime( "%Y-%m-%d", time.localtime( startTime ) )
       self.ltimestart = time.strftime( "%H:%M", time.localtime( startTime ) )
 
@@ -171,7 +174,7 @@ class BookkeepingReport( ModuleBase ):
 ################################################################################
 ################################################################################
 
-  def __makeBookkeepingXML( self, wf_commons, step_commons ):
+  def __makeBookkeepingXML( self ):
 
     ''' Bookkeeping xml looks like this:
     
@@ -196,13 +199,13 @@ class BookkeepingReport( ModuleBase ):
     # Generate XML document
     doc = Document()
     # Generate JobNode
-    doc, jobNode = self.__generateJobNode( doc, wf_commons )
+    doc, jobNode = self.__generateJobNode( doc )
     # Generate TypedParams
     jobNode = self.__generateTypedParams( jobNode )
     # Generate InputFiles
     jobNode = self.__generateInputFiles( jobNode )
     # Generate OutputFiles
-    jobNode = self.__generateOutputFiles( jobNode, wf_commons )
+    jobNode = self.__generateOutputFiles( jobNode )
     # Generate SimulationConditions
     jobNode = self.__generateSimulationCondition( jobNode )
 
@@ -210,15 +213,15 @@ class BookkeepingReport( ModuleBase ):
 
 ################################################################################
 
-  def __generateJobNode( self, doc, wf_commons ):
+  def __generateJobNode( self, doc ):
     ''' Node looks like
         <Job ConfigName="" ConfigVersion="" Date="" Time="">
     '''
 
     # Get the Config name from the environment if any
-    if wf_commons.has_key( 'configName' ):
-      configName = wf_commons[ 'configName' ]
-      configVersion = wf_commons[ 'configVersion' ]
+    if self.workflow_commons.has_key( 'configName' ):
+      configName = self.workflow_commons[ 'configName' ]
+      configVersion = self.workflow_commons[ 'configVersion' ]
     else:
       configName = self.applicationName
       configVersion = self.applicationVersion
@@ -229,7 +232,7 @@ class BookkeepingReport( ModuleBase ):
 
 ################################################################################
 
-  def __generateTypedParams( self, jobNode, step_commons ):
+  def __generateTypedParams( self, jobNode ):
     ''' TypedParameter looks like
         <TypedParameter Name="" Type="" Value="">
         
@@ -262,12 +265,12 @@ class BookkeepingReport( ModuleBase ):
 
     # Timing
     exectime = 0
-    if step_commons.has_key( 'StartTime' ):
-      exectime = time.time() - step_commons['StartTime']
+    if self.step_commons.has_key( 'StartTime' ):
+      exectime = time.time() - self.step_commons['StartTime']
     cputime = 0
-    if step_commons.has_key( 'StartStats' ):
+    if self.step_commons.has_key( 'StartStats' ):
       stats = os.times()
-      cputime = stats[ 0 ] + stats[ 2 ] - step_commons[ 'StartStats' ][ 0 ] - step_commons[ 'StartStats' ][ 2 ]
+      cputime = stats[ 0 ] + stats[ 2 ] - self.step_commons[ 'StartStats' ][ 0 ] - self.step_commons[ 'StartStats' ][ 2 ]
 
     typedParams.append( ( "CPUTIME", cputime ) )
     typedParams.append( ( "ExecTime", exectime ) )
@@ -282,9 +285,9 @@ class BookkeepingReport( ModuleBase ):
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
-    typedParams.append( ( "Production", self.PRODUCTION_ID ) )
-    typedParams.append( ( "DiracJobId", self.JOB_ID ) )
-    typedParams.append( ( "Name", self.STEP_ID ) )
+    typedParams.append( ( "Production", self.production_id ) )
+    typedParams.append( ( "DiracJobId", self.jobID ) )
+    typedParams.append( ( "Name", self.step_id ) )
     typedParams.append( ( "JobStart", '%s %s' % ( self.ldatestart, self.ltimestart ) ) )
     typedParams.append( ( "JobEnd", '%s %s' % ( self.ldate, self.ltime ) ) )
     typedParams.append( ( "Location", DIRAC.siteName() ) )
@@ -348,7 +351,7 @@ class BookkeepingReport( ModuleBase ):
 
 ################################################################################
 
-  def __generateOutputFiles( self, jobNode, wf_commons, step_commons ):
+  def __generateOutputFiles( self, jobNode ):
     '''OutputFile looks like this:  
       
        <OutputFile Name="" TypeName="" TypeVersion="">
@@ -413,8 +416,8 @@ class BookkeepingReport( ModuleBase ):
         typeVersion = getType( output )
         typeName = bkTypeDict[ output ].upper()
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
-        if wf_commons.has_key( 'StreamEvents' ):
-          streamEvents = wf_commons[ 'StreamEvents' ]
+        if self.workflow_commons.has_key( 'StreamEvents' ):
+          streamEvents = self.workflow_commons[ 'StreamEvents' ]
           if streamEvents.has_key( typeName ):
             fileStats = streamEvents[ typeName ]
             self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
@@ -423,22 +426,22 @@ class BookkeepingReport( ModuleBase ):
         self.log.error( 'File does not exist:' , output )
         continue
       # Output file size
-      if not step_commons.has_key( 'size' ) or output not in step_commons[ 'size' ]:
+      if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
         try:
           outputsize = str( os.path.getsize( output ) )
         except:
           outputsize = '0'
       else:
-        outputsize = step_commons[ 'size' ][ output ]
+        outputsize = self.step_commons[ 'size' ][ output ]
 
-      if not step_commons.has_key( 'md5' ) or output not in step_commons[ 'md5' ]:
+      if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
         comm = 'md5sum ' + str( output )
         resultTuple = shellCall( 0, comm )
         status = resultTuple[ 'Value' ][ 0 ]
         out = resultTuple[ 'Value' ][ 1 ]
       else:
         status = 0
-        out = step_commons[ 'md5' ][ output ]
+        out = self.step_commons[ 'md5' ][ output ]
 
       if status:
         self.log.info( "Failed to get md5sum of %s" % str( output ) )
@@ -447,7 +450,7 @@ class BookkeepingReport( ModuleBase ):
       else:
         md5sum = out.split()[ 0 ]
 
-      if not step_commons.has_key( 'guid' ) or output not in step_commons[ 'guid' ]:
+      if not self.step_commons.has_key( 'guid' ) or output not in self.step_commons[ 'guid' ]:
         guidResult = getGUID( output )
         guid = ''
         if not guidResult[ 'OK' ]:
@@ -459,7 +462,7 @@ class BookkeepingReport( ModuleBase ):
           guid = guidResult[ 'Value' ][ output ]
           self.log.info( 'Setting POOL XML catalog GUID for %s to %s' % ( output, guid ) )
       else:
-        guid = step_commons[ 'guid' ][ output ]
+        guid = self.step_commons[ 'guid' ][ output ]
 
       if not guid:
         return S_ERROR( 'No GUID found for %s' % output )

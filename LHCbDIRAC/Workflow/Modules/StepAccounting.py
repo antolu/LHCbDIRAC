@@ -12,7 +12,7 @@ __RCSID__ = "$Id$"
 import os, time
 
 import DIRAC
-from DIRAC  import S_OK, S_ERROR, gConfig
+from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
 from DIRAC.Core.Security.Misc import getProxyInfo
@@ -22,10 +22,17 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class StepAccounting( ModuleBase ):
 
-  def __init__( self ):
+  def __init__( self, production_id = None, prod_job_id = None, wms_job_id = None,
+                workflowStatus = None, stepStatus = None,
+                wf_commons = None, step_commons = None,
+                step_number = None, step_id = None ):
 
-    self.PRODUCTION_ID = None
-    self.JOB_ID = None
+    self.log = gLogger.getSubLogger( "StepAccounting" )
+    super( StepAccounting, self ).__init__( self.log, production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons, step_number, step_id )
+
+    self.version = __RCSID__
 #    self.STEP_NUMBER = None
     self.STEP_TYPE = None
 
@@ -47,6 +54,13 @@ class StepAccounting( ModuleBase ):
 
   def execute( self ):
 
+    self.log.info( 'Initializing %s' % self.version )
+
+    if not self._enableModule():
+      return S_OK()
+
+    self.resolveInputVariables()
+
 #    sname = 'Step_%d' % int( self.step_commons['STEP_NUMBER'] )
     result = getProxyInfo()
     if result['OK']:
@@ -61,9 +75,6 @@ class StepAccounting( ModuleBase ):
         self.user = 'unknown'
 
     status = 'Done'
-
-    self.resolveInputVariables()
-
 
     # This is the final step module. Its output status is the status of the whole step
     if self.appStatus == "Failed":
@@ -89,7 +100,7 @@ class StepAccounting( ModuleBase ):
         status = 'Failed'
 
     # Check if the step is worth accounting
-    sname = 'Step_%d' % int( self.step_commons['STEP_NUMBER'] )
+    sname = 'Step_%d' % int( self.step_number )
     do_accounting = True
     if not self.step_commons.has_key( 'applicationName' ):
       do_accounting = False
@@ -115,7 +126,7 @@ class StepAccounting( ModuleBase ):
       else:
         self.stepDictionary['FinalState'] = status
       self.stepDictionary['EventType'] = eventType
-      self.stepDictionary['JobGroup'] = self.PRODUCTION_ID
+      self.stepDictionary['JobGroup'] = self.production_id
       self.stepDictionary['User'] = self.user
       self.stepDictionary['Group'] = self.group
       self.stepDictionary['Site'] = DIRAC.siteName()

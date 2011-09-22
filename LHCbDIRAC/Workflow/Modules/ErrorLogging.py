@@ -12,7 +12,6 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
@@ -24,6 +23,7 @@ import os, shutil, sys
 class ErrorLogging( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     """Module initialization.
     """
@@ -31,23 +31,21 @@ class ErrorLogging( ModuleBase ):
     self.log = gLogger.getSubLogger( "ErrorLogging" )
     super( ErrorLogging, self ).__init__( self.log )
 
-    self.version            = __RCSID__
+    self.version = __RCSID__
     #Step parameters
-    self.applicationName    = ''
+    self.applicationName = ''
     self.applicationVersion = ''
-    self.applicationLog     = ''
+    self.applicationLog = ''
     #Workflow commons parameters
-    self.request            = None
-    self.productionID       = None
-    self.prodJobID          = None
-    self.systemConfig       = ''
+    self.request = None
+    self.systemConfig = ''
     #Internal parameters
-    self.executable         = '$APPCONFIGROOT/scripts/LogErr.py'
-    self.errorLogFile       = ''
-    self.errorLogName       = ''
-    self.stdError           = ''
+    self.executable = '$APPCONFIGROOT/scripts/LogErr.py'
+    self.errorLogFile = ''
+    self.errorLogName = ''
+    self.stdError = ''
     #Error log parameters
-    self.defaultName        = 'errors.html'
+    self.defaultName = 'errors.html'
 
   #############################################################################
 
@@ -66,22 +64,16 @@ class ErrorLogging( ModuleBase ):
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       self.request = RequestContainer()
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    if self.workflow_commons.has_key( 'PRODUCTION_ID' ):
-      self.productionID = self.workflow_commons['PRODUCTION_ID']
-
-    if self.workflow_commons.has_key( 'JOB_ID' ):
-      self.prodJobID = self.workflow_commons['JOB_ID']
-
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
 
     #Must get all the necessary step parameters
-    self.stepNumber = self.step_commons['STEP_NUMBER']
     if self.step_commons.has_key( 'applicationName' ):
       self.applicationName = self.step_commons['applicationName']
     if self.step_commons.has_key( 'applicationVersion' ):
@@ -92,6 +84,7 @@ class ErrorLogging( ModuleBase ):
     if not self.applicationName or not self.applicationVersion or not self.applicationLog:
       return S_ERROR( 'One of application name, version or log file is null: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
 
+    #FIXME: really not clear if needed or not!
     if self.step_commons.has_key( 'extraPackages' ):
       self.extraPackages = self.step_commons['extraPackages']
 
@@ -99,22 +92,27 @@ class ErrorLogging( ModuleBase ):
       if type( self.extraPackages ) != type( [] ):
         self.extraPackages = self.extraPackages.split( ';' )
 
-    self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.stepNumber )
-    self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.stepNumber )
-#    self.errorLogFile = '%s_%s_%s_%s_ErrorLog-%s.log' % ( self.productionID, self.prodJobID, self.stepNumber, self.applicationName, self.applicationVersion )
-#    self.errorLogName = '%s_%s_%s_%s_Errors-%s.html' % ( self.productionID, self.prodJobID, self.stepNumber, self.applicationName, self.applicationVersion )
+    self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
+    self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.step_number )
+
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None ):
     """ Main execution function. Always return S_OK() because we don't want the
         job execution result to depend on retrieving errors from logs.
 
         This module will run regardless of the workflow status.
     """
 
-    self.log.info( 'Initializing %s' % self.version )
+    super( ErrorLogging, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                         workflowStatus, stepStatus,
+                                         wf_commons, step_commons, step_number, step_id )
+
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.info( result['Message'] )
@@ -177,6 +175,7 @@ class ErrorLogging( ModuleBase ):
     return S_OK()
 
   #############################################################################
+
   def redirectLogOutput( self, fd, message ):
     sys.stdout.flush()
     if message:

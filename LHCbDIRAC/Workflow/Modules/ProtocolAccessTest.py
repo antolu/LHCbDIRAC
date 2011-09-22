@@ -13,7 +13,6 @@ from DIRAC                                                          import S_OK,
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.Core.Utilities.List                                      import sortList
 from DIRAC.Core.Utilities.Statistics                                import getMean, getMedian, getVariance, getStandardDeviation
-from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                          import ModuleBase
 from LHCbDIRAC.Core.Utilities.ClientTools                           import readFileEvents
@@ -27,9 +26,10 @@ class ProtocolAccessTest( ModuleBase ):
   #############################################################################
   def __init__( self ):
     """ Standard constructor """
-    ModuleBase.__init__( self )
-    self.name = COMPONENT_NAME
-    self.log = gLogger.getSubLogger( self.name )
+
+    self.log = gLogger.getSubLogger( "ProtocolAccessTest" )
+    super( ProtocolAccessTest, self ).__init__( self.log )
+
     self.version = __RCSID__
     self.inputData = ''
     self.systemConfig = ''
@@ -39,11 +39,12 @@ class ProtocolAccessTest( ModuleBase ):
     self.rootVersion = ''
 
   #############################################################################
+
   def resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
-    self.log.info( self.workflow_commons )
-    self.log.info( self.step_commons )
+    self.log.debug( self.workflow_commons )
+    self.log.debug( self.step_commons )
     result = S_OK()
 
     if self.step_commons.has_key( 'inputData' ):
@@ -86,16 +87,28 @@ class ProtocolAccessTest( ModuleBase ):
     return result
 
   #############################################################################
-  def execute( self ):
+
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None, rm = None ):
     """ The main execution method of the protocol access test module.
     """
+
+    super( ProtocolAccessTest, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                               workflowStatus, stepStatus,
+                                               wf_commons, step_commons, step_number, step_id )
+
+
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
 
-    self.log.info( 'Initializing %s' % self.version )
-    rm = ReplicaManager()
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
+
     self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( string.join( self.inputData, '\n' ) ) )
 
     replicaRes = rm.getReplicas( self.inputData )
@@ -217,6 +230,7 @@ class ProtocolAccessTest( ModuleBase ):
     return S_OK()
 
   #############################################################################
+
   def __getProtocolLocations( self, argumentsDict ):
     protocol = argumentsDict['Configuration']['Protocol']
     moduleFactory = ModuleFactory()
@@ -273,6 +287,7 @@ class ProtocolAccessTest( ModuleBase ):
     return S_OK( {'Successful':successful, 'Failed':failed} )
 
   #############################################################################
+
   def __generateStats( self, readTimes ):
     resDict = {}
     resDict['Elements'] = len( readTimes )
@@ -281,3 +296,5 @@ class ProtocolAccessTest( ModuleBase ):
     resDict['Variance'] = getVariance( readTimes, posMean = resDict['Mean'] )
     resDict['StdDev'] = getStandardDeviation( readTimes, variance = resDict['Variance'], mean = resDict['Mean'] )
     return resDict
+
+  #############################################################################

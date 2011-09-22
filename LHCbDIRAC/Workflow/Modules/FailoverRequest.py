@@ -7,13 +7,8 @@
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.TransformationSystem.Client.FileReport          import FileReport
-from DIRAC.WorkloadManagementSystem.Client.JobReport       import JobReport
 from DIRAC                                                 import S_OK, S_ERROR, gLogger
-
-import os
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
 class FailoverRequest( ModuleBase ):
 
@@ -27,9 +22,7 @@ class FailoverRequest( ModuleBase ):
     super( FailoverRequest, self ).__init__( self.log )
 
     self.version = __RCSID__
-    #Internal parameters
-    self.productionID = None
-    self.prodJobID = None
+
     #Workflow parameters
     self.jobReport = None
     self.fileReport = None
@@ -44,7 +37,6 @@ class FailoverRequest( ModuleBase ):
     self.log.debug( self.workflow_commons )
     self.log.debug( self.step_commons )
 
-    #Earlier modules will have populated the report objects
     if self.workflow_commons.has_key( 'JobReport' ):
       self.jobReport = self.workflow_commons['JobReport']
 
@@ -64,24 +56,31 @@ class FailoverRequest( ModuleBase ):
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       self.request = RequestContainer()
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    if self.workflow_commons.has_key( 'PRODUCTION_ID' ):
-      self.productionID = self.workflow_commons['PRODUCTION_ID']
-
-    if self.workflow_commons.has_key( 'JOB_ID' ):
-      self.prodJobID = self.workflow_commons['JOB_ID']
+      #useless, IMHO
+#    if self.workflow_commons.has_key( 'PRODUCTION_ID' ):
+#      self.productionID = self.workflow_commons['PRODUCTION_ID']
+#
+#    if self.workflow_commons.has_key( 'JOB_ID' ):
+#      self.prodJobID = self.workflow_commons['JOB_ID']
 
   #############################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+                workflowStatus = None, stepStatus = None,
+                wf_commons = None, step_commons = None,
+                step_number = None, step_id = None ):
     """ Main execution function.
     """
 
-    self.log.info( 'Initializing %s' % self.version )
+    super( FailoverRequest, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                            workflowStatus, stepStatus,
+                                            wf_commons, step_commons, step_number, step_id )
 
     if not self._enableModule():
       return S_OK()
@@ -90,6 +89,7 @@ class FailoverRequest( ModuleBase ):
 
     if not self.fileReport:
       self.log.debug( 'Getting FileReport object' )
+      from DIRAC.TransformationSystem.Client.FileReport import FileReport
       self.fileReport = FileReport( 'ProductionManagement/ProductionManager' )
 
     if self.inputData:
@@ -99,8 +99,7 @@ class FailoverRequest( ModuleBase ):
           self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
           result = self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
 
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
+    if not self._checkWFAndStepStatus():
       inputFiles = self.fileReport.getFiles()
       for lfn in inputFiles:
         if inputFiles[lfn] != 'ApplicationCrash':
@@ -108,6 +107,7 @@ class FailoverRequest( ModuleBase ):
           self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
     else:
       inputFiles = self.fileReport.getFiles()
+
       if inputFiles:
         self.log.info( 'Workflow status OK, setting input file status to Processed' )
       for lfn in inputFiles:
@@ -115,6 +115,7 @@ class FailoverRequest( ModuleBase ):
         self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Processed' )
 
     result = self.fileReport.commit()
+
     if not result['OK']:
       self.log.error( 'Failed to report file status to ProductionDB, request will be generated', result['Message'] )
     else:
@@ -123,11 +124,7 @@ class FailoverRequest( ModuleBase ):
     # Must ensure that the local job report instance is used to report the final status
     # in case of failure and a subsequent failover operation
     if self.workflowStatus['OK'] and self.stepStatus['OK']:
-      if not self.jobReport:
-        self.jobReport = JobReport( int( self.jobID ) )
-      jobStatus = self.jobReport.setApplicationStatus( 'Job Finished Successfully' )
-      if not jobStatus['OK']:
-        self.log.warn( jobStatus['Message'] )
+      self.setApplicationStatus( 'Job Finished Successfully', jr = self.jobReport )
 
     # Retrieve the accumulated reporting request
     reportRequest = None
@@ -168,7 +165,7 @@ class FailoverRequest( ModuleBase ):
     request_string = self.request.toXML()['Value']
     self.log.debug( request_string )
     # Write out the request string
-    fname = '%s_%s_request.xml' % ( self.productionID, self.prodJobID )
+    fname = '%s_%s_request.xml' % ( self.production_id, self.prod_job_id )
     xmlfile = open( fname, 'w' )
     xmlfile.write( request_string )
     xmlfile.close()
@@ -181,6 +178,7 @@ class FailoverRequest( ModuleBase ):
     return self.finalize()
 
   #############################################################################
+
   def finalize( self ):
     """ Finalize and report correct status for the workflow based on the workflow
         or step status.

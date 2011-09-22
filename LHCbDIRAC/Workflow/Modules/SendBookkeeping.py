@@ -9,14 +9,9 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-
-from DIRAC                                                 import S_OK, S_ERROR, gLogger
-
 import os, string, glob
+from DIRAC                                                 import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
 class SendBookkeeping( ModuleBase ):
 
@@ -32,8 +27,6 @@ class SendBookkeeping( ModuleBase ):
     self.version = __RCSID__
     #Workflow parameters
     self.request = None
-    #Globals
-    self.bk = BookkeepingClient()
 
   #############################################################################
 
@@ -47,6 +40,7 @@ class SendBookkeeping( ModuleBase ):
     if self.workflow_commons.has_key( 'Request' ):
       self.request = self.workflow_commons['Request']
     else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       self.request = RequestContainer()
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
@@ -55,25 +49,29 @@ class SendBookkeeping( ModuleBase ):
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None, bk = None ):
 
     """ Main execution function.
     """
 
-    self.log.info( 'Initializing %s' % self.version )
+    super( SendBookkeeping, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                            workflowStatus, stepStatus,
+                                            wf_commons, step_commons, step_number, step_id )
 
     if not self._enableModule():
       return S_OK()
+
+    if not bk:
+      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      bk = BookkeepingClient()
 
     result = self.resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
-
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
-      self.log.info( 'Job completed with errors, no bookkeeping records will be sent' )
-      return S_OK( 'Job completed with errors' )
 
     bkFileExtensions = ['bookkeeping*.xml']
     bkFiles = []
@@ -94,7 +92,7 @@ class SendBookkeeping( ModuleBase ):
       bkXML = fopen.read()
       fopen.close()
       self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-      result = self.bk.sendBookkeeping( bkFile, bkXML )
+      result = bk.sendBookkeeping( bkFile, bkXML )
       self.log.verbose( result )
       if result['OK']:
         self.log.info( 'Bookkeeping report sent for %s' % bkFile )

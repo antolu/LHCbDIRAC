@@ -10,7 +10,6 @@
 __RCSID__ = "$Id$"
 
 from DIRAC  import S_OK, S_ERROR
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 from DIRAC.Core.Security.Misc import getProxyInfoAsString
@@ -41,13 +40,65 @@ class ModuleBase( object ):
     else:
       self.log.verbose( 'Payload proxy information:\n', result['Value'] )
 
-    self.jobID = ''
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
 
   #############################################################################
 
-  def setApplicationStatus( self, status, sendFlag = True ):
+  def execute( self, version = None,
+               production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None ):
+
+    if version:
+      self.log.info( 'Initializing ' + version )
+
+    if not production_id:
+      self.production_id = self.PRODUCTION_ID
+    else:
+      self.production_id = production_id
+
+    if not prod_job_id:
+      self.prod_job_id = self.JOB_ID
+    else:
+      self.prod_job_id = prod_job_id
+
+    if not wms_job_id:
+      self.jobID = ''
+      #FIXME: which one is ok?
+      if os.environ.has_key( 'JOBID' ):
+        self.jobID = os.environ['JOBID']
+        self.jobID = self.JOB_ID
+    else:
+      self.jobID = wms_job_id
+
+    if not workflowStatus:
+      self.workflowStatus = self.workflowStatus
+    else:
+      self.workflowStatus = workflowStatus
+    if not stepStatus:
+      self.stepStatus = self.stepStatus
+    else:
+      self.stepStatus = stepStatus
+    if not wf_commons:
+      self.workflow_commons = self.workflow_commons
+    else:
+      self.workflow_commons = wf_commons
+    if not step_commons:
+      self.step_commons = self.step_commons
+    else:
+      self.step_commons = step_commons
+    if not step_number:
+      self.step_number = self.STEP_NUMBER
+    else:
+      self.step_number = step_number
+    if not step_id:
+      self.step_id = self.STEP_ID
+    else:
+      self.step_id = step_id
+
+  #############################################################################
+
+  def setApplicationStatus( self, status, sendFlag = True, jr = None ):
     """Wraps around setJobApplicationStatus of state update client
     """
     if not self.jobID:
@@ -55,12 +106,11 @@ class ModuleBase( object ):
 
     self.log.verbose( 'setJobApplicationStatus(%s,%s)' % ( self.jobID, status ) )
 
-    if self.workflow_commons.has_key( 'JobReport' ):
-      self.jobReport = self.workflow_commons['JobReport']
+    if not jr:
+      try: jr = self.__getJobReporter()
+      except NameError, e: return S_OK( e )
 
-    if not self.jobReport:
-      return S_OK( 'No reporting tool given' )
-    jobStatus = self.jobReport.setApplicationStatus( status, sendFlag )
+    jobStatus = jr.setApplicationStatus( status, sendFlag )
     if not jobStatus['OK']:
       self.log.warn( jobStatus['Message'] )
 
@@ -68,19 +118,17 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def sendStoredStatusInfo( self ):
+  def sendStoredStatusInfo( self, jr = None ):
     """Wraps around sendStoredStatusInfo of state update client
     """
     if not self.jobID:
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
-    if self.workflow_commons.has_key( 'JobReport' ):
-      self.jobReport = self.workflow_commons['JobReport']
+    if not jr:
+      try: jr = self.__getJobReporter()
+      except NameError, e: return S_OK( e )
 
-    if not self.jobReport:
-      return S_OK( 'No reporting tool given' )
-
-    sendStatus = self.jobReport.sendStoredStatusInfo()
+    sendStatus = jr.sendStoredStatusInfo()
     if not sendStatus['OK']:
       self.log.error( sendStatus['Message'] )
 
@@ -88,7 +136,7 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def setJobParameter( self, name, value, sendFlag = True ):
+  def setJobParameter( self, name, value, sendFlag = True, jr = None ):
     """Wraps around setJobParameter of state update client
     """
     if not self.jobID:
@@ -96,12 +144,11 @@ class ModuleBase( object ):
 
     self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
-    if self.workflow_commons.has_key( 'JobReport' ):
-      self.jobReport = self.workflow_commons['JobReport']
+    if not jr:
+      try: jr = self.__getJobReporter()
+      except NameError, e: return S_OK( e )
 
-    if not self.jobReport:
-      return S_OK( 'No reporting tool given' )
-    jobParam = self.jobReport.setJobParameter( str( name ), str( value ), sendFlag )
+    jobParam = jr.setJobParameter( str( name ), str( value ), sendFlag )
     if not jobParam['OK']:
       self.log.warn( jobParam['Message'] )
 
@@ -109,23 +156,32 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def sendStoredJobParameters( self ):
+  def sendStoredJobParameters( self, jr = None ):
     """Wraps around sendStoredJobParameters of state update client
     """
     if not self.jobID:
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
-    if self.workflow_commons.has_key( 'JobReport' ):
-      self.jobReport = self.workflow_commons['JobReport']
+    if not jr:
+      try: jr = self.__getJobReporter()
+      except NameError, e: return S_OK( e )
 
-    if not self.jobReport:
-      return S_OK( 'No reporting tool given' )
-
-    sendStatus = self.jobReport.sendStoredJobParameters()
+    sendStatus = jr.sendStoredJobParameters()
     if not sendStatus['OK']:
       self.log.error( sendStatus['Message'] )
 
     return sendStatus
+
+  #############################################################################
+
+  def __getJobReporter( self ):
+    """ just return the job reporter (object, always defined by dirac-jobexec)
+    """
+
+    if self.workflow_commons.has_key( 'JobReport' ):
+      return self.workflow_commons['JobReport']
+    else:
+      raise NameError, 'No reporting tool given'
 
   #############################################################################
 
@@ -149,11 +205,14 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def setReplicaProblematic( self, lfn, se, pfn = '', reason = 'Access failure' ):
+  def setReplicaProblematic( self, lfn, se, pfn = '', reason = 'Access failure', rm = None ):
     """ Set replica status to Problematic in the File Catalog
     """
 
-    rm = ReplicaManager()
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
+
     source = "Job %d at %s" % ( self.jobID, DIRAC.siteName() )
     result = rm.setReplicaProblematic( ( lfn, pfn, se, reason ), source )
     if not result['OK'] or result['Value']['Failed']:
@@ -348,13 +407,15 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def _checkWFAndStepStatus( self, workflowStatus, stepStatus ):
+  def _checkWFAndStepStatus( self ):
 
-    if not workflowStatus['OK'] or not stepStatus['OK']:
+    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info( 'Skip this module, failure detected in a previous step :' )
-      self.log.info( 'Workflow status : %s' % ( workflowStatus ) )
-      self.log.info( 'Step Status %s' % ( stepStatus ) )
-      return S_OK()
+      self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
+      self.log.info( 'Step Status : %s' % ( self.stepStatus ) )
+      return False
+    else:
+      return True
 
   #############################################################################
 
