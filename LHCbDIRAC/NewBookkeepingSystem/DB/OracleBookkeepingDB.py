@@ -778,19 +778,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += 'and files.gotreplica=\'' + str(gotreplica) + '\''
 
     if ftype != 'ALL':
-      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str(ftype) + '\''
-      res = self.dbR_._query(fileType)
-      if not res['OK']:
-        gLogger.error(res['Message'])
-        return S_ERROR('Oracle error' + res['Message'])
-      else:
-        if len(res['Value']) == 0:
-          return S_ERROR('File Type not found:' + str(ftype))
+      condition += " and filetypes.name='%s'"%(ftype)
 
-        ftypeId = res['Value'][0][0]
-        command = 'select files.filename, files.gotreplica, files.filesize,files.guid, \'' + ftype + '\', files.inserttimestamp from jobs,files where jobs.jobid=files.jobid and files.filetypeid=' + str(ftypeId) + ' and jobs.production=' + str(prod) + condition
-    else:
-      command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name, files.inserttimestamp from jobs,files,filetypes where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production=' + str(prod) + condition
+    command = "select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name, files.inserttimestamp from jobs,files,filetypes where\
+    jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production=%d %s" % (prod, condition)
 
     res = self.dbR_._query(command)
     if res['OK']:
@@ -804,46 +795,37 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getFilesForAGivenProduction(self, dict):
     condition = ''
+    tables = ' jobs, files'
+    command = ''
     if dict.has_key('Production'):
       prod = dict['Production']
-      condition = ' and jobs.production=' + str(prod)
+      condition = " and jobs.production=%d" % (prod)
     else:
       return S_ERROR('You need to give a production number!')
     if dict.has_key('FileType'):
-      ftype = dict['FileType']
-      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str(ftype) + '\''
-      res = self.dbR_._query(fileType)
-      if not res['OK']:
-        gLogger.error(res['Message'])
-        return S_ERROR('Oracle error' + res['Message'])
-      else:
-        if len(res['Value']) == 0:
-          return S_ERROR('File Type not found:' + str(ftype))
-
-        ftypeId = res['Value'][0][0]
-        condition += ' and files.filetypeid=' + str(ftypeId)
+      condition += " and filetypes.name='%s' "%(dict['FileType'])
 
     if dict.has_key('Replica'):
       gotreplica = dict['Replica']
-      condition += 'and files.gotreplica=\'' + str(gotreplica) + '\''
+      condition += " and files.gotreplica='%s'" % (str(gotreplica))
 
-    command = ''
-    tables = ''
+
     if dict.has_key('DataQuality'):
-      tables = ', dataquality'
+      tables += ', dataquality'
       quality = dict['DataQuality']
       if type(quality) == types.ListType:
         condition += ' and '
         cond = ' ( '
         for i in quality:
-          cond += 'dataquality.dataqualityflag=\'' + str(i) + '\' and files.qualityId=dataquality.qualityid or '
+          cond += "dataquality.dataqualityflag='%s' or " % (str(i))
         cond = cond[:-3] + ')'
         condition += cond
       else:
-        condition += ' and dataquality.dataqualityflag=\'' + str(quality) + '\' and files.qualityId=dataquality.qualityid '
-
+        condition += " and dataquality.dataqualityflag='%s' " % (str(quality))
+      condition += " and files.qualityId=dataquality.qualityid"
     value = {}
-    command = 'select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from jobs,files,filetypes' + tables + ' where jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid ' + condition
+    command = "select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name from filetypes, %s where \
+    jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid %s " % (tables, condition)
 
     res = self.dbR_._query(command)
     if res['OK']:
@@ -1752,6 +1734,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getProductionFilesForUsers(self, prod, ftypeDict, SortDict, StartItem, Maxitems):
+    condition = ''
     command = ''
     parametersNames = ['Name', 'FileSize', 'FileType', 'CreationDate', 'EventTypeId', 'EventStat', 'GotReplica', 'InsertTimeStamp', 'Luminosity', 'InstLuminosity']
     records = []
@@ -1769,34 +1752,25 @@ class OracleBookkeepingDB(IBookkeepingDB):
         nbOfEvents = res['Value'][0][1]
         filesSize = res['Value'][0][2]
 
+
     if ftype != 'ALL':
-      fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str(ftype) + '\''
-      res = self.dbR_._query(fileType)
-      if not res['OK']:
-        gLogger.error(res['Message'])
-        return S_ERROR('Oracle error' + res['Message'])
-      else:
-        if len(res['Value']) == 0:
-          return S_ERROR('File Type not found:' + str(ftype))
 
-        ftypeId = res['Value'][0][0]
-
-        command = 'select rnum, filename, filesize, \'' + str(ftype) + '\' , creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp , luminosity ,instLuminosity from \
-                ( select rownum rnum, filename, filesize, \'' + str(ftype) + '\' , creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, luminosity,instLuminosity \
-                from ( select files.filename, files.filesize, \'' + str(ftype) + '\' , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.luminosity, files.instLuminosity \
-                           from jobs,files where \
+      command = "select rnum, filename, filesize, name , creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp , luminosity ,instLuminosity from \
+                ( select rownum rnum, filename, filesize, name , creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, luminosity,instLuminosity \
+                from ( select files.filename, files.filesize, filetypes.name , files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.luminosity, files.instLuminosity \
+                           from jobs,files, filetypes where \
                            jobs.jobid=files.jobid and \
-                           files.filetypeid=' + str(ftypeId) + ' and \
-                           jobs.production=' + str(prod) + ' Order by files.filename) where rownum <=' + str(Maxitems) + ') where rnum >' + str(StartItem)
+                           jobs.production=%s and filetypes.filetypeid=files.filetypeid and filetypes.name='%s' Order by files.filename) where rownum <= %d ) where rnum > %d" % (prod, ftype, Maxitems, StartItem)
     else:
 
-      command = 'select rnum, filename, filesize, name, creationdate, eventtypeId, eventstat,gotreplica, inserttimestamp, luminosity, instLuminosity from \
-                ( select rownum rnum, filename, filesize, name, creationdate, eventtypeId, eventstat, gotreplica, inserttimestamp, luminosity, instLuminosity \
-                from ( select files.filename, files.filesize, filetypes.name, files.creationdate, files.eventtypeId, files.eventstat,files.gotreplica, files.inserttimestamp, files.luminosity, files.instLuminosity  \
-                           from jobs,files,filetypes where \
-                           jobs.jobid=files.jobid and \
-                           files.filetypeid=filetypes.filetypeid and \
-                           jobs.production=' + str(prod) + ' Order by files.filename) where rownum <=' + str(Maxitems) + ') where rnum >' + str(StartItem)
+      command = "select rnum, fname, fsize, name, fcreation, feventtypeid, feventstat, fgotreplica, finst, flumi, finstlumy from \
+      (select rownum rnum, fname, fsize, ftypeid, fcreation, feventtypeid, feventstat, fgotreplica, finst, flumi, finstlumy\
+      from ( select files.filename fname, files.filesize fsize, filetypeid ftypeid, files.creationdate fcreation, files.eventtypeId feventtypeid, \
+          files.eventstat feventstat, files.gotreplica fgotreplica, files.inserttimestamp finst, files.luminosity flumi, files.instLuminosity finstlumy\
+            from jobs,files where\
+            jobs.jobid=files.jobid and\
+            jobs.production=%d\
+            Order by files.filename) where rownum <=%d)f , filetypes ft where rnum > %d and ft.filetypeid=f.ftypeid" % (prod, Maxitems, StartItem)
 
     res = self.dbR_._query(command)
     if res['OK']:
@@ -2314,38 +2288,19 @@ and files.qualityid= dataquality.qualityid'
       tables += ',productionscontainer prod'
 
     if ftype != 'ALL':
+      tables += ' ,filetypes ft'
       if type(ftype) == types.ListType:
         condition += ' and '
         cond = ' ( '
         for i in ftype:
-          fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str(i) + '\''
-          res = self.dbR_._query(fileType)
-          if not res['OK']:
-            gLogger.error('File Type not found:', res['Message'])
-          elif len(res['Value']) == 0:
-            return S_ERROR('File type not found!' + str(i))
-          else:
-            for j in res['Value']:
-              ftypeId =  j[0]
-              cond += ' f.FileTypeId=' + str(ftypeId) + ' or '
+          cond += " ft.name='%s' or " % (i)
         cond = cond[:-3] + ')'
         condition += cond
       elif type(ftype) == types.StringType:
-        fileType = 'select filetypes.FileTypeId from filetypes where filetypes.Name=\'' + str(ftype) + '\''
-        res = self.dbR_._query(fileType)
-        if not res['OK']:
-          gLogger.error('File Type not found:', res['Message'])
-        elif len(res['Value']) == 0:
-          return S_ERROR('File type not found!' + str(ftype))
-        elif len(res['Value']) > 0:
-          cond = ' and ('
-          for i in res['Value']:
-            ftypeId =  i[0]
-            cond += ' f.FileTypeId=' + str(ftypeId) + ' or '
-          cond = cond[:-3] + ')'
-          condition += cond
-        else:
-          return S_ERROR('File type problem!')
+        condition += " and ft.name='%s'" % (ftype)
+      else:
+        return S_ERROR('File type problem!')
+      condition += ' and f.filetypeid=ft.filetypeid'
 
     if evt != 0:
       if type(evt) in (types.ListType, types.TupleType):

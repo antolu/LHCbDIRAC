@@ -65,7 +65,7 @@
            </property>
            <property name="icon">
             <iconset resource="Resources.qrc">
-             <normaloff>:/icons/images/add.png</normaloff>:/icons/images/add.png</iconset>
+             <normaloff>:/icons/images/remove.png</normaloff>:/icons/images/remove.png</iconset>
            </property>
           </widget>
          </item>
@@ -76,7 +76,7 @@
            </property>
            <property name="icon">
             <iconset resource="Resources.qrc">
-             <normaloff>:/icons/images/remove.png</normaloff>:/icons/images/remove.png</iconset>
+             <normaloff>:/icons/images/add.png</normaloff>:/icons/images/add.png</iconset>
            </property>
           </widget>
          </item>

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '../qt_resources/BookmarksWidget.ui'
+# Form implementation generated from reading ui file 'BookmarksWidget.ui'
 #
-# Created: Fri Sep  2 16:30:46 2011
+# Created: Fri Sep 23 16:08:13 2011
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,13 +39,13 @@ class Ui_BookmarksWidget(object):
         self.gridLayout.addItem(spacerItem, 0, 0, 1, 1)
         self.removeButton = QtGui.QPushButton(self.groupBox)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/images/add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/icons/images/remove.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.removeButton.setIcon(icon)
         self.removeButton.setObjectName("removeButton")
         self.gridLayout.addWidget(self.removeButton, 0, 1, 1, 1)
         self.addButton = QtGui.QPushButton(self.groupBox)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/icons/images/remove.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(":/icons/images/add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.addButton.setIcon(icon1)
         self.addButton.setObjectName("addButton")
         self.gridLayout.addWidget(self.addButton, 0, 2, 1, 1)
