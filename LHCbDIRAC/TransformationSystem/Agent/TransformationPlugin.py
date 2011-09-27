@@ -204,7 +204,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     transID = self.params['TransformationID']
     # Get the requested shares from the CS
     backupSE = 'CERN-RAW'
-    res = self._getShares( 'CPUforRAW' )
+    res = self.transClient.getTransformation( transID )
+    if not res['OK']:
+      self.__logError( "Cannot get information on transformation %s" % str( transID ) )
+      return {}
+    else:
+      transType = res['Value']['Type']
+    sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
+    if transType in sharesSections:
+      section = sharesSections[transType]
+    else:
+      section = 'CPUforRAW'
+    res = self._getShares( section )
     if not res['OK']:
       cpuForRaw = False
       res = self._getShares( 'CPU', normalise = True )
@@ -228,7 +239,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         rawShares = None
     if cpuForRaw:
-      self.__logInfo( "Fraction of RAW to be processed at each SE (%):" )
+      self.__logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
       for site in targetSites:
         self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), 100. * rawFraction[site] ) )
 
