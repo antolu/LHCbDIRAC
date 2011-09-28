@@ -440,11 +440,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if not os.path.exists( cacheFile ):
             os.mkdir( cacheFile )
         cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( transID ) ) )
+        self.cacheFile = cacheFile
         f = open( cacheFile, 'r' )
         self.cachedData = pickle.load( f )
         f.close()
         self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
-        self.cacheFile = cacheFile
       except:
         self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
     cachedLFNs = self.cachedData.get( runID )
