@@ -1,4 +1,4 @@
-from DIRAC import gLogger, gConfig, S_OK
+from DIRAC import gLogger, gConfig, S_OK, rootPath
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
@@ -59,10 +59,17 @@ space is available. Thanks to solve the problem if possible.
       gLogger.warn("Unable to send mail to site %s: %s" % (site, res['Message']))
 
 class SpaceTokenOccupancyTest(object):
-  def __init__(self, xmlpath):
-    self.xmlpath      = xmlpath
+  def __init__(self, configRoot, xmlPath):
+    self.configRoot   = configRoot
+    self.testRoot     = configRoot + self.__class__.__name__ + "/"
+    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
     self.SEs          = self.generate_SE_dict()
     self.rmDB         = ResourceManagementDB()
+
+    try:
+      os.makedirs(self.xmlPath)
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
 
     for se in self.SEs:
       for st in self.SEs[se]:
@@ -100,7 +107,7 @@ class SpaceTokenOccupancyTest(object):
 
     return res
 
-  def generate_xml_and_dashboard(self, se, st, url,fake=False):
+  def generate_xml_and_dashboard(self, se, st, url,fake=True):
     id_          = se + "_" + st
     total        = 0
     guaranteed   = 0
@@ -118,7 +125,7 @@ class SpaceTokenOccupancyTest(object):
         guaranteed   = float(output['guaranteedsize']) / 2**40
         free         = float(output['unusedsize']) / 2**40
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
-        validity     = 'PT13H'
+        validity     = CS.getValue(self.testRoot + "validity")
       else:
         gLogger.info("StorageSpace: problew with lcg_util: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
 
@@ -136,14 +143,12 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "id", id_)
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
-    # FIXME: Put the thresholds into the CS
-    xml_append(doc, "threshold", value_=15, elt_=elt, level="available")
-    xml_append(doc, "threshold", value_=10, elt_=elt, level="affected")
-    xml_append(doc, "threshold", value_=5, elt_=elt, level="degraded")
+    xml_append(doc, "threshold", value_=CS.getValue(self.testRoot+"Thresholds/available"), elt_=elt, level="available")
+    xml_append(doc, "threshold", value_=CS.getValue(self.testRoot+"Thresholds/affected"), elt_=elt, level="affected")
+    xml_append(doc, "threshold", value_=CS.getValue(self.testRoot+"Thresholds/degraded"), elt_=elt, level="degraded")
     xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
-    xml_append(doc, "availabilitydesc", "FreeSpace less than 4TB implies 0%-99% ;\
-  FreeSpace greater than  4TB is always  100%")
-    xml_append(doc, "refreshperiod", "PT27M")
+    xml_append(doc, "availabilitydesc", gConfig.getValue(self.testRoot + "availabilitydesc"))
+    xml_append(doc, "refreshperiod", gConfig.getValue(self.testRoot + "refreshperiod"))
     xml_append(doc, "validityduration", validity)
     elt = xml_append(doc, "data")
     elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
@@ -158,7 +163,7 @@ class SpaceTokenOccupancyTest(object):
     self.rmDB.updateSLSStorage(se, st, availability, "PT27M", validity, total, guaranteed, free)
     gLogger.info("SpaceTokenOccupancyTest: %s-%s done." % (se, st))
 
-    xmlfile = open(self.xmlpath + id_ + ".xml", "w")
+    xmlfile = open(self.xmlPath + id_ + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
@@ -173,7 +178,7 @@ class SpaceTokenOccupancyTest(object):
 
 
     # Dashboard
-    dbfile = open(self.xmlpath + id_ + "_space_monitor", "w")
+    dbfile = open(self.xmlPath + id_ + "_space_monitor", "w")
     try:
       dbfile.write(id_ + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
     finally:
@@ -181,11 +186,18 @@ class SpaceTokenOccupancyTest(object):
 
 
 class DIRACTest(object):
-  def __init__(self, xmlpath):
+  def __init__(self, configRoot, xmlPath):
     self.setup     = CS.getValue('DIRAC/Setup')
     self.setupDict = CS.getTypedDictRootedAt(root="/DIRAC/Setups", relpath=self.setup)
-    self.xmlpath   = xmlpath
+    self.configRoot   = configRoot
+    self.testRoot     = configRoot + self.__class__.__name__ + "/"
+    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
     self.rmDB      = ResourceManagementDB()
+
+    try:
+      os.makedirs(self.xmlPath)
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
 
     self.xml_gw()
     self.run_xml_sensors()
@@ -195,21 +207,21 @@ class DIRACTest(object):
     # For each service of each system, run xml_sensors...
     systems = CS.getTypedDictRootedAt(root="", relpath="/Systems")
     discovered_services = []
-    for sys in systems:
+    for s in systems:
       try:
-        services = systems[sys][self.setupDict[sys]]['Services']
+        services = systems[s][self.setupDict[s]]['Services']
         for k in services:
-          discovered_services.append((sys, k))
+          discovered_services.append((s, k))
       except KeyError:
         try:
-          gLogger.warn("DIRACTest: No /Systems/%s/%s/Services in CS." % (sys, self.setupDict[sys]))
+          gLogger.warn("DIRACTest: No /Systems/%s/%s/Services in CS." % (s, self.setupDict[s]))
         except KeyError:
-          gLogger.warn("DIRACTest: No /Systems/%s in CS." % sys)
+          gLogger.warn("DIRACTest: No /Systems/%s in CS." % s)
 
     gLogger.info("DIRACTest: discovered %d services" % len(discovered_services))
 
-    for (sys, srv) in discovered_services:
-      self.xml_sensor(sys, srv)
+    for (s, srv) in discovered_services:
+      self.xml_sensor(s, srv)
 
   def run_t1_xml_sensors(self):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
@@ -235,9 +247,7 @@ class DIRACTest(object):
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
 
     xml_append(doc, "id", "Framework_Gateway")
-    # FIXME: Add to CS
-    xml_append(doc, "webpage",
-               "https://lhcbweb.pic.es/DIRAC/LHCb-Production/diracAdmin/info/general/diracOverview")
+    xml_append(doc, "webpage", gConfig.getValue(self.testRoot + "webpage"))
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
     if sites == []:
@@ -251,7 +261,7 @@ class DIRACTest(object):
       xml_append(doc, "notes", "Retrieved "+str(len(sites))+"\
  sites out of the Configuration Service through the Gateway")
 
-    xmlfile = open(self.xmlpath + "Framework_Gateway.xml", "w")
+    xmlfile = open(self.xmlPath + "Framework_Gateway.xml", "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
@@ -299,7 +309,7 @@ class DIRACTest(object):
       self.rmDB.updateSLSServices(system, service, 0, Utils.SQLValues.null, Utils.SQLValues.null, Utils.SQLValues.null)
       gLogger.info("%s/%s does not respond to ping" % (system, service))
 
-    xmlfile = open(self.xmlpath + system + "_" + service + ".xml", "w")
+    xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
@@ -362,7 +372,7 @@ class DIRACTest(object):
 
       gLogger.info("%s/%s does not respond to ping" % (site, service))
 
-    xmlfile = open(self.xmlpath + site + "_" + service + ".xml", "w")
+    xmlfile = open(self.xmlPath + site + "_" + service + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
@@ -371,11 +381,20 @@ class DIRACTest(object):
       xmlfile.close()
 
 class LOGSETest(object):
-  def __init__(self, xmlpath):
-    self.xmlpath = xmlpath
-    self.entities = "volhcb15" # FIXME: Get from CS
-    self.lemon_url = "http://lemon-gateway.cern.ch/lemon-xml/xml_gateway.php" # FIXME: Get from CS
+  def __init__(self, configRoot, xmlPath):
+    self.configRoot   = configRoot
+    self.testRoot     = configRoot + self.__class__.__name__ + "/"
+    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+
+    self.entities = gConfig.getValue(self.testRoot + "entities")
+    self.lemon_url = gConfig.getValue(self.testRoot + "lemon_url")
     self.rmDB      = ResourceManagementDB()
+
+    try:
+      os.makedirs(self.xmlPath)
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
+
 
     # Generate XML files
 
@@ -386,7 +405,7 @@ class LOGSETest(object):
 
   # LOG SE Partition
   def partition(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=9104) # FIXME: Get metrics from CS
+    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/partition"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
 
@@ -412,7 +431,7 @@ class LOGSETest(object):
                              percent, space)
     gLogger.info("LogSE partition test done")
 
-    xmlfile = open(self.xmlpath + filename, "w")
+    xmlfile = open(self.xmlPath + filename, "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
@@ -420,7 +439,7 @@ class LOGSETest(object):
 
   # LOG SE GridFTPd
   def gridftpd(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=34) # FIXME: Get metrics from CS
+    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/gridftpd"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
@@ -439,7 +458,7 @@ class LOGSETest(object):
     gLogger.info("LogSE gridftp test done")
 
 
-    xmlfile = open(self.xmlpath + filename, "w")
+    xmlfile = open(self.xmlPath + filename, "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
@@ -447,7 +466,7 @@ class LOGSETest(object):
 
   # LOG SE Cert
   def cert(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=810) # FIXME: Get metrics from CS
+    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/cert"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
@@ -465,7 +484,7 @@ class LOGSETest(object):
                              Utils.SQLValues.null, Utils.SQLValues.null)
     gLogger.info("LogSE cert test done")
 
-    xmlfile = open(self.xmlpath + filename, "w")
+    xmlfile = open(self.xmlPath + filename, "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
@@ -473,7 +492,7 @@ class LOGSETest(object):
 
   # LOG SE HTTPd
   def httpd(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=4019) # FIXME: Get metrics from CS
+    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/httpd"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
@@ -491,7 +510,7 @@ class LOGSETest(object):
                              Utils.SQLValues.null, Utils.SQLValues.null)
     gLogger.info("LogSE httpd test done")
 
-    xmlfile = open(self.xmlpath + filename, "w")
+    xmlfile = open(self.xmlPath + filename, "w")
     try:
       xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
     finally:
@@ -666,10 +685,20 @@ there...check your voms role is prodution \n")
     return time.time() - start_time
 
 class CondDBTest(object):
-  def __init__(self, xmlpath, workDirectory):
-    self.xmlpath = xmlpath
+  def __init__(self, configRoot, xmlPath, workDirectory):
+
     # Get ConDB infos
     self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
+
+    self.configRoot   = configRoot
+    self.testRoot     = configRoot + self.__class__.__name__ + "/"
+    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+
+    try:
+      os.makedirs(self.xmlPath)
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
+
 
     # Go to work directory
     oldcwd = os.getcwd()
@@ -800,17 +829,17 @@ gaudirun.py options.py > result.log
     xml_append(doc, "id", site + "CondDB")
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
-    xml_append(doc, "threshold", 5, elt_=elt, level="degraded")
-    xml_append(doc, "threshold", 10, elt_=elt, level="affected")
-    xml_append(doc, "threshold", 15, elt_=elt, level="available")
-    xml_append(doc, "refreshperiod", "PT27M")
-    xml_append(doc, "validityduration", 'PT13H')
+    xml_append(doc, "threshold", CS.getValue(self.testRoot + "Thresholds/degraded"), elt_=elt, level="degraded")
+    xml_append(doc, "threshold", CS.getValue(self.testRoot + "Thresholds/affected"), elt_=elt, level="affected")
+    xml_append(doc, "threshold", CS.getValue(self.testRoot + "Thresholds/available"), elt_=elt, level="available")
+    xml_append(doc, "refreshperiod", CS.getValue(self.testRoot + "refreshperiod"))
+    xml_append(doc, "validityduration", CS.getValue(self.testRoot + "validityduration"))
     elt2 = xml_append(doc, "data")
     xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
     xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
-    xmlfile = open(self.xmlpath + site + ".xml", "w")
+    xmlfile = open(self.xmlPath + site + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
@@ -821,11 +850,13 @@ gaudirun.py options.py > result.log
 class SLSAgent(AgentModule):
 
   def execute(self):
+    mySetup    = gConfig.getValue("/DIRAC/Setup")
+    myRSSSetup = gConfig.getValue("/DIRAC/Setups/"+ mySetup + "/ResourceStatus")
+    configRoot = "/Systems/ResourceStatus/" + myRSSSetup + "/Agents/SLSAgent/"
 
-    # FIXME: Get parameters from CS
-    SpaceTokenOccupancyTest(xmlpath="/opt/dirac/pro/webRoot/www/sls/storage_space/")
-#    DIRACTest(xmlpath="/opt/dirac/pro/webRoot/www/sls/dirac_services/")
-#    LOGSETest(xmlpath="/opt/dirac/pro/webRoot/www/sls/log_se/")
-#    CondDBTest("/opt/dirac/pro/webRoot/www/sls/condDB/", self.am_getWorkDirectory())
+    SpaceTokenOccupancyTest(configRoot, "sls/storage_space/")
+    DIRACTest(configRoot, "sls/dirac_services/")
+    LOGSETest(configRoot, "sls/log_se/")
+    CondDBTest(configRoot, "sls/condDB/", self.am_getWorkDirectory())
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
