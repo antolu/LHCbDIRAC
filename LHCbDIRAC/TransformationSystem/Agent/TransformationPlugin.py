@@ -23,6 +23,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
     self.transformationRunStats = {}
     self.debug = debug
+    self.cachedData = {}
 
   def __logVerbose( self, message, param = '' ):
     gLogger.verbose( self.plugin + ": " + message, param )
@@ -420,27 +421,61 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( runDict )
 
   def __getRAWAncestorsForRun( self, transID, runID, param = '', paramValue = '' ):
+    import pickle, os
+    startTime1 = time.time()
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
+    self.__logDebug( "Timing for getting transformation files: %.1f s" % ( time.time() - startTime1 ) )
     if not res['OK']:
+      self.__logError( "Cannot get files for transformation %s, run %s" % ( str( transID ), str( runID ) ) )
       return []
+    ancestors = 0
     lfns = [f['LFN'] for f in res['Value']]
+    # Now try and get the cached information
+    cacheFile = os.environ.get( 'TMPDIR' )
+    if cacheFile and not self.cachedData:
+      try:
+        for node in ( 'Dirac', 'TransPluginCache' ):
+          cacheFile = os.path.join( cacheFile, node )
+          if not os.path.exists( cacheFile ):
+            os.mkdir( cacheFile )
+        cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( transID ) ) )
+        f = open( cacheFile, 'r' )
+        self.cachedData = pickle.load( f )
+        f.close()
+        self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
+      except:
+        self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
+    cachedLFNs = self.cachedData.get( runID )
+    if cachedLFNs:
+      self.__logDebug( "Cache hit for run %d: %d files cached" % ( runID, len( cachedLFNs ) ) )
+      for lfn in cachedLFNs:
+        ancestors += cachedLFNs[lfn]
+      lfns = [lfn for lfn in lfns if lfn not in cachedLFNs]
     if param:
       res = self.__getBookkeepingMetadata( lfns )
       if not res['OK']:
         return []
       metadata = res['Value']
       lfns = [f for f in metadata if metadata[f][param] == paramValue]
-    # To be changed when fixed in BK...
-    res = self.bk.getAncestors( lfns, depth = 10 )
-    if not res['OK']:
-      return []
-    ancestorDict = res['Value']['Successful']
-    ancestors = [f for lfn in ancestorDict for f in ancestorDict[lfn] ]
-    res = self.__getBookkeepingMetadata( ancestors )
-    if not res['OK']:
-      return []
-    metadata = res['Value']
-    return [f for f in metadata if metadata[f]['FileType'] == 'RAW']
+    if lfns:
+      startTime = time.time()
+      res = self.bk.getAllAncestorsWithFileMetaData( lfns, depth = 10 )
+      self.__logDebug( "Timing for getting all ancestors with metadata of %d files: %.1f s" % ( len( lfns ), time.time() - startTime ) )
+      ancestorDict = res['Value']['Successful']
+      for lfn in ancestorDict:
+        n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
+        self.cachedData.setdefault( runID, {} )[lfn] = n
+        ancestors += n
+    if cacheFile:
+      try:
+        f = open( cacheFile, 'w' )
+        pickle.dump( self.cachedData, f )
+        f.close()
+        self.__logDebug( "Cache file %s successfully written" % cacheFile )
+      except:
+        self.__logError( "Could not write cache file %s" % cacheFile )
+    self.__logDebug( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
+    return ancestors
 
   def _LHCbStandard( self ):
     return self._groupByReplicas()
@@ -496,14 +531,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
           if evtType not in runRAWFiles:
+            startTime = time.time()
             res = self.bk.getRunNbFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
             if not res['OK']:
               self.__logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
               continue
             runRAWFiles[evtType] = res['Value']
-            self.__logDebug( "Run %d has %d RAW files" % ( runID, runRAWFiles[evtType] ) )
+            self.__logDebug( "Run %d has %d RAW files (timing: %1f s)" % ( runID, runRAWFiles[evtType], time.time() - startTime ) )
           rawFiles = runRAWFiles[evtType]
-          ancestorRawFiles = len( self.__getRAWAncestorsForRun( transID, runID, param, paramValue ) )
+          ancestorRawFiles = self.__getRAWAncestorsForRun( transID, runID, param, paramValue )
+          self.__logDebug( "Obtained %d ancestor RAW files" % ancestorRawFiles )
           runProcessed = ( ancestorRawFiles == rawFiles )
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
@@ -570,7 +607,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __getBookkeepingMetadata( self, lfns ):
     start = time.time()
     res = self.bk.getFileMetadata( lfns )
-    self.__logVerbose( "Obtained BK file metadata in %.2f seconds" % ( time.time() - start ) )
+    self.__logDebug( "Obtained BK metadata of %d files in %.2f seconds" % ( len( lfns ), time.time() - start ) )
     return res
 
   def __isArchive( self, se ):
