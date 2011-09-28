@@ -1043,12 +1043,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getProcessedEvents = [IntType]
   def export_getProcessedEvents( self, prodid ):
-    retVal = dataMGMT_.getProcessedEvents( prodid )
-    if not retVal['OK']:
-      return S_ERROR( retVal['Message'] )
-    else:
-      result = retVal['Value'][0][0]
-      return S_OK( result )
+    return dataMGMT_.getProcessedEvents( prodid )
 
   #############################################################################
   types_getRunsWithAGivenDates = [DictType]
