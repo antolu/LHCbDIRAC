@@ -1,10 +1,10 @@
-from DIRAC import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC import gLogger, gConfig, S_OK, rootPath
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
 from DIRAC.Core.Base.AgentModule import AgentModule
-import time, xml.dom.minidom, re
+import time, xml.dom.minidom, re, os
 
 __RCSID__ = "$Id: $"
 AGENT_NAME = 'ResourceStatus/NagiosAgent'
@@ -22,8 +22,14 @@ AGENT_NAME = 'ResourceStatus/NagiosAgent'
 
 class Topo(object):
 
-  def __init__(self, xmlpath):
-    self.xmlpath = xmlpath
+  def __init__(self, configRoot, xmlPath):
+    self.configRoot   = configRoot
+    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+
+    try:
+      os.makedirs(self.xmlPath)
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
 
   def xml_append(self, doc, base, elem, cdata=None, **attrs):
     new_elem = doc.createElement(elem)
@@ -97,7 +103,7 @@ class Topo(object):
     text_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
     prettyXml = text_re.sub('>\g<1></', uglyXml)
 
-    fname = self.xmlpath
+    fname = self.xmlPath + "lhcb_topology.xml"
     xmlf = open(fname,'w')
     xmlf.write(prettyXml)
     xmlf.close()
@@ -105,6 +111,10 @@ class Topo(object):
 class NagiosAgent(AgentModule):
 
   def execute(self):
-    t = Topo(xmlpath='/afs/cern.ch/user/v/vibernar/www/nagios/lhcb_topology.xml')
+    mySetup    = gConfig.getValue("/DIRAC/Setup")
+    myRSSSetup = gConfig.getValue("/DIRAC/Setups/"+ mySetup + "/ResourceStatus")
+    configRoot = "/Systems/ResourceStatus/" + myRSSSetup + "/Agents/NagiosAgent/"
+
+    t = Topo(configRoot, "nagios/")
     t.topo_gen()
     return S_OK()
