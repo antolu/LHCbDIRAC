@@ -24,6 +24,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transformationRunStats = {}
     self.debug = debug
     self.cachedData = {}
+    self.cacheFile = ''
 
   def __logVerbose( self, message, param = '' ):
     gLogger.verbose( self.plugin + ": " + message, param )
@@ -432,7 +433,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     lfns = [f['LFN'] for f in res['Value']]
     # Now try and get the cached information
     cacheFile = os.environ.get( 'TMPDIR', '/tmp' )
-    if cacheFile and not self.cachedData:
+    if cacheFile and not self.cacheFile:
       try:
         for node in ( 'dirac', 'TransPluginCache' ):
           cacheFile = os.path.join( cacheFile, node )
@@ -443,6 +444,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.cachedData = pickle.load( f )
         f.close()
         self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
+        self.cacheFile = cacheFile
       except:
         self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
     cachedLFNs = self.cachedData.get( runID )
@@ -468,12 +470,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         ancestors += n
     if cacheFile:
       try:
-        f = open( cacheFile, 'w' )
+        f = open( self.cacheFile, 'w' )
         pickle.dump( self.cachedData, f )
         f.close()
-        self.__logDebug( "Cache file %s successfully written" % cacheFile )
+        self.__logDebug( "Cache file %s successfully written" % self.cacheFile )
       except:
-        self.__logError( "Could not write cache file %s" % cacheFile )
+        self.__logError( "Could not write cache file %s" % self.cacheFile )
     self.__logDebug( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
     return ancestors
 
