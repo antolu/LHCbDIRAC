@@ -431,10 +431,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     ancestors = 0
     lfns = [f['LFN'] for f in res['Value']]
     # Now try and get the cached information
-    cacheFile = os.environ.get( 'TMPDIR' )
+    cacheFile = os.environ.get( 'TMPDIR', '/tmp' )
     if cacheFile and not self.cachedData:
       try:
-        for node in ( 'Dirac', 'TransPluginCache' ):
+        for node in ( 'dirac', 'TransPluginCache' ):
           cacheFile = os.path.join( cacheFile, node )
           if not os.path.exists( cacheFile ):
             os.mkdir( cacheFile )
@@ -516,6 +516,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             else:
               self.__logWarn( "Can't determine event type for transformation %d%s, can't flush" % ( transID, paramStr ) )
               runFlush = False
+              runEvtType[paramValue] = None
           evtType = runEvtType[paramValue]
         runParamReplicas = {}
         for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
