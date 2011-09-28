@@ -845,8 +845,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def getRunFiles(self, runid):
     value = {}
-    command = 'select files.filename, files.gotreplica, files.filesize,files.guid from jobs,files where jobs.jobid=files.jobid and files.filetypeid=23 and jobs.runnumber=' + str(runid)
-    res = self.dbR_._query(command)
+    res = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunFiles', [runid])
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
