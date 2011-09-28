@@ -2093,7 +2093,14 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getProcessedEvents(self, prodid):
-    command = 'select sum(jobs.numberofevents) from jobs where jobs.production=' + str(prodid)
+    command = "select sum(j.numberofevents) from jobs j,\
+        (select scont.production, s.applicationname, s.applicationversion from stepscontainer scont, steps s\
+          where scont.stepid = s.stepid and\
+           scont.production=%d and\
+           scont.step=1) firsts\
+           where j.production=firsts.production and\
+           j.programname=firsts.applicationname and\
+           j.programversion=firsts.applicationversion" % (prodid)
     res = self.dbR_._query(command)
     return res
 
