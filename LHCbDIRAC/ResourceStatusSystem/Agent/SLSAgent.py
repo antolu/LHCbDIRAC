@@ -11,7 +11,7 @@ from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils             import xml_appen
 
 # For replicas test
 
-from DIRAC.Core.Utilities.File                    import makeGuid
+# from DIRAC.Core.Utilities.File                    import makeGuid
 
 # For caching to DB
 from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
@@ -58,11 +58,23 @@ space is available. Thanks to solve the problem if possible.
     if res['OK'] == False:
       gLogger.warn("Unable to send mail to site %s: %s" % (site, res['Message']))
 
-class SpaceTokenOccupancyTest(object):
-  def __init__(self, configRoot, xmlPath):
-    self.configRoot   = configRoot
-    self.testRoot     = configRoot + self.__class__.__name__ + "/"
-    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+class TestBase(object):
+  def __init__(self, am):
+    self.am = am
+
+  def getAgentOption(self, name):
+    return self.am.am_getOption(name)
+
+  def getTestOption(self, name):
+    return self.am.am_getOption(self.__class__.__name__ + "/" + name)
+
+  getAgentValue = getAgentOption
+  getTestValue = getTestOption
+
+class SpaceTokenOccupancyTest(TestBase):
+  def __init__(self, am):
+    super(SpaceTokenOccupancyTest, self).__init__(am)
+    self.xmlPath      = rootPath + "/" + self.getAgentOption("webRoot") + self.getTestOption("dir")
     self.SEs          = self.generate_SE_dict()
     self.rmDB         = ResourceManagementDB()
 
@@ -125,7 +137,7 @@ class SpaceTokenOccupancyTest(object):
         guaranteed   = float(output['guaranteedsize']) / 2**40
         free         = float(output['unusedsize']) / 2**40
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
-        validity     = CS.getValue(self.testRoot + "validity")
+        validity     = self.getTestOption("validity")
       else:
         gLogger.info("StorageSpace: problew with lcg_util: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
 
@@ -143,12 +155,12 @@ class SpaceTokenOccupancyTest(object):
     xml_append(doc, "id", id_)
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
-    xml_append(doc, "threshold", value_=CS.getValue(self.testRoot+"Thresholds/available"), elt_=elt, level="available")
-    xml_append(doc, "threshold", value_=CS.getValue(self.testRoot+"Thresholds/affected"), elt_=elt, level="affected")
-    xml_append(doc, "threshold", value_=CS.getValue(self.testRoot+"Thresholds/degraded"), elt_=elt, level="degraded")
+    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
+    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/affected"), elt_=elt, level="affected")
+    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/degraded"), elt_=elt, level="degraded")
     xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
-    xml_append(doc, "availabilitydesc", gConfig.getValue(self.testRoot + "availabilitydesc"))
-    xml_append(doc, "refreshperiod", gConfig.getValue(self.testRoot + "refreshperiod"))
+    xml_append(doc, "availabilitydesc", self.getTestValue("availabilitydesc"))
+    xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
     xml_append(doc, "validityduration", validity)
     elt = xml_append(doc, "data")
     elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
@@ -185,13 +197,12 @@ class SpaceTokenOccupancyTest(object):
       dbfile.close()
 
 
-class DIRACTest(object):
-  def __init__(self, configRoot, xmlPath):
+class DIRACTest(TestBase):
+  def __init__(self, am):
+    super(DIRACTest, self).__init__(am)
     self.setup     = CS.getValue('DIRAC/Setup')
     self.setupDict = CS.getTypedDictRootedAt(root="/DIRAC/Setups", relpath=self.setup)
-    self.configRoot   = configRoot
-    self.testRoot     = configRoot + self.__class__.__name__ + "/"
-    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
     self.rmDB      = ResourceManagementDB()
 
     try:
@@ -247,7 +258,7 @@ class DIRACTest(object):
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
 
     xml_append(doc, "id", "Framework_Gateway")
-    xml_append(doc, "webpage", gConfig.getValue(self.testRoot + "webpage"))
+    xml_append(doc, "webpage", self.getTestValue("webpage"))
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
     if sites == []:
@@ -380,14 +391,13 @@ class DIRACTest(object):
     finally:
       xmlfile.close()
 
-class LOGSETest(object):
-  def __init__(self, configRoot, xmlPath):
-    self.configRoot   = configRoot
-    self.testRoot     = configRoot + self.__class__.__name__ + "/"
-    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+class LOGSETest(TestBase):
+  def __init__(self, am):
+    super(LOGSETest, self).__init__(am)
+    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
 
-    self.entities = gConfig.getValue(self.testRoot + "entities")
-    self.lemon_url = gConfig.getValue(self.testRoot + "lemon_url")
+    self.entities = self.getTestValue("entities")
+    self.lemon_url = self.getTestValue("lemon_url")
     self.rmDB      = ResourceManagementDB()
 
     try:
@@ -405,7 +415,7 @@ class LOGSETest(object):
 
   # LOG SE Partition
   def partition(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/partition"))
+    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/partition"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
 
@@ -439,7 +449,7 @@ class LOGSETest(object):
 
   # LOG SE GridFTPd
   def gridftpd(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/gridftpd"))
+    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/gridftpd"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
@@ -466,7 +476,7 @@ class LOGSETest(object):
 
   # LOG SE Cert
   def cert(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/cert"))
+    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/cert"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
@@ -492,7 +502,7 @@ class LOGSETest(object):
 
   # LOG SE HTTPd
   def httpd(self, filename):
-    input_xml = self.getxml(entities=self.entities, metrics=CS.getValue(self.testRoot+"/metrics/httpd"))
+    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/httpd"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
@@ -559,140 +569,138 @@ class LOGSETest(object):
       if self.inside_d:
         self.cur_list.append(content)
 
-class LFCReplicaTest(object):
-  def __init__(self, path, timeout, fake=False):
-    self.path       = path
-    self.timeout    = timeout
-    self.cfg        = CS.getTypedDictRootedAt(
-      root="", relpath="/Resources/FileCatalogs/LcgFileCatalogCombined")
-    self.ro_mirrors = []
+# class LFCReplicaTest(object):
+#   def __init__(self, path, timeout, fake=False):
+#     self.path       = path
+#     self.timeout    = timeout
+#     self.cfg        = CS.getTypedDictRootedAt(
+#       root="", relpath="/Resources/FileCatalogs/LcgFileCatalogCombined")
+#     self.ro_mirrors = []
 
-    if not fake: # If not fake, run it!
-      import lfc
-      from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
-      self.master_lfc = LcgFileCatalogClient(self.cfg['LcgGfalInfosys'], self.cfg['MasterHost'])
-      self.run_test()
-    else:
-      gLogger.warn("LFCReplicaTest runs in fake mode, nothing is done")
+#     if not fake: # If not fake, run it!
+#       import lfc
+#       from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
+#       self.master_lfc = LcgFileCatalogClient(self.cfg['LcgGfalInfosys'], self.cfg['MasterHost'])
+#       self.run_test()
+#     else:
+#       gLogger.warn("LFCReplicaTest runs in fake mode, nothing is done")
 
-  def run_test(self):
-  # Load the list of mirrors
-    for site in self.cfg:
-      if type(self.cfg[site]) == dict:
-        self.ro_mirrors.append(self.cfg[site]['ReadOnly'])
+#   def run_test(self):
+#   # Load the list of mirrors
+#     for site in self.cfg:
+#       if type(self.cfg[site]) == dict:
+#         self.ro_mirrors.append(self.cfg[site]['ReadOnly'])
 
-    # For all the mirrors, do the unit test:
-    for mirror in self.ro_mirrors:
-      lfn =  '/lhcb/test/lfc-replication/%s/testFile.%s' % (mirror,time.time())
-      if not self.register_dummy(lfn):
-        gLogger.error("Error: "+lfn+" is already in the master or can't be registered \
-there...check your voms role is prodution \n")
-        continue
+#     # For all the mirrors, do the unit test:
+#     for mirror in self.ro_mirrors:
+#       lfn =  '/lhcb/test/lfc-replication/%s/testFile.%s' % (mirror,time.time())
+#       if not self.register_dummy(lfn):
+#         gLogger.error("Error: "+lfn+" is already in the master or can't be registered \
+# there...check your voms role is prodution \n")
+#         continue
 
-      # Try to open a session
-      if lfc.lfc_startsess(mirror, "DIRAC_test"): # rc != 0 means error
-        continue
+#       # Try to open a session
+#       if lfc.lfc_startsess(mirror, "DIRAC_test"): # rc != 0 means error
+#         continue
 
-      # Measure time to create replica and write XML file
-      time_to_create = self.time_to_create_rep(lfn)
-      fd = open(self.path + mirror + ".timing", "w")
-      try:
-        fd.write("%s" % time_to_create)
-      finally:
-        fd.close()
+#       # Measure time to create replica and write XML file
+#       time_to_create = self.time_to_create_rep(lfn)
+#       fd = open(self.path + mirror + ".timing", "w")
+#       try:
+#         fd.write("%s" % time_to_create)
+#       finally:
+#         fd.close()
 
-      # Measure time to find a replica
-      if time_to_create == self.timeout:
-        time_to_find = self.timeout
-      else:
-        time_to_find = self.time_to_find_rep(lfn)
+#       # Measure time to find a replica
+#       if time_to_create == self.timeout:
+#         time_to_find = self.timeout
+#       else:
+#         time_to_find = self.time_to_find_rep(lfn)
 
-      lfc.lfc_endsess()
+#       lfc.lfc_endsess()
 
-      # Measure time to delete a replica
-      removed = self.remove_replica(lfn)
-      if removed:
-        # Try to open a session
-        if lfc.lfc_startsess(mirror, "DIRAC_test"): # rc != 0 means error
-          continue
-        time_to_remove = self.time_to_remove_rep(lfn)
-        lfc.lfc_endsess()
-        gLogger.always('%s %s %s %s' % (mirror, time_to_create, time_to_find, time_to_remove))
+#       # Measure time to delete a replica
+#       removed = self.remove_replica(lfn)
+#       if removed:
+#         # Try to open a session
+#         if lfc.lfc_startsess(mirror, "DIRAC_test"): # rc != 0 means error
+#           continue
+#         time_to_remove = self.time_to_remove_rep(lfn)
+#         lfc.lfc_endsess()
+#         gLogger.always('%s %s %s %s' % (mirror, time_to_create, time_to_find, time_to_remove))
 
-  @staticmethod
-  def pfn_of_token(SE):
-    cfg = CS.getTypedDictRootedAt(
-      root="",
-      relpath="/Resources/StorageElements/" + SE + "/AccessProtocol.1")
-    return "srm://" + cfg['Host'] + cfg['Path']
+#   @staticmethod
+#   def pfn_of_token(SE):
+#     cfg = CS.getTypedDictRootedAt(
+#       root="",
+#       relpath="/Resources/StorageElements/" + SE + "/AccessProtocol.1")
+#     return "srm://" + cfg['Host'] + cfg['Path']
 
-  def register_dummy(self, lfn, size=0, SE="CERN-USER", guid=makeGuid(), chksum=""):
-    pfn = self.pfn_of_token(SE) + lfn
-#    res = self.master_lfc.addFile(lfn, pfn, size, SE, guid, chksum)
-    res = self.master_lfc.addFile(lfn)
+#   def register_dummy(self, lfn, size=0, SE="CERN-USER", guid=makeGuid(), chksum=""):
+#     pfn = self.pfn_of_token(SE) + lfn
+# #    res = self.master_lfc.addFile(lfn, pfn, size, SE, guid, chksum)
+#     res = self.master_lfc.addFile(lfn)
 
-    if not res['OK']:
-      gLogger.info("register_dummy: %s" % res['Message'])
-    return res['OK'] and res['Value']['Successful'].has_key(lfn)
+#     if not res['OK']:
+#       gLogger.info("register_dummy: %s" % res['Message'])
+#     return res['OK'] and res['Value']['Successful'].has_key(lfn)
 
-  def get_replica(self, lfn):
-    reps = {}
-    rc, replica_objs = lfc.lfc_getreplica("/grid" + lfn, "", "")
-    if rc:
-      gLogger.error(lfc.sstrerror(lfc.cvar.serrno))
-    else:
-      for r in replica_objs:
-        SE = r.host
-        pfn = r.sfn.strip()
-      reps[SE] = pfn
-    return reps
+#   def get_replica(self, lfn):
+#     reps = {}
+#     rc, replica_objs = lfc.lfc_getreplica("/grid" + lfn, "", "")
+#     if rc:
+#       gLogger.error(lfc.sstrerror(lfc.cvar.serrno))
+#     else:
+#       for r in replica_objs:
+#         SE = r.host
+#         pfn = r.sfn.strip()
+#       reps[SE] = pfn
+#     return reps
 
-  def remove_replica(self, lfn, SE="CERN-USER"):
-    pfn = self.pfn_of_token(SE) + lfn
-    res = self.master_lfc.removeReplica((lfn, pfn, SE))
-    if res['OK'] == False:
-      gLogger.info("remove_replica: %s" % res['Message'])
-    return res['OK'] and res['Value']['Successful'].has_key(lfn)
+#   def remove_replica(self, lfn, SE="CERN-USER"):
+#     pfn = self.pfn_of_token(SE) + lfn
+#     res = self.master_lfc.removeReplica((lfn, pfn, SE))
+#     if res['OK'] == False:
+#       gLogger.info("remove_replica: %s" % res['Message'])
+#     return res['OK'] and res['Value']['Successful'].has_key(lfn)
 
-  def remove_file(self, lfn):
-    res = self.master_lfc.removeFile(lfn)
-    return res['OK'] and res['Value']['Successful'].has_key(lfn)
+#   def remove_file(self, lfn):
+#     res = self.master_lfc.removeFile(lfn)
+#     return res['OK'] and res['Value']['Successful'].has_key(lfn)
 
-  def time_to_find_rep(self, lfn):
-    start_time = time.time()
-    while True:
-      reps = self.get_replica(lfn)
-      if reps.has_key('CERN-USER'):
-        return time.time() - start_time
-      else:
-        if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-        else                                         : return self.timeout
+#   def time_to_find_rep(self, lfn):
+#     start_time = time.time()
+#     while True:
+#       reps = self.get_replica(lfn)
+#       if reps.has_key('CERN-USER'):
+#         return time.time() - start_time
+#       else:
+#         if (time.time() - start_time < self.timeout) : time.sleep(0.1)
+#         else                                         : return self.timeout
 
-  def time_to_create_rep(self, lfn):
-    start_time = time.time()
-    while True:
-      if lfc.lfc_access("/grid" + lfn, 0) == 0:
-        return time.time() - start_time
-      else:
-        if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-        else                                         : return self.timeout
+#   def time_to_create_rep(self, lfn):
+#     start_time = time.time()
+#     while True:
+#       if lfc.lfc_access("/grid" + lfn, 0) == 0:
+#         return time.time() - start_time
+#       else:
+#         if (time.time() - start_time < self.timeout) : time.sleep(0.1)
+#         else                                         : return self.timeout
 
-  def time_to_remove_rep(self, lfn):
-    start_time = time.time()
-    while not lfc.lfc_access("/grid" + lfn, 0): # rc = 0 if accessible
-      if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-      else                                         : return self.timeout
-    return time.time() - start_time
+#   def time_to_remove_rep(self, lfn):
+#     start_time = time.time()
+#     while not lfc.lfc_access("/grid" + lfn, 0): # rc = 0 if accessible
+#       if (time.time() - start_time < self.timeout) : time.sleep(0.1)
+#       else                                         : return self.timeout
+#     return time.time() - start_time
 
-class CondDBTest(object):
-  def __init__(self, configRoot, xmlPath, workDirectory):
+class CondDBTest(TestBase):
+  def __init__(self, am):
+    super(CondDBTest, self).__init__(am)
 
     # Get ConDB infos
     self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
-
-    self.configRoot   = configRoot
-    self.testRoot     = configRoot + self.__class__.__name__ + "/"
-    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
 
     try:
       os.makedirs(self.xmlPath)
@@ -702,7 +710,7 @@ class CondDBTest(object):
 
     # Go to work directory
     oldcwd = os.getcwd()
-    os.chdir(workDirectory)
+    os.chdir(am.am_getWorkDirectory())
 
     # Generate options file
     options = """from Gaudi.Configuration import *
@@ -829,11 +837,11 @@ gaudirun.py options.py > result.log
     xml_append(doc, "id", site + "CondDB")
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
-    xml_append(doc, "threshold", CS.getValue(self.testRoot + "Thresholds/degraded"), elt_=elt, level="degraded")
-    xml_append(doc, "threshold", CS.getValue(self.testRoot + "Thresholds/affected"), elt_=elt, level="affected")
-    xml_append(doc, "threshold", CS.getValue(self.testRoot + "Thresholds/available"), elt_=elt, level="available")
-    xml_append(doc, "refreshperiod", CS.getValue(self.testRoot + "refreshperiod"))
-    xml_append(doc, "validityduration", CS.getValue(self.testRoot + "validityduration"))
+    xml_append(doc, "threshold", self.getTestValue("Thresholds/degraded"), elt_=elt, level="degraded")
+    xml_append(doc, "threshold", self.getTestValue("Thresholds/affected"), elt_=elt, level="affected")
+    xml_append(doc, "threshold", self.getTestValue("Thresholds/available"), elt_=elt, level="available")
+    xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
+    xml_append(doc, "validityduration", self.getTestValue("validityduration"))
     elt2 = xml_append(doc, "data")
     xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
     xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
@@ -850,13 +858,9 @@ gaudirun.py options.py > result.log
 class SLSAgent(AgentModule):
 
   def execute(self):
-    mySetup    = gConfig.getValue("/DIRAC/Setup")
-    myRSSSetup = gConfig.getValue("/DIRAC/Setups/"+ mySetup + "/ResourceStatus")
-    configRoot = "/Systems/ResourceStatus/" + myRSSSetup + "/Agents/SLSAgent/"
-
-    SpaceTokenOccupancyTest(configRoot, "sls/storage_space/")
-    DIRACTest(configRoot, "sls/dirac_services/")
-    LOGSETest(configRoot, "sls/log_se/")
-    CondDBTest(configRoot, "sls/condDB/", self.am_getWorkDirectory())
+    SpaceTokenOccupancyTest(self)
+    DIRACTest(self)
+    LOGSETest(self)
+    CondDBTest(self)
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
