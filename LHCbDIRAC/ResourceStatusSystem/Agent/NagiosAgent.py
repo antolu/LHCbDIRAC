@@ -16,20 +16,20 @@ AGENT_NAME = 'ResourceStatus/NagiosAgent'
 # defines the services to be tested.
 #
 # 2010-XX-YY : Roberto Santinelli : first version
-# 2011-07-21 : Stefan Roiser      : skelleton re-used, introducing xml writer, generalizing CE handling
+# 2011-07-21 : Stefan Roiser      : skeleton re-used, introducing xml writer, generalizing CE handling
 # 2011-08-11 : Vincent Bernardoff : Transformed the script into a Dirac agent.
 #
 
-class Topo(object):
-
-  def __init__(self, configRoot, xmlPath):
-    self.configRoot   = configRoot
-    self.xmlPath      = rootPath + "/" + gConfig.getValue(configRoot + "webRoot") + xmlPath
+class NagiosAgent(AgentModule):
+  def initialize(self):
+    self.xmlPath      = rootPath + "/" + self.am_getOption("webRoot")
 
     try:
       os.makedirs(self.xmlPath)
     except OSError:
-      pass # The dir exist already, or cannot be created: do nothing
+      pass # The dirs exist already, or cannot be created: do nothing
+
+    return S_OK()
 
   def xml_append(self, doc, base, elem, cdata=None, **attrs):
     new_elem = doc.createElement(elem)
@@ -37,7 +37,7 @@ class Topo(object):
     if cdata : new_elem.appendChild(doc.createTextNode(cdata))
     return base.appendChild(new_elem)
 
-  def topo_gen(self):
+  def execute(self):
     # instantiate xml doc
     xml_impl = xml.dom.minidom.getDOMImplementation()
     xml_doc = xml_impl.createDocument(None, 'root', None)
@@ -108,13 +108,4 @@ class Topo(object):
     xmlf.write(prettyXml)
     xmlf.close()
 
-class NagiosAgent(AgentModule):
-
-  def execute(self):
-    mySetup    = gConfig.getValue("/DIRAC/Setup")
-    myRSSSetup = gConfig.getValue("/DIRAC/Setups/"+ mySetup + "/ResourceStatus")
-    configRoot = "/Systems/ResourceStatus/" + myRSSSetup + "/Agents/NagiosAgent/"
-
-    t = Topo(configRoot, "nagios/")
-    t.topo_gen()
     return S_OK()
