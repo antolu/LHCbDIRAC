@@ -62,17 +62,11 @@ class AnalyseXMLLogFile( ModuleBase ):
                                               wf_commons, step_commons,
                                               step_number, step_id )
 
-
     result = self.__resolveInputVariables()
+
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
-
-    if DIRAC.siteName() == 'DIRAC.ONLINE-FARM.ch':
-      if not self.numberOfEventsInput or not self.numberOfEventsOutput:
-        self.log.error( 'Number of events input = %s, number of events output = %s' % ( self.numberOfEventsInput, self.numberOfEventsOutput ) )
-        return S_ERROR()
-      return S_OK()
 
     if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
       self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
@@ -88,8 +82,8 @@ class AnalyseXMLLogFile( ModuleBase ):
       if re.search( '^core.[0-9]+$', file ):
         self.coreFile = file
         self.log.error( 'Found a core dump file in the current working directory: %s' % self.coreFile )
-        self.__finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile, nc, rm )
-        self.__updateFileStatus( self.jobInputData, 'ApplicationCrash' )
+        self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile, nc, rm )
+        self.__updateFileStatus( self.jobInputData, 'ApplicationCrash', rm )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -98,19 +92,19 @@ class AnalyseXMLLogFile( ModuleBase ):
 
     if not logAnalyser:
       from LHCbDIRAC.Core.Utilities.ProductionXMLLogAnalysis import analyseXMLLogFile
-      result = analyseXMLLogFile( self.applicationLog, self.applicationName,
-                                  self.step_id, self.production_id, self.prod_job_id,
-                                  self.jobType )
+      analyseLogResult = analyseXMLLogFile( self.applicationLog, self.applicationName,
+                                            self.step_id, self.production_id, self.prod_job_id,
+                                            self.jobType )
     else:
-      result = logAnalyser( self.applicationLog, self.applicationName,
-                            self.step_id, self.production_id, self.prod_job_id,
-                            self.jobType )
+      analyseLogResult = logAnalyser( self.applicationLog, self.applicationName,
+                                      self.step_id, self.production_id, self.prod_job_id,
+                                      self.jobType )
 
 
-    if not result['OK']:
-      self.log.error( result )
-      if result.has_key( 'Data' ):
-        fNameStatusDict = result['Data']
+    if not analyseLogResult['OK']:
+      self.log.error( analyseLogResult )
+      if analyseLogResult.has_key( 'Data' ):
+        fNameStatusDict = analyseLogResult['Data']
         fNameLFNs = {}
         for lfn in self.jobInputData.keys():
           for fName, status in fNameStatusDict.items():
@@ -119,40 +113,42 @@ class AnalyseXMLLogFile( ModuleBase ):
         for lfn, status in fNameLFNs.items():
           self.jobInputData[lfn] = status
 
-      self.__finalizeWithErrors( result['Message'], nc, rm )
-      self.__updateFileStatus( self.jobInputData, "Unused" )
+      self._finalizeWithErrors( analyseLogResult['Message'], nc, rm )
+      self.__updateFileStatus( self.jobInputData, "Unused", rm )
       # return S_OK if the Step already failed to avoid overwriting the error
-      if not self.stepStatus['OK']: return S_OK()
-      self.setApplicationStatus( result['Message'] )
-      return result
+      if not self.stepStatus['OK']:
+        return S_OK()
+      self.setApplicationStatus( analyseLogResult['Message'] )
+      return analyseLogResult
 
     # if the log looks ok but the step already failed, preserve the previous error
     if not self.stepStatus['OK']:
-      self.__updateFileStatus( self.jobInputData, "Unused" )
+      self.__updateFileStatus( self.jobInputData, "Unused", rm )
       return S_OK()
 
-    if result.has_key( 'numberOfEventsInput' ):
-      self.numberOfEventsInput = result['numberOfEventsInput']
+    #FIXME: do I need them here? 
+    if analyseLogResult.has_key( 'numberOfEventsInput' ):
+      self.numberOfEventsInput = analyseLogResult['numberOfEventsInput']
       self.log.info( 'Setting numberOfEventsInput to %s' % self.numberOfEventsInput )
 
-    if result.has_key( 'numberOfEventsOutput' ):
-      self.numberOfEventsOutput = result['numberOfEventsOutput']
+    if analyseLogResult.has_key( 'numberOfEventsOutput' ):
+      self.numberOfEventsOutput = analyseLogResult['numberOfEventsOutput']
       self.log.info( 'Setting numberOfEventsOutput to %s' % self.numberOfEventsOutput )
 
 #    Ignoring FirstStepInputEvents
-#    if result.has_key( 'FirstStepInputEvents' ):
+#    if analyseLogResult.has_key( 'FirstStepInputEvents' ):
 #      if not self.workflow_commons.has_key( 'FirstStepInputEvents' ):
-#        firstStepInputEvents = result['FirstStepInputEvents']
+#        firstStepInputEvents = analyseLogResult['FirstStepInputEvents']
 #        self.workflow_commons['FirstStepInputEvents'] = firstStepInputEvents
 #        self.log.info( 'Setting FirstStepInputEvents to %s' % ( firstStepInputEvents ) )
 
     # If the job was successful Update the status of the files to processed
-    self.log.info( 'Log file %s, %s' % ( self.applicationLog, result['Value'] ) )
+    self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
     self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
     self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
     self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
-    return self.__updateFileStatus( self.jobInputData, "Processed" )
+    return self._updateFileStatus( self.jobInputData, "Processed", rm )
 
 ################################################################################
 # AUXILIAR FUNCTIONS
@@ -235,14 +231,14 @@ class AnalyseXMLLogFile( ModuleBase ):
 
 ################################################################################
 
-  def __updateFileStatus( self, inputs, defaultStatus ):
+  def _updateFileStatus( self, inputs, defaultStatus, rm ):
     """ Allows to update file status to a given default, important statuses are
         not overwritten.
     """
     for fileName in inputs.keys():
       stat = inputs[fileName]
       if stat == "Problematic":
-        res = self.setReplicaProblematic( fileName, self.site, 'Problematic' )
+        res = self.setReplicaProblematic( lfn = fileName, se = self.site, reason = 'Problematic', rm = rm )
         if not res['OK']:
           gLogger.error( "Failed to update replica status to problematic", res['Message'] )
         self.log.info( '%s is problematic at %s - reset as Unused' % ( fileName, self.site ) )
@@ -257,9 +253,10 @@ class AnalyseXMLLogFile( ModuleBase ):
 
 ################################################################################
 
-  def __finalizeWithErrors( self, subj, nc, rm ):
+  def _finalizeWithErrors( self, subj, nc, rm ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
+
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     #Have to check that the output list is defined in the workflow commons, this is
     #done by the first BK report module that executes at the end of a step but in 
@@ -281,12 +278,6 @@ class AnalyseXMLLogFile( ModuleBase ):
       return S_ERROR( 'DebugLFNs Not Found' )
 
     debugLFNs = result['Value']['DebugLFNs']
-
-    from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
-
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
 
     #FIXME: This has to be reviewed... 
     try:
@@ -312,8 +303,11 @@ class AnalyseXMLLogFile( ModuleBase ):
       for lfn in debugLFNs:
         if re.search( '[0-9]+_core', os.path.basename( lfn ) ):
           coreLFN = lfn
-      if coreLFN and self.jobID:
-        if self.jobID:
+      if coreLFN and self._WMSJob():
+        if self._WMSJob():
+          if not rm:
+            from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+            rm = ReplicaManager()
           self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"' % ( coreLFN, self.coreFile ) )
           result = rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG', catalog = 'LcgFileCatalogCombined' )
           self.log.info( result )
@@ -344,7 +338,10 @@ class AnalyseXMLLogFile( ModuleBase ):
       else:
         guidInput = guidResult['Value'][fname]
 
-      if self.jobID:
+      if self._WMSJob():
+        if not rm:
+          from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+          rm = ReplicaManager()
         self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"' % ( fname, lfn, guidInput ) )
         result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG', guidInput, catalog = 'LcgFileCatalogCombined' )
         self.log.info( result )
@@ -380,7 +377,7 @@ class AnalyseXMLLogFile( ModuleBase ):
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End" % ( msg ) )
     else:
       if not nc:
-        from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
+        from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
         nc = NotificationClient()
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
       res = nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
