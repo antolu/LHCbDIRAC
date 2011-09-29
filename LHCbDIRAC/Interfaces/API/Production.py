@@ -589,7 +589,7 @@ class Production():
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
       modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
-                                                                                    'AnalyseXMLLogFile',
+                                                                                    'AnalyseXMLSummary',
                                                                                     'ErrorLogging',
                                                                                     'BookkeepingReport'] )
       #pName, pType, pValue, pDesc
