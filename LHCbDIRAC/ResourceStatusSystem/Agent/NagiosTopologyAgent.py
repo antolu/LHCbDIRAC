@@ -7,7 +7,7 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 import time, xml.dom.minidom, re, os
 
 __RCSID__ = "$Id: $"
-AGENT_NAME = 'ResourceStatus/NagiosAgent'
+AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 #
 # This agent loops over the Dirac CS and extracts the necessary
@@ -20,7 +20,7 @@ AGENT_NAME = 'ResourceStatus/NagiosAgent'
 # 2011-08-11 : Vincent Bernardoff : Transformed the script into a Dirac agent.
 #
 
-class NagiosAgent(AgentModule):
+class NagiosTopologyAgent(AgentModule):
   def initialize(self):
     self.xmlPath      = rootPath + "/" + self.am_getOption("webRoot")
 
