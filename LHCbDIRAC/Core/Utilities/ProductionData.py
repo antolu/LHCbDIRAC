@@ -25,7 +25,8 @@ def constructProductionLFNs( paramDict ):
       LFN construction is tidied.  This works using the workflow commons for
       on the fly construction.
   """
-  keys = ['PRODUCTION_ID', 'JOB_ID', 'configVersion', 'JobType', 'outputList', 'configName', 'outputDataFileMask']
+
+  keys = ['PRODUCTION_ID', 'JOB_ID', 'configVersion', 'outputList', 'configName', 'outputDataFileMask']
   for k in keys:
     if not paramDict.has_key( k ):
       return S_ERROR( '%s not defined' % k )
@@ -37,18 +38,17 @@ def constructProductionLFNs( paramDict ):
   wfMask = paramDict['outputDataFileMask']
   if not type( wfMask ) == type( [] ):
     wfMask = [i.lower().strip() for i in wfMask.split( ';' )]
-  wfType = paramDict['JobType']
   outputList = paramDict['outputList']
 
   fileTupleList = []
-  gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfMask = %s, wfType=%s' % ( wfConfigName, wfConfigVersion,
-                                                                                         wfMask, wfType ) )
+  gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfMask = %s' % ( wfConfigName, wfConfigVersion, wfMask ) )
   for info in outputList:
     #Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
     fileName = info['outputDataName'].split( '_' )
     index = 0
     if not re.search( '^\d', fileName[index] ):
       index += 1
+
     if not fileName[index] == str( productionID ).zfill( 8 ):
       fileName[index] = str( productionID ).zfill( 8 )
     if not fileName[index + 1] == str( jobID ).zfill( 8 ):

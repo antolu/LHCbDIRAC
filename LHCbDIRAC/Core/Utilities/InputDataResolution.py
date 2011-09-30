@@ -77,9 +77,6 @@ class InputDataResolution:
 
       typeVersion = typeVersion['Value']
 
-      #FIXME: hopefully this will NOT needed in the future!
-      if typeVersion == '1': typeVersion = 'MDF'
-
       self.log.verbose( 'Adding PFN file type %s for LFN:%s' % ( typeVersion, lfn ) )
       tmpDict[lfn]['pfntype'] = typeVersion
 

@@ -92,9 +92,12 @@ def getOptions( appName, outputFileType, extraOpts = None, inputType = None,
     elif outputFileType.lower() == 'merge':
       options.append( 'from Configurables import InputCopyStream' )
       options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
-    elif ( re.match( '[a-z,A-Z,.]*dst', outputFileType.lower() ) or outputFileType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
+    elif ( re.match( '[a-z,A-Z,0-9.]*dst', outputFileType.lower() ) or outputFileType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
       options.append( 'from Configurables import SelDSTWriter' )
       options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
+    elif re.match( '[a-z,A-Z,0-9,.]*dst', outputFileType.lower() ) and re.match( '[a-z,A-Z,0-9.]*dst', inputType.lower() ): #for WG
+      options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
+
 
   elif appName.lower() == 'merge':
     options.append( 'from Configurables import LbAppInit' )
