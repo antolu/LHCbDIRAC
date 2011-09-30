@@ -1,4 +1,4 @@
-from DIRAC                                   import S_OK
+from DIRAC                                   import S_OK, gLogger
 from DIRAC.Core.Utilities                    import List
 from LHCbDIRAC.ResourceStatusSystem.Utilities    import Utils
 from DIRAC import gConfig
@@ -15,9 +15,12 @@ def getValue(v):
   """Wrapper around gConfig.getValue. Returns typed values instead of
   a string value"""
   res = gConfig.getValue(v)
-  if res.find(",") > -1: # res is a list of values
-    return [Utils.typedobj_of_string(e) for e in List.fromChar(res)]
-  else: return Utils.typedobj_of_string(res)
+  if not res:
+    gLogger.warn("Option %s does not exist in CS." % v)
+  else:
+    if res.find(",") > -1: # res is a list of values
+      return [Utils.typedobj_of_string(e) for e in List.fromChar(res)]
+    else: return Utils.typedobj_of_string(res)
 
 def getTypedDict(sectionPath):
   """
