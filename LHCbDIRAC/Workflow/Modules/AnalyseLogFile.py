@@ -289,8 +289,8 @@ class AnalyseLogFile( ModuleBase ):
       for lfn in debugLFNs:
         if re.search( '[0-9]+_core', os.path.basename( lfn ) ):
           coreLFN = lfn
-      if coreLFN and self.jobID:
-        if self.jobID:
+      if coreLFN and self._WMSJob():
+        if self._WMSJob():
           self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"' % ( coreLFN, self.coreFile ) )
           result = rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG', catalog = 'LcgFileCatalogCombined' )
           self.log.info( result )
@@ -321,7 +321,7 @@ class AnalyseLogFile( ModuleBase ):
       else:
         guidInput = guidResult['Value'][fname]
 
-      if self.jobID:
+      if self._WMSJob():
         self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"' % ( fname, lfn, guidInput ) )
         result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG', guidInput, catalog = 'LcgFileCatalogCombined' )
         self.log.info( result )

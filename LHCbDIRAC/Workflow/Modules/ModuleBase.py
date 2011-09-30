@@ -10,12 +10,8 @@
 __RCSID__ = "$Id$"
 
 from DIRAC  import S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 from DIRAC.Core.Security.Misc import getProxyInfoAsString
-from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
-from DIRAC.Core.Utilities.Adler import fileAdler
-from DIRAC.TransformationSystem.Client.FileReport import FileReport
+
 import DIRAC
 import os, string, copy
 
@@ -64,9 +60,9 @@ class ModuleBase( object ):
 
     if not wms_job_id:
       self.jobID = ''
-      #FIXME: which one is ok?
       if os.environ.has_key( 'JOBID' ):
         self.jobID = os.environ['JOBID']
+      else:
         self.jobID = self.JOB_ID
     else:
       self.jobID = wms_job_id
@@ -101,14 +97,13 @@ class ModuleBase( object ):
   def setApplicationStatus( self, status, sendFlag = True, jr = None ):
     """Wraps around setJobApplicationStatus of state update client
     """
-    if not self.jobID:
+    if not self._WMSJob():
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
     self.log.verbose( 'setJobApplicationStatus(%s,%s)' % ( self.jobID, status ) )
 
     if not jr:
-      try: jr = self.__getJobReporter()
-      except NameError, e: return S_OK( e )
+      jr = self.__getJobReporter()
 
     jobStatus = jr.setApplicationStatus( status, sendFlag )
     if not jobStatus['OK']:
@@ -121,12 +116,11 @@ class ModuleBase( object ):
   def sendStoredStatusInfo( self, jr = None ):
     """Wraps around sendStoredStatusInfo of state update client
     """
-    if not self.jobID:
+    if not self._WMSJob():
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
     if not jr:
-      try: jr = self.__getJobReporter()
-      except NameError, e: return S_OK( e )
+      jr = self.__getJobReporter()
 
     sendStatus = jr.sendStoredStatusInfo()
     if not sendStatus['OK']:
@@ -139,14 +133,13 @@ class ModuleBase( object ):
   def setJobParameter( self, name, value, sendFlag = True, jr = None ):
     """Wraps around setJobParameter of state update client
     """
-    if not self.jobID:
+    if not self._WMSJob():
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
     self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
     if not jr:
-      try: jr = self.__getJobReporter()
-      except NameError, e: return S_OK( e )
+      jr = self.__getJobReporter()
 
     jobParam = jr.setJobParameter( str( name ), str( value ), sendFlag )
     if not jobParam['OK']:
@@ -159,12 +152,11 @@ class ModuleBase( object ):
   def sendStoredJobParameters( self, jr = None ):
     """Wraps around sendStoredJobParameters of state update client
     """
-    if not self.jobID:
+    if not self._WMSJob():
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
     if not jr:
-      try: jr = self.__getJobReporter()
-      except NameError, e: return S_OK( e )
+      jr = self.__getJobReporter()
 
     sendStatus = jr.sendStoredJobParameters()
     if not sendStatus['OK']:
@@ -181,25 +173,52 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'JobReport' ):
       return self.workflow_commons['JobReport']
     else:
-      raise NameError, 'No reporting tool given'
+      from DIRAC.WorkloadManagementSystem.Client.JobReport import JobReport
+      jobReport = JobReport( self.jobID )
+      self.workflow_commons['JobReport'] = jobReport
+      return jobReport
 
   #############################################################################
 
-  def setFileStatus( self, production, lfn, status ):
+  def __getFileReporter( self ):
+    """ just return the file reporter (object)
+    """
+
+    if self.workflow_commons.has_key( 'FileReport' ):
+      return self.workflow_commons['FileReport']
+    else:
+      from DIRAC.TransformationSystem.Client.FileReport import FileReport
+      fileReport = FileReport( 'ProductionManagement/ProductionManager' )
+      self.workflow_commons['FileReport'] = fileReport
+      return fileReport
+
+  #############################################################################
+
+  def __getRequestContainer( self ):
+    """ just return the RequestContainer reporter (object)
+    """
+
+    if self.workflow_commons.has_key( 'Request' ):
+      return self.workflow_commons['Request']
+    else:
+      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+      request = RequestContainer()
+      self.workflow_commons['Request'] = request
+      return request
+
+  #############################################################################
+
+  def setFileStatus( self, production, lfn, status, fileReport = None ):
     """ set the file status for the given production in the Production Database
     """
     self.log.verbose( 'setFileStatus(%s,%s,%s)' % ( production, lfn, status ) )
 
-    if not self.workflow_commons.has_key( 'FileReport' ):
-      fileReport = FileReport( 'ProductionManagement/ProductionManager' )
-      self.workflow_commons['FileReport'] = fileReport
+    if not fileReport:
+      fileReport = self.__getFileReporter()
 
-    fileReport = self.workflow_commons['FileReport']
     result = fileReport.setFileStatus( production, lfn, status )
     if not result['OK']:
       self.log.warn( result['Message'] )
-
-    self.workflow_commons['FileReport'] = fileReport
 
     return result
 
@@ -217,15 +236,16 @@ class ModuleBase( object ):
     result = rm.setReplicaProblematic( ( lfn, pfn, se, reason ), source )
     if not result['OK'] or result['Value']['Failed']:
       # We have failed the report, let's attempt the Integrity DB faiover
+      from DIRAC.Core.DISET.RPCClient import RPCClient
       integrityDB = RPCClient( 'DataManagement/DataIntegrity', timeout = 120 )
       fileMetadata = {'Prognosis':reason, 'LFN':lfn, 'PFN':pfn, 'StorageElement':se}
       result = integrityDB.insertProblematic( source, fileMetadata )
       if not result['OK']:
         # Add it to the request
-        if self.workflow_commons.has_key( 'Request' ):
-          request = self.workflow_commons['Request']
-          subrequest = DISETSubRequest( result['rpcStub'] ).getDictionary()
-          request.addSubRequest( subrequest, 'integrity' )
+        request = self.__getRequestContainer()
+        from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
+        subrequest = DISETSubRequest( result['rpcStub'] ).getDictionary()
+        request.addSubRequest( subrequest, 'integrity' )
 
     return S_OK()
 
@@ -349,6 +369,9 @@ class ModuleBase( object ):
        
         this also assumes the files are in the current working directory.
     """
+    from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
+    from DIRAC.Core.Utilities.Adler import fileAdler
+
     #Retrieve the POOL File GUID(s) for any final output files
     self.log.info( 'Will search for POOL GUIDs for: %s' % ( string.join( candidateFiles.keys(), ', ' ) ) )
     pfnGUID = getGUID( candidateFiles.keys() )
