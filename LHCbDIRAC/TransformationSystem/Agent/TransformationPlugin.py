@@ -23,7 +23,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
     self.transformationRunStats = {}
     self.debug = debug
-    self.cachedData = {}
+    self.cachedLFNAncestors = {}
+    self.cachedLFNSize = {}
+    self.cachedNbRAWFiles = {}
     self.cacheFile = ''
 
   def __logVerbose( self, message, param = '' ):
@@ -422,7 +424,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( runDict )
 
   def __getRAWAncestorsForRun( self, transID, runID, param = '', paramValue = '' ):
-    import pickle, os
     startTime1 = time.time()
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
     self.__logDebug( "Timing for getting transformation files: %.1f s" % ( time.time() - startTime1 ) )
@@ -431,23 +432,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return []
     ancestors = 0
     lfns = [f['LFN'] for f in res['Value']]
-    # Now try and get the cached information
-    cacheFile = os.environ.get( 'TMPDIR', '/tmp' )
-    if cacheFile and not self.cacheFile:
-      try:
-        for node in ( 'dirac', 'TransPluginCache' ):
-          cacheFile = os.path.join( cacheFile, node )
-          if not os.path.exists( cacheFile ):
-            os.mkdir( cacheFile )
-        cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( transID ) ) )
-        self.cacheFile = cacheFile
-        f = open( cacheFile, 'r' )
-        self.cachedData = pickle.load( f )
-        f.close()
-        self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
-      except:
-        self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
-    cachedLFNs = self.cachedData.get( runID )
+    cachedLFNs = self.cachedLFNAncestors.get( runID )
     if cachedLFNs:
       self.__logDebug( "Cache hit for run %d: %d files cached" % ( runID, len( cachedLFNs ) ) )
       for lfn in cachedLFNs:
@@ -466,21 +451,117 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       ancestorDict = res['Value']['Successful']
       for lfn in ancestorDict:
         n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
-        self.cachedData.setdefault( runID, {} )[lfn] = n
+        self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
         ancestors += n
-    if cacheFile:
+    self.__logDebug( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
+    return ancestors
+
+  def __readCacheFile( self, transID ):
+    import os, pickle
+    # Now try and get the cached information
+    cacheFile = os.environ.get( 'TMPDIR', '/tmp' )
+    if cacheFile and not self.cacheFile:
+      try:
+        for node in ( 'dirac', 'TransPluginCache' ):
+          cacheFile = os.path.join( cacheFile, node )
+          if not os.path.exists( cacheFile ):
+            os.mkdir( cacheFile )
+        cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( transID ) ) )
+        self.cacheFile = cacheFile
+        f = open( cacheFile, 'r' )
+        self.cachedLFNAncestors = pickle.load( f )
+        try:
+          self.cachedNbRAWFiles = pickle.load( f )
+          self.cachedLFNSize = pickle.load( f )
+        except:
+          pass
+        f.close()
+        self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
+      except:
+        self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
+
+  def __writeCacheFile( self ):
+    import pickle
+    if self.cacheFile:
       try:
         f = open( self.cacheFile, 'w' )
-        pickle.dump( self.cachedData, f )
+        pickle.dump( self.cachedLFNAncestors, f )
+        pickle.dump( self.cachedNbRAWFiles, f )
+        pickle.dump( self.cachedLFNSize, f )
         f.close()
         self.__logDebug( "Cache file %s successfully written" % self.cacheFile )
       except:
         self.__logError( "Could not write cache file %s" % self.cacheFile )
-    self.__logDebug( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
-    return ancestors
+
+  def __getFileSize( self, lfns ):
+    fileSizes = {}
+    startTime1 = time.time()
+    for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
+        fileSizes[lfn] = self.cachedLFNSize[lfn]
+    if fileSizes:
+      self.__logDebug( "Cache hit for File size for %d files" % len( fileSizes ) )
+    lfns = [lfn for lfn in lfns if lfn not in self.cachedLFNSize]
+    if lfns:
+      startTime = time.time()
+      res = self.rm.getCatalogFileSize( lfns )
+      if not res['OK']:
+        return S_ERROR( "Failed to get sizes for files" )
+      if res['Value']['Failed']:
+        return S_ERROR( "Failed to get sizes for all files" )
+      fileSizes.update( res['Value']['Successful'] )
+      self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
+      self.__logDebug( "Timing for getting size of %d files from catalog: %.1f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
+    self.__logDebug( "Timing for getting size of files: %.1f seconds" % ( time.time() - startTime1 ) )
+    return fileSizes
+
+  def __clearCachedFileSize( self, lfns ):
+    for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
+      self.cachedLFNSize.pop( lfn )
+
+  def _groupBySize( self ):
+    """ Generate a task for a given amount of data """
+    if not self.params:
+      return S_ERROR( "TransformationPlugin._BySize: The 'BySize' plug-in requires parameters." )
+    status = self.params['Status']
+    requestedSize = float( self.params['GroupSize'] ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
+    maxFiles = self.params.get( 'MaxFiles', 100 )
+    # Group files by SE
+    fileGroups = self._getFileGroups( self.data )
+    # Get the file sizes
+    fileSizes = self.__getFileSize( self.data.keys() )
+    tasks = []
+    for replicaSE, lfns in fileGroups.items():
+      taskLfns = []
+      taskSize = 0
+      for lfn in lfns:
+        taskSize += fileSizes[lfn]
+        taskLfns.append( lfn )
+        if ( taskSize > requestedSize ) or ( len( taskLfns ) >= maxFiles ):
+          tasks.append( ( replicaSE, taskLfns ) )
+          self.__clearCachedFileSize( taskLfns )
+          taskLfns = []
+          taskSize = 0
+      if ( status == 'Flush' ) and taskLfns:
+        tasks.append( ( replicaSE, taskLfns ) )
+        self.__clearCachedFileSize( taskLfns )
+    return S_OK( tasks )
 
   def _LHCbStandard( self ):
     return self._groupByReplicas()
+
+  def __getNbRAWInRun( self, runID, evtType ):
+    rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType )
+    if not rawFiles:
+      startTime = time.time()
+      res = self.bk.getRunNbFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
+      if not res['OK']:
+        rawFiles = 0
+        self.__logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
+      else:
+        rawFiles = res['Value']
+        self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
+        self.__logDebug( "Run %d has %d RAW files (timing: %1f s)" % ( runID, rawFiles, time.time() - startTime ) )
+    return rawFiles
 
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     transID = self.params['TransformationID']
@@ -495,6 +576,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     # Loop on all runs that have new files
     inputData = self.data.copy()
+    if requireFlush:
+      self.__readCacheFile( transID )
     for run in res['Value']:
       runID = run['RunNumber']
       runStatus = run['Status']
@@ -533,15 +616,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         elif runFlush:
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
-          if evtType not in runRAWFiles:
-            startTime = time.time()
-            res = self.bk.getRunNbFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
-            if not res['OK']:
-              self.__logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
-              continue
-            runRAWFiles[evtType] = res['Value']
-            self.__logDebug( "Run %d has %d RAW files (timing: %1f s)" % ( runID, runRAWFiles[evtType], time.time() - startTime ) )
-          rawFiles = runRAWFiles[evtType]
+          rawFiles = self.__getNbRAWInRun( runID, evtType )
           ancestorRawFiles = self.__getRAWAncestorsForRun( transID, runID, param, paramValue )
           self.__logDebug( "Obtained %d ancestor RAW files" % ancestorRawFiles )
           runProcessed = ( ancestorRawFiles == rawFiles )
@@ -560,6 +635,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         allTasks.extend( res['Value'] )
     self.data = inputData
+    if requireFlush:
+      self.__writeCacheFile()
     return S_OK( allTasks )
 
   def _ByRunWithFlush( self ):
