@@ -576,8 +576,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     # Loop on all runs that have new files
     inputData = self.data.copy()
-    if requireFlush:
-      self.__readCacheFile( transID )
+    self.__readCacheFile( transID )
     for run in res['Value']:
       runID = run['RunNumber']
       runStatus = run['Status']
@@ -635,8 +634,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         allTasks.extend( res['Value'] )
     self.data = inputData
-    if requireFlush:
-      self.__writeCacheFile()
+    self.__writeCacheFile()
     return S_OK( allTasks )
 
   def _ByRunWithFlush( self ):
