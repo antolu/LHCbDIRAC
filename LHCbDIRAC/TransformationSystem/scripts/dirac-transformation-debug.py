@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+__RCSID__ = "$Id$"
+
 import sys
 
 def getFilesForRun( id, runID, status = None, lfnList = None ):
@@ -36,6 +39,7 @@ taskList = None
 resetRuns = None
 runList = None
 kickRequests = False
+justStats = False
 from DIRAC.Core.Base import Script
 
 infoList = ["Files", "Runs", "Tasks"]
@@ -47,7 +51,8 @@ Script.registerSwitch( '', 'Runs=', "Specify a (list of) runss" )
 Script.registerSwitch( '', 'Tasks=', "Specify a (list of) tasks" )
 Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with care!)" )
 Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
-Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs in a file' )
+Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
+Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
 
 Script.parseCommandLine( ignoreErrors = True )
 import DIRAC
@@ -75,7 +80,7 @@ for switch in switches:
         if val not in statusList:
             print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
             DIRAC.exit( 0 )
-        status = val.capitalize()
+        status = val
     elif opt in ( 'l', 'lfns' ):
         lfnList = val.split( ',' )
     elif opt in ( 'l', 'runs' ):
@@ -91,6 +96,8 @@ for switch in switches:
         kickRequests = True
     elif opt == 'dumpfiles':
         dumpFiles = True
+    elif opt == 'statistics':
+        justStats = True
 
 if lfnList:
     listFiles = True
@@ -118,6 +125,8 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import
 from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
+from DIRAC.Core.Utilities.List import sortList
+from DIRAC import gLogger
 import DIRAC
 import datetime
 
@@ -146,7 +155,7 @@ for id in idList:
         else:
             taskType = "Job"
         transGroup = res['Value']['TransformationGroup']
-    print "\n==============================\nTransformation", id, ":", transName, "of type", transType, "(plugin", strPlugin, ") in", transGroup
+    print "\n==============================\nTransformation", id, ":", transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
     if verbose:
         print "Transformation body:", transBody
     res = transClient.getBookkeepingQueryForTransformation( id )
@@ -156,6 +165,36 @@ for id in idList:
     else:
         print "No BKQuery for this transformation"
         queryProduction = None
+
+    # If just statistics are requested
+    if justStats:
+        filesList = getFilesForRun( id, None, 'Assigned', [] )
+        statsPerSE = {}
+        #print filesList
+        statusList = ( 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled' )
+        taskList = [fileDict['TaskID'] for fileDict in filesList]
+        res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskList} )
+        if not res['OK']:
+            print "Could not get the list of tasks..."
+            DIRAC.exit( 2 )
+        for task in res['Value']:
+            #print task
+            targetSE = task['TargetSE']
+            status = task['ExternalStatus']
+            if status in statusList:
+                statsPerSE[targetSE][status] = statsPerSE.setdefault( targetSE, dict.fromkeys( statusList, 0 ) )[status] + 1
+        prString = 'SE'.ljust( 15 )
+        for status in statusList:
+            prString += status.ljust( 10 )
+        print prString
+        for se in statsPerSE:
+            prString = se.ljust( 15 )
+            for status in statusList:
+                prString += str( statsPerSE[se][status] ).ljust( 10 )
+            print prString
+        continue
+
+    ################
     if runList:
         runs = []
         for run in runList:
@@ -182,7 +221,7 @@ for id in idList:
         filesList.sort()
         if lfnList and len( lfnList ) != len( filesList ):
             foundFiles = [fileDict['LFN'] for fileDict in filesList]
-            print "Some files were not found in transformation (%d):" % ( len( lfnList ) - len( filesList ) )
+            print "Some requested files were not found in transformation (%d):" % ( len( lfnList ) - len( filesList ) )
             for lfn in lfnList:
                 if lfn not in foundFiles:
                     print '\t', lfn
@@ -210,7 +249,25 @@ for id in idList:
                 taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
                 if listFiles and not taskList:
                     print "LFN:", fileDict['LFN'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
+            if status == 'MissingLFC':
+                lfns = [fileDict['LFN'] for fileDict in filesList]
+                res = rm.getReplicas( lfns )
+                if res['OK']:
+                    replicas = res['Value']['Successful']
+                    notMissing = len( [lfn for lfn in lfns if lfn in replicas] )
+                    if notMissing:
+                        if not kickRequest:
+                            print "%d files are %s but indeed are in the LFC - Use --KickRequest to reset them Unused" % ( notMissing, status )
+                        else:
+                            res = transClient.setFileStatusForTransformation( id, 'Unused', [lfn for lfn in lfns if lfn in replicas] )
+                            if res['OK']:
+                                print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
+                    else:
+                        print "All files are really missing in LFC"
             if verbose: print "Tasks:", taskDict.keys()
+            nbReplicasProblematic = {}
+            problematicReplicas = {}
+            failedFiles = []
             for taskID in [t for t in taskDict if not taskList or t in taskList]:
                 res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskID} )
                 if res['OK'] and res['Value']:
@@ -230,6 +287,13 @@ for id in idList:
                     statComment = ''
                     taskCompleted = True
                     for rep in replicas:
+                        if status == 'Problematic':
+                            # Problematic files, let's see why
+                            realSEs = [se for se in replicas[rep] if not se.endswith( '-ARCHIVE' )]
+                            nbSEs = len( realSEs )
+                            nbReplicasProblematic[nbSEs] = nbReplicasProblematic.setdefault( nbSEs, 0 ) + 1
+                            for se in realSEs:
+                                problematicReplicas.setdefault( se, [] ).append( rep )
                         SEStat["Total"] += 1
                         if not replicas[rep]:
                             SEStat[None] = SEStat.setdefault( None, 0 ) + 1
@@ -248,7 +312,6 @@ for id in idList:
                                 statComment = "absent"
                                 if se not in replicas[rep]:
                                     SEStat[se] = SEStat.setdefault( se, 0 ) + 1
-
                     if byTasks:
                         prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
                         if listFiles:
@@ -293,6 +356,16 @@ for id in idList:
                                 stats.sort()
                                 for stat in stats:
                                     print "%s: %d files" % ( stat, statFiles[stat] )
+                                if 'Failed' in stats and statFiles['Failed'] == len( reqFiles ):
+                                    prString = "All transfers failed for that request"
+                                    if not kickRequests:
+                                        prString += ": it should be marked as Failed, use --KickRequest"
+                                    else:
+                                        failedFiles += reqFiles.keys()
+                                        res = reqClient.setRequestStatus( requestName, 'Failed' )
+                                        if res['OK']:
+                                            prString += ": request set to Failed"
+                                    print prString
                             selectDict = { 'RequestID':requestID}
                             res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
                             if res['OK']:
@@ -314,10 +387,50 @@ for id in idList:
                                             res = reqClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
                                             if res['OK']:
                                                 print 'Request %d reset Waiting' % requestID
+
                         print ""
         elif not byRun:
             print "No files found with given criteria"
 
+    if status == 'Problematic':
+        print "Statistics for Problematic files:"
+        existingReplicas = {}
+        lfns = []
+        for n in sortList( nbReplicasProblematic.keys() ):
+            print "   %d replicas in LFC: %d files" % ( n, nbReplicasProblematic[n] )
+        gLogger.setLevel( 'FATAL' )
+        for se in problematicReplicas:
+            lfns += [lfn for lfn in problematicReplicas[se] if lfn not in lfns]
+            res = rm.getReplicaAccessUrl( problematicReplicas[se], se )
+            if res['OK']:
+                for lfn in res['Value']['Successful']:
+                    existingReplicas.setdefault( lfn, [] ).append( se )
+        nbProblematic = len( lfns ) - len( existingReplicas )
+        nbExistingReplicas = {}
+        for lfn in existingReplicas:
+            nbReplicas = len( existingReplicas[lfn] )
+            nbExistingReplicas[nbReplicas] = nbExistingReplicas.setdefault( nbReplicas, 0 ) + 1
+        if nbProblematic == len( lfns ):
+            print "None of the %d problematic files actually have a replica" % len( lfns )
+        else:
+            print "Out of %d problematic replicas, only %d do not have a replica" % ( len( lfns ), nbProblematic )
+            for n in sortList( nbExistingReplicas.keys() ):
+                print "   %d replicas: %d files" % ( n, nbExistingReplicas[n] )
+            for se in problematicReplicas:
+                lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
+                if len( lfns ):
+                    strMsg = '%d' % len( lfns )
+                else:
+                    strMsg = 'No'
+                print "   %s : %d replicas of problematic files, %s missing replicas" % ( se.ljust( 15 ), len( problematicReplicas[se] ), strMsg )
+            lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
+            if lfns:
+                prString = "Failed transfers but existing replicas"
+                for lfn in lfns:
+                    res = transClient.setFileStatusForTransformation( id, 'Unused', lfns )
+                    if res['OK']:
+                        prString += " - %d files reset Unused" % len( lfns )
+        print ""
     if toBeKicked:
         if kickRequests:
             print "%d requests have been kicked" % toBeKicked
