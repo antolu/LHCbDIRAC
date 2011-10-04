@@ -135,5 +135,6 @@ else:
   fp.write("All replicas in LFC have been checked on Storage. Ok!!\n")
 
 fp.close()
+print "Summary written to file: %s" %outputFileName
 DIRAC.exit( 0 )
 
