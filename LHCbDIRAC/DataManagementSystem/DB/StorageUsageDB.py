@@ -578,12 +578,60 @@ class StorageUsageDB( DB ):
       Data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
     return S_OK( Data )
 
-  def getSiteSummary( self, site ):
-    """Returns a summary of space usage for the given site """
-    # to be implemented..
-    gLogger.info( "to be implemented... " )
+  def publishTose_STSummary( self, site, spaceToken, totalSize, totalFiles ):
+    """ Publish total size and total files extracted from the storage
+        dumps to the se_STSummary """
+    try:
+      sqlTotalSize = long( totalSize )
+      sqlTotalFiles = long( totalFiles )
+    except ValueError, e:
+      return S_ERROR( "Values must be ints: %s" % str( e ) )
+    sqlSpaceToken = self._escapeString( spaceToken )['Value']
+    sqlSite = self._escapeString( site )['Value']
+    # check if there is already an entry for the tuple (site, spaceTok)
+    res = self.__getSTSummary( site, spaceToken )
+    gLogger.info( " __getSTSummary returned: %s " % res )
+    if not res[ 'OK' ]:
+      return S_ERROR( res )
+    if not res[ 'Value' ]:
+      gLogger.error( "Entry for site=%s, spaceToken=%s is not there => insert new entry " %( site, spaceToken) )
+      sqlCmd = "INSERT INTO `se_STSummary` (Site, SpaceToken, TotalSize, TotalFiles, Updated) VALUES ( %s, %s, %d, %d, UTC_TIMESTAMP())" % ( sqlSite, sqlSpaceToken, sqlTotalSize, sqlTotalFiles )
 
+    else:
+      gLogger.info( "Entry for site=%s, spaceToken=%s is there => update entry " %( site, spaceToken) )
+      sqlCmd = "UPDATE `se_STSummary` SET TotalSize=%d, TotalFiles=%d, Updated=UTC_TIMESTAMP() WHERE Site=%s and SpaceToken=%s" % ( sqlTotalSize, sqlTotalFiles, sqlSite, sqlSpaceToken )
+
+    gLogger.info( " publishTose_STSummary sqlCmd: %s " % sqlCmd )
+    result = self._update( sqlCmd )
+    if not result[ 'OK' ]:
+      gLogger.error( "Cannot insert entry", "%s,%s: %s" % ( sqlSite, sqlSpaceToken, re[ 'Message' ] ) )
+      return result 
     return S_OK()
+
+  def __getSTSummary( self, site, spaceToken = False ):
+    """ Get total files and total size for the space token identified by the input arguments
+         (site, space token) , if space token is not specified, return all entries relative
+         to the site. """
+    
+    sqlSite = self._escapeString( site )['Value']
+    sqlCond = [ "Site=%s" % sqlSite ]
+    if spaceToken:
+      sqlSpaceToken = self._escapeString( spaceToken )['Value']
+      sqlCond.append( "SpaceToken=%s" % sqlSpaceToken )
+
+    sqlCmd = "SELECT Site, SpaceToken, TotalSize, TotalFiles, Updated FROM `se_STSummary` WHERE %s" % ( " AND ".join( sqlCond ) )
+    gLogger.info( " __getSTSummary sqlCmd is: %s " %sqlCmd )
+    result = self._query( sqlCmd )
+    gLogger.info( " __getSTSummary result: %s " %result )
+    if not result[ 'OK' ]:
+      return S_ERROR( result )
+    return S_OK( result[ 'Value' ] )
+    
+
+  def getSTSummary( self, site, spaceToken = False ):
+    """Returns a summary of space usage for the given site, on the basis of the information 
+       provided by the SRM db dumps from sites """
+    return self.__getSTSummary( site, spaceToken )
    
   def getRunSummaryPerSE( self, run ):
     """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the
