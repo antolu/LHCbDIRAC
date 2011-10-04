@@ -218,6 +218,21 @@ class StorageUsageHandler( RequestHandler ):
     """ Export the publishToSEReplicas DB method, which inserts/updates replicas on the SE to the se_Usage table """
     return storageUsageDB.publishToSEReplicas( directoryDict )
 
+  ###
+  # methods to deal with se_STSummary table
+  ###
+  types_publishTose_STSummary = []
+  def export_publishTose_STSummary( self, site, spaceToken, totalSize, totalFiles ):
+    """ Export the publishTose_STSummary DB method, which inserts/updates the reports of total 
+        files and total size from the storage dumps to the se_STSummary table """
+    return storageUsageDB.publishTose_STSummary( site, spaceToken, totalSize, totalFiles )
+ 
+  types_getSTSummary = []
+  def export_getSTSummary( self, site, spaceToken = False ):
+    """ Exports getSTSummary method: returns a summary of the used space for the given
+        site, based on the storage dumps provided by sites """
+    return storageUsageDB.getSTSummary( site, spaceToken )
+
   ####
   # Tier1 SE status for web
   ####
