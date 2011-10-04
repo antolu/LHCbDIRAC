@@ -492,11 +492,11 @@ class AnalyseXMLLogFile:
       return S_ERROR( 'InputEvents(%d) < OutputEvents(%d)' % 
                       ( self.numberOfEventsInput, self.numberOfEventsOutput ) )
     return S_OK()
-    # Check 2
-    if self.jobType == 'MCsimulation' and self.numberOfEventsInput != self.numberOfEventsOutput:
-      return S_ERROR( 'InputEvents(%d) < OutputEvents(%d)' % 
-                      ( self.numberOfEventsInput, self.numberOfEventsOutput ) )
-    return S_OK()
+#    # Check 2
+#    if self.jobType == 'MCsimulation' and self.numberOfEventsInput != self.numberOfEventsOutput:
+#      return S_ERROR( 'InputEvents(%d) < OutputEvents(%d)' % 
+#                      ( self.numberOfEventsInput, self.numberOfEventsOutput ) )
+#    return S_OK()
     
     
   def __checkLHCbEvents( self ):
@@ -506,7 +506,8 @@ class AnalyseXMLLogFile:
         ( Only applies for a particular JobType, in this case MCSimulation )   
     '''
     # Check 1
-    if self.jobType == 'MCsimulation' and self.numberOfEventsInput != self.numberOfEventsOutput:
+#    if self.jobType == 'MCsimulation' and self.numberOfEventsInput != self.numberOfEventsOutput:
+    if self.numberOfEventsInput != self.numberOfEventsOutput:
       return S_ERROR( 'InputEvents(%d) != OutputEvents(%d)' % 
                       ( self.numberOfEventsInput, self.numberOfEventsOutput ) )
     return S_OK()
@@ -847,7 +848,7 @@ class AnalyseXMLLogFile:
 
     sum = self.xmlTree[ 0 ]
 
-    for output in sum.childrens( 'input' ):
+    for output in sum.childrens( 'output' ):
       for file in output.childrens( 'file' ):
         outputEvents += int( file.value )     
     
