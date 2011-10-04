@@ -57,7 +57,14 @@ class StorageUsageDB( DB ):
                                                    },
                                         'PrimaryKey' : [ 'DID', 'SEName' ],
                                         }
-
+    self.__tablesDesc[ 'se_STSummary' ] = { 'Fields': {  'Site' : 'VARCHAR(32) NOT NULL',
+                                                         'SpaceToken' :  'VARCHAR(32) NOT NULL',
+                                                         'TotalSize' : 'BIGINT UNSIGNED NOT NULL',
+                                                         'TotalFiles' : 'INTEGER UNSIGNED NOT NULL',
+                                                         'Updated' : 'DATETIME NOT NULL'
+                                                      },
+                                          'PrimaryKey' : [ 'Site', 'SpaceToken' ],
+                                          }
     self.__tablesDesc[ 'problematicDirs' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
                                                        'Path' : 'VARCHAR(255) NOT NULL',
                                                        'Site' : 'VARCHAR(32) NOT NULL',
@@ -571,20 +578,44 @@ class StorageUsageDB( DB ):
       Data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
     return S_OK( Data )
 
+  def getSiteSummary( self, site ):
+    """Returns a summary of space usage for the given site """
+    # to be implemented..
+    gLogger.info( "to be implemented... " )
+
+    return S_OK()
+   
   def getRunSummaryPerSE( self, run ):
     """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the
     run's file are stored is like:  /lhcb/data/[YEAR]/RAW/[STREAM]/[PARTITION]/[ACTIVITY]/[RUNNO]/"""
-    sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '/lhcb/data/%%/RAW/%%/%%/%%/%d/' GROUP BY su.SEName" % ( run )
-    gLogger.info( "getRunSummaryPerSE: sqlCmd is %s " % sqlCmd )
-    result = self._query( sqlCmd )
-    if not result[ 'OK' ]:
-      return result
+    # try and implement bulk query
+    # check the type of run
     Data = {}
-    for row in result[ 'Value' ]:
-      seName = row[ 0 ]
-      if seName not in Data.keys():
-        Data[ seName ] = {}
-      Data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
+    if type( run ) == type( [] ):
+      for thisRun in run:
+        sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '/lhcb/data/%%/RAW/%%/%%/%%/%d/' GROUP BY su.SEName" % ( thisRun )
+        gLogger.info( "getRunSummaryPerSE: sqlCmd is %s " % sqlCmd )
+        result = self._query( sqlCmd )
+        if not result[ 'OK' ]:
+          return S_ERROR( result )
+        Data[ thisRun ] = {}
+        for row in result[ 'Value' ]:
+          seName = row[ 0 ]
+          if seName not in Data[ thisRun ].keys():
+            Data[ thisRun ][ seName ] = {}
+          Data[ thisRun ][ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
+    else:    
+      sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '/lhcb/data/%%/RAW/%%/%%/%%/%d/' GROUP BY su.SEName" % ( run )
+      gLogger.info( "getRunSummaryPerSE: sqlCmd is %s " % sqlCmd )
+      result = self._query( sqlCmd )
+      if not result[ 'OK' ]:
+        return S_ERROR( result )
+      for row in result[ 'Value' ]:
+        seName = row[ 0 ]
+        if seName not in Data.keys():
+          Data[ seName ] = {}
+        Data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
+
     return S_OK( Data )
 
   def __getAllReplicasInFC( self, path ):
