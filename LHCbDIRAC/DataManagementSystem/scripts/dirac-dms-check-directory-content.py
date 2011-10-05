@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-  For a given LFN directory, check the files that are in the storage and in the LFC and check the consistency. Based on ReplicaManager """
+  For a given LFN directory, check the files that are registered in the LFC and checks that they exist on the SE (using ReplicaManager), and in Bookkeeping, with the  correct ReplicaFlag """
+
+__RCSID__ = "$Id:  $"
+
 import DIRAC
 from DIRAC.Core.Base import Script
 unit = 'TB'
@@ -9,9 +12,11 @@ dir = ''
 fileType = ''
 prods = []
 prodID = ''
+verbose = False
 Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit )
-Script.registerSwitch( "D:", "Dir=", "  directory to be checked" )
-Script.registerSwitch( "f:", "Output=", " output file" )
+Script.registerSwitch( "D:", "Dir=", "  directory to be checked: mandatory argument" )
+Script.registerSwitch( "f:", "Output=", " output file name [dirac-dms-chec-dir-cont.out]" )
+Script.registerSwitch( "v", "Verbose", " use this option for verbose output [False]" )
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -20,8 +25,11 @@ Script.scriptName, ] ) )
 
 Script.parseCommandLine( ignoreErrors = False )
 
-#from DIRAC.DataManagementSystem.Client.DataIntegrityClient     import DataIntegrityClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
+from DIRAC.Core.DISET.RPCClient import RPCClient
+#from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
+bkClient = RPCClient( 'Bookkeeping/NewBookkeepingManager' )
+#bkClient = BookkeepingClient()
 
 outputFileName = 'dirac-dms-chec-dir-cont.out'
 
@@ -33,6 +41,11 @@ for switch in Script.getUnprocessedSwitches():
   if switch[0] == "f" or switch[0].lower() == "output":
     outputFile = switch[1]
     outputFileName = outputFile
+  if switch[0] == "v" or switch[0].lower() == "verbose":
+    verbose = True
+
+if verbose:
+  print 'Verbose output'
   
 if not dir:
   print 'One directory should be provided!'
@@ -46,8 +59,6 @@ if not unit in scaleDict.keys():
   Script.showHelp()
 scaleFactor = scaleDict[unit]
 rm = ReplicaManager()
-#dataIntegrity = DataIntegrityClient()
-#res = dataIntegrity.
 currentDir = dir
 print 'Obtaining the catalog contents for %s directory' % currentDir
 res = rm.getCatalogListDirectory( currentDir )
@@ -64,10 +75,14 @@ if not successfulDirs:
   print 'No directory to analyse. Exit.'
   DIRAC.exit( 0 )
 
-print 'Analysing directory; %s ' % currentDir
+if verbose:
+  print 'Analysing directory: %s ' % currentDir
 dirData = successfulDirs[currentDir]
 NumOfFilesInLFC = len( dirData['Files'].keys() )
-print 'Number of files registered in LFC: %d ' % NumOfFilesInLFC
+if verbose:
+  print 'Number of files registered in LFC: %d ' % NumOfFilesInLFC
+LFNsInLFC = dirData['Files'].keys()
+#print 'List of lfns in lfc: ' , LFNsInLFC
 
 allFiles = {}
 dirContents = res['Value']['Successful'][currentDir]
@@ -81,14 +96,19 @@ allReplicaDict = {}
 allMetadataDict = {}
 problematicFiles = {}
 replicasPerSE = {}
+n = 10
+totalSoFar = 0
 for lfn, lfnDict in allFiles.items():
-  fp.write("-----------------------------------------------------------------\n")
-  print 'LFN: %s ' % lfn
-  fp.write("LFN: %s\n" % lfn )
+  # checks LFC -> SE
+  fp.write("-------- Checks LFC -> SE ---------------------------------------------------------\n")
+  totalSoFar += 1
+  if totalSoFar % n == 0:
+    print '%d LFNs processed so far. %d left' %(totalSoFar, len(LFNsInLFC)-totalSoFar)
+  if verbose:
+    fp.write("LFN: %s\n" % lfn )
   lfnReplicas = {}
   for se, replicaDict in lfnDict['Replicas'].items():
     #print 'SE: %s -- replica: %s ' % ( se, replicaDict )
-
     lfnReplicas[se] = replicaDict['PFN']
     if not lfnReplicas:
       zeroReplicaFiles.append( lfn )
@@ -96,17 +116,19 @@ for lfn, lfnDict in allFiles.items():
   allMetadataDict[lfn] = lfnDict['MetaData']
   if lfnDict['MetaData']['Size'] == 0:
     zeroSizeFiles.append( lfn )
-  fp.write("All replicas: %s \n"  % lfnReplicas )
+  if verbose:
+    fp.write("All replicas: %s \n"  % lfnReplicas )
   # check each replica if it is exists on the storage
   for se in lfnReplicas:
     if se not in replicasPerSE.keys():
       replicasPerSE[ se ] = []
     pfn = lfnReplicas[ se ]
     replicasPerSE[ se ].append( pfn )
-    fp.write("Checking on storage PFN, SE: %s %s\n" % ( pfn, se ) )
+    if verbose:
+      fp.write("Checking on storage PFN, SE: %s %s\n" % ( pfn, se ) )
     res = rm.getStorageFileMetadata( pfn, se )
     if not res['OK']:
-      fp.write("ERROR: could not get storage file metadata!\n")
+      fp.write("ERROR: could not get storage file metadata! %s - %s \n" %(pfn, se))
       if lfn not in problematicFiles.keys():
         problematicFiles[lfn] = {}
       if 'BadReplicas' not in problematicFiles[lfn]:
@@ -114,25 +136,75 @@ for lfn, lfnDict in allFiles.items():
       problematicFiles[lfn]['BadReplicas'].append( pfn )
       continue
     if pfn in res['Value']['Failed']:
-      fp.write("ERROR: the PFN has some problem!\n")
+      fp.write("ERROR: bad PFN! %s\n" % pfn )
+      if lfn not in problematicFiles.keys():
+        problematicFiles[lfn] = {}
+        if 'BadPFN' not in problematicFiles[lfn]:
+           problematicFiles[lfn]['BadPFN'] = []
+        problematicFiles[lfn]['BadPFN'].append( pfn ) 
     elif pfn in res['Value']['Successful']:
-      fp.write("Replica is ok\n")
+      if verbose:
+        fp.write("Replica is ok\n")
   fp.flush()
 
+BkkChecks = False
+print("-------- Checks LFC -> Bkk ---------------------------------------------------------")
+fp.write("-------- Checks LFC -> Bkk ---------------------------------------------------------\n")
+res = bkClient.getFileMetadata( LFNsInLFC )
+if res['OK']:
+  BkkChecks = True
+  metadata = res['Value']
+  missingLFNs = [lfn for lfn in LFNsInLFC if metadata.get(lfn,{}).get('GotReplica') == None]
+  noFlagLFNs = [lfn for lfn in LFNsInLFC if metadata.get(lfn,{}).get('GotReplica') == 'No']
+  okLFNs = [lfn for lfn in LFNsInLFC if metadata.get(lfn,{}).get('GotReplica') == 'Yes']
+  if verbose:
+    print "Out of %d files, %d have a replica flag in the BK, %d are not in the BK and %d don't have the flag" %( len(LFNsInLFC), len(okLFNs), len(missingLFNs), len(noFlagLFNs))
+
+
 fp.write(" ++++++++++++++++++++++++++++++ Final summary ++++++++++++++++++++++++++\n")
+fp.write(" +++++++++++++++++++++++++++++ Checks LFC -> SE: ++++++++++++++++++++++++++++\n")
 fp.write("Replicas per SE:\n")
 for se in replicasPerSE.keys():
-  fp.write("SE: %s has %d replicas:\n" % ( se, len( replicasPerSE[ se ] ) ) )
-  for r in replicasPerSE[ se ]:
-    fp.write("%s\n" % r )
+  fp.write("SE: %s has %d replicas\n" % ( se, len( replicasPerSE[ se ] ) ) )
+  if verbose:
+    for r in replicasPerSE[ se ]:
+      fp.write("%s\n" % r )
+
+directoryConsistency = True
 if zeroReplicaFiles:
   fp.write("Files with zero replicas: %s \n" % zeroReplicaFiles )
+  directoryConsistency = False
 if  zeroSizeFiles:
   fp.write("Files with zero size: %s\n" % zeroSizeFiles )
+  directoryConsistency = False
 if problematicFiles:
-  fp.write("Found some problematic replicas: %s \n" % problematicFiles )
+  fp.write("Found some problematic replicas: \n" )
+  for lfn in problematicFiles.keys():
+    fp.write("LFN: %s\n" % lfn )
+    for k in problematicFiles[ lfn ].keys():
+      fp.write("%s : %s \n" %(k, problematicFiles[ lfn ][ k ]) )
+  directoryConsistency = False
+fp.write(" +++++++++++++++++++++++++++++++ Checks LFC -> Bookkeeping: +++++++++++++++++++++++++++++\n")
+
+if BkkChecks:
+  fp.write("Out of %d files:\n %d are OK - ReplicaFlag=Yes\n %d are not in the BK\n %d have ReplicaFlag=No\n" %( len(LFNsInLFC), len(okLFNs), len(missingLFNs), len(noFlagLFNs)))
+  if len(missingLFNs) > 0:
+    directoryConsistency = False
+    fp.write("LFNs present in LFC but missing from Bookkeeping:\n")
+    for lfn in missingLFNs:
+      fp.write("%s\n" % lfn )
+  if len(noFlagLFNs) > 0:
+    directoryConsistency = False
+    fp.write("LFNs present in LFC but with ReplicaFlag=No in Bookkeeping:\n")
+    for lfn in noFlagLFNs:
+      fp.write("%s\n" % lfn )
 else:
-  fp.write("All replicas in LFC have been checked on Storage. Ok!!\n")
+  fp.write("Bookkeeping didn't return any valid result for the LFNs\n")
+
+if directoryConsistency:
+  fp.write("--------->All replicas in LFC have been checked on Storage. Ok!!\n")
+else:
+  fp.write("--------->Directory is not consistent\n")
 
 fp.close()
 print "Summary written to file: %s" %outputFileName
