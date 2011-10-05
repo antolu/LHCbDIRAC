@@ -24,7 +24,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 if __name__ == "__main__":
 
-  dmScript = DMScript()
+  dmScript = DMScript( useBKQuery = True )
   dmScript.registerBKSwitches()
   dmScript.registerNamespaceSwitches()
 
@@ -45,9 +45,6 @@ if __name__ == "__main__":
     if switch[0] == 'Invisible':
       visible = False
 
-  directories = dmScript.options.get( 'Directory' )
-
-
   import DIRAC
   from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -59,6 +56,7 @@ if __name__ == "__main__":
 
   repStats = {}
   lfnReplicas = {}
+  directories = dmScript.options.get( 'Directory' )
   if directories:
     for directory in directories:
       res = rm.getReplicasFromDirectory( directory )
@@ -67,19 +65,24 @@ if __name__ == "__main__":
         continue
       lfnReplicas.update( res['Value'] )
   else:
-    res = rm.getReplicas( dmScript.getLFNsForBKQuery( visible = visible ) )
-    if not res['OK']:
-      print res['Message']
-      DIRAC.exit( 2 )
-    lfnReplicas = res['Value']['Successful']
-    if res['Value']['Failed']:
-      repStats[0] = len( res['Value']['Failed'] )
+    bkQuery = dmScript.getBKQuery( visible = visible )
+    lfns = bkQuery.getLFNs()
+    if lfns:
+      res = rm.getReplicas( lfns )
+      if not res['OK']:
+        print res['Message']
+        DIRAC.exit( 2 )
+      lfnReplicas = res['Value']['Successful']
+      if res['Value']['Failed']:
+        repStats[0] = len( res['Value']['Failed'] )
+    else:
+      lfnReplicas = None
 
   if not lfnReplicas:
     print "No files found that have a replica...."
     if repStats.get( 0 ):
       print "%d files found without a replica" % repStats[0]
-    DIRAC.exit( 2 )
+    DIRAC.exit( 0 )
 
   repSEs = {}
   repSites = {}
@@ -128,7 +131,7 @@ if __name__ == "__main__":
         repSEs[se][1] += lfnSize[lfn]
 
     if nrep > maxRep: maxRep = nrep
-    if - narchive > maxArch: maxArch = -narchive
+    if -narchive > maxArch: maxArch = -narchive
     nfiles += 1
 
   GB = 1000. * 1000. * 1000.
