@@ -14,9 +14,9 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
 
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
-  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares" )
+  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares", 'FakeReplication' )
 
-  pluginScript = PluginScript()
+  pluginScript = PluginScript( useBKQuery = True )
   pluginScript.registerPluginSwitches()
   test = False
   start = False
@@ -87,10 +87,11 @@ if __name__ == "__main__":
   visible = True
   if plugin == "DestroyDataset" or prods:
     visible = False
-  transBKQuery = pluginScript.buildBKQuery( visible = visible )
+  bkQuery = pluginScript.getBKQuery( visible = visible )
+  transBKQuery = bkQuery.getQueryDict()
   if not transBKQuery:
     print "No BK query was given..."
-    Script.showhelp()
+    Script.showHelp()
     DIRAC.exit( 2 )
 
   reqID = pluginScript.getRequestID()
@@ -112,9 +113,9 @@ if __name__ == "__main__":
     longName = transGroup + "for fileType " + str( transBKQuery['FileType'] )
     transName += '-' + str( transBKQuery['FileType'] )
   else:
-    bkQuery = pluginScript.options['BKQuery']
-    longName = transGroup + " for BKQuery " + bkQuery
-    transName += '-' + bkQuery
+    query = pluginScript.options['BKQuery']
+    longName = transGroup + " for BKQuery " + query
+    transName += '-' + query
 
   if requestID:
     transName += '-Request%d' % ( requestID )
@@ -161,7 +162,7 @@ if __name__ == "__main__":
 
   if transBKQuery:
     print "Executing the BK query..."
-    lfns = pluginScript.getLFNsForBKQuery( printSEUsage = ( transType == 'Removal' ), visible = visible )
+    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' ), visible = visible )
     nfiles = len( lfns )
   else:
     print "No BK query provided..."
