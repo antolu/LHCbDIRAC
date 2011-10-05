@@ -21,6 +21,9 @@ class setter:
     return DIRAC.S_OK()
 
 class PluginScript( DMScript ):
+  def __init__( self, useBKQuery = False ):
+    DMScript.__init__( self, useBKQuery = useBKQuery )
+
   def registerPluginSwitches( self ):
     self.registerBKSwitches()
     self.setSEs = {}
@@ -49,7 +52,7 @@ class PluginScript( DMScript ):
     return DIRAC.S_OK()
 
   def setGroupSize ( self, val ):
-    self.options['GroupSize'] = int( val )
+    self.options['GroupSize'] = float( val )
     return DIRAC.S_OK()
 
   def setParameters ( self, val ):
