@@ -192,8 +192,11 @@ class TargzJobLogAgent( AgentModule ):
 
     oldpath = os.getcwd()
 
+    import time
+    date = time.strftime( "%Y-%m-%d" )
+
     tarname = "/opt/dirac/tmp/" + prod + "_" + sub + ".tgz"
-    destFile = self.destDirectory + "/" + prod + "_" + sub + ".tgz"
+    destFile = self.destDirectory + "/" + prod + "_" + sub + "_" + date + ".tgz"
 
     res = self.storageElement.getPfnForLfn( destFile )
     if res['OK']:
