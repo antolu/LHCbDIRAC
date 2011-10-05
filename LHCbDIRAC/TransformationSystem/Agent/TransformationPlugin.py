@@ -23,10 +23,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
     self.transformationRunStats = {}
     self.debug = debug
+    self.workDirectory = None
+    self.pluginCallback = None
     self.cachedLFNAncestors = {}
     self.cachedLFNSize = {}
     self.cachedNbRAWFiles = {}
     self.cacheFile = ''
+
+  def setDirectory( self, directory ):
+    self.workDirectory = directory
+
+  def setCallback( self, callback ):
+    self.pluginCallback = callback
+
+  def setDebug( self, val = True ):
+    self.debug = val
 
   def __logVerbose( self, message, param = '' ):
     gLogger.verbose( self.plugin + ": " + message, param )
@@ -386,6 +397,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 tasks.append( ( se, [lfn] ) )
                 break
 
+    if self.pluginCallback:
+      self.pluginCallback( transID, invalidateCache = True )
     return S_OK( tasks )
 
   def __groupByRun( self, files = None ):
@@ -459,24 +472,28 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __readCacheFile( self, transID ):
     import os, pickle
     # Now try and get the cached information
-    cacheFile = os.environ.get( 'TMPDIR', '/tmp' )
-    if cacheFile and not self.cacheFile:
-      try:
-        for node in ( 'dirac', 'TransPluginCache' ):
-          cacheFile = os.path.join( cacheFile, node )
-          if not os.path.exists( cacheFile ):
-            os.mkdir( cacheFile )
-        cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( transID ) ) )
+    tmpDir = os.environ.get( 'TMPDIR', '/tmp' )
+    cacheFiles = ( ( self.workDirectory, ( 'TransPluginCache' ) ),
+                   ( tmpDir, ( 'dirac', 'TransPluginCache' ) ) )
+    for ( cacheFile, prefixes ) in cacheFiles:
+      if not cacheFile: continue
+      if type( prefixes ) == type( '' ):
+        prefixes = [prefixes]
+      for node in prefixes:
+        cacheFile = os.path.join( cacheFile, node )
+        if not os.path.exists( cacheFile ):
+          os.mkdir( cacheFile )
+      cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( transID ) ) )
+      if not self.cacheFile:
         self.cacheFile = cacheFile
+      try:
         f = open( cacheFile, 'r' )
         self.cachedLFNAncestors = pickle.load( f )
-        try:
-          self.cachedNbRAWFiles = pickle.load( f )
-          self.cachedLFNSize = pickle.load( f )
-        except:
-          pass
+        self.cachedNbRAWFiles = pickle.load( f )
+        self.cachedLFNSize = pickle.load( f )
         f.close()
         self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
+        break
       except:
         self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
 
@@ -1068,6 +1085,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( self.__createTasks( storageElementGroups ) )
 
+  def _FakeReplication( self ):
+    storageElementGroups = {}
+    for replicaSE, lfnGroup in self._getFileGroups( self.data ).items():
+      existingSEs = replicaSE.split( ',' )
+      for lfns in breakListIntoChunks( lfnGroup, 100 ):
+        stringTargetSEs = existingSEs[0]
+        storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
+    if self.pluginCallback:
+      self.pluginCallback( self.params['TransformationID'], invalidateCache = True )
+    return S_OK( self.__createTasks( storageElementGroups ) )
+
   def __createTasks( self, storageElementGroups, chunkSize = 100 ):
     #  create reasonable size tasks
     tasks = []
@@ -1081,14 +1109,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__removeReplicas( keepSEs = [], minKeep = 0 )
 
   def _DeleteDataset( self ):
-    keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    keepSEs = self.params.get( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     return self.__removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
-    listSEs = self.params.get( 'fromSEs', None )
-    keepSEs = self.params.get( 'keepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    listSEs = self.params.get( 'FromSEs', None )
+    keepSEs = self.params.get( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     keepSEs = self.__getListFromString( keepSEs )
-    mandatorySEs = self.params.get( 'mandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
+    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
     mandatorySEs = self.__getListFromString( mandatorySEs )
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     minKeep = int( self.params.get( 'NumberOfReplicas', 1 ) )
@@ -1100,6 +1128,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     listSEs = self.__getListFromString( listSEs )
     keepSEs = self.__getListFromString( keepSEs )
     nKeep = min( 2, len( keepSEs ) )
+    #print nKeep, listSEs, keepSEs
 
     replicaGroups = self._getFileGroups( self.data )
 
