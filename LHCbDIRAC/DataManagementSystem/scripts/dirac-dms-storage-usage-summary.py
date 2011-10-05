@@ -49,9 +49,10 @@ def printSEUsage( totalUsage, grandTotal, scaleFactor ):
 
 def printBigTable( siteList, bigTable ):
   siteList.sort()
-  if 'LFN' in siteList:
-    siteList.remove( 'LFN' )
-    siteList = ['LFN'] + siteList
+  for site in ( 'ARCHIVE', 'LFN' ):
+    if site in siteList:
+      siteList.remove( site )
+      siteList.insert( 0, site )
   just = [20, 30, 15]
   for cond in bigTable:
     just[0] = max( just[0], len( cond ) + 1 )
@@ -71,6 +72,8 @@ def printBigTable( siteList, bigTable ):
         if site in bigTableUsage:
           grandTotal[site] = grandTotal.setdefault( site, 0 ) + bigTableUsage[site]
           prStr += ( '%.3f' % bigTableUsage[site] ).ljust( just[2] )
+        elif site == 'Total':
+          prStr += '0'.ljust( just[2] )
         else:
           prStr += '-'.ljust( just[2] )
       print prStr
@@ -92,42 +95,37 @@ def writeInfo( str ):
   sys.stdout.flush()
   infoStringLength = len( str ) + 1
 
-def browseBK( dmScript, scaleFactor ):
+def browseBK( bkQuery, ses, scaleFactor ):
   from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE
-  sites = dmScript.getOption( 'Sites', [] )
-  ses = dmScript.getOption( 'SEs', [] )
-  bkQuery = dmScript.buildBKQuery()
-  mandatoryFields = [ "ConfigName", "ConfigVersion" ]
-  for field in mandatoryFields:
-    if field not in bkQuery:
-      print "BK query should at least contain the configuration..."
-      return None
-  conditions = dmScript.getBKConditions( bkQuery )
-  if not conditions:
+  bkPath = bkQuery.getPath()
+  if not bkQuery.getConfiguration():
+    print "The Configuration should be specified in the --BKQuery option: %s" % bkPath
     return None
-  query = bkQuery.copy()
-  if 'Visible' in query:
-    query.pop( 'Visible' )
+  conditions = bkQuery.getBKConditions()
+  if not conditions:
+    print 'No Conditions found for this Configuration %s' % bkPath
+    return None
+  requestedEventTypes = bkQuery.getEventTypeList()
+  requestedFileTypes = bkQuery.getFileTypeList()
+  requestedPP = bkQuery.getProcessingPass()
+  requestedConditions = bkQuery.getConditions()
   bigTable = {}
   siteList = []
   for cond in conditions:
     strCond = "Browsing conditions %s" % cond
     writeInfo( strCond )
-    query = dmScript.setBKConditions( query, cond )
-    processingPasses = dmScript.getBKProcessingPasses( query )
+    bkQuery.setConditions( cond )
+    processingPasses = bkQuery.getBKProcessingPasses()
     #print processingPasses
     for processingPass in [pp for pp in processingPasses if processingPasses[pp]]:
-      if bkQuery.get( 'EventTypeId' ):
-        eventTypes = bkQuery['EventTypeId']
-        if type( eventTypes ) != type( [] ):
-          eventTypes = [eventTypes]
-        eventTypes = [t for t in eventTypes if t in processingPasses[processingPass]]
+      if requestedEventTypes:
+        eventTypes = [t for t in requestedEventTypes if t in processingPasses[processingPass]]
         if not eventTypes: continue
       else:
         eventTypes = processingPasses[processingPass]
       strPP = " - ProcessingPass %s" % processingPass
       writeInfo( strCond + strPP )
-      query['ProcessingPass'] = processingPass
+      bkQuery.setProcessingPass( processingPass )
       totalUsage = {}
       grandTotal = {}
       allProds = []
@@ -135,25 +133,30 @@ def browseBK( dmScript, scaleFactor ):
       for eventType in eventTypes:
         strEvtType = " - EventType %s" % str( eventType )
         writeInfo( strCond + strPP + strEvtType )
-        query['EventType'] = eventType
-        fileTypes = dmScript.getBKFileTypes( query )
+        bkQuery.setEventType( eventType )
+        fileTypes = bkQuery.getBKFileTypes()
         #print fileTypes
         if None in fileTypes: continue
-        query = dmScript.setBKFileType( query, fileTypes )
-        prods = dmScript.getProductionsFromBKQuery( query, visible = False )
+        prods = bkQuery.getBKProductions()
+        prods.sort()
         #print prods
-        nbFiles, size = dmScript.getNumberOfFiles( query, visible = False )
-        totalUsage['LFN']['Size'] = totalUsage.setdefault( 'LFN', {} ).setdefault( 'Size', 0 ) + size
-        totalUsage['LFN']['Files'] = totalUsage['LFN'].setdefault( 'Files', 0 ) + nbFiles
         strProds = " - FileTypes %s - Prods %s" % ( str( fileTypes ), str( prods ) )
         writeInfo( strCond + strPP + strEvtType + strProds )
+        info = bkQuery.getNumberOfLFNs()
+        nbFiles = info['NumberOfLFNs']
+        size = info['LFNSize']
+        totalUsage['LFN']['Size'] = totalUsage.setdefault( 'LFN', {} ).setdefault( 'Size', 0 ) + size
+        totalUsage['LFN']['Files'] = totalUsage['LFN'].setdefault( 'Files', 0 ) + nbFiles
+        if 'DST' not in fileTypes:
+          fileTypes.append( 'DST' )
+        if 'MDST' not in fileTypes:
+          fileTypes.append( 'MDST' )
         if  prods:
           allProds += prods
           for prodID in prods:
             totalUsage, grandTotal = getStorageSummary( totalUsage, grandTotal, '', fileTypes, prodID, ses )
-        query = dmScript.setBKFileType( query, bkQuery.get( 'FileType', bkQuery.get( 'FileTypeId' ) ) )
-        if 'EventType' not in bkQuery:
-          query.pop( 'EventType' )
+        bkQuery.setFileType( requestedFileTypes )
+        bkQuery.setEventType( requestedEventTypes )
       writeInfo( '' )
       if allProds:
         allProds.sort()
@@ -163,8 +166,9 @@ def browseBK( dmScript, scaleFactor ):
         bigTable.setdefault( cond, {} )[processingPass] = [allProds, {}]
         bigTableUsage = bigTable[cond][processingPass][1]
         for se in totalUsage:
-          if se.endswith( '-ARCHIVE' ): continue
-          if se == 'LFN':
+          if se.endswith( '-ARCHIVE' ):
+            site = 'ARCHIVE'
+          elif se == 'LFN':
             site = 'LFN'
           else:
             res = getSitesForSE( se, gridName = 'LCG' )
@@ -174,13 +178,10 @@ def browseBK( dmScript, scaleFactor ):
           if site not in siteList:
             siteList.append( site )
           bigTableUsage[site] = bigTableUsage.setdefault( site, 0 ) + ( totalUsage[se]['Size'] / scaleFactor )
-      if 'ProcessingPass' not in bkQuery:
-        query.pop( 'ProcessingPass' )
-      else:
-        query['ProcessingPass'] = bkQuery['ProcessingPass']
-    query = dmScript.setBKConditions( query, None )
+      bkQuery.setProcessingPass( requestedPP )
+    bkQuery.setConditions( requestedConditions )
   import datetime
-  print '\n', dmScript.getOption( 'BKQuery' ), str( datetime.datetime.today() ).split()[0]
+  print '\n', bkQuery.getPath(), str( datetime.datetime.today() ).split()[0]
   printBigTable( siteList, bigTable )
 
 
@@ -191,9 +192,6 @@ def getStorageSummary( totalUsage, grandTotal, dir, fileTypes, prodID, ses ):
     grandTotal = {'Files':0, 'Size':0}
   if type( fileTypes ) != type( [] ):
     fileTypes = [fileTypes]
-  # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
-  if 'DST' not in fileTypes:
-    fileTypes.append( 'DST' )
   for fileType in fileTypes:
     res = RPCClient( 'DataManagement/StorageUsage' ).getStorageSummary( dir, fileType, prodID, ses )
     if res['OK']:
@@ -209,7 +207,7 @@ def getStorageSummary( totalUsage, grandTotal, dir, fileTypes, prodID, ses ):
 #=====================================================================================
 if __name__ == "__main__":
 
-  dmScript = DMScript()
+  dmScript = DMScript( useBKQuery = True )
   dmScript.registerBKSwitches()
   dmScript.registerNamespaceSwitches()
   dmScript.registerSiteSwitches()
@@ -252,30 +250,26 @@ if __name__ == "__main__":
     Script.showHelp()
   scaleFactor = scaleDict[unit]
 
+  ses = dmScript.getOption( 'SEs', [] )
+  # Create a bkQuery looking at all files
+  bkQuery = dmScript.getBKQuery( visible = False )
   if bkBrowse:
-    browseBK( dmScript, scaleFactor )
+    browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
   sites = dmScript.getOption( 'Sites', [] )
-  ses = dmScript.getOption( 'SEs', [] )
   prods = dmScript.getOption( 'Productions', [] )
   dirs = dmScript.getOption( 'Directory', [''] )
-  bkQuery = dmScript.buildBKQuery()
-  if bkQuery and not prods:
-    prods = dmScript.getProductionsFromBKQuery( visible = False )
-    if not prods:
-      print 'No productions found for bkQuery %s' % str( bkQuery )
-      DIRAC.exit( 0 )
-    prods.sort()
-    print "Looking for %d productions:" % len( prods ), prods
-  fileTypes = dmScript.getOption( 'FileType' )
-  if bkQuery and not fileTypes:
-    fileTypes = bkQuery.get( 'FileType', None )
-    if type( fileTypes ) == type( '' ):
-      fileTypes = [fileTypes]
-    if fileTypes:
-      print 'FileTypes:', fileTypes
-  if not fileTypes:
+  prods = bkQuery.getBKProductions()
+  if not prods:
+    print 'No productions found for bkQuery %s' % str( bkQuery )
+    DIRAC.exit( 0 )
+  prods.sort()
+  print "Looking for %d productions:" % len( prods ), prods
+  fileTypes = bkQuery.getFileTypeList()
+  if fileTypes:
+    print 'FileTypes:', fileTypes
+  else:
     fileTypes = ['']
   for site in sites:
     res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
@@ -284,6 +278,9 @@ if __name__ == "__main__":
       Script.showHelp()
     ses.extend( res['Value']['SE'].replace( ' ', '' ).split( ',' ) )
 
+  # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
+  if 'DST' not in fileTypes:
+    fileTypes.append( 'DST' )
   rpc = RPCClient( 'DataManagement/StorageUsage' )
   if not prods:
     prods = ['']
@@ -297,7 +294,7 @@ if __name__ == "__main__":
           if not res['OK']:
             print 'Failed to get directories', res['Message']
             DIRAC.exit( 2 )
-            dirData.update( res[ 'Value' ] )
+          dirData.update( res[ 'Value' ] )
     for resDir in sorted( dirData ):
       print resDir, " -> ", dirData[ resDir ]
 
