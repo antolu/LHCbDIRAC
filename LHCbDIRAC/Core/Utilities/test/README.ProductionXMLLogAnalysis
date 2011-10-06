@@ -1,0 +1,2 @@
+You may want to add a symbolic link on this directory.
+ln -s /afs/cern.ch/user/u/ubeda/public/ProductionXMLLogAnalysis ProductionXMLLogAnalysis
