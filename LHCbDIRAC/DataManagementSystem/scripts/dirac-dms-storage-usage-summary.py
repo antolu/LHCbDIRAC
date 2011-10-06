@@ -135,6 +135,7 @@ def browseBK( bkQuery, ses, scaleFactor ):
         writeInfo( strCond + strPP + strEvtType )
         bkQuery.setEventType( eventType )
         fileTypes = bkQuery.getBKFileTypes()
+        bkQuery.setFileType( fileTypes )
         #print fileTypes
         if None in fileTypes: continue
         prods = bkQuery.getBKProductions()
@@ -250,27 +251,35 @@ if __name__ == "__main__":
     Script.showHelp()
   scaleFactor = scaleDict[unit]
 
-  ses = dmScript.getOption( 'SEs', [] )
   # Create a bkQuery looking at all files
-  bkQuery = dmScript.getBKQuery( visible = False )
   if bkBrowse:
+    bkQuery = dmScript.getBKQuery( visible = False )
     browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
+  dirs = dmScript.getOption( 'Directory' )
+  prods = ['']
+  fileTypes = ['']
+  if not dirs:
+    dirs = ['']
+    bkQuery = dmScript.getBKQuery( visible = False )
+    prods = bkQuery.getBKProductions()
+    if not prods:
+      print 'No productions found for bkQuery %s' % str( bkQuery )
+      DIRAC.exit( 0 )
+    prods.sort()
+    print "Looking for %d productions:" % len( prods ), prods
+    fileTypes = bkQuery.getFileTypeList()
+    if fileTypes:
+      print 'FileTypes:', fileTypes
+    else:
+      fileTypes = ['']
+    # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
+    if 'DST' not in fileTypes:
+      fileTypes.append( 'DST' )
+
+  ses = dmScript.getOption( 'SEs', [] )
   sites = dmScript.getOption( 'Sites', [] )
-  prods = dmScript.getOption( 'Productions', [] )
-  dirs = dmScript.getOption( 'Directory', [''] )
-  prods = bkQuery.getBKProductions()
-  if not prods:
-    print 'No productions found for bkQuery %s' % str( bkQuery )
-    DIRAC.exit( 0 )
-  prods.sort()
-  print "Looking for %d productions:" % len( prods ), prods
-  fileTypes = bkQuery.getFileTypeList()
-  if fileTypes:
-    print 'FileTypes:', fileTypes
-  else:
-    fileTypes = ['']
   for site in sites:
     res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
     if not res['OK']:
@@ -278,12 +287,7 @@ if __name__ == "__main__":
       Script.showHelp()
     ses.extend( res['Value']['SE'].replace( ' ', '' ).split( ',' ) )
 
-  # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
-  if 'DST' not in fileTypes:
-    fileTypes.append( 'DST' )
   rpc = RPCClient( 'DataManagement/StorageUsage' )
-  if not prods:
-    prods = ['']
 
   if full:
     dirData = {}
