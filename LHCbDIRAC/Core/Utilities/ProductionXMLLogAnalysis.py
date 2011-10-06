@@ -109,6 +109,11 @@ class AnalyseXMLLogFile:
 
   def analise( self ):
     
+    # Check the log file exists and get the contents
+    res = self.__openFile()
+    if not res[ 'OK' ]:
+      return res  
+    
     #For the production case the application name will always be given, for the
     #standalone utility this may not always be true so try to guess
     res = self.__guessAppName()
@@ -119,11 +124,6 @@ class AnalyseXMLLogFile:
     if not res[ 'OK' ]:
       return res
     
-    # Check the log file exists and get the contents
-    res = self.__openFile()
-    if not res[ 'OK' ]:
-      return res  
-
     # Check the xml log file exists and get it as a tree
     res = self.__parseXML()
     if not res[ 'OK' ]:
@@ -186,38 +186,6 @@ class AnalyseXMLLogFile:
 
     return S_OK()
 
-  def __parseXML( self ):
-   
-    # It was used application name, but we can have multiple steps with the
-    # same application name, so we'd better use the stepName, which is
-    # <appName>_<stepID> : eg. Gauss_1, Boole_2, Moore_3, Moore_4
-#    xmlFileName = '%s_%s_%s_%s_XMLSummary.xml' % ( self.prodName, self.jobName,self.stepName, self.applicationName )
-    
-    xmlFileName = 'summary%s_%s_%s_%s.xml' % ( self.applicationName, self.prodName, self.jobName,self.stepName )
-    
-    if '/' in self.fileName:
-      self.xmlFileName = '%s/' % self.fileName.rplit('/',1)
-      
-    self.xmlFileName += xmlFileName        
-    self.gLogger.info( "Attempting to parse xml log file: %s" % self.xmlFileName )
-
-    if not os.path.exists( self.xmlFileName ):
-      self.gLogger.error( 'Requested xml log file "%s" is not available' % self.xmlFileName )
-      return S_ERROR( 'XML Log File Not Available' )
-    
-    if os.stat( self.xmlFileName )[6] == 0:
-      self.gLogger.error( 'Requested xml log file "%s" is empty' % self.xmlFileName )
-      return S_ERROR( 'XML Log File Is Empty' )
-   
-    summary      = XMLTreeParser()
-    
-    try:
-      self.xmlTree = summary.parse( self.xmlFileName )
-    except Exception, e:
-      return S_ERROR( 'Error parsing xml summary: %s' % e )
-          
-    return S_OK()
-
   def __guessAppName( self ):
     
     #For the production case the application name will always be given, for the
@@ -266,6 +234,38 @@ class AnalyseXMLLogFile:
     
     self.gLogger.info( 'Guessed prod: %s, job: %s and step: %s' % ( self.prodName, self.jobName, self.stepName ) )
     
+    return S_OK()
+
+  def __parseXML( self ):
+   
+    # It was used application name, but we can have multiple steps with the
+    # same application name, so we'd better use the stepName, which is
+    # <appName>_<stepID> : eg. Gauss_1, Boole_2, Moore_3, Moore_4
+#    xmlFileName = '%s_%s_%s_%s_XMLSummary.xml' % ( self.prodName, self.jobName,self.stepName, self.applicationName )
+    
+    xmlFileName = 'summary%s_%s_%s_%s.xml' % ( self.applicationName, self.prodName, self.jobName, self.stepName )
+    
+    if '/' in self.fileName:
+      self.xmlFileName = '%s/' % self.fileName.rsplit( '/', 1 )[ 0 ]
+      
+    self.xmlFileName += xmlFileName        
+    self.gLogger.info( "Attempting to parse xml log file: %s" % self.xmlFileName )
+
+    if not os.path.exists( self.xmlFileName ):
+      self.gLogger.error( 'Requested xml log file "%s" is not available' % self.xmlFileName )
+      return S_ERROR( 'XML Log File Not Available' )
+    
+    if os.stat( self.xmlFileName )[6] == 0:
+      self.gLogger.error( 'Requested xml log file "%s" is empty' % self.xmlFileName )
+      return S_ERROR( 'XML Log File Is Empty' )
+   
+    summary      = XMLTreeParser()
+    
+    try:
+      self.xmlTree = summary.parse( self.xmlFileName )
+    except Exception, e:
+      return S_ERROR( 'Error parsing xml summary: %s' % e )
+          
     return S_OK()
 
 ################################################################################
@@ -413,7 +413,7 @@ class AnalyseXMLLogFile:
     filesMsg =  ', '.join( files )
     self.gLogger.info( filesMsg )
 
-    if fileCounter[ 'full' ] != len( fileCounter ):
+    if fileCounter[ 'full' ] != sum( fileCounter.values() ):
       return S_ERROR( filesMsg )
     
     return S_OK()
@@ -428,13 +428,14 @@ class AnalyseXMLLogFile:
     self.numberOfEventsInput  = self.__getInputEvents()[ 'Value' ]
     self.numberOfEventsOutput = self.__getOutputEvents()[ 'Value' ]   
     
-    # 'private' functions starting with '__' are mangled by Python
-    try:
-      appCheck = getattr( self, '_AnalyseXMLLogFile__check%sEvents' % self.applicationName )
-    except:
-      return S_ERROR( 'No checker for application %s' % self.applicationName )
-    
-    return appCheck()
+#    # 'private' functions starting with '__' are mangled by Python
+#    try:
+#      appCheck = getattr( self, '_AnalyseXMLLogFile__check%sEvents' % self.applicationName )
+#    except:
+#      return S_ERROR( 'No checker for application %s' % self.applicationName )
+#    
+#    return appCheck()
+    return S_OK()
 
   def __checkGaussEvents( self ):
     '''
@@ -785,7 +786,7 @@ class AnalyseXMLLogFile:
     if len( stepXML ) != 1:
       return S_ERROR( 'Nr of step items != 1' ) 
     
-    return S_OK( stepXML[ 0 ].value )
+    return S_OK( stepXML[ 0 ].value )      
 
   def __getInputStatus( self ):
     '''
@@ -853,6 +854,17 @@ class AnalyseXMLLogFile:
         outputEvents += int( file.value )     
     
     return S_OK( outputEvents )
+
+####
+
+  def __getLastFile( self ):
+    
+    res = self.__getInputStatus()
+    
+    if not res[ 'OK' ]:
+      return res
+    
+    return S_OK( res[ 'Value' ][-1][0] )   
 
 #### END: XML - FSR functions
 #
