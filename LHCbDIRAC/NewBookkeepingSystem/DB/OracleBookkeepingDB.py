@@ -305,7 +305,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def getAvailableConfigurations(self):
     """
     """
-    return self.dbR_.executeStoredProcedure('BKK_ORACLE.getAvailableConfigurations', [])
+    return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailableConfigurations', [])
 
 
   #############################################################################
