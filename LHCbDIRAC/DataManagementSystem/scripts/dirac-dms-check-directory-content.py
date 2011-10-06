@@ -98,9 +98,9 @@ problematicFiles = {}
 replicasPerSE = {}
 n = 10
 totalSoFar = 0
+fp.write("-------- Checks LFC -> SE ---------------------------------------------------------\n")
 for lfn, lfnDict in allFiles.items():
   # checks LFC -> SE
-  fp.write("-------- Checks LFC -> SE ---------------------------------------------------------\n")
   totalSoFar += 1
   if totalSoFar % n == 0:
     print '%d LFNs processed so far. %d left' %(totalSoFar, len(LFNsInLFC)-totalSoFar)
