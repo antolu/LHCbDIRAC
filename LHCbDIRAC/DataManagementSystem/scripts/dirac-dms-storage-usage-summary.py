@@ -251,6 +251,15 @@ if __name__ == "__main__":
     Script.showHelp()
   scaleFactor = scaleDict[unit]
 
+  ses = dmScript.getOption( 'SEs', [] )
+  sites = dmScript.getOption( 'Sites', [] )
+  for site in sites:
+    res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
+    if not res['OK']:
+      print 'Site %s not known' % site
+      Script.showHelp()
+    ses.extend( res['Value']['SE'].replace( ' ', '' ).split( ',' ) )
+
   # Create a bkQuery looking at all files
   if bkBrowse:
     bkQuery = dmScript.getBKQuery( visible = False )
@@ -277,15 +286,6 @@ if __name__ == "__main__":
     # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
     if 'DST' not in fileTypes:
       fileTypes.append( 'DST' )
-
-  ses = dmScript.getOption( 'SEs', [] )
-  sites = dmScript.getOption( 'Sites', [] )
-  for site in sites:
-    res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
-    if not res['OK']:
-      print 'Site %s not known' % site
-      Script.showHelp()
-    ses.extend( res['Value']['SE'].replace( ' ', '' ).split( ',' ) )
 
   rpc = RPCClient( 'DataManagement/StorageUsage' )
 
