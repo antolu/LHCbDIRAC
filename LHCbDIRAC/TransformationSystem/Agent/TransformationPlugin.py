@@ -711,6 +711,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __isFailover( self, se ):
     return se.endswith( "-FAILOVER" )
 
+  def __isFreezer( self, se ):
+    return se.endswith( "-FREEZER" )
+
   def __sortExistingSEs( self, lfns, lfnSEs ):
     SEFrequency = {}
     archiveSEs = []
@@ -807,7 +810,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # Discard existing SEs
       ses = [se for se in targetSEs if se not in existingSEs ]
       # discard SEs at sites where already normal replica
-      neededSEs = [se for se in ses if self.__isArchive( se ) or self._getSiteForSE( se )['Value'] not in existingSites]
+      neededSEs = [se for se in ses if self.__isArchive( se ) or self.__isFreezer( se ) or self._getSiteForSE( se )['Value'] not in existingSites]
       stringTargetSEs = ','.join( sortList( neededSEs ) )
       if not neededSEs:
         alreadyCompleted.append( lfn )
