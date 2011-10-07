@@ -67,17 +67,28 @@ class BKQuery():
       bk = bkPath.split( '/' )[1:] + len( self.bkFields ) * ['']
       i = 0
       processingPass = '/'
+      defaultPP = False
       for b in bk:
+        #print i,self.bkFields[i], b, processingPass
         if self.bkFields[i] == 'ProcessingPass':
           if b != '' and b.upper() != 'ALL' and not b.isdigit():
             processingPass = os.path.join( processingPass, b )
             continue
+          # Set the PP
           if processingPass != '/':
-            bkQuery[self.bkFields[i]] = processingPass
+            bkQuery['ProcessingPass'] = processingPass
+          else:
+            defaultPP = True
           i += 1
+        # Set the BK dictionary item
         if b != '':
           bkQuery[self.bkFields[i]] = b
-        i += 1
+        if defaultPP:
+          # PP was empty, try once more to get the Event Type
+          defaultPP = False
+        else:
+          # Go to next item
+          i += 1
         if i == len( self.bkFields ):
           break
 
@@ -277,7 +288,7 @@ class BKQuery():
     for fileType in fileTypes:
       if fileType:
         res = self.bk.getFilesSumary( query.setFileType( fileType ) )
-        #print res
+        #print query, res
         if res['OK']:
           res = res['Value']
           ind = res['ParameterNames'].index( 'NbofFiles' )
