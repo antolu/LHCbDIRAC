@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '../qt_resources/MainWidget.ui'
+# Form implementation generated from reading ui file 'MainWidget.ui'
 #
-# Created: Fri Sep  2 13:13:56 2011
+# Created: Mon Oct 10 19:36:07 2011
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ class Ui_MainWidget(object):
         self.vboxlayout.addWidget(self.tree)
         MainWidget.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWidget)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 400, 27))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 400, 20))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
