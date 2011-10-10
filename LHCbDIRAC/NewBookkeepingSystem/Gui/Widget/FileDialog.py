@@ -346,6 +346,7 @@ class FileDialog(QDialog, Ui_FileDialog):
         self.__proxy.setFilterRegExp(filter)
         for row in xrange(self.__proxy.rowCount()):
           self.tableView.setRowHeight(row, 18)
+
     else:
       self.__proxy.setFilterKeyColumn(15)
       filter = '%s'%(data)
@@ -380,3 +381,11 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.tckcloseButton.hide()
     self.tckcombo.show()
     self.filterWidget.hide()
+
+  #############################################################################
+  def getLFNs(self):
+    lfns = []
+    for row in xrange(self.__proxy.rowCount()):
+      index =  self.__proxy.index(row, 0) # this add the files to my selected list
+      lfns += [str(self.__proxy.data(index).toString())]
+    return lfns

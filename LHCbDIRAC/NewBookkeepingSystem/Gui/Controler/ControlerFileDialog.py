@@ -133,7 +133,8 @@ class ControlerFileDialog(ControlerAbstract):
       for i in self.__selectedFiles:
         lfns[i] = model[i]
     else:
-      for file in model:
+      files = self.getWidget().getLFNs()
+      for file in files:
         lfns[file] = model[file]
 
     message = Message({'action':'GetFileName'})
