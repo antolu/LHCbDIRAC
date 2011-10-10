@@ -155,6 +155,7 @@ class FileDialog(QDialog, Ui_FileDialog):
 
   #############################################################################
   def showData(self, data):
+    self.waitCursor()
     noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId', 'Generator']
     tabledata =[]
     #print data
@@ -185,7 +186,8 @@ class FileDialog(QDialog, Ui_FileDialog):
 
     if len(tabledata) > 0:
       self.filltable(header, tabledata)
-      return True
+    self.arrowCursor()
+    return True
 
   #############################################################################
   def filltable(self, header, tabledata):
@@ -389,3 +391,11 @@ class FileDialog(QDialog, Ui_FileDialog):
       index =  self.__proxy.index(row, 0) # this add the files to my selected list
       lfns += [str(self.__proxy.data(index).toString())]
     return lfns
+
+  #############################################################################
+  def waitCursor(self):
+    self.setCursor(Qt.WaitCursor)
+
+  #############################################################################
+  def arrowCursor(self):
+    self.setCursor(Qt.ArrowCursor)

@@ -54,5 +54,7 @@ class ControlerAdvancedSave(ControlerAbstract):
       site = self.__sites[str(widget.getSite())]
       infos = {'Site':site,'pfn':widget.isPFNbuttonChecked(),'lfn':widget.isLFNbuttonChecked(),'FileName':filename}
       message = Message({'action':'advancedSave','selection':infos})
+      self.getWidget().waitCursor()
       self.getParent().messageFromChild(self, message)
+      self.getWidget().arrowCursor()
       widget.close()

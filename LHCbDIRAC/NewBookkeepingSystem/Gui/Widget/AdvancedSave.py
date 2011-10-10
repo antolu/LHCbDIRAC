@@ -70,5 +70,12 @@ class AdvancedSave(QDialog, Ui_AdvancedSave):
   def getSite(self):
     return self.comboBox.currentText()
 
+  #############################################################################
+  def waitCursor(self):
+    self.setCursor(Qt.WaitCursor)
+
+  #############################################################################
+  def arrowCursor(self):
+    self.setCursor(Qt.ArrowCursor)
 
   #############################################################################

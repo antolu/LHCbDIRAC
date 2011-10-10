@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_MainWidget(object):
     def setupUi(self, MainWidget):
         MainWidget.setObjectName("MainWidget")
-        MainWidget.setWindowModality(QtCore.Qt.ApplicationModal)
+        MainWidget.setWindowModality(QtCore.Qt.NonModal)
         MainWidget.setEnabled(True)
         MainWidget.resize(400, 500)
         MainWidget.setCursor(QtCore.Qt.ArrowCursor)

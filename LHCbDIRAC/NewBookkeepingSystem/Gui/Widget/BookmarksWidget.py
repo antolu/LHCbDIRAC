@@ -104,3 +104,11 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
         title = i.model().arraydata[row][0]
         path = i.model().arraydata[row][1]
     return {'Title':title, 'Path':path}
+
+  #############################################################################
+  def waitCursor(self):
+    self.setCursor(Qt.WaitCursor)
+
+  #############################################################################
+  def arrowCursor(self):
+    self.setCursor(Qt.ArrowCursor)

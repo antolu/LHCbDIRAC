@@ -16,33 +16,33 @@ from DIRAC                                                           import gLog
 
 import sys
 
-#############################################################################  
+#############################################################################
 class ControlerBookmarks(ControlerAbstract):
-  
-  #############################################################################  
+
+  #############################################################################
   def __init__(self, widget, parent):
     super(ControlerBookmarks, self).__init__(widget, parent)
     self.__selectedFiles = []
-    '''  
+    '''
 sim+adv//
 sim+std//
 evt+adv
 evt+std
 prd
 run
-'''        
+'''
 
-  #############################################################################  
+  #############################################################################
   def messageFromParent(self, message):
     if message.action() == 'showValues':
       controlers = self.getChildren()
-      ct = controlers['AddBookmarks']   
+      ct = controlers['AddBookmarks']
       return ct.messageFromParent(message)
     else:
       gLogger.error('Unkown message', message)
       return S_ERROR('Unkown message')
-  
-  #############################################################################  
+
+  #############################################################################
   def messageFromChild(self, sender, message):
     if message.action()=='addBookmarks':
       bookmarks = message['bookmark']
@@ -55,7 +55,7 @@ run
     else:
       gLogger.error('Unkown message:ControlerBookmarks', message)
     return S_ERROR('Unkown message')
-  
+
   def filltable(self):
     header = ['Title','Path']
     tabledata = []
@@ -71,16 +71,20 @@ run
         self.getWidget().filltable(header, tabledata)
     else:
       gLogger.info('You do not have yet bookmarks for the bookkeeping !',retVal['Message'])
-        
-    
+
+
   #############################################################################
   def __getBookmarks(self):
+    self.getWidget().waitCursor()
     upc = UserProfileClient( "Bookkeeping", RPCClient )
-    return upc.retrieveVar( "Bookmarks" )
+    bookmarks = upc.retrieveVar( "Bookmarks" )
+    self.getWidget().arrowCursor()
+    return bookmarks
     #return S_ERROR('FIGYELEM!!!')
-    
+
   #############################################################################
   def __addBookmark(self,path,title):
+    self.getWidget().waitCursor()
     upc = UserProfileClient( "Bookkeeping", RPCClient )
     result = upc.retrieveVar( "Bookmarks" )
     if result["OK"]:
@@ -93,13 +97,15 @@ run
     else:
       data[title] = path
     result = upc.storeVar( "Bookmarks", data )
+    self.getWidget().arrowCursor()
     if result["OK"]:
       return self.__getBookmarks()
     else:
       return S_ERROR(result["Message"])
-  
+
   #############################################################################
   def __delBookmark(self,path,title):
+    self.getWidget().waitCursor()
     upc = UserProfileClient( "Bookkeeping", RPCClient )
     result = upc.retrieveVar( "Bookmarks" )
     if result["OK"]:
@@ -112,13 +118,14 @@ run
       QMessageBox.critical(self.getWidget(), "Error","Can't delete not existing bookmark: \"" + title + "\"",QMessageBox.Ok)
       return S_ERROR("Can't delete not existing bookmark: \"" + title + "\"")
     result = upc.storeVar( "Bookmarks", data )
+    self.getWidget().arrowCursor()
     if result["OK"]:
       return self.__getBookmarks()
     else:
       return S_ERROR(result["Message"])
 
-    
-  
+
+
   #############################################################################
   def removeBookmarks(self):
     row = self.getWidget().getSelectedRow()
@@ -127,15 +134,15 @@ run
       gLogger.error(retVal['Message'])
     else:
       self.filltable()
-      
+
   #############################################################################
   def addBookmarks(self):
     controlers = self.getChildren()
-    ct = controlers['AddBookmarks']   
+    ct = controlers['AddBookmarks']
     message = Message({'action':'showWidget'})
     ct.messageFromParent(message)
-    
-  #############################################################################  
+
+  #############################################################################
   def selection(self, selected, deselected):
     if selected:
       for i in selected.indexes():
@@ -152,7 +159,6 @@ run
         data = i.model().arraydata[row][0]
         if data in self.__selectedFiles:
           self.__selectedFiles.remove(data)
-  
+
   def doubleclick(self, item):
-    gLogger('Not implemented!')   
-      
+    gLogger('Not implemented!')

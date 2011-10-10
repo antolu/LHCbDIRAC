@@ -51,3 +51,11 @@ class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
   #############################################################################
   def setPath(self, str):
     self.pathlineEdit.setText(str)
+
+  #############################################################################
+  def waitCursor(self):
+    self.setCursor(Qt.WaitCursor)
+
+  #############################################################################
+  def arrowCursor(self):
+    self.setCursor(Qt.ArrowCursor)

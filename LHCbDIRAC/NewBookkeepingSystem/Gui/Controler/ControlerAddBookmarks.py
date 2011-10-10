@@ -12,14 +12,14 @@ from DIRAC                                                           import gLog
 
 import sys
 
-#############################################################################  
+#############################################################################
 class ControlerAddBookmarks(ControlerAbstract):
-  
-  #############################################################################  
+
+  #############################################################################
   def __init__(self, widget, parent):
     super(ControlerAddBookmarks, self).__init__(widget, parent)
-            
-  #############################################################################  
+
+  #############################################################################
   def messageFromParent(self, message):
     if message.action()=='showWidget':
       self.getWidget().show()
@@ -34,14 +34,15 @@ class ControlerAddBookmarks(ControlerAbstract):
     else:
       gLogger.error('UNKOWN Message!')
       return S_ERROR('UNKOWN Message!')
-          
-  #############################################################################  
+
+  #############################################################################
   def messageFromChild(self, sender, message):
     gLogger.error('Unkown message')
     return S_ERROR('Unkown message')
-  
+
   #############################################################################
   def okButton(self):
+    self.getWidget().waitCursor()
     title = self.getWidget().getTitle()
     path = self.getWidget().getPath()
     if len(path.split(':/')) > 0:
@@ -53,7 +54,7 @@ class ControlerAddBookmarks(ControlerAbstract):
         self.getWidget().close()
     else:
       gLogger.error('Wrong path!')
-  
+    self.getWidget().arrowCursor()
   #############################################################################
   def cancelButton(self):
     self.getWidget().close()
