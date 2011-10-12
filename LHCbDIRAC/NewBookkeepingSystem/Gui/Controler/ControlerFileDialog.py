@@ -385,3 +385,18 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################
   def hideFilterWidget(self):
     self.getWidget().hideTckFilter()
+
+  #############################################################################
+  def copy(self):
+    clipboard = QApplication.clipboard()
+    model = self.getWidget().getModel()
+    text = ''
+    if len(self.__selectedFiles) >= 1:
+      for i in self.__selectedFiles:
+        text += i+"\n"
+    else:
+      files = self.getWidget().getLFNs()
+      for file in files:
+        text += i+"\n"
+    clipboard.setText(text)
+

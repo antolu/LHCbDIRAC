@@ -50,6 +50,11 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.connect (self.__loginfoAction, SIGNAL("triggered()"), self.__controler.loggininginfo)
     self.__popUp.addAction(self.__loginfoAction)
 
+    self.__copyAction = QAction(self.tr("Copy data"), self.tableView)
+    self.connect (self.__copyAction, SIGNAL("triggered()"), self.__controler.copy)
+    self.__popUp.addAction(self.__copyAction)
+
+
     self.tableView.setContextMenuPolicy(Qt.CustomContextMenu);
     self.connect(self.tableView, SIGNAL('customContextMenuRequested(QPoint)'), self.popUpMenu)
 
@@ -239,7 +244,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     # enable sorting
     # this doesn't work
     #tv.setSortingEnabled(True)
-
+  
   #############################################################################
   def saveAs(self, filename = ''):
 
