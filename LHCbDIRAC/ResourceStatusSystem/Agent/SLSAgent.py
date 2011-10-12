@@ -127,7 +127,7 @@ class SpaceTokenOccupancyTest(TestBase):
     validity     = 'PT0M'
     availability = 0
 
-    if not fake:
+    if not self.getTestOption("fake"):
       import lcg_util
       answer = lcg_util.lcg_stmd(st, url, True, 0)
 
