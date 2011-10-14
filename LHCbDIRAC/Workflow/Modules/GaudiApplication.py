@@ -5,6 +5,9 @@
 
 __RCSID__ = "$Id$"
 
+import re, os, sys, time
+
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
@@ -14,10 +17,6 @@ from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis import getDaVinciStreamEvent
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 #from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
-from DIRAC                                                  import S_OK, S_ERROR, gLogger, gConfig, List
-import DIRAC
-
-import re, os, sys, time
 
 class GaudiApplication( ModuleBase ):
 
@@ -51,12 +50,11 @@ class GaudiApplication( ModuleBase ):
 
   #############################################################################
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ Resolve all input variables for the module here.
     """
 
-    self.log.verbose( self.workflow_commons )
-    self.log.verbose( self.step_commons )
+    super( GaudiApplication, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
@@ -130,7 +128,8 @@ class GaudiApplication( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_id = None, step_number = None ):
+               step_id = None, step_number = None,
+               projectEnvironment = None ):
     """ The main execution method of GaudiApplication.
     """
 
@@ -138,7 +137,7 @@ class GaudiApplication( ModuleBase ):
                                              workflowStatus, stepStatus,
                                              wf_commons, step_commons, step_number, step_id )
 
-    self.resolveInputVariables()
+    self._resolveInputVariables()
 
     if not self.applicationName or not self.applicationVersion:
       return S_ERROR( 'No Gaudi Application defined' )
@@ -194,13 +193,14 @@ class GaudiApplication( ModuleBase ):
     options.write( projectOpts )
     options.close()
 
-    #Now obtain the project environment for execution
-    result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, self.extraPackages, '', '', '', self.generator_name, self.poolXMLCatName, None )
-    if not result['OK']:
-      self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-      return result # this will distinguish between LbLogin / SetupProject / actual application failures
+    if not projectEnvironment:
+      #Now obtain the project environment for execution
+      result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, self.extraPackages, '', '', '', self.generator_name, self.poolXMLCatName, None )
+      if not result['OK']:
+        self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
+        return result # this will distinguish between LbLogin / SetupProject / actual application failures
+      projectEnvironment = result['Value']
 
-    projectEnvironment = result['Value']
     setup = gConfig.getValue( '/DIRAC/Setup', '' )
     gaudiRunFlags = gConfig.getValue( '/Operations/GaudiExecution/%s/gaudirunFlags' % ( setup ), '' )
     command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )

@@ -46,20 +46,11 @@ class UploadOutputData( ModuleBase ):
     self.PRODUCTION_ID = None
 
   #############################################################################
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
-    self.log.verbose( self.workflow_commons )
-    self.log.verbose( self.step_commons )
 
-    if self.workflow_commons.has_key( 'Request' ):
-      self.request = self.workflow_commons['Request']
-    else:
-      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-      self.request = RequestContainer()
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
+    super( UploadOutputData, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'outputDataStep' ):
       self.outputDataStep = self.workflow_commons['outputDataStep']
@@ -112,7 +103,11 @@ class UploadOutputData( ModuleBase ):
                                              workflowStatus, stepStatus,
                                              wf_commons, step_commons, step_number, step_id )
 
-    self.resolveInputVariables()
+    self._resolveInputVariables()
+
+    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+    self.request.setJobID( self.jobID )
+    self.request.setSourceComponent( "Job_%s" % self.jobID )
 
     if not bk:
       from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient

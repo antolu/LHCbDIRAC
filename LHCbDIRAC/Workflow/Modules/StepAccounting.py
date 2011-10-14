@@ -15,7 +15,7 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
-from DIRAC.Core.Security.Misc import getProxyInfo
+from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase

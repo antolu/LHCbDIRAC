@@ -70,7 +70,7 @@ class BookkeepingReport( ModuleBase ):
     if not self._checkWFAndStepStatus():
       return S_OK()
 
-    result = self.__resolveInputVariables()
+    result = self._resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
@@ -95,7 +95,9 @@ class BookkeepingReport( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def __resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
+
+    super( BookkeepingReport, self )._resolveInputVariables()
 
     ## VARS FROM WORKFLOW_COMMONS ##
 

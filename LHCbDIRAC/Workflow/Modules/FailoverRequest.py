@@ -24,24 +24,14 @@ class FailoverRequest( ModuleBase ):
     self.version = __RCSID__
 
     #Workflow parameters
-    self.jobReport = None
-    self.fileReport = None
-    self.request = None
     self.inputData = []
 
   #############################################################################
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the module input parameters are resolved here.
     """
-    self.log.debug( self.workflow_commons )
-    self.log.debug( self.step_commons )
-
-    if self.workflow_commons.has_key( 'JobReport' ):
-      self.jobReport = self.workflow_commons['JobReport']
-
-    if self.workflow_commons.has_key( 'FileReport' ):
-      self.fileReport = self.workflow_commons['FileReport']
+    super( FailoverRequest, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'InputData' ):
       self.inputData = self.workflow_commons['InputData']
@@ -52,15 +42,6 @@ class FailoverRequest( ModuleBase ):
         self.inputData = []
 
       self.inputData = [x.replace( 'LFN:', '' ) for x in self.inputData]
-
-    if self.workflow_commons.has_key( 'Request' ):
-      self.request = self.workflow_commons['Request']
-    else:
-      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-      self.request = RequestContainer()
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
       #useless, IMHO
 #    if self.workflow_commons.has_key( 'PRODUCTION_ID' ):
@@ -85,19 +66,18 @@ class FailoverRequest( ModuleBase ):
     if not self._enableModule():
       return S_OK()
 
-    self.resolveInputVariables()
+    self._resolveInputVariables()
 
-    if not self.fileReport:
-      self.log.debug( 'Getting FileReport object' )
-      from DIRAC.TransformationSystem.Client.FileReport import FileReport
-      self.fileReport = FileReport( 'ProductionManagement/ProductionManager' )
+    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+    self.request.setJobID( self.jobID )
+    self.request.setSourceComponent( "Job_%s" % self.jobID )
 
     if self.inputData:
       inputFiles = self.fileReport.getFiles()
       for lfn in self.inputData:
         if not lfn in inputFiles:
           self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
-          result = self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
+          self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
 
     if not self._checkWFAndStepStatus():
       inputFiles = self.fileReport.getFiles()
@@ -128,12 +108,11 @@ class FailoverRequest( ModuleBase ):
 
     # Retrieve the accumulated reporting request
     reportRequest = None
-    if self.jobReport:
-      result = self.jobReport.generateRequest()
-      if not result['OK']:
-        self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
-      else:
-        reportRequest = result['Value']
+    result = self.jobReport.generateRequest()
+    if not result['OK']:
+      self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
+    else:
+      reportRequest = result['Value']
     if reportRequest:
       self.log.info( 'Populating request with job report information' )
       self.request.update( reportRequest )

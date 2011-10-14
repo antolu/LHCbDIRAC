@@ -29,26 +29,6 @@ class SendBookkeeping( ModuleBase ):
     self.request = None
 
   #############################################################################
-
-  def resolveInputVariables( self ):
-    """ By convention the module input parameters are resolved here.
-    """
-
-    self.log.debug( self.workflow_commons )
-    self.log.debug( self.step_commons )
-
-    if self.workflow_commons.has_key( 'Request' ):
-      self.request = self.workflow_commons['Request']
-    else:
-      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-      self.request = RequestContainer()
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
-
-    return S_OK( 'Parameters resolved' )
-
-  #############################################################################
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
@@ -68,10 +48,11 @@ class SendBookkeeping( ModuleBase ):
       from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bk = BookkeepingClient()
 
-    result = self.resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+    self._resolveInputVariables()
+
+    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+    self.request.setJobID( self.jobID )
+    self.request.setSourceComponent( "Job_%s" % self.jobID )
 
     bkFileExtensions = ['bookkeeping*.xml']
     bkFiles = []

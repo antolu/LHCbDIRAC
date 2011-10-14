@@ -46,7 +46,9 @@ class UploadLogFile( ModuleBase ):
 
 ######################################################################
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
+
+    super( UploadLogFile, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'LogFilePath' ) and self.workflow_commons.has_key( 'LogTargetPath' ):
       self.logFilePath = self.workflow_commons['LogFilePath']
@@ -65,17 +67,6 @@ class UploadLogFile( ModuleBase ):
     if not type( self.logLFNPath ) == type( ' ' ):
       self.logLFNPath = self.logLFNPath[0]
 
-    if self.workflow_commons.has_key( 'JobReport' ):
-      self.jobReport = self.workflow_commons['JobReport']
-
-    if self.workflow_commons.has_key( 'Request' ):
-      self.request = self.workflow_commons['Request']
-    else:
-      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-      self.request = RequestContainer()
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
 ######################################################################
 
@@ -93,7 +84,11 @@ class UploadLogFile( ModuleBase ):
       return S_OK()
 
 
-    self.resolveInputVariables()
+    self._resolveInputVariables()
+
+    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+    self.request.setJobID( self.jobID )
+    self.request.setSourceComponent( "Job_%s" % self.jobID )
 
     if not rm:
       from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager

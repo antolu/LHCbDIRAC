@@ -40,11 +40,10 @@ class ProtocolAccessTest( ModuleBase ):
 
   #############################################################################
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
-    self.log.debug( self.workflow_commons )
-    self.log.debug( self.step_commons )
+    super( ProtocolAccessTest, self )._resolveInputVariables()
     result = S_OK()
 
     if self.step_commons.has_key( 'inputData' ):
@@ -99,8 +98,7 @@ class ProtocolAccessTest( ModuleBase ):
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
 
-
-    result = self.resolveInputVariables()
+    result = self._resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result

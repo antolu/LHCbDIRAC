@@ -10,7 +10,7 @@
 __RCSID__ = "$Id$"
 
 from DIRAC  import S_OK, S_ERROR
-from DIRAC.Core.Security.Misc import getProxyInfoAsString
+from DIRAC.Core.Security.ProxyInfo import getProxyInfoAsString
 
 import DIRAC
 import os, string, copy
@@ -30,11 +30,11 @@ class ModuleBase( object ):
       self.log = loggerIn
 
     # FIXME: do we need to do this for every module?
-    result = getProxyInfoAsString()
-    if not result['OK']:
-      self.log.error( 'Could not obtain proxy information in module environment with message:\n', result['Message'] )
-    else:
-      self.log.verbose( 'Payload proxy information:\n', result['Value'] )
+#    result = getProxyInfoAsString()
+#    if not result['OK']:
+#      self.log.error( 'Could not obtain proxy information in module environment with message:\n', result['Message'] )
+#    else:
+#      self.log.verbose( 'Payload proxy information:\n', result['Value'] )
 
 
   #############################################################################
@@ -46,7 +46,7 @@ class ModuleBase( object ):
                step_number = None, step_id = None ):
 
     if version:
-      self.log.info( 'Initializing ' + version )
+      self.log.info( 'Executing ' + version )
 
     if not production_id:
       self.production_id = self.PRODUCTION_ID
@@ -103,7 +103,7 @@ class ModuleBase( object ):
     self.log.verbose( 'setJobApplicationStatus(%s,%s)' % ( self.jobID, status ) )
 
     if not jr:
-      jr = self.__getJobReporter()
+      jr = self._getJobReporter()
 
     jobStatus = jr.setApplicationStatus( status, sendFlag )
     if not jobStatus['OK']:
@@ -120,7 +120,7 @@ class ModuleBase( object ):
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
     if not jr:
-      jr = self.__getJobReporter()
+      jr = self._getJobReporter()
 
     sendStatus = jr.sendStoredStatusInfo()
     if not sendStatus['OK']:
@@ -139,7 +139,7 @@ class ModuleBase( object ):
     self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
     if not jr:
-      jr = self.__getJobReporter()
+      jr = self._getJobReporter()
 
     jobParam = jr.setJobParameter( str( name ), str( value ), sendFlag )
     if not jobParam['OK']:
@@ -166,7 +166,20 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def __getJobReporter( self ):
+  def _resolveInputVariables( self ):
+    """ By convention the module input parameters are resolved here.
+    """
+
+    self.log.debug( "workflow_commons = ", self.workflow_commons )
+    self.log.debug( "step_commons = ", self.step_commons )
+
+    self.fileReport = self._getFileReporter()
+    self.jobReport = self._getJobReporter()
+    self.request = self._getRequestContainer()
+
+  #############################################################################
+
+  def _getJobReporter( self ):
     """ just return the job reporter (object, always defined by dirac-jobexec)
     """
 
@@ -180,7 +193,7 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def __getFileReporter( self ):
+  def _getFileReporter( self ):
     """ just return the file reporter (object)
     """
 
@@ -188,13 +201,13 @@ class ModuleBase( object ):
       return self.workflow_commons['FileReport']
     else:
       from DIRAC.TransformationSystem.Client.FileReport import FileReport
-      fileReport = FileReport( 'ProductionManagement/ProductionManager' )
+      fileReport = FileReport()
       self.workflow_commons['FileReport'] = fileReport
       return fileReport
 
   #############################################################################
 
-  def __getRequestContainer( self ):
+  def _getRequestContainer( self ):
     """ just return the RequestContainer reporter (object)
     """
 
@@ -214,13 +227,9 @@ class ModuleBase( object ):
     self.log.verbose( 'setFileStatus(%s,%s,%s)' % ( production, lfn, status ) )
 
     if not fileReport:
-      fileReport = self.__getFileReporter()
+      fileReport = self._getFileReporter()
 
-    result = fileReport.setFileStatus( production, lfn, status )
-    if not result['OK']:
-      self.log.warn( result['Message'] )
-
-    return result
+    fileReport.setFileStatus( production, lfn, status )
 
   #############################################################################
 
@@ -235,14 +244,14 @@ class ModuleBase( object ):
     source = "Job %d at %s" % ( self.jobID, DIRAC.siteName() )
     result = rm.setReplicaProblematic( ( lfn, pfn, se, reason ), source )
     if not result['OK'] or result['Value']['Failed']:
-      # We have failed the report, let's attempt the Integrity DB faiover
+      # We have failed the report, let's attempt the Integrity DB failover
       from DIRAC.Core.DISET.RPCClient import RPCClient
       integrityDB = RPCClient( 'DataManagement/DataIntegrity', timeout = 120 )
       fileMetadata = {'Prognosis':reason, 'LFN':lfn, 'PFN':pfn, 'StorageElement':se}
       result = integrityDB.insertProblematic( source, fileMetadata )
       if not result['OK']:
         # Add it to the request
-        request = self.__getRequestContainer()
+        request = self._getRequestContainer()
         from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
         subrequest = DISETSubRequest( result['rpcStub'] ).getDictionary()
         request.addSubRequest( subrequest, 'integrity' )

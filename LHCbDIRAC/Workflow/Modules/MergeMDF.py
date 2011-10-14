@@ -6,7 +6,6 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
-from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 from DIRAC                                               import S_OK, S_ERROR, gLogger
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
@@ -21,20 +20,23 @@ class MergeMDF( ModuleBase ):
     """Module initialization.
     """
     self.log = gLogger.getSubLogger( "MergeMDF" )
+    super( MergeMDF, self ).__init__( self.log )
+
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
-    self.rm = ReplicaManager()
+
     self.outputDataName = ''
     self.outputLFN = ''
     #List all input parameters here
     self.inputData = ''
 
   #############################################################################
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
-    self.log.info( self.workflow_commons )
-    self.log.info( self.step_commons )
+
+    super( MergeMDF, self )._resolveInputVariables()
+
     result = S_OK()
     if self.workflow_commons.has_key( 'InputData' ):
       self.inputData = self.workflow_commons['InputData']
@@ -84,10 +86,21 @@ class MergeMDF( ModuleBase ):
     return result
 
   #############################################################################
-  def execute( self ):
+
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None,
+               rm = None ):
     """ Main execution function.
     """
-    result = self.resolveInputVariables()
+    super( MergeMDF, self ).execute( self.version,
+                                     production_id, prod_job_id, wms_job_id,
+                                     workflowStatus, stepStatus,
+                                     wf_commons, step_commons,
+                                     step_number, step_id )
+
+    result = self._resolveInputVariables()
     if not result['OK']:
       self.log.error( result['Message'] )
       return result
@@ -99,12 +112,15 @@ class MergeMDF( ModuleBase ):
       if os.path.exists( os.path.basename( lfn ) ):
         self.log.info( 'File %s already in local directory' % lfn )
       else:
+        if not rm:
+          from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+          rm = ReplicaManager()
         logLines.append( '#'*len( lfn ) )
         msg = 'Attempting to download replica of:\n%s' % lfn
         self.log.info( msg )
         logLines.append( msg )
         logLines.append( '#'*len( lfn ) )
-        result = self.rm.getFile( lfn )
+        result = rm.getFile( lfn )
         self.log.info( result )
         logLines.append( result )
         if not result['OK']:
@@ -123,6 +139,7 @@ class MergeMDF( ModuleBase ):
       self.log.error( result )
       logLines.append( 'Merge operation failed with result:\n%s' % result )
       return self.finalize( logLines, error = 'shellCall Failed' )
+
 
     status = result['Value'][0]
     stdout = result['Value'][1]

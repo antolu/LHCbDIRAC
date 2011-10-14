@@ -52,7 +52,7 @@ class AnalyseXMLSummary( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               nc = None, rm = None, logAnalyser = None, fr = None ):
+               nc = None, rm = None, logAnalyser = None ):
     """ Main execution method. 
     """
 
@@ -63,7 +63,11 @@ class AnalyseXMLSummary( ModuleBase ):
                                                 wf_commons, step_commons,
                                                 step_number, step_id )
 
-      self.__resolveInputVariables()
+      self._resolveInputVariables()
+
+      if not rm:
+        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+        rm = ReplicaManager()
 
       if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
         self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
@@ -76,11 +80,11 @@ class AnalyseXMLSummary( ModuleBase ):
 
       #First check for the presence of any core dump files caused by an abort of some kind
       for file in os.listdir( '.' ):
-        if re.search( '^core.[0-9]+$', file ):
+        if re.search( 'coredump', file.lower() ):
           self.coreFile = file
           self.log.error( 'Found a core dump file in the current working directory: %s' % self.coreFile )
           self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile, nc, rm )
-          self._updateFileStatus( self.jobInputData, 'ApplicationCrash', rm, fr )
+          self._updateFileStatus( self.jobInputData, 'ApplicationCrash', int( self.production_id ), rm, self.fileReport )
           # return S_OK if the Step already failed to avoid overwriting the error
           if not self.stepStatus['OK']:
             return S_OK()
@@ -111,7 +115,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
         self._finalizeWithErrors( analyseLogResult['Message'], nc, rm )
 
-        self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, fr )
+        self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -120,11 +124,10 @@ class AnalyseXMLSummary( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, fr )
+        self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         return S_OK()
 
       else:
-        #FIXME: do I need them here? 
         if analyseLogResult.has_key( 'numberOfEventsInput' ):
           self.numberOfEventsInput = analyseLogResult['numberOfEventsInput']
           self.log.info( 'Setting numberOfEventsInput to %s' % self.numberOfEventsInput )
@@ -146,7 +149,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
         self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
         self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
-        self._updateFileStatus( self.jobInputData, "Processed", int( self.production_id ), rm, fr )
+        self._updateFileStatus( self.jobInputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
         return S_OK()
 
@@ -158,11 +161,11 @@ class AnalyseXMLSummary( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def __resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention any workflow parameters are resolved here.
     """
-    self.log.debug( self.workflow_commons )
-    self.log.debug( self.step_commons )
+
+    super( AnalyseXMLSummary, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
@@ -247,13 +250,19 @@ class AnalyseXMLSummary( ModuleBase ):
       else:
         stat = defaultStatus
         self.log.info( "%s will be updated to default status '%s'" % ( fileName, defaultStatus ) )
-      self.setFileStatus( prod_id, fileName, stat, fr )
+      self.setFileStatus( prod_id, lfn = fileName, status = stat, fileReport = fr )
+
 
 ################################################################################
 
   def _finalizeWithErrors( self, subj, nc, rm ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
+
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
+
 
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     #Have to check that the output list is defined in the workflow commons, this is
@@ -292,11 +301,8 @@ class AnalyseXMLSummary( ModuleBase ):
       for lfn in debugLFNs:
         if re.search( '[0-9]+_core', os.path.basename( lfn ) ):
           coreLFN = lfn
-      if coreLFN and self._WMSJob():
-        if self._WMSJob():
-          if not rm:
-            from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-            rm = ReplicaManager()
+      if self._WMSJob():
+        if coreLFN:
           self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"' % ( coreLFN, self.coreFile ) )
           result = rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG', catalog = 'LcgFileCatalogCombined' )
           self.log.info( result )
@@ -305,8 +311,8 @@ class AnalyseXMLSummary( ModuleBase ):
             msg += 'Could not save dump file with message "%s"\n' % result['Message']
           else:
             msg += coreLFN + '\n'
-        else:
-          self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG' % ( coreLFN, self.coreFile ) )
+      else:
+        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG' % ( coreLFN, self.coreFile ) )
 
     toUpload = {}
     for lfn in debugLFNs:
@@ -329,9 +335,6 @@ class AnalyseXMLSummary( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        if not rm:
-          from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-          rm = ReplicaManager()
         self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"' % ( fname, lfn, guidInput ) )
         result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG', guidInput, catalog = 'LcgFileCatalogCombined' )
         self.log.info( result )
@@ -367,7 +370,9 @@ class AnalyseXMLSummary( ModuleBase ):
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End" % ( msg ) )
     else:
       from DIRAC import gConfig
-      mailAddress = gConfig.getValue( '/Operations/EMail/JobFailures', 'lhcb-datacrash@cern.ch' )
+      mailAddress = gConfig.getValue( '/Operations/EMail/JobFailuresPerSetup/%s' % gConfig.getValue( "DIRAC/Setup" ) )
+      if not mailAddress:
+        mailAddress = 'lhcb-datacrash@cern.ch'
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
 
       if not nc:

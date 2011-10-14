@@ -26,66 +26,73 @@ import re, os, sys
 class GaudiApplicationScript( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     self.version = __RCSID__
-    self.log     = gLogger.getSubLogger( "GaudiApplicationScript" )
-    self.result  = S_ERROR()
-    self.jobID   = None
-    self.root    = None
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
+    self.log = gLogger.getSubLogger( "GaudiApplicationScript" )
+    super( GaudiApplicationScript, self ).__init__( self.log )
+
+    self.result = S_ERROR()
+    self.root = None
 
     #Set defaults for all workflow parameters here
-    self.script             = None
-    self.arguments          = ''
-    self.systemConfig       = ''
-    self.applicationLog     = ''
-    self.applicationName    = ''
+    self.script = None
+    self.arguments = ''
+    self.systemConfig = ''
+    self.applicationLog = ''
+    self.applicationName = ''
     self.applicationVersion = ''
-    self.systemConfig       = ''
-    self.poolXMLCatName     = 'pool_xml_catalog.xml'
+    self.systemConfig = ''
+    self.poolXMLCatName = 'pool_xml_catalog.xml'
 
   #############################################################################
-  def resolveInputVariables( self ):
+
+  def _resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    print self.step_commons
+
+    super( GaudiApplicationScript, self )._resolveInputVariables()
+
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
     else:
       self.log.warn( 'No SystemConfig defined' )
 
     if self.step_commons.has_key( 'applicationName' ):
-      self.applicationName    = self.step_commons['applicationName']
+      self.applicationName = self.step_commons['applicationName']
       self.applicationVersion = self.step_commons['applicationVersion']
-      self.applicationLog     = self.step_commons['applicationLog']
+      self.applicationLog = self.step_commons['applicationLog']
     else:
       self.log.warn( 'No applicationName defined' )
 
     if self.step_commons.has_key( 'script' ):
       self.script = self.step_commons['script']
-      print self.script
     else:
       self.log.warn( 'No script defined' )
-
-    print self.step_commons.has_key( 'script' )
-    print self.step_commons['script']
 
     if self.step_commons.has_key( 'arguments' ):
       self.arguments = self.step_commons['arguments']
 
     if self.step_commons.has_key( 'poolXMLCatName' ):
       self.poolXMLCatName = self.step_commons['poolXMLCatName']
-    return S_OK()
 
   #############################################################################
-  def execute( self ):
+
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None,
+               projectEnvironment = None ):
     """The main execution method of the module.
     """
-    self.log.info( 'Initializing %s' % ( self.version ) )
-    self.log.verbose( 'Step commons is:\n%s' % self.step_commons )
-    self.log.verbose( 'Workflow commons is:\n%s' % self.workflow_commons )
-    self.resolveInputVariables()
+
+    super( GaudiApplicationScript, self ).execute( self.version,
+                                                   production_id, prod_job_id, wms_job_id,
+                                                   workflowStatus, stepStatus,
+                                                   wf_commons, step_commons,
+                                                   step_number, step_id )
+
+    self._resolveInputVariables()
 
     self.result = S_OK()
     if not self.applicationName or not self.applicationVersion:
@@ -105,12 +112,13 @@ class GaudiApplicationScript( ModuleBase ):
     self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
 
     #Now obtain the project environment for execution
-    result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, poolXMLCatalogName = self.poolXMLCatName )
-    if not result['OK']:
-      self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-      return result # this will distinguish between LbLogin / SetupProject / actual application failures
+    if not projectEnvironment:
+      result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, poolXMLCatalogName = self.poolXMLCatName )
+      if not result['OK']:
+        self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
+        return result # this will distinguish between LbLogin / SetupProject / actual application failures
 
-    projectEnvironment = result['Value']
+      projectEnvironment = result['Value']
 
     gaudiCmd = []
     if re.search( '.py$', self.script ):
@@ -125,11 +133,11 @@ class GaudiApplicationScript( ModuleBase ):
     print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
     #Set some parameter names
-    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
-#    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.STEP_NUMBER )
-#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-    coreDumpName = '%s_Step%s' % ( self.applicationName, self.STEP_NUMBER )
+    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
+#    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.step_number, self.applicationName, self.applicationVersion )
+    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
+#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.step_number, self.applicationName, self.applicationVersion )
+    coreDumpName = '%s_Step%s' % ( self.applicationName, self.step_number )
 
     #Wrap final execution command with defaults
     finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
@@ -137,7 +145,7 @@ class GaudiApplicationScript( ModuleBase ):
     #Create debug shell script to reproduce the application execution
     debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
     if debugResult['OK']:
-      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.STEP_NUMBER ) )
+      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
     if os.path.exists( self.applicationLog ): os.remove( self.applicationLog )
 
@@ -173,6 +181,7 @@ class GaudiApplicationScript( ModuleBase ):
     return S_OK( '%s (%s %s) Successful' % ( os.path.basename( self.script ), self.applicationName, self.applicationVersion ) )
 
   #############################################################################
+
   def redirectLogOutput( self, fd, message ):
     sys.stdout.flush()
     if message:

@@ -49,26 +49,16 @@ class ErrorLogging( ModuleBase ):
 
   #############################################################################
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the module input parameters are resolved here.
     """
-    self.log.debug( self.workflow_commons )
-    self.log.debug( self.step_commons )
+    super( ErrorLogging, self )._resolveInputVariables()
 
     if self._WMSJob():
       self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
     else:
       self.log.info( 'No WMS JobID found, module will still attempt to run without publishing to the ErrorLogging service' )
       self.jobID = '12345'
-
-    if self.workflow_commons.has_key( 'Request' ):
-      self.request = self.workflow_commons['Request']
-    else:
-      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-      self.request = RequestContainer()
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
@@ -84,10 +74,7 @@ class ErrorLogging( ModuleBase ):
     if not self.applicationName or not self.applicationVersion or not self.applicationLog:
       return S_ERROR( 'One of application name, version or log file is null: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
 
-    #FIXME: really not clear if needed or not!
-    if self.step_commons.has_key( 'extraPackages' ):
-      self.extraPackages = self.step_commons['extraPackages']
-
+    self.extraPackages = self.step_commons['extraPackages']
     if not self.extraPackages == '':
       if type( self.extraPackages ) != type( [] ):
         self.extraPackages = self.extraPackages.split( ';' )
@@ -113,10 +100,14 @@ class ErrorLogging( ModuleBase ):
                                          workflowStatus, stepStatus,
                                          wf_commons, step_commons, step_number, step_id )
 
-    result = self.resolveInputVariables()
+    result = self._resolveInputVariables()
     if not result['OK']:
       self.log.info( result['Message'] )
       return S_OK()
+
+    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+    self.request.setJobID( self.jobID )
+    self.request.setSourceComponent( "Job_%s" % self.jobID )
 
     self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
     if not os.path.exists( self.applicationLog ):
@@ -147,11 +138,12 @@ class ErrorLogging( ModuleBase ):
     if debugResult['OK']:
       self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.stepNumber ) )
 
-    if os.path.exists( self.defaultName ): os.remove( self.defaultName )
+    for x in [self.defaultName, scriptName, self.errorLogFile]:
+      if os.path.exists( x ): os.remove( x )
 
-    if os.path.exists( scriptName ): os.remove( scriptName )
-
-    if os.path.exists( self.errorLogFile ): os.remove( self.errorLogFile )
+    print finalCommand, projectEnvironment
+    import DIRAC
+    DIRAC.exit( 0 )
 
     result = shellCall( 120, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput )
     status = result['Value'][0]
