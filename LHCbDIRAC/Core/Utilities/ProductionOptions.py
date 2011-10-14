@@ -213,6 +213,7 @@ def getEventSelectorInput( inputDataList, inputDataType ):
 
 #############################################################################
 def printOptions( project = '', printOutput = True ):
+  #FIXME: totally unused up to now
   """ A simple method to print all currently used project options in a nicely
       formatted way.  This also allows to restrict printing to options for a
       given project if desired. The list of projects is:
