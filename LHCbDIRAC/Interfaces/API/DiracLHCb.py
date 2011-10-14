@@ -20,6 +20,7 @@ from DIRAC.Core.Utilities.List                      import sortList, removeEmpty
 from DIRAC.Core.Utilities.SiteSEMapping             import getSEsForSite
 from DIRAC.Interfaces.API.Dirac                     import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                import DiracAdmin
+from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -35,8 +36,12 @@ class DiracLHCb( Dirac ):
   def __init__( self, WithRepo = False, RepoLocation = '' ):
     """Internal initialization of the DIRAC API.
     """
+
     Dirac.__init__( self, WithRepo = WithRepo, RepoLocation = RepoLocation )
-    self.tier1s = gConfig.getValue( '/Operations/Defaults/Tier1s', ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.SARA.nl'] )
+    self.tier1s = []
+    for site in getSites()['Value']:
+      if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
+        self.tier1s.append( site )
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
