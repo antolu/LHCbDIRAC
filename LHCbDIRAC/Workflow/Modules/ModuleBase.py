@@ -10,7 +10,7 @@
 __RCSID__ = "$Id$"
 
 from DIRAC  import S_OK, S_ERROR
-from DIRAC.Core.Security.ProxyInfo import getProxyInfoAsString
+#from DIRAC.Core.Security.ProxyInfo import getProxyInfoAsString
 
 import DIRAC
 import os, string, copy
@@ -62,8 +62,6 @@ class ModuleBase( object ):
       self.jobID = ''
       if os.environ.has_key( 'JOBID' ):
         self.jobID = os.environ['JOBID']
-      else:
-        self.jobID = self.JOB_ID
     else:
       self.jobID = wms_job_id
 

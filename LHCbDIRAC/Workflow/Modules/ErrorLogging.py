@@ -124,11 +124,11 @@ class ErrorLogging( ModuleBase ):
     command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog, self.applicationName, self.applicationVersion )
 
     #Set some parameter names
-    scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.stepNumber )
-    dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.stepNumber )
+    scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
+    dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.step_number )
 #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
 #    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
-    coreDumpName = 'ErrorLogging_Step%s' % ( self.stepNumber )
+    coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
 
     #Wrap final execution command with defaults
     finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
@@ -136,7 +136,7 @@ class ErrorLogging( ModuleBase ):
     #Create debug shell script to reproduce the application execution
     debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
     if debugResult['OK']:
-      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.stepNumber ) )
+      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
     for x in [self.defaultName, scriptName, self.errorLogFile]:
       if os.path.exists( x ): os.remove( x )
