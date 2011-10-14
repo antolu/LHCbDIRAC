@@ -32,7 +32,7 @@ if not retVal[ 'OK' ]:
 
 from DIRAC import gConfig
 from DIRAC.Core.Security import CS, Properties
-from DIRAC.Core.Security.Misc import getProxyInfo
+from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.Core.Security.MyProxy import MyProxy
 from DIRAC.Core.Security.VOMS import VOMS
 
@@ -125,7 +125,7 @@ finalChain = proxyInfo[ 'chain' ]
 vomsMapping = CS.getVOMSAttributeForGroup( proxyInfo[ 'group' ] )
 if vomsMapping:
   voms = VOMS()
-  retVal = voms.setVOMSAttributes( finalChain, vomsMapping , 'lhcb')
+  retVal = voms.setVOMSAttributes( finalChain, vomsMapping , 'lhcb' )
   if not retVal[ 'OK' ]:
     #print "Cannot add voms attribute %s to proxy %s: %s" % ( attr, proxyInfo[ 'path' ], retVal[ 'Message' ] )
     print "Warning : Cannot add voms attribute %s to proxy" % ( vomsMapping )
