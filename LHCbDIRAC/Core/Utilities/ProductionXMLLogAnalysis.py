@@ -46,16 +46,6 @@ class AnalyseXMLLogFile:
     'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
   }
  
-  ''' Regex used to find last event processed '''
-  __APPLICATION_LAST_EVENT__ = {
-    'Boole'  :r"Nr. in job = ([0-9]+)",
-    'Gauss'  :r"Nr. in job = ([0-9]+)",
-    'Brunel' :r"Nr. in job = ([0-9]+)",
-    'DaVinci':r"Reading Event record ([0-9]+)",
-    'LHCb'   :'',
-    'Moore'  :r"Reading Event record ([0-9]+)"                           
-  }
- 
   ''' Well known Gaudi Errors '''
   __GAUDI_ERRORS__       = {
     'Cannot connect to database'                                     : 'error database connection',
@@ -73,20 +63,7 @@ class AnalyseXMLLogFile:
     'User defined signal 1'                                          : 'User defined signal 1',
     'Not found DLL'                                                  : 'Not found DLL'
   }
-  
-  ''' Possible services used to get events processed '''
-  __POSSIBLE_SERVICES__ = [ 
-    'DaVinciInit', 'DaVinciInitAlg', 'DaVinciMonitor', 'BrunelInit', 
-    'BrunelEventCount', 'ChargedProtoPAlg', 'BooleInit', 'GaussGen', 
-    'GaussSim', 'L0Muon', 'LbAppInit'
-  ]
-  
-  ''' Possible writers used to get events output '''
-  __POSSIBLE_WRITERS__ = [                    
-    'Writer', 'DigiWriter', 'RawWriter', 'GaussTape', 
-    'DstWriter', 'InputCopyStream'
-  ]
-  
+    
   def __init__( self, fileName, applicationName, stepName, prod, job, jobType ):
     
     self.fileName             = fileName
