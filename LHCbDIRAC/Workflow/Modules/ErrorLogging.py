@@ -54,12 +54,6 @@ class ErrorLogging( ModuleBase ):
     """
     super( ErrorLogging, self )._resolveInputVariables()
 
-    if self._WMSJob():
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
-    else:
-      self.log.info( 'No WMS JobID found, module will still attempt to run without publishing to the ErrorLogging service' )
-      self.jobID = '12345'
-
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
 
@@ -105,10 +99,6 @@ class ErrorLogging( ModuleBase ):
       self.log.info( result['Message'] )
       return S_OK()
 
-    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-    self.request.setJobID( self.jobID )
-    self.request.setSourceComponent( "Job_%s" % self.jobID )
-
     self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
     if not os.path.exists( self.applicationLog ):
       self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
@@ -140,10 +130,6 @@ class ErrorLogging( ModuleBase ):
 
     for x in [self.defaultName, scriptName, self.errorLogFile]:
       if os.path.exists( x ): os.remove( x )
-
-    print finalCommand, projectEnvironment
-    import DIRAC
-    DIRAC.exit( 0 )
 
     result = shellCall( 120, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput )
     status = result['Value'][0]
