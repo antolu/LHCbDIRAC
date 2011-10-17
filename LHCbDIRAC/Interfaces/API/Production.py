@@ -72,8 +72,8 @@ class Production():
     self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
-    self.defaultProdID = '12345'
-    self.defaultProdJobID = '12345'
+    self.defaultProdID = '_prod_ID'
+    self.defaultProdJobID = '_task_ID'
     self.ioDict = {}
     self.name = 'unspecifiedWorkflow'
     self.firstEventType = ''
@@ -113,8 +113,9 @@ class Production():
     self._setParameter( 'JOB_ID', 'string', self.defaultProdJobID.zfill( 8 ), 'ProductionJobID' )
     self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
     self._setParameter( 'Priority', 'JDL', '1', 'Priority' )
-    self._setParameter( 'emailAddress', 'string', 'lhcb-datacrash@cern.ch', 'CrashEmailAddress' )
+#    self._setParameter( 'emailAddress', 'string', gConfig.getValue( '/Operations/EMail/JobFailures', 'lhcb-datacrash@cern.ch' ), 'CrashEmailAddress' )
     self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
+    self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
     #Options related parameters
     self._setParameter( 'CondDBTag', 'string', 'sim-20090112', 'CondDBTag' )
@@ -1328,6 +1329,7 @@ class Production():
     return result
 
   #############################################################################
+
   def getOutputLFNs( self, prodID = None, prodJobID = None, prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
