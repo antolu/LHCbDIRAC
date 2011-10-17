@@ -19,18 +19,18 @@ class Transformation( DIRACTransformation ):
   def __init__( self, transID = 0 ):
     DIRACTransformation.__init__( self, transID = transID, transClient = TransformationClient() )
 
-    self.supportedPlugins += ['ByRun', 'ByRunBySize', 'RAWShares', 'AtomicRun']
-    self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast']
-    self.supportedPlugins += ['MergeByRun', 'MergeByRunWithFlush', 'ByRunWithFlush', 'ByRunBySizeWithFlush']
-    self.supportedPlugins += ['ArchiveDataset', 'ReplicateDataset']
-    self.supportedPlugins += ['DeleteDataset', 'DeleteReplicas', 'DestroyDataset']
+    self.supportedPlugins += ['RAWShares', 'AtomicRun']
+    self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast', 'FakeReplication']
+    self.supportedPlugins += ['ArchiveDataset', 'ReplicateDataset', 'DeleteDataset', 'DeleteReplicas', 'DestroyDataset']
+    self.supportedPlugins += ['ByRun', 'ByRunWithFlush', 'ByRunBySize', 'ByRunBySizeWithFlush', 'ByRunSize', 'ByRunSizeWithFlush', 'ByRunFileType', 'ByRunFileTypeWithFlush']
+    self.supportedPlugins += ['ByRunFileTypeSize', 'ByRunFileTypeSizeWithFlush', 'ByRunEventType', 'ByRunEventTypeWithFlush', 'ByRunEventTypeSize', 'ByRunEventTypeSizeWithFlush']
     if not  self.paramValues.has_key( 'BkQuery' ):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key( 'BkQueryID' ):
       self.paramValues['BkQueryID'] = 0
 
   def generateBkQuery( self, test = False, printOutput = False ):
-    parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'Visible']
+    parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag']
     queryDict = {'FileType':'DST'}
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
@@ -161,24 +161,6 @@ class Transformation( DIRACTransformation ):
     self.item_called = key
     return self.__setParam( val )
 
-  def _checkByRunPlugin( self ):
-    return self._checkStandardPlugin()
-
-  def _checkByRunBySizePlugin( self ):
-    return self._checkStandardPlugin()
-
-  def _checkByRunWithFlushPlugin( self ):
-    return self._checkStandardPlugin()
-
-  def _checkByRunBySizeWithFlushPlugin( self ):
-    return self._checkStandardPlugin()
-
-  def _checkMergeByRunPlugin( self ):
-    return self._checkStandardPlugin()
-
-  def _checkMergeByRunWithFlushPlugin( self ):
-    return self._checkStandardPlugin()
-
   def _checkRAWSharesPlugin( self ):
     return S_OK()
 
@@ -207,5 +189,50 @@ class Transformation( DIRACTransformation ):
     return S_OK()
 
   def _checkDestroyDatasetPlugin( self ):
+    return S_OK()
+
+  def _checkFakeReplicationPlugin( self ):
+    return S_OK()
+
+  def _checkByRunPlugin( self ):
+    return S_OK()
+
+  def _checkByRunWithFlushPlugin( self ):
+    return S_OK()
+
+  def _checkByRunBySizePlugin( self ):
+    return S_OK()
+
+  def _checkByRunBySizeWithFlushPlugin( self ):
+    return S_OK()
+
+  def _checkByRunSizePlugin( self ):
+    return S_OK()
+
+  def _checkByRunSizeWithFlushPlugin( self ):
+    return S_OK()
+
+  def _checkByRunFileTypePlugin( self ):
+    return S_OK()
+
+  def _checkByRunFileTypeWithFlushPlugin( self ):
+    return S_OK()
+
+  def _checkByRunFileTypeSizePlugin( self ):
+    return S_OK()
+
+  def _checkByRunFileTypeSizeWithFlushPlugin( self ):
+    return S_OK()
+
+  def _checkByRunEventTypePlugin( self ):
+    return S_OK()
+
+  def _checkByRunEventTypeWithFlushPlugin( self ):
+    return S_OK()
+
+  def _checkByRunEventTypeSizePlugin( self ):
+    return S_OK()
+
+  def _checkByRunEventTypeSizeWithFlushPlugin( self ):
     return S_OK()
 
