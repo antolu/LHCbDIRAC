@@ -148,7 +148,7 @@ class AnalyseXMLLogFile:
       return res
  
     # ~Hack for MC with Gauss, there should not be input files
-    if self.applicationName != 'Gauss':
+    if not ( self.jobType == 'MCsimulation' and self.applicationName == 'Gauss' ):
       # Checks that all input files have been read
       res = self.__checkReadInputFiles()
       if not res['OK']:
