@@ -28,6 +28,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.cachedLFNAncestors = {}
     self.cachedLFNSize = {}
     self.cachedNbRAWFiles = {}
+    self.cachedRunLfns = {}
     self.cacheFile = ''
 
   def setDirectory( self, directory ):
@@ -56,6 +57,34 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __logError( self, message, param = '' ):
     gLogger.error( self.plugin + ": " + message, param )
+
+  def __removeProcessedFiles( self ):
+    """
+    Checks if the LFNs have descendants in the same transformation. Returns the list of thos that do not have
+    """
+    transID = self.params['TransformationID']
+    lfns = self.data.keys()
+    startTime = time.time()
+    res = self.bk.getAllDescendents( lfns, production = transID, depth = 1 )
+    self.__logDebug( "Got Descendents of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime ) )
+    if not res['OK']:
+      self.__logError( "Cannot get descendants of files for production %s" % str( transID ) )
+      return
+    else:
+      descendants = res['Value']['Successful']
+      processedLfns = [lfn for lfn in descendants if descendants[lfn]]
+      if processedLfns:
+        res = self.transClient.setFileStatusForTransformation( transID, 'Processed', processedLfns )
+        if res['OK']:
+          self.__logInfo( "Found %d input files that have already been processed (status set)" % len( processedLfns ) )
+          for lfn in processedLfns:
+            if lfn in self.data:
+              self.data.pop( lfn )
+          for fileDict in [fileDict for fileDict in self.files]:
+            if fileDict['LFN'] in processedLfns:
+              self.files.remove( fileDict )
+      else:
+        self.__logDebug( "No input files have already been processed" )
 
   def _RAWShares( self ):
     """
@@ -217,6 +246,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _AtomicRun( self ):
     transID = self.params['TransformationID']
+    self.__removeProcessedFiles()
     # Get the requested shares from the CS
     backupSE = 'CERN-RAW'
     res = self.transClient.getTransformation( transID )
@@ -439,7 +469,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __getRAWAncestorsForRun( self, transID, runID, param = '', paramValue = '' ):
     startTime1 = time.time()
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
-    self.__logDebug( "Timing for getting transformation files: %.1f s" % ( time.time() - startTime1 ) )
+    self.__logDebug( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
     if not res['OK']:
       self.__logError( "Cannot get files for transformation %s, run %s" % ( str( transID ), str( runID ) ) )
       return []
@@ -460,7 +490,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if lfns:
       startTime = time.time()
       res = self.bk.getAllAncestorsWithFileMetaData( lfns, depth = 10 )
-      self.__logDebug( "Timing for getting all ancestors with metadata of %d files: %.1f s" % ( len( lfns ), time.time() - startTime ) )
+      self.__logDebug( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ), time.time() - startTime ) )
       ancestorDict = res['Value']['Successful']
       for lfn in ancestorDict:
         n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
@@ -491,6 +521,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.cachedLFNAncestors = pickle.load( f )
         self.cachedNbRAWFiles = pickle.load( f )
         self.cachedLFNSize = pickle.load( f )
+        try:
+          self.cachedRunLfns = pickle.load( f )
+        except:
+          pass
         f.close()
         self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
         break
@@ -505,6 +539,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         pickle.dump( self.cachedLFNAncestors, f )
         pickle.dump( self.cachedNbRAWFiles, f )
         pickle.dump( self.cachedLFNSize, f )
+        pickle.dump( self.cachedRunLfns, f )
         f.close()
         self.__logDebug( "Cache file %s successfully written" % self.cacheFile )
       except:
@@ -527,8 +562,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         return S_ERROR( "Failed to get sizes for all files" )
       fileSizes.update( res['Value']['Successful'] )
       self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
-      self.__logDebug( "Timing for getting size of %d files from catalog: %.1f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
-    self.__logDebug( "Timing for getting size of files: %.1f seconds" % ( time.time() - startTime1 ) )
+      self.__logDebug( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
+    self.__logDebug( "Timing for getting size of files: %.3f seconds" % ( time.time() - startTime1 ) )
     return fileSizes
 
   def __clearCachedFileSize( self, lfns ):
@@ -577,11 +612,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         rawFiles = res['Value']
         self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
-        self.__logDebug( "Run %d has %d RAW files (timing: %1f s)" % ( runID, rawFiles, time.time() - startTime ) )
+        self.__logDebug( "Run %d has %d RAW files (timing: %3f s)" % ( runID, rawFiles, time.time() - startTime ) )
     return rawFiles
 
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     transID = self.params['TransformationID']
+    self.__removeProcessedFiles()
     res = self.__groupByRunAndParam( self.data, param = param )
     if not res['OK']:
       return res
@@ -594,14 +630,23 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Loop on all runs that have new files
     inputData = self.data.copy()
     self.__readCacheFile( transID )
+    runEvtType = {}
     for run in res['Value']:
       runID = run['RunNumber']
       runStatus = run['Status']
       paramDict = runDict.get( runID, {} )
       runRAWFiles = {}
-      runEvtType = {}
       for paramValue in sortList( paramDict.keys() ):
         runParamLfns = paramDict[paramValue]
+        # Check if something was new since last time...
+        cachedLfns = self.cachedRunLfns.setdefault( runID, {} ).setdefault( paramValue, [] )
+        newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
+        if len( newLfns ) == 0:
+          self.__logDebug( "No new files since last time for run %d%s: skip..." % ( runID, paramValue ) )
+          continue
+        else:
+          self.__logDebug( "Of %d files, %d are new for %d%s: skip" % ( len( runParamLfns ), len( newLfns ), runID, paramValue ) )
+        self.cachedRunLfns[runID][paramValue] = runParamLfns
         runFlush = requireFlush
         if runFlush:
           if paramValue:
@@ -702,7 +747,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __getBookkeepingMetadata( self, lfns ):
     start = time.time()
     res = self.bk.getFileMetadata( lfns )
-    self.__logDebug( "Obtained BK metadata of %d files in %.2f seconds" % ( len( lfns ), time.time() - start ) )
+    self.__logDebug( "Obtained BK metadata of %d files in %.3f seconds" % ( len( lfns ), time.time() - start ) )
     return res
 
   def __isArchive( self, se ):
