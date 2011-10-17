@@ -17,7 +17,12 @@ class setter:
     self.name = name
     self.obj = obj
   def setOption( self, val ):
-    self.obj.options[self.name] = val.split( ',' )
+    if val:
+      val = val.split( ',' )
+    else:
+      val = []
+    self.obj.options[self.name] = val
+
     return DIRAC.S_OK()
 
 class PluginScript( DMScript ):
