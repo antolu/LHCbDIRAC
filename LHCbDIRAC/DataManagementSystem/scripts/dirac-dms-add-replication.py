@@ -78,7 +78,9 @@ if __name__ == "__main__":
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"
-    print "If needed, add %s to the known list of plugins" % plugin
+    print "Replication :", str( replicationPlugins )
+    print "Removal     :", str( removalPlugins )
+    print "If needed, ask for adding %s to the known list of plugins" % plugin
     DIRAC.exit( 2 )
 
   # Create the transformation
@@ -179,6 +181,28 @@ if __name__ == "__main__":
     print "No files found from BK query"
     print "If you anyway want to submit the transformation, use option --Force"
     DIRAC.exit( 0 )
+
+  # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
+  if transType == 'Removal':
+    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
+    rm = ReplicaManager()
+    bk = BookkeepingClient()
+    success = 0
+    missingLFNs = []
+    for chunk in breakListIntoChunks( lfns, 500 ):
+      res = rm.getCatalogExists( chunk )
+      if res['OK']:
+        success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
+        missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
+    if missingLFNs:
+      print '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) )
+      res = bk.removeFiles( missingLFNs )
+      if res['OK']:
+        print "Replica flag successfully removed in BK"
+    else:
+      print 'All files are in the LFC'
 
   # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
   setInvisiblePlugins = ( "DeleteDataset" )
