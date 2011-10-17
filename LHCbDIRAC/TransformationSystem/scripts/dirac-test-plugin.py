@@ -124,7 +124,7 @@ class fakeClient:
     return DIRAC.S_OK()
 
   def prepareForPlugin( self, lfns ):
-
+    import time
     from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     bk = BookkeepingClient()
     type = self.trans.getType()['Value']
@@ -141,6 +141,7 @@ class fakeClient:
         runDict = {"RunNumber":runID, "LFN":lfn}
         files.append( runDict )
     replicas = {}
+    startTime = time.time()
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
       #print lfnChunk
       if type.lower() in ( "replication", "removal" ):
@@ -150,6 +151,7 @@ class fakeClient:
       #print res
       if res['OK']:
         replicas.update( res['Value']['Successful'] )
+    print "Obtained replicas of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime )
     return ( files, replicas )
 
 if __name__ == "__main__":
@@ -211,30 +213,12 @@ if __name__ == "__main__":
   groupSize = pluginScript.options.get( 'GroupSize', 5 )
   #print pluginParams
 
-  if not plugin:
-    print "Plugin is a mandatory argument..."
-    Script.showHelp()
-    DIRAC.exit( 0 )
-
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  from DIRAC import gLogger
+  gLogger.setLevel( 'INFO' )
   # Create the transformation
   transformation = Transformation()
-
-  visible = True
-  if allFiles or plugin == "DestroyDataset" or pluginScript.options.get( 'Productions' ) or plugin not in removalPlugins + replicationPlugins:
-    visible = False
-  bkQuery = pluginScript.getBKQuery( visible = visible )
-  bkQueryDict = bkQuery.getQueryDict()
-  if not bkQueryDict:
-    print "No BK query was given..."
-    Script.showHelp()
-    DIRAC.exit( 2 )
-  reqID = pluginScript.getRequestID()
-
-  if not requestID and reqID:
-    requestID = reqID
-
   transType = None
   if plugin in removalPlugins:
     transType = "Removal"
@@ -245,13 +229,28 @@ if __name__ == "__main__":
   transType = pluginScript.options.get( 'Type', transType )
   transformation.setType( transType )
 
+  visible = True
+  if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.options.get( 'Productions' ) or plugin not in removalPlugins + replicationPlugins:
+    visible = False
+  bkQuery = pluginScript.getBKQuery( visible = visible )
+  bkQueryDict = bkQuery.getQueryDict()
+  if not bkQueryDict:
+    print "No BK query was given..."
+    Script.showHelp()
+    DIRAC.exit( 2 )
+
+  reqID = pluginScript.getRequestID()
+  if not requestID and reqID:
+    requestID = reqID
+
+
   # Add parameters
   if nbCopies != None:
     pluginParams['NumberOfReplicas'] = nbCopies
 
   if pluginParams:
     for key, val in pluginParams.items():
-      if key.endswith( "SE" ) or key.endswith( "SEs" ):
+      if ( key.endswith( "SE" ) or key.endswith( "SEs" ) ) and val:
         res = transformation.setSEParam( key, val )
       else:
         res = transformation.setAdditionalParam( key, val )
@@ -259,17 +258,26 @@ if __name__ == "__main__":
         print res['Message']
         DIRAC.exit( 2 )
 
-  transformation.setPlugin( plugin )
-
-  transformation.setBkQuery( bkQueryDict )
-
   print "Transformation type:", transType
   print "BK Query:", bkQueryDict
   print "Plugin:", plugin
   print "Parameters:", pluginParams
   if requestID:
     print "RequestID:", requestID
+  # get the list of files from BK
+  print "Getting the files from BK"
+  lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' ), visible = visible )
+  if len( lfns ) == 0:
+    print "No files found in BK...Exiting now"
+    DIRAC.exit( 0 )
+
+  if not plugin:
+    print "No plugin to be tested..."
+    DIRAC.exit( 0 )
+
   print "\nNow testing the plugin %s" % plugin
+  transformation.setPlugin( plugin )
+  transformation.setBkQuery( bkQueryDict )
 
   from DIRAC.Core.Utilities.List                                         import sortList
   from LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin
@@ -279,7 +287,6 @@ if __name__ == "__main__":
   if not pluginParams.has_key( "GroupSize" ) and groupSize:
     pluginParams['GroupSize'] = groupSize
   # Create a fake transformation client
-  lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' ), visible = visible )
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   oplugin = TransformationPlugin( plugin, transClient = fakeClient, debug = debugPlugin )
   oplugin.setParameters( pluginParams )
