@@ -699,7 +699,7 @@ class ProcessingProgress:
             self.cachedInfo = pickle.load( f )
             gLogger.info( "Loaded cached information from %s" % self.prodStatFile )
           else:
-            gLogger.info( "Incompatible versions of cache, reset information (%s, expect %s)" % ( cachedVersion, cacheVersion ) )
+            gLogger.info( "Incompatible versions of cache, reset information (%s, expect %s)" % ( cachedVersion, self.cacheVersion ) )
             self.cachedInfo = {}
           f.close()
           fileRead = True
