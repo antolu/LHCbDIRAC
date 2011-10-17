@@ -71,7 +71,7 @@ class BKQuery():
       for b in bk:
         #print i,self.bkFields[i], b, processingPass
         if self.bkFields[i] == 'ProcessingPass':
-          if b != '' and b.upper() != 'ALL' and not b.isdigit():
+          if b != '' and b.upper() != 'ALL' and not b.split( ',' )[0].isdigit():
             processingPass = os.path.join( processingPass, b )
             continue
           # Set the PP
@@ -148,6 +148,11 @@ class BKQuery():
     return self.setOption( 'ProcessingPass', processingPass )
 
   def setEventType( self, eventTypes = None ):
+    if eventTypes:
+      if type( eventTypes ) == type( '' ):
+        eventTypes = eventTypes.split( ',' )
+      if len( eventTypes ) == 1:
+        eventTypes = eventTypes[0]
     self.setOption( 'EventType', eventTypes )
     return self.setOption( 'EventTypeId', eventTypes )
 
@@ -192,7 +197,7 @@ class BKQuery():
     configVersion = self.bkQueryDict.get( 'ConfigVersion', '' )
     if not configName or not configVersion:
       return ''
-    return os.path.join( configName, configVersion )
+    return os.path.join( '/', configName, configVersion )
 
   def isVisible( self ):
     return self.bkQueryDict.get( 'Visible', 'No' ) == 'Yes'
@@ -418,7 +423,11 @@ class BKQuery():
       if type( conditions ) != type( [] ):
         conditions = [conditions]
       return conditions
-    res = self.bk.getConditions( self.bkQueryDict )['Value']
+    res = self.bk.getConditions( self.bkQueryDict )
+    if res['OK']:
+      res = res['Value']
+    else:
+      return []
     conditions = []
     for r in res:
       ind = r['ParameterNames'].index( 'Description' )
@@ -485,6 +494,34 @@ class BKQuery():
     #print initialPP, [(key,processingPasses[key]) for key in sortList(processingPasses.keys())]
     return processingPasses
 
+  def browseBK( self ):
+    configuration = self.getConfiguration()
+    conditions = self.getBKConditions()
+    bkTree = {configuration : {}}
+    requestedEventTypes = self.getEventTypeList()
+    requestedFileTypes = self.getFileTypeList()
+    requestedPP = self.getProcessingPass()
+    requestedConditions = self.getConditions()
+    for cond in conditions:
+      self.setConditions( cond )
+      processingPasses = self.getBKProcessingPasses()
+      #print processingPasses
+      for processingPass in [pp for pp in processingPasses if processingPasses[pp]]:
+        if requestedEventTypes:
+          eventTypes = [t for t in requestedEventTypes if t in processingPasses[processingPass]]
+          if not eventTypes: continue
+        else:
+          eventTypes = processingPasses[processingPass]
+        self.setProcessingPass( processingPass )
+        #print eventTypes
+        for eventType in eventTypes:
+          self.setEventType( eventType )
+          fileTypes = self.getBKFileTypes()
+          bkTree[configuration].setdefault( cond, {} ).setdefault( processingPass, {} )[int( eventType )] = fileTypes
+          self.setEventType( requestedEventTypes )
+        self.setProcessingPass( requestedPP )
+      self.setConditions( requestedConditions )
+    return bkTree
 
 class DMScript():
 
@@ -514,6 +551,7 @@ class DMScript():
     Script.registerSwitch( '', "ExceptFileType=", "   Exclude the (list of) file types when all are requested", self.setExceptFileType )
     Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery )
     Script.registerSwitch( "r:", "Runs=", "   Run or range of runs (r1:r2)", self.setRuns )
+    Script.registerSwitch( '', "DQFlags=", "   DQ flag used in query", self.setDQFlags )
 
   def registerNamespaceSwitches( self ):
     # namespace switches
@@ -583,6 +621,11 @@ class DMScript():
     self.options['Runs'] = runs
     return DIRAC.S_OK()
 
+  def setDQFlags( self, arg ):
+    dqFlags = arg.split( ',' )
+    self.options['DQFlags'] = dqFlags
+    return DIRAC.S_OK()
+
   def setDirectory( self, arg ):
     self.options['Directory'] = arg.split( ',' )
     return DIRAC.S_OK()
@@ -641,6 +684,8 @@ class DMScript():
         #print bkPath, prods, runs, fileTypes
         self.bkQuery = BKQuery( bkPath, prods, runs, fileTypes, visible )
         self.bkQuery.setExceptFileTypes( self.exceptFileTypes )
+        if 'DQFlags' in self.options:
+          self.bkQuery.setOption( 'DataQualityFlag', self.options['DQFlags'] )
         self.bkQueryDict = self.bkQuery.getQueryDict()
         #print self.bkQueryDict
       return self.bkQueryDict
