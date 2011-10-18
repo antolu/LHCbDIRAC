@@ -136,7 +136,7 @@ class ErrorLogging( ModuleBase ):
     self.log.info( "Status after the ErrorLogging execution is %s (if non-zero this is ignored)" % ( status ) )
 
     if status:
-      self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName, self.applicationVersion, self.stepNumber ) )
+      self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
       self.log.info( "==================================\n StdError:\n" )
       self.log.info( self.stdError )
       self.log.info( 'Exiting without affecting workflow status' )
@@ -146,7 +146,7 @@ class ErrorLogging( ModuleBase ):
       self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultName )
       return S_OK()
 
-    self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName, self.applicationVersion, self.stepNumber ) )
+    self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
     shutil.copy( self.defaultName, self.errorLogName )
 
     #TODO - report to error logging service when suitable method is available

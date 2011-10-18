@@ -79,7 +79,7 @@ class FailoverRequest( ModuleBase ):
           self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
           self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
 
-    if not self._checkWFAndStepStatus():
+    if not self._checkWFAndStepStatus( noPrint = True ):
       inputFiles = self.fileReport.getFiles()
       for lfn in inputFiles:
         if inputFiles[lfn] != 'ApplicationCrash':

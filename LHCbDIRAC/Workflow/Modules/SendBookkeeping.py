@@ -41,6 +41,10 @@ class SendBookkeeping( ModuleBase ):
                                             workflowStatus, stepStatus,
                                             wf_commons, step_commons, step_number, step_id )
 
+    if not self._checkWFAndStepStatus():
+      self.log.info( 'Job completed with errors, no bookkeeping records will be sent' )
+      return S_OK( 'Job completed with errors' )
+
     if not self._enableModule():
       return S_OK()
 

@@ -437,12 +437,13 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def _checkWFAndStepStatus( self ):
+  def _checkWFAndStepStatus( self, noPrint = False ):
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info( 'Skip this module, failure detected in a previous step :' )
-      self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
-      self.log.info( 'Step Status : %s' % ( self.stepStatus ) )
+      if not noPrint:
+        self.log.info( 'Skip this module, failure detected in a previous step :' )
+        self.log.info( 'Workflow status : %s' % ( self.workflowStatus ) )
+        self.log.info( 'Step Status : %s' % ( self.stepStatus ) )
       return False
     else:
       return True

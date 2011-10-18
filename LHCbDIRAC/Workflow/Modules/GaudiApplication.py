@@ -137,6 +137,9 @@ class GaudiApplication( ModuleBase ):
                                              workflowStatus, stepStatus,
                                              wf_commons, step_commons, step_number, step_id )
 
+    if not self._checkWFAndStepStatus():
+      return S_OK()
+
     self._resolveInputVariables()
 
     if not self.applicationName or not self.applicationVersion:

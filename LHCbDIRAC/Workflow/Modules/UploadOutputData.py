@@ -105,6 +105,9 @@ class UploadOutputData( ModuleBase ):
 
     self._resolveInputVariables()
 
+    if not self._checkWFAndStepStatus():
+      return S_OK()
+
     self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
     self.request.setJobID( self.jobID )
     self.request.setSourceComponent( "Job_%s" % self.jobID )
