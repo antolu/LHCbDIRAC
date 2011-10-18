@@ -633,6 +633,24 @@ class StorageUsageDB( DB ):
        provided by the SRM db dumps from sites """
     return self.__getSTSummary( site, spaceToken )
    
+  def getProblematicDirsSummary( self, site, problem = False ):
+    """ Get a summary of problematic directories for a given site and given problem (optional)
+    """ 
+    sqlSite = self._escapeString( site )['Value']
+    sqlCond = [ "Site=%s" % sqlSite ]
+    if problem:
+      sqlProblem = self._escapeString( problem )['Value']
+      sqlCond.append( "Problem=%s" % sqlProblem )
+
+    sqlCmd = "SELECT Site, SpaceToken, LFCFiles, SEFiles, Path, Problem from `problematicDirs` WHERE %s" % ( " AND ".join( sqlCond ) )
+    gLogger.info( " getProblematicDirsSummary sqlCmd is: %s " %sqlCmd )
+    result = self._query( sqlCmd )
+    gLogger.info( " getProblematicDirsSummary result: %s " %result )
+    if not result[ 'OK' ]:
+      return S_ERROR( result )
+    return S_OK( result[ 'Value' ] )
+    
+    
   def getRunSummaryPerSE( self, run ):
     """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the
     run's file are stored is like:  /lhcb/data/[YEAR]/RAW/[STREAM]/[PARTITION]/[ACTIVITY]/[RUNNO]/"""
