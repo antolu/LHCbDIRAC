@@ -210,6 +210,15 @@ class StorageUsageHandler( RequestHandler ):
   def export_publishToProblematicDirs( self, directoryDict ):
     """ Export the publishToProblematicDirs DB method, which inserts/updates row into the  problematicDirs """
     return storageUsageDB.publishToProblematicDirs( directoryDict )
+
+  types_getProblematicDirsSummary = []
+  def export_getProblematicDirsSummary( self, site, problem = False ):
+    """ Exports the getProblematicDirsSummary method: returns a list of directories from the 
+      problematicDirs table, that have some inconsistency between the SE dumps and the LFC
+    """
+    return storageUsageDB.getProblematicDirsSummary( site, problem )
+
+
   ###
   # methods to deal with se_Usage table
   ###
@@ -232,7 +241,7 @@ class StorageUsageHandler( RequestHandler ):
     """ Exports getSTSummary method: returns a summary of the used space for the given
         site, based on the storage dumps provided by sites """
     return storageUsageDB.getSTSummary( site, spaceToken )
-
+  
   ####
   # Tier1 SE status for web
   ####
