@@ -33,6 +33,8 @@ class SEUsageAgent( AgentModule ):
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( rootPath, AGENT_NAME ) )
     InputFilesLocation = self.am_getOption( 'InputFilesLocation' )
     self.activeSites = self.am_getOption( 'ActiveSites' )
+    # maximum delay after storage dump creation (to be implemented) 
+    self.maximumDelaySinceSD = 43200  
     # check that this directory exists:
     if not os.path.isdir( InputFilesLocation ):
       gLogger.info( "Create the directory to download input files: %s" % InputFilesLocation )
@@ -43,6 +45,7 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "ERROR! could not create directory %s" % InputFilesLocation )
       return S_ERROR()
 
+    spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )# STs to skip during checks
     self.siteConfig = {}
     self.spaceTokens = {}
 
@@ -58,10 +61,10 @@ class SEUsageAgent( AgentModule ):
                                  'LHCb_MC_DST'  : {'year': '2010', 'DiracSEs': ['SARA_MC-DST']},
                                  'LHCb_FAILOVER' : {'year': '2010', 'DiracSEs' : ['SARA-FAILOVER']}
                                  }
-    spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )# STs to skip during checks
 
     self.siteConfig[ site ] = { 'originFileName': "LHCb.tar.bz2",
                                 'originURL': "http://web.grid.sara.nl/space_tokens", # without final slash
+                                'pathInsideTar': "LHCb/",
                                 'targetPath': InputFilesLocation + 'downloadedFiles/SARA/',
                                 'pathToInputFiles': InputFilesLocation + 'goodFormat/SARA/',
                                 'StorageName': 'SARA' ,
@@ -112,6 +115,7 @@ class SEUsageAgent( AgentModule ):
 
     self.siteConfig[ site ] = {'originFileName': "LHCb.tar.bz2",
                                'originURL': 'http://lemon.cr.cnaf.infn.it/VO/',
+                               'pathInsideTar': "LHCb/",
                                'targetPath': InputFilesLocation + 'downloadedFiles/' + site + '/',
                                'pathToInputFiles': InputFilesLocation + 'goodFormat/' + site + '/',
                                'StorageName' : site,
@@ -123,6 +127,113 @@ class SEUsageAgent( AgentModule ):
       gLogger.error( 'could not get configuration for SE CERN-RAW' )
     self.siteConfig[ site ][ 'SAPath'] = res['Value']
     gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
+    #......................................
+    site = 'GRIDKA'
+    self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':['GRIDKA-RAW', 'GRIDKA-RDST', 'GRIDKA-ARCHIVE']},
+                                 'LHCb-Disk' : {'year': '2011', 'DiracSEs':['GRIDKA-DST', 'GRIDKA_M-DST', 'GRIDKA_MC_M-DST', 'GRIDKA_MC-DST', 'GRIDKA-FAILOVER']},
+                                 'LHCb_USER' : {'year': '2011', 'DiracSEs':['GRIDKA-USER']},
+                                 'LHCb_RAW' : {'year': '2010', 'DiracSEs':['GRIDKA-RAW']},
+                                 'LHCb_RDST' : {'year': '2010', 'DiracSEs':['GRIDKA-RDST']},
+                                 'LHCb_M-DST': {'year': '2010', 'DiracSEs':['GRIDKA_M-DST']},
+                                 'LHCb_DST'  : {'year': '2010', 'DiracSEs':['GRIDKA-DST']},
+                                 'LHCb_MC_M-DST': {'year': '2010', 'DiracSEs':['GRIDKA_MC_M-DST']},
+                                 'LHCb_MC_DST'  : {'year': '2010', 'DiracSEs': ['GRIDKA_MC-DST']},
+                                 'LHCb_FAILOVER' : {'year': '2010', 'DiracSEs' : ['GRIDKA-FAILOVER']}
+                                 }
+
+    self.siteConfig[ site ] = { 'originFileName': "LHCb.tar.bz2",
+                                'originURL': "http://lhcb-kit.gridka.de:60080/lhcb", # without final slash
+                                'pathInsideTar': "LHCb/",
+                                'targetPath': InputFilesLocation + 'downloadedFiles/GRIDKA/',
+                                'pathToInputFiles': InputFilesLocation + 'goodFormat/GRIDKA/',
+                                'StorageName': 'GRIDKA' ,
+                                'DiracName': 'LCG.GRIDKA.de',
+                                'FileNameType': 'PFN' 
+                               }
+    res = getSEsForSite( site )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get SEs for site %s ' % site )
+      return S_ERROR()
+    SEs = res['Value']
+    gLogger.info( "SEs: %s" % SEs )
+    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( 'GRIDKA-RAW' ) )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get configuration for SE GRIDKA-RAW' )
+    self.siteConfig[ site ][ 'SEs'] = SEs
+    self.siteConfig[ site ][ 'SAPath'] = res['Value']
+    gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
+    #......................................
+    site = 'PIC'
+    self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':['PIC-RAW', 'PIC-RDST', 'PIC-ARCHIVE']},
+                                 'LHCb-Disk' : {'year': '2011', 'DiracSEs':['PIC-DST', 'PIC_M-DST', 'PIC_MC_M-DST', 'PIC_MC-DST', 'PIC-FAILOVER']},
+                                 'LHCb_USER' : {'year': '2011', 'DiracSEs':['PIC-USER']},
+                                 'LHCb_RAW' : {'year': '2010', 'DiracSEs':['PIC-RAW']},
+                                 'LHCb_RDST' : {'year': '2010', 'DiracSEs':['PIC-RDST']},
+                                 'LHCb_M-DST': {'year': '2010', 'DiracSEs':['PIC_M-DST']},
+                                 'LHCb_DST'  : {'year': '2010', 'DiracSEs':['PIC-DST']},
+                                 'LHCb_MC_M-DST': {'year': '2010', 'DiracSEs':['PIC_MC_M-DST']},
+                                 'LHCb_MC_DST'  : {'year': '2010', 'DiracSEs': ['PIC_MC-DST']},
+                                 'LHCb_FAILOVER' : {'year': '2010', 'DiracSEs' : ['PIC-FAILOVER']}
+                                 }
+
+    self.siteConfig[ site ] = { 'originFileName': "LHCb.tar.bz2",
+                                'originURL': "http://lhcweb.pic.es", # without final slash
+                                'pathInsideTar': "LHCb/",
+                                'targetPath': InputFilesLocation + 'downloadedFiles/PIC/',
+                                'pathToInputFiles': InputFilesLocation + 'goodFormat/PIC/',
+                                'StorageName': 'PIC' ,
+                                'DiracName': 'LCG.PIC.es',
+                                'FileNameType': 'PFN' 
+                               }
+    res = getSEsForSite( site )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get SEs for site %s ' % site )
+      return S_ERROR()
+    SEs = res['Value']
+    gLogger.info( "SEs: %s" % SEs )
+    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( 'PIC-RAW' ) )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get configuration for SE PIC-RAW' )
+    self.siteConfig[ site ][ 'SEs'] = SEs
+    self.siteConfig[ site ][ 'SAPath'] = res['Value']
+    gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
+    #......................................
+    site = 'IN2P3'
+    self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':['IN2P3-RAW', 'IN2P3-RDST', 'IN2P3-ARCHIVE']},
+                                 'LHCb-Disk' : {'year': '2011', 'DiracSEs':['IN2P3-DST', 'IN2P3_M-DST', 'IN2P3_MC_M-DST', 'IN2P3_MC-DST', 'IN2P3-FAILOVER']},
+                                 'LHCb_USER' : {'year': '2011', 'DiracSEs':['IN2P3-USER']},
+                                 'LHCb_RAW' : {'year': '2010', 'DiracSEs':['IN2P3-RAW']},
+                                 'LHCb_RDST' : {'year': '2010', 'DiracSEs':['IN2P3-RDST']},
+                                 'LHCb_M-DST': {'year': '2010', 'DiracSEs':['IN2P3_M-DST']},
+                                 'LHCb_DST'  : {'year': '2010', 'DiracSEs':['IN2P3-DST']},
+                                 'LHCb_MC_M-DST': {'year': '2010', 'DiracSEs':['IN2P3_MC_M-DST']},
+                                 'LHCb_MC_DST'  : {'year': '2010', 'DiracSEs': ['IN2P3_MC-DST']},
+                                 'LHCb_FAILOVER' : {'year': '2010', 'DiracSEs' : ['IN2P3-FAILOVER']}
+                                 }
+
+    self.siteConfig[ site ] = { 'originFileName': "LHCb.tar.bz2",
+                                'pathInsideTar': "tmp/filelisting_697_LHCb/",
+                                'originURL': " https://cctools2.in2p3.fr/stockage/dcache", # without final slash
+                                'targetPath': InputFilesLocation + 'downloadedFiles/IN2P3/',
+                                'pathToInputFiles': InputFilesLocation + 'goodFormat/IN2P3/',
+                                'StorageName': 'IN2P3' ,
+                                'DiracName': 'LCG.IN2P3.fr',
+                                'FileNameType': 'PFN' 
+                               }
+    res = getSEsForSite( site )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get SEs for site %s ' % site )
+      return S_ERROR()
+    SEs = res['Value']
+    gLogger.info( "SEs: %s" % SEs )
+    res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( 'IN2P3-RAW' ) )
+    if not res[ 'OK' ]:
+      gLogger.error( 'could not get configuration for SE IN2P3-RAW' )
+    self.siteConfig[ site ][ 'SEs'] = SEs
+    self.siteConfig[ site ][ 'SAPath'] = res['Value']
+    gLogger.info( "Configuration for site: %s : %s " % ( site, self.siteConfig[ site ] ) )
+
+
     #......................................
     for site in self.siteConfig.keys():
       for st in self.spaceTokens[ site ].keys():
@@ -349,7 +460,7 @@ class SEUsageAgent( AgentModule ):
 
     if targetPath[-1] != "/":
       targetPath = "%s/" % targetPath
-    targetPathForDownload = targetPath + 'LHCb/'
+    targetPathForDownload = targetPath + self.siteConfig[ site ]['pathInsideTar']
     gLogger.info( "Target path to download input files: %s" % targetPathForDownload )
     # delete all existing files in the target directory if necessary:
     previousFiles = []
@@ -404,9 +515,9 @@ class SEUsageAgent( AgentModule ):
     tapeST = ['LHCb-Tape', 'LHCb_RAW', 'LHCb_RDST']
     outputFileMerged = {}
     for st in self.spaceTokens[ site ].keys():
-      if not self.spaceTokens[ site ][ st ][ 'Check']:
-        gLogger.info( "Skip this space token: %s" % st )
-        continue
+      #if not self.spaceTokens[ site ][ st ][ 'Check']:
+      #  gLogger.info( "Skip this space token: %s" % st )
+      #  continue
       outputFileMerged[ st ] = {}
       if self.spaceTokens[ site ][ st ][ 'year'] == '2011':
         gLogger.info( "Preparing output files for space tokens: %s" % st )
@@ -437,30 +548,35 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "space token: %s -> \n  %s\n %s  " % ( st, outputFileMerged[ st ]['MergedFileName'], outputFileMerged[ st ]['DirSummaryFileName'] ) )
 
     for inputFileP1 in InputFilesListP1:
+      gLogger.info( "+++++ input file: %s ++++++" % inputFileP1 )
       # the expected input file line is: pfn | size | date
       #/pnfs/grid.sara.nl/data/lhcb/data/2010/CHARMCONTROL.DST/00009283/0000/00009283_00000384_1.charmcontrol.dst          |   831797381 | 1296022620555
       # manipulate the input file to create a directory summary file (one row per directory)
       # hack necessary to deal with SARA's storage dumps:
-      if 'files-outside-space-tokens.txt' in inputFileP1:
+      if 'files-outside-space-tokens.txt' in inputFileP1 or 'LHCbdefaultToken' in inputFileP1:
+        gLogger.info( "For the time being , skip this file: %s " % inputFileP1)
         continue
       splitFile = inputFileP1.split( '.' )
       st = splitFile[ 0 ]
-      if not self.spaceTokens[ site ][ st ][ 'Check']:
-        gLogger.info( "Skip this space token: %s" % st )
-        continue
+      completeSTId = st
+      if len( splitFile ) > 3:
+        # file with format provided by SARA e.g. LHCb_RAW.31455.INACTIVE.txt
+        completeSTId = splitFile[0] + '.' + splitFile[1] + '.' + splitFile[2]
+      fullPathFileP1 = targetPathForDownload + inputFileP1
+      if not os.path.getsize( fullPathFileP1 ):
+        gLogger.info( "%s file has zero size, will be skipped " % inputFileP1 )
+        continue 
       if 'INACTIVE' in inputFileP1:
-        if 'LHCb_MC_M-DST' in inputFileP1 or 'LHCb_M-DST' in inputFileP1:
-          gLogger.info( "File will be analysed, even if space token is inactive")
-        else:
-          gLogger.info("Skip this file")
-      gLogger.info( "+++++ processing input file for space token: %s " % st )
+        gLogger.info( "WARNING: File %s will be analysed, even if space token is inactive" % inputFileP1 )
+      gLogger.info( "processing input file for space token: %s " % st )
       fP2 = outputFileMerged[ st ]['pointerToMergedFile' ]
       fileP2 = outputFileMerged[ st ]['MergedFileName']
-      fullPathFileP1 = targetPath + 'LHCb/' + inputFileP1
       gLogger.info( "Reading from file %s\n and writing to: %s" % ( fullPathFileP1, fileP2 ) )
       totalLines = 0 # counts all lines in input
       processedLines = 0 # counts all processed lines
       dirac_dir_lines = 0
+      totalSize = 0
+      totalFiles = 0  
       for line in open( fullPathFileP1, "r" ).readlines():
         totalLines += 1
         try:
@@ -470,6 +586,8 @@ class SEUsageAgent( AgentModule ):
             dirac_dir_lines += 1
             continue
           size = splitLine[1].lstrip()
+          totalSize += int( size )
+          totalFiles += 1
           updated = splitLine[2].lstrip()
           newLine = filePath + ' ' + size + ' ' + updated
           if newLine[-1] != "\n":
@@ -480,6 +598,11 @@ class SEUsageAgent( AgentModule ):
           gLogger.error( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
           continue
       fP2.flush()
+      gLogger.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % (site, completeSTId, totalSize, totalFiles))
+      res = self.__storageUsage.publishTose_STSummary( site, completeSTId, totalSize, totalFiles )
+      if not res['OK']:
+        gLogger.info( "ERROR: failed to publish %s - %s summary " % ( site, st ) )
+        return S_ERROR( res )
       gLogger.info( "Total lines: %d , correctly processed: %d, dirac_directory found %d " % ( totalLines, processedLines, dirac_dir_lines ) )
     # close output files:
     for st in outputFileMerged.keys():
@@ -499,6 +622,9 @@ class SEUsageAgent( AgentModule ):
           st = spaceTok
           break
 
+      if not self.spaceTokens[ site ][ st ][ 'Check']:
+        gLogger.info( "Skip this space token: %s" % st )
+        continue
       gLogger.info( "Space token: %s" % st )
       totalLines = 0 # counts all lines in input
       processedLines = 0 # counts all processed lines
@@ -548,7 +674,7 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "Writing to file %s" % fileP3 )
       for basePath in self.dirDict.keys():
         summaryLine = st + ' ' + basePath + ' ' + str( self.dirDict[ basePath ][ 'Files' ] ) + ' ' + str( self.dirDict[ basePath ][ 'Size' ] )
-        gLogger.info( "Writing summaryLine %s" % summaryLine )
+        gLogger.debug( "Writing summaryLine %s" % summaryLine )
         fP3.write( "%s\n" % summaryLine )
       fP3.flush()
       fP3.close()
@@ -794,17 +920,29 @@ class SEUsageAgent( AgentModule ):
         even if LHCb register those replicas in the LFC with the LFN: <LFN>, stripping the initial '/lhcb/archive'
         this is taken into account by the main method of the agent when it queries for replicas in the LFC
           """
+    outputFile = "/opt/dirac/work/DataManagement/SEUsageAgent/unresolvedPFNs.txt"
     SEPath = self.siteConfig[ site ][ 'SAPath']
-    #prefixes = ['/lhcb/archive', '/lhcb/freezer']
     LFN = 'None'
     try:
       LFN = PFNfilePath.split( SEPath )[1]
     except:
       gLogger.error( "ERROR retrieving LFN from PFN = %s, SEPath = %s " % ( PFNfilePath, SEPath ) )
+      if not os.path.exists( outputFile ):
+        of = open( outputFile , "w")
+      else:
+        of = open( outputFile , "a")
+      of.write( "%s\n" % PFNfilePath )
+      of.close()
       return S_ERROR( "Could not retrieve LFN" )
     # additional check on the LFN format:
     if not LFN.startswith( '/lhcb' ):
       gLogger.info( "SEUsageAgent: ERROR! LFN should start with /lhcb: PFN=%s LFN=%s. Skip this file." % ( PFNfilePath, LFN ) )
+      if not os.listdir( outputFile ):
+        of = open( outputFile , "w")
+      else:
+        of = open( outputFile , "a")
+      os.write( "%s\n" % PFNfilePath )
+      os.close()
       return S_ERROR( "Anomalous LFN does not start with '/lhcb' string" )
 
     return  S_OK( LFN )
