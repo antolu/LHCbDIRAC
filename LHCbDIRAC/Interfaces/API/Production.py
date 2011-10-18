@@ -72,8 +72,8 @@ class Production():
     self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
-    self.defaultProdID = '_prod_ID'
-    self.defaultProdJobID = '_task_ID'
+    self.defaultProdID = '12345'
+    self.defaultProdJobID = '67890'
     self.ioDict = {}
     self.name = 'unspecifiedWorkflow'
     self.firstEventType = ''
