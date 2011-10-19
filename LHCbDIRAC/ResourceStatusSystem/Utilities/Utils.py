@@ -102,7 +102,7 @@ def convertTime(t, inTo = None):
 ############################
 
 from itertools import imap
-import copy, ast, socket
+import copy, socket
 
 id_fun = lambda x: x
 
@@ -166,7 +166,7 @@ def typedobj_of_string(s):
   if s == "":
     return s
   try:
-    return ast.literal_eval(s)
+    return eval(s)
   except (ValueError, SyntaxError): # Probably it's just a string
     return s
 
