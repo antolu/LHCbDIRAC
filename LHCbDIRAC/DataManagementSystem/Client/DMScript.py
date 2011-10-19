@@ -21,9 +21,11 @@ class BKQuery():
     bkQueryDict = {}
     self.bkFileTypes = []
     self.exceptFileTypes = []
-    if type( bkQuery ) == type( {} ):
+    if isinstance( bkQuery, BKQuery ):
+      bkQueryDict = bkQuery.getQueryDict().copy()
+    elif type( bkQuery ) == type( {} ):
       bkQueryDict = bkQuery.copy()
-    if type( bkQuery ) == type( '' ):
+    elif type( bkQuery ) == type( '' ):
       bkPath = bkQuery
     if not bkQueryDict :
       bkQueryDict = self.buildBKQuery( bkPath, prods = prods, runs = runs, fileTypes = fileTypes, visible = visible )
@@ -329,7 +331,7 @@ class BKQuery():
       lfns = lfnsAndSize['LFNs']
       lfnSize = lfnsAndSize['LFNSize']
     if len( lfns ) == 0:
-      gLogger.debug( "No files found for BK query %s" % str( self.bkQueryDict ) )
+      gLogger.verbose( "No files found for BK query %s" % str( self.bkQueryDict ) )
     lfns.sort()
 
     # Only for printing
@@ -997,7 +999,7 @@ class DMScript():
     else:
       lfns, lfnSize = self.getFilesFromBK( bkQuery, printOutput )
     if len( lfns ) == 0:
-      gLogger.debug( "No files found for BK query %s" % str( self.bkQuery ) )
+      gLogger.verbose( "No files found for BK query %s" % str( self.bkQuery ) )
       return ( [], [] )
     lfns.sort()
     dirs = {}
