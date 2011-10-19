@@ -5,13 +5,10 @@ Script.parseCommandLine()
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
+from DIRAC.Core.Utilities                                   import SiteSEMapping as SSE
 
-from LHCbDIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
-from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
-
-# For replicas test
-
-# from DIRAC.Core.Utilities.File                    import makeGuid
+from LHCbDIRAC.ResourceStatusSystem.Utilities               import CS, Utils
+from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils         import xml_append
 
 # For caching to DB
 from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
@@ -72,10 +69,11 @@ class TestBase(object):
   getTestValue = getTestOption
 
 class SpaceTokenOccupancyTest(TestBase):
+
   def __init__(self, am):
     super(SpaceTokenOccupancyTest, self).__init__(am)
     self.xmlPath      = rootPath + "/" + self.getAgentOption("webRoot") + self.getTestOption("dir")
-    self.SEs          = self.generate_SE_dict()
+    self.SEs          = Utils.unpack(SSE.getSiteSEMapping())
     self.rmDB         = ResourceManagementDB()
 
     try:
@@ -83,51 +81,20 @@ class SpaceTokenOccupancyTest(TestBase):
     except OSError:
       pass # The dir exist already, or cannot be created: do nothing
 
-    for se in self.SEs:
-      for st in self.SEs[se]:
-        self.generate_xml_and_dashboard(se, st, self.SEs[se][st])
+    for site in self.SEs:
+      for st in self.SEs[site]:
+        self.generate_xml_and_dashboard(site, st)
 
-
-  @staticmethod
-  def generate_SE_dict():
-    """Returns a dict that associate a site and a space-token to an URL.
-    For example: a['LCG.CERN.ch']['CERN-RAW'] == 'https://....'"""
-    site_of_localSE = Utils.dict_invert(
-      CS.getTypedDictRootedAt(root="", relpath="/Resources/SiteLocalSEMapping"))
-    storageElts = CS.getTypedDictRootedAt(root="",
-                                          relpath="/Resources/StorageElements")
-    res = {}
-    for k in storageElts:
-
-      try:
-        infos = storageElts[k]['AccessProtocol.1']
-        URL = "httpg://" + infos['Host'] + ":" + str(infos['Port']) + infos['WSUrl']
-      except KeyError: # No AccessProtocol.1, abnormal storage element
-        continue
-      except TypeError: # Not a storage element entry
-        continue
-
-      try:
-        for i in site_of_localSE[k]:
-          try:
-            res[i][infos['SpaceToken']] = URL
-          except KeyError:
-            res[i] = {}
-            res[i][infos['SpaceToken']] = URL
-      except KeyError:
-        pass
-
-    return res
-
-  def generate_xml_and_dashboard(self, se, st, url,fake=True):
-    id_          = se + "_" + st
+  def generate_xml_and_dashboard(self, site, st):
+    url          = CS.getHostByToken(st)
+    fake         = Utils.typedobj_of_string(self.getTestOption("fake"))
     total        = 0
     guaranteed   = 0
     free         = 0
     validity     = 'PT0M'
     availability = 0
 
-    if not self.getTestOption("fake"):
+    if fake == False:
       import lcg_util
       answer = lcg_util.lcg_stmd(st, url, True, 0)
 
@@ -139,7 +106,8 @@ class SpaceTokenOccupancyTest(TestBase):
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
         validity     = self.getTestOption("validity")
       else:
-        gLogger.info("StorageSpace: problew with lcg_util: lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
+        gLogger.info("StorageSpace: problew with lcg_util:\
+ lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
 
     else:
       gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
@@ -151,8 +119,7 @@ class SpaceTokenOccupancyTest(TestBase):
     doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
     doc.documentElement.setAttribute("xsi:schemaLocation",
                                      "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
-    xml_append(doc, "id", id_)
+    xml_append(doc, "id", st)
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
     xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
@@ -172,10 +139,9 @@ class SpaceTokenOccupancyTest(TestBase):
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
-    self.rmDB.updateSLSStorage(se, st, availability, "PT27M", validity, total, guaranteed, free)
-    gLogger.info("SpaceTokenOccupancyTest: %s-%s done." % (se, st))
+    self.rmDB.updateSLSStorage(site, st, availability, "PT27M", validity, total, guaranteed, free)
 
-    xmlfile = open(self.xmlPath + id_ + ".xml", "w")
+    xmlfile = open(self.xmlPath + st + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
@@ -184,17 +150,18 @@ class SpaceTokenOccupancyTest(TestBase):
       xmlfile.close()
 
     # Send notifications
-    pledged = get_pledged_value_for_token(se, st)
+    pledged = get_pledged_value_for_token(site, st)
     if not fake and total < pledged:
-      send_mail_to_site(se, pledged, st, total)
-
+      send_mail_to_site(site, pledged, st, total)
 
     # Dashboard
-    dbfile = open(self.xmlPath + id_ + "_space_monitor", "w")
+    dbfile = open(self.xmlPath + st + "_space_monitor", "w")
     try:
-      dbfile.write(id_ + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
+      dbfile.write(st + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
     finally:
       dbfile.close()
+
+    gLogger.info("SpaceTokenOccupancyTest: %s done." % st)
 
 
 class DIRACTest(TestBase):

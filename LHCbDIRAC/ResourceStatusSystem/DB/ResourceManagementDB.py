@@ -342,6 +342,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
   def _doUpdate(self, req):
     res = self.db._update(req)
     if not res['OK']:
+      print "Unable to execute request " + req
       raise RSSManagementDBException, where(self, self.updateSLSServices) + res['Message']
     return res['Value']
 
