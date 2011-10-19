@@ -51,8 +51,7 @@ if __name__ == "__main__":
   if daqConditions:
       bkQueries = []
       for cond in daqConditions:
-        bkQuery = BKQuery( bkQuery.setConditions( cond ) )
-        bkQueries.append( bkQuery )
+        bkQueries.append( BKQuery( bkQuery.setConditions( cond ) ) )
   else:
     bkQueries = [bkQuery]
 
@@ -61,9 +60,9 @@ if __name__ == "__main__":
   htmlOutput = ''
   summaryProdStats = []
   if outputHTML:
-    htmlTable = HTMLProgressTable( bkQuery['ProcessingPass'] )
+    htmlTable = HTMLProgressTable( bkQuery.getProcessingPass() )
   for bkQuery in bkQueries:
-    prodStats = statCollector.getFullStats( bkQuery.getQueryDict(), printResult = printResult )
+    prodStats = statCollector.getFullStats( bkQuery, printResult = printResult )
     summaryProdStats.append( prodStats )
 
     if printResult:
@@ -80,7 +79,7 @@ if __name__ == "__main__":
       htmlTable.writeHTMLSummary( summaryProdStats )
     try:
       f = open( outputHTML, 'w' )
-      f.write( "<head>\n<title>Progress of %s</title>\n</title>\n" % bkQueries[0]['ProcessingPass'] )
+      f.write( "<head>\n<title>Progress of %s</title>\n</title>\n" % bkQueries[0].getProcessingPass() )
       f.write( str( htmlTable.getTable() ) )
       f.close()
       print "Successfully wrote HTML file", outputHTML
