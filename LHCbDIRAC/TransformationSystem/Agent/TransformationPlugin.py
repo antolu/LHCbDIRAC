@@ -41,13 +41,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.debug = val
 
   def __logVerbose( self, message, param = '' ):
-    gLogger.verbose( self.plugin + ": " + message, param )
-
-  def __logDebug( self, message, param = '' ):
     if self.debug:
       gLogger.info( self.plugin + ": " + message, param )
     else:
-      gLogger.debug( self.plugin + ": " + message, param )
+      gLogger.verbose( self.plugin + ": " + message, param )
+
+  def __logDebug( self, message, param = '' ):
+    gLogger.debug( self.plugin + ": " + message, param )
 
   def __logInfo( self, message, param = '' ):
     gLogger.info( self.plugin + ": " + message, param )
@@ -66,7 +66,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     lfns = self.data.keys()
     startTime = time.time()
     res = self.bk.getAllDescendents( lfns, production = transID, depth = 1 )
-    self.__logDebug( "Got Descendents of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime ) )
+    self.__logVerbose( "Got Descendents of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime ) )
     if not res['OK']:
       self.__logError( "Cannot get descendants of files for production %s" % str( transID ) )
       return
@@ -84,7 +84,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             if fileDict['LFN'] in processedLfns:
               self.files.remove( fileDict )
       else:
-        self.__logDebug( "No input files have already been processed" )
+        self.__logVerbose( "No input files have already been processed" )
 
   def _RAWShares( self ):
     """
@@ -198,7 +198,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               if targetSEs:
                 assignedSE = targetSEs[0]
           if assignedSE:
-            self.__logDebug( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), assignedSE ) )
+            self.__logVerbose( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), assignedSE ) )
 
       if assignedSE and assignedSE in possibleTargets:
       # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
@@ -384,7 +384,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             if rand <= seProbs[se]:
               selectedSE = se
               break
-          self.__logDebug( "Selected SE for reconstruction is %s", selectedSE )
+          self.__logVerbose( "Selected SE for reconstruction is %s", selectedSE )
           targetSite = selectedSE
         else:
           res = self._getNextSite( existingCount, cpuShares, randomize( candidates ) )
@@ -469,7 +469,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __getRAWAncestorsForRun( self, transID, runID, param = '', paramValue = '' ):
     startTime1 = time.time()
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
-    self.__logDebug( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
+    self.__logVerbose( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
     if not res['OK']:
       self.__logError( "Cannot get files for transformation %s, run %s" % ( str( transID ), str( runID ) ) )
       return []
@@ -477,7 +477,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     lfns = [f['LFN'] for f in res['Value']]
     cachedLFNs = self.cachedLFNAncestors.get( runID )
     if cachedLFNs:
-      self.__logDebug( "Cache hit for run %d: %d files cached" % ( runID, len( cachedLFNs ) ) )
+      self.__logVerbose( "Cache hit for run %d: %d files cached" % ( runID, len( cachedLFNs ) ) )
       for lfn in cachedLFNs:
         ancestors += cachedLFNs[lfn]
       lfns = [lfn for lfn in lfns if lfn not in cachedLFNs]
@@ -490,13 +490,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if lfns:
       startTime = time.time()
       res = self.bk.getAllAncestorsWithFileMetaData( lfns, depth = 10 )
-      self.__logDebug( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ), time.time() - startTime ) )
+      self.__logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ), time.time() - startTime ) )
       ancestorDict = res['Value']['Successful']
       for lfn in ancestorDict:
         n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
         self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
         ancestors += n
-    self.__logDebug( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
+    self.__logVerbose( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
     return ancestors
 
   def __readCacheFile( self, transID ):
@@ -526,10 +526,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         except:
           pass
         f.close()
-        self.__logDebug( "Cache file %s successfully loaded" % cacheFile )
+        self.__logVerbose( "Cache file %s successfully loaded" % cacheFile )
         break
       except:
-        self.__logDebug( "Cache file %s could not be loaded" % cacheFile )
+        self.__logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def __writeCacheFile( self ):
     import pickle
@@ -541,7 +541,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         pickle.dump( self.cachedLFNSize, f )
         pickle.dump( self.cachedRunLfns, f )
         f.close()
-        self.__logDebug( "Cache file %s successfully written" % self.cacheFile )
+        self.__logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
         self.__logError( "Could not write cache file %s" % self.cacheFile )
 
@@ -551,7 +551,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
         fileSizes[lfn] = self.cachedLFNSize[lfn]
     if fileSizes:
-      self.__logDebug( "Cache hit for File size for %d files" % len( fileSizes ) )
+      self.__logVerbose( "Cache hit for File size for %d files" % len( fileSizes ) )
     lfns = [lfn for lfn in lfns if lfn not in self.cachedLFNSize]
     if lfns:
       startTime = time.time()
@@ -562,8 +562,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         return S_ERROR( "Failed to get sizes for all files" )
       fileSizes.update( res['Value']['Successful'] )
       self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
-      self.__logDebug( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
-    self.__logDebug( "Timing for getting size of files: %.3f seconds" % ( time.time() - startTime1 ) )
+      self.__logVerbose( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
+    self.__logVerbose( "Timing for getting size of files: %.3f seconds" % ( time.time() - startTime1 ) )
     return fileSizes
 
   def __clearCachedFileSize( self, lfns ):
@@ -612,7 +612,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         rawFiles = res['Value']
         self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
-        self.__logDebug( "Run %d has %d RAW files (timing: %3f s)" % ( runID, rawFiles, time.time() - startTime ) )
+        self.__logVerbose( "Run %d has %d RAW files (timing: %3f s)" % ( runID, rawFiles, time.time() - startTime ) )
     return rawFiles
 
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
@@ -642,10 +642,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         cachedLfns = self.cachedRunLfns.setdefault( runID, {} ).setdefault( paramValue, [] )
         newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
         if len( newLfns ) == 0:
-          self.__logDebug( "No new files since last time for run %d%s: skip..." % ( runID, paramValue ) )
+          self.__logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramValue ) )
           continue
         else:
-          self.__logDebug( "Of %d files, %d are new for %d%s: skip" % ( len( runParamLfns ), len( newLfns ), runID, paramValue ) )
+          self.__logVerbose( "Of %d files, %d are new for %d%s: skip" % ( len( runParamLfns ), len( newLfns ), runID, paramValue ) )
         self.cachedRunLfns[runID][paramValue] = runParamLfns
         runFlush = requireFlush
         if runFlush:
@@ -658,7 +658,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             res = self.__getBookkeepingMetadata( [lfn] )
             if res['OK']:
               runEvtType[paramValue] = res['Value'][lfn].get( 'EventTypeId', 90000000 )
-              self.__logDebug( 'Event type for transformation %d%s: %s' % ( transID, paramStr, str( runEvtType[paramValue] ) ) )
+              self.__logVerbose( 'Event type for transformation %d%s: %s' % ( transID, paramStr, str( runEvtType[paramValue] ) ) )
             else:
               self.__logWarn( "Can't determine event type for transformation %d%s, can't flush" % ( transID, paramStr ) )
               runFlush = False
@@ -679,7 +679,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           # Get the number of RAW files in that run
           rawFiles = self.__getNbRAWInRun( runID, evtType )
           ancestorRawFiles = self.__getRAWAncestorsForRun( transID, runID, param, paramValue )
-          self.__logDebug( "Obtained %d ancestor RAW files" % ancestorRawFiles )
+          self.__logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
           runProcessed = ( ancestorRawFiles == rawFiles )
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
@@ -687,7 +687,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             status = 'Flush'
             self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
           else:
-            self.__logDebug( "Only %d files (of %d) available for run %d in transformation %d" % ( ancestorRawFiles, rawFiles, runID, transID ) )
+            self.__logVerbose( "Only %d files (of %d) available for run %d in transformation %d" % ( ancestorRawFiles, rawFiles, runID, transID ) )
         self.params['Status'] = status
         #print "Calling",plugin,"with",self.data
         res = eval( 'self._%s()' % plugin )
@@ -747,7 +747,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __getBookkeepingMetadata( self, lfns ):
     start = time.time()
     res = self.bk.getFileMetadata( lfns )
-    self.__logDebug( "Obtained BK metadata of %d files in %.3f seconds" % ( len( lfns ), time.time() - start ) )
+    self.__logVerbose( "Obtained BK metadata of %d files in %.3f seconds" % ( len( lfns ), time.time() - start ) )
     return res
 
   def __isArchive( self, se ):
@@ -809,11 +809,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     targetSites = []
     targetSEs = []
-    self.__logDebug( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, existingSEs ) )
+    self.__logVerbose( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, existingSEs ) )
     # Ensure that we have a archive1 copy
     archive1Existing = [se for se in archive1SEs if se in existingSEs]
     ( ses, targetSites ) = self.__selectSEs( archive1Existing + randomize( archive1ActiveSEs ), 1, targetSites )
-    self.__logDebug( "Archive1SEs: %s" % ses )
+    self.__logVerbose( "Archive1SEs: %s" % ses )
     if len( ses ) < 1 :
       self.__logError( 'Cannot select archive1SE in active SEs' )
       return None
@@ -822,7 +822,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # ... and an Archive2 copy
     archive2Existing = [se for se in archive2SEs if se in existingSEs]
     ( ses, targetSites ) = self.__selectSEs( archive2Existing + randomize( archive2ActiveSEs ), 1, targetSites )
-    self.__logDebug( "Archive2SEs: %s" % ses )
+    self.__logVerbose( "Archive2SEs: %s" % ses )
     if len( ses ) < 1 :
       self.__logError( 'Cannot select archive2SE in active SEs' )
       return None
@@ -834,7 +834,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     candidateSEs += [se for se in existingSEs if se not in candidateSEs]
     candidateSEs += [se for se in randomize( secondaryActiveSEs ) if se not in candidateSEs]
     ( ses, targetSites ) = self.__selectSEs( candidateSEs, numberOfCopies, targetSites )
-    self.__logDebug( "SecondarySEs: %s" % ses )
+    self.__logVerbose( "SecondarySEs: %s" % ses )
     if len( ses ) < numberOfCopies:
       self.__logError( "Can not select enough Active SEs for SecondarySE" )
       return None
@@ -842,7 +842,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     if exclusiveSEs:
       targetSEs = [se for se in targetSEs if se not in existingSEs]
-    self.__logDebug( "Selected target SEs: %s" % targetSEs )
+    self.__logVerbose( "Selected target SEs: %s" % targetSEs )
     return ','.join( sortList( targetSEs ) )
 
   def __assignTargetToLfns( self, lfns, stringTargetSEs ):
@@ -937,7 +937,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # this may happen when all files are in FAILOVER
         if  existingSEs:
           # Now select the target SEs
-          self.__logDebug( "Selecting SEs for %d files: %s" % ( len( runLfns ), str( runLfns ) ) )
+          self.__logVerbose( "Selecting SEs for %d files: %s" % ( len( runLfns ), str( runLfns ) ) )
           stringTargetSEs = self.__setTargetSEs( numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False )
           runUpdate[runID] = True
 
