@@ -79,6 +79,7 @@ class TransformationAgent( DIRACTransformationAgent ):
 
   def __getDataReplicas( self, transID, lfns, active = True ):
     self.__logVerbose( "Getting replicas for %d files" % len( lfns ), method = '__getDataReplicas', transID = transID )
+    self.lock.acquire()
     cachedReplicaSets = self.replicaCache.get( transID, {} )
     dataReplicas = {}
     newLFNs = []
@@ -91,6 +92,7 @@ class TransformationAgent( DIRACTransformationAgent ):
       # Remove files from the cache that are not in the required list
       for lfn in [lfn for lfn in cachedReplicas if lfn not in lfns]:
         self.replicaCache[transID][set].pop( lfn )
+    self.lock.release()
     if dataReplicas:
       self.__logVerbose( "ReplicaCache hit for %d out of %d LFNs" % ( len( dataReplicas ), len( lfns ) ), method = '__getDataReplicas', transID = transID )
     newLFNs += [lfn for lfn in lfns if lfn not in foundReplicas]
@@ -99,7 +101,9 @@ class TransformationAgent( DIRACTransformationAgent ):
       res = DIRACTransformationAgent.__getDataReplicas( self, transID, newLFNs, active = active )
       if res['OK']:
         newReplicas = res['Value']
+        self.lock.acquire()
         self.replicaCache.setdefault( transID, {} )[datetime.datetime.utcnow()] = newReplicas
+        self.lock.release()
         dataReplicas.update( newReplicas )
     self.__cleanCache()
     return S_OK( dataReplicas )
