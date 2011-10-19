@@ -3,7 +3,7 @@ import itertools
 from DIRAC                                   import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities                    import List
 
-from DIRAC.ResourceStatusSystem.Utilities    import Utils
+from LHCbDIRAC.ResourceStatusSystem.Utilities    import Utils
 
 g_BaseRegistrySection   = "/Registry"
 g_BaseResourcesSection  = "/Resources"
