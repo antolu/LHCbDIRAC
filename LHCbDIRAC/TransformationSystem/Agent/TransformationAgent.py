@@ -30,20 +30,20 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.log.info( "Multithreaded with %d threads" % self.maxNumberOfThreads )
     return S_OK()
 
-  def __logVerbose( self, message, param = '', method = "execute" ):
-    gLogger.verbose( AGENT_NAME + "." + method + ": " + message, param )
+  def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
+    gLogger.verbose( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
-  def __logDebug( self, message, param = '', method = "execute" ):
-    gLogger.debug( AGENT_NAME + "." + method + ": " + message, param )
+  def __logDebug( self, message, param = '', method = "execute", transID = 'None' ):
+    gLogger.debug( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
-  def __logInfo( self, message, param = '', method = "execute" ):
-    gLogger.info( AGENT_NAME + "." + method + ": " + message, param )
+  def __logInfo( self, message, param = '', method = "execute", transID = 'None' ):
+    gLogger.info( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
-  def __logWarn( self, message, param = '', method = "execute" ):
-    gLogger.warn( AGENT_NAME + "." + method + ": " + message, param )
+  def __logWarn( self, message, param = '', method = "execute", transID = 'None' ):
+    gLogger.warn( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
-  def __logError( self, message, param = '', method = "execute" ):
-    gLogger.error( AGENT_NAME + "." + method + ": " + message, param )
+  def __logError( self, message, param = '', method = "execute", transID = 'None' ):
+    gLogger.error( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
   def execute( self ):
     # Get the transformations to process
@@ -67,17 +67,17 @@ class TransformationAgent( DIRACTransformationAgent ):
     while not self.transQueue.empty():
       transDict = self.transQueue.get()
       transID = long( transDict['TransformationID'] )
-      self.__logInfo( "[%d] Processing transformation %s." % ( transID, transID ) )
+      self.__logInfo( "Processing transformation %s." % transID, transID = transID )
       startTime = time.time()
       res = self.processTransformation( transDict )
       if not res['OK']:
-        self.__logInfo( "[%d] Failed to process transformation: %s" % ( transID, res['Message'] ) )
+        self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID = transID )
       else:
-        self.__logInfo( "[%d] Processed transformation in %.1f seconds" % ( transID, time.time() - startTime ) )
+        self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
     return S_OK()
 
   def __getDataReplicas( self, transID, lfns, active = True ):
-    self.log.verbose( "Getting replicas for %d files" % len( lfns ) )
+    self.__logVerbose( "Getting replicas for %d files" % len( lfns ), method = '__getDataReplicas', transID = transID )
     cachedReplicaSets = self.replicaCache.get( transID, {} )
     dataReplicas = {}
     newLFNs = []
@@ -91,10 +91,10 @@ class TransformationAgent( DIRACTransformationAgent ):
       for lfn in [lfn for lfn in cachedReplicas if lfn not in lfns]:
         self.replicaCache[transID][set].pop( lfn )
     if dataReplicas:
-      self.log.verbose( "ReplicaCache hit for %d out of %d LFNs" % ( len( dataReplicas ), len( lfns ) ) )
+      self.__logVerbose( "ReplicaCache hit for %d out of %d LFNs" % ( len( dataReplicas ), len( lfns ) ), method = '__getDataReplicas', transID = transID )
     newLFNs += [lfn for lfn in lfns if lfn not in foundReplicas]
     if newLFNs:
-      self.log.verbose( "Getting replicas for %d files from catalog" % len( newLFNs ) )
+      self.__logVerbose( "Getting replicas for %d files from catalog" % len( newLFNs ), method = '__getDataReplicas', transID = transID )
       res = DIRACTransformationAgent.__getDataReplicas( self, transID, newLFNs, active = active )
       if res['OK']:
         newReplicas = res['Value']
@@ -109,7 +109,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     for transID in [transID for transID in self.replicaCache]:
       for updateTime in self.replicaCache[transID].copy():
         if updateTime < timeLimit or not self.replicaCache[transID][updateTime]:
-          self.log.verbose( "Clear %d cached replicas for transformation %s" % ( len( self.replicaCache[transID][updateTime] ), str( transID ) ) )
+          self.__logVerbose( "Clear %d cached replicas for transformation %s" % ( len( self.replicaCache[transID][updateTime] ), str( transID ) ), method = '__cleanCache' )
           self.replicaCache[transID].pop( updateTime )
       # Remove empty transformations
       if not self.replicaCache[transID]:
@@ -155,7 +155,7 @@ class TransformationAgent( DIRACTransformationAgent ):
       self.lock.acquire()
       self.__readCache( lock = False )
       if transID in self.replicaCache:
-        self.log.info( "Removed cached replicas for transformation %s" % str( transID ) )
+        self.__logInfo( "Removed cached replicas for transformation" , method = 'pluginCallBack', transID = transID )
         self.replicaCache.pop( transID )
         self.__writeCache( lock = False )
       self.lock.release()
