@@ -97,7 +97,7 @@ class DataProcessingProgressAgent( AgentModule ):
             continue
           self.log.info( "\n=========================\nBookkeeping query %s\n=========================" % bkPath.replace( '*', cond ) )
           bkQuery.setConditions( cond )
-          stats = self.statCollector.getFullStats( bkQuery.getQueryDict(), printResult = self.printResult )
+          stats = self.statCollector.getFullStats( bkQuery, printResult = self.printResult )
           processingPass = bkQuery.getProcessingPass().split( '/' )
           for ind in range( len( prodStats ) ):
             if not prodStats[ind]:
