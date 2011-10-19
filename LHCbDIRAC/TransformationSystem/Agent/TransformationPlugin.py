@@ -42,21 +42,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __logVerbose( self, message, param = '' ):
     if self.debug:
-      gLogger.info( self.plugin + ": " + message, param )
+      gLogger.info( self.plugin + ": [%s] " % str( self.params['TransformationID'] ) + message, param )
     else:
-      gLogger.verbose( self.plugin + ": " + message, param )
+      gLogger.verbose( self.plugin + ": [%s] " % str( self.params['TransformationID'] ) + message, param )
 
   def __logDebug( self, message, param = '' ):
-    gLogger.debug( self.plugin + ": " + message, param )
+    gLogger.debug( self.plugin + ": [%s] " % str( self.params['TransformationID'] ) + message, param )
 
   def __logInfo( self, message, param = '' ):
-    gLogger.info( self.plugin + ": " + message, param )
+    gLogger.info( self.plugin + ": [%s] " % str( self.params['TransformationID'] ) + message, param )
 
   def __logWarn( self, message, param = '' ):
-    gLogger.warn( self.plugin + ": " + message, param )
+    gLogger.warn( self.plugin + ": [%s] " % str( self.params['TransformationID'] ) + message, param )
 
   def __logError( self, message, param = '' ):
-    gLogger.error( self.plugin + ": " + message, param )
+    gLogger.error( self.plugin + ": [%s] " % str( self.params['TransformationID'] ) + message, param )
 
   def __removeProcessedFiles( self ):
     """
@@ -68,7 +68,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     res = self.bk.getAllDescendents( lfns, production = transID, depth = 1 )
     self.__logVerbose( "Got Descendents of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime ) )
     if not res['OK']:
-      self.__logError( "Cannot get descendants of files for production %s" % str( transID ) )
+      self.__logError( "Cannot get descendants of files" )
       return
     else:
       descendants = res['Value']['Successful']
@@ -251,7 +251,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     backupSE = 'CERN-RAW'
     res = self.transClient.getTransformation( transID )
     if not res['OK']:
-      self.__logError( "Cannot get information on transformation %s" % str( transID ) )
+      self.__logError( "Cannot get information on transformation" )
       return {}
     else:
       transType = res['Value']['Type']
@@ -298,7 +298,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       normalisedExistingCount = self._normaliseShares( existingCount )
     else:
       normalisedExistingCount = {}
-    self.__logInfo( "Target shares and utilisation for production %s (%%):" % str( transID ) )
+    self.__logInfo( "Target shares and utilisation for production (%%):" )
     for se in sortList( cpuShares.keys() ):
       infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), cpuShares[se] )
       if se in normalisedExistingCount:
@@ -471,7 +471,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
     self.__logVerbose( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
     if not res['OK']:
-      self.__logError( "Cannot get files for transformation %s, run %s" % ( str( transID ), str( runID ) ) )
+      self.__logError( "Cannot get files for run %s" % str( runID ) )
       return []
     ancestors = 0
     lfns = [f['LFN'] for f in res['Value']]
@@ -637,30 +637,30 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       paramDict = runDict.get( runID, {} )
       runRAWFiles = {}
       for paramValue in sortList( paramDict.keys() ):
+        if paramValue:
+          paramStr = " (%s : %s) " % ( param, paramValue )
+        else:
+          paramStr = " "
         runParamLfns = paramDict[paramValue]
         # Check if something was new since last time...
         cachedLfns = self.cachedRunLfns.setdefault( runID, {} ).setdefault( paramValue, [] )
         newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
-        if len( newLfns ) == 0:
-          self.__logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramValue ) )
+        if len( newLfns ) == 0 and transID > 0:
+          self.__logInfo( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         else:
           self.__logVerbose( "Of %d files, %d are new for %d%s: skip" % ( len( runParamLfns ), len( newLfns ), runID, paramValue ) )
         self.cachedRunLfns[runID][paramValue] = runParamLfns
         runFlush = requireFlush
         if runFlush:
-          if paramValue:
-            paramStr = " (%s : %s) " % ( param, paramValue )
-          else:
-            paramStr = " "
           if paramValue not in runEvtType:
             lfn = runParamLfns[0]
             res = self.__getBookkeepingMetadata( [lfn] )
             if res['OK']:
               runEvtType[paramValue] = res['Value'][lfn].get( 'EventTypeId', 90000000 )
-              self.__logVerbose( 'Event type for transformation %d%s: %s' % ( transID, paramStr, str( runEvtType[paramValue] ) ) )
+              self.__logVerbose( 'Event type %s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
             else:
-              self.__logWarn( "Can't determine event type for transformation %d%s, can't flush" % ( transID, paramStr ) )
+              self.__logWarn( "Can't determine event type for transformation %s, can't flush" % paramStr )
               runFlush = False
               runEvtType[paramValue] = None
           evtType = runEvtType[paramValue]
@@ -683,11 +683,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           runProcessed = ( ancestorRawFiles == rawFiles )
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
-            self.__logInfo( "All RAW files (%d) ready for run %d, transformation %d,%s- Flushing %d files" % ( rawFiles, runID, transID, paramStr, len( runParamReplicas ) ) )
+            self.__logInfo( "All RAW files (%d) ready for run %d%s- Flushing %d files" % ( rawFiles, runID, paramStr, len( runParamReplicas ) ) )
             status = 'Flush'
             self.transClient.setTransformationRunStatus( transID, runID, 'Flush' )
           else:
-            self.__logVerbose( "Only %d files (of %d) available for run %d in transformation %d" % ( ancestorRawFiles, rawFiles, runID, transID ) )
+            self.__logVerbose( "Only %d files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
         self.params['Status'] = status
         #print "Calling",plugin,"with",self.data
         res = eval( 'self._%s()' % plugin )
