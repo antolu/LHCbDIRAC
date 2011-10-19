@@ -86,7 +86,7 @@ class SpaceTokenOccupancyTest(TestBase):
         self.generate_xml_and_dashboard(site, st)
 
   def generate_xml_and_dashboard(self, site, st):
-    url          = CS.getHostByToken(st)
+    url          = CS.getTokenEndpoint(st)
     fake         = Utils.typedobj_of_string(self.getTestOption("fake"))
     total        = 0
     guaranteed   = 0
@@ -108,6 +108,7 @@ class SpaceTokenOccupancyTest(TestBase):
       else:
         gLogger.info("StorageSpace: problew with lcg_util:\
  lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
+        gLogger.info(str(answer))
 
     else:
       gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
@@ -824,6 +825,10 @@ gaudirun.py options.py > result.log
 
 class SLSAgent(AgentModule):
 
+  def initialize(self):
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+    return S_OK()
+    
   def execute(self):
     SpaceTokenOccupancyTest(self)
     DIRACTest(self)
