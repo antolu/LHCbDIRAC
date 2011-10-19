@@ -5,7 +5,7 @@ Script.parseCommandLine()
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
-from DIRAC.Core.Utilities                                   import SiteSEMapping as SSE
+from DIRAC.Core.Utilities                                   import SiteSEMapping
 
 from LHCbDIRAC.ResourceStatusSystem.Utilities               import CS, Utils
 from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils         import xml_append
@@ -73,7 +73,7 @@ class SpaceTokenOccupancyTest(TestBase):
   def __init__(self, am):
     super(SpaceTokenOccupancyTest, self).__init__(am)
     self.xmlPath      = rootPath + "/" + self.getAgentOption("webRoot") + self.getTestOption("dir")
-    self.SEs          = Utils.unpack(SSE.getSiteSEMapping())
+    self.SEs          = Utils.unpack(SiteSEMapping.getSiteSEMapping())
     self.rmDB         = ResourceManagementDB()
 
     try:
