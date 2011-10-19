@@ -649,7 +649,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.__logInfo( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         else:
-          self.__logVerbose( "Of %d files, %d are new for %d%s: skip" % ( len( runParamLfns ), len( newLfns ), runID, paramValue ) )
+          self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
         self.cachedRunLfns[runID][paramValue] = runParamLfns
         runFlush = requireFlush
         if runFlush:
