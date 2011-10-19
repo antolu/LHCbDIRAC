@@ -30,8 +30,8 @@ xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
 
 #### Helper functions to send a warning mail to a site (for space-token test)
 
-def get_pledged_value_for_token(st):
-  val = gConfig.getValue("/Resources/StorageElements/"+st+"/PledgedSpace")
+def get_pledged_value_for_token(se, st):
+  val = gConfig.getValue("/Resources/Sites/LCG/"+se+"/"+st+"/pledge2011")
   return (val if val != None else 0)
 
 def contact_mail_of_site(site):
@@ -184,7 +184,7 @@ class SpaceTokenOccupancyTest(TestBase):
       xmlfile.close()
 
     # Send notifications
-    pledged = get_pledged_value_for_token(st)
+    pledged = get_pledged_value_for_token(se, st)
     if not fake and total < pledged:
       send_mail_to_site(se, pledged, st, total)
 
