@@ -15,6 +15,7 @@ from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingC
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.HTML import *
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import BKQuery
 import DIRAC
 
 class HTMLProgressTable:
@@ -250,105 +251,80 @@ class ProcessingProgress:
     self.bk = BookkeepingClient()
     self.transClient = TransformationClient()
 
-  def __getProdBkQuery( self, prod ):
+  def __getProdBkDict( self, prod ):
     res = self.transClient.getBookkeepingQueryForTransformation( prod )
     if not res['OK']:
       gLogger.error( "Couldn't get BK query on production %d" % prod )
       return {}
-    prodBKQuery = res['Value']
-    return prodBKQuery
-
-  def __getProdStatus( self, prod ):
-    res = self.transClient.getTransformation( prod, extraParams = False )
-    if not res['OK']:
-      gLogger.error( "Couldn't get information on production %d" % prod )
-      return None
-    return res['Value']['Status']
+    prodBKDict = res['Value']
+    return prodBKDict
 
   def getFullStats( self, bkQuery, printResult = False ):
+    processingPass = bkQuery.getProcessingPass()
     if printResult:
-      gLogger.info( "\nStatistics for processing %s, condition %s\n" % ( bkQuery['ProcessingPass'], bkQuery['ConditionDescription'] ) )
+      gLogger.info( "\nStatistics for processing %s, condition %s\n" % ( processingPass, bkQuery.getConditions() ) )
     prodStats = []
-    processingPass = bkQuery['ProcessingPass'].split( '/' )
+    processingPass = processingPass.split( '/' )
     if len( processingPass ) != 4 or processingPass[1] != "Real Data":
       gLogger.error( "Processing pass should be /Real Data/<Reco>/<Stripping>" )
       return []
 
     #Get production numbers for the Reco
-    recoBKQuery = bkQuery.copy()
-    recoBKQuery['ProcessingPass'] = '/'.join( processingPass[0:3] )
-    res = self.bk.getProductions( recoBKQuery )
-    if not res['OK']:
-      gLogger.error( "Error getting production numbers for %s : %s" % ( str( recoBKQuery ), res['Message'] ) )
-      return []
-    if not res['Value']['Records']:
-      gLogger.info( "No productions found for BK query %s" % str( recoBKQuery ) )
-    recoList = [prod for p in res['Value']['Records'] for prod in p if self.__getProdStatus( prod ) not in ( 'Cleaned', 'Deleted' )]
+    recoBKQuery = BKQuery( bkQuery )
+    recoBKQuery.setProcessingPass( '/'.join( processingPass[0:3] ) )
+    recoList = recoBKQuery.getBKProductions()
     recoRunRanges = {}
     recoDQFlags = []
     for prod in recoList:
-      prodBKQuery = self.__getProdBkQuery( prod )
-      if prodBKQuery:
-        recoRunRanges[prod] = [prodBKQuery.get( "StartRun", 0 ), prodBKQuery.get( "EndRun", sys.maxint )]
-        dqFlag = prodBKQuery.get( "DataQualityFlag", ['UNCHECKED', 'EXPRESS_OK', 'OK'] )
+      prodBKDict = self.__getProdBkDict( prod )
+      if prodBKDict:
+        recoRunRanges[prod] = [prodBKDict.get( "StartRun", 0 ), prodBKDict.get( "EndRun", sys.maxint )]
+        dqFlag = prodBKDict.get( "DataQualityFlag", ['UNCHECKED', 'EXPRESS_OK', 'OK'] )
         if type( dqFlag ) == type( '' ):
           dqFlags = dqFlag.split( ',' )
         recoDQFlags += [fl for fl in dqFlags if fl not in recoDQFlags]
     # Sort productions by runs
     recoList.sort( cmp = ( lambda p1, p2: int( recoRunRanges[p1][0] - recoRunRanges[p2][1] ) ) )
-    gLogger.debug( "Reconstruction productions found: %s" % str( recoList ) )
-    gLogger.debug( "Reconstruction DQ flags: %s" % str( recoDQFlags ) )
+    gLogger.verbose( "Reconstruction productions found: %s" % str( recoList ) )
+    gLogger.verbose( "Reconstruction DQ flags: %s" % str( recoDQFlags ) )
 
     # Get productions for merging
-    res = self.bk.getProductions( bkQuery )
-    if not res['OK']:
-      gLogger.error( "Error getting merging production numbers for %s : %s" % ( str( bkQuery ), res['Message'] ) )
-      return []
-    if not res['Value']['Records']:
-      gLogger.info( "No productions found for Bk query %s" % str( bkQuery ) )
     mergeList = []
     mergeStripProds = {}
     # Get stripping productions as parents of merging productions
     stripList = []
-    for prod in [prod for p in res['Value']['Records'] for prod in p if self.__getProdStatus( prod ) not in ( 'Cleaned', 'Deleted' )]:
-      prodBKQuery = self.__getProdBkQuery( prod )
-      gLogger.debug( "BK query for production %s: %s" % ( prod, str( prodBKQuery ) ) )
-      if prodBKQuery.get( 'FileType' ) == bkQuery['FileType'] and 'ProductionID' in prodBKQuery:
+    for prod in bkQuery.getBKProductions():
+      prodBKDict = self.__getProdBkDict( prod )
+      gLogger.verbose( "BK query for production %s: %s" % ( prod, str( prodBKDict ) ) )
+      if prodBKDict.get( 'FileType' ) in bkQuery.getFileTypeList() and 'ProductionID' in prodBKDict:
         mergeList.append( prod )
-        prods = prodBKQuery['ProductionID']
+        prods = prodBKDict['ProductionID']
         if type( prods ) != type( [] ):
           prods = [prods]
         stripList += prods
         mergeStripProds[prod] = [str( p ) for p in prods]
       else:
-        gLogger.debug( "Could not find production or filetype %s in BKquery of production %d (%s)" % ( bkQuery['FileType'], prod, str( prodBKQuery ) ) )
+        gLogger.verbose( "Could not find production or filetype %s in BKquery of production %d (%s)" % ( str( bkQuery.getFileTypeList() ), prod, str( prodBKDict ) ) )
     mergeList.sort( cmp = ( lambda p1, p2: int( mergeStripProds[p1][0] ) - int( mergeStripProds[p2][0] ) ) )
-    gLogger.debug( "Merging productions found: %s" % str( mergeList ) )
+    gLogger.verbose( "Merging productions found: %s" % str( mergeList ) )
 
     # get list of stripping productions (from merging)
     stripRunRanges = {}
     for prod in stripList:
-      prodBKQuery = self.__getProdBkQuery( prod )
-      if prodBKQuery:
-        stripRunRanges[prod] = [prodBKQuery.get( "StartRun", 0 ), prodBKQuery.get( "EndRun", sys.maxint )]
+      prodBKDict = self.__getProdBkDict( prod )
+      if prodBKDict:
+        stripRunRanges[prod] = [prodBKDict.get( "StartRun", 0 ), prodBKDict.get( "EndRun", sys.maxint )]
     # Sort productions by runs
     stripList.sort( cmp = ( lambda p1, p2: int( stripRunRanges[p1][0] - stripRunRanges[p2][1] ) ) )
-    gLogger.debug( "Stripping productions found: %s" % str( stripList ) )
+    gLogger.verbose( "Stripping productions found: %s" % str( stripList ) )
 
     # Get all runs corresponding to the run range used by the Reco productions
-    rawBKQuery = bkQuery.copy()
-    rawBKQuery['ProcessingPass'] = '/Real Data'
-    rawBKQuery['FileTypeId'] = "RAW"
+    rawBKQuery = BKQuery( bkQuery )
+    rawBKQuery.setProcessingPass( '/Real Data' )
+    rawBKQuery.setFileType( "RAW" )
     # get the list of runs (-prodNum)
-    res = self.bk.getProductions( rawBKQuery )
-    if not res['OK']:
-      gLogger.error( "Unable to get productions for %s" % rawBKQuery )
-      return []
-    if not res['Value']['Records']:
-      gLogger.info( "No productions found for Bk query %s" % str( rawBKQuery ) )
-    fullRunList = [-run for r in res['Value']['Records'] for run in r]
-    fullRunList.sort()
-    gLogger.debug( "Initial list of runs: %s" % str( fullRunList ) )
+    fullRunList = rawBKQuery.getBKRuns()
+    gLogger.verbose( "Initial list of runs: %s" % str( fullRunList ) )
     recoRunList = []
     open = False
     for prod in [p for p in recoList]:
@@ -362,17 +338,18 @@ class ProcessingProgress:
             break
         if not open: continue
       recoRunList += [run for run in fullRunList if run not in recoRunList and run >= recoRunRanges[prod][0] and run <= recoRunRanges[prod][1]]
-    gLogger.debug( "List of runs matching Reco: %s" % str( recoRunList ) )
+    gLogger.verbose( "List of runs matching Reco: %s" % str( recoRunList ) )
+
     if False and not open and stripList:
       runList = []
       for prod in stripList:
         runList += [run for run in recoRunList if run not in runList and run >= stripRunRanges[prod][0] and run <= stripRunRanges[prod][1]]
     else:
       runList = recoRunList
-    gLogger.debug( "Final list of runs matching Reco and Stripping: %s" % str( runList ) )
+    gLogger.verbose( "Final list of runs matching Reco and Stripping: %s" % str( runList ) )
 
     # Now get statistics from the runs
-    info, runInfo = self._getStatsFromRuns( int( bkQuery['EventType'] ), runList, recoDQFlags )
+    info, runInfo = self._getStatsFromRuns( int( bkQuery.getEventTypeList()[0] ), runList, recoDQFlags )
     rawInfo = StatInfo( processingPass[1], info )
     prodStats.append( rawInfo )
     if printResult:
@@ -388,9 +365,10 @@ class ProcessingProgress:
 
     # Create the info for the 3 sets of productions
     prodSets = []
+    fileType = bkQuery.getFileTypeList()[0]
     prodSets.append( {'Name': processingPass[2], 'FileType': "SDST", 'List':recoList, 'RunRange':recoRunRanges, 'MotherProds':None} )
-    prodSets.append( {'Name': processingPass[3], 'FileType': bkQuery['FileType'], 'List':stripList, 'RunRange':stripRunRanges, 'MotherProds':None} )
-    prodSets.append( {'Name': "Merging (%s)" % bkQuery['FileType'].split( '.' )[0], 'FileType': bkQuery['FileType'], 'List':mergeList, 'RunRange':None, 'MotherProds':mergeStripProds } )
+    prodSets.append( {'Name': processingPass[3], 'FileType': fileType, 'List':stripList, 'RunRange':stripRunRanges, 'MotherProds':None} )
+    prodSets.append( {'Name': "Merging (%s)" % fileType.split( '.' )[0], 'FileType': fileType, 'List':mergeList, 'RunRange':None, 'MotherProds':mergeStripProds } )
 
     prevInfo = rawInfo
     for prodSet in prodSets:
@@ -499,9 +477,6 @@ class ProcessingProgress:
           break
     return runDQFlags
 
-  def __isBadRun( self, run ):
-    return run in self.__getBadRuns( [run] )
-
   def _getStatsFromRuns( self, evtType, runList, recoDQFlags ):
     info = dict.fromkeys( ( 'Events', 'Runs', 'Files', 'Lumi' ), {} )
     for c in info:
@@ -576,7 +551,7 @@ class ProcessingProgress:
     lfnDict = {}
     cachedParams = ( 'EventStat', 'Luminosity', 'DQFlag' )
     if len( lfns ):
-      gLogger.debug( "Getting metadata for %d files" % len( lfns ) )
+      gLogger.verbose( "Getting metadata for %d files" % len( lfns ) )
       res = self.bk.getFileMetadata( lfns )
       if not res['OK']:
         gLogger.error( "Error getting files metadata", res['Message'] )
@@ -589,10 +564,11 @@ class ProcessingProgress:
     return lfnDict
 
   def _getStatsFromBK( self, prod, fileType, runList ):
-    bkQuery = { "ProductionID": prod, "FileType": fileType }
+    bkQueryDict = { "ProductionID": prod, "FileType": fileType }
     cachedParams = ( 'EventStat', 'Luminosity', 'DQFlag' )
-    bkStr = str( bkQuery )
-    bkQuery['ReplicaFlag'] = "All"
+    bkStr = str( bkQueryDict )
+    bkQuery = BKQuery( bkQueryDict )
+    bkQuery.setOption( 'ReplicaFlag', "All" )
     cached = self.cachedInfo.get( bkStr, {} )
     cachedTime = cached.get( 'Time', None )
     cachedLfns = cached.get( 'Lfns', {} )
@@ -611,15 +587,11 @@ class ProcessingProgress:
 
     # Now get the new files since last time...
     if cachedTime:
-      bkQuery['StartDate'] = cachedTime.strftime( '%Y-%m-%d %H:%M:%S' )
-    gLogger.debug( "Getting files for BKQuery %s" % str( bkQuery ) )
-    res = self.bk.getFilesWithGivenDataSets( bkQuery )
+      bkQuery.setOption( 'StartDate', cachedTime.strftime( '%Y-%m-%d %H:%M:%S' ) )
+    gLogger.verbose( "Getting files for BKQuery %s" % str( bkQuery ) )
     cachedTime = datetime.datetime.utcnow()
-    if not res['OK']:
-      gLogger.error( "Error getting files for bkQuery %s: %s" % ( bkStr, res['Message'] ) )
-      return {}
-    lfns = [lfn for lfn in res['Value'] if lfn not in cachedLfns]
-    gLogger.debug( "Returned %d files" % len( lfns ) )
+    lfns = [lfn for lfn in bkQuery.getLFNs( printOutput = False ) if lfn not in cachedLfns]
+    gLogger.verbose( "Returned %d files" % len( lfns ) )
     cachedLfns.update( self.__getLfnsMetadata( lfns ) )
 
     self.cachedInfo[bkStr] = { 'Time':cachedTime, 'Lfns':cachedLfns }
@@ -720,7 +692,7 @@ class ProcessingProgress:
           pickle.dump( self.cacheVersion, f )
           pickle.dump( self.cachedInfo, f )
           f.close()
-          gLogger.debug( "Successfully wrote pickle file %s" % self.prodStatFile )
+          gLogger.verbose( "Successfully wrote pickle file %s" % self.prodStatFile )
           fileSaved = True
       except KeyboardInterrupt:
         gLogger.info( "<CTRL-C> hit while saving cache file, retry..." )
