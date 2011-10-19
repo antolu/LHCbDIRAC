@@ -31,7 +31,7 @@ xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
 #### Helper functions to send a warning mail to a site (for space-token test)
 
 def get_pledged_value_for_token(se, st):
-  val = gConfig.getValue("/Resources/Sites/LCG/"+se+"/"+st+"/pledge2011")
+  val = gConfig.getValue("/Resources/Shares/Disk/"+se.split(".")[1]+"/"+st)
   return (val if val != None else 0)
 
 def contact_mail_of_site(site):
