@@ -60,15 +60,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __removeProcessedFiles( self ):
     """
-    Checks if the LFNs have descendants in the same transformation. Returns the list of thos that do not have
+    Checks if the LFNs have descendants in the same transformation. Removes them from self.data
+    and sets them 'Processed'
     """
     transID = self.params['TransformationID']
     lfns = self.data.keys()
     startTime = time.time()
-    res = self.bk.getAllDescendents( lfns, production = transID, depth = 1 )
+    res = self.bk.getAllDescendents( lfns, production = int( transID ), depth = 1 )
     self.__logVerbose( "Got Descendents of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime ) )
     if not res['OK']:
-      self.__logError( "Cannot get descendants of files" )
+      self.__logError( "Cannot get descendants of files: %s", res['Message'] )
       return
     else:
       descendants = res['Value']['Successful']
@@ -646,7 +647,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         cachedLfns = self.cachedRunLfns.setdefault( runID, {} ).setdefault( paramValue, [] )
         newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
         if len( newLfns ) == 0 and transID > 0:
-          self.__logInfo( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
+          self.__logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         else:
           self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
