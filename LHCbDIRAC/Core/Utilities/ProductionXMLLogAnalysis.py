@@ -125,7 +125,7 @@ class AnalyseXMLLogFile:
       return res
  
     # ~Hack for MC with Gauss, there should not be input files
-    if not ( self.jobType == 'MCsimulation' and self.applicationName == 'Gauss' ):
+    if not ( self.jobType == 'MCSimulation' and self.applicationName == 'Gauss' ):
       # Checks that all input files have been read
       res = self.__checkReadInputFiles()
       if not res['OK']:
@@ -283,7 +283,7 @@ class AnalyseXMLLogFile:
   def __checkErrors( self, type ):
  
     if type not in [ 'APPLICATION', 'GAUDI' ]:
-      return S_ERROR( 'Wrong error type name' )
+      return S_ERROR( 'Wrong error type name %s' % type )
  
     errors = getattr( self, '__%s_ERRORS__' % type )
  
@@ -388,7 +388,7 @@ class AnalyseXMLLogFile:
         self.gLogger.error( 'File %s is on unknown status: %s' % ( file,status ) )
         fileCounter[ 'other'] += 1    
      
-    files = [ '%d file(s) on %s status' % (v,k) for k,v in fileCounter.items()]
+    files = [ '%d file(s) on %s status' % (v,k) for k,v in fileCounter.items() if v > 0 ]
     filesMsg =  ', '.join( files )
     self.gLogger.info( filesMsg )
 
