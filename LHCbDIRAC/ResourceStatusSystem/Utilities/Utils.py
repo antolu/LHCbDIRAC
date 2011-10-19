@@ -167,7 +167,7 @@ def typedobj_of_string(s):
     return s
   try:
     return eval(s)
-  except (ValueError, SyntaxError): # Probably it's just a string
+  except: # Probably it's just a string
     return s
 
 # String utils
