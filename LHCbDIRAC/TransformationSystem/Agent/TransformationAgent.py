@@ -17,6 +17,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.cacheFile = os.path.join( self.workDirectory, 'ReplicaCache.pkl' )
     # Get it threaded
     self.maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
+    self.debug = self.am_getOption( 'verbosePlugin', False )
     self.threadPool = ThreadPool( self.maxNumberOfThreads,
                                             self.maxNumberOfThreads )
     self.transQueue = Queue.Queue()
@@ -147,7 +148,8 @@ class TransformationAgent( DIRACTransformationAgent ):
     oplugin = res['Value']
     oplugin.setDirectory( self.workDirectory )
     oplugin.setCallback( self.pluginCallback )
-    oplugin.setDebug()
+    if self.debug:
+      oplugin.setDebug()
     return S_OK( oplugin )
 
   def pluginCallback( self, transID, invalidateCache = False ):
