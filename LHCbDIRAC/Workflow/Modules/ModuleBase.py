@@ -46,7 +46,7 @@ class ModuleBase( object ):
                step_number = None, step_id = None ):
 
     if version:
-      self.log.info( 'Executing ' + version )
+      self.log.info( '===== Executing ' + version + ' ===== ' )
 
     if not production_id:
       self.production_id = self.PRODUCTION_ID
@@ -89,6 +89,17 @@ class ModuleBase( object ):
       self.step_id = self.STEP_ID
     else:
       self.step_id = step_id
+
+  #############################################################################
+
+  def finalize( self, version = None ):
+    """ Just finalizing
+    """
+
+    self.log.flushAllMessages( 0 )
+
+    if version:
+      self.log.info( '===== Terminating ' + version + ' ===== ' )
 
   #############################################################################
 

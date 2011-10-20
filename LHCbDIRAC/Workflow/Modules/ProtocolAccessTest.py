@@ -225,6 +225,9 @@ class ProtocolAccessTest( ModuleBase ):
     self.log.info( "%s %s %s %s %s %s %s" % ( 'lfn'.ljust( 70 ), 'protocol'.ljust( 10 ), 'opening'.ljust( 10 ), 'events'.ljust( 10 ), 'mean'.ljust( 10 ), 'stdev'.ljust( 10 ), 'median'.ljust( 10 ) ) )
     for statString in statsStrings:
       self.log.info( statString )
+
+    super( ProtocolAccessTest, self ).finalize( self.version )
+
     return S_OK()
 
   #############################################################################

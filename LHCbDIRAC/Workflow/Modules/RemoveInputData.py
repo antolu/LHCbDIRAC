@@ -96,6 +96,9 @@ class RemoveInputData( ModuleBase ):
       self.__setFileRemovalRequest( lfn )
 
     self.workflow_commons['Request'] = self.request
+
+    super( RemoveInputData, self ).finalize( self.version )
+
     return S_OK( 'Input Data Removed' )
 
   #############################################################################

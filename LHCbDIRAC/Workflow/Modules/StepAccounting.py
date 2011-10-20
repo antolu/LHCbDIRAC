@@ -81,6 +81,9 @@ class StepAccounting( ModuleBase ):
       return S_ERROR( 'Application failed' )
     if status == "Failed":
       return S_ERROR( 'Workflow failure' )
+
+    super( StepAccounting, self ).finalize( self.version )
+
     return S_OK()
 
 

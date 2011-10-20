@@ -154,7 +154,11 @@ class FailoverRequest( ModuleBase ):
       digest = result['Value']
       self.log.info( digest )
 
-    return self.finalize()
+    res = self.finalize()
+
+    super( FailoverRequest, self ).finalize( self.version )
+
+    return res
 
   #############################################################################
 

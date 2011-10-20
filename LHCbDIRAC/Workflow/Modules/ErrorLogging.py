@@ -76,6 +76,8 @@ class ErrorLogging( ModuleBase ):
     self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
     self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.step_number )
 
+    super( ErrorLogging, self ).finalize( self.version )
+
     return S_OK( 'Parameters resolved' )
 
   #############################################################################

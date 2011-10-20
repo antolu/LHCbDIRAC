@@ -255,6 +255,9 @@ class GaudiApplication( ModuleBase ):
 
     # Still have to set the application status e.g. user job case.
     self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
+
+    super( GaudiApplication, self ).finalize( self.version )
+
     return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
   #############################################################################

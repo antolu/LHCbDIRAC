@@ -29,6 +29,7 @@ class SendBookkeeping( ModuleBase ):
     self.request = None
 
   #############################################################################
+
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
@@ -85,5 +86,7 @@ class SendBookkeeping( ModuleBase ):
         self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
         self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
         self.workflow_commons['Request'] = self.request
+
+    super( SendBookkeeping, self ).finalize( self.version )
 
     return S_OK( 'SendBookkeeping Module Execution Complete' )

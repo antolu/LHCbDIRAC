@@ -178,6 +178,9 @@ class GaudiApplicationScript( ModuleBase ):
 
     #Above can't be removed as it is the last notification for user jobs
     self.setApplicationStatus( '%s (%s %s) Successful' % ( os.path.basename( self.script ), self.applicationName, self.applicationVersion ) )
+
+    super( GaudiApplicationScript, self ).finalize( self.version )
+
     return S_OK( '%s (%s %s) Successful' % ( os.path.basename( self.script ), self.applicationName, self.applicationVersion ) )
 
   #############################################################################

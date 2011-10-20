@@ -340,6 +340,9 @@ class UserJobFinalization( ModuleBase ):
         self.log.info( digest )
 
     self.setApplicationStatus( 'Job Finished Successfully' )
+
+    super( UserJobFinalization, self ).finalize( self.version )
+
     return S_OK( 'Output data uploaded' )
 
   #############################################################################

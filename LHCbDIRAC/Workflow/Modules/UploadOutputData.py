@@ -313,6 +313,9 @@ class UploadOutputData( ModuleBase ):
             return result
 
     self.workflow_commons['Request'] = self.request
+
+    super( UploadOutputData, self ).finalize( self.version )
+
     return S_OK( 'Output data uploaded' )
 
   #############################################################################

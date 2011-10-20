@@ -210,7 +210,12 @@ class AnalyseLogFile( ModuleBase ):
 
     self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
     self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
-    return self.updateFileStatus( self.jobInputData, "Processed" )
+
+    res = self.updateFileStatus( self.jobInputData, "Processed" )
+
+    super( AnalyseLogFile, self ).finalize( self.version )
+
+    return res
 
   #############################################################################
 

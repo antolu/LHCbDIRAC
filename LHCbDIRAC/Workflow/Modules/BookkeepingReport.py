@@ -88,6 +88,8 @@ class BookkeepingReport( ModuleBase ):
     else:
       print doc
 
+    super( BookkeepingReport, self ).finalize( self.version )
+
     return S_OK()
 
 

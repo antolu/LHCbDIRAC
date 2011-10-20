@@ -162,7 +162,13 @@ class MergeMDF( ModuleBase ):
     msg = 'SUCCESS: All input files downloaded and merged to produce %s' % ( self.outputDataName )
     self.log.info( msg )
     logLines.append( msg )
-    return self.finalize( logLines, msg = 'Produced merged MDF file' )
+
+
+    res = self.finalize( logLines, msg = 'Produced merged MDF file' )
+
+    super( MergeMDF, self ).finalize( self.version )
+
+    return res
 
   #############################################################################
   def finalize( self, logLines, msg = '', error = '' ):

@@ -111,6 +111,7 @@ class UploadLogFile( ModuleBase ):
     res = self.finalize( rm, ft )
     self.workflow_commons['Request'] = self.request
 
+    super( UploadLogFile, self ).finalize( self.version )
 
     return res
 
@@ -161,8 +162,6 @@ class UploadLogFile( ModuleBase ):
     logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
     self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
-
-    self.log.flushAllMessages( 0 )
 
     res = rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
     self.log.verbose( res )
