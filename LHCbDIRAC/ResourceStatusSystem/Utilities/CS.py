@@ -197,7 +197,7 @@ def getSpaceTokens():
   return ["LHCb_USER", "LHCb-Disk", "LHCb-Tape"]
 
 def getSpaceTokenEndpoints():
-  return getTypedDictRootedAt("/Resources/Shares/Disk")
+  return getTypedDictRootedAt(root="", relpath="/Resources/Shares/Disk")
 
 # FTS functions #####################
 

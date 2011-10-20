@@ -27,32 +27,36 @@ xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
 #### Helper functions to send a warning mail to a site (for space-token test)
 
 def get_pledged_value_for_token(se, st):
-  val = gConfig.getValue("/Resources/Shares/Disk/"+se.split(".")[1]+"/"+st)
+  val = float(gConfig.getValue("/Resources/Shares/Disk/"+se+"/"+st))
   return (val if val != None else 0)
 
 def contact_mail_of_site(site):
   infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/Sites/LCG")
-  try:
-    return infos[site]['Mail']
-  except KeyError:
-    gLogger.warn("Unable to get contact mail for site %s" % site)
-    return ""
+  for entry in infos:
+    if site in entry:
+      try:
+        return infos[entry]['Mail']
+      except KeyError:
+        gLogger.warn("Unable to get contact mail for site %s" % site)
+        return ""
 
-def send_mail_to_site(site, pledged, token, total):
+def send_mail_to_site(site, token, pledged, total):
   from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
   nc = NotificationClient()
-  subject = "Site %s provide insufficient space for space-token %s" % (site, token)
+  subject = "%s provide insufficient space for space-token %s" % (site, token)
   body =  """
-Hi ! Our RSS monitoring systems informs us that your site %s has
-pledged %d TB to the space-token %s, but in reality, only %d TB of
+Hi ! Our RSS monitoring systems informs us that %s has
+pledged %f TB to the space-token %s, but in reality, only %f TB of
 space is available. Thanks to solve the problem if possible.
 
 """ % (site, pledged, token, total)
   address = contact_mail_of_site(site)
-  if address != "":
+  if address:
     res = nc.sendMail(address, subject, body)
     if res['OK'] == False:
-      gLogger.warn("Unable to send mail to site %s: %s" % (site, res['Message']))
+      gLogger.warn("Unable to send mail to %s: %s" % (address, res['Message']))
+    else:
+      gLogger.info("Sent mail to %s OK!" % address)
 
 class TestBase(object):
   def __init__(self, am):
@@ -99,9 +103,9 @@ class SpaceTokenOccupancyTest(TestBase):
 
       if answer[0] == 0:
         output       = answer[1][0]
-        total        = float(output['totalsize']) / 2**40 # Bytes to Terabytes
-        guaranteed   = float(output['guaranteedsize']) / 2**40
-        free         = float(output['unusedsize']) / 2**40
+        total        = float(output['totalsize']) / 1e12 # Bytes to Terabytes
+        guaranteed   = float(output['guaranteedsize']) / 1e12
+        free         = float(output['unusedsize']) / 1e12
         availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
         validity     = self.getTestOption("validity")
       else:
@@ -141,7 +145,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
     self.rmDB.updateSLSStorage(site, st, availability, "PT27M", validity, total, guaranteed, free)
 
-    xmlfile = open(self.xmlPath + st + ".xml", "w")
+    xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
@@ -151,18 +155,18 @@ class SpaceTokenOccupancyTest(TestBase):
 
     # Send notifications
     pledged = get_pledged_value_for_token(site, st)
-    if not fake and total < pledged:
-      send_mail_to_site(site, pledged, st, total)
+    if not fake and total+1 < pledged:
+      gLogger.info("%s/%s: pledged = %f, total = %f, sending mail to site..." % (site, st, pledged, total))
+      send_mail_to_site(site, st, pledged, total)
 
     # Dashboard
-    dbfile = open(self.xmlPath + st + "_space_monitor", "w")
+    dbfile = open(self.xmlPath + site + "_" + st  + "_space_monitor", "w")
     try:
       dbfile.write(st + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
     finally:
       dbfile.close()
 
-    gLogger.info("SpaceTokenOccupancyTest: %s done." % st)
-
+    gLogger.info("SpaceTokenOccupancyTest: %s/%s done." % (site, st))
 
 class DIRACTest(TestBase):
   def __init__(self, am):
