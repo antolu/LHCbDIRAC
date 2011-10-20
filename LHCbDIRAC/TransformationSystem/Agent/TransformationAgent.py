@@ -21,6 +21,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.threadPool = ThreadPool( self.maxNumberOfThreads,
                                             self.maxNumberOfThreads )
     self.transQueue = Queue.Queue()
+    self.transInQueue = []
     self.lock = threading.Lock()
     self.__readCache()
     # Validity of the cache in days
@@ -29,6 +30,8 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.log.debug( "Hello! This is the LHCbDirac TransformationAgent!" )
     self.log.debug( "*************************************************" )
     self.log.info( "Multithreaded with %d threads" % self.maxNumberOfThreads )
+    for i in xrange( self.maxNumberOfThreads ):
+      self.threadPool.generateJobAndQueueIt( self._execute )
     return S_OK()
 
   def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
@@ -50,22 +53,20 @@ class TransformationAgent( DIRACTransformationAgent ):
     # Get the transformations to process
     res = self.getTransformations()
     if not res['OK']:
-      self.__logInfo( "Failed to obtain transformations: %s" % ( res['Message'] ) )
+      self.__logError( "Failed to obtain transformations: %s" % ( res['Message'] ) )
       return S_OK()
     # Process the transformations
     for transDict in res['Value']:
-      self.transQueue.put( transDict )
-    for i in xrange( self.maxNumberOfThreads ):
-      self.threadPool.generateJobAndQueueIt( self._execute )
-
-    while not self.transQueue.empty():
-      time.sleep( 1 )
+      transID = long( transDict['TransformationID'] )
+      if transID not in self.transInQueue:
+        self.transInQueue.append( transID )
+        self.transQueue.put( transDict )
 
     return S_OK()
 
   def _execute( self ):
 
-    while not self.transQueue.empty():
+    while True:
       transDict = self.transQueue.get()
       transID = long( transDict['TransformationID'] )
       self.__logInfo( "Processing transformation %s." % transID, transID = transID )
@@ -75,6 +76,7 @@ class TransformationAgent( DIRACTransformationAgent ):
         self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID = transID )
       else:
         self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
+      self.transInQueue.remove( transID )
     return S_OK()
 
   def __getDataReplicas( self, transID, lfns, active = True ):
