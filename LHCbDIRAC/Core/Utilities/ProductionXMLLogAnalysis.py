@@ -32,22 +32,22 @@ import string, re, os
 #firstStepInputEvents = 0
                                 
 def analyseXMLLogFile( fileName, applicationName = '', stepName = '', prod = '', job = '', jobType = '' ):
-  
+
   analyser = AnalyseXMLLogFile( fileName, applicationName, stepName, prod, job, jobType )
   return analyser.analise()
-  
+
 class AnalyseXMLLogFile:
-   
-  ''' Allowed application names ''' 
-  __APPLICATION_NAMES__  = ['Boole', 'Gauss', 'Brunel', 'DaVinci', 'LHCb', 'Moore']
- 
+
+  ''' Allowed application names '''
+  __APPLICATION_NAMES__ = ['Boole', 'Gauss', 'Brunel', 'DaVinci', 'LHCb', 'Moore']
+
   ''' Well known application Errors '''
   __APPLICATION_ERRORS__ = {
     'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
   }
- 
+
   ''' Well known Gaudi Errors '''
-  __GAUDI_ERRORS__       = {
+  __GAUDI_ERRORS__ = {
     'Cannot connect to database'                                     : 'error database connection',
     'Could not connect'                                              : 'CASTOR error connection',
     'SysError in <TDCacheFile::ReadBuffer>: error reading from file' : 'DCACHE connection error',
@@ -63,49 +63,49 @@ class AnalyseXMLLogFile:
     'User defined signal 1'                                          : 'User defined signal 1',
     'Not found DLL'                                                  : 'Not found DLL'
   }
-    
+
   def __init__( self, fileName, applicationName, stepName, prod, job, jobType ):
-    
-    self.fileName             = fileName
-    self.fileString           = ''
-    
-    self.xmlFileName          = ''
-    self.xmlTree              = None
-    
-    self.applicationName      = applicationName
-    self.stepName             = stepName
-    self.jobType              = jobType
-    self.prodName             = prod
-    self.jobName              = job
-    
-    self.dataSummary          = {}
-    self.numberOfEventsInput  = 0
+
+    self.fileName = fileName
+    self.fileString = ''
+
+    self.xmlFileName = ''
+    self.xmlTree = None
+
+    self.applicationName = applicationName
+    self.stepName = stepName
+    self.jobType = jobType
+    self.prodName = prod
+    self.jobName = job
+
+    self.dataSummary = {}
+    self.numberOfEventsInput = 0
     self.numberOfEventsOutput = 0
-    
-    self.gLogger              = gLogger.getSubLogger( 'AnalyseXMLLogFile' )
+
+    self.gLogger = gLogger.getSubLogger( 'AnalyseXMLLogFile' )
 
   def analise( self ):
-    
+
     # Check the log file exists and get the contents
     res = self.__openFile()
     if not res[ 'OK' ]:
-      return res  
-    
+      return res
+
     #For the production case the application name will always be given, for the
     #standalone utility this may not always be true so try to guess
     res = self.__guessAppName()
     if not res[ 'OK' ]:
       return res
-    
+
     res = self.__guessStepID()
     if not res[ 'OK' ]:
       return res
-    
+
     # Check the xml log file exists and get it as a tree
     res = self.__parseXML()
     if not res[ 'OK' ]:
-      return res  
-    
+      return res
+
     # Check that no errors were seen in the log
     res = self.__checkGaudiErrors()
     if not res['OK']:
@@ -123,7 +123,7 @@ class AnalyseXMLLogFile:
     if not res['OK']:
       res['Data'] = self.dataSummary
       return res
- 
+
     # ~Hack for MC with Gauss, there should not be input files
     if not ( self.jobType == 'MCSimulation' and self.applicationName == 'Gauss' ):
       # Checks that all input files have been read
@@ -139,34 +139,34 @@ class AnalyseXMLLogFile:
       return res
 
     res = S_OK( '%s Completed Successfully' % self.applicationName )
-    
+
     res['numberOfEventsOutput'] = self.numberOfEventsOutput
-    res['numberOfEventsInput']  = self.numberOfEventsInput
+    res['numberOfEventsInput'] = self.numberOfEventsInput
     #result['FirstStepInputEvents'] = firstStepInputEvents
-    
+
     return res
 ################################################################################
 
   def __openFile( self ):
-    
+
     self.gLogger.info( "Attempting to open log file: %s" % self.fileName )
-  
+
     if not os.path.exists( self.fileName ):
       self.gLogger.error( 'Requested log file "%s" is not available' % self.fileName )
       return S_ERROR( 'Log File Not Available' )
-    
+
     if os.stat( self.fileName )[6] == 0:
       self.gLogger.error( 'Requested log file "%s" is empty' % self.fileName )
       return S_ERROR( 'Log File Is Empty' )
 
-    fopen           = open( self.fileName, 'r' )
+    fopen = open( self.fileName, 'r' )
     self.fileString = fopen.read()
     fopen.close()
 
     return S_OK()
 
   def __guessAppName( self ):
-    
+
     #For the production case the application name will always be given, for the
     #standalone utility this may not always be true so try to guess
     if not self.applicationName:
@@ -190,61 +190,61 @@ class AnalyseXMLLogFile:
         script ), we try to get them from the log file name. This is a horrible
         practice, and if the syntax changes, this will crash.
     '''
-    
+
     if self.prodName and self.jobName and self.stepName:
       return S_OK()
-    
+
     self.gLogger.info( 'Guessing production, job and step from %s' % self.fileName )
-    
+
     # We know that the log file names look like this:
     # <AppName>_<prodName>_<jobName>_<stepName>.log
-       
+
     guess = self.fileName
-    guess = guess.replace( '.log', '')
+    guess = guess.replace( '.log', '' )
     guess = guess.split( '_' )
-    
-    if len(guess) != 4:
+
+    if len( guess ) != 4:
       self.gLogger.error( 'Could not guess production, job and step from %s' % self.fileName )
       return S_ERROR( 'Production, job and step params missing' )
-    
+
     self.prodName = guess[ 1 ]
-    self.jobName  = guess[ 2 ]
+    self.jobName = guess[ 2 ]
     self.stepName = guess[ 3 ]
-    
+
     self.gLogger.info( 'Guessed prod: %s, job: %s and step: %s' % ( self.prodName, self.jobName, self.stepName ) )
-    
+
     return S_OK()
 
   def __parseXML( self ):
-   
+
     # It was used application name, but we can have multiple steps with the
     # same application name, so we'd better use the stepName, which is
     # <appName>_<stepID> : eg. Gauss_1, Boole_2, Moore_3, Moore_4
 #    xmlFileName = '%s_%s_%s_%s_XMLSummary.xml' % ( self.prodName, self.jobName,self.stepName, self.applicationName )
-    
+
     xmlFileName = 'summary%s_%s_%s_%s.xml' % ( self.applicationName, self.prodName, self.jobName, self.stepName )
-    
+
     if '/' in self.fileName:
       self.xmlFileName = '%s/' % self.fileName.rsplit( '/', 1 )[ 0 ]
-      
-    self.xmlFileName += xmlFileName        
+
+    self.xmlFileName += xmlFileName
     self.gLogger.info( "Attempting to parse xml log file: %s" % self.xmlFileName )
 
     if not os.path.exists( self.xmlFileName ):
       self.gLogger.error( 'Requested xml log file "%s" is not available' % self.xmlFileName )
       return S_ERROR( 'XML Log File Not Available' )
-    
+
     if os.stat( self.xmlFileName )[6] == 0:
       self.gLogger.error( 'Requested xml log file "%s" is empty' % self.xmlFileName )
       return S_ERROR( 'XML Log File Is Empty' )
-   
-    summary      = XMLTreeParser()
-    
+
+    summary = XMLTreeParser()
+
     try:
       self.xmlTree = summary.parse( self.xmlFileName )
     except Exception, e:
       return S_ERROR( 'Error parsing xml summary: %s' % e )
-          
+
     return S_OK()
 
 ################################################################################
@@ -252,7 +252,7 @@ class AnalyseXMLLogFile:
 ################################################################################
 
   def __checkGaudiErrors( self ):
-    
+
     """ This method stores Gaudi strings that are well known and determines
         success / failure based on conventions.
     """
@@ -269,30 +269,30 @@ class AnalyseXMLLogFile:
       if not okay:
         self.gLogger.error( '"%s" was not found in log...' % toFind )
         return S_ERROR( 'Finalization Error' )
- 
-    appErrors   = self.__checkErrors( 'APPLICATION' )
+
+    appErrors = self.__checkErrors( 'APPLICATION' )
     if not appErrors[ 'OK' ]:
       return appErrors
- 
+
     gaudiErrors = self.__checkErrors( 'GAUDI' )
     if not gaudiErrors[ 'OK' ]:
       return gaudiErrors
- 
-    return S_OK( 'All checks passed' )    
+
+    return S_OK( 'All checks passed' )
 
   def __checkErrors( self, type ):
- 
+
     if type not in [ 'APPLICATION', 'GAUDI' ]:
       return S_ERROR( 'Wrong error type name %s' % type )
- 
+
     errors = getattr( self, '__%s_ERRORS__' % type )
- 
+
     for errString, description in errors.items():
       self.gLogger.info( 'Checking for "%s" meaning job would fail with "%s"' % ( errString, description ) )
       found = re.findall( errString, self.fileString )
       if found:
         self.gLogger.error( 'Found error in log file => "%s"' % errString )
-        
+
         if type == 'APPLICATION':
           result = self.__getLastFile()
           if result[ 'OK' ]:
@@ -309,18 +309,18 @@ class AnalyseXMLLogFile:
   def __checkSuccess( self ):
     """Checks that the XML summary reports success == True
     """
-    
+
     res = self.__getSuccess()
     if not res[ 'OK' ]:
-      self.gLogger.error( 'XMLSummary success bad formated %s' % res[ 'Message' ] )  
+      self.gLogger.error( 'XMLSummary success bad formated %s' % res[ 'Message' ] )
       return res
-    
-    if not res['Value'] == 'True':  
+
+    if not res['Value'] == 'True':
       self.gLogger.error( 'XMLSummary did NOT succeed ( success = False )' )
       return S_ERROR( False )
-    
-    self.gLogger.info( 'XMLSummary reports success = True ' )  
-    return res  
+
+    self.gLogger.info( 'XMLSummary reports success = True ' )
+    return res
 
 ################################################################################
 
@@ -330,15 +330,15 @@ class AnalyseXMLLogFile:
 
     res = self.__getStep()
     if not res[ 'OK' ]:
-      self.gLogger.error( 'XMLSummary step bad formated %s' % res[ 'Message' ] )  
+      self.gLogger.error( 'XMLSummary step bad formated %s' % res[ 'Message' ] )
       return res
-    
-    if res['Value'] != 'finalize':  
+
+    if res['Value'] != 'finalize':
       self.gLogger.error( 'XMLSummary reports step did not finalize' )
       return S_ERROR( res['Value'] )
-    
-    self.gLogger.info( 'XMLSummary reports step finalized' )  
-    return res  
+
+    self.gLogger.info( 'XMLSummary reports step finalized' )
+    return res
 
 ################################################################################
 
@@ -353,7 +353,7 @@ class AnalyseXMLLogFile:
 
     res = self.__getInputStatus()
     if not res[ 'OK' ]:
-      self.gLogger.error( 'XMLSummary bad formated %s' % res[ 'Message' ] )  
+      self.gLogger.error( 'XMLSummary bad formated %s' % res[ 'Message' ] )
       return res
 
     fileCounter = {
@@ -364,37 +364,37 @@ class AnalyseXMLLogFile:
                    'other' : 0
                    }
 
-    for file,status in res[ 'Value' ]:
-      
+    for file, status in res[ 'Value' ]:
+
       if status == 'fail':
         self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
-        fileCounter[ 'fail' ] += 1  
+        fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
         self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
-        fileCounter[ 'mult' ] += 1  
+        fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
         self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
-        fileCounter[ 'part' ] += 1  
+        fileCounter[ 'part' ] += 1
 
       elif status == 'full':
         #If it is Ok, we do not print anything
         #self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
-        fileCounter[ 'full' ] += 1  
-  
+        fileCounter[ 'full' ] += 1
+
       # This should never happen, but just in case
       else:
-        self.gLogger.error( 'File %s is on unknown status: %s' % ( file,status ) )
-        fileCounter[ 'other'] += 1    
-     
-    files = [ '%d file(s) on %s status' % (v,k) for k,v in fileCounter.items() if v > 0 ]
-    filesMsg =  ', '.join( files )
+        self.gLogger.error( 'File %s is on unknown status: %s' % ( file, status ) )
+        fileCounter[ 'other'] += 1
+
+    files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
+    filesMsg = ', '.join( files )
     self.gLogger.info( filesMsg )
 
     if fileCounter[ 'full' ] != sum( fileCounter.values() ):
       return S_ERROR( filesMsg )
-    
+
     return S_OK()
 
 ################################################################################
@@ -403,11 +403,11 @@ class AnalyseXMLLogFile:
     """ Internally calls the correctly named method to check the number of
         events in an application log file.
     """
-    
+
     try:
-      self.numberOfEventsInput  = self.__getInputEvents()[ 'Value' ]
+      self.numberOfEventsInput = self.__getInputEvents()[ 'Value' ]
       self.numberOfEventsOutput = self.__getOutputEvents()[ 'Value' ]
-    except Exception, e:     
+    except Exception, e:
       return S_ERROR( e )
     return S_OK()
 
@@ -424,13 +424,13 @@ class AnalyseXMLLogFile:
        
        <success>True/False</success>    
     '''
-    
+
     sum = self.xmlTree[ 0 ]
-    
+
     successXML = sum.childrens( 'success' )
     if len( successXML ) != 1:
-      return S_ERROR( 'Nr of success items != 1' ) 
-    
+      return S_ERROR( 'Nr of success items != 1' )
+
     return S_OK( successXML[ 0 ].value )
 
   def __getStep( self ):
@@ -440,14 +440,14 @@ class AnalyseXMLLogFile:
        
        <step>finalize/x/y...</step>    
     '''
-    
+
     sum = self.xmlTree[ 0 ]
-    
+
     stepXML = sum.childrens( 'step' )
     if len( stepXML ) != 1:
-      return S_ERROR( 'Nr of step items != 1' ) 
-    
-    return S_OK( stepXML[ 0 ].value )      
+      return S_ERROR( 'Nr of step items != 1' )
+
+    return S_OK( stepXML[ 0 ].value )
 
   def __getInputStatus( self ):
     '''
@@ -459,20 +459,20 @@ class AnalyseXMLLogFile:
         < input >
         ...
     '''
-    
+
     files = []
-    
+
     sum = self.xmlTree[ 0 ]
-    
+
     for input in sum.childrens( 'input' ):
       for file in input.childrens( 'file' ):
         try:
-          files.append( ( file.attributes[ 'name' ], file.attributes[ 'status' ] ) ) 
+          files.append( ( file.attributes[ 'name' ], file.attributes[ 'status' ] ) )
         except Exception, e:
-          return S_ERROR( 'Bad formatted file keys. %s' % e ) 
- 
+          return S_ERROR( 'Bad formatted file keys. %s' % e )
+
     return S_OK( files )
- 
+
   def __getInputEvents( self ):
     '''
       We know beforehand the structure of the XML, which makes our life
@@ -483,16 +483,16 @@ class AnalyseXMLLogFile:
         < input >
         ...
     '''
-    inputEvents = 0   
+    inputEvents = 0
 
     sum = self.xmlTree[ 0 ]
-    
+
     for input in sum.childrens( 'input' ):
       for file in input.childrens( 'file' ):
-        inputEvents += int( file.value )    
-    
+        inputEvents += int( file.value )
+
     return S_OK( inputEvents )
-  
+
 ####  
 
   def __getOutputEvents( self ):
@@ -505,27 +505,27 @@ class AnalyseXMLLogFile:
         < output >
         ...
     '''
-    
+
     outputEvents = 0
 
     sum = self.xmlTree[ 0 ]
 
     for output in sum.childrens( 'output' ):
       for file in output.childrens( 'file' ):
-        outputEvents += int( file.value )     
-    
+        outputEvents += int( file.value )
+
     return S_OK( outputEvents )
 
 ####
 
   def __getLastFile( self ):
-    
+
     res = self.__getInputStatus()
-    
+
     if not res[ 'OK' ]:
       return res
-    
-    return S_OK( res[ 'Value' ][-1][0] )   
+
+    return S_OK( res[ 'Value' ][-1][0] )
 
 
 ################################################################################
