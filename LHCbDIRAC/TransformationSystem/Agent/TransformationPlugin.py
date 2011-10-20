@@ -64,15 +64,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     and sets them 'Processed'
     """
     transID = self.params['TransformationID']
-    lfns = self.data.keys()
+    descendants = {}
     startTime = time.time()
-    res = self.bk.getAllDescendents( lfns, production = int( transID ), depth = 1 )
-    self.__logVerbose( "Got Descendents of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime ) )
-    if not res['OK']:
-      self.__logError( "Cannot get descendants of files: %s", res['Message'] )
-      return
-    else:
-      descendants = res['Value']['Successful']
+    for lfns in breakListIntoChunks( self.data.keys(), 500 ):
+      res = self.bk.getAllDescendents( lfns, production = int( transID ), depth = 1 )
+      if not res['OK']:
+        self.__logError( "Cannot get descendants of files: %s", res['Message'] )
+      else:
+        descendants.update( res['Value']['Successful'] )
+    self.__logVerbose( "Got Descendents of %d files in %.3f seconds" % ( len( self.data ), time.time() - startTime ) )
+    if descendants:
       processedLfns = [lfn for lfn in descendants if descendants[lfn]]
       if processedLfns:
         res = self.transClient.setFileStatusForTransformation( transID, 'Processed', processedLfns )
