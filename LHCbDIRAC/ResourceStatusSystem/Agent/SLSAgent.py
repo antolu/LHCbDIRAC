@@ -5,7 +5,6 @@ Script.parseCommandLine()
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
-from DIRAC.Core.Utilities                                   import SiteSEMapping
 
 from LHCbDIRAC.ResourceStatusSystem.Utilities               import CS, Utils
 from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils         import xml_append
@@ -73,7 +72,7 @@ class SpaceTokenOccupancyTest(TestBase):
   def __init__(self, am):
     super(SpaceTokenOccupancyTest, self).__init__(am)
     self.xmlPath      = rootPath + "/" + self.getAgentOption("webRoot") + self.getTestOption("dir")
-    self.SEs          = Utils.unpack(SiteSEMapping.getSiteSEMapping())
+    self.SEs          = CS.getSpaceTokenEndpoints()
     self.rmDB         = ResourceManagementDB()
 
     try:
@@ -82,11 +81,11 @@ class SpaceTokenOccupancyTest(TestBase):
       pass # The dir exist already, or cannot be created: do nothing
 
     for site in self.SEs:
-      for st in self.SEs[site]:
+      for st in CS.getSpaceTokens():
         self.generate_xml_and_dashboard(site, st)
 
   def generate_xml_and_dashboard(self, site, st):
-    url          = CS.getTokenEndpoint(st)
+    url          = self.SEs[site]['Endpoint']
     fake         = Utils.typedobj_of_string(self.getTestOption("fake"))
     total        = 0
     guaranteed   = 0
@@ -828,7 +827,7 @@ class SLSAgent(AgentModule):
   def initialize(self):
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
-    
+
   def execute(self):
     SpaceTokenOccupancyTest(self)
     DIRACTest(self)

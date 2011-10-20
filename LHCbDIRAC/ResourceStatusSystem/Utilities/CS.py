@@ -173,11 +173,6 @@ def getLFCNode( sites = None, readable = None ):
 
 # Storage Elements functions ########
 
-from DIRAC.Core.Utilities.SiteSEMapping import getSiteSEMapping
-def getSpaceTokens():
-  SEinCS = Utils.unpack(getSiteSEMapping( 'LCG' ))
-  return Utils.set_sanitize([SE for selist in SEinCS.values() for SE in selist])
-
 def getSENodes( SEIn ):
   if not SEIn:
     return S_ERROR("Invalid empty argument for function getSENodes")
@@ -192,9 +187,17 @@ def getStorageElementStatus(SE, accessType):
   return gConfig.getOption("%s/StorageElements/%s/%s" %
                            (g_BaseResourcesSection, SE, accessType))
 
-def getHostByToken(space_token):
+def getHostBySE(SE):
   return gConfig.getValue('%s/StorageElements/%s/AccessProtocol.1/Host'
-                          % (g_BaseResourcesSection, space_token))
+                          % (g_BaseResourcesSection, SE))
+
+# Space Tokens functions ############
+
+def getSpaceTokens():
+  return ["LHCb_USER", "LHCb-Disk", "LHCb-Tape"]
+
+def getSpaceTokenEndpoints():
+  return getTypedDictRootedAt("/Resources/Shares/Disk")
 
 # FTS functions #####################
 
