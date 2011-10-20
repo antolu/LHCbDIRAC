@@ -875,7 +875,7 @@ class Production():
     parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
     parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
     parameters['JobType'] = prodWorkflow.findParameter( 'JobType' ).getValue()
-    parameters['GroupSize'] = self.jobFileGroupSize
+    parameters['SizeGroup'] = self.jobFileGroupSize
 
     if parameters['JobType'].lower() == 'mcsimulation':
       if prodWorkflow.findParameter( 'MaxNumberOfTasks' ):
@@ -1366,7 +1366,8 @@ class Production():
       pvalue = str( pvalue )
     result = self.transClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
     if not result['OK']:
-      self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s' % ( pname, prodID, pvalue ) )
+      self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s. Error = %s' % ( pname, prodID,
+                                                                                                             pvalue, result['Message'] ) )
     return result
 
   #############################################################################
@@ -1444,8 +1445,14 @@ class Production():
     """
     tier1s = []
     from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
-    for site in getSites()['Value']:
-      if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
+    sites = getSites()
+    if not sites['OK']:
+      return S_ERROR( 'Can\'t get sites list' )
+    for site in sites['Value']:
+      tier = getSiteTier( site )
+      if not tier['OK']:
+        return S_ERROR( 'Can\'t get site %s tier' % site )
+      if tier['Value'] in ( ['0'], ['1'] ):
         tier1s.append( site )
 
     self.LHCbJob.setBannedSites( tier1s )
