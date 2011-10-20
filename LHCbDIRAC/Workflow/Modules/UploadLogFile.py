@@ -32,8 +32,6 @@ class UploadLogFile( ModuleBase ):
     super( UploadLogFile, self ).__init__( self.log )
 
     self.version = __RCSID__
-    self.request = None
-    self.jobReport = None
 
     self.setup = gConfig.getValue( '/DIRAC/Setup' )
     self.logSE = gConfig.getValue( '/Operations/LogStorage/%s/LogSE' % ( self.setup ), 'LogSE' )
@@ -82,7 +80,6 @@ class UploadLogFile( ModuleBase ):
 
     if not self._enableModule():
       return S_OK()
-
 
     self._resolveInputVariables()
 
@@ -161,12 +158,15 @@ class UploadLogFile( ModuleBase ):
     # Attempt to uplaod logs to the LogSE
     self.log.info( 'Transferring log files to the %s' % self.logSE )
     res = S_ERROR()
+    logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
+    self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
+
+    self.log.flushAllMessages( 0 )
+
     res = rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
     self.log.verbose( res )
-    logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
     self.setJobParameter( 'Log URL', logURL, jr = self.jobReport )
-    self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     if res['OK']:
       self.log.info( 'Successfully upload log directory to %s' % self.logSE )
       # TODO: The logURL should be constructed using the LogSE and StorageElement()
