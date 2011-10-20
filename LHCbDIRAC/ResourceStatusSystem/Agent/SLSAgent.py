@@ -31,14 +31,7 @@ def get_pledged_value_for_token(se, st):
   return (val if val != None else 0)
 
 def contact_mail_of_site(site):
-  infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/Sites/LCG")
-  for entry in infos:
-    if site in entry:
-      try:
-        return infos[entry]['Mail']
-      except KeyError:
-        gLogger.warn("Unable to get contact mail for site %s" % site)
-        return ""
+  return gConfig.getValue("/Resources/Shares/Disk/"+site+"/Mail")
 
 def send_mail_to_site(site, token, pledged, total):
   from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
@@ -154,10 +147,10 @@ class SpaceTokenOccupancyTest(TestBase):
       xmlfile.close()
 
     # Send notifications
-    pledged = get_pledged_value_for_token(site, st)
-    if not fake and total+1 < pledged:
-      gLogger.info("%s/%s: pledged = %f, total = %f, sending mail to site..." % (site, st, pledged, total))
-      send_mail_to_site(site, st, pledged, total)
+    # pledged = get_pledged_value_for_token(site, st)
+    # if not fake and total+1 < pledged:
+    #   gLogger.info("%s/%s: pledged = %f, total = %f, sending mail to site..." % (site, st, pledged, total))
+    #   send_mail_to_site(site, st, pledged, total)
 
     # Dashboard
     dbfile = open(self.xmlPath + site + "_" + st  + "_space_monitor", "w")
