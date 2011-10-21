@@ -92,6 +92,7 @@ class BookkeepingWatchAgent( AgentModule ):
       self.__logError( "Failed to get transformations.", result['Message'] )
       return S_OK()
 
+    _count = 0
     # Process each transformation
     for transDict in result['Value']:
       transID = long( transDict['TransformationID'] )
@@ -101,6 +102,9 @@ class BookkeepingWatchAgent( AgentModule ):
       
       self.bkQueriesToBeChecked.put( ( transID, transDict ) )  
       self.bkQueriesInCheck.append( transID )  
+      _count += 1  
+        
+    self.__logInfo( "Out of %d transformations, %d put in thread queue" % ( len( result['Value'] ), _count ) )    
         
     self.__dumpLog()
     return S_OK()
@@ -216,7 +220,7 @@ class BookkeepingWatchAgent( AgentModule ):
   def finalize( self ):
 
     if self.bkQueriesInCheck:
-      self.log.info( "Wait for queue to get empty before terminating the agent (%d tasks)" % len( self.bkQueriesInCheck ) )
+      self.__logInfo( "Wait for queue to get empty before terminating the agent (%d tasks)" % len( self.bkQueriesInCheck ) )
       while self.bkQueriesInCheck:
         time.sleep( 2 )
       self.log.info( "Queue is empty, terminating the agent..." )
