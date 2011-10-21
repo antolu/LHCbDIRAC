@@ -34,6 +34,14 @@ class TransformationAgent( DIRACTransformationAgent ):
       self.threadPool.generateJobAndQueueIt( self._execute )
     return S_OK()
 
+  def finalize( self ):
+    if self.transInQueue:
+      self.log.info( "Wait for queue to get empty before terminating the agent (%d tasks)" % len( self.transInQueue ) )
+      while self.transInQueue:
+        time.sleep( 2 )
+      self.log.info( "Queue is empty, terminating the agent..." )
+    return S_OK()
+
   def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
     gLogger.verbose( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
@@ -56,12 +64,14 @@ class TransformationAgent( DIRACTransformationAgent ):
       self.__logError( "Failed to obtain transformations: %s" % ( res['Message'] ) )
       return S_OK()
     # Process the transformations
+    count = 0
     for transDict in res['Value']:
       transID = long( transDict['TransformationID'] )
       if transID not in self.transInQueue:
+        count += 1
         self.transInQueue.append( transID )
         self.transQueue.put( transDict )
-
+    self.log.info( "Out of %d transformations, %d put in thread queue" % ( len( res['Value'] ), count ) )
     return S_OK()
 
   def _execute( self ):
