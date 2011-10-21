@@ -1,6 +1,6 @@
-########################################################################
+################################################################################
 # $HeadURL$
-########################################################################
+################################################################################
 
 __RCSID__ = "$Id$"
 
@@ -16,7 +16,7 @@ AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
 
 class BookkeepingWatchAgent( AgentModule ):
 
-  #############################################################################
+################################################################################
   def initialize( self ):
     """ Make the necessary initializations """
     
@@ -28,9 +28,9 @@ class BookkeepingWatchAgent( AgentModule ):
       self.fullTimeLog = pickle.load( f )
       self.bkQueries   = pickle.load( f )
       f.close()
-      self.__logInfo( "successfully loaded Log from %s", self.pickleFile, "initialize" )
+      self.__logInfo( "successfully loaded Log from", self.pickleFile, "initialize" )
     except:
-      self.__logInfo( "failed loading Log from %s", self.pickleFile, "initialize" )
+      self.__logInfo( "failed loading Log from", self.pickleFile, "initialize" )
       self.timeLog     = {}
       self.fullTimeLog = {}
       self.bkQueries   = {}
@@ -80,7 +80,7 @@ class BookkeepingWatchAgent( AgentModule ):
       except Exception, e:
         self.__logError( "fail to dump Log into %s: %s" %(self.pickleFile, e) )
 
-  ##############################################################################
+################################################################################
   def execute( self ):
     """ Main execution method
     """
@@ -102,10 +102,6 @@ class BookkeepingWatchAgent( AgentModule ):
       self.bkQueriesToBeChecked.put( ( transID, transDict ) )  
       self.bkQueriesInCheck.append( transID )  
         
-    # really needed ?    
-    while not self.bkQueriesToBeChecked.empty():
-      time.sleep( 1 )
-        
     self.__dumpLog()
     return S_OK()
 
@@ -121,10 +117,12 @@ class BookkeepingWatchAgent( AgentModule ):
 
         if 'BkQueryID' not in transDict:
           self.__logInfo( "[%d]Transformation %d did not have associated BK query" % ( transID, transID ) )
+          self.bkQueriesInCheck.remove( transID )
           continue
         res = self.transClient.getBookkeepingQueryForTransformation( transID )
         if not res['OK']:
           self.__logWarn( "[%d]Failed to get BkQuery" % transID, res['Message'] )
+          self.bkQueriesInCheck.remove( transID )
           continue
     
         bkQuery = res[ 'Value' ]
@@ -205,6 +203,7 @@ class BookkeepingWatchAgent( AgentModule ):
                     if not res['OK']:
                       self.__logWarn( "[%d]Failed to associate files to run" % transID, res['Message'] )
 
+        gLogger.info( '[%s]done' % transID )
         self.bkQueriesInCheck.remove( transID ) 
 
       except Exception, x:
@@ -212,8 +211,13 @@ class BookkeepingWatchAgent( AgentModule ):
         if transID is not None:
           self.bkQueriesInCheck.remove( transID )
 
-      gLogger.info( '[%s]done' % transID )
-#  self.__dumpLog()
-#    return S_OK()
+    return S_OK()
 
+  def finalize( self ):
+
+    if self.bkQueriesInCheck:
+      self.log.info( "Wait for queue to get empty before terminating the agent (%d tasks)" % len( self.bkQueriesInCheck ) )
+      while self.bkQueriesInCheck:
+        time.sleep( 2 )
+      self.log.info( "Queue is empty, terminating the agent..." )
     return S_OK()
