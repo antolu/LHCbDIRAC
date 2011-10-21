@@ -30,6 +30,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.cachedNbRAWFiles = {}
     self.cachedRunLfns = {}
     self.cacheFile = ''
+    self.startTime = time.time()
+
+  def __del__( self ):
+    self.__logInfo( "Execution finished, timing: %.3f seconds" % ( time.time() - self.startTime ) )
 
   def setDirectory( self, directory ):
     self.workDirectory = directory
@@ -92,6 +96,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     Plugin for replicating RAW data to Tier1s according to shares, excluding CERN which is the source of transfers...
     """
+    self.__logInfo( "Starting execution of plugin" )
     possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'PIC-RAW', 'RAL-RAW', 'SARA-RAW']
     sourceSE = 'CERN-RAW'
     transID = self.params['TransformationID']
@@ -247,6 +252,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( usageDict )
 
   def _AtomicRun( self ):
+    self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     self.__removeProcessedFiles()
     # Get the requested shares from the CS
@@ -618,6 +624,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return rawFiles
 
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
+    self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     self.__removeProcessedFiles()
     res = self.__groupByRunAndParam( self.data, param = param )
@@ -883,6 +890,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies ):
     """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs"""
+    self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     archive1SEs = self.__getListFromString( archive1SEs )
     archive2SEs = self.__getListFromString( archive2SEs )
@@ -971,6 +979,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _LHCbMCDSTBroadcastRandom( self ):
     """ This plug-in broadcasts files to archive1, to archive2 and to (NumberOfReplicas) secondary SEs  """
 
+    self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
     archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
@@ -1073,6 +1082,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = 2 )
 
   def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
+    self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     secondarySEs = self.__getListFromString( secondarySEs )
     if not numberOfCopies:
@@ -1174,6 +1184,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__removeReplicas( listSEs = listSEs, keepSEs = keepSEs + mandatorySEs, minKeep = minKeep )
 
   def __removeReplicas( self, listSEs = [], keepSEs = [], minKeep = 999 ):
+    self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     listSEs = self.__getListFromString( listSEs )
     keepSEs = self.__getListFromString( keepSEs )
