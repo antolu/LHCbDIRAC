@@ -94,141 +94,148 @@ class ProtocolAccessTest( ModuleBase ):
     """ The main execution method of the protocol access test module.
     """
 
-    super( ProtocolAccessTest, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                               workflowStatus, stepStatus,
-                                               wf_commons, step_commons, step_number, step_id )
+    try:
 
-    result = self._resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+      super( ProtocolAccessTest, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                                 workflowStatus, stepStatus,
+                                                 wf_commons, step_commons, step_number, step_id )
 
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
+      result = self._resolveInputVariables()
+      if not result['OK']:
+        self.log.error( result['Message'] )
+        return result
 
-    self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( string.join( self.inputData, '\n' ) ) )
+      if not rm:
+        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+        rm = ReplicaManager()
 
-    replicaRes = rm.getReplicas( self.inputData )
-    if not replicaRes['OK']:
-      self.log.error( replicaRes )
-      return S_ERROR( 'Could not obtain replica information' )
-    if replicaRes['Value']['Failed']:
-      self.log.error( replicaRes )
-      return S_ERROR( 'Could not obtain replica information' )
+      self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( string.join( self.inputData, '\n' ) ) )
 
-    metadataRes = rm.getCatalogFileMetadata( self.inputData )
-    if not metadataRes['OK']:
-      self.log.error( metadataRes )
-      return S_ERROR( 'Could not obtain metadata information' )
-    if metadataRes['Value']['Failed']:
-      self.log.error( metadataRes )
-      return S_ERROR( 'Could not obtain metadata information' )
+      replicaRes = rm.getReplicas( self.inputData )
+      if not replicaRes['OK']:
+        self.log.error( replicaRes )
+        return S_ERROR( 'Could not obtain replica information' )
+      if replicaRes['Value']['Failed']:
+        self.log.error( replicaRes )
+        return S_ERROR( 'Could not obtain replica information' )
 
-    for lfn, metadata in metadataRes['Value']['Successful'].items():
-      replicaRes['Value']['Successful'][lfn].update( metadata )
+      metadataRes = rm.getCatalogFileMetadata( self.inputData )
+      if not metadataRes['OK']:
+        self.log.error( metadataRes )
+        return S_ERROR( 'Could not obtain metadata information' )
+      if metadataRes['Value']['Failed']:
+        self.log.error( metadataRes )
+        return S_ERROR( 'Could not obtain metadata information' )
 
-    catalogResult = replicaRes
+      for lfn, metadata in metadataRes['Value']['Successful'].items():
+        replicaRes['Value']['Successful'][lfn].update( metadata )
 
-    localSE = gConfig.getValue( '/LocalSite/LocalSE', [] )
-    if not localSE:
-      return S_ERROR( 'Could not determine local SE list' )
+      catalogResult = replicaRes
 
-    seConfig = {'LocalSEList':localSE, 'DiskSEList' :localSE, 'TapeSEList' :localSE}
-    argumentsDict = {'InputData':self.inputData, 'Configuration':seConfig, 'FileCatalog': catalogResult, 'Protocols' : self.protocolsList}
+      localSE = gConfig.getValue( '/LocalSite/LocalSE', [] )
+      if not localSE:
+        return S_ERROR( 'Could not determine local SE list' )
 
-    if self.systemConfig:
-      self.log.info( 'Setting system configuration (CMTCONFIG) to %s' % self.systemConfig )
-      os.environ['CMTCONFIG'] = self.systemConfig
+      seConfig = {'LocalSEList':localSE, 'DiskSEList' :localSE, 'TapeSEList' :localSE}
+      argumentsDict = {'InputData':self.inputData, 'Configuration':seConfig, 'FileCatalog': catalogResult, 'Protocols' : self.protocolsList}
 
-    if self.rootVersion:
-      self.log.info( 'Requested ROOT version %s corresponding to DaVinci version %s' % ( self.rootVersion, self.applicationVersion ) )
+      if self.systemConfig:
+        self.log.info( 'Setting system configuration (CMTCONFIG) to %s' % self.systemConfig )
+        os.environ['CMTCONFIG'] = self.systemConfig
 
-    fileLocations = {}
-    failedInitialise = {}
-    # Obtain the turls for accessing remote files via protocol
-    for protocol in self.protocolsList:
-      protocolArguments = argumentsDict.copy()
-      protocolArguments['Configuration']['Protocol'] = protocol
-      res = self.__getProtocolLocations( protocolArguments )
+      if self.rootVersion:
+        self.log.info( 'Requested ROOT version %s corresponding to DaVinci version %s' % ( self.rootVersion, self.applicationVersion ) )
+
+      fileLocations = {}
+      failedInitialise = {}
+      # Obtain the turls for accessing remote files via protocol
+      for protocol in self.protocolsList:
+        protocolArguments = argumentsDict.copy()
+        protocolArguments['Configuration']['Protocol'] = protocol
+        res = self.__getProtocolLocations( protocolArguments )
+        if not res['OK']:
+          self.log.error( res )
+          continue
+        for failed in res['Value']['Failed']:
+          if not failedInitialise.has_key( failed ):
+            failedInitialise[failed] = []
+          failedInitialise[failed].append( protocol )
+        for lfn in sortList( res['Value']['Successful'].keys() ):
+          if not fileLocations.has_key( lfn ):
+            fileLocations[lfn] = {}
+          turl = res['Value']['Successful'][lfn]
+          fileLocations[lfn][protocol] = turl
+
+      # Obtain a local copy of the data for benchmarking
+      res = self.__downloadInputData( argumentsDict )
       if not res['OK']:
-        self.log.error( res )
-        continue
+        return S_ERROR( "Failed to get local copy of data" )
       for failed in res['Value']['Failed']:
         if not failedInitialise.has_key( failed ):
-          failedInitialise[failed] = []
-        failedInitialise[failed].append( protocol )
+            failedInitialise[failed] = []
+        failedInitialise[failed].append( 'local' )
       for lfn in sortList( res['Value']['Successful'].keys() ):
         if not fileLocations.has_key( lfn ):
           fileLocations[lfn] = {}
         turl = res['Value']['Successful'][lfn]
-        fileLocations[lfn][protocol] = turl
+        fileLocations[lfn]['local'] = turl
 
-    # Obtain a local copy of the data for benchmarking
-    res = self.__downloadInputData( argumentsDict )
-    if not res['OK']:
-      return S_ERROR( "Failed to get local copy of data" )
-    for failed in res['Value']['Failed']:
-      if not failedInitialise.has_key( failed ):
-          failedInitialise[failed] = []
-      failedInitialise[failed].append( 'local' )
-    for lfn in sortList( res['Value']['Successful'].keys() ):
-      if not fileLocations.has_key( lfn ):
-        fileLocations[lfn] = {}
-      turl = res['Value']['Successful'][lfn]
-      fileLocations[lfn]['local'] = turl
+      # For any files that that failed to initialise
+      timingResults = open( self.applicationLog, 'w' )
+      for lfn in sortList( failedInitialise.keys() ):
+        for protocol in sortList( failedInitialise[lfn] ):
+          statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ), protocol.ljust( 10 ), 'I'.ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ) )
+          timingResults.write( '%s\n' % statsString )
+      timingResults.close()
 
-    # For any files that that failed to initialise
-    timingResults = open( self.applicationLog, 'w' )
-    for lfn in sortList( failedInitialise.keys() ):
-      for protocol in sortList( failedInitialise[lfn] ):
-        statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ), protocol.ljust( 10 ), 'I'.ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ) )
-        timingResults.write( '%s\n' % statsString )
-    timingResults.close()
+      gLogger.info( "Will test the following files:" )
+      for lfn in sortList( fileLocations.keys() ):
+        for protocol in sortList( fileLocations[lfn].keys() ):
+          turl = fileLocations[lfn][protocol]
+          self.log.info( "%s %s" % ( lfn, turl ) )
 
-    gLogger.info( "Will test the following files:" )
-    for lfn in sortList( fileLocations.keys() ):
-      for protocol in sortList( fileLocations[lfn].keys() ):
-        turl = fileLocations[lfn][protocol]
-        self.log.info( "%s %s" % ( lfn, turl ) )
+      statsStrings = []
+      for lfn in sortList( fileLocations.keys() ):
+        protocolDict = fileLocations[lfn]
+        for protocol in sortList( protocolDict.keys() ):
+          turl = protocolDict[protocol]
+          res = readFileEvents( turl, self.applicationVersion )
+          openTime = 'F'
+          events = mean = stdDev = median = '-'
+          if not res['OK']:
+            self.log.info( "Failed to read events for protocol %s: %s" % ( protocol, res ) )
+          else:
+            openTime = "%.4f" % res['Value']['OpenTime']
+            readTimes = res['Value']['ReadTimes']
+            if readTimes:
+              statsDict = self.__generateStats( readTimes )
+              events = "%d" % statsDict['Elements']
+              mean = "%.7f" % statsDict['Mean']
+              stdDev = "%.7f" % statsDict['StdDev']
+              median = "%.7f" % statsDict['Median']
+          statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ), protocol.ljust( 10 ), str( openTime ).ljust( 10 ), str( events ).ljust( 10 ), str( mean ).ljust( 10 ), str( stdDev ).ljust( 10 ), str( median ).ljust( 10 ) )
+          statsStrings.append( statsString )
+          if os.path.exists( 'full.output' ):
+            shutil.move( 'full.output', '%s.output' % protocol )
+          if os.path.exists( 'full.error' ):
+            shutil.move( 'full.error', '%s.error' % protocol )
+          if os.path.exists( 'ReadTime.txt' ):
+            shutil.move( 'ReadTime.txt', '%s.readtimes' % protocol )
+          timingResults = open( self.applicationLog, 'a' )
+          timingResults.write( '%s\n' % statsString )
+          timingResults.close()
+      self.log.info( "%s %s %s %s %s %s %s" % ( 'lfn'.ljust( 70 ), 'protocol'.ljust( 10 ), 'opening'.ljust( 10 ), 'events'.ljust( 10 ), 'mean'.ljust( 10 ), 'stdev'.ljust( 10 ), 'median'.ljust( 10 ) ) )
+      for statString in statsStrings:
+        self.log.info( statString )
 
-    statsStrings = []
-    for lfn in sortList( fileLocations.keys() ):
-      protocolDict = fileLocations[lfn]
-      for protocol in sortList( protocolDict.keys() ):
-        turl = protocolDict[protocol]
-        res = readFileEvents( turl, self.applicationVersion )
-        openTime = 'F'
-        events = mean = stdDev = median = '-'
-        if not res['OK']:
-          self.log.info( "Failed to read events for protocol %s: %s" % ( protocol, res ) )
-        else:
-          openTime = "%.4f" % res['Value']['OpenTime']
-          readTimes = res['Value']['ReadTimes']
-          if readTimes:
-            statsDict = self.__generateStats( readTimes )
-            events = "%d" % statsDict['Elements']
-            mean = "%.7f" % statsDict['Mean']
-            stdDev = "%.7f" % statsDict['StdDev']
-            median = "%.7f" % statsDict['Median']
-        statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ), protocol.ljust( 10 ), str( openTime ).ljust( 10 ), str( events ).ljust( 10 ), str( mean ).ljust( 10 ), str( stdDev ).ljust( 10 ), str( median ).ljust( 10 ) )
-        statsStrings.append( statsString )
-        if os.path.exists( 'full.output' ):
-          shutil.move( 'full.output', '%s.output' % protocol )
-        if os.path.exists( 'full.error' ):
-          shutil.move( 'full.error', '%s.error' % protocol )
-        if os.path.exists( 'ReadTime.txt' ):
-          shutil.move( 'ReadTime.txt', '%s.readtimes' % protocol )
-        timingResults = open( self.applicationLog, 'a' )
-        timingResults.write( '%s\n' % statsString )
-        timingResults.close()
-    self.log.info( "%s %s %s %s %s %s %s" % ( 'lfn'.ljust( 70 ), 'protocol'.ljust( 10 ), 'opening'.ljust( 10 ), 'events'.ljust( 10 ), 'mean'.ljust( 10 ), 'stdev'.ljust( 10 ), 'median'.ljust( 10 ) ) )
-    for statString in statsStrings:
-      self.log.info( statString )
+      return S_OK()
 
-    super( ProtocolAccessTest, self ).finalize( self.version )
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
 
-    return S_OK()
+    finally:
+      super( ProtocolAccessTest, self ).finalize( self.version )
 
   #############################################################################
 

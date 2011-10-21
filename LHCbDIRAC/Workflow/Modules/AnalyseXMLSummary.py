@@ -151,13 +151,15 @@ class AnalyseXMLSummary( ModuleBase ):
         self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
         self._updateFileStatus( self.jobInputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
-        super( AnalyseXMLSummary, self ).finalize( self.version )
-
         return S_OK()
 
     except Exception, e:
-      self.log.error( e )
+      self.log.exception( e )
       return S_ERROR( e )
+
+    finally:
+      super( AnalyseXMLSummary, self ).finalize( self.version )
+
 
 ################################################################################
 # AUXILIAR FUNCTIONS

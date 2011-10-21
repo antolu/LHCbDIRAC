@@ -63,35 +63,41 @@ class BookkeepingReport( ModuleBase ):
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None, saveOnFile = True ):
 
-    super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                             workflowStatus, stepStatus,
-                                             wf_commons, step_commons, step_number, step_id )
+    try:
 
-    if not self._checkWFAndStepStatus():
+      super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                               workflowStatus, stepStatus,
+                                               wf_commons, step_commons, step_number, step_id )
+
+      if not self._checkWFAndStepStatus():
+        return S_OK()
+
+      result = self._resolveInputVariables()
+      if not result['OK']:
+        self.log.error( result['Message'] )
+        return result
+
+      doc = self.__makeBookkeepingXML()
+
+      if saveOnFile:
+        self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
+        bfilename = 'bookkeeping_' + self.step_id + '.xml'
+        #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
+        #bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
+        bfile = open( bfilename, 'w' )
+        print >> bfile, doc
+        bfile.close()
+      else:
+        print doc
+
       return S_OK()
 
-    result = self._resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
 
-    doc = self.__makeBookkeepingXML()
-
-    if saveOnFile:
-      self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
-      bfilename = 'bookkeeping_' + self.step_id + '.xml'
-      #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
-      #bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
-      bfile = open( bfilename, 'w' )
-      print >> bfile, doc
-      bfile.close()
-    else:
-      print doc
-
-    super( BookkeepingReport, self ).finalize( self.version )
-
-    return S_OK()
-
+    finally:
+      super( BookkeepingReport, self ).finalize( self.version )
 
 ################################################################################
 # AUXILIAR FUNCTIONS

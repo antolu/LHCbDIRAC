@@ -38,55 +38,64 @@ class SendBookkeeping( ModuleBase ):
     """ Main execution function.
     """
 
-    super( SendBookkeeping, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                            workflowStatus, stepStatus,
-                                            wf_commons, step_commons, step_number, step_id )
+    try:
 
-    if not self._checkWFAndStepStatus():
-      self.log.info( 'Job completed with errors, no bookkeeping records will be sent' )
-      return S_OK( 'Job completed with errors' )
+      super( SendBookkeeping, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                              workflowStatus, stepStatus,
+                                              wf_commons, step_commons, step_number, step_id )
 
-    if not self._enableModule():
-      return S_OK()
+      if not self._checkWFAndStepStatus():
+        self.log.info( 'Job completed with errors, no bookkeeping records will be sent' )
+        return S_OK( 'Job completed with errors' )
 
-    if not bk:
-      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-      bk = BookkeepingClient()
+      if not self._enableModule():
+        return S_OK()
 
-    self._resolveInputVariables()
+      if not bk:
+        from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        bk = BookkeepingClient()
 
-    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-    self.request.setJobID( self.jobID )
-    self.request.setSourceComponent( "Job_%s" % self.jobID )
+      self._resolveInputVariables()
 
-    bkFileExtensions = ['bookkeeping*.xml']
-    bkFiles = []
-    for ext in bkFileExtensions:
-      self.log.verbose( 'Looking at BK file wildcard: %s' % ext )
-      globList = glob.glob( ext )
-      for check in globList:
-        if os.path.isfile( check ):
-          self.log.verbose( 'Found locally existing BK file: %s' % check )
-          bkFiles.append( check )
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    #Unfortunately we depend on the file names to order the BK records
-    bkFiles.sort()
-    self.log.info( 'The following BK files will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
+      bkFileExtensions = ['bookkeeping*.xml']
+      bkFiles = []
+      for ext in bkFileExtensions:
+        self.log.verbose( 'Looking at BK file wildcard: %s' % ext )
+        globList = glob.glob( ext )
+        for check in globList:
+          if os.path.isfile( check ):
+            self.log.verbose( 'Found locally existing BK file: %s' % check )
+            bkFiles.append( check )
 
-    for bkFile in bkFiles:
-      fopen = open( bkFile, 'r' )
-      bkXML = fopen.read()
-      fopen.close()
-      self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-      result = bk.sendBookkeeping( bkFile, bkXML )
-      self.log.verbose( result )
-      if result['OK']:
-        self.log.info( 'Bookkeeping report sent for %s' % bkFile )
-      else:
-        self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
-        self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
-        self.workflow_commons['Request'] = self.request
+      #Unfortunately we depend on the file names to order the BK records
+      bkFiles.sort()
+      self.log.info( 'The following BK files will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
 
-    super( SendBookkeeping, self ).finalize( self.version )
+      for bkFile in bkFiles:
+        fopen = open( bkFile, 'r' )
+        bkXML = fopen.read()
+        fopen.close()
+        self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
+        result = bk.sendBookkeeping( bkFile, bkXML )
+        self.log.verbose( result )
+        if result['OK']:
+          self.log.info( 'Bookkeeping report sent for %s' % bkFile )
+        else:
+          self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
+          self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
+          self.workflow_commons['Request'] = self.request
 
-    return S_OK( 'SendBookkeeping Module Execution Complete' )
+
+      return S_OK( 'SendBookkeeping Module Execution Complete' )
+
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( SendBookkeeping, self ).finalize( self.version )
+

@@ -56,50 +56,57 @@ class RemoveInputData( ModuleBase ):
     """ Main execution function.
     """
 
-    super( RemoveInputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                            workflowStatus, stepStatus,
-                                            wf_commons, step_commons, step_number, step_id )
+    try:
 
-    if not self._checkWFAndStepStatus():
-      return S_OK()
+      super( RemoveInputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                              workflowStatus, stepStatus,
+                                              wf_commons, step_commons, step_number, step_id )
 
-    if not self._enableModule():
-      return S_OK()
+      if not self._checkWFAndStepStatus():
+        return S_OK()
 
-    result = self.resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+      if not self._enableModule():
+        return S_OK()
 
-    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-    self.request.setJobID( self.jobID )
-    self.request.setSourceComponent( "Job_%s" % self.jobID )
+      result = self.resolveInputVariables()
+      if not result['OK']:
+        self.log.error( result['Message'] )
+        return result
 
-    #Try to remove the file list with failover if necessary
-    failover = []
-    self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputData ) )
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
-    result = rm.removeFile( self.inputData )
-    self.log.verbose( result )
-    if not result['OK']:
-      self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
-      failover = self.inputData
-    if result['Value']['Failed']:
-      failureDict = result['Value']['Failed']
-      if failureDict:
-        self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
-      failover = failureDict.keys()
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    for lfn in failover:
-      self.__setFileRemovalRequest( lfn )
+      #Try to remove the file list with failover if necessary
+      failover = []
+      self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputData ) )
+      if not rm:
+        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+        rm = ReplicaManager()
+      result = rm.removeFile( self.inputData )
+      self.log.verbose( result )
+      if not result['OK']:
+        self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
+        failover = self.inputData
+      if result['Value']['Failed']:
+        failureDict = result['Value']['Failed']
+        if failureDict:
+          self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
+        failover = failureDict.keys()
 
-    self.workflow_commons['Request'] = self.request
+      for lfn in failover:
+        self.__setFileRemovalRequest( lfn )
 
-    super( RemoveInputData, self ).finalize( self.version )
+      self.workflow_commons['Request'] = self.request
 
-    return S_OK( 'Input Data Removed' )
+      return S_OK( 'Input Data Removed' )
+
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( RemoveInputData, self ).finalize( self.version )
 
   #############################################################################
 

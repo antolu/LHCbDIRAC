@@ -74,46 +74,54 @@ class UploadLogFile( ModuleBase ):
                step_number = None, step_id = None, rm = None, ft = None ):
     """ Main executon method
     """
-    super( UploadLogFile, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                          workflowStatus, stepStatus,
-                                          wf_commons, step_commons, step_number, step_id )
 
-    if not self._enableModule():
-      return S_OK()
+    try:
 
-    self._resolveInputVariables()
+      super( UploadLogFile, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                            workflowStatus, stepStatus,
+                                            wf_commons, step_commons, step_number, step_id )
 
-    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-    self.request.setJobID( self.jobID )
-    self.request.setSourceComponent( "Job_%s" % self.jobID )
+      if not self._enableModule():
+        return S_OK()
 
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
+      self._resolveInputVariables()
 
-    res = shellCall( 0, 'ls -al' )
-    if res['OK'] and res['Value'][0] == 0:
-      self.log.info( 'The contents of the working directory...' )
-      self.log.info( str( res['Value'][1] ) )
-    else:
-      self.log.error( 'Failed to list the log directory', str( res['Value'][2] ) )
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    self.log.info( 'Job root is found to be %s' % ( self.root ) )
-    self.log.info( 'PRODUCTION_ID = %s, JOB_ID = %s ' % ( self.production_id, self.prod_job_id ) )
-    self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.production_id, self.prod_job_id ) )
-    self.log.info( 'Selected log files will be temporarily stored in %s' % self.logdir )
+      if not rm:
+        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+        rm = ReplicaManager()
 
-    #Instantiate the failover transfer client with the global request object
-    if not ft:
-      from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
-      ft = FailoverTransfer( self.request )
+      res = shellCall( 0, 'ls -al' )
+      if res['OK'] and res['Value'][0] == 0:
+        self.log.info( 'The contents of the working directory...' )
+        self.log.info( str( res['Value'][1] ) )
+      else:
+        self.log.error( 'Failed to list the log directory', str( res['Value'][2] ) )
 
-    res = self.finalize( rm, ft )
-    self.workflow_commons['Request'] = self.request
+      self.log.info( 'Job root is found to be %s' % ( self.root ) )
+      self.log.info( 'PRODUCTION_ID = %s, JOB_ID = %s ' % ( self.production_id, self.prod_job_id ) )
+      self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.production_id, self.prod_job_id ) )
+      self.log.info( 'Selected log files will be temporarily stored in %s' % self.logdir )
 
-    super( UploadLogFile, self ).finalize( self.version )
+      #Instantiate the failover transfer client with the global request object
+      if not ft:
+        from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+        ft = FailoverTransfer( self.request )
 
-    return res
+      res = self.finalize( rm, ft )
+      self.workflow_commons['Request'] = self.request
+
+      return res
+
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( UploadLogFile, self ).finalize( self.version )
 
   #############################################################################
 

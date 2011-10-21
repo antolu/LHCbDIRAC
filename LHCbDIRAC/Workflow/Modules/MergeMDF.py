@@ -94,81 +94,89 @@ class MergeMDF( ModuleBase ):
                rm = None ):
     """ Main execution function.
     """
-    super( MergeMDF, self ).execute( self.version,
-                                     production_id, prod_job_id, wms_job_id,
-                                     workflowStatus, stepStatus,
-                                     wf_commons, step_commons,
-                                     step_number, step_id )
 
-    result = self._resolveInputVariables()
-    if not result['OK']:
-      self.log.error( result['Message'] )
-      return result
+    try:
 
-    logLines = ['#' * len( self.version ), self.version, '#'*len( self.version )]
-    logLines.append( 'The following files will be downloaded for merging:\n%s' % ( string.join( self.inputData, '\n' ) ) )
-    #Now use the RM to obtain all input data sets locally
-    for lfn in self.inputData:
-      if os.path.exists( os.path.basename( lfn ) ):
-        self.log.info( 'File %s already in local directory' % lfn )
-      else:
-        if not rm:
-          from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-          rm = ReplicaManager()
-        logLines.append( '#'*len( lfn ) )
-        msg = 'Attempting to download replica of:\n%s' % lfn
+      super( MergeMDF, self ).execute( self.version,
+                                       production_id, prod_job_id, wms_job_id,
+                                       workflowStatus, stepStatus,
+                                       wf_commons, step_commons,
+                                       step_number, step_id )
+
+      result = self._resolveInputVariables()
+      if not result['OK']:
+        self.log.error( result['Message'] )
+        return result
+
+      logLines = ['#' * len( self.version ), self.version, '#'*len( self.version )]
+      logLines.append( 'The following files will be downloaded for merging:\n%s' % ( string.join( self.inputData, '\n' ) ) )
+      #Now use the RM to obtain all input data sets locally
+      for lfn in self.inputData:
+        if os.path.exists( os.path.basename( lfn ) ):
+          self.log.info( 'File %s already in local directory' % lfn )
+        else:
+          if not rm:
+            from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+            rm = ReplicaManager()
+          logLines.append( '#'*len( lfn ) )
+          msg = 'Attempting to download replica of:\n%s' % lfn
+          self.log.info( msg )
+          logLines.append( msg )
+          logLines.append( '#'*len( lfn ) )
+          result = rm.getFile( lfn )
+          self.log.info( result )
+          logLines.append( result )
+          if not result['OK']:
+            logLines.append( '\nFailed to download %s' % ( lfn ) )
+            return self.finalize( logLines, error = 'Failed To Download LFN' )
+          if not os.path.exists( '%s/%s' % ( os.getcwd(), os.path.basename( lfn ) ) ):
+            logLines.append( '\nFile does not exist in local directory after download' )
+            return self.finalize( logLines, error = 'Downloaded File Not Found' )
+
+      #Now all MDF files are local, merge is a 'cat'
+      cmd = 'cat %s > %s' % ( string.join( [os.path.basename( x ) for x in self.inputData], ' ' ), self.outputDataName )
+      logLines.append( '\nExecuting merge operation...' )
+      self.log.info( 'Executing "%s"' % cmd )
+      result = shellCall( self.commandTimeOut, cmd )
+      if not result['OK']:
+        self.log.error( result )
+        logLines.append( 'Merge operation failed with result:\n%s' % result )
+        return self.finalize( logLines, error = 'shellCall Failed' )
+
+
+      status = result['Value'][0]
+      stdout = result['Value'][1]
+      stderr = result['Value'][2]
+      self.log.info( stdout )
+      if stderr:
+        self.log.error( stderr )
+
+      if status:
+        msg = 'Non-zero status %s while executing "%s"' % ( status, cmd )
         self.log.info( msg )
         logLines.append( msg )
-        logLines.append( '#'*len( lfn ) )
-        result = rm.getFile( lfn )
-        self.log.info( result )
-        logLines.append( result )
-        if not result['OK']:
-          logLines.append( '\nFailed to download %s' % ( lfn ) )
-          return self.finalize( logLines, error = 'Failed To Download LFN' )
-        if not os.path.exists( '%s/%s' % ( os.getcwd(), os.path.basename( lfn ) ) ):
-          logLines.append( '\nFile does not exist in local directory after download' )
-          return self.finalize( logLines, error = 'Downloaded File Not Found' )
+        return self.finalize( logLines, error = 'Non-zero Status During Merge' )
 
-    #Now all MDF files are local, merge is a 'cat'
-    cmd = 'cat %s > %s' % ( string.join( [os.path.basename( x ) for x in self.inputData], ' ' ), self.outputDataName )
-    logLines.append( '\nExecuting merge operation...' )
-    self.log.info( 'Executing "%s"' % cmd )
-    result = shellCall( self.commandTimeOut, cmd )
-    if not result['OK']:
-      self.log.error( result )
-      logLines.append( 'Merge operation failed with result:\n%s' % result )
-      return self.finalize( logLines, error = 'shellCall Failed' )
+      outputFilePath = '%s/%s' % ( os.getcwd(), self.outputDataName )
+      if not os.path.exists( outputFilePath ):
+        logLines.append( 'Merged file not found in local directory after merging operation' )
+        return self.finalize( logLines, error = 'Merged File Not Created' )
 
-
-    status = result['Value'][0]
-    stdout = result['Value'][1]
-    stderr = result['Value'][2]
-    self.log.info( stdout )
-    if stderr:
-      self.log.error( stderr )
-
-    if status:
-      msg = 'Non-zero status %s while executing "%s"' % ( status, cmd )
+      msg = 'SUCCESS: All input files downloaded and merged to produce %s' % ( self.outputDataName )
       self.log.info( msg )
       logLines.append( msg )
-      return self.finalize( logLines, error = 'Non-zero Status During Merge' )
-
-    outputFilePath = '%s/%s' % ( os.getcwd(), self.outputDataName )
-    if not os.path.exists( outputFilePath ):
-      logLines.append( 'Merged file not found in local directory after merging operation' )
-      return self.finalize( logLines, error = 'Merged File Not Created' )
-
-    msg = 'SUCCESS: All input files downloaded and merged to produce %s' % ( self.outputDataName )
-    self.log.info( msg )
-    logLines.append( msg )
 
 
-    res = self.finalize( logLines, msg = 'Produced merged MDF file' )
+      res = self.finalize( logLines, msg = 'Produced merged MDF file' )
 
-    super( MergeMDF, self ).finalize( self.version )
+      return res
 
-    return res
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( MergeMDF, self ).finalize( self.version )
 
   #############################################################################
   def finalize( self, logLines, msg = '', error = '' ):

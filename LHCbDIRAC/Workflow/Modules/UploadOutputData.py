@@ -99,224 +99,232 @@ class UploadOutputData( ModuleBase ):
     """ Main execution function.
     """
 
-    super( UploadOutputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                             workflowStatus, stepStatus,
-                                             wf_commons, step_commons, step_number, step_id )
+    try:
 
-    self._resolveInputVariables()
+      super( UploadOutputData, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                               workflowStatus, stepStatus,
+                                               wf_commons, step_commons, step_number, step_id )
 
-    if not self._checkWFAndStepStatus():
-      return S_OK()
+      self._resolveInputVariables()
 
-    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-    self.request.setJobID( self.jobID )
-    self.request.setSourceComponent( "Job_%s" % self.jobID )
+      if not self._checkWFAndStepStatus():
+        return S_OK()
 
-    if not bk:
-      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-      bkClient = BookkeepingClient()
-    else:
-      bkClient = bk
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    if not self._checkWFAndStepStatus():
-      return S_OK( 'No output data upload attempted' )
+      if not bk:
+        from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        bkClient = BookkeepingClient()
+      else:
+        bkClient = bk
 
-    #Determine the final list of possible output files for the
-    #workflow and all the parameters needed to upload them.
-    self.log.verbose( 'Getting the list of candidate files' )
-    result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
-                                     self.outputDataFileMask, self.outputDataStep )
-    if not result['OK']:
-      self.setApplicationStatus( result['Message'] )
-      return result
+      if not self._checkWFAndStepStatus():
+        return S_OK( 'No output data upload attempted' )
 
-    fileDict = result['Value']
-    result = self.getFileMetadata( fileDict )
-    if not result['OK']:
-      self.setApplicationStatus( result['Message'] )
-      return result
-
-    if not result['Value']:
-      self.log.info( 'No output data files were determined to be uploaded for this workflow' )
-      return S_OK()
-
-    fileMetadata = result['Value']
-
-    #Get final, resolved SE list for files
-    final = {}
-    for fileName, metadata in fileMetadata.items():
-      result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
+      #Determine the final list of possible output files for the
+      #workflow and all the parameters needed to upload them.
+      self.log.verbose( 'Getting the list of candidate files' )
+      result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
+                                       self.outputDataFileMask, self.outputDataStep )
       if not result['OK']:
-        self.log.error( 'Could not resolve output data SE', result['Message'] )
-        self.setApplicationStatus( 'Failed To Resolve OutputSE' )
+        self.setApplicationStatus( result['Message'] )
         return result
 
-      resolvedSE = result['Value']
-      final[fileName] = metadata
-      final[fileName]['resolvedSE'] = resolvedSE
-
-    self.log.info( 'The following files will be uploaded: %s' % ( string.join( final.keys(), ', ' ) ) )
-    for fileName, metadata in final.items():
-      self.log.info( '--------%s--------' % fileName )
-      for n, v in metadata.items():
-        self.log.info( '%s = %s' % ( n, v ) )
-
-    #At this point can exit and see exactly what the module would have uploaded
-    if not self._enableModule():
-      self.log.info( 'Would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
-      return S_OK()
-
-    #Prior to uploading any files must check (for productions with input data) that no descendent files
-    #already exist with replica flag in the BK.  The result structure is:
-    #{'OK': True, 
-    # 'Value': {
-    #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']}, 
-    #'Failed': [], 'NotProcessed': []}}
-
-    result = self.checkInputsNotAlreadyProcessed( self.inputData, self.PRODUCTION_ID )
-    if not result['OK']:
-      return result
-
-    #Disable the watchdog check in case the file uploading takes a long time
-    self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload' )
-    fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
-    fopen.write( '%s' % time.asctime() )
-    fopen.close()
-
-    #Instantiate the failover transfer client with the global request object
-    if not ft:
-      from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
-      failoverTransfer = FailoverTransfer( self.request )
-    else:
-      failoverTransfer = ft
-
-    #Track which files are successfully uploaded (not to failover) via
-    performBKRegistration = []
-    #Failover replicas are always added to the BK when they become available
-
-    #One by one upload the files with failover if necessary
-    registrationFailure = False
-    failover = {}
-    for fileName, metadata in final.items():
-      self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
-      result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'],
-                                                         metadata['resolvedSE'], fileGUID = metadata['guid'],
-                                                         fileCatalog = 'LcgFileCatalogCombined' )
+      fileDict = result['Value']
+      result = self.getFileMetadata( fileDict )
       if not result['OK']:
-        self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
-        failover[fileName] = metadata
-      else:
-        if result['Value'].has_key( 'registration' ):
-          self.log.info( 'File %s was put to the SE but the catalog registration will be set as an asynchronous request' % ( fileName ) )
-          registrationFailure = True
-        else:
-          self.log.info( '%s uploaded successfully, will be registered in BK if all files uploaded for job' % ( fileName ) )
+        self.setApplicationStatus( result['Message'] )
+        return result
 
-        lfn = metadata['lfn']
-        performBKRegistration.append( lfn )
+      if not result['Value']:
+        self.log.info( 'No output data files were determined to be uploaded for this workflow' )
+        return S_OK()
 
-    cleanUp = False
-    for fileName, metadata in failover.items():
-      self.log.info( 'Setting default catalog for failover transfer to LcgFileCatalogCombined' )
-      random.shuffle( self.failoverSEs )
-      targetSE = metadata['resolvedSE'][0]
-      metadata['resolvedSE'] = self.failoverSEs
-      result = failoverTransfer.transferAndRegisterFileFailover( fileName, metadata['localpath'], metadata['lfn'],
-                                                                 targetSE, metadata['resolvedSE'], fileGUID = metadata['guid'],
-                                                                 fileCatalog = 'LcgFileCatalogCombined' )
-      if not result['OK']:
-        self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
-        cleanUp = True
-        break #no point continuing if one completely fails
+      fileMetadata = result['Value']
 
-    #Now after all operations, retrieve potentially modified request object
-    result = failoverTransfer.getRequestObject()
-    if not result['OK']:
-      self.log.error( result )
-      return S_ERROR( 'Could not retrieve modified request' )
-
-    self.request = result['Value']
-
-    #If some or all of the files failed to be saved to failover
-    if cleanUp:
-      lfns = []
-      for fileName, metadata in final.items():
-        lfns.append( metadata['lfn'] )
-
-      self.__cleanUp( lfns )
-      self.workflow_commons['Request'] = self.request
-      return S_ERROR( 'Failed to upload output data' )
-
-    #Now double-check prior to final BK replica flag setting that the input files are still not processed 
-    result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
-    if not result['OK']:
-      lfns = []
-      self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )
-      for fileName, metadata in final.items():
-        lfns.append( metadata['lfn'] )
-
-      self.__cleanUp( lfns )
-      self.workflow_commons['Request'] = self.request
-      return result
-
-    #Finally can send the BK records for the steps of the job
-    bkFileExtensions = ['bookkeeping*.xml']
-    bkFiles = []
-    for ext in bkFileExtensions:
-      self.log.debug( 'Looking at BK record wildcard: %s' % ext )
-      globList = glob.glob( ext )
-      for check in globList:
-        if os.path.isfile( check ):
-          self.log.verbose( 'Found locally existing BK file record: %s' % check )
-          bkFiles.append( check )
-
-    #Unfortunately we depend on the file names to order the BK records
-    bkFiles.sort()
-    self.log.info( 'The following BK records will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
-
-    for bkFile in bkFiles:
-      fopen = open( bkFile, 'r' )
-      bkXML = fopen.read()
-      fopen.close()
-      self.log.info( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-      result = bkClient.sendBookkeeping( bkFile, bkXML )
-      self.log.verbose( result )
-      if result['OK']:
-        self.log.info( 'Bookkeeping report sent for %s' % bkFile )
-      else:
-        self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
-        self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
-        self.workflow_commons['Request'] = self.request  # update each time, just in case
-
-    #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
-    if not performBKRegistration:
-      self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
-    elif registrationFailure:
-      self.log.info( 'There were catalog registration failures during the upload of files for this job, BK registration requests are being prepared' )
-      for lfn in performBKRegistration:
-        result = self.setBKRegistrationRequest( lfn )
+      #Get final, resolved SE list for files
+      final = {}
+      for fileName, metadata in fileMetadata.items():
+        result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
         if not result['OK']:
+          self.log.error( 'Could not resolve output data SE', result['Message'] )
+          self.setApplicationStatus( 'Failed To Resolve OutputSE' )
           return result
-    else:
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
-      result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
-      self.log.verbose( result )
+
+        resolvedSE = result['Value']
+        final[fileName] = metadata
+        final[fileName]['resolvedSE'] = resolvedSE
+
+      self.log.info( 'The following files will be uploaded: %s' % ( string.join( final.keys(), ', ' ) ) )
+      for fileName, metadata in final.items():
+        self.log.info( '--------%s--------' % fileName )
+        for n, v in metadata.items():
+          self.log.info( '%s = %s' % ( n, v ) )
+
+      #At this point can exit and see exactly what the module would have uploaded
+      if not self._enableModule():
+        self.log.info( 'Would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
+        return S_OK()
+
+      #Prior to uploading any files must check (for productions with input data) that no descendent files
+      #already exist with replica flag in the BK.  The result structure is:
+      #{'OK': True, 
+      # 'Value': {
+      #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']}, 
+      #'Failed': [], 'NotProcessed': []}}
+
+      result = self.checkInputsNotAlreadyProcessed( self.inputData, self.PRODUCTION_ID )
+      if not result['OK']:
+        return result
+
+      #Disable the watchdog check in case the file uploading takes a long time
+      self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload' )
+      fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
+      fopen.write( '%s' % time.asctime() )
+      fopen.close()
+
+      #Instantiate the failover transfer client with the global request object
+      if not ft:
+        from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+        failoverTransfer = FailoverTransfer( self.request )
+      else:
+        failoverTransfer = ft
+
+      #Track which files are successfully uploaded (not to failover) via
+      performBKRegistration = []
+      #Failover replicas are always added to the BK when they become available
+
+      #One by one upload the files with failover if necessary
+      registrationFailure = False
+      failover = {}
+      for fileName, metadata in final.items():
+        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
+        result = failoverTransfer.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'],
+                                                           metadata['resolvedSE'], fileGUID = metadata['guid'],
+                                                           fileCatalog = 'LcgFileCatalogCombined' )
+        if not result['OK']:
+          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+          failover[fileName] = metadata
+        else:
+          if result['Value'].has_key( 'registration' ):
+            self.log.info( 'File %s was put to the SE but the catalog registration will be set as an asynchronous request' % ( fileName ) )
+            registrationFailure = True
+          else:
+            self.log.info( '%s uploaded successfully, will be registered in BK if all files uploaded for job' % ( fileName ) )
+
+          lfn = metadata['lfn']
+          performBKRegistration.append( lfn )
+
+      cleanUp = False
+      for fileName, metadata in failover.items():
+        self.log.info( 'Setting default catalog for failover transfer to LcgFileCatalogCombined' )
+        random.shuffle( self.failoverSEs )
+        targetSE = metadata['resolvedSE'][0]
+        metadata['resolvedSE'] = self.failoverSEs
+        result = failoverTransfer.transferAndRegisterFileFailover( fileName, metadata['localpath'], metadata['lfn'],
+                                                                   targetSE, metadata['resolvedSE'], fileGUID = metadata['guid'],
+                                                                   fileCatalog = 'LcgFileCatalogCombined' )
+        if not result['OK']:
+          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+          cleanUp = True
+          break #no point continuing if one completely fails
+
+      #Now after all operations, retrieve potentially modified request object
+      result = failoverTransfer.getRequestObject()
       if not result['OK']:
         self.log.error( result )
-        return S_ERROR( 'Could Not Perform BK Registration' )
-      if result['Value']['Failed']:
-        for lfn, error in result['Value']['Failed'].items():
-          result = self.setBKRegistrationRequest( lfn, error )
+        return S_ERROR( 'Could not retrieve modified request' )
+
+      self.request = result['Value']
+
+      #If some or all of the files failed to be saved to failover
+      if cleanUp:
+        lfns = []
+        for fileName, metadata in final.items():
+          lfns.append( metadata['lfn'] )
+
+        self.__cleanUp( lfns )
+        self.workflow_commons['Request'] = self.request
+        return S_ERROR( 'Failed to upload output data' )
+
+      #Now double-check prior to final BK replica flag setting that the input files are still not processed 
+      result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
+      if not result['OK']:
+        lfns = []
+        self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )
+        for fileName, metadata in final.items():
+          lfns.append( metadata['lfn'] )
+
+        self.__cleanUp( lfns )
+        self.workflow_commons['Request'] = self.request
+        return result
+
+      #Finally can send the BK records for the steps of the job
+      bkFileExtensions = ['bookkeeping*.xml']
+      bkFiles = []
+      for ext in bkFileExtensions:
+        self.log.debug( 'Looking at BK record wildcard: %s' % ext )
+        globList = glob.glob( ext )
+        for check in globList:
+          if os.path.isfile( check ):
+            self.log.verbose( 'Found locally existing BK file record: %s' % check )
+            bkFiles.append( check )
+
+      #Unfortunately we depend on the file names to order the BK records
+      bkFiles.sort()
+      self.log.info( 'The following BK records will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
+
+      for bkFile in bkFiles:
+        fopen = open( bkFile, 'r' )
+        bkXML = fopen.read()
+        fopen.close()
+        self.log.info( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
+        result = bkClient.sendBookkeeping( bkFile, bkXML )
+        self.log.verbose( result )
+        if result['OK']:
+          self.log.info( 'Bookkeeping report sent for %s' % bkFile )
+        else:
+          self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
+          self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
+          self.workflow_commons['Request'] = self.request  # update each time, just in case
+
+      #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
+      if not performBKRegistration:
+        self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
+      elif registrationFailure:
+        self.log.info( 'There were catalog registration failures during the upload of files for this job, BK registration requests are being prepared' )
+        for lfn in performBKRegistration:
+          result = self.setBKRegistrationRequest( lfn )
           if not result['OK']:
             return result
+      else:
+        if not rm:
+          from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+          rm = ReplicaManager()
+        result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
+        self.log.verbose( result )
+        if not result['OK']:
+          self.log.error( result )
+          return S_ERROR( 'Could Not Perform BK Registration' )
+        if result['Value']['Failed']:
+          for lfn, error in result['Value']['Failed'].items():
+            result = self.setBKRegistrationRequest( lfn, error )
+            if not result['OK']:
+              return result
 
-    self.workflow_commons['Request'] = self.request
+      self.workflow_commons['Request'] = self.request
 
-    super( UploadOutputData, self ).finalize( self.version )
+      return S_OK( 'Output data uploaded' )
 
-    return S_OK( 'Output data uploaded' )
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( UploadOutputData, self ).finalize( self.version )
+
 
   #############################################################################
 

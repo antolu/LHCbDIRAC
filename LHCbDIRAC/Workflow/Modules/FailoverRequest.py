@@ -59,106 +59,113 @@ class FailoverRequest( ModuleBase ):
     """ Main execution function.
     """
 
-    super( FailoverRequest, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                            workflowStatus, stepStatus,
-                                            wf_commons, step_commons, step_number, step_id )
+    try:
 
-    if not self._enableModule():
-      return S_OK()
+      super( FailoverRequest, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                              workflowStatus, stepStatus,
+                                              wf_commons, step_commons, step_number, step_id )
 
-    self._resolveInputVariables()
+      if not self._enableModule():
+        return S_OK()
 
-    self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-    self.request.setJobID( self.jobID )
-    self.request.setSourceComponent( "Job_%s" % self.jobID )
+      self._resolveInputVariables()
 
-    if self.inputData:
-      inputFiles = self.fileReport.getFiles()
-      for lfn in self.inputData:
-        if not lfn in inputFiles:
-          self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
-          self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
 
-    if not self._checkWFAndStepStatus( noPrint = True ):
-      inputFiles = self.fileReport.getFiles()
-      for lfn in inputFiles:
-        if inputFiles[lfn] != 'ApplicationCrash':
-          self.log.info( 'Forcing status to "Unused" due to workflow failure for: %s' % ( lfn ) )
-          self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
-    else:
-      inputFiles = self.fileReport.getFiles()
+      if self.inputData:
+        inputFiles = self.fileReport.getFiles()
+        for lfn in self.inputData:
+          if not lfn in inputFiles:
+            self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
+            self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
 
-      if inputFiles:
-        self.log.info( 'Workflow status OK, setting input file status to Processed' )
-      for lfn in inputFiles:
-        self.log.info( 'Setting status to "Processed" for: %s' % ( lfn ) )
-        self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Processed' )
-
-    result = self.fileReport.commit()
-
-    if not result['OK']:
-      self.log.error( 'Failed to report file status to ProductionDB, request will be generated', result['Message'] )
-    else:
-      self.log.info( 'Status of files have been properly updated in the ProcessingDB' )
-
-    # Must ensure that the local job report instance is used to report the final status
-    # in case of failure and a subsequent failover operation
-    if self.workflowStatus['OK'] and self.stepStatus['OK']:
-      self.setApplicationStatus( 'Job Finished Successfully', jr = self.jobReport )
-
-    # Retrieve the accumulated reporting request
-    reportRequest = None
-    result = self.jobReport.generateRequest()
-    if not result['OK']:
-      self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
-    else:
-      reportRequest = result['Value']
-    if reportRequest:
-      self.log.info( 'Populating request with job report information' )
-      self.request.update( reportRequest )
-
-    fileReportRequest = None
-    if self.fileReport:
-      result = self.fileReport.generateRequest()
-      if not result['OK']:
-        self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result ) )
+      if not self._checkWFAndStepStatus( noPrint = True ):
+        inputFiles = self.fileReport.getFiles()
+        for lfn in inputFiles:
+          if inputFiles[lfn] != 'ApplicationCrash':
+            self.log.info( 'Forcing status to "Unused" due to workflow failure for: %s' % ( lfn ) )
+            self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
       else:
-        fileReportRequest = result['Value']
-    if fileReportRequest:
-      self.log.info( 'Populating request with file report information' )
-      result = self.request.update( fileReportRequest )
+        inputFiles = self.fileReport.getFiles()
 
-    accountingReport = None
-    if self.workflow_commons.has_key( 'AccountingReport' ):
-      accountingReport = self.workflow_commons['AccountingReport']
-    if accountingReport:
-      result = accountingReport.commit()
+        if inputFiles:
+          self.log.info( 'Workflow status OK, setting input file status to Processed' )
+        for lfn in inputFiles:
+          self.log.info( 'Setting status to "Processed" for: %s' % ( lfn ) )
+          self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Processed' )
+
+      result = self.fileReport.commit()
+
       if not result['OK']:
-        self.log.info( 'Populating request with accounting report information' )
-        self.request.setDISETRequest( result['rpcStub'] )
+        self.log.error( 'Failed to report file status to ProductionDB, request will be generated', result['Message'] )
+      else:
+        self.log.info( 'Status of files have been properly updated in the ProcessingDB' )
 
-    if self.request.isEmpty()['Value']:
-      self.log.info( 'Request is empty, nothing to do.' )
-      return self.finalize()
+      # Must ensure that the local job report instance is used to report the final status
+      # in case of failure and a subsequent failover operation
+      if self.workflowStatus['OK'] and self.stepStatus['OK']:
+        self.setApplicationStatus( 'Job Finished Successfully', jr = self.jobReport )
 
-    request_string = self.request.toXML()['Value']
-    self.log.debug( request_string )
-    # Write out the request string
-    fname = '%s_%s_request.xml' % ( self.production_id, self.prod_job_id )
-    xmlfile = open( fname, 'w' )
-    xmlfile.write( request_string )
-    xmlfile.close()
-    self.log.info( 'Creating failover request for deferred operations for job %s:' % self.jobID )
-    result = self.request.getDigest()
-    if result['OK']:
-      digest = result['Value']
-      self.log.info( digest )
+      # Retrieve the accumulated reporting request
+      reportRequest = None
+      result = self.jobReport.generateRequest()
+      if not result['OK']:
+        self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
+      else:
+        reportRequest = result['Value']
+      if reportRequest:
+        self.log.info( 'Populating request with job report information' )
+        self.request.update( reportRequest )
 
-    res = self.finalize()
+      fileReportRequest = None
+      if self.fileReport:
+        result = self.fileReport.generateRequest()
+        if not result['OK']:
+          self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result ) )
+        else:
+          fileReportRequest = result['Value']
+      if fileReportRequest:
+        self.log.info( 'Populating request with file report information' )
+        result = self.request.update( fileReportRequest )
 
-    super( FailoverRequest, self ).finalize( self.version )
+      accountingReport = None
+      if self.workflow_commons.has_key( 'AccountingReport' ):
+        accountingReport = self.workflow_commons['AccountingReport']
+      if accountingReport:
+        result = accountingReport.commit()
+        if not result['OK']:
+          self.log.info( 'Populating request with accounting report information' )
+          self.request.setDISETRequest( result['rpcStub'] )
 
-    return res
+      if self.request.isEmpty()['Value']:
+        self.log.info( 'Request is empty, nothing to do.' )
+        return self.finalize()
+
+      request_string = self.request.toXML()['Value']
+      self.log.debug( request_string )
+      # Write out the request string
+      fname = '%s_%s_request.xml' % ( self.production_id, self.prod_job_id )
+      xmlfile = open( fname, 'w' )
+      xmlfile.write( request_string )
+      xmlfile.close()
+      self.log.info( 'Creating failover request for deferred operations for job %s:' % self.jobID )
+      result = self.request.getDigest()
+      if result['OK']:
+        digest = result['Value']
+        self.log.info( digest )
+
+      res = self.finalize()
+
+      return res
+
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( FailoverRequest, self ).finalize( self.version )
 
   #############################################################################
 

@@ -54,37 +54,43 @@ class StepAccounting( ModuleBase ):
 
   def execute( self ):
 
-    self.log.info( 'Initializing %s' % self.version )
+    try:
+      self.log.info( 'Initializing %s' % self.version )
 
-    if not self._enableModule():
+      if not self._enableModule():
+        return S_OK()
+
+      self.resolveInputVariables()
+
+  #    sname = 'Step_%d' % int( self.step_commons['STEP_NUMBER'] )
+      result = getProxyInfo()
+      if result['OK']:
+        proxyDict = result[ 'Value' ]
+        if 'group' in proxyDict:
+          self.group = proxyDict[ 'group' ]
+        else:
+          self.group = 'unknown'
+        if 'username' in proxyDict:
+          self.user = proxyDict[ 'username' ]
+        else:
+          self.user = 'unknown'
+
+      status = 'Done'
+
+      # This is the final step module. Its output status is the status of the whole step
+      if self.appStatus == "Failed":
+        return S_ERROR( 'Application failed' )
+      if status == "Failed":
+        return S_ERROR( 'Workflow failure' )
+
       return S_OK()
 
-    self.resolveInputVariables()
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
 
-#    sname = 'Step_%d' % int( self.step_commons['STEP_NUMBER'] )
-    result = getProxyInfo()
-    if result['OK']:
-      proxyDict = result[ 'Value' ]
-      if 'group' in proxyDict:
-        self.group = proxyDict[ 'group' ]
-      else:
-        self.group = 'unknown'
-      if 'username' in proxyDict:
-        self.user = proxyDict[ 'username' ]
-      else:
-        self.user = 'unknown'
-
-    status = 'Done'
-
-    # This is the final step module. Its output status is the status of the whole step
-    if self.appStatus == "Failed":
-      return S_ERROR( 'Application failed' )
-    if status == "Failed":
-      return S_ERROR( 'Workflow failure' )
-
-    super( StepAccounting, self ).finalize( self.version )
-
-    return S_OK()
+    finally:
+      super( StepAccounting, self ).finalize( self.version )
 
 
   ########################################################################

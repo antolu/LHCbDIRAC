@@ -76,8 +76,6 @@ class ErrorLogging( ModuleBase ):
     self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
     self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.step_number )
 
-    super( ErrorLogging, self ).finalize( self.version )
-
     return S_OK( 'Parameters resolved' )
 
   #############################################################################
@@ -92,67 +90,76 @@ class ErrorLogging( ModuleBase ):
         This module will run regardless of the workflow status.
     """
 
-    super( ErrorLogging, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                         workflowStatus, stepStatus,
-                                         wf_commons, step_commons, step_number, step_id )
+    try:
 
-    result = self._resolveInputVariables()
-    if not result['OK']:
-      self.log.info( result['Message'] )
+      super( ErrorLogging, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                           workflowStatus, stepStatus,
+                                           wf_commons, step_commons, step_number, step_id )
+
+      result = self._resolveInputVariables()
+      if not result['OK']:
+        self.log.info( result['Message'] )
+        return S_OK()
+
+      self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
+      if not os.path.exists( self.applicationLog ):
+        self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
+        return S_OK()
+
+      #Now obtain the project environment for execution
+      result = getProjectEnvironment( self.systemConfig, self.applicationName, applicationVersion = self.applicationVersion, extraPackages = self.extraPackages )
+      if not result['OK']:
+        self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
+        return S_OK()
+
+      projectEnvironment = result['Value']
+      command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog, self.applicationName, self.applicationVersion )
+
+      #Set some parameter names
+      scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
+      dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.step_number )
+  #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
+  #    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
+      coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
+
+      #Wrap final execution command with defaults
+      finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
+
+      #Create debug shell script to reproduce the application execution
+      debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
+      if debugResult['OK']:
+        self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
+
+      for x in [self.defaultName, scriptName, self.errorLogFile]:
+        if os.path.exists( x ): os.remove( x )
+
+      result = shellCall( 120, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput )
+      status = result['Value'][0]
+      self.log.info( "Status after the ErrorLogging execution is %s (if non-zero this is ignored)" % ( status ) )
+
+      if status:
+        self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
+        self.log.info( "==================================\n StdError:\n" )
+        self.log.info( self.stdError )
+        self.log.info( 'Exiting without affecting workflow status' )
+        return S_OK()
+
+      if not os.path.exists( self.defaultName ):
+        self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultName )
+        return S_OK()
+
+      self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
+      shutil.copy( self.defaultName, self.errorLogName )
+
+      #TODO - report to error logging service when suitable method is available
       return S_OK()
 
-    self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
-    if not os.path.exists( self.applicationLog ):
-      self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
-      return S_OK()
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
 
-    #Now obtain the project environment for execution
-    result = getProjectEnvironment( self.systemConfig, self.applicationName, applicationVersion = self.applicationVersion, extraPackages = self.extraPackages )
-    if not result['OK']:
-      self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-      return S_OK()
-
-    projectEnvironment = result['Value']
-    command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog, self.applicationName, self.applicationVersion )
-
-    #Set some parameter names
-    scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
-    dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.step_number )
-#    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-#    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
-    coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
-
-    #Wrap final execution command with defaults
-    finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
-
-    #Create debug shell script to reproduce the application execution
-    debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
-    if debugResult['OK']:
-      self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
-
-    for x in [self.defaultName, scriptName, self.errorLogFile]:
-      if os.path.exists( x ): os.remove( x )
-
-    result = shellCall( 120, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput )
-    status = result['Value'][0]
-    self.log.info( "Status after the ErrorLogging execution is %s (if non-zero this is ignored)" % ( status ) )
-
-    if status:
-      self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
-      self.log.info( "==================================\n StdError:\n" )
-      self.log.info( self.stdError )
-      self.log.info( 'Exiting without affecting workflow status' )
-      return S_OK()
-
-    if not os.path.exists( self.defaultName ):
-      self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultName )
-      return S_OK()
-
-    self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
-    shutil.copy( self.defaultName, self.errorLogName )
-
-    #TODO - report to error logging service when suitable method is available
-    return S_OK()
+    finally:
+      super( ErrorLogging, self ).finalize( self.version )
 
   #############################################################################
 
