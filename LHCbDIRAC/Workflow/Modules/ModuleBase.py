@@ -109,7 +109,7 @@ class ModuleBase( object ):
     if not self._WMSJob():
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
-    self.log.verbose( 'setJobApplicationStatus(%s,%s)' % ( self.jobID, status ) )
+    self.log.verbose( 'setJobApplicationStatus(%s, %s)' % ( self.jobID, status ) )
 
     if not jr:
       jr = self._getJobReporter()

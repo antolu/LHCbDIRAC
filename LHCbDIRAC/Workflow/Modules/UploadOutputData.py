@@ -107,9 +107,6 @@ class UploadOutputData( ModuleBase ):
 
       self._resolveInputVariables()
 
-      if not self._checkWFAndStepStatus():
-        return S_OK()
-
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
@@ -149,7 +146,7 @@ class UploadOutputData( ModuleBase ):
       for fileName, metadata in fileMetadata.items():
         result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
         if not result['OK']:
-          self.log.error( 'Could not resolve output data SE', result['Message'] )
+          self.log.error( 'Could not resolve output data SE: ', result['Message'] )
           self.setApplicationStatus( 'Failed To Resolve OutputSE' )
           return result
 

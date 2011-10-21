@@ -643,6 +643,23 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                          self.step_number, self.step_id,
                                          self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
 
+    #no errors, input data
+#    for wf_commons in copy.deepcopy( self.wf_commons ):
+#      open( 'foo.txt', 'w' ).close()
+#      open( 'bar.txt', 'w' ).close()
+#      wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo.txt'},
+#                                  {'outputDataType': 'txt', 'outputDataSE': 'Tier1-RAW', 'outputDataName': 'bar.txt'},
+#                                  ]
+#      wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
+#                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
+#      self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+#                                         self.workflowStatus, self.stepStatus,
+#                                         wf_commons, self.step_commons,
+#                                         self.step_number, self.step_id,
+#                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+#      os.remove( 'foo.txt' )
+#      os.remove( 'bar.txt' )
+
     #TODO: make others cases tests! e.g. why does not check for file existance?
 
 ##############################################################################
