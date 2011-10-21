@@ -175,7 +175,7 @@ class UploadOutputData( ModuleBase ):
       #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']}, 
       #'Failed': [], 'NotProcessed': []}}
 
-      result = self.checkInputsNotAlreadyProcessed( self.inputData, self.PRODUCTION_ID )
+      result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
       if not result['OK']:
         return result
 
