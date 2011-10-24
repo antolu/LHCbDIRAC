@@ -1545,16 +1545,16 @@ class LHCB_BKKDBManager( BaseESManager ):
           if fileType in mdfTypes:
             s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\""
           elif fileType in etcTypes:
-            s += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\""
+            s += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='Gaudi::RootEvtSelector'\""
           else:
-            s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+            s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='Gaudi::RootEvtSelector' OPT='READ'\""
         else:
           if fileType in mdfTypes:
             s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\""
           elif fileType in etcTypes:
-            s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\""
+            s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' SVC='Gaudi::RootEvtSelector'\""
           else:
-            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='Gaudi::RootEvtSelector' OPT='READ'\""
     if pythonOpts:
         s += "]\n"
     else:
