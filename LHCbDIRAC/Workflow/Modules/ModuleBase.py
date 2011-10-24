@@ -179,8 +179,8 @@ class ModuleBase( object ):
     """ By convention the module input parameters are resolved here.
     """
 
-    self.log.debug( "workflow_commons = ", self.workflow_commons )
-    self.log.debug( "step_commons = ", self.step_commons )
+    self.log.verbose( "workflow_commons = ", self.workflow_commons )
+    self.log.verbose( "step_commons = ", self.step_commons )
 
     self.fileReport = self._getFileReporter()
     self.jobReport = self._getJobReporter()

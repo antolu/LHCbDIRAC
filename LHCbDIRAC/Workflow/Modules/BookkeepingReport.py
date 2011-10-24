@@ -423,13 +423,19 @@ class BookkeepingReport( ModuleBase ):
       typeVersion = '1'
       fileStats = statistics
       if bkTypeDict.has_key( output ):
-        typeVersion = getType( output )
+        typeV = getType( output )
+        typeVersion = ''
+        if not typeV['OK']:
+          self.log.error( 'Could not find Type for %s with message' % ( output ), typeV['Message'] )
+        else:
+          typeVersion = typeV['Value'][output]
+          self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
         typeName = bkTypeDict[ output ].upper()
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
         if self.workflow_commons.has_key( 'StreamEvents' ):
-          streamEvents = self.workflow_commons[ 'StreamEvents' ]
+          streamEvents = self.workflow_commons['StreamEvents']
           if streamEvents.has_key( typeName ):
-            fileStats = streamEvents[ typeName ]
+            fileStats = streamEvents[typeName]
             self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
 
       if not os.path.exists( output ):

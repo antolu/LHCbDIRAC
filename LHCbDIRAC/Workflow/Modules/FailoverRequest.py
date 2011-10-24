@@ -99,9 +99,9 @@ class FailoverRequest( ModuleBase ):
       result = self.fileReport.commit()
 
       if not result['OK']:
-        self.log.error( 'Failed to report file status to ProductionDB, request will be generated', result['Message'] )
+        self.log.error( 'Failed to report file status to TransformationDB, request will be generated', result['Message'] )
       else:
-        self.log.info( 'Status of files have been properly updated in the ProcessingDB' )
+        self.log.info( 'Status of files have been properly updated in the TransformationDB' )
 
       # Must ensure that the local job report instance is used to report the final status
       # in case of failure and a subsequent failover operation
