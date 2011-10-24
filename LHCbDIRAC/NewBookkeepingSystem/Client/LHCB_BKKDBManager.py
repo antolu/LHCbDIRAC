@@ -1538,6 +1538,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     first = True
     for lfn in keys:
         file = files[lfn]
+        print file
         if not first:
             s += ",\n"
         first = False
