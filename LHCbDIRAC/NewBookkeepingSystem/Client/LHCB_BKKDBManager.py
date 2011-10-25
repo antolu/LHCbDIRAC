@@ -1460,6 +1460,7 @@ class LHCB_BKKDBManager( BaseESManager ):
 
   #############################################################################
   def writeJobOptions( self, files, optionsFile = '', savedType = None, catalog = None, savePfn = None ):
+
     fd = ''
     if optionsFile == '':
       fd = ''
@@ -1489,7 +1490,6 @@ class LHCB_BKKDBManager( BaseESManager ):
         else:
           evtTypes[type][2] += int( file['FileSize'] ) / 1000000000.
 
-
         nbEvts += stat
         if not fileType:
             fileType = file['FileType']
@@ -1510,6 +1510,7 @@ class LHCB_BKKDBManager( BaseESManager ):
         comment = "#-- "
     else:
         comment = "//-- "
+
     s += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
     s += comment + "Contains event types : \n"
     types = evtTypes.keys()
@@ -1517,51 +1518,81 @@ class LHCB_BKKDBManager( BaseESManager ):
     for type in types:
         s += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % ( type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2] )
 
+    rootFormat = True
+    if savePfn: # we have to decide the file type version. This variable contains the file type version, if it is empty I check in the bkk
+      lfn = savePfn.keys()[0]
+      type = savePfn[lfn]['pfntype'] # we assume all the files are created with the same version.
+      if type.upper() == 'ROOT_ALL':
+        rootFormat = False
+    else:
+      lfn = files.keys()[0]
+      retVal = self.db_.getTypeVersion(lfn)
+      if retVal['OK']:
+        type = retVal['Value']
+        if type.upper() == 'ROOT_ALL':
+          rootFormat = False
+      else:
+        return S_ERROR(retVal)
+
+    if rootFormat:
+      s += "\nfrom Gaudi.Configuration import * "
+      s += "\nfrom GaudiConf import IOHelper"
+      s += "\nIOHelper().inputFiles(["
+      keys = files.keys()
+      keys.sort()
+      for lfn in keys:
+        s += "'LFN:%s',\n"%(lfn)
+      s = s[:-2]
+      s += '\n], clear=True)\n'
+
+    else:
     # Now write the event selector option
-    if pythonOpts:
-        s += "\nfrom Gaudi.Configuration import * \n"
-        s += "\nEventSelector().Input   = [\n"
-    else:
-        s += "\nEventSelector.Input   = {\n"
-    fileType = fileType.split()[0]
-    # Allow fileType to be of the form XXX.<fileType>
-    try:
-      fileType = fileType.split( "." )[1]
-    except:
-      pass
-    mdfTypes = ["RAW", "MDF"]
-    etcTypes = ["SETC", "FETC", "ETC"]
-    #lfns = [file['FileName'] for file in files]
-    #lfns.sort()
-    keys = files.keys()
-    keys.sort()
-    first = True
-    for lfn in keys:
-        file = files[lfn]
-        print file
-        if not first:
-            s += ",\n"
-        first = False
-        if savePfn:
-          if fileType in mdfTypes:
-            s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\""
-          elif fileType in etcTypes:
-            s += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='Gaudi::RootEvtSelector'\""
+      if pythonOpts:
+          s += "\nfrom Gaudi.Configuration import * \n"
+          s += "\nEventSelector().Input   = [\n"
+      else:
+          s += "\nEventSelector.Input   = {\n"
+
+      fileType = fileType.split()[0]
+      # Allow fileType to be of the form XXX.<fileType>
+      try:
+        fileType = fileType.split( "." )[1]
+      except:
+        pass
+      mdfTypes = ["RAW", "MDF"]
+      etcTypes = ["SETC", "FETC", "ETC"]
+      #lfns = [file['FileName'] for file in files]
+      #lfns.sort()
+      keys = files.keys()
+      keys.sort()
+      first = True
+      for lfn in keys:
+          file = files[lfn]
+          if not first:
+              s += ",\n"
+          first = False
+          if savePfn:
+            if fileType in mdfTypes:
+              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\""
+            elif fileType in etcTypes:
+              s += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\""
+            else:
+              s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
           else:
-            s += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='Gaudi::RootEvtSelector' OPT='READ'\""
-        else:
-          if fileType in mdfTypes:
-            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\""
-          elif fileType in etcTypes:
-            s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' SVC='Gaudi::RootEvtSelector'\""
-          else:
-            s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='Gaudi::RootEvtSelector' OPT='READ'\""
-    if pythonOpts:
-        s += "]\n"
-    else:
-        s += "\n};\n"
+            if fileType in mdfTypes:
+              s += "\"   DATAFILE='LFN:" + file['FileName'] + "' SVC='LHCb::MDFSelector'\""
+            elif fileType in etcTypes:
+              s += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOT'\""
+            else:
+              s += "\"   DATAFILE='LFN:" + file['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+
+
+      if pythonOpts:
+          s += "]\n"
+      else:
+          s += "\n};\n"
     if catalog != None:
-        s += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
+      s += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
     if fd:
       fd.write( s )
       fd.close()
