@@ -364,25 +364,34 @@ class StorageHistoryAgent( AgentModule ):
       self.log.notice( "WARNING: EMPTY QUERY ! no Production available for dict3= %s" % dict3 )
       return S_OK()
     self.log.notice( "Got the productions list: %s" % productions )
+
+    
+    rawDataPFNUsage = {}
+    if dict3[ 'rawDataFlag' ]:
+      self.log.notice( "For RAW data, do a bulk query to get PFN usage and store in a dictionary ")
+      runsList = []
+      for p in productions:
+        run = -1*p
+        runsList.append( run )
+      resBulkQuery = self.__stDB.getRunSummaryPerSE( runsList )
+      if not resBulkQuery[ 'OK' ]:
+        self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( resBulkQuery['Message'] ) )
+        return S_ERROR( resBulkQuery )
+      else:
+        rawDataPFNUsage = resBulkQuery[ 'Value' ]
+        #self.log.notice( "Physical storage usage %s" % res['Value'] )
+      
     for prodID in productions:
       # get File Types (only for MC and reconstructed data, as for RAW data is only RAW)
       if not dict3[ 'rawDataFlag']:
-      # gets the number of events and the fileType
-        #res = self.bkClient.getNumberOfEvents( prodID )
         res = self.bkClient.getFileTypes( dict3 )
-        # returns a list of tuples of type: ('DAVINCIHIST', None, 91000000, 33154)
         if not res['OK']:
-          self.log.notice( "ERROR getting number of events for prod %s, Error: %s" % ( prodID, res['Message'] ) )
+          self.log.notice( "ERROR getting file types for prod %s, Error: %s" % ( prodID, res['Message'] ) )
           continue
-        else:
-          for eventNumberTuple in res['Value']:
-            self.log.notice( "for prod %d got this events: %s" % ( prodID, eventNumberTuple ) )
-        #prodFileTypes = sortList( [x[0] for x in res['Value']] )
         prodFileTypes = reduce(lambda x,y:x+y, res['Value']['Records'])
         prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
       # for raw data set the only file type as 'RAW'.
       # for non-raw data, add the HIST, SETC, DST file type to the list (to be checked why)
-      #if not dict3[ 'rawDataFlag']:
         prodFileTypes.append( 'HIST' )
         if 'DST' not in prodFileTypes:
           prodFileTypes.append( 'DST' )
@@ -428,15 +437,16 @@ class StorageHistoryAgent( AgentModule ):
         if not dict3[ 'rawDataFlag']:
           self.log.notice( "Calling getStorageSummary with path= %s prodFileType= %s prodID= %d " % ( dataPath, prodFileType, prodID ) )
           res = self.__stDB.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
+          if not res[ 'OK' ]:
+            self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
+            return S_ERROR( res )
+          usageDict = res[ 'Value' ]
         else: # RAW data
-          self.log.notice( "Calling getRunSummaryPerSE with run= %d " % ( runNo ) )
-          res = self.__stDB.getRunSummaryPerSE( runNo )
-        if not res[ 'OK' ]:
-          self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
-          return S_ERROR( res )
-        else:
-          self.log.notice( "Physical storage usage %s" % res['Value'] )
-        usageDict = res[ 'Value' ]
+          # the storage usage is stored in a dictionary (output of a bulk query)
+          #res = self.__stDB.getRunSummaryPerSE( runNo )
+          runNo = -1 * prodID
+          usageDict = rawDataPFNUsage[ runNo ]
+
         for seName in sortList( usageDict.keys() ):
           files = usageDict[seName]['Files']
           size = usageDict[seName]['Size']
