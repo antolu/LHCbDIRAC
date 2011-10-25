@@ -12,7 +12,7 @@ from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID, getType
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
 
-from xml.dom.minidom                         import Document
+from xml.dom.minidom                         import Document, DocumentType
 
 import DIRAC
 import os, time, re, socket
@@ -208,6 +208,10 @@ class BookkeepingReport( ModuleBase ):
     '''
     # Generate XML document
     doc = Document()
+    docType = DocumentType( "Job" )
+    docType.systemId = "book.dtd"
+    doc.appendChild( docType )
+    
     # Generate JobNode
     doc, jobNode = self.__generateJobNode( doc )
     # Generate TypedParams
@@ -321,15 +325,15 @@ class BookkeepingReport( ModuleBase ):
     tempVar = "v%dr%dp%d" % ( DIRAC.majorVersion, DIRAC.minorVersion, DIRAC.patchLevel )
     typedParams.append( ( "DiracVersion", tempVar ) )
 
-    if self.firstEventNumber != None:
+    if self.firstEventNumber != None and self.firstEventNumber != '':
       typedParams.append( ( "FirstEventNumber", self.firstEventNumber ) )
     else:
       typedParams.append( ( "FirstEventNumber", 1 ) )
 
-    if self.numberOfEvents != None:
+    if self.numberOfEvents != None and self.numberOfEvents != '':
       typedParams.append( ( "StatisticsRequested", self.numberOfEvents ) )
 
-    if self.numberOfEventsInput != None:
+    if self.numberOfEventsInput != None and self.numberOfEventsInput != '':
       typedParams.append( ( "NumberOfEvents", self.numberOfEventsInput ) )
     else:
       typedParams.append( ( "NumberOfEvents", self.numberOfEvents ) )
