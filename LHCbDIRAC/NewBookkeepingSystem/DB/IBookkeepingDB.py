@@ -502,3 +502,16 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getTypeVersion(self, lfn):
     gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def insertRuntimeProject(self, projectid, runtimeprojectid):
+    gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getRuntimeProjects(self, dict):
+    gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def updateRuntimeProject(self, projectid, runtimeprojectid):
+    gLogger.error('This method is not implemented!')
+

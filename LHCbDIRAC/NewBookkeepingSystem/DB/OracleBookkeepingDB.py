@@ -104,6 +104,27 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return self.dbR_._query(command)
 
   #############################################################################
+  def getRuntimeProjects(self, dict):
+    condition = ''
+    selection = 's.stepid,stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable'
+    tables = 'steps s, runtimeprojects rp'
+    if len(dict)>0:
+        if dict.has_key('StepId'):
+          condition += " rp.stepid=%d"%(dict['StepId'])
+    command = " select %s from %s where s.stepid=rp.runtimeprojectid and %s"%(selection,tables, condition)
+    retVal = self.dbR_._query(command)
+    if retVal['OK']:
+      parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'ProcessingPass', 'Usable']
+      records = []
+      for record in retVal['Value']:
+        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8], record[9], record[10]]
+        records += [value]
+      return  S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
+    else:
+      return retVal
+    return S_ERROR('getRuntimeProjects problem!!!')
+
+  #############################################################################
   def getStepInputFiles(self, StepId):
     command = 'select inputFiletypes.name,inputFiletypes.visible from steps, table(steps.InputFileTypes) inputFiletypes where  steps.stepid=' + str(StepId)
     return self.dbR_._query(command)
@@ -166,6 +187,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def insertStep(self, dict):
+    ### Dictionary format: {'Step': {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '', 'ApplicationVersion': 'v29r1', 'ext-comp-1273': 'CHARM.MDST (Charm micro dst)', 'ExtraPackages': '', 'StepName': 'davinci prb2', 'ProcessingPass': 'WG-Coool', 'ext-comp-1264': 'CHARM.DST (Charm stream)', 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': ''}, 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}],'RuntimeProjects':[{StepId:13878}]}
     values = ''
     command = "SELECT applications_index_seq.nextval from dual"
     sid = 0
@@ -245,6 +267,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command += values + ")"
       retVal = self.dbW_._query(command)
       if retVal['OK']:
+        if dict.has_key('RuntimeProjects'):
+          for i in dict['RuntimeProjects']:
+            rid = i['StepId']
+            retVal = self.insertRuntimeProject(sid, rid)
+            if not retVal['OK']:
+              return retVal
         return S_OK(sid)
       else:
         return retVal
@@ -268,6 +296,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def updateStep(self, dict):
+    #input data {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '13860', 'ApplicationVersion': 'v29r1', 'ExtraPackages': '', 'StepName': 'davinci prb3', 'ProcessingPass': 'WG-Coool-new', 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}], 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': '', 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'RuntimeProjects':[{'StepId':13879}]}
+
+    if dict.has_key('RuntimeProjects'):
+      for i in dict['RuntimeProjects']:
+        if not dict.has_key('StepId'):
+          return S_ERROR('The runtime project can not changed, because the StepId is missing!')
+        retVal = self.updateRuntimeProject(dict['StepId'],i['StepId'])
+        if not retVal['OK']:
+          return retVal
+        else:
+          dict.pop('RuntimeProjects')
+
     if dict.has_key('StepId'):
       stepid = dict.pop('StepId')
       condition = ' where stepid=' + str(stepid)
@@ -3114,3 +3154,14 @@ and files.qualityid= dataquality.qualityid'
       return S_OK(result)
     else:
       return res
+
+  #############################################################################
+  def insertRuntimeProject(self, projectid, runtimeprojectid):
+    result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertRuntimeProject', [projectid, runtimeprojectid], False)
+    return result
+
+  #############################################################################
+  def updateRuntimeProject(self, projectid, runtimeprojectid):
+    result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.updateRuntimeProject', [projectid, runtimeprojectid], False)
+    return result
+

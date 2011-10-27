@@ -86,25 +86,22 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   def export_getAvailableSteps( self, dict = {} ):
     retVal = dataMGMT_.getAvailableSteps( dict )
     if retVal['OK']:
-      if dict.has_key( 'StepId' ):
-        parameters = ['FileType', 'Visible']
-        records = []
-        for record in retVal['Value']:
-          value = [record[0], record[1]]
-          records += [value]
-      else:
-        parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'ProcessingPass', 'Usable']
-        records = []
-        for record in retVal['Value']:
-          value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8], record[9], record[10]]
-          records += [value]
-      parameters = ['StepId','StepName', 'ApplicationName','ApplicationVersion','OptionFiles','DDDB','CONDDB', 'ExtraPackages','Visible', 'ProcessingPass', 'Usable']
+      parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'ProcessingPass', 'Usable', 'RuntimeProjects']
       records = []
       for record in retVal['Value']:
-        records += [[record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8],record[9], record[10]]]
+        retVal = dataMGMT_.getRuntimeProjects({'StepId':record[0]})
+        if not retVal['OK']:
+          return retVal
+        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8], record[9], record[10], retVal['Value']]
+        records += [value]
       return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
     else:
       return S_ERROR( retVal['Message'] )
+
+  #############################################################################
+  types_getRuntimeProjects = [DictType]
+  def export_getRuntimeProjects(self, dict = {}):
+    return dataMGMT_.getRuntimeProjects( dict )
 
   #############################################################################
   types_getStepInputFiles = [IntType]

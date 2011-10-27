@@ -506,3 +506,15 @@ class IBookkeepingDatabaseClient( object ):
   #############################################################################
   def getTypeVersion(self, lfn):
     return self.getManager().getTypeVersion(lfn)
+
+  #############################################################################
+  def insertRuntimeProject(self, projectid, runtimeprojectid):
+    return self.getManager().insertRuntimeProject(projectid, runtimeprojectid)
+
+  #############################################################################
+  def getRuntimeProjects(self, dict):
+    return self.getManager().getRuntimeProjects(dict)
+
+  #############################################################################
+  def updateRuntimeProject(self, projectid, runtimeprojectid):
+    return self.getManager().updateRuntimeProject(projectid, runtimeprojectid)

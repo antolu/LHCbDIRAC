@@ -55,6 +55,11 @@ class BookkeepingClient:
     return server.getAvailableSteps( dict )
 
   #############################################################################
+  def getRuntimeProjects(self, dict={}):
+    server = self.__getServer()
+    return server.getRuntimeProjects(dict)
+
+  #############################################################################
   def getAvailableFileTypes( self ):
     server = self.__getServer()
     retVal = server.getAvailableFileTypes()
