@@ -1,3 +1,5 @@
+""" Put doc here
+"""
 
 import DIRAC
 from DIRAC                                                     import S_OK, S_ERROR, gLogger
@@ -8,31 +10,40 @@ from DIRAC.Interfaces.API.Dirac                                import Dirac
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 import re
 
+__RCSID__ = "$Id:"
 
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
 
 class MergingForDQAgent( AgentModule ):
+
   def initialize( self ):
     self.am_setOption( 'shifterProxy', 'DataManager' )
+    # put these into CS (or remove completely!)
     self.homeDir = '/afs/cern.ch/lhcb/group/dataquality/ROOT'
     self.testDir = '/afs/cern.ch/lhcb/group/dataquality/Test'
     self.workDir = '/afs/cern.ch/lhcb/group/dataquality/Work'
     self.scriptsDir = '/afs/cern.ch/lhcb/group/dataquality/scripts'#TO BE CHANGED
+    # DIRAC can build these paths for you (e.g.: no need to do it here)
     self.castorHistDir = '/castor/cern.ch/grid'
     self.castorHistPre = 'castor://castorlhcb.cern.ch:9002//castor/cern.ch/grid'
     self.castorHistPost = '?svcClass=lhcbdisk&castorVersion=2'
     self.cfgName = "LHCb"
     self.cfgVersion = 'Collision11'
     self.thisEventType = 'EXPRESS'
+    self.dqFlag = 'UNCHECKED'
+    self.evtTypeList = {'EXPRESS' : '91000000', 'FULL'    : '90000000'}
+    self.histTypeList = ['BRUNELHIST', 'DAVINCIHIST']
     self.brunelCount = 0
     self.daVinciCount = 0
+    # can upload this log in the logSE (look for uploadLogFile module)
     self.logFileName = '%s/logs/Merge_%s_histograms.log' % ( self.scriptsDir, self.thisEventType )
+    # no need?
     self.args = Script.getPositionalArgs()
-    self.dqFlag = 'UNCHECKED'
+    # ?
     self.checkType = 'DATA'
-    self.testMode = False
-    self.specialMode = False
-    self.specialRuns = {}
+#    self.testMode = False
+#    self.specialMode = False
+#    self.specialRuns = {}
     self.mergeExeDir = '/afs/cern.ch/lhcb/group/dataquality/adinolfi'#TO BE CHANGED
     self.mergeStep1Command = self.mergeExeDir + '/Merge1'
     self.mergeStep2Command = self.mergeExeDir + '/Merge2'
@@ -41,8 +52,6 @@ class MergingForDQAgent( AgentModule ):
     self.mailAddress = 'lhcb-dataquality-shifters@cern.ch'
     #self.senderAddress = 'falabella@fe.infn.it'
     #self.mailAddress = 'falabella@fe.infn.it'
-    self.evtTypeList = {'EXPRESS' : '91000000', 'FULL'    : '90000000'}
-    self.histTypeList = ['BRUNELHIST', 'DAVINCIHIST']
     self.exitStatus = 0
 
     return S_OK()
@@ -58,8 +67,6 @@ class MergingForDQAgent( AgentModule ):
     self.logFileName = '%s/logs/Merge_%s_histograms.log' % ( self.scriptsDir, self.thisEventType )
     logFile = open( self.logFileName, 'a' )
     logFile = None
-
-    gLogger.setLevel( "INFO" )
 
     if len( self.args ):
       if self.args[0] == "test":
@@ -110,8 +117,8 @@ class MergingForDQAgent( AgentModule ):
     res = MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , testMode,
                     specialMode , mergeExeDir , mergeStep1Command, mergeStep2Command,
                     mergeStep3Command, castorHistPre, castorHistPost , workDir, brunelCount ,
-                    daVinciCount , logFile ,self.logFileName , dirac , self.senderAddress,self.mailAddress)
-    
+                    daVinciCount , logFile , self.logFileName , dirac , self.senderAddress, self.mailAddress )
+
     if not res['OK']:
       gLogger.error( 'Cannot load the run list for version %s' % ( cfgVersion ) )
       gLogger.error( res['Message'] )
