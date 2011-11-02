@@ -56,7 +56,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
   environment = result['Value']
   result = getProjectCommand( setupProjectLocation, applicationName, applicationVersion, extraPackages,
                               generatorName, site, runTimeProject,runTimeProjectVersion, '', directory ) #leave out additional options initially
-  print "\n=============================================Command %s \n" % result
+  
   if not result['OK']:
     return result
 
