@@ -518,3 +518,7 @@ class IBookkeepingDatabaseClient( object ):
   #############################################################################
   def updateRuntimeProject(self, projectid, runtimeprojectid):
     return self.getManager().updateRuntimeProject(projectid, runtimeprojectid)
+
+  #############################################################################
+  def removeRuntimeProject(self, stepid):
+    return self.getManager().removeRuntimeProject(stepid)

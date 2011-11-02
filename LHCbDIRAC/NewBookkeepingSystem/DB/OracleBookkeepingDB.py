@@ -299,14 +299,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
     #input data {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '13860', 'ApplicationVersion': 'v29r1', 'ExtraPackages': '', 'StepName': 'davinci prb3', 'ProcessingPass': 'WG-Coool-new', 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}], 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': '', 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'RuntimeProjects':[{'StepId':13879}]}
 
     if dict.has_key('RuntimeProjects'):
-      for i in dict['RuntimeProjects']:
-        if not dict.has_key('StepId'):
-          return S_ERROR('The runtime project can not changed, because the StepId is missing!')
-        retVal = self.updateRuntimeProject(dict['StepId'],i['StepId'])
+      if len(dict['RuntimeProjects']) >0:
+        for i in dict['RuntimeProjects']:
+          if not dict.has_key('StepId'):
+            return S_ERROR('The runtime project can not changed, because the StepId is missing!')
+          retVal = self.updateRuntimeProject(dict['StepId'],i['StepId'])
+          if not retVal['OK']:
+            return retVal
+          else:
+            dict.pop('RuntimeProjects')
+      else:
+        retVal = self.removeRuntimeProject(dict['StepId'])
         if not retVal['OK']:
           return retVal
-        else:
-          dict.pop('RuntimeProjects')
+        dict.pop('RuntimeProjects')
 
     if dict.has_key('StepId'):
       stepid = dict.pop('StepId')
@@ -3165,3 +3171,6 @@ and files.qualityid= dataquality.qualityid'
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.updateRuntimeProject', [projectid, runtimeprojectid], False)
     return result
 
+  def removeRuntimeProject(self, stepid):
+    result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.removeRuntimeProject', [stepid], False)
+    return result

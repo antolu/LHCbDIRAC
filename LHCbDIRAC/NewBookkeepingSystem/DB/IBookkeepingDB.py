@@ -515,3 +515,7 @@ class IBookkeepingDB( object ):
   def updateRuntimeProject(self, projectid, runtimeprojectid):
     gLogger.error('This method is not implemented!')
 
+  #############################################################################
+  def removeRuntimeProject(self, stepid):
+    gLogger.error('This method is not implemented!')
+
