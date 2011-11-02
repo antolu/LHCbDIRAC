@@ -33,7 +33,7 @@ if siteSpecificTimeout:
 
 #############################################################################
 def getProjectEnvironment( systemConfiguration, applicationName, applicationVersion = '', extraPackages = '',
-                           runTimeProject = '', site = '', directory = '', generatorName = '',
+                           runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '', generatorName = '',
                            poolXMLCatalogName = defaultCatalogName, env = None ):
   """ This function uses all below methods to get the complete project environment
       thus ensuring consistent behaviour from all modules.  The environment is 
@@ -55,7 +55,8 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
   result = getProjectCommand( setupProjectLocation, applicationName, applicationVersion, extraPackages,
-                              generatorName, site, runTimeProject, '', directory ) #leave out additional options initially
+                              generatorName, site, runTimeProject,runTimeProjectVersion, '', directory ) #leave out additional options initially
+  print "\n=============================================Command %s \n" % result
   if not result['OK']:
     return result
 
@@ -278,7 +279,7 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
 
 #############################################################################
 def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], generatorName = '', site = '',
-                       runTimeProject = '', additional = '', directory = '' ):
+                       runTimeProject = '', runTimeProjectVersion = '', additional = '', directory = '' ):
   """ Returns (without executing) the SetupProject command line string and requires 
       the following arguments:
       
@@ -326,7 +327,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
 
   if runTimeProject:
     gLogger.verbose( 'Requested run time project: %s' % ( runTimeProject ) )
-    cmd.append( '--runtime-project %s' % ( runTimeProject ) )
+    cmd.append( '--runtime-project %s %s' % ( runTimeProject , runTimeProjectVersion ) )
 
   if not site:
     site = DIRAC.siteName()
