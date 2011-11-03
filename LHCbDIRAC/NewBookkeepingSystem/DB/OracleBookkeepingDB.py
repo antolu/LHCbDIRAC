@@ -267,12 +267,17 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command += values + ")"
       retVal = self.dbW_._query(command)
       if retVal['OK']:
+        r_project = None
         if dict.has_key('RuntimeProjects'):
-          for i in dict['RuntimeProjects']:
-            rid = i['StepId']
-            retVal = self.insertRuntimeProject(sid, rid)
-            if not retVal['OK']:
-              return retVal
+          r_project = dict['RuntimeProjects']
+        elif step.has_key('RuntimeProjects'):
+          r_project = step['RuntimeProjects']
+
+        for i in r_project:
+          rid = i['StepId']
+          retVal = self.insertRuntimeProject(sid, rid)
+          if not retVal['OK']:
+            return retVal
         return S_OK(sid)
       else:
         return retVal
