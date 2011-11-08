@@ -659,7 +659,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
         else:
           self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
-        self.cachedRunLfns[runID][paramValue] = runParamLfns
         runFlush = requireFlush
         if runFlush:
           if paramValue not in runEvtType:
@@ -704,6 +703,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not res['OK']:
           return res
         allTasks.extend( res['Value'] )
+        # Cache the left-over LFNs
+        taskLfns = []
+        for task in res['Value']:
+          taskLfns += task[1]
+        self.cachedRunLfns[runID][paramValue] = [lfn for lfn in runParamLfns if lfn not in taskLfns]
     self.data = inputData
     self.__writeCacheFile()
     return S_OK( allTasks )
