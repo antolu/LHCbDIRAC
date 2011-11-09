@@ -654,7 +654,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check if something was new since last time...
         cachedLfns = self.cachedRunLfns.setdefault( runID, {} ).setdefault( paramValue, [] )
         newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
-        if len( newLfns ) == 0 and transID > 0:
+        if len( newLfns ) == 0 and transID > 0 and transStatus != 'Flush' and runStatus != 'Flush':
           self.__logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         else:
