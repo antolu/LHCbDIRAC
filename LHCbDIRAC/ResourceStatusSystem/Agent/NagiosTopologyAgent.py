@@ -47,7 +47,7 @@ class NagiosTopologyAgent(AgentModule):
     self.xml_append(xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP')
     self.xml_append(xml_doc, xml_root, 'description', 'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names')
     self.xml_append(xml_doc, xml_root, 'feed_responsible', dn='/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser', name='Stefan Roiser')
-    self.xml_append(xml_doc, xml_root, 'last_update', time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+    self.xml_append(xml_doc, xml_root, 'last_update', time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
     self.xml_append(xml_doc, xml_root, 'vo', 'lhcb')
 
     # loop over sites
