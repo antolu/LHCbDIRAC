@@ -347,7 +347,7 @@ class DIRACTest(TestBase):
 
       gLogger.info("%s/%s does not respond to ping" % (site, service))
 
-    xmlfile = open(self.xmlPath + site + "_" + service + ".xml", "w")
+    xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
