@@ -201,7 +201,7 @@ class DIRACTest(TestBase):
   def run_t1_xml_sensors(self):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
     request_management_urls = Utils.list_(CS.getValue("/Systems/RequestManagement/Development/URLs/allURLS"))
-    configuration_urls      = Utils.list_(CS.getValue("/DIRAC/Configuration/Servers"))
+    configuration_urls      = gConfig.getServersList()
     gLogger.info("DIRACTest: discovered %d request management url(s) and %d configuration url(s)"
                  % (len(request_management_urls),len(configuration_urls)))
     for url in request_management_urls + configuration_urls:
