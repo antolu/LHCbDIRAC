@@ -2272,21 +2272,11 @@ and files.qualityid= dataquality.qualityid'
 
     configid = None
     condition = ''
+    tables = ' files f,jobs j '
 
     if configName != 'ALL' and configVersion != 'ALL':
-      command = ' select configurationid from configurations where configurations.ConfigName=\'' + configName + '\' and \
-                    configurations.ConfigVersion=\'' + configVersion + '\''
-      res = self.dbR_._query(command)
-      if not res['OK']:
-        return S_ERROR(res['Message'])
-      elif len(res['Value']) == 0:
-        return S_ERROR('Config name and version dosnt exist!')
-      else:
-        configid = res['Value'][0][0]
-        if configid != 0:
-          condition = ' and j.configurationid=' + str(configid)
-        else:
-          return S_ERROR('Wrong configuration name and version!')
+      tables += ' ,configurations c'
+      condition = "  and c.ConfigName='%s' and c.ConfigVersion='%s'"%( configName, configVersion)
 
     if production != 'ALL':
       if type(production) == types.ListType:
@@ -2315,7 +2305,7 @@ and files.qualityid= dataquality.qualityid'
       if endRunID != None:
         condition += ' and j.runnumber<=' + str(endRunID)
 
-    tables = ' files f,jobs j '
+
     if procPass != 'ALL':
       if not re.search('^/', procPass): procPass = procPass.replace(procPass, '/%s' % procPass)
       command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
