@@ -1181,8 +1181,12 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if values.has_key('FileSize'):
       filesize = values['FileSize']
 
+    tck = []
+    if values.has_key('TCK'):
+      tck = values['TCK']
+
     result = []
-    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, visible, filesize)
+    retVal = dataMGMT_.getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, visible, filesize, tck)
     if not retVal['OK']:
       return S_ERROR( retVal['Message'] )
     else:

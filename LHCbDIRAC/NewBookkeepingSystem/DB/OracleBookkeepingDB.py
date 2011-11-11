@@ -2268,9 +2268,8 @@ and files.qualityid= dataquality.qualityid'
     return S_OK('The files are visible!')
 
   #############################################################################
-  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag='ALL', startDate=None, endDate=None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers=[], replicaFlag='Yes', visible='ALL', filesize=False):
+  def getFilesWithGivenDataSets(self, simdesc, datataking, procPass, ftype, evt, configName='ALL', configVersion='ALL', production='ALL', flag='ALL', startDate=None, endDate=None, nbofEvents=False, startRunID=None, endRunID=None, runnumbers=[], replicaFlag='Yes', visible='ALL', filesize=False, tcks = []):
 
-    configid = None
     condition = ''
     tables = ' files f,jobs j '
 
@@ -2305,6 +2304,17 @@ and files.qualityid= dataquality.qualityid'
       if endRunID != None:
         condition += ' and j.runnumber<=' + str(endRunID)
 
+    if len(tcks) > 0:
+      if type(tcks) == types.ListType:
+        cond = '('
+        for i in tcks:
+          cond += "j.tck='%s' or "%(i)
+        cond = cond[:-3] + ')'
+        condition = " and %s "%(cond)
+      elif type(tcks) == types.StringType:
+        condition += " and j.tck='%s'"%(tcks)
+      else:
+        return S_ERROR('The TCK should be a list or a string')
 
     if procPass != 'ALL':
       if not re.search('^/', procPass): procPass = procPass.replace(procPass, '/%s' % procPass)
