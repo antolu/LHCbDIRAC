@@ -211,7 +211,7 @@ class BookkeepingReport( ModuleBase ):
     docType = DocumentType( "Job" )
     docType.systemId = "book.dtd"
     doc.appendChild( docType )
-    
+
     # Generate JobNode
     doc, jobNode = self.__generateJobNode( doc )
     # Generate TypedParams
@@ -431,6 +431,7 @@ class BookkeepingReport( ModuleBase ):
         typeVersion = ''
         if not typeV['OK']:
           self.log.error( 'Could not find Type for %s with message' % ( output ), typeV['Message'] )
+          raise NameError, 'No Type in XML catalog'
         else:
           typeVersion = typeV['Value'][output]
           self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
@@ -485,7 +486,7 @@ class BookkeepingReport( ModuleBase ):
         guid = self.step_commons[ 'guid' ][ output ]
 
       if not guid:
-        return S_ERROR( 'No GUID found for %s' % output )
+        raise NameError, 'No GUID found for %s' % output
 
       # find the constructed lfn
       lfn = ''
@@ -494,7 +495,7 @@ class BookkeepingReport( ModuleBase ):
           if os.path.basename( outputLFN ) == output:
             lfn = outputLFN
         if not lfn:
-          return S_ERROR( 'Could not find LFN for %s' % output )
+          raise NameError, 'Could not find LFN for %s' % output
       else:
         lfn = '%s/%s' % ( self.logFilePath, self.applicationLog )
 
