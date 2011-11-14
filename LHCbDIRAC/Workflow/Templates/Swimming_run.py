@@ -111,7 +111,7 @@ mergingEnabled = False
 oneStep = '{{p1App}}'
 twoSteps = '{{p2App}}'
 threeSteps = '{{p3App}}'
-fourSteps = '{{p3App}}'
+fourSteps = '{{p4App}}'
 
 #####################################################
 # Guessing what the request is for:
@@ -238,7 +238,7 @@ recoInputDataList = []
 swimmInputDataList = []
 
 if not publishFlag:
-  swimmTestData = 'LFN:/lhcb/data/2010/SDST/00008375/0001/00008375_00016947_1.sdst'
+  swimmTestData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00010752/0000/00010752_00000509_1.charmcompleteevent.dst'
   swimmInputDataList.append( swimmTestData )
   swimmIDPolicy = 'protocol'
   evtsPerJob = '2000'
@@ -357,9 +357,15 @@ if swimmEnabled:
     production.setDestination( destination )
 
   if sysConfig:
-    production.setSystemConfig( sysConfig )
+    try:
+      production.setSystemConfig( sysConfig )
+    except:
+      production.setJobParameters( { 'SystemConfig': sysConfig } )
 
-  production.setCPUTime( swimmCPU )
+  try:
+    production.setCPUTime( swimmCPU )
+  except:
+    production.setJobParameters( { 'CPUTime': swimmCPU } )
   production.setProdType( 'DataStripping' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
   production.setWorkflowName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
@@ -367,18 +373,35 @@ if swimmEnabled:
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( swimmInputBKQuery )
   production.setDBTags( swimmCDb, swimmDDDb )
-  production.setInputDataPolicy( swimmIDPolicy )
+  try:
+    production.setInputDataPolicy( swimmIDPolicy )
+  except:
+    production.setJobParameters( { 'InputDataPolicy': swimmIDPolicy } )
   production.setProdPlugin( swimmPlugin )
 
-  production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
+  try:
+    production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
                            inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
                            dataType = 'Data', outputSE = unmergedStreamSE,
                            stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility )
+  except:
+    production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
+                           inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
+                           outputSE = unmergedStreamSE,
+                           stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility )
 
-  production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+
+  try:
+    production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                              inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
                              dataType = 'Data', outputSE = unmergedStreamSE,
                              stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
+  except:
+    production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+                             inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                             outputSE = unmergedStreamSE,
+                             stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
+
 
   production.addFinalizationStep()
   production.setProdGroup( prodGroup )
@@ -497,13 +520,19 @@ if mergingEnabled:
 
 
     mergeProd = Production()
-    mergeProd.setCPUTime( mergeCPU )
+    try:
+      mergeProd.setCPUTime( mergeCPU )
+    except:
+      mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
     mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
-      mergeProd.setSystemConfig( sysConfig )
+      try:
+        mergeProd.setSystemConfig( sysConfig )
+      except:
+        mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
     mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, swimmProdID ) )
     mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
@@ -525,7 +554,10 @@ if mergingEnabled:
 
     mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
     mergeProd.setInputBKSelection( mergeBKQuery )
-    mergeProd.setInputDataPolicy( mergeIDPolicy )
+    try:
+      mergeProd.setInputDataPolicy( mergeIDPolicy )
+    except:
+      mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     mergeProd.setProdGroup( prodGroup )
     mergeProd.setProdPriority( mergePriority )
     mergeProd.setJobFileGroupSize( mergeFileSize )
