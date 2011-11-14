@@ -419,18 +419,11 @@ class Production():
                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
                    stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
-        appType is digi (simulation) / dst and inputDataType is digi / raw only at the moment.
     """
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
 
     firstEventNumber = 0
-    appTypes = ['dst', 'digi']
-    inputDataTypes = ['raw', 'digi']
-    if not appType in appTypes:
-      raise TypeError, 'Application type not currently supported (%s)' % appTypes
-    if not inputDataType in inputDataTypes:
-      raise TypeError, 'Only RAW and DIGI input data type currently supported'
 
     if not outputSE:
       outputSE = 'Tier1_MC-DST'
