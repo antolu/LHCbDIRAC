@@ -369,5 +369,33 @@ Policies = {
       'commandIn' : None,
       'args' : None,
       #'ResourceType' : ValidResourceType,
-    }
+    },
+   'Nagios_CE' :
+    {
+      'Description' : 'Checks probes with ServiceFlavour CE for a given resource',
+      'module'      : 'NagiosProbes_Policy',
+      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'args'        : ( 'CE', )
+    },
+    'Nagios_CREAMCE' :
+    {
+      'Description' : 'Checks probes with ServiceFlavour CREAM-CE for a given resource',
+      'module'      : 'NagiosProbes_Policy',
+      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'args'        : ( 'CREAM-CE', )
+    },
+    'Nagios_SE' :
+    {
+      'Description' : 'Checks probes with ServiceFlavour SRMv2 for a given resource',
+      'module'      : 'NagiosProbes_Policy',
+      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'args'        : ( 'SRMv2', )
+    },
+    'Nagios_LFC' :
+    {
+      'Description' : 'Checks probes with ServiceFlavour LFC for a given resource',
+      'module'      : 'NagiosProbes_Policy',
+      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'args'        : ( 'LFC', )
+    }           
 }
