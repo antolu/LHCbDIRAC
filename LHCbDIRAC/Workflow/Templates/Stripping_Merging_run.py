@@ -283,7 +283,8 @@ if strippEnabled:
                         'ConfigName'               : bkConfigName,
                         'ConfigVersion'            : bkConfigVersion,
                         'ProductionID'             : 0,
-                        'DataQualityFlag'          : strippDQFlag
+                        'DataQualityFlag'          : strippDQFlag,
+                        'Visible'                  : 'Yes'
                         }
 
 

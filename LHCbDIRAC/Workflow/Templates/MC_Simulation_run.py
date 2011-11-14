@@ -386,13 +386,22 @@ if threeSteps and not decided:
 
 
 if twoSteps and not decided:
-  gLogger.error( '2 steps requested, not sure what to do! Exiting...' )
-  DIRAC.exit( 2 )
+  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
+                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
+                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
+                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
 
+  if '{{p2App}}' == 'Boole':
+    prodDescription = 'A two steps workflow Gauss->Boole'
+    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
+                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
+                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
 
+    decided = True
 
-
-
+  else:
+    gLogger.error( 'Not sure what to do! Exiting...' )
+    DIRAC.exit( 2 )
 
 
 
