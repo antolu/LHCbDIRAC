@@ -34,6 +34,8 @@ CREATE TABLE BkQueries (
   INDEX (EndRun),
   RunNumbers VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (RunNumbers),
+  TCK VARCHAR(512) NOT NULL DEFAULT 'All',
+  INDEX (TCK),
   Visible VARCHAR(8) NOT NULL DEFAULT 'All',
   PRIMARY KEY  (`BkQueryID`)
 ) ENGINE=MyISAM;

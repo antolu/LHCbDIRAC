@@ -30,7 +30,7 @@ class TransformationDB( DIRACTransformationDB ):
     DIRACTransformationDB.__init__( self, dbname, dbconfig, maxQueueSize )
     self.lock = threading.Lock()
     self.dbname = dbname
-    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible', 'RunNumbers']
+    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
 
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
