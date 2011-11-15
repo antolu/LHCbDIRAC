@@ -273,11 +273,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
         elif step.has_key('RuntimeProjects'):
           r_project = step['RuntimeProjects']
 
-        for i in r_project:
-          rid = i['StepId']
-          retVal = self.insertRuntimeProject(sid, rid)
-          if not retVal['OK']:
-            return retVal
+        if r_project != None:
+          for i in r_project:
+            rid = i['StepId']
+            retVal = self.insertRuntimeProject(sid, rid)
+            if not retVal['OK']:
+              return retVal
         return S_OK(sid)
       else:
         return retVal
@@ -286,7 +287,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def deleteStep(self, stepid):
-    command = 'delete steps where stepid=' + str(stepid)
+    command = " delete runtimeprojects where stepid=%d" % (stepid)
+    retVal = self.dbW_._query(command)
+    if not retVal['OK']:
+      return retVal
+    # now we can delete the step
+    command = "delete steps where stepid=%d" % (stepid)
     return self.dbW_._query(command)
 
   #############################################################################
