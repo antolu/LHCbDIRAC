@@ -2281,7 +2281,8 @@ and files.qualityid= dataquality.qualityid'
 
     if configName != 'ALL' and configVersion != 'ALL':
       tables += ' ,configurations c'
-      condition = "  and c.ConfigName='%s' and c.ConfigVersion='%s'"%( configName, configVersion)
+      condition = "  and c.ConfigName='%s' and c.ConfigVersion='%s' and j.configurationid=c.configurationid "%( configName, configVersion)
+
 
     if production != 'ALL':
       if type(production) == types.ListType:
