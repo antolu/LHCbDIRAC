@@ -643,6 +643,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for run in res['Value']:
       runID = run['RunNumber']
       runStatus = run['Status']
+      if transStatus == 'Flush':
+        runStatus = 'Flush'
       paramDict = runDict.get( runID, {} )
       runRAWFiles = {}
       for paramValue in sortList( paramDict.keys() ):
@@ -654,7 +656,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check if something was new since last time...
         cachedLfns = self.cachedRunLfns.setdefault( runID, {} ).setdefault( paramValue, [] )
         newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
-        if len( newLfns ) == 0 and transID > 0 and transStatus != 'Flush' and runStatus != 'Flush':
+        if len( newLfns ) == 0 and transID > 0 and runStatus != 'Flush':
           self.__logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         else:
@@ -680,9 +682,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 runParamReplicas[lfn][se] = inputData[lfn][se]
         self.data = runParamReplicas
         status = runStatus
-        if transStatus == 'Flush':
-          status = 'Flush'
-        elif runFlush:
+        if status != 'Flush' and runFlush:
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
           rawFiles = self.__getNbRAWInRun( runID, evtType )
@@ -706,7 +706,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Cache the left-over LFNs
         taskLfns = []
         for task in res['Value']:
+          targetSite = task[0]
           taskLfns += task[1]
+        res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
+        if not res['OK']:
+          gLogger.error( "Failed to set target site to run %s as %s", str( runID ), targetSite )
         self.cachedRunLfns[runID][paramValue] = [lfn for lfn in runParamLfns if lfn not in taskLfns]
     self.data = inputData
     self.__writeCacheFile()
@@ -790,12 +794,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __selectSEs( self, candSEs, needToCopy, existingSites ):
     targetSites = existingSites
     targetSEs = []
+    if needToCopy < len( candSEs ):
+      # Use a weight for each SE
+      pass
     for se in candSEs:
       if needToCopy <= 0: break
       site = True
       sites = []
       # Don't take into account ARCHIVE SEs for duplicate replicas at sites
-      if not se.endswith( '-ARCHIVE' ):
+      if not __isArchive( se ):
         res = getSitesForSE( se )
         if res['OK' ]:
           sites = res['Value']
@@ -1058,14 +1065,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return targetSEs + sameSEs
 
   def _ReplicateDataset( self ):
-    destSEs = self.__getListFromString( self.params.get( 'DestinationSEs' ) )
+    destSEs = self.__getListFromString( self.params.get( 'DestinationSEs', [] ) )
+    if not destSEs:
+      destSEs = self.__getListFromString( self.params.get( 'MandatorySEs', [] ) )
     secondarySEs = self.__getListFromString( self.params.get( 'SecondarySEs', [] ) )
     numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
-    if not destSEs:
-      destSEs = self.__getListFromString( self.params.get( 'MandatorySEs' ) )
-      if not destSEs:
-        self.__logInfo( "_ReplicateDataset plugin: no destination SEs" )
-        return S_OK( [] )
     return self.__simpleReplication( destSEs, secondarySEs, numberOfCopies )
 
   def _ArchiveDataset( self ):
