@@ -660,6 +660,10 @@ class LOGSETest(TestBase):
 
 
 class SLSAgent(AgentModule):
+  def initialize(self):
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+    return S_OK()
+
   def execute(self):
     SpaceTokenOccupancyTest(self)
     DIRACTest(self)
