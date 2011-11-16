@@ -116,7 +116,7 @@ class SpaceTokenOccupancyTest(TestBase):
     doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
     doc.documentElement.setAttribute("xsi:schemaLocation",
                                      "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-    xml_append(doc, "id", st)
+    xml_append(doc, "id", site + "-" + st)
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
     xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")

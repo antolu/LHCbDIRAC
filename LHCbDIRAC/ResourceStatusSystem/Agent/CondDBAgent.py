@@ -17,7 +17,7 @@ import xml.dom, xml.sax
 import time
 import re, os, subprocess, pwd
 
-__RCSID__ = ""
+__RCSID__ = "$Id: $"
 AGENT_NAME = "ResourceStatus/CondDBAgent"
 
 impl = xml.dom.getDOMImplementation()
