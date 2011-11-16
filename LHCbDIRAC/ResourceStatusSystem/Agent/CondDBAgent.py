@@ -160,7 +160,7 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
                               "serviceupdate",
                               None)
-    xml_append(doc, "id", site + "CondDB")
+    xml_append(doc, "id", site + "_" + "CondDB")
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
     xml_append(doc, "threshold", self.getTestValue("Thresholds/degraded"), elt_=elt, level="degraded")
@@ -173,7 +173,7 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
-    xmlfile = open(self.xmlPath + site + ".xml", "w")
+    xmlfile = open(self.xmlPath + site + "_" + "CondDB.xml", "w")
     try:
       uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
       prettyXml = xml_re.sub('>\g<1></', uglyXml)
