@@ -710,18 +710,6 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     finally:
       options_file.close()
 
-    # Generate shell snipplet that will run the test
-    env_script = """#!/bin/bash
-. /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh
-. SetupProject.sh LHCb v31r5 --use-grid
-gaudirun.py options.py > result.log
-"""
-    env_file = open("run_condDB_test.sh", "w")
-    try:
-      env_file.write(env_script)
-    finally:
-      env_file.close()
-
     # For each CondDB, run the test and generate XML file
     for site in self.CDB_infos:
       self.run_test(site)
@@ -736,7 +724,16 @@ gaudirun.py options.py > result.log
     self.generate_authentication_file(site)
 
     # Run the shell snipplet that will output to result.log
-    ret = subprocess.call(["bash", "run_condDB_test.sh"])
+    import subprocess
+    from LHCbDIRAC.Core.Utilities import ProductionEnvironment
+
+    os.environ["USER"] = "dirac" # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
+    env = Utils.unpack(ProductionEnvironment.getProjectEnvironment('x86_64-slc5-gcc43-opt', "LHCb"))
+    try:
+      f = open("result.log", "w")
+      ret = subprocess.call(["gaudirun.py", "options.py"], env=env,stdout=f,stderr=subprocess.STDOUT)
+    finally:
+      f.close()
 
     if ret == 0:
       try:
@@ -826,9 +823,9 @@ class SLSAgent(AgentModule):
     return S_OK()
 
   def execute(self):
-    SpaceTokenOccupancyTest(self)
-    DIRACTest(self)
-    LOGSETest(self)
+#    SpaceTokenOccupancyTest(self)
+#    DIRACTest(self)
+#    LOGSETest(self)
     CondDBTest(self)
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
