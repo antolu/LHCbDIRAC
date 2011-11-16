@@ -182,11 +182,6 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
       xmlfile.close()
 
 class CondDBAgent(AgentModule):
-
-  def initialize(self):
-    self.am_setOption( 'shifterProxy', 'DataManager' )
-    return S_OK()
-
   def execute(self):
     CondDBTest(self)
     return S_OK()
