@@ -4,31 +4,10 @@
 
 """  The MC Simulation Template creates workflows for the following simulation
      use-cases:
-     
-     - Gauss [ + Merging, + Transformation ]
-     - Gauss -> Boole [ + Merging, + Transformation ]
-     - Gauss -> Boole -> Brunel [ + Merging, + Transformation ]
-     - Gauss -> Boole -> Moore -> Brunel [ + Merging, + Transformation ]
-     
-     with the following parameters being configurable via the interface:
-     
-     - number of events
-     - CPU time in seconds
-     - final output file type 
-     - number of jobs to extend the initial MC production 
-     - resulting WMS priority for each job
-     - BK config name and version
-     - system configuration
-     - output file mask (e.g. to retain intermediate step output)
-     - merging priority, plugin and group size
-     - whether or not to ban Tier-1 sites as destination
-     - whether or not a merging production should be created
-     - whether or not a transformation should be created
-     - whether outputs should be uploaded to CERN only for testing
-     - string to append to the production name
-     
-     The template explicitly forces the tags of the CondDB / DDDB to be set
-     at each step.  
+      WORKFLOW1: Simulation+MCMerge+Selection+Merge
+      WORKFLOW2: Simulation+MCMerge+Selection
+      WORKFLOW3: Simulation+MCMerge
+      WORKFLOW4: Simulation
      
 """
 
@@ -37,14 +16,13 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
-import string
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 
 import DIRAC
 
-from DIRAC import gLogger, gConfig
+from DIRAC import gLogger
 gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
 
 #################################################################################
@@ -52,6 +30,7 @@ gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
 #################################################################################
 from LHCbDIRAC.Interfaces.API.Production import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 ###########################################
 # Configurable and fixed parameters
@@ -59,14 +38,21 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 
+w = '{{w#----->WORKFLOW: choose one below#}}'
+w1 = '{{w1#-WORKFLOW1: Simulation+MCMerge+Selection+Merge#False}}'
+w2 = '{{w2#-WORKFLOW2: Simulation+MCMerge+Selection#False}}'
+w3 = '{{w3#-WORKFLOW3: Simulation+MCMerge#False}}'
+w4 = '{{w4#-WORKFLOW4: Simulation#False}}'
+
+
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
+validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
 
 configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC10}}'
 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
-outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#slc4_ia32_gcc34}}'
 
@@ -74,12 +60,10 @@ events = '{{MCNumberOfEvents#PROD-MC: Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
 priority = '{{MCPriority#PROD-MC: Production priority#4}}'
 extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
-finalAppType = '{{MCFinalAppType#PROD-MC: final file type to produce and merge e.g. DST,XDST,GEN,SIM...#ALLSTREAMS.DST}}'
 gaussExtraOptions = '{{gaussExtraOptions#PROD-MC: Gauss extra options (leave blank for default)#}}'
 brunelExtraOptions = '{{brunelExtraOptions#PROD-MC: Brunel extra options (leave blank for default)#}}'
 daVinciExtraOptions = '{{daVinciExtraOptions#PROD-MC: DaVinci extra options (leave blank for default)#}}'
 
-mergingFlag = '{{MergingEnable#PROD-Merging: enable flag Boolean True/False#True}}' #True/False
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
@@ -99,51 +83,76 @@ eventNumberTotal = '{{EventNumberTotal}}'
 if not parentReq:
   parentReq = requestID
 
+BKClient = BookkeepingClient()
+
 ###########################################
 # LHCb conventions implied by the above
 ###########################################
 
-if finalAppType.lower() == 'xdst':
-  booleType = 'xdigi'
-else:
-  booleType = 'digi'
+w1 = eval( w1 )
+w2 = eval( w2 )
+w3 = eval( w3 )
+w4 = eval( w4 )
 
-# This is SIM unless a one-step (+/- merging)
-# Gauss production is requested, see below.
-gaussAppType = 'sim'
+if not w1 and not w2 and not w3 and not w4:
+  gLogger.error( 'I told you to select at least one workflow!' )
+  DIRAC.exit( 2 )
+
+MCMerging = False
+selection = False
+selectionMerging = False
+simulationTracking = 0
+MCMergingTracking = 0
+selectionTracking = 0
+mergeSelectionTracking = 0
+
+if w1:
+  MCMerging = True
+  selection = True
+  selectionMerging = True
+  mergeSelectionTracking = 1
+elif w2:
+  MCMerging = True
+  selection = True
+  selectionTracking = 1
+elif w3:
+  MCMerging = True
+  MCMergingTracking = 1
+elif w4:
+  simulationTracking = 1
 
 replicationFlag = eval( replicationFlag )
-mergingFlag = eval( mergingFlag )
 banTier1s = eval( banTier1s )
 outputsCERN = eval( outputsCERN )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
+validationFlag = eval( validationFlag )
 
 if certificationFlag or localTestFlag:
   testFlag = True
   replicationFlag = False
   if certificationFlag:
     publishFlag = True
-    mergingFlag = True
   if localTestFlag:
     publishFlag = False
-    mergingFlag = False
+    MCMerging = False
+    selection = False
+    selectionMerging = False
 else:
   publishFlag = True
   testFlag = False
 
-defaultOutputSE = 'CERN-RDST'
-brunelDataSE = 'CERN_MC_M-DST'
-daVinciDataSE = 'CERN_MC_M-DST'
+if outputsCERN:
+  defaultOutputSE = 'CERN-RDST'
+  brunelDataSE = 'CERN_MC_M-DST'
+  daVinciDataSE = 'CERN_MC_M-DST'
+else:
+  defaultOutputSE = 'Tier1-RDST'
+  brunelDataSE = 'Tier1_MC_M-DST'
+  daVinciDataSE = 'Tier1_MC_M-DST'
 
-mcRequestTracking = 1
-mcreplicationFlag = replicationFlag
-if mergingFlag:
-  mcRequestTracking = 0
-  mcreplicationFlag = False
 
 BKscriptFlag = False
-
 # If we don't even publish the production, we assume we want to see if the BK scripts are OK 
 if not publishFlag:
   BKscriptFlag = True
@@ -154,18 +163,7 @@ if testFlag:
   configVersion = 'test'
   events = '3'
   mergingGroupSize = '1'
-  mcreplicationFlag = False
   replicationFlag = False
-
-#The below is in order to choose the right steps in the workflow automatically
-#e.g. each number of steps maps to a unique number
-mergingApp = 'LHCb'
-mergingVersion = ''
-mergingCondDB = ''
-mergingDDDB = ''
-mergingStepID = ''
-mergingStepName = ''
-mergingStepVisible = ''
 
 oneStep = '{{p1App}}'
 twoSteps = '{{p2App}}'
@@ -174,396 +172,739 @@ fourSteps = '{{p4App}}'
 fiveSteps = '{{p5App}}'
 sixSteps = '{{p6App}}'
 sevenSteps = '{{p7App}}'
+eightSteps = '{{p8App}}'
+nineSteps = '{{p9App}}'
 
-# In case you want to set list (or a single) application for which the out data should be uploaded
-# If not set, take all the produced, with the outputFileMask is always defined 
-outputDataStep = ''
-
-if sevenSteps:
-  gLogger.error( 'Seven steps specified, not sure what to do! Exiting...' )
+if nineSteps:
+  gLogger.error( 'Nine steps specified, not sure what to do! Exiting...' )
   DIRAC.exit( 2 )
 
-if outputFileMask:
-  maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
-  if not finalAppType.lower() in maskList:
-    maskList.append( finalAppType.lower() )
-  outputFileMask = string.join( maskList, ';' )
+MC5 = False
+MC4 = False
+MC3 = False
+MC2 = False
+MC1 = False
 
-###########################################
-# Parameter passing, the bulk of the script
-###########################################
-production = Production()
+if ( eightSteps and w1 ) or ( sevenSteps and w2 ) or ( sixSteps and w3 ) or ( fiveSteps and w4 ):
+  MC5 = True
+if ( sevenSteps and w1 ) or ( sixSteps and w2 ) or ( fiveSteps and w3 ) or ( fourSteps and w4 ):
+  MC4 = True
+if ( sixSteps and w1 ) or ( fiveSteps and w2 ) or ( fourSteps and w3 ) or ( threeSteps and w4 ):
+  MC3 = True
+if ( fiveSteps and w1 ) or ( fourSteps and w2 ) or ( threeSteps and w3 ) or ( twoSteps and w4 ):
+  MC2 = True
+if ( fourSteps and w1 ) or ( threeSteps and w2 ) or ( twoSteps and w3 ) or ( oneStep and w4 ):
+  MC1 = True
 
-if sysConfig:
-  production.setJobParameters( { 'SystemConfig': sysConfig } )
 
-production.setProdType( 'MCSimulation' )
-wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
+if MC5 or MC4 or MC3 or MC2 or MC1:
 
-production.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
-production.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
-production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
-production.setSimulationEvents( events, eventNumberTotal )
+  prodDescription = 'MC: Gauss'
+  MCEnabled = True
 
-decided = False
+  if oneStep != 'Gauss':
+    gLogger.error( 'oneStep = %d', oneStep )
+    DIRAC.exit( 2 )
 
-#To make editing the resulting script easier in all cases separate options from long function calls
-gaussOpts = '{{p1Opt}}'
-defaultEvtOpts = gConfig.getValue( '/Operations/Gauss/EvtOpts', '$DECFILESROOT/options/{{eventType}}.opts' )
-if not defaultEvtOpts in gaussOpts:
-  gaussOpts += ';%s' % defaultEvtOpts
+  gaussStep = int( '{{p1Step}}' )
+  gaussName = '{{p1Name}}'
+  gaussVisibility = '{{p1Vis}}'
+  gaussCDb = '{{p1CDb}}'
+  gaussDDDb = '{{p1DDDb}}'
+  gaussOptions = '{{p1Opt}}'
+  gaussVersion = '{{p1Ver}}'
+  gaussEP = '{{p1EP}}'
+
+  gaussOutput = BKClient.getStepOutputFiles( gaussStep )
+  if not gaussOutput:
+    gLogger.error( 'Error getting res from BKK: %s', gaussOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  gaussOutputList = [x[0].lower() for x in gaussOutput['Value']['Records']]
+  if len( gaussOutputList ) > 1:
+    gLogger.error( 'More than 1 gauss output: %s', gaussOutputList )
+    DIRAC.exit( 2 )
+  else:
+    gaussType = gaussOutputList[0]
+
+
+if MC5 or MC4 or MC3 or MC2:
+
+  prodDescription = prodDescription + '->Boole'
+  if twoSteps != 'Boole':
+    gLogger.error( 'twoSteps = %d', twoSteps )
+    DIRAC.exit( 2 )
+
+  booleStep = int( '{{p2Step}}' )
+  booleName = '{{p2Name}}'
+  booleVisibility = '{{p2Vis}}'
+  booleCDb = '{{p2CDb}}'
+  booleDDDb = '{{p2DDDb}}'
+  booleOptions = '{{p2Opt}}'
+  booleVersion = '{{p2Ver}}'
+  booleEP = '{{p2EP}}'
+
+  booleInput = BKClient.getStepInputFiles( booleStep )
+  if not booleInput:
+    gLogger.error( 'Error getting res from BKK: %s', booleInput['Message'] )
+    DIRAC.exit( 2 )
+
+  booleInputList = [x[0].lower() for x in booleInput['Value']['Records']]
+  if len( booleInputList ) > 1:
+    gLogger.error( 'More than 1 boole output: %s', booleInputList )
+    DIRAC.exit( 2 )
+  else:
+    booleInputType = booleInputList[0]
+
+  booleOutput = BKClient.getStepOutputFiles( booleStep )
+  if not booleOutput:
+    gLogger.error( 'Error getting res from BKK: %s', booleOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  booleOutputList = [x[0].lower() for x in booleOutput['Value']['Records']]
+  if len( booleOutputList ) > 1:
+    gLogger.error( 'More than 1 boole output: %s', booleOutputList )
+    DIRAC.exit( 2 )
+  else:
+    booleType = booleOutputList[0]
+
+if MC5 or MC4 or MC3:
+
+  if threeSteps == 'Moore':
+    prodDescription = prodDescription + '->Moore'
+    mooreStep = int( '{{p3Step}}' )
+    mooreName = '{{p3Name}}'
+    mooreVisibility = '{{p3Vis}}'
+    mooreCDb = '{{p3CDb}}'
+    mooreDDDb = '{{p3DDDb}}'
+    mooreOptions = '{{p3Opt}}'
+    mooreVersion = '{{p3Ver}}'
+    mooreEP = '{{p3EP}}'
+
+    mooreInput = BKClient.getStepInputFiles( mooreStep )
+    if not mooreInput:
+      gLogger.error( 'Error getting res from BKK: %s', mooreInput['Message'] )
+      DIRAC.exit( 2 )
+
+    mooreInputList = [x[0].lower() for x in mooreInput['Value']['Records']]
+    if len( mooreInputList ) > 1:
+      gLogger.error( 'More than 1 moore output: %s', mooreInputList )
+      DIRAC.exit( 2 )
+    else:
+      mooreInputType = mooreInputList[0]
+
+    mooreOutput = BKClient.getStepOutputFiles( mooreStep )
+    if not mooreOutput:
+      gLogger.error( 'Error getting res from BKK: %s', mooreOutput['Message'] )
+      DIRAC.exit( 2 )
+
+    mooreOutputList = [x[0].lower() for x in mooreOutput['Value']['Records']]
+    if len( mooreOutputList ) > 1:
+      gLogger.error( 'More than 1 moore output: %s', mooreOutputList )
+      DIRAC.exit( 2 )
+    else:
+      mooreType = mooreOutputList[0]
+
+  elif threeSteps == 'Brunel':
+    prodDescription = prodDescription + '->Brunel'
+    brunelStep = int( '{{p3Step}}' )
+    brunelName = '{{p3Name}}'
+    brunelVisibility = '{{p3Vis}}'
+    brunelCDb = '{{p3CDb}}'
+    brunelDDDb = '{{p3DDDb}}'
+    brunelOptions = '{{p3Opt}}'
+    brunelVersion = '{{p3Ver}}'
+    brunelEP = '{{p3EP}}'
+
+    brunelInput = BKClient.getStepInputFiles( brunelStep )
+    if not brunelInput:
+      gLogger.error( 'Error getting res from BKK: %s', brunelInput['Message'] )
+      DIRAC.exit( 2 )
+
+    brunelInputList = [x[0].lower() for x in brunelInput['Value']['Records']]
+    if len( brunelInputList ) > 1:
+      gLogger.error( 'More than 1 brunel output: %s', brunelInputList )
+      DIRAC.exit( 2 )
+    else:
+      brunelInputType = brunelInputList[0]
+
+    brunelOutput = BKClient.getStepOutputFiles( brunelStep )
+    if not brunelOutput:
+      gLogger.error( 'Error getting res from BKK: %s', brunelOutput['Message'] )
+      DIRAC.exit( 2 )
+
+    brunelOutputList = [x[0].lower() for x in brunelOutput['Value']['Records']]
+    if len( brunelOutputList ) > 1:
+      gLogger.error( 'More than 1 brunel output: %s', brunelOutputList )
+      DIRAC.exit( 2 )
+    else:
+      brunelType = brunelOutputList[0]
+
+  else:
+    gLogger.error( 'threeSteps = %d', threeSteps )
+    DIRAC.exit( 2 )
+
+if MC5 or MC4:
+
+  if fourSteps == 'Brunel':
+    prodDescription = prodDescription + '->Brunel'
+    brunelStep = int( '{{p4Step}}' )
+    brunelName = '{{p4Name}}'
+    brunelVisibility = '{{p4Vis}}'
+    brunelCDb = '{{p4CDb}}'
+    brunelDDDb = '{{p4DDDb}}'
+    brunelOptions = '{{p4Opt}}'
+    brunelVersion = '{{p4Ver}}'
+    brunelEP = '{{p4EP}}'
+
+    brunelInput = BKClient.getStepInputFiles( brunelStep )
+    if not brunelInput:
+      gLogger.error( 'Error getting res from BKK: %s', brunelInput['Message'] )
+      DIRAC.exit( 2 )
+
+    brunelInputList = [x[0].lower() for x in brunelInput['Value']['Records']]
+    if len( brunelInputList ) > 1:
+      gLogger.error( 'More than 1 brunel output: %s', brunelInputList )
+      DIRAC.exit( 2 )
+    else:
+      brunelInputType = brunelInputList[0]
+
+    brunelOutput = BKClient.getStepOutputFiles( brunelStep )
+    if not brunelOutput:
+      gLogger.error( 'Error getting res from BKK: %s', brunelOutput['Message'] )
+      DIRAC.exit( 2 )
+
+    brunelOutputList = [x[0].lower() for x in brunelOutput['Value']['Records']]
+    if len( brunelOutputList ) > 1:
+      gLogger.error( 'More than 1 brunel output: %s', brunelOutputList )
+      DIRAC.exit( 2 )
+    else:
+      brunelType = brunelOutputList[0]
+
+  elif fourSteps == 'DaVinci':
+    prodDescription = prodDescription + '->DaVinci'
+    davinciStep = int( '{{p4Step}}' )
+    davinciName = '{{p4Name}}'
+    davinciVisibility = '{{p4Vis}}'
+    davinciCDb = '{{p4CDb}}'
+    davinciDDDb = '{{p4DDDb}}'
+    davinciOptions = '{{p4Opt}}'
+    davinciVersion = '{{p4Ver}}'
+    davinciEP = '{{p4EP}}'
+
+    davinciInput = BKClient.getStepInputFiles( davinciStep )
+    if not davinciInput:
+      gLogger.error( 'Error getting res from BKK: %s', davinciInput['Message'] )
+      DIRAC.exit( 2 )
+
+    davinciInputList = [x[0].lower() for x in davinciInput['Value']['Records']]
+    if len( davinciInputList ) > 1:
+      gLogger.error( 'More than 1 davinci output: %s', davinciInputList )
+      DIRAC.exit( 2 )
+    else:
+      davinciInputType = davinciInputList[0]
+
+    davinciOutput = BKClient.getStepOutputFiles( davinciStep )
+    if not davinciOutput:
+      gLogger.error( 'Error getting res from BKK: %s', davinciOutput['Message'] )
+      DIRAC.exit( 2 )
+
+    davinciOutputList = [x[0].lower() for x in davinciOutput['Value']['Records']]
+    if len( davinciOutputList ) > 1:
+      gLogger.error( 'More than 1 davinci output: %s', davinciOutputList )
+      DIRAC.exit( 2 )
+    else:
+      davinciType = davinciOutputList[0]
+  else:
+    gLogger.error( 'fourSteps = %d', fourSteps )
+    DIRAC.exit( 2 )
+
+if MC5:
+
+  prodDescription = prodDescription + '->DaVinci'
+  davinciStep = int( '{{p5Step}}' )
+  davinciName = '{{p5Name}}'
+  davinciVisibility = '{{p5Vis}}'
+  davinciCDb = '{{p5CDb}}'
+  davinciDDDb = '{{p5DDDb}}'
+  davinciOptions = '{{p5Opt}}'
+  davinciVersion = '{{p5Ver}}'
+  davinciEP = '{{p5EP}}'
+
+  davinciInput = BKClient.getStepInputFiles( davinciStep )
+  if not davinciInput:
+    gLogger.error( 'Error getting res from BKK: %s', davinciInput['Message'] )
+    DIRAC.exit( 2 )
+
+  davinciInputList = [x[0].lower() for x in davinciInput['Value']['Records']]
+  if len( davinciInputList ) > 1:
+    gLogger.error( 'More than 1 davinci output: %s', davinciInputList )
+    DIRAC.exit( 2 )
+  else:
+    davinciInputType = davinciInputList[0]
+
+  davinciOutput = BKClient.getStepOutputFiles( davinciStep )
+  if not davinciOutput:
+    gLogger.error( 'Error getting res from BKK: %s', davinciOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  davinciOutputList = [x[0].lower() for x in davinciOutput['Value']['Records']]
+  if len( davinciOutputList ) > 1:
+    gLogger.error( 'More than 1 davinci output: %s', davinciOutputList )
+    DIRAC.exit( 2 )
+  else:
+    davinciType = davinciOutputList[0]
+
+
+if MCMerging:
+  prodDescription = prodDescription + ' + MC Merging'
+
+  if MC5:
+    mcMergingApp = '{{p6App}}'
+    mcMergingStep = int( '{{p6Step}}' )
+    mcMergingName = '{{p6Name}}'
+    mcMergingVisibility = '{{p6Vis}}'
+    mcMergingCDb = '{{p6CDb}}'
+    mcMergingDDDb = '{{p6DDDb}}'
+    mcMergingOptions = '{{p6Opt}}'
+    mcMergingVersion = '{{p6Ver}}'
+    mcMergingEP = '{{p6EP}}'
+
+  if MC5:
+    mcMergingApp = '{{p5App}}'
+    mcMergingStep = int( '{{p5Step}}' )
+    mcMergingName = '{{p5Name}}'
+    mcMergingVisibility = '{{p5Vis}}'
+    mcMergingCDb = '{{p5CDb}}'
+    mcMergingDDDb = '{{p5DDDb}}'
+    mcMergingOptions = '{{p5Opt}}'
+    mcMergingVersion = '{{p5Ver}}'
+    mcMergingEP = '{{p5EP}}'
+
+  if MC3:
+    mcMergingApp = '{{p4App}}'
+    mcMergingStep = int( '{{p4Step}}' )
+    mcMergingName = '{{p4Name}}'
+    mcMergingVisibility = '{{p4Vis}}'
+    mcMergingCDb = '{{p4CDb}}'
+    mcMergingDDDb = '{{p4DDDb}}'
+    mcMergingOptions = '{{p4Opt}}'
+    mcMergingVersion = '{{p4Ver}}'
+    mcMergingEP = '{{p4EP}}'
+
+  if MC2:
+    mcMergingApp = '{{p3App}}'
+    mcMergingStep = int( '{{p3Step}}' )
+    mcMergingName = '{{p3Name}}'
+    mcMergingVisibility = '{{p3Vis}}'
+    mcMergingCDb = '{{p3CDb}}'
+    mcMergingDDDb = '{{p3DDDb}}'
+    mcMergingOptions = '{{p3Opt}}'
+    mcMergingVersion = '{{p3Ver}}'
+    mcMergingEP = '{{p3EP}}'
+
+  if MC1:
+    mcMergingApp = '{{p2App}}'
+    mcMergingStep = int( '{{p2Step}}' )
+    mcMergingName = '{{p2Name}}'
+    mcMergingVisibility = '{{p2Vis}}'
+    mcMergingCDb = '{{p2CDb}}'
+    mcMergingDDDb = '{{p2DDDb}}'
+    mcMergingOptions = '{{p2Opt}}'
+    mcMergingVersion = '{{p2Ver}}'
+    mcMergingEP = '{{p2EP}}'
+
+  mcMergingInput = BKClient.getStepInputFiles( mcMergingStep )
+  if not mcMergingInput:
+    gLogger.error( 'Error getting res from BKK: %s', mcMergingInput['Message'] )
+    DIRAC.exit( 2 )
+
+  mcMergingInputList = [x[0].lower() for x in mcMergingInput['Value']['Records']]
+  if len( mcMergingInputList ) > 1:
+    gLogger.error( 'More than 1 mcMerging output: %s', mcMergingInputList )
+    DIRAC.exit( 2 )
+  else:
+    mcMergingInputType = mcMergingInputList[0]
+
+  mcMergingOutput = BKClient.getStepOutputFiles( mcMergingStep )
+  if not mcMergingOutput:
+    gLogger.error( 'Error getting res from BKK: %s', mcMergingOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  mcMergingOutputList = [x[0].lower() for x in mcMergingOutput['Value']['Records']]
+  if len( mcMergingOutputList ) > 1:
+    gLogger.error( 'More than 1 mcMerging output: %s', mcMergingOutputList )
+    DIRAC.exit( 2 )
+  else:
+    mcMergingType = mcMergingOutputList[0]
+
+if selection:
+  prodDescription = prodDescription + ' + Selection'
+
+  if MC5:
+    selectionStep = int( '{{p7Step}}' )
+    selectionName = '{{p7Name}}'
+    selectionVisibility = '{{p7Vis}}'
+    selectionCDb = '{{p7CDb}}'
+    selectionDDDb = '{{p7DDDb}}'
+    selectionOptions = '{{p7Opt}}'
+    selectionVersion = '{{p7Ver}}'
+    selectionEP = '{{p7EP}}'
+
+  if MC5:
+    selectionStep = int( '{{p6Step}}' )
+    selectionName = '{{p6Name}}'
+    selectionVisibility = '{{p6Vis}}'
+    selectionCDb = '{{p6CDb}}'
+    selectionDDDb = '{{p6DDDb}}'
+    selectionOptions = '{{p6Opt}}'
+    selectionVersion = '{{p6Ver}}'
+    selectionEP = '{{p6EP}}'
+
+  if MC3:
+    selectionStep = int( '{{p5Step}}' )
+    selectionName = '{{p5Name}}'
+    selectionVisibility = '{{p5Vis}}'
+    selectionCDb = '{{p5CDb}}'
+    selectionDDDb = '{{p5DDDb}}'
+    selectionOptions = '{{p5Opt}}'
+    selectionVersion = '{{p5Ver}}'
+    selectionEP = '{{p5EP}}'
+
+  if MC2:
+    selectionStep = int( '{{p4Step}}' )
+    selectionName = '{{p4Name}}'
+    selectionVisibility = '{{p4Vis}}'
+    selectionCDb = '{{p4CDb}}'
+    selectionDDDb = '{{p4DDDb}}'
+    selectionOptions = '{{p4Opt}}'
+    selectionVersion = '{{p4Ver}}'
+    selectionEP = '{{p4EP}}'
+
+  if MC1:
+    selectionStep = int( '{{p3Step}}' )
+    selectionName = '{{p3Name}}'
+    selectionVisibility = '{{p3Vis}}'
+    selectionCDb = '{{p3CDb}}'
+    selectionDDDb = '{{p3DDDb}}'
+    selectionOptions = '{{p3Opt}}'
+    selectionVersion = '{{p3Ver}}'
+    selectionEP = '{{p3EP}}'
+
+  selectionOutput = BKClient.getStepOutputFiles( selectionStep )
+  if not selectionOutput:
+    gLogger.error( 'Error getting res from BKK: %s', selectionOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  selectionOutputList = [x[0].lower() for x in selectionOutput['Value']['Records']]
+  if len( selectionOutputList ) > 1:
+    gLogger.error( 'More than 1 selection output: %s', selectionOutputList )
+    DIRAC.exit( 2 )
+  else:
+    selectionType = selectionOutputList[0]
+
+if selectionMerging:
+  prodDescription = prodDescription + ' + SelectionMerging'
+
+  if MC5:
+    selectionMergingStep = int( '{{p8Step}}' )
+    selectionMergingName = '{{p8Name}}'
+    selectionMergingVisibility = '{{p8Vis}}'
+    selectionMergingCDb = '{{p8CDb}}'
+    selectionMergingDDDb = '{{p8DDDb}}'
+    selectionMergingOptions = '{{p8Opt}}'
+    selectionMergingVersion = '{{p8Ver}}'
+    selectionMergingEP = '{{p8EP}}'
+
+  if MC5:
+    selectionMergingStep = int( '{{p7Step}}' )
+    selectionMergingName = '{{p7Name}}'
+    selectionMergingVisibility = '{{p7Vis}}'
+    selectionMergingCDb = '{{p7CDb}}'
+    selectionMergingDDDb = '{{p7DDDb}}'
+    selectionMergingOptions = '{{p7Opt}}'
+    selectionMergingVersion = '{{p7Ver}}'
+    selectionMergingEP = '{{p7EP}}'
+
+  if MC3:
+    selectionMergingStep = int( '{{p6Step}}' )
+    selectionMergingName = '{{p6Name}}'
+    selectionMergingVisibility = '{{p6Vis}}'
+    selectionMergingCDb = '{{p6CDb}}'
+    selectionMergingDDDb = '{{p6DDDb}}'
+    selectionMergingOptions = '{{p6Opt}}'
+    selectionMergingVersion = '{{p6Ver}}'
+    selectionMergingEP = '{{p6EP}}'
+
+  if MC2:
+    selectionMergingStep = int( '{{p5Step}}' )
+    selectionMergingName = '{{p5Name}}'
+    selectionMergingVisibility = '{{p5Vis}}'
+    selectionMergingCDb = '{{p5CDb}}'
+    selectionMergingDDDb = '{{p5DDDb}}'
+    selectionMergingOptions = '{{p5Opt}}'
+    selectionMergingVersion = '{{p5Ver}}'
+    selectionMergingEP = '{{p5EP}}'
+
+  if MC1:
+    selectionMergingStep = int( '{{p4Step}}' )
+    selectionMergingName = '{{p4Name}}'
+    selectionMergingVisibility = '{{p4Vis}}'
+    selectionMergingCDb = '{{p4CDb}}'
+    selectionMergingDDDb = '{{p4DDDb}}'
+    selectionMergingOptions = '{{p4Opt}}'
+    selectionMergingVersion = '{{p4Ver}}'
+    selectionMergingEP = '{{p4EP}}'
+
+  selectionMergingOutput = BKClient.getStepOutputFiles( selectionMergingStep )
+  if not selectionMergingOutput:
+    gLogger.error( 'Error getting res from BKK: %s', selectionMergingOutput['Message'] )
+    DIRAC.exit( 2 )
+
+  selectionMergingOutputList = [x[0].lower() for x in selectionMergingOutput['Value']['Records']]
+  if len( selectionMergingOutputList ) > 1:
+    gLogger.error( 'More than 1 selectionMerging output: %s', selectionMergingOutputList )
+    DIRAC.exit( 2 )
+  else:
+    selectionMergingType = selectionMergingOutputList[0]
+
+#if outputFileMask:
+#  maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
+#  if not finalAppType.lower() in maskList:
+#    maskList.append( finalAppType.lower() )
+#  outputFileMask = string.join( maskList, ';' )
+
+if validationFlag:
+  configName = 'validation'
+
+#defaultEvtOpts = gConfig.getValue( '/Operations/Gauss/EvtOpts', '$DECFILESROOT/options/{{eventType}}.opts' )
+#if not defaultEvtOpts in gaussOptions:
+#  gaussOptions += ';%s' % defaultEvtOpts
 
 #defaultGenOpts = gConfig.getValue( '/Operations/Gauss/Gen{{Generator}}Opts', '$LBBCVEGPYROOT/options/{{Generator}}.py' )
-#if not defaultGenOpts in gaussOpts:
-#  gaussOpts += ';%s' % defaultGenOpts
+#if not defaultGenOpts in gaussOptions:
+#  gaussOptions += ';%s' % defaultGenOpts
 
-booleOpts = '{{p2Opt}}'
-#Having Moore and Brunel at the third step means other Opts are defined later.
+if not MCEnabled:
+  gLogger.info( 'No MC requested...?' )
+else:
 
-#Now try to guess what the request is actually asking for.
+  MCProd = Production()
 
+  if sysConfig:
+    try:
+      MCProd.setJobParameters( { 'SystemConfig': sysConfig } )
+    except:
+      MCProd.setSystemConfig( sysConfig )
 
+  MCProd.setProdType( 'MCSimulation' )
+  wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
 
-if sixSteps:
-  if not sixSteps.lower() == mergingApp.lower():
-    gLogger.error( 'Six steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
-    DIRAC.exit( 2 )
+  MCProd.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
+  MCProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
+  MCProd.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
+  MCProd.setSimulationEvents( events, eventNumberTotal )
 
-  prodDescription = 'A six step workflow Gauss->Boole->Moore->Brunel->DaVinci + Merging'
-  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
-                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-  production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                          condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                          stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-  mooreOpts = '{{p3Opt}}'
-  production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                          condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-                          stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-  brunelOpts = '{{p4Opt}}'
-  production.addBrunelStep( '{{p4Ver}}', 'dst', brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
-                           outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}', extraOpts = brunelExtraOptions,
-                           stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
-  daVinciOpts = '{{p5Opt}}'
-  production.addDaVinciStep( '{{p5Ver}}', finalAppType.lower(), daVinciOpts, extraPackages = '{{p5EP}}', inputDataType = 'dst',
-                            dataType = 'MC', extraOpts = daVinciExtraOptions,
-                            outputSE = daVinciDataSE, condDBTag = '{{p5CDb}}', ddDBTag = '{{p5DDDb}}',
-                            stepID = '{{p5Step}}', stepName = '{{p5Name}}', stepVisible = '{{p5Vis}}' )
-  mergingVersion = '{{p6Ver}}'
-  mergingCondDB = '{{p6CDb}}'
-  mergingDDDB = '{{p6DDDb}}'
-  mergingStepID = '{{p6Step}}'
-  mergingStepName = '{{p6Name}}'
-  mergingStepVisible = '{{p6Vis}}'
-  decided = True
+  if MC5 or MC4 or MC3 or MC2 or MC1:
 
-if fiveSteps and not decided:
-  if not mergingFlag and not localTestFlag:
-    gLogger.error( 'Five steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
-  if not fiveSteps.lower() == mergingApp.lower():
-    gLogger.error( 'Five steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
-    DIRAC.exit( 2 )
+    MCProd.addGaussStep( gaussVersion, '{{Generator}}', events, gaussOptions, eventType = '{{eventType}}',
+                         extraPackages = gaussEP, condDBTag = gaussCDb, ddDBTag = gaussDDDb,
+                         outputSE = defaultOutputSE, appType = gaussType, extraOpts = gaussExtraOptions,
+                         stepID = gaussStep, stepName = gaussName, stepVisible = gaussVisibility )
 
-  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
-                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-  production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                          condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                          stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-  if threeSteps.lower() == 'moore' and fourSteps.lower() == 'brunel':
-    prodDescription = 'A five step workflow Gauss->Boole->Moore->Brunel + Merging'
-    mooreOpts = '{{p3Opt}}'
-    production.addMooreStep( '{{p3Ver}}', booleType, mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                            condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-    brunelOpts = '{{p4Opt}}'
-    production.addBrunelStep( '{{p4Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p4EP}}', inputDataType = booleType,
-                              outputSE = brunelDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}', extraOpts = brunelExtraOptions,
-                              stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
-  elif threeSteps.lower() == 'brunel' and fourSteps.lower() == 'davinci':
-    prodDescription = 'A five step workflow Gauss->Boole->Brunel->DaVinci + Merging'
-    brunelOpts = '{{p3Opt}}'
-    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}',
-                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-    daVinciOpts = '{{p4Opt}}'
-    production.addDaVinciStep( '{{p4Ver}}', finalAppType.lower(), daVinciOpts, extraPackages = '{{p4EP}}', inputDataType = 'dst',
-                              dataType = 'MC',
-                              outputSE = daVinciDataSE, condDBTag = '{{p4CDb}}', ddDBTag = '{{p4DDDb}}',
-                             stepID = '{{p4Step}}', stepName = '{{p4Name}}', stepVisible = '{{p4Vis}}' )
-  mergingVersion = '{{p5Ver}}'
-  merginCondDB = '{{p5CDb}}'
-  mergingDDDB = '{{p5DDDb}}'
-  mergingStepID = '{{p5Step}}'
-  mergingStepName = '{{p5Name}}'
-  mergingStepVisible = '{{p5Vis}}'
-  decided = True
+  if MC5 or MC4 or MC3 or MC2:
 
-if fourSteps and not decided:
-  if not mergingFlag and not localTestFlag:
-    gLogger.error( 'Four steps requested (without merging flag being set to True) not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
-  if not fourSteps.lower() == mergingApp.lower():
-    gLogger.error( 'Four steps requested but last is not %s merging, not sure what to do! Exiting...' % ( mergingApp ) )
-    DIRAC.exit( 2 )
+    MCProd.addBooleStep( booleVersion, booleType, booleOptions, extraPackages = booleEP,
+                         condDBTag = booleCDb, ddDBTag = booleDDDb, outputSE = defaultOutputSE,
+                         stepID = booleStep, stepName = booleName, stepVisible = booleVisibility )
 
-  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
-                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-  if twoSteps == 'Boole' and threeSteps == 'Brunel':
-    prodDescription = 'A four steps workflow Gauss->Boole->Brunel + Merging'
-    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-    brunelOpts = '{{p3Opt}}'
-    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', extraOpts = brunelExtraOptions,
-                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+  if MC5 or MC4 or MC3:
 
-  elif twoSteps == 'Boole' and threeSteps == 'Moore':
-    prodDescription = 'A four steps workflow Gauss->Boole->Moore + Merging'
-    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-    mooreOpts = '{{p3Opt}}'
-    production.addMooreStep( '{{p3Ver}}', finalAppType.lower(), mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                            condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
+    if threeSteps == 'Moore':
+      MCProd.addMooreStep( mooreVersion, mooreType, mooreOptions, extraPackages = mooreEP, inputDataType = mooreInputType,
+                           condDBTag = mooreCDb, ddDBTag = mooreDDDb, outputSE = defaultOutputSE,
+                           stepID = mooreStep, stepName = mooreName, stepVisible = mooreVisibility )
 
-  else:
-    gLogger.error( 'Not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
+    elif threeSteps == 'Brunel':
+      MCProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
+                             outputSE = brunelDataSE, condDBTag = brunelCDb, ddDBTag = brunelDDDb, extraOpts = brunelExtraOptions,
+                             stepID = brunelStep, stepName = brunelName, stepVisible = brunelVisibility )
 
-  mergingVersion = '{{p4Ver}}'
-  merginCondDB = '{{p4CDb}}'
-  mergingDDDB = '{{p4DDDb}}'
-  mergingStepID = '{{p4Step}}'
-  mergingStepName = '{{p4Name}}'
-  mergingStepVisible = '{{p4Vis}}'
-  decided = True
+  if MC5 or MC4:
 
+    if fourSteps == 'Brunel':
+      MCProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
+                            outputSE = brunelDataSE, condDBTag = brunelCDb, ddDBTag = brunelDDDb, extraOpts = brunelExtraOptions,
+                            stepID = brunelStep, stepName = brunelName, stepVisible = brunelVisibility )
+    if fourSteps == 'DaVinci':
+      MCProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
+                             dataType = 'MC', extraOpts = daVinciExtraOptions,
+                             outputSE = daVinciDataSE, condDBTag = davinciCDb, ddDBTag = davinciDDDb,
+                             stepID = davinciStep, stepName = davinciName, stepVisible = davinciVisibility )
 
+  if MC5:
+    MCProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
+                           dataType = 'MC', extraOpts = daVinciExtraOptions,
+                           outputSE = daVinciDataSE, condDBTag = davinciCDb, ddDBTag = davinciDDDb,
+                           stepID = davinciStep, stepName = davinciName, stepVisible = davinciVisibility )
 
-if threeSteps and not decided:
-  if mergingFlag:
-    gLogger.error( 'Three steps requested (with merging flag being set to True) not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
-
-  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
-                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-
-  if twoSteps == 'Boole' and threeSteps == 'Brunel':
-    prodDescription = 'A three steps workflow Gauss->Boole->Brunel'
-    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-    brunelOpts = '{{p3Opt}}'
-    production.addBrunelStep( '{{p3Ver}}', finalAppType.lower(), brunelOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                             outputSE = brunelDataSE, condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', extraOpts = brunelExtraOptions,
-                             stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-
-  elif twoSteps == 'Boole' and threeSteps == 'Moore':
-    prodDescription = 'A four steps workflow Gauss->Boole->Moore'
-    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-    mooreOpts = '{{p3Opt}}'
-    production.addMooreStep( '{{p3Ver}}', finalAppType.lower(), mooreOpts, extraPackages = '{{p3EP}}', inputDataType = booleType,
-                            condDBTag = '{{p3CDb}}', ddDBTag = '{{p3DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p3Step}}', stepName = '{{p3Name}}', stepVisible = '{{p3Vis}}' )
-
-  else:
-    gLogger.error( 'Not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
-
-  decided = True
-
-
-if twoSteps and not decided:
-  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
-                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-
-  if '{{p2App}}' == 'Boole':
-    prodDescription = 'A two steps workflow Gauss->Boole'
-    production.addBooleStep( '{{p2Ver}}', booleType, booleOpts, extraPackages = '{{p2EP}}',
-                            condDBTag = '{{p2CDb}}', ddDBTag = '{{p2DDDb}}', outputSE = defaultOutputSE,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
-
-    decided = True
-
-  else:
-    gLogger.error( 'Not sure what to do! Exiting...' )
-    DIRAC.exit( 2 )
-
-
-
-if oneStep and not decided:
-  prodDescription = 'Assuming one step workflow of Gauss only without merging'
-  gaussAppType = finalAppType
-  production.addGaussStep( '{{p1Ver}}', '{{Generator}}', events, gaussOpts, eventType = '{{eventType}}',
-                          extraPackages = '{{p1EP}}', condDBTag = '{{p1CDb}}', ddDBTag = '{{p1DDDb}}',
-                          outputSE = defaultOutputSE, appType = gaussAppType, extraOpts = gaussExtraOptions,
-                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
-  mergingFlag = False
-  decided = True
-
-
-# Finally, in case none of the above were eligible.
-if not decided:
-  gLogger.error( 'None of the understood application configurations were understood by this template. Exiting...' )
-  DIRAC.exit( 2 )
-
-
-prodDescription = '%s for BK %s %s event type %s with %s events per job and final\
-                   application file type %s.' % ( prodDescription, configName, configVersion, evtType, events, finalAppType )
-gLogger.info( prodDescription )
-production.setWorkflowDescription( prodDescription )
-production.addFinalizationStep( ['UploadOutputData',
+  gLogger.info( prodDescription )
+  MCProd.setWorkflowDescription( prodDescription )
+  try:
+    MCProd.addFinalizationStep( ['UploadOutputData',
                                  'FailoverRequest',
                                  'UploadLogFile'] )
-production.setJobParameters( { 'CPUTime': cpu } )
-production.setProdGroup( '{{pDsc}}' )
-production.setProdPriority( priority )
-production.setOutputMode( 'Any' )
-production.setFileMask( outputFileMask )
+    MCProd.setJobParameters( { 'CPUTime': cpu } )
+  except:
+    MCProd.addFinalizationStep()
+    MCProd.setCPUTime( cpu )
 
-if banTier1s:
-  production.banTier1s()
+  MCProd.setProdGroup( '{{pDsc}}' )
+  MCProd.setProdPriority( priority )
+  MCProd.setOutputMode( 'Any' )
+#  MCProd.setFileMask( outputFileMask )
 
-#################################################################################
-# End of production API script, now what to do with the production object
-#################################################################################
+  if banTier1s:
+    MCProd.banTier1s()
 
-if publishFlag == False and testFlag:
-  gLogger.info( 'MC Production test will be launched locally with number of events set to %s.' % ( events ) )
-  try:
-    result = production.runLocal()
-    if result['OK']:
-      DIRAC.exit( 0 )
-    else:
+  if publishFlag == False and testFlag:
+    gLogger.info( 'MC test will be launched locally with number of events set to %s.' % ( events ) )
+    try:
+      result = MCProd.runLocal()
+      if result['OK']:
+        DIRAC.exit( 0 )
+      else:
+        DIRAC.exit( 2 )
+    except Exception, x:
+      gLogger.error( 'MCProd test failed with exception:\n%s' % ( x ) )
       DIRAC.exit( 2 )
-  except Exception, x:
-    gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
+
+  result = MCProd.create( publish = publishFlag,
+                             requestID = int( requestID ),
+                             reqUsed = simulationTracking,
+                             transformation = False,
+                             bkScript = BKscriptFlag,
+                             parentRequestID = int( parentReq )
+                             )
+
+  if not result['OK']:
+    gLogger.error( 'Error during MCProd creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
     DIRAC.exit( 2 )
 
-result = production.create( 
-                           publish = publishFlag,
-                           requestID = int( requestID ),
-                           reqUsed = mcRequestTracking,
-                           transformation = mcreplicationFlag,
-                           bkScript = BKscriptFlag,
-                           parentRequestID = int( parentReq )
-                           )
+  if publishFlag:
+    diracProd = DiracProduction()
 
-if not result['OK']:
-  gLogger.error( 'Error during production creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
-  DIRAC.exit( 2 )
+    prodID = result['Value']
+    msg = 'MC MCProd %s successfully created ' % ( prodID )
 
-if publishFlag:
-  diracProd = DiracProduction()
+    if extend:
+      diracProd.extendMCProd( prodID, extend, printOutput = True )
+      msg += ', extended by %s jobs' % extend
 
-  prodID = result['Value']
-  msg = 'MC production %s successfully created ' % ( prodID )
+    if testFlag:
+      diracProd.MCProd( prodID, 'manual', printOutput = True )
+      msg = msg + 'and started in manual mode.'
+    else:
+      diracProd.MCProd( prodID, 'automatic', printOutput = True )
+      msg = msg + 'and started in automatic mode.'
+    gLogger.info( msg )
 
-  if extend:
-    diracProd.extendProduction( prodID, extend, printOutput = True )
-    msg += ', extended by %s jobs' % extend
-
-  if testFlag:
-    diracProd.production( prodID, 'manual', printOutput = True )
-    msg = msg + 'and started in manual mode.'
   else:
-    diracProd.production( prodID, 'automatic', printOutput = True )
-    msg = msg + 'and started in automatic mode.'
-  gLogger.info( msg )
+    prodID = 1
+    gLogger.info( 'MC production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
-else:
-  prodID = 1
-  gLogger.info( 'MC production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
-
-if not mergingFlag:
-  gLogger.info( 'No merging requested for production ID %s.' % ( prodID ) )
-  DIRAC.exit( 0 )
 
 #################################################################################
-# This is the start of the merging production definition (if requested)
+# This is the start of the MC merging production definition (if requested)
 #################################################################################
 
-inputBKQuery = { 'SimulationConditions'     : 'All',
-                 'DataTakingConditions'     : 'All',
-                 'ProcessingPass'           : 'All',
-                 'FileType'                 : finalAppType.upper(),
-                 'EventType'                : evtType,
-                 'ConfigName'               : 'All',
-                 'ConfigVersion'            : 'All',
-                 'ProductionID'             : int( prodID ),
-                 'DataQualityFlag'          : 'All'}
-
-mergeProd = Production()
-if sysConfig:
-  mergeProd.setJobParameters( {"SystemConfig": sysConfig } )
-
-mergeProd.setProdType( 'Merge' )
-mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( finalAppType, evtType, prodID, mergingGroupSize )
-mergeProd.setWorkflowName( mergingName )
-mergeProd.setWorkflowDescription( 'MC workflow for merging outputs from a previous production.' )
-mergeProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
-mergeProd.setDBTags( mergingCondDB, mergingDDDB )
-mergeProd.addMergeStep( mergingVersion, eventType = '{{eventType}}', inputDataType = finalAppType.lower(),
-                       inputData = [], condDBTag = mergingCondDB, ddDBTag = mergingDDDB,
-                       stepID = mergingStepID, stepName = mergingStepName, stepVisible = mergingStepVisible )
-mergeProd.addFinalizationStep( ['UploadOutputData',
-                                'FailoverRequest',
-                                'RemoveInputData',
-                                'UploadLogFile'] )
-mergeProd.setInputBKSelection( inputBKQuery )
-mergeProd.setJobParameters( {"InputDataPolicy": 'download' } )
-mergeProd.setJobFileGroupSize( mergingGroupSize )
-mergeProd.setProdGroup( '{{pDsc}}' )
-mergeProd.setProdPriority( mergingPriority )
-
-#mergeProd.setFileMask( finalAppType.lower() )
-mergeProd.setProdPlugin( mergingPlugin )
-
-result = mergeProd.create( 
-                          publish = publishFlag,
-                          bkScript = BKscriptFlag,
-                          requestID = int( requestID ),
-                          reqUsed = 1,
-                          transformation = replicationFlag,
-                          parentRequestID = int( parentReq ),
-                          transformationPlugin = replicationPlugin
-                          )
-if not result['OK']:
-  gLogger.error( 'Error during merging production creation:\n%s\n' % ( result['Message'] ) )
-  DIRAC.exit( 2 )
-
-if publishFlag:
-  prodID = result['Value']
-  msg = 'Merging production %s successfully created ' % ( prodID )
-  if testFlag:
-    diracProd.production( prodID, 'manual', printOutput = True )
-    msg = msg + 'and started in manual mode.'
-  else:
-    diracProd.production( prodID, 'automatic', printOutput = True )
-    msg = msg + 'and started in automatic mode.'
-  gLogger.info( msg )
-
+if not MCMerging:
+  gLogger.info( 'No MC merging requested' )
 else:
-  prodID = 1
-  gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+
+  inputBKQuery = {
+                  'FileType'                 : mcMergingType.upper(),
+                  'EventType'                : evtType,
+                  'ProductionID'             : int( prodID )
+                  }
+
+  MCMergeProd = Production()
+  if sysConfig:
+    try:
+      MCMergeProd.setJobParameters( {"SystemConfig": sysConfig } )
+    except:
+      MCMergeProd.setSystemConfig( sysConfig )
+
+  MCMergeProd.setProdType( 'Merge' )
+  mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( mcMergingType, evtType, prodID, mergingGroupSize )
+  MCMergeProd.setWorkflowName( mergingName )
+  MCMergeProd.setWorkflowDescription( 'MC workflow for merging outputs from a previous production.' )
+  MCMergeProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
+  MCMergeProd.setDBTags( mcMergingCDb, mcMergingDDDb )
+  if mcMergingApp == 'LHCb':
+    MCMergeProd.addMergeStep( mcMergingVersion, eventType = '{{eventType}}', inputDataType = mcMergingInputType,
+                              inputData = mcMergingType, condDBTag = mcMergingCDb, ddDBTag = mcMergingDDDb,
+                              stepID = mcMergingStep, stepName = mcMergingName, stepVisible = mcMergingVisibility )
+  elif mcMergingApp == 'DaVinci':
+    MCMergeProd.addDaVinciStep( mcMergingVersion, 'mcMerging', mcMergingOptions, extraPackages = mcMergingEP, eventType = '{{eventType}}',
+                                inputDataType = mcMergingInputType, inputProduction = prodID, outputSE = daVinciDataSE,
+                                stepID = mcMergingStep, stepName = mcMergingName, stepVisible = mcMergingVisibility )
+  else:
+    gLogger.error( "No LHCb nor DaVinci in MC Merging...?" )
+    DIRAC.exit( 2 )
+
+  MCMergeProd.setInputBKSelection( inputBKQuery )
+  try:
+    MCMergeProd.addFinalizationStep( ['UploadOutputData',
+                                      'FailoverRequest',
+                                      'RemoveInputData',
+                                      'UploadLogFile'] )
+    MCMergeProd.setJobParameters( {"InputDataPolicy": 'download' } )
+  except:
+    MCMergeProd.addFinalizationStep( removeInputData = True )
+    MCMergeProd.setInputDataPolicy( 'donwload' )
+  MCMergeProd.setJobFileGroupSize( mergingGroupSize )
+  MCMergeProd.setProdGroup( '{{pDsc}}' )
+  MCMergeProd.setProdPriority( mergingPriority )
+
+  #MCMergeProd.setFileMask( finalAppType.lower() )
+  MCMergeProd.setProdPlugin( mergingPlugin )
+
+  result = MCMergeProd.create( 
+                              publish = publishFlag,
+                              bkScript = BKscriptFlag,
+                              requestID = int( requestID ),
+                              reqUsed = MCMergingTracking,
+                              transformation = False,
+                              parentRequestID = int( parentReq ),
+                              transformationPlugin = replicationPlugin
+                              )
+  if not result['OK']:
+    gLogger.error( 'Error during merging production creation:\n%s\n' % ( result['Message'] ) )
+    DIRAC.exit( 2 )
+
+  if publishFlag:
+    prodID = result['Value']
+    msg = 'Merging production %s successfully created ' % ( prodID )
+    if testFlag:
+      diracProd.production( prodID, 'manual', printOutput = True )
+      msg = msg + 'and started in manual mode.'
+    else:
+      diracProd.production( prodID, 'automatic', printOutput = True )
+      msg = msg + 'and started in automatic mode.'
+    gLogger.info( msg )
+
+  else:
+    prodID = 1
+    gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+
+
 
 if not replicationFlag:
-  gLogger.info( 'No transformation requested for production ID %s.' % ( prodID ) )
-  DIRAC.exit( 0 )
+  gLogger.info( 'No transformation requested' )
+else:
+  #FIXME: do!
+  print 'DO SOMETHING'
 
 #################################################################################
 # End of the template.
