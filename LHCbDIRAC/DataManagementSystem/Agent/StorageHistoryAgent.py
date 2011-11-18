@@ -22,8 +22,11 @@ from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
 import os, sys, re
+import pprint, time
 
-from DIRAC  import S_OK, S_ERROR
+from DIRAC  import S_OK, S_ERROR, gLogger
+
+
 
 byteToGB = 1.0e9
 QUICKLOOP = False # this is a flag for debugging purposes: if it is True the browsing of the BKK is speeded up the loop
@@ -41,6 +44,12 @@ class StorageHistoryAgent( AgentModule ):
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
     self.bkClient = BookkeepingClient()
+
+    self.__workDirectory =  self.am_getOption( "WorkDirectory" )
+    if not os.path.isdir( self.__workDirectory ):
+      os.makedirs( self.__workDirectory )
+    self.log.info( "Working directory is %s" % self.__workDirectory )
+
     return S_OK()
 
   def execute( self ):
@@ -182,8 +191,8 @@ class StorageHistoryAgent( AgentModule ):
     # 1- queries the BKK client to get the set of data taking conditions relative to: eventType=93000000,ConfigVersion': 'Collision10', 'ConfigName': 'LHCb'.
     # 2- loops on the data taking conditions and retrieve for each of them the set of all existing processing passes.
     #    Loops on all processing passes:
-    #    2.1 - for every ( data taking condition, proc. pass) queries the BKK client to get the list of productions
-    #    2.2 - for production, gets the list of file types and adds the HIST, DST and SETC (not clear..) and calls StorageUsageClient to get the usage per SE.
+    #    2.1 - for every ( data taking condition, proc. pass) queries the BKK client to get the list of productions/runs
+    #    2.2 - for production, gets the list of file types and adds the HIST, DST and SETC (not clear..) and fill and accounting record per SE.
 
     reportForDataManager = '/tmp/reportForDataManager.txt'
     self.report = open( reportForDataManager, "w" )
@@ -193,12 +202,19 @@ class StorageHistoryAgent( AgentModule ):
     self.totalRecords = 0
     self.recordsToCommit = 0
     self.limitForCommit = 200
-   
+  
+    self.log.notice(" Call the function to create the StorageUsageDB dump.." )
+    res = self.generateStorageUsageDictionary()
+    if not res[ 'OK' ]:
+      self.log.error("ERROR generating the StorageUsageDB dump")
+      return S_ERROR()
+           
     self.eventTypeDescription = {}
     self.persistentDictList = [] # persistency Bookkeeping dictionary    
+
+
     self.log.notice(" Try to read persistentDict from disk..")
-    self.bkkDictFile = '/opt/dirac/work/DataManagement/StorageHistoryAgent/bkkPersistentDict.txt'
-    
+    self.bkkDictFile = os.path.join( self.__workDirectory, "bkkPersistentDict.txt" )
     if not os.path.exists(self.bkkDictFile):
       self.log.notice("Could not read persistent Bkk dictionary from file => regenerate the dictionary")
       res = self.generateBookkeepingDictionary()
@@ -229,20 +245,22 @@ class StorageHistoryAgent( AgentModule ):
       for proPassTuple in sortList( self.proPassTuples ): # loop on processing passes
         rawDataFlag = False # True only for RAW data
         self.log.notice( "proPassTuple: %s" % proPassTuple )
-        if proPassTuple == '/Real Data': #RAW DATA
+        if proPassTuple == '/Real Data': #RAW DATA. Warning: this is condition sufficient but NOT necessary to be raw data!
           rawDataFlag = True
  
         self.dict1['ProcessingPass'] = proPassTuple
         self.dict1['rawDataFlag'] = rawDataFlag
         self.log.notice( "Call getStorageUsage with dict: %s " % self.dict1 )          
-        res = self.getStorageUsage()
+        #res = self.getStorageUsage()
+        res = self.getStorageUsage_fromDBDump()
         if not res[ 'OK' ]:
           self.log.error( "ERROR!! self.getStorageUsage returned ERROR! %s" % res )
           #return S_ERROR( res )
           continue
       processedBookkeepingQueries += 1
       progress = 1.0*processedBookkeepingQueries/totalBookkeepingQueries
-      self.log.notice("Bookkeeping queries processed so far: %d ( %f of total queries ) " % ( processedBookkeepingQueries, progress ) )
+      if not processedBookkeepingQueries%10:
+        self.log.notice("Bookkeeping queries processed so far: %d ( %f of total queries ) " % ( processedBookkeepingQueries, progress ) )
 
 
     self.log.notice( "Sending %d records to DataStore for the DataStorage type" % self.numDataRows )
@@ -332,6 +350,416 @@ class StorageHistoryAgent( AgentModule ):
 
 #....................................................................................................
 
+
+
+  def generateStorageUsageDictionary( self ):
+    """Generate a dump of the StorageUsageDB and keep it in memory in a dictionary
+    """
+
+    c = 0
+    start = time.time()
+    gLogger.notice( 'Starting MC', '/lhcb/MC' )
+    res = self.__stDB.getStorageDirectories( '/lhcb/MC' )
+    if not res['OK']:
+      return S_ERROR()
+
+    mcDirs = {}
+    mcSum = {}
+    for d in res['Value']:
+      s = d.split('/')
+      prod = s[-3]
+      typ = s[-4]
+      d = '/'.join( s[:-2])
+      if prod not in mcDirs:
+        mcDirs[prod] = {}
+      if typ  not in mcDirs[prod]:
+        mcDirs[prod][typ] = {'Dirs':[]}
+      if d not in mcDirs[prod][typ]['Dirs']:
+        mcDirs[prod][typ]['Dirs'].append( d )
+
+    gLogger.notice( 'MC Productions:', len( mcDirs ) )
+
+    for prod,t in mcDirs.items():
+      for typ,data in t.items():
+        for d in data['Dirs']:
+          res = self.__stDB.getDirectorySummaryPerSE( d )
+          c += 1
+          if res['OK']:
+            for se in res['Value'].keys():
+              if not se in data:
+                data[se] = {'Files':0,'Size':0}
+              data[se]['Files'] += res['Value'][se]['Files']
+              data[se]['Size'] += res['Value'][se]['Size']
+              if se not in mcSum:
+                mcSum[se] = {'Files':0,'Size':0}
+              mcSum[se]['Files'] += res['Value'][se]['Files']
+              mcSum[se]['Size'] += res['Value'][se]['Size']
+
+
+    gLogger.notice( 'MC Done' )
+    fileName = os.path.join( self.__workDirectory, "mcSum.txt" )
+    f = open(fileName, "w")
+    for se in mcSum.keys():
+      f.write("%s %s \n" %(se, mcSum[ se ]))
+    f.close()
+    #gLogger.notice( pprint.pformat( mcSum ) )
+    fileName = os.path.join( self.__workDirectory, "mcDirs.txt" )
+    f = open(fileName, "w")
+    for prod in mcDirs.keys():
+      f.write("%s\n" % prod)
+      for ft in mcDirs[ prod ].keys():
+        f.write("-- %s\n" % ft )
+        for k in mcDirs[ prod ][ ft ].keys():
+          f.write("---- %s %s \n" %(k, mcDirs[ prod ][ ft ][ k ]) )
+    f.close()      
+    #gLogger.info( pprint.pformat( mcDirs ) )
+  
+
+    gLogger.notice( 'Starting Data', '/lhcb/LHCb,/lhcb/data,/lhcb/validation' )
+  
+    dataDirs = {}
+    dataSum = {}
+    rawDirs = {}
+    rawSum = {}
+    # get list of reconstructed data productions: 
+    for path in ['/lhcb/LHCb', '/lhcb/data','/lhcb/validation']:
+      res = self.__stDB.getStorageDirectories( path )
+      for d in res['Value']:
+        s = d.split('/')
+        if d.find('RAW') > -1:
+          continue
+        prod = s[-3]
+        typ = s[-4]
+        d = '/'.join( s[:-2])
+        myDirs = dataDirs
+        if prod not in myDirs:
+          myDirs[prod] = {}
+        if typ  not in myDirs[prod]:
+          myDirs[prod][typ] = {'Dirs':[]}
+        if d not in myDirs[prod][typ]['Dirs']:
+          myDirs[prod][typ]['Dirs'].append( d )
+    
+    gLogger.notice( 'Data Productions:', len( dataDirs ) )
+
+    # get list of raw data runs: 
+    for path in ['/lhcb/data']:
+      res = self.__stDB.getStorageDirectories( path )
+      for d in res['Value']:
+        s = d.split('/')
+        if s[4] != 'RAW': # not raw data 
+          continue      
+        prod = s[-2]
+        typ = 'RAW'
+        #d = '/'.join( s[:-2])
+        if len(s) == 10:
+          stream = s[5]
+            #print 'ok, usual format for raw data, stream is ', stream
+          #if stream not in possibleStreams:
+          #possibleStreams.append( stream )
+        else:
+          gLogger.warn("unusual directory format (probably data previous to Jan 2009): %s " % d )
+          continue
+        myDirs = rawDirs
+        if prod not in myDirs:
+          myDirs[prod] = {}
+        if stream not in myDirs[prod]:
+          myDirs[prod][stream] = {'Dirs':[]}
+        if d not in myDirs[prod][stream]['Dirs']:
+          myDirs[prod][stream]['Dirs'].append( d )
+    
+    gLogger.notice( 'Raw data runs:', len( rawDirs ) )
+
+
+    # get storage usage for reconstructed data directories:
+    for prod,t in dataDirs.items():
+      for typ,data in t.items():
+        for d in data['Dirs']:
+          res = self.__stDB.getDirectorySummaryPerSE( d )
+          c += 1
+          if res['OK']:
+            for se in res['Value'].keys():
+              if not se in data:
+                data[se] = {'Files':0,'Size':0}
+              data[se]['Files'] += res['Value'][se]['Files']
+              data[se]['Size'] += res['Value'][se]['Size']
+              if not se in dataSum:
+                dataSum[se] = {'Files':0,'Size':0}
+              dataSum[se]['Files'] += res['Value'][se]['Files']
+              dataSum[se]['Size'] += res['Value'][se]['Size']
+    
+    gLogger.notice( 'Data Productions Done' )
+    fileName = os.path.join( self.__workDirectory, "dataSum.txt" )
+    f = open(fileName, "w")
+    for se in dataSum.keys():
+      f.write("%s %s \n" %(se, dataSum[ se ]))
+    f.close()
+    #gLogger.notice( pprint.pformat( dataSum ) )
+    fileName = os.path.join( self.__workDirectory, "dataDirs.txt" )
+    f = open(fileName, "w")
+    for prod in dataDirs.keys():
+      f.write("%s\n" % prod)
+      for ft in dataDirs[ prod ].keys():
+        f.write("-- %s\n" % ft )
+        for k in dataDirs[ prod ][ ft ].keys():
+          f.write("---- %s %s \n" %(k, dataDirs[ prod ][ ft ][ k ]) )
+    f.close()      
+
+    # get storage usage for runs directories:
+    gLogger.notice( 'Data Runs:', len( rawDirs ) )
+    
+    for prod,t in rawDirs.items():
+      for stream,data in t.items():
+        for d in data['Dirs']:
+          res = self.__stDB.getDirectorySummaryPerSE( d )
+          c += 1
+          if res['OK']:
+            for se in res['Value'].keys():
+              if not se in data:
+                data[se] = {'Files':0,'Size':0}
+              data[se]['Files'] += res['Value'][se]['Files']
+              data[se]['Size'] += res['Value'][se]['Size']
+              if not se in rawSum:
+                rawSum[se] = {'Files':0,'Size':0}
+              rawSum[se]['Files'] += res['Value'][se]['Files']
+              rawSum[se]['Size'] += res['Value'][se]['Size']
+    
+    gLogger.notice( 'Data Runs Done' )
+    fileName = os.path.join( self.__workDirectory, "rawSum.txt" )
+    f = open(fileName, "w")
+    for se in rawSum.keys():
+      f.write("%s %s \n" %(se, rawSum[ se ]))
+    f.close()
+    fileName = os.path.join( self.__workDirectory, "rawDirs.txt" )
+    f = open(fileName, "w")
+    for prod in rawDirs.keys():
+      f.write("%s\n" % prod)
+      for stream in rawDirs[ prod ].keys():
+        f.write("-- %s\n" % stream )
+        for k in rawDirs[ prod ][ stream ].keys():
+          f.write("---- %s %s \n" %(k, rawDirs[ prod ][ stream ][ k ]) )
+    f.close()      
+
+
+    gLogger.notice( 'Data Done' )
+    
+    gLogger.notice( 'Queried directories:', c )
+    
+    end = time.time()
+    duration = end - start
+    gLogger.info("Total time to create storage usage dump: %d " % duration )
+    # export these dictionaries:
+    self.mcDirs = mcDirs
+    self.mcSum = mcSum
+    self.dataDirs = dataDirs
+    self.dataSum = dataSum
+    self.rawDirs = rawDirs
+    self.rawSum = rawSum
+ 
+
+    return S_OK()
+
+#....................................................................................................
+  def getStorageUsage_fromDBDump( self ):
+    """ For a given dictionary defining: ConfigName, ConfigVersion, EventType, Conditions, ProcessingPass 
+        gets the available productions/runs and file types and fill the accounting records 
+    """
+
+    # mapping from Bokkeeping stream to LFC path:
+    # possible LFC sub-directories: ['EXPRESS', 'FULL', 'LUMI', 'CALIB', 'ERRORS', 'BEAMGAS', 'NOBIAS']
+    mapBkk2LFC = {
+       91000000 : 'EXPRESS',
+       91000001 : 'EXPRESS',
+       90000000 : 'FULL',
+       90000001 : 'FULL', # 'stream?'
+       93000000 : 'LUMI',
+       93000001 : 'LUMI',
+       95000000 : 'CALIB',
+       95000001 : 'CALIB',
+       92000000 : 'ERRORS',
+       92000001 : 'ERRORS',
+       97000000 : 'BEAMGAS',
+       97000001 : 'BEAMGAS',
+       96000000 : 'NOBIAS',
+       96000001 : 'NOBIAS'
+    }
+
+    now = Time.dateTime()
+    eventTypeDesc = self.dict1['EventTypeDescription' ] # needed to send it to accounting (instead of numeric ID)
+    eventTypeDesc = str( self.dict1['EventTypeId'] ) + '-' + eventTypeDesc
+    self.log.debug( "eventTypeDescription %s" % eventTypeDesc )
+    #dataTypeFlag = '' # either RealData or SimData
+    LFCBasePath = {'RealData': '/lhcb/', 'SimData': '/lhcb/MC/'}
+    dict3 = {}
+    dict3[ 'ConfigName' ] = self.dict1[ 'ConfigName' ]
+    dict3[ 'ConfigVersion' ] = self.dict1[ 'ConfigVersion' ]
+    dict3[ 'EventTypeId' ] = self.dict1[ 'EventTypeId']
+    dict3[ 'EventTypeDescription' ] = self.dict1[ 'EventTypeDescription' ]
+    dict3[ 'ProcessingPass' ] = self.dict1[ 'ProcessingPass' ]
+    dict3[ 'ConditionDescription'] = self.dict1[ 'ConditionDescription' ]
+    dict3[ 'dataTypeFlag' ] = self.dict1[ 'dataTypeFlag' ] 
+    dict3[ 'rawDataFlag'] = self.dict1[ 'rawDataFlag' ] # True for RAW data only
+    # get list of productions for every tuple (ConfigName, ConfigVersion, ProcessingPass, ConditionDescription)
+    self.log.notice( " Get productions for dict3 : %s " % dict3 )
+    res = self.bkClient.getProductions( dict3 )
+    if not res[ 'OK' ]:
+      self.log.error( "ERROR: could not get productions for dict %s Error: %s" % ( dict3, res['Message'] ) )
+      return S_ERROR( res )
+    productions = sortList( [x[0] for x in res[ 'Value' ][ 'Records' ]] )
+    if productions == []:
+      self.log.notice( "WARNING: EMPTY QUERY ! no Production available for dict3= %s" % dict3 )
+      return S_OK()
+    self.log.notice( "Got the productions list: %s" % productions )
+    for prodID in productions:
+      if int( prodID ) < 0:
+        dict3[ 'rawDataFlag'] = True
+        if not dict3[ 'rawDataFlag']:
+          self.log.warning("rawDataFlag was wrongly set to False. Now set to True")
+      # get File Types (only for MC and reconstructed data, as for RAW data is only RAW)
+      if not dict3[ 'rawDataFlag']:
+        res = self.bkClient.getFileTypes( dict3 )
+        if not res['OK']:
+          self.log.notice( "ERROR getting file types for prod %s, Error: %s" % ( prodID, res['Message'] ) )
+          continue
+        prodFileTypes = reduce(lambda x,y:x+y, res['Value']['Records'])
+        prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
+      # for raw data set the only file type as 'RAW'.
+      # for non-raw data, add the HIST, SETC, DST file type to the list (to be checked why)
+        prodFileTypes.append( 'HIST' )
+        if 'DST' not in prodFileTypes:
+          prodFileTypes.append( 'DST' )
+        if 'SETC' not in prodFileTypes:
+          prodFileTypes.append( 'SETC' )
+      else:
+        prodFileTypes = [ 'RAW' ]
+      self.log.notice( "For prod %d list of event types: %s" % ( prodID, prodFileTypes ) )
+ 
+      # select the dictionary: either raw data, or reconstructed data or MC:
+      if dict3[ 'rawDataFlag']: # raw data
+        myDirs = self.rawDirs
+        # Bkk returns a negative number for raw data runs, change it to positive
+        prodID = str(-1*prodID)
+      else:
+        prodID = str(prodID)
+        if len(prodID)< 8:
+          diff = 8 - len(prodID)
+          prodID = diff*'0' + prodID
+        if dict3[ 'dataTypeFlag' ] == 'RealData':
+          myDirs =  self.dataDirs
+        else:
+          myDirs = self.mcDirs 
+
+
+      # for MC and reconstructed data:
+      if not dict3[ 'rawDataFlag']:
+        for fType in prodFileTypes:
+          if prodID not in myDirs.keys():
+            self.log.warn("The storage usage for production %s  was not stored in dictionary!" % (prodID ) )
+            continue
+          if fType not in myDirs[ prodID ].keys():
+            self.log.warn("The storage usage for production %s and fileType %s  was not stored in dictionary!" % (prodID, fType ) )
+            continue
+          
+          for seName in sortList( myDirs[ prodID ][ fType ].keys() ):
+            if seName == 'Dirs':
+              continue
+            try:
+              physicalFiles = myDirs[ prodID ][ fType ][ seName ][ 'Files' ]
+              physicalSize = myDirs[ prodID ][ fType ][ seName ][ 'Size' ]
+            except:
+              self.log.warn("The storage usage for production %s fileType %s SE %s was not stored in dictionary!" % (prodID, fType, seName ) )
+              continue
+            # TO BE FIXED!!
+            logicalSize = 0
+            logicalFiles = 0
+            # create a record to be sent to the accounting:
+            self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize ) )
+            # call function to send the record to the accounting
+          
+            dataRecord = DataStorage()
+            dataRecord.setStartTime( now )
+            dataRecord.setEndTime( now )
+            dataRecord.setValueByKey( "DataType", dict3['ConfigName'] )
+            dataRecord.setValueByKey( "Activity", dict3['ConfigVersion'] )
+            dataRecord.setValueByKey( "FileType", fType )
+            dataRecord.setValueByKey( "Production", prodID )
+            dataRecord.setValueByKey( "ProcessingPass", dict3['ProcessingPass'] )
+            dataRecord.setValueByKey( "Conditions", dict3['ConditionDescription'] )
+            dataRecord.setValueByKey( "EventType", dict3['EventTypeDescription'] )
+            dataRecord.setValueByKey( "StorageElement", seName )
+            dataRecord.setValueByKey( "PhysicalSize", physicalSize )
+            dataRecord.setValueByKey( "PhysicalFiles", physicalFiles )
+            dataRecord.setValueByKey( "LogicalSize", logicalSize )
+            dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
+            res = gDataStoreClient.addRegister( dataRecord )
+            if not res[ 'OK']:
+              self.log.notice( "ERROR: In getStorageUsage addRegister returned: %s" % res )
+            self.numDataRows += 1
+            self.totalRecords += 1
+            self.recordsToCommit += 1
+
+
+      else: # raw data
+        if prodID not in myDirs.keys():
+          self.log.warn("Run %s was not in the storage usage dictionary! " % prodID )
+          continue
+        fType = 'RAW'
+        streamInLFC = mapBkk2LFC[ dict3[ 'EventTypeId' ] ]
+        if streamInLFC not in myDirs[ prodID ].keys():
+          self.log.warn("The stream %s is not in the storage dictionary for run %s " %(dict3[ 'EventTypeId' ], prodID))
+          continue
+        for seName in myDirs[ prodID ][ streamInLFC ].keys():
+          if seName == 'Dirs':
+            continue
+          try:
+            physicalFiles = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Files' ]
+            physicalSize = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Size' ]
+          except:
+            self.log.warn("The storage usage for production %s stream %s SE %s was not stored in dictionary!" % (prodID, streamInLFC, seName ) )
+            continue
+          #res = __fillAccountingRecord( )        
+          
+          # TO BE FIXED!!
+          logicalSize = 0
+          logicalFiles = 0
+
+          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize ) )
+          dataRecord = DataStorage()
+          dataRecord.setStartTime( now )
+          dataRecord.setEndTime( now )
+          dataRecord.setValueByKey( "DataType", dict3['ConfigName'] )
+          dataRecord.setValueByKey( "Activity", dict3['ConfigVersion'] )
+          dataRecord.setValueByKey( "FileType", fType )
+          dataRecord.setValueByKey( "Production", prodID )
+          dataRecord.setValueByKey( "ProcessingPass", dict3['ProcessingPass'] )
+          dataRecord.setValueByKey( "Conditions", dict3['ConditionDescription'] )
+          dataRecord.setValueByKey( "EventType", dict3['EventTypeDescription'] )
+          dataRecord.setValueByKey( "StorageElement", seName )
+          dataRecord.setValueByKey( "PhysicalSize", physicalSize )
+          dataRecord.setValueByKey( "PhysicalFiles", physicalFiles )
+          dataRecord.setValueByKey( "LogicalSize", logicalSize )
+          dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
+          res = gDataStoreClient.addRegister( dataRecord )
+          if not res[ 'OK']:
+            self.log.notice( "ERROR: In getStorageUsage addRegister returned: %s" % res )
+          self.numDataRows += 1
+          self.totalRecords += 1
+          self.recordsToCommit += 1
+
+
+
+    if self.recordsToCommit > self.limitForCommit:
+      res = gDataStoreClient.commit()
+      if not res[ 'OK' ]:
+        self.log.error( "Accounting ERROR: commit returned %s" % res )
+      else:
+        self.log.notice( "%d records committed " % self.recordsToCommit )
+        self.recordsToCommit = 0
+      self.log.notice( "In getStorageUsage commit returned: %s" % res )
+ 
+
+    return S_OK()
+
+#....................................................................................................
   def getStorageUsage( self ):
 
     """ Takes in input a dictionary containing ConfigName, ConfigVersion, EventType, Conditions, ProcessingPass and gets the productions/runs
