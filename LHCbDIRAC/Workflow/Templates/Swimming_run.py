@@ -226,10 +226,9 @@ if certificationFlag or localTestFlag:
   testFlag = True
   if certificationFlag:
     publishFlag = True
-    mergingFlag = True
   if localTestFlag:
     publishFlag = False
-    mergingFlag = False
+    mergingEnabled = False
 else:
   publishFlag = True
   testFlag = False

@@ -16,6 +16,8 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
+import string
+
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
@@ -51,6 +53,7 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}
 
 configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC10}}'
+outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
 outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
@@ -97,6 +100,19 @@ w4 = eval( w4 )
 if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'I told you to select at least one workflow!' )
   DIRAC.exit( 2 )
+
+if w1 or w2:
+  gLogger.error( 'Not yet completely implemented, sorry! (ask Fed)' )
+  DIRAC.exit( 2 )
+else:
+  oneStep = '{{p1App}}'
+  twoSteps = '{{p2App}}'
+  threeSteps = '{{p3App}}'
+  fourSteps = '{{p4App}}'
+  fiveSteps = '{{p5App}}'
+  sixSteps = '{{p6App}}'
+  sevenSteps = '{{p7App}}'
+
 
 MCMerging = False
 selection = False
@@ -162,20 +178,11 @@ if testFlag:
   configName = 'certification'
   configVersion = 'test'
   events = '3'
+  extend = '10'
   mergingGroupSize = '1'
   replicationFlag = False
 
-oneStep = '{{p1App}}'
-twoSteps = '{{p2App}}'
-threeSteps = '{{p3App}}'
-fourSteps = '{{p4App}}'
-fiveSteps = '{{p5App}}'
-sixSteps = '{{p6App}}'
-sevenSteps = '{{p7App}}'
-eightSteps = '{{p8App}}'
-nineSteps = '{{p9App}}'
-
-if nineSteps:
+if sevenSteps:
   gLogger.error( 'Nine steps specified, not sure what to do! Exiting...' )
   DIRAC.exit( 2 )
 
@@ -185,9 +192,11 @@ MC3 = False
 MC2 = False
 MC1 = False
 
-if ( eightSteps and w1 ) or ( sevenSteps and w2 ) or ( sixSteps and w3 ) or ( fiveSteps and w4 ):
+#if ( eightSteps and w1 ) or ( sevenSteps and w2 ) or ( sixSteps and w3 ) or ( fiveSteps and w4 ):
+if ( sixSteps and w3 ) or ( fiveSteps and w4 ):
   MC5 = True
-if ( sevenSteps and w1 ) or ( sixSteps and w2 ) or ( fiveSteps and w3 ) or ( fourSteps and w4 ):
+#if ( sevenSteps and w1 ) or ( sixSteps and w2 ) or ( fiveSteps and w3 ) or ( fourSteps and w4 ):
+if ( sixSteps and w2 ) or ( fiveSteps and w3 ) or ( fourSteps and w4 ):
   MC4 = True
 if ( sixSteps and w1 ) or ( fiveSteps and w2 ) or ( fourSteps and w3 ) or ( threeSteps and w4 ):
   MC3 = True
@@ -470,7 +479,7 @@ if MCMerging:
     mcMergingVersion = '{{p6Ver}}'
     mcMergingEP = '{{p6EP}}'
 
-  if MC5:
+  elif MC4:
     mcMergingApp = '{{p5App}}'
     mcMergingStep = int( '{{p5Step}}' )
     mcMergingName = '{{p5Name}}'
@@ -481,7 +490,7 @@ if MCMerging:
     mcMergingVersion = '{{p5Ver}}'
     mcMergingEP = '{{p5EP}}'
 
-  if MC3:
+  elif MC3:
     mcMergingApp = '{{p4App}}'
     mcMergingStep = int( '{{p4Step}}' )
     mcMergingName = '{{p4Name}}'
@@ -492,7 +501,7 @@ if MCMerging:
     mcMergingVersion = '{{p4Ver}}'
     mcMergingEP = '{{p4EP}}'
 
-  if MC2:
+  elif MC2:
     mcMergingApp = '{{p3App}}'
     mcMergingStep = int( '{{p3Step}}' )
     mcMergingName = '{{p3Name}}'
@@ -503,7 +512,7 @@ if MCMerging:
     mcMergingVersion = '{{p3Ver}}'
     mcMergingEP = '{{p3EP}}'
 
-  if MC1:
+  elif MC1:
     mcMergingApp = '{{p2App}}'
     mcMergingStep = int( '{{p2Step}}' )
     mcMergingName = '{{p2Name}}'
@@ -607,14 +616,8 @@ if selectionMerging:
   prodDescription = prodDescription + ' + SelectionMerging'
 
   if MC5:
-    selectionMergingStep = int( '{{p8Step}}' )
-    selectionMergingName = '{{p8Name}}'
-    selectionMergingVisibility = '{{p8Vis}}'
-    selectionMergingCDb = '{{p8CDb}}'
-    selectionMergingDDDb = '{{p8DDDb}}'
-    selectionMergingOptions = '{{p8Opt}}'
-    selectionMergingVersion = '{{p8Ver}}'
-    selectionMergingEP = '{{p8EP}}'
+    gLogger.error( 'Can\'t, sorry!' )
+    DIRAC.exit( 2 )
 
   if MC5:
     selectionMergingStep = int( '{{p7Step}}' )
@@ -668,11 +671,9 @@ if selectionMerging:
   else:
     selectionMergingType = selectionMergingOutputList[0]
 
-#if outputFileMask:
-#  maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
-#  if not finalAppType.lower() in maskList:
-#    maskList.append( finalAppType.lower() )
-#  outputFileMask = string.join( maskList, ';' )
+if outputFileMask:
+  maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
+  outputFileMask = string.join( maskList, ';' )
 
 if validationFlag:
   configName = 'validation'
@@ -762,7 +763,7 @@ else:
   MCProd.setProdGroup( '{{pDsc}}' )
   MCProd.setProdPriority( priority )
   MCProd.setOutputMode( 'Any' )
-#  MCProd.setFileMask( outputFileMask )
+  MCProd.setFileMask( outputFileMask )
 
   if banTier1s:
     MCProd.banTier1s()
@@ -780,12 +781,12 @@ else:
       DIRAC.exit( 2 )
 
   result = MCProd.create( publish = publishFlag,
-                             requestID = int( requestID ),
-                             reqUsed = simulationTracking,
-                             transformation = False,
-                             bkScript = BKscriptFlag,
-                             parentRequestID = int( parentReq )
-                             )
+                          requestID = int( requestID ),
+                          reqUsed = simulationTracking,
+                          transformation = False,
+                          bkScript = BKscriptFlag,
+                          parentRequestID = int( parentReq )
+                          )
 
   if not result['OK']:
     gLogger.error( 'Error during MCProd creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
@@ -798,14 +799,14 @@ else:
     msg = 'MC MCProd %s successfully created ' % ( prodID )
 
     if extend:
-      diracProd.extendMCProd( prodID, extend, printOutput = True )
+      diracProd.extendProduction( prodID, extend, printOutput = True )
       msg += ', extended by %s jobs' % extend
 
     if testFlag:
-      diracProd.MCProd( prodID, 'manual', printOutput = True )
+      diracProd.production( prodID, 'manual', printOutput = True )
       msg = msg + 'and started in manual mode.'
     else:
-      diracProd.MCProd( prodID, 'automatic', printOutput = True )
+      diracProd.production( prodID, 'automatic', printOutput = True )
       msg = msg + 'and started in automatic mode.'
     gLogger.info( msg )
 
@@ -875,7 +876,7 @@ else:
                               bkScript = BKscriptFlag,
                               requestID = int( requestID ),
                               reqUsed = MCMergingTracking,
-                              transformation = False,
+                              transformation = replicationFlag,
                               parentRequestID = int( parentReq ),
                               transformationPlugin = replicationPlugin
                               )
@@ -899,12 +900,12 @@ else:
     gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
-
-if not replicationFlag:
-  gLogger.info( 'No transformation requested' )
-else:
-  #FIXME: do!
-  print 'DO SOMETHING'
+#
+#if not replicationFlag:
+#  gLogger.info( 'No transformation requested' )
+#else:
+#  #FIXME: do!
+#  print 'DO SOMETHING'
 
 #################################################################################
 # End of the template.

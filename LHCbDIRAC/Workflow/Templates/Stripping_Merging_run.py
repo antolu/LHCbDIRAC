@@ -275,6 +275,11 @@ if strippEnabled:
     strippType = strippOutputList[0]
     strippEO = []
 
+  histFlag = False
+  for sOL in strippOutputList:
+    if 'HIST' in sOL:
+      histFlag = True
+
   strippInputBKQuery = {
                         'DataTakingConditions'     : dataTakingCond,
                         'ProcessingPass'           : processingPass,
@@ -329,7 +334,7 @@ if strippEnabled:
                              inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob,
                              dataType = 'Data',
                              outputSE = unmergedStreamSE,
-                             histograms = True, extraOutput = strippEO,
+                             histograms = histFlag, extraOutput = strippEO,
                              stepID = strippStep, stepName = strippName, stepVisible = strippVisibility )
 
   production.addFinalizationStep( ['UploadOutputData',
@@ -501,7 +506,10 @@ if mergingEnabled:
       dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
   mergeProd = Production( BKKClientIn = BKClient )
-  mergeProd.setCPUTime( mergeCPU )
+  try:
+    production.setJobParameters( { 'CPUTime': mergeCPU } )
+  except:
+    mergeProd.setCPUTime( mergeCPU )
   mergeProd.setProdType( 'Merge' )
   wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
   mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStreamsList, wkfName, appendName ) )
