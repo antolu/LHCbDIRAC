@@ -160,6 +160,10 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
                               "serviceupdate",
                               None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
     xml_append(doc, "id", site + "_" + "CondDB")
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
