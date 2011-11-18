@@ -3,6 +3,7 @@ from DIRAC import gLogger, gConfig, S_OK, rootPath
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
+from LHCbDIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Base.AgentModule import AgentModule
 import time, xml.dom.minidom, re, os
 
@@ -51,13 +52,13 @@ class NagiosTopologyAgent(AgentModule):
     self.xml_append(xml_doc, xml_root, 'vo', 'lhcb')
 
     # loop over sites
-    for site in gConfig.getSections('/Resources/Sites/LCG')['Value'] :
+    for site in Utils.unpack(gConfig.getSections('/Resources/Sites/LCG')):
 
       # Site config
-      site_opts = gConfig.getOptionsDict('/Resources/Sites/LCG/%s'%site)['Value']
+      site_opts = Utils.unpack(gConfig.getOptionsDict('/Resources/Sites/LCG/%s' % site))
       site_name = site_opts.get('Name')
       site_tier = site_opts.get('MoUTierLevel')
-      if not site_tier : site_tier = 'UNDEFINED'
+      if not site_tier : site_tier = 'None'
       has_grid_elem = False
       xml_site = self.xml_append(xml_doc, xml_root, 'atp_site', name=site_name)
 
@@ -91,8 +92,16 @@ class NagiosTopologyAgent(AgentModule):
 
       # Site info will be put if we found at least one CE, SE or LFC element
       if has_grid_elem :
-        self.xml_append(xml_doc, xml_site, 'group', name=site, type='LHCb_Site')
         self.xml_append(xml_doc, xml_site, 'group', name='Tier'+site_tier, type='LHCb_Tier')
+        self.xml_append(xml_doc, xml_site, 'group', name=site, type='LHCb_Site')
+        self.xml_append(xml_doc, xml_site, "group", name=site, type="All Sites")
+        try:
+          if int(site_tier) <= 2:
+            self.xml_append(xml_doc, xml_site, "group", name=site, type="<= Tier2")
+          if int(site_tier) <= 1:
+            self.xml_append(xml_doc, xml_site, "group", name=site, type="<= Tier1")
+        except ValueError: # Site tier is None, do nothing
+          pass
       else :
         gLogger.warn("Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" % ( site, site_name ))
         xml_root.removeChild(xml_site)
