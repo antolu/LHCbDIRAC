@@ -218,6 +218,14 @@ class StorageUsageHandler( RequestHandler ):
     """
     return storageUsageDB.getProblematicDirsSummary( site, problem )
 
+  types_removeAllFromProblematicDirs = []
+  def export_removeAllFromProblematicDirs( self, site = False ):
+    """ Exports the removeAllFromProblematicDirs method: delete all entries from problematicDirs table for a give site (optional argument) 
+    """
+    return storageUsageDB.removeAllFromProblematicDirs( site )
+
+
+
 
   ###
   # methods to deal with se_Usage table
