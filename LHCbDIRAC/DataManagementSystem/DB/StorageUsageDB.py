@@ -412,6 +412,24 @@ class StorageUsageDB( DB ):
     self.log.info( "sqlCmd result for DELETE is: %s" % result )
     return S_OK( deletedDirs )
 
+  def removeAllFromProblematicDirs( self, site = False ):
+    """ Remove all entries from the problematicDirs table, for a given site (optional).
+    """
+    if site:
+      sqlSite = self._escapeString( site )['Value']
+      sqlCond = [ "Site=%s" % sqlSite ]
+      sqlCmd = "DELETE FROM problematicDirs WHERE Site=%s" % sqlSite
+    else:
+      sqlCmd = "DELETE FROM problematicDirs"
+    deletedDirs = 0
+    self.log.info( "in removeAllFromProblematicDirs command: %s" % sqlCmd )
+    result = self._update( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    self.log.info( "sqlCmd result for DELETE is: %s" % result )
+    deletedDirs = result['Value'] 
+    return S_OK( deletedDirs )
+ 
   ################
   # Clean outdated entries
   ################
@@ -566,7 +584,7 @@ class StorageUsageDB( DB ):
   def getDirectorySummaryPerSE( self, directory ):
     """ Queries the DB and get a summary (total size and files) for the given directory """
     sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '%s%%'  GROUP BY su.SEName" % ( directory )
-    gLogger.info( "getDirectorySummaryPerSE: sqlCmd is %s " % sqlCmd )
+    gLogger.verbose( "getDirectorySummaryPerSE: sqlCmd is %s " % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
       return result
