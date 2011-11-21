@@ -313,7 +313,7 @@ class DIRACTest(TestBase):
                               "serviceupdate",
                               None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    xml_append(doc, "id", site + "_" + service)
+    xml_append(doc, "id", site + "_" + system)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
     if res['OK']:
