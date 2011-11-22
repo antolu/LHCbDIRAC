@@ -220,6 +220,9 @@ class DIRACTest(TestBase):
                                "serviceupdate",
                                None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
 
     xml_append(doc, "id", "Framework_Gateway")
     xml_append(doc, "webpage", self.getTestValue("webpage"))
@@ -257,6 +260,10 @@ class DIRACTest(TestBase):
                                "serviceupdate",
                                None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
     xml_append(doc, "id", system + "_" + service)
     xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
@@ -292,8 +299,6 @@ class DIRACTest(TestBase):
     finally:
       xmlfile.close()
 
-
-
   def xml_t1_sensor(self, url):
     parsed = urlparse.urlparse(url)
     if sys.version_info >= (2,6):
@@ -313,6 +318,10 @@ class DIRACTest(TestBase):
                               "serviceupdate",
                               None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
     xml_append(doc, "id", site + "_" + system)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
 
@@ -393,6 +402,10 @@ class LOGSETest(TestBase):
                               "serviceupdate",
                               None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
     xml_append(doc, "id", "log_se_partition")
     xml_append(doc, "validityduration", "PT12H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
@@ -422,6 +435,10 @@ class LOGSETest(TestBase):
                               "serviceupdate",
                               None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
     xml_append(doc, "id", "log_se_gridftp")
     xml_append(doc, "validityduration", "PT2H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
@@ -449,6 +466,10 @@ class LOGSETest(TestBase):
                               "serviceupdate",
                               None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
     xml_append(doc, "id", "log_se_cert")
     xml_append(doc, "validityduration", "PT24H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
@@ -475,6 +496,10 @@ class LOGSETest(TestBase):
                               "serviceupdate",
                               None)
     doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
     xml_append(doc, "id", "log_se_httpd")
     xml_append(doc, "validityduration", "PT2H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
@@ -532,6 +557,11 @@ class LOGSETest(TestBase):
     def characters(self, content):
       if self.inside_d:
         self.cur_list.append(content)
+
+# This LFCReplicaTest has to be rewritten/improved to
+# work. Historically it has never been used. This piece of commented
+# code can serve as an inspiration medium to the person who will maybe
+# need one day to write such tests ;-)
 
 # class LFCReplicaTest(object):
 #   def __init__(self, path, timeout, fake=False):
