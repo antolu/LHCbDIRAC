@@ -2,14 +2,21 @@ __RCSID__ = "$Id:  $"
 
 import unittest, itertools, copy
 
+from mock import Mock
+
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask, getLogPath
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
   """
   def setUp( self ):
-
-    pass
+    self.bkClientMock = Mock()
+    self.bkClientMock.getFileTypes.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+                                                                            {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
+                                                                           'getFileTypes', ( {'': ''}, ) ),
+                                                   'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
+                                                             'Records': [['SDST'], ['PID.MDST'], ['GEN'],
+                                                                         ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
 
 #################################################
 
@@ -118,7 +125,7 @@ class ProductionDataSuccess( UtilitiesTestCase ):
     for outputDataFileMask, resL in itertools.izip( outputDataFileMasks, reslist ):
       paramDict['outputDataFileMask'] = outputDataFileMask
 
-      res = constructProductionLFNs( paramDict )
+      res = constructProductionLFNs( paramDict, self.bkClientMock )
 
       self.assert_( res['OK'] )
       self.assertEqual( res['Value'], resL )
@@ -189,7 +196,7 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                    'configVersion':'Collision11',
                    'JobType':'MCSimulation'}
 
-    res = getLogPath( wkf_commons )
+    res = getLogPath( wkf_commons, self.bkClientMock )
 
     self.assertEqual( res, {'OK': True,
                            'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
