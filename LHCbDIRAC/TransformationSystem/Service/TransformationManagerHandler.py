@@ -29,13 +29,15 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
 
   types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
   def export_createTransformationQuery( self, transName, queryDict ):
-    authorDN = self._clientTransport.peerCredentials['DN']
+    credDict = self.getRemoteCredentials()
+    authorDN = credDict[ 'DN' ]
     res = database.createTransformationQuery( transName, queryDict, author = authorDN )
     return self._parseRes( res )
 
   types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
   def export_deleteTransformationBookkeepingQuery( self, transName ):
-    authorDN = self._clientTransport.peerCredentials['DN']
+    credDict = self.getRemoteCredentials()
+    authorDN = credDict[ 'DN' ]
     res = database.deleteTransformationBookkeepingQuery( transName, author = authorDN )
     return self._parseRes( res )
 
