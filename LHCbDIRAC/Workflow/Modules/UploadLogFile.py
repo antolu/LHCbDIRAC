@@ -44,7 +44,7 @@ class UploadLogFile( ModuleBase ):
 
 ######################################################################
 
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables( self, bk = None ):
 
     super( UploadLogFile, self )._resolveInputVariables()
 
@@ -53,7 +53,7 @@ class UploadLogFile( ModuleBase ):
       self.logLFNPath = self.workflow_commons['LogTargetPath']
     else:
       self.log.info( 'LogFilePath parameter not found, creating on the fly' )
-      result = getLogPath( self.workflow_commons )
+      result = getLogPath( self.workflow_commons, bk )
       if not result['OK']:
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         return result
@@ -71,7 +71,7 @@ class UploadLogFile( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, rm = None, ft = None ):
+               step_number = None, step_id = None, rm = None, ft = None, bk = None ):
     """ Main executon method
     """
 
@@ -84,7 +84,7 @@ class UploadLogFile( ModuleBase ):
       if not self._enableModule():
         return S_OK()
 
-      self._resolveInputVariables()
+      self._resolveInputVariables( bk )
 
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )

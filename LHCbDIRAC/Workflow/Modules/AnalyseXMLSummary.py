@@ -52,7 +52,7 @@ class AnalyseXMLSummary( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               nc = None, rm = None, logAnalyser = None ):
+               nc = None, rm = None, logAnalyser = None, bk = None ):
     """ Main execution method. 
     """
 
@@ -63,7 +63,7 @@ class AnalyseXMLSummary( ModuleBase ):
                                                 wf_commons, step_commons,
                                                 step_number, step_id )
 
-      self._resolveInputVariables()
+      self._resolveInputVariables( bk )
 
       if not rm:
         from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -83,7 +83,7 @@ class AnalyseXMLSummary( ModuleBase ):
         if re.search( 'coredump', file.lower() ):
           self.coreFile = file
           self.log.error( 'Found a core dump file in the current working directory: %s' % self.coreFile )
-          self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile, nc, rm )
+          self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile, nc, rm, bk )
           self._updateFileStatus( self.jobInputData, 'ApplicationCrash', int( self.production_id ), rm, self.fileReport )
           # return S_OK if the Step already failed to avoid overwriting the error
           if not self.stepStatus['OK']:
@@ -113,7 +113,7 @@ class AnalyseXMLSummary( ModuleBase ):
           for lfn, status in fNameLFNs.items():
             self.jobInputData[lfn] = status
 
-        self._finalizeWithErrors( analyseLogResult['Message'], nc, rm )
+        self._finalizeWithErrors( analyseLogResult['Message'], nc, rm, bk )
 
         self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
@@ -165,7 +165,7 @@ class AnalyseXMLSummary( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables( self, bk = None ):
     """ By convention any workflow parameters are resolved here.
     """
 
@@ -226,7 +226,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.logFilePath = self.logFilePath[0]
     else:
       self.log.info( 'LogFilePath parameter not found, creating on the fly' )
-      result = getLogPath( self.workflow_commons )
+      result = getLogPath( self.workflow_commons, bk )
       if not result['OK']:
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         raise Exception, result['Message']
@@ -259,7 +259,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
 ################################################################################
 
-  def _finalizeWithErrors( self, subj, nc, rm ):
+  def _finalizeWithErrors( self, subj, nc, rm, bk = None ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
 
@@ -279,7 +279,7 @@ class AnalyseXMLSummary( ModuleBase ):
     else:
       self.workflow_commons['outputList'] = self.step_commons['listoutput']
 
-    result = constructProductionLFNs( self.workflow_commons )
+    result = constructProductionLFNs( self.workflow_commons, bk )
 
     if not result['OK']:
       self.log.error( 'Could not create production LFNs with message "%s"' % ( result['Message'] ) )

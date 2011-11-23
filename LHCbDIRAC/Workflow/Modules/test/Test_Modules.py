@@ -63,6 +63,15 @@ class ModulesTestCase( unittest.TestCase ):
 
     self.bkc_mock = Mock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
+    self.bkc_mock.getFileTypes.return_value = {'OK': True,
+                                               'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+                                                            {'skipCACheck': False, 'delegatedGroup': 'diracAdmin',
+                                                            'timeout': 3600} ), 'getFileTypes', ( {}, ) ),
+                                               'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
+                                                         'Records': [['DAVINCIHIST'], ['DIELECTRON.DST'], ['BU2JPSIK.MDST'],
+                                                                     ['SIM'], ['BD2JPSIKS.MDST'],
+                                                                     ['BU2JPSIK.DST'], ['BUBDBSSELECTION.DST'],
+                                                                     ['LAMBDA.DST'], ['BSMUMUBLIND.DST'], ['HADRONIC.DST']]}}
 
     self.nc_mock = Mock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
@@ -400,7 +409,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser )['OK'] )
+                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
 
 
     #logAnalyser gives errors
@@ -411,7 +420,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser )['OK'] )
+                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
 
     #there's a core dump
     logAnalyser.return_value = {'OK':True, 'Message':''}
@@ -421,7 +430,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser )['OK'] )
+                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
     os.remove( 'ErrorLogging_Step1_coredump.log' )
 
   def test__updateFileStatus( self ):
@@ -448,7 +457,7 @@ class BookkeepingReportSuccess( ModulesTestCase ):
       self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, self.step_commons,
-                                         self.step_number, self.step_id, False )['OK'] )
+                                         self.step_number, self.step_id, False, self.bkc_mock )['OK'] )
 
     #TODO: make other tests (how?)!
 
@@ -621,7 +630,8 @@ class UploadLogFileSuccess( ModulesTestCase ):
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, self.step_commons,
                                          self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock )['OK'] )
+                                         self.rm_mock, self.ft_mock,
+                                         self.bkc_mock )['OK'] )
 
     #TODO: make others cases tests!
 

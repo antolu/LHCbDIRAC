@@ -61,7 +61,7 @@ class BookkeepingReport( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, saveOnFile = True ):
+               step_number = None, step_id = None, saveOnFile = True, bk = None ):
 
     try:
 
@@ -72,7 +72,7 @@ class BookkeepingReport( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK()
 
-      result = self._resolveInputVariables()
+      result = self._resolveInputVariables( bk )
       if not result['OK']:
         self.log.error( result['Message'] )
         return result
@@ -103,7 +103,7 @@ class BookkeepingReport( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables( self, bk = None ):
 
     super( BookkeepingReport, self )._resolveInputVariables()
 
@@ -144,7 +144,7 @@ class BookkeepingReport( ModuleBase ):
 
     else:
       self.log.info( 'LogFilePath / BookkeepingLFNs parameters not found, creating on the fly' )
-      result = constructProductionLFNs( self.workflow_commons )
+      result = constructProductionLFNs( self.workflow_commons, bk )
       if not result['OK']:
         self.log.error( 'Could not create production LFNs', result['Message'] )
         return result
@@ -378,10 +378,6 @@ class BookkeepingReport( ModuleBase ):
       What this exactly does, it is a mystery to me.
     '''
 
-
-    dataTypes = gConfig.getValue( '/Operations/Bookkeeping/FileTypes', [] )
-    gLogger.info( 'DataTypes retrieved from /Operations/Bookkeeping/FileTypes are:\n%s' % ( ', '.join( dataTypes ) ) )
-
     ####################################################################
     # Output files
     # Define DATA TYPES - ugly! should find another way to do that
@@ -514,12 +510,9 @@ class BookkeepingReport( ModuleBase ):
       if oldTypeName:
         typeName = oldTypeName
 
-      if typeName in dataTypes:
-        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
-        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
-
-      if typeName in dataTypes or 'HIST' in typeName:
-        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
+      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
+      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
+      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
 
       ############################################################
       # Log file replica information
