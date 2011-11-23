@@ -23,8 +23,9 @@ class DatasetHandler( RequestHandler ):
   def export_publishDataset( self, handle, description, longDescription, lfns, metadataTags ):
     """ This method will create the data set in the LFC the datasetDB
     """
-    authorDN = self._clientTransport.peerCredentials['DN']
-    authorGroup = self._clientTransport.peerCredentials['group']
+    credDict = self.getRemoteCredentials()
+    authorDN = credDict[ 'DN' ]
+    authorGroup = credDict['group']
     type = 'user'
     if authorGroup == 'lhcb_prod':
       type = 'production'
@@ -78,7 +79,8 @@ class DatasetHandler( RequestHandler ):
     oDataset.setHandle( handle )
     res = oDataset.removeFile( lfn )
     if res['OK']:
-      authorDN = self._clientTransport.peerCredentials['DN']
+      credDict = self.getRemoteCredentials()
+      authorDN = credDict[ 'DN' ]
       message = 'Removed %s' % lfn
       res = datasetDB.updateDatasetLogging( handle, message, authorDN )
     return res

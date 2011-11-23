@@ -54,9 +54,10 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
     """ Obtains the connection details for the client
     """
     try:
-      clientDN = self._clientTransport.peerCredentials['DN']
-      clientUsername = self._clientTransport.peerCredentials['username']
-      clientGroup = self._clientTransport.peerCredentials['group']
+      credDict = self.getRemoteCredentials()
+      clientDN = credDict[ 'DN' ]
+      clientUsername = credDict['username']
+      clientGroup = credDict['group']
       gLogger.debug( "Getting proxy for %s@%s (%s)" % ( clientUsername, clientGroup, clientDN ) )
       res = gProxyManager.downloadVOMSProxy( clientDN, clientGroup )
       if not res['OK']:
