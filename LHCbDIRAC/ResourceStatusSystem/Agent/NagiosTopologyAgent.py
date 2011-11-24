@@ -58,7 +58,7 @@ class NagiosTopologyAgent(AgentModule):
       site_opts = Utils.unpack(gConfig.getOptionsDict('/Resources/Sites/LCG/%s' % site))
       site_name = site_opts.get('Name')
       site_tier = site_opts.get('MoUTierLevel')
-      if not site_tier : site_tier = 'None'
+      if not site_tier or int(site_tier) > 2: site_tier = 'None'
       has_grid_elem = False
       xml_site = self.xml_append(xml_doc, xml_root, 'atp_site', name=site_name)
 
@@ -92,16 +92,21 @@ class NagiosTopologyAgent(AgentModule):
 
       # Site info will be put if we found at least one CE, SE or LFC element
       if has_grid_elem :
-        self.xml_append(xml_doc, xml_site, 'group', name='Tier'+site_tier, type='LHCb_Tier')
+        self.xml_append(xml_doc, xml_site, 'group', name='Tier '+site_tier, type='LHCb_Tier')
         self.xml_append(xml_doc, xml_site, 'group', name=site, type='LHCb_Site')
         self.xml_append(xml_doc, xml_site, "group", name=site, type="All Sites")
         try:
-          if int(site_tier) <= 2:
-            self.xml_append(xml_doc, xml_site, "group", name=site, type="<= Tier2")
-          if int(site_tier) <= 1:
-            self.xml_append(xml_doc, xml_site, "group", name=site, type="<= Tier1")
+          if int(site_tier) == 2:
+            self.xml_append(xml_doc, xml_site, "group", name=site, type="Tier 0/1/2")
+
+          else: # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
+            # If site_type is None, then we go to the exception.
+            self.xml_append(xml_doc, xml_site, "group", name=site, type="Tier 0/1/2")
+            self.xml_append(xml_doc, xml_site, "group", name=site, type="Tier 0/1")
+
         except ValueError: # Site tier is None, do nothing
           pass
+
       else :
         gLogger.warn("Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" % ( site, site_name ))
         xml_root.removeChild(xml_site)
