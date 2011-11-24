@@ -19,6 +19,7 @@ import sys, os, tempfile, shutil, getpass
 module = "DIRAC"
 release = ""
 svnUsername = ""
+checkNew = True
 
 def setRelease( optionValue ):
   global release
@@ -35,11 +36,18 @@ def setUsername( optionValue ):
   svnUsername = optionValue
   return S_OK()
 
+def unsetCheckNew( optionValue ):
+  global checkNew
+  checkNew = False
+  return S_OK()
+
 Script.disableCS()
 
 Script.registerSwitch( "r:", "release=", "release to import (mandatory)", setRelease )
 Script.registerSwitch( "m:", "module=", "Module to import (default = DIRAC)", setPackage )
 Script.registerSwitch( "u:", "username=", "svn username to use", setUsername )
+Script.registerSwitch( "k", "nonewcheck", "Don't check if the release has been ported", unsetCheckNew )
+
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -68,13 +76,14 @@ if __name__ == "__main__":
   gLogger.verbose( "Existing releases for %s:\n\t%s" % ( module, "\n\t".join( createdReleases ) ) )
 
   if release in createdReleases:
-    gLogger.fatal( "Release %s is already in svn!" % release )
-    sys.exit( 1 )
-
-  gLogger.notice( "Creating %s" % svnRelease )
-  if not packageDistribution.doMakeDir( svnRelease, svnComment ):
-    gLogger.fatal( "Oops. Can't create %s" % svnRelease )
-    sys.exit( 1 )
+    if checkNew:
+      gLogger.fatal( "Release %s is already in svn!" % release )
+      sys.exit( 1 )
+  else:
+    gLogger.notice( "Creating %s" % svnRelease )
+    if not packageDistribution.doMakeDir( svnRelease, svnComment ):
+      gLogger.fatal( "Oops. Can't create %s" % svnRelease )
+      sys.exit( 1 )
 
   tmpDir = tempfile.mkdtemp( "DIRACIMPORTR0X" )
   workDir = os.path.join( tmpDir, module )
@@ -84,10 +93,24 @@ if __name__ == "__main__":
     gLogger.fatal( "Oops. Can't create %s" % svnRelease )
     sys.exit( 1 )
 
+  clean = False
+  for entry in os.listdir( workDir ):
+    if entry != ".svn":
+      clean = True
+      if os.system( "cd '%s'; svn rm '%s'" % ( workDir, os.path.join( workDir, entry ) ) ):
+        gLogger.fatal( "Could not svn clean the directory" )
+        sys.exit( 1 )
+
+  if clean:
+    if not packageDistribution.doCommit( workDir, svnComment ):
+      gLogger.fatal( "Could not commit release" )
+      sys.exit( 1 )
+
+
   os.rename( os.path.join( workDir, ".svn" ), os.path.join( tmpDir, ".svn" ) )
 
   gLogger.notice( "Retrieving %s" % module )
-  if os.system( "git clone https://github.com/DIRACGrid/%s %s" % ( module, workDir ) ):
+  if os.system( "git clone git://github.com/DIRACGrid/%s %s" % ( module, workDir ) ):
     gLogger.fatal( "Could not retrieve %s from git" % module )
     sys.exit( 1 )
 
@@ -113,5 +136,10 @@ if __name__ == "__main__":
   if not packageDistribution.doCommit( workDir, svnComment ):
     gLogger.fatal( "Could not commit release" )
     sys.exit( 1 )
+
+  try:
+    shutil.rmtree( tmpDir )
+  except Exception, excp:
+    gLogger.fatal( "Could not delete %s directory: %s" % ( tmpDir, excp ) )
 
   sys.exit( 0 )
