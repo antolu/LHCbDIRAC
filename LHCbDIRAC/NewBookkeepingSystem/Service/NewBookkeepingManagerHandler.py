@@ -1440,3 +1440,52 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getTypeVersion = [StringType]
   def export_getTypeVersion(self, lfn):
     return dataMGMT_.getTypeVersion(lfn)
+
+  #############################################################################
+  types_getAvailableTcks = [DictType]
+  def export_getAvailableTcks(self, dict):
+    configName = 'ALL'
+    configVersion = 'ALL'
+    conddescription = 'ALL'
+    processing = 'ALL'
+    evt = 'ALL'
+    production = 'ALL'
+    filetype = 'ALL'
+    quality = 'ALL'
+    runnb = 'ALL'
+
+    if dict.has_key( 'ConfigName' ):
+      configName = dict['ConfigName']
+
+    if dict.has_key( 'ConfigVersion' ):
+      configVersion = dict['ConfigVersion']
+
+    if dict.has_key( 'ConditionDescription' ):
+      conddescription = dict['ConditionDescription']
+
+    if dict.has_key( 'ProcessingPass' ):
+      processing = dict['ProcessingPass']
+
+    if dict.has_key( 'EventTypeId' ):
+      evt = dict['EventTypeId']
+
+    if dict.has_key( 'Production' ):
+      production = dict['Production']
+
+    if dict.has_key( 'RunNumber' ):
+      runnb = dict['RunNumber']
+
+    if dict.has_key( 'FileType' ):
+      filetype = dict['FileType']
+
+    if dict.has_key( 'Quality' ):
+      quality = dict['Quality']
+
+    retVal = dataMGMT_.getAvailableTcks( configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb )
+    if retVal['OK']:
+      records = []
+      for record in retVal['Value']:
+        records += [record[0]]
+    else:
+      return retVal
+    return S_OK(records)

@@ -3186,3 +3186,86 @@ and files.qualityid= dataquality.qualityid'
   def removeRuntimeProject(self, stepid):
     result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.removeRuntimeProject', [stepid], False)
     return result
+
+  #############################################################################
+  def getAvailableTcks(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default):
+    condition = ''
+    if configName != default:
+      condition += " and c.configname='%s' " % (configName)
+
+    if configVersion != default:
+      condition += " and c.configversion='%s' " % (configVersion)
+
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'prod')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+
+    tables = ''
+    if evt != default:
+      tables += ' ,prodview bview'
+      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (evt)
+
+    if production != default:
+      condition += ' and j.production=' + str(production)
+
+    if runnb != default:
+      condition += ' and j.runnumber=' + str(runnb)
+
+    if filetype != default:
+      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (str(filetype))
+
+    if quality != default:
+      if type(quality) == types.StringType:
+        command = "select QualityId from dataquality where dataqualityflag='" + str(quality) + "'"
+        res = self.dbR_._query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:', res['Message'])
+        elif len(res['Value']) == 0:
+            return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        condition += ' and f.qualityid=' + str(quality)
+      else:
+        if len(quality) > 0:
+          conds = ' ('
+          for i in quality:
+            quality = None
+            command = "select QualityId from dataquality where dataqualityflag='" + str(i) + "'"
+            res = self.dbR_._query(command)
+            if not res['OK']:
+              gLogger.error('Data quality problem:', res['Message'])
+            elif len(res['Value']) == 0:
+                return S_ERROR('Dataquality is missing!')
+            else:
+              quality = res['Value'][0][0]
+            conds += ' f.qualityid=' + str(quality) + ' or'
+          condition += 'and' + conds[:-3] + ')'
+
+    if processing != default:
+      command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                           FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                     where v.path='%s'" % (processing.split('/')[1], processing)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        return retVal
+      pro = '('
+      for i in retVal['Value']:
+        pro += "%s," % (str(i[0]))
+      pro = pro[:-1]
+      pro += (')')
+
+      condition += " and prod.processingid in %s" % (pro)
+
+    command = "select distinct j.tck from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes %s  where \
+    j.jobid=f.jobid and \
+    d.qualityid=f.qualityid and \
+    f.gotreplica='Yes' and \
+    f.visibilityFlag='Y' and \
+    ftypes.filetypeid=f.filetypeid and \
+    j.configurationid=c.configurationid %s" % (tables, condition)
+    return self.dbR_._query(command)
+

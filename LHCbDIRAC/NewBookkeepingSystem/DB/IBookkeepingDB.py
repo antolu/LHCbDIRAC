@@ -519,3 +519,6 @@ class IBookkeepingDB( object ):
   def removeRuntimeProject(self, stepid):
     gLogger.error('This method is not implemented!')
 
+  #############################################################################
+  def getAvailableTcks(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default):
+    gLogger.error('This method is not implemented!')
