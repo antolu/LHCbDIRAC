@@ -37,7 +37,7 @@ class DiracLHCb( Dirac ):
     """Internal initialization of the DIRAC API.
     """
 
-    Dirac.__init__( self, WithRepo = WithRepo, RepoLocation = RepoLocation )
+    Dirac.__init__( self, withRepo = WithRepo, repoLocation = RepoLocation )
     self.tier1s = []
     for site in getSites()['Value']:
       if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
