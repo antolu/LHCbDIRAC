@@ -251,11 +251,9 @@ class StorageHistoryAgent( AgentModule ):
         self.dict1['ProcessingPass'] = proPassTuple
         self.dict1['rawDataFlag'] = rawDataFlag
         self.log.notice( "Call getStorageUsage with dict: %s " % self.dict1 )          
-        #res = self.getStorageUsage()
-        res = self.getStorageUsage_fromDBDump()
+        res = self.getStorageUsage()
         if not res[ 'OK' ]:
           self.log.error( "ERROR!! self.getStorageUsage returned ERROR! %s" % res )
-          #return S_ERROR( res )
           continue
       processedBookkeepingQueries += 1
       progress = 1.0*processedBookkeepingQueries/totalBookkeepingQueries
@@ -357,6 +355,7 @@ class StorageHistoryAgent( AgentModule ):
     """
 
     c = 0
+    getSummaryCalls = 0
     start = time.time()
     gLogger.notice( 'Starting MC', '/lhcb/MC' )
     res = self.__stDB.getStorageDirectories( '/lhcb/MC' )
@@ -378,7 +377,6 @@ class StorageHistoryAgent( AgentModule ):
         mcDirs[prod][typ]['Dirs'].append( d )
 
     gLogger.notice( 'MC Productions:', len( mcDirs ) )
-
     for prod,t in mcDirs.items():
       for typ,data in t.items():
         for d in data['Dirs']:
@@ -394,8 +392,21 @@ class StorageHistoryAgent( AgentModule ):
                 mcSum[se] = {'Files':0,'Size':0}
               mcSum[se]['Files'] += res['Value'][se]['Files']
               mcSum[se]['Size'] += res['Value'][se]['Size']
-
-
+          else:
+            gLogger.error("Cannot retrieve storage usage %s" % res['Message'])
+            continue
+          res = self.__stDB.getSummary( d )
+          getSummaryCalls += 1
+          if not res[ 'OK' ]:
+            gLogger.error("Cannot retrieve LFN usage %s" % res['Message'])
+            continue
+          for retDir in res['Value'].keys():
+            if retDir[-1] != '/':
+              retDir = retDir+'/'
+            if d in retDir:
+              data['LfnSize'] = res['Value'][ retDir ]['Size']
+              data['LfnFiles'] = res['Value'][ retDir ]['Files']
+ 
     gLogger.notice( 'MC Done' )
     fileName = os.path.join( self.__workDirectory, "mcSum.txt" )
     f = open(fileName, "w")
@@ -486,6 +497,21 @@ class StorageHistoryAgent( AgentModule ):
                 dataSum[se] = {'Files':0,'Size':0}
               dataSum[se]['Files'] += res['Value'][se]['Files']
               dataSum[se]['Size'] += res['Value'][se]['Size']
+          else:
+            gLogger.error("Cannot retrieve storage usage: %s " %res['Message'] )
+            continue
+          res = self.__stDB.getSummary( d )
+          getSummaryCalls += 1
+          if not res[ 'OK' ]:
+            gLogger.error("Cannot retrieve LFN usage %s" % res['Message'])
+            continue
+          for retDir in res['Value'].keys():
+            if retDir[-1] != '/':
+              retDir = retDir+'/'
+            if d in retDir:
+              data['LfnSize'] = res['Value'][ retDir ]['Size']
+              data['LfnFiles'] = res['Value'][ retDir ]['Files']
+ 
     
     gLogger.notice( 'Data Productions Done' )
     fileName = os.path.join( self.__workDirectory, "dataSum.txt" )
@@ -522,7 +548,23 @@ class StorageHistoryAgent( AgentModule ):
                 rawSum[se] = {'Files':0,'Size':0}
               rawSum[se]['Files'] += res['Value'][se]['Files']
               rawSum[se]['Size'] += res['Value'][se]['Size']
-    
+          else:
+            gLogger.error("Cannot retrieve storage usage: %s " %res['Message'] )
+            continue
+
+          res = self.__stDB.getSummary( d )
+          getSummaryCalls += 1
+          if not res[ 'OK' ]:
+            gLogger.error("Cannot retrieve LFN usage %s" % res['Message'])
+            continue
+          for retDir in res['Value'].keys():
+            if retDir[-1] != '/':
+              retDir = retDir+'/'
+            if d in retDir:
+              data['LfnSize'] = res['Value'][ retDir ]['Size']
+              data['LfnFiles'] = res['Value'][ retDir ]['Files']
+ 
+
     gLogger.notice( 'Data Runs Done' )
     fileName = os.path.join( self.__workDirectory, "rawSum.txt" )
     f = open(fileName, "w")
@@ -542,11 +584,12 @@ class StorageHistoryAgent( AgentModule ):
 
     gLogger.notice( 'Data Done' )
     
-    gLogger.notice( 'Queried directories:', c )
+    gLogger.notice( 'Queried directories for storage usage:', c )
+    gLogger.notice( 'Queried directories for LFN usage: ' , getSummaryCalls )
     
     end = time.time()
     duration = end - start
-    gLogger.info("Total time to create storage usage dump: %d " % duration )
+    gLogger.info("Total time to create StorageUsageDB dump: %d s" % duration )
     # export these dictionaries:
     self.mcDirs = mcDirs
     self.mcSum = mcSum
@@ -559,7 +602,7 @@ class StorageHistoryAgent( AgentModule ):
     return S_OK()
 
 #....................................................................................................
-  def getStorageUsage_fromDBDump( self ):
+  def getStorageUsage( self ):
     """ For a given dictionary defining: ConfigName, ConfigVersion, EventType, Conditions, ProcessingPass 
         gets the available productions/runs and file types and fill the accounting records 
     """
@@ -660,7 +703,7 @@ class StorageHistoryAgent( AgentModule ):
             continue
           
           for seName in sortList( myDirs[ prodID ][ fType ].keys() ):
-            if seName == 'Dirs':
+            if seName in ['Dirs', 'LfnFiles','LfnSize']:
               continue
             try:
               physicalFiles = myDirs[ prodID ][ fType ][ seName ][ 'Files' ]
@@ -668,11 +711,16 @@ class StorageHistoryAgent( AgentModule ):
             except:
               self.log.warn("The storage usage for production %s fileType %s SE %s was not stored in dictionary!" % (prodID, fType, seName ) )
               continue
-            # TO BE FIXED!!
+            
             logicalSize = 0
             logicalFiles = 0
+            try:
+              logicalSize = myDirs[ prodID ][ fType ]['LfnSize']
+              logicalFiles = myDirs[ prodID ][ fType ]['LfnFiles']
+            except:
+              self.log.warn("LFN size/files not stored for prod,fileType = %s, %s " %(prodID, fType ))
             # create a record to be sent to the accounting:
-            self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize ) )
+            self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d lfnFiles: %d lfnSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
             # call function to send the record to the accounting
           
             dataRecord = DataStorage()
@@ -708,7 +756,7 @@ class StorageHistoryAgent( AgentModule ):
           self.log.warn("The stream %s is not in the storage dictionary for run %s " %(dict3[ 'EventTypeId' ], prodID))
           continue
         for seName in myDirs[ prodID ][ streamInLFC ].keys():
-          if seName == 'Dirs':
+          if seName in ['Dirs', 'LfnFiles','LfnSize']:
             continue
           try:
             physicalFiles = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Files' ]
@@ -721,8 +769,13 @@ class StorageHistoryAgent( AgentModule ):
           # TO BE FIXED!!
           logicalSize = 0
           logicalFiles = 0
-
-          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize ) )
+          try:
+            logicalSize = myDirs[ prodID ][ streamInLFC ]['LfnSize']
+            logicalFiles = myDirs[ prodID ][ streamInLFC ]['LfnFiles']
+          except:
+            self.log.warn("LFN size/files not stored for run,stream = %s, %s " %(prodID, streamInLFC ))
+ 
+          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d lfnFiles: %d lfnSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
           dataRecord = DataStorage()
           dataRecord.setStartTime( now )
           dataRecord.setEndTime( now )
@@ -758,162 +811,6 @@ class StorageHistoryAgent( AgentModule ):
  
 
     return S_OK()
-
-#....................................................................................................
-  def getStorageUsage( self ):
-
-    """ Takes in input a dictionary containing ConfigName, ConfigVersion, EventType, Conditions, ProcessingPass and gets the productions/runs
-    and file type, and then queries the StorageUsage service to get the space usage per SE
-    """
-
-    now = Time.dateTime()
-    eventTypeDesc = self.dict1['EventTypeDescription' ] # needed to send it to accounting (instead of numeric ID)
-    eventTypeDesc = str( self.dict1['EventTypeId'] ) + '-' + eventTypeDesc
-    self.log.debug( "eventTypeDescription %s" % eventTypeDesc )
-    #dataTypeFlag = '' # either RealData or SimData
-    LFCBasePath = {'RealData': '/lhcb/', 'SimData': '/lhcb/MC/'}
-    dict3 = {}
-    dict3[ 'ConfigName' ] = self.dict1[ 'ConfigName' ]
-    dict3[ 'ConfigVersion' ] = self.dict1[ 'ConfigVersion' ]
-    dict3[ 'EventTypeId' ] = self.dict1[ 'EventTypeId']
-    dict3[ 'EventTypeDescription' ] = self.dict1[ 'EventTypeDescription' ]
-    dict3[ 'ProcessingPass' ] = self.dict1[ 'ProcessingPass' ]
-    dict3[ 'ConditionDescription'] = self.dict1[ 'ConditionDescription' ]
-    dict3[ 'dataTypeFlag' ] = self.dict1[ 'dataTypeFlag' ] 
-    dict3[ 'rawDataFlag'] = self.dict1[ 'rawDataFlag' ] # True for RAW data only
-    # get list of productions for every tuple (ConfigName, ConfigVersion, ProcessingPass, ConditionDescription)
-    self.log.notice( " Get productions for dict3 : %s " % dict3 )
-    res = self.bkClient.getProductions( dict3 )
-    if not res[ 'OK' ]:
-      self.log.error( "ERROR: could not get productions for dict %s Error: %s" % ( dict3, res['Message'] ) )
-      return S_ERROR( res )
-    productions = sortList( [x[0] for x in res[ 'Value' ][ 'Records' ]] )
-    if productions == []:
-      self.log.notice( "WARNING: EMPTY QUERY ! no Production available for dict3= %s" % dict3 )
-      return S_OK()
-    self.log.notice( "Got the productions list: %s" % productions )
-
-    
-    rawDataPFNUsage = {}
-    if dict3[ 'rawDataFlag' ]:
-      self.log.notice( "For RAW data, do a bulk query to get PFN usage and store in a dictionary ")
-      runsList = []
-      for p in productions:
-        run = -1*p
-        runsList.append( run )
-      resBulkQuery = self.__stDB.getRunSummaryPerSE( runsList )
-      if not resBulkQuery[ 'OK' ]:
-        self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( resBulkQuery['Message'] ) )
-        return S_ERROR( resBulkQuery )
-      else:
-        rawDataPFNUsage = resBulkQuery[ 'Value' ]
-        #self.log.notice( "Physical storage usage %s" % res['Value'] )
-      
-    for prodID in productions:
-      # get File Types (only for MC and reconstructed data, as for RAW data is only RAW)
-      if not dict3[ 'rawDataFlag']:
-        res = self.bkClient.getFileTypes( dict3 )
-        if not res['OK']:
-          self.log.notice( "ERROR getting file types for prod %s, Error: %s" % ( prodID, res['Message'] ) )
-          continue
-        prodFileTypes = reduce(lambda x,y:x+y, res['Value']['Records'])
-        prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
-      # for raw data set the only file type as 'RAW'.
-      # for non-raw data, add the HIST, SETC, DST file type to the list (to be checked why)
-        prodFileTypes.append( 'HIST' )
-        if 'DST' not in prodFileTypes:
-          prodFileTypes.append( 'DST' )
-        if 'SETC' not in prodFileTypes:
-          prodFileTypes.append( 'SETC' )
-      else:
-        prodFileTypes = [ 'RAW' ]
-      self.log.notice( "For prod %d list of event types: %s" % ( prodID, prodFileTypes ) )
-      dataPath = LFCBasePath[ dict3[ 'dataTypeFlag'] ]
-      for prodFileType in prodFileTypes:
-        # get the LOGICAL usage with getSummary, except for raw data
-        if not dict3[ 'rawDataFlag']:
-          res = self.__stDB.getSummary( dataPath, prodFileType, prodID )
-          if not res[ 'OK' ]:
-            self.log.error( "ERROR: getSummary failed with message: %s" % ( res['Message'] ) )
-            return S_ERROR( res )
-          logicalFiles = 0
-          logicalSize = 0
-          logicalUsage = res[ 'Value' ]
-          for dir in logicalUsage.keys():
-            logicalFiles += logicalUsage[ dir]['Files']
-            logicalSize += logicalUsage[ dir ]['Size']
-        else: # for RAW data ask the Bkk to get the logical storage usage (size and number of LFNs)
-          if prodID < 0:
-            runNo = -1 * prodID
-          else:
-            self.log.error( "ERROR: For RAW data the returned productionID should be negative! prodID = %d" % prodID )
-            continue
-          res = self.bkClient.getRunInformations( runNo )
-          if not res[ 'OK' ]:
-            self.log.error( "ERROR: getRunInformations failed with message: %s" % ( res['Message'] ) )
-            return S_ERROR( res )
-          logicalFiles = 0
-          logicalSize = 0
-          for size in res[ 'Value']['File size']:
-            logicalSize += size
-          for file in res['Value']['Number of file']:
-            logicalFiles += file
-
-        self.log.notice( "Logical usage for fileType = %s, prod/run = %d => files: %d size: %f GB" % ( prodFileType, prodID, logicalFiles, logicalSize / byteToGB ) )
-
-        # get the storage usage in terms of PFNs:
-        if not dict3[ 'rawDataFlag']:
-          self.log.notice( "Calling getStorageSummary with path= %s prodFileType= %s prodID= %d " % ( dataPath, prodFileType, prodID ) )
-          res = self.__stDB.getStorageSummary( dataPath, prodFileType, prodID, self.sesOfInterest )
-          if not res[ 'OK' ]:
-            self.log.error( "ERROR: failed to retrieve PFN usage with message: %s" % ( res['Message'] ) )
-            return S_ERROR( res )
-          usageDict = res[ 'Value' ]
-        else: # RAW data
-          # the storage usage is stored in a dictionary (output of a bulk query)
-          #res = self.__stDB.getRunSummaryPerSE( runNo )
-          runNo = -1 * prodID
-          usageDict = rawDataPFNUsage[ runNo ]
-
-        for seName in sortList( usageDict.keys() ):
-          files = usageDict[seName]['Files']
-          size = usageDict[seName]['Size']
-          # create a record to be sent to the accounting:
-          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %d ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], prodFileType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, files, size ) )
-          dataRecord = DataStorage()
-          dataRecord.setStartTime( now )
-          dataRecord.setEndTime( now )
-          dataRecord.setValueByKey( "DataType", dict3['ConfigName'] )
-          dataRecord.setValueByKey( "Activity", dict3['ConfigVersion'] )
-          dataRecord.setValueByKey( "FileType", prodFileType )
-          res = dataRecord.setValueByKey( "Production", prodID )
-          if not res[ 'OK' ]:
-            self.log.notice( "Accounting ERROR prod %s , res= %s" % ( prodID, res ) )
-          dataRecord.setValueByKey( "ProcessingPass", dict3['ProcessingPass'] )
-          dataRecord.setValueByKey( "Conditions", dict3['ConditionDescription'] )
-          dataRecord.setValueByKey( "EventType", dict3['EventTypeDescription'] )
-          dataRecord.setValueByKey( "StorageElement", seName )
-          dataRecord.setValueByKey( "PhysicalSize", size )
-          dataRecord.setValueByKey( "PhysicalFiles", files )
-          dataRecord.setValueByKey( "LogicalSize", logicalSize )
-          dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
-          res = gDataStoreClient.addRegister( dataRecord )
-          if not res[ 'OK']:
-            self.log.notice( "ERROR: In getStorageUsage addRegister returned: %s" % res )
-          self.numDataRows += 1
-          self.totalRecords += 1
-          self.recordsToCommit += 1
-    if self.recordsToCommit > self.limitForCommit:
-      res = gDataStoreClient.commit()
-      if not res[ 'OK' ]:
-        self.log.error( "Accounting ERROR: commit returned %s" % res )
-      else:
-        self.log.notice( "%d records committed " % self.recordsToCommit )
-        self.recordsToCommit = 0
-      self.log.notice( "In getStorageUsage commit returned: %s" % res )
-    return S_OK()
-
-#..............................................................................................................
 
 
 
