@@ -156,10 +156,6 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getInputAndOutputJobFiles( jobids )
 
   #############################################################################
-  def getInputAndOutputJobFiles(self, jobids):
-    return self.getManager().getInputAndOutputJobFiles(jobids)
-
-  #############################################################################
   def getJobsIds(self, filelist):
     return self.getManager().getJobsIds(filelist)
 
@@ -320,10 +316,6 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getSizeOfFiles( prodid )
 
   #############################################################################
-  def getSizeOfFiles(self, prodid):
-    return self.getManager().getSizeOfFiles(prodid)
-
-  #############################################################################
   def getNbOfFiles(self, prodid):
     return self.getManager().getNbOfFiles(prodid)
 
@@ -482,10 +474,6 @@ class IBookkeepingDatabaseClient( object ):
   #############################################################################
   def insertEventTypes(self, evid, desc, primary):
     return self.getManager().insertEventTypes(evid, desc, primary)
-
-  #############################################################################
-  def updateEventType(self, evid, desc, primary):
-    return self.getManager().updateEventType(evid, desc, primary)
 
   #############################################################################
   def getRuns(self, cName, cVersion):

@@ -112,10 +112,6 @@ class IBookkeepingDB( object ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
-  def getAvailableRuns(self):
-    gLogger.error('This method is not implemented!')
-
-  #############################################################################
   def getAvailableEventTypes(self):
     gLogger.error('This method is not implemented!')
 
@@ -157,10 +153,6 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getInputAndOutputJobFiles(self, jobids):
     gLogger.error('This method is not implemented!')
-
-  #############################################################################
-  def getInputAndOutputJobFiles( self, jobids ):
-    gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
   def getJobsIds( self, filelist ):
@@ -326,9 +318,6 @@ class IBookkeepingDB( object ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
-  def getSizeOfFiles(self, prodid):
-    gLogger.error('This method is not implemented!')
-
   def getNbOfFiles( self, prodid ):
     gLogger.error( 'This method is not implemented!' )
 
