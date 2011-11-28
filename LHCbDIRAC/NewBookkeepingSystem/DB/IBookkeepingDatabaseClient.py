@@ -524,5 +524,5 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().removeRuntimeProject(stepid)
 
   #############################################################################
-  def getAvailableTcks(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default):
-    return self.getManager().getAvailableTcks(configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default)
+  def getAvailableTcks(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
+    return self.getManager().getAvailableTcks(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)

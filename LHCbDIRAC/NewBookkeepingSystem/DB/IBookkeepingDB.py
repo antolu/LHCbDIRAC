@@ -520,5 +520,5 @@ class IBookkeepingDB( object ):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
-  def getAvailableTcks(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default):
+  def getAvailableTcks(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
     gLogger.error('This method is not implemented!')
