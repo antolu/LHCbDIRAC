@@ -22,7 +22,20 @@ __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 impl = xml.dom.getDOMImplementation()
+
+def gen_xml_stub():
+  doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                            "serviceupdate",
+                            None)
+  doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+  doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+  doc.documentElement.setAttribute("xsi:schemaLocation",
+                                   "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+  return doc
+
 xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
+def fix_xml(xml_str):
+  return xml_re.sub('>\g<1></', xml_str)
 
 #### Helper functions to send a warning mail to a site (for space-token test)
 
@@ -109,13 +122,7 @@ class SpaceTokenOccupancyTest(TestBase):
     else:
       gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                               "serviceupdate",
-                               None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+    doc = gen_xml_stub()
     xml_append(doc, "id", site + "_" + st)
     xml_append(doc, "availability", availability)
     elt = xml_append(doc, "availabilitythresholds")
@@ -134,15 +141,13 @@ class SpaceTokenOccupancyTest(TestBase):
     xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
     xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     self.rmDB.updateSLSStorage(site, st, availability, "PT27M", validity, total, guaranteed, free)
 
     xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
     try:
-      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
-      prettyXml = xml_re.sub('>\g<1></', uglyXml)
-      xmlfile.write(prettyXml)
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -166,7 +171,7 @@ class DIRACTest(TestBase):
     super(DIRACTest, self).__init__(am)
     self.setup     = CS.getValue('DIRAC/Setup')
     self.setupDict = CS.getTypedDictRootedAt(root="/DIRAC/Setups", relpath=self.setup)
-    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
+    self.xmlPath   = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
     self.rmDB      = ResourceManagementDB()
 
     try:
@@ -216,17 +221,10 @@ class DIRACTest(TestBase):
       gLogger.error("SLSAgent, DIRACTest: Unable to query CS")
       sites = []
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                               "serviceupdate",
-                               None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", "Framework_Gateway")
     xml_append(doc, "webpage", self.getTestValue("webpage"))
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     if sites == []:
       xml_append(doc, "availability", 0)
@@ -241,7 +239,7 @@ class DIRACTest(TestBase):
 
     xmlfile = open(self.xmlPath + "Framework_Gateway.xml", "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -256,17 +254,10 @@ class DIRACTest(TestBase):
     except KeyError:
       host = "unknown.cern.ch"
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                               "serviceupdate",
-                               None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", system + "_" + service)
     xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     if res['OK']:
       res = res['Value']
@@ -293,9 +284,7 @@ class DIRACTest(TestBase):
 
     xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
     try:
-      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
-      prettyXml = xml_re.sub('>\g<1></', uglyXml)
-      xmlfile.write(prettyXml)
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -314,16 +303,9 @@ class DIRACTest(TestBase):
     if system == "RequestManagement":
       res2 = pinger.getDBSummary()
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                              "serviceupdate",
-                              None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", site + "_" + system)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     if res['OK']:
       res = res['Value']
@@ -358,9 +340,7 @@ class DIRACTest(TestBase):
 
     xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
     try:
-      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
-      prettyXml = xml_re.sub('>\g<1></', uglyXml)
-      xmlfile.write(prettyXml)
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -398,14 +378,7 @@ class LOGSETest(TestBase):
         space = d['data'][3]
         percent = int(d['data'][4])
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                              "serviceupdate",
-                              None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", "log_se_partition")
     xml_append(doc, "validityduration", "PT12H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
@@ -420,7 +393,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -431,14 +404,7 @@ class LOGSETest(TestBase):
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                              "serviceupdate",
-                              None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", "log_se_gridftp")
     xml_append(doc, "validityduration", "PT2H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
@@ -451,7 +417,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -462,14 +428,7 @@ class LOGSETest(TestBase):
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                              "serviceupdate",
-                              None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", "log_se_cert")
     xml_append(doc, "validityduration", "PT24H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
@@ -481,7 +440,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -492,14 +451,7 @@ class LOGSETest(TestBase):
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-                              "serviceupdate",
-                              None)
-    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    doc.documentElement.setAttribute("xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
-
+    doc = gen_xml_stub()
     xml_append(doc, "id", "log_se_httpd")
     xml_append(doc, "validityduration", "PT2H")
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
@@ -511,7 +463,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
     finally:
       xmlfile.close()
 
@@ -691,11 +643,11 @@ class LOGSETest(TestBase):
 
 class SLSAgent(AgentModule):
   def initialize(self):
-    self.am_setOption( 'shifterProxy', 'DataManager' )
+#    self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
   def execute(self):
-    SpaceTokenOccupancyTest(self)
+#    SpaceTokenOccupancyTest(self)
     DIRACTest(self)
     LOGSETest(self)
     #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)

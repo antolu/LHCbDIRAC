@@ -176,7 +176,7 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     elt2 = xml_append(doc, "data")
     xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
     xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()))
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     xmlfile = open(self.xmlPath + site + "_" + "CondDB.xml", "w")
     try:
