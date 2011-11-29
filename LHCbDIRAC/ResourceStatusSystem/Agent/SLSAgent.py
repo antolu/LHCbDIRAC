@@ -318,7 +318,7 @@ class DIRACTest(TestBase):
       xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
-      self.rmDB.updateSLST1Services(site, service, 100, res['service uptime'], res['host uptime'])
+      self.rmDB.updateSLST1Services(site, system, 100, res['service uptime'], res['host uptime'])
 
       if system == "RequestManagement":
         for k,v in res2["Value"].items():
@@ -329,14 +329,14 @@ class DIRACTest(TestBase):
           xml_append(doc, "numericvalue", v["Done"], elt_=elt,
                      name=k + " - Done", desc="Number of Done " + k + "requests")
 
-      gLogger.info("%s/%s successfully pinged" % (site, service))
+      gLogger.info("%s/%s successfully pinged" % (site, system))
 
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
       self.rmDB.updateSLST1Services(site, service, 0, Utils.SQLValues.null, Utils.SQLValues.null)
 
-      gLogger.info("%s/%s does not respond to ping" % (site, service))
+      gLogger.info("%s/%s does not respond to ping" % (site, system))
 
     xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
     try:
