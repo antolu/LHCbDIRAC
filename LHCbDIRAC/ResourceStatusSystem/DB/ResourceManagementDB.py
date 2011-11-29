@@ -8,12 +8,10 @@ __RCSID__ = "$Id$"
 from datetime import datetime
 
 # Second, DIRAC stuff
-from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import \
-     ResourceManagementDB as DIRACResourceManagementDB
-from DIRAC.ResourceStatusSystem.Utilities.Exceptions import RSSException
-from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import RSSManagementDBException
-from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils import where
-from LHCbDIRAC.ResourceStatusSystem.Utilities import Utils
+from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB as DIRACResourceManagementDB
+from DIRAC.ResourceStatusSystem.Utilities.Exceptions    import RSSException
+from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils     import where
+from LHCbDIRAC.ResourceStatusSystem.Utilities           import Utils
 
 # Third, LHCbDIRAC stuff
 # ...
@@ -343,7 +341,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
     res = self.db._update(req)
     if not res['OK']:
       print "Unable to execute request " + req
-      raise RSSManagementDBException, where(self, self.updateSLSServices) + res['Message']
+      raise RSSException, where(self, self.updateSLSServices) + res['Message']
     return res['Value']
 
 
