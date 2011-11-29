@@ -57,8 +57,7 @@ class NagiosTopologyAgent(AgentModule):
       # Site config
       site_opts = Utils.unpack(gConfig.getOptionsDict('/Resources/Sites/LCG/%s' % site))
       site_name = site_opts.get('Name')
-      site_tier = site_opts.get('MoUTierLevel')
-      if not site_tier or int(site_tier) > 2: site_tier = 'None'
+      site_tier = site_opts.get('MoUTierLevel', "None")
       has_grid_elem = False
       xml_site = self.xml_append(xml_doc, xml_root, 'atp_site', name=site_name)
 
