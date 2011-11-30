@@ -157,15 +157,19 @@ else:
   publishFlag = True
   testFlag = False
 
-if outputsCERN:
-  defaultOutputSE = 'CERN-RDST'
-  brunelDataSE = 'CERN_MC_M-DST'
-  daVinciDataSE = 'CERN_MC_M-DST'
-else:
-  defaultOutputSE = 'Tier1-RDST'
-  brunelDataSE = 'Tier1_MC_M-DST'
-  daVinciDataSE = 'Tier1_MC_M-DST'
+if publishFlag:
+  diracProd = DiracProduction()
 
+if outputsCERN:
+  defaultOutputSE = 'CERN-MC-DST'
+  brunelDataSE = 'CERN_MC-DST'
+  daVinciDataSE = 'CERN_MC-DST'
+  mergedDataSE = 'CERN_MC_M-DST'
+else:
+  defaultOutputSE = 'Tier1-MC-DST'
+  brunelDataSE = 'Tier1_MC-DST'
+  daVinciDataSE = 'Tier1_MC-DST'
+  mergedDataSE = 'Tier1_MC_M-DST'
 
 BKscriptFlag = False
 # If we don't even publish the production, we assume we want to see if the BK scripts are OK 
@@ -777,8 +781,6 @@ else:
     DIRAC.exit( 2 )
 
   if publishFlag:
-    diracProd = DiracProduction()
-
     prodID = result['Value']
     msg = 'MC production %s successfully created ' % ( prodID )
 
@@ -914,11 +916,11 @@ else:
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
   if mergingApp == 'LHCb':
     mergingProd.addMergeStep( mergingVersion, eventType = '{{eventType}}', inputDataType = mergingInputType,
-                              inputData = mergingType, condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = daVinciDataSE,
+                              inputData = mergingType, condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   elif mergingApp == 'DaVinci':
     mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
-                                inputDataType = mergingInputType, inputProduction = prodID, outputSE = daVinciDataSE,
+                                inputDataType = mergingInputType, inputProduction = prodID, outputSE = mergedDataSE,
                                 stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   else:
     gLogger.error( "No LHCb nor DaVinci in MC Merging...?" )
@@ -995,10 +997,10 @@ else:
 
   transformation = Transformation()
   transformation.setType( 'Replication' )
-  transformation.setTransformationName( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
+  transformation.setTransformationName( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
   transformation.setTransformationGroup( '{{pDsc}}' )
-  transformation.setDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
-  transformation.setLongDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
+  transformation.setDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
+  transformation.setLongDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
   transformation.setPlugin( replicationPlugin )
   transformation.setBkQuery( transBKQuery )
   transformation.setAdditionalParam( 'TransformationFamily', parentReq )
@@ -1013,10 +1015,12 @@ else:
     prodID = result['Value']
     msg = 'Replication production %s successfully created ' % ( str( prodID ) )
     if testFlag:
-      diracProd.production( prodID, 'manual', printOutput = True )
+      transformation.setStatus( 'Active' )
+      transformation.setAgentType( 'Manual' )
       msg = msg + 'and started in manual mode.'
     else:
-      diracProd.production( prodID, 'automatic', printOutput = True )
+      transformation.setStatus( 'Active' )
+      transformation.setAgentType( 'Automatic' )
       msg = msg + 'and started in automatic mode.'
     gLogger.info( msg )
 
