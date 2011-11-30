@@ -995,10 +995,10 @@ else:
 
   transformation = Transformation()
   transformation.setType( 'Replication' )
-  transformation.setTransformationName( 'ReplicationForProd' + prodID + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
+  transformation.setTransformationName( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
   transformation.setTransformationGroup( '{{pDsc}}' )
-  transformation.setDescription( 'ReplicationForProd' + prodID + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
-  transformation.setLongDescription( 'ReplicationForProd' + prodID + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
+  transformation.setDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
+  transformation.setLongDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType )
   transformation.setPlugin( replicationPlugin )
   transformation.setBkQuery( transBKQuery )
   transformation.setAdditionalParam( 'TransformationFamily', parentReq )
@@ -1011,7 +1011,7 @@ else:
 
   if publishFlag:
     prodID = result['Value']
-    msg = 'Replication production %s successfully created ' % ( prodID )
+    msg = 'Replication production %s successfully created ' % ( str( prodID ) )
     if testFlag:
       diracProd.production( prodID, 'manual', printOutput = True )
       msg = msg + 'and started in manual mode.'
