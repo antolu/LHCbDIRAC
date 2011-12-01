@@ -831,8 +831,8 @@ else:
   selectionProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   selectionProd.setDBTags( selectionCDb, selectionDDDb )
 
-  selectionProd.addDaVinciStep( selectionVersion, selectionOutputType, selectionOptions, extraPackages = selectionEP, inputDataType = selectionInputType,
-                                dataType = 'MC', extraOpts = selectionExtraOptions,
+  selectionProd.addDaVinciStep( selectionVersion, selectionOutputType, selectionOptions, extraPackages = selectionEP,
+                                inputDataType = selectionInputType, dataType = 'MC', extraOpts = selectionExtraOptions,
                                 outputSE = daVinciDataSE, condDBTag = selectionCDb, ddDBTag = selectionDDDb,
                                 stepID = selectionStep, stepName = selectionName, stepVisible = selectionVisibility )
 
@@ -915,7 +915,7 @@ else:
   mergingProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
   if mergingApp == 'LHCb':
-    mergingProd.addMergeStep( mergingVersion, eventType = '{{eventType}}', inputDataType = mergingInputType,
+    mergingProd.addMergeStep( mergingVersion, mergingOptions, eventType = '{{eventType}}', inputDataType = mergingInputType,
                               inputData = mergingType, condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   elif mergingApp == 'DaVinci':
