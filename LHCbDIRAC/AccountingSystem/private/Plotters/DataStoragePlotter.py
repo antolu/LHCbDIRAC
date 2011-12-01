@@ -10,7 +10,7 @@ class DataStoragePlotter( BaseReporter ):
   _typeName = "DataStorage"
   _typeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields ]
   _noSEtypeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields if dF[0] != 'StorageElement' ]
-  _noSEGrouping = ( ",".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
+  _noSEGrouping = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
   ###
   _reportCatalogSpaceName = "LFN size"
