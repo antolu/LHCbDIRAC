@@ -802,7 +802,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       site = True
       sites = []
       # Don't take into account ARCHIVE SEs for duplicate replicas at sites
-      if not __isArchive( se ):
+      if not self.__isArchive( se ):
         res = getSitesForSE( se )
         if res['OK' ]:
           sites = res['Value']
