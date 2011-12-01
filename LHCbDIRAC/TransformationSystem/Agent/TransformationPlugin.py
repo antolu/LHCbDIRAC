@@ -710,7 +710,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           taskLfns += task[1]
           res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
           if not res['OK']:
-            gLogger.error( "Failed to set target site to run %s as %s", str( runID ), targetSite )
+            self.__logError( "Failed to set target site to run %s as %s" % ( str( runID ), targetSite ) )
         self.cachedRunLfns[runID][paramValue] = [lfn for lfn in runParamLfns if lfn not in taskLfns]
     self.data = inputData
     self.__writeCacheFile()
