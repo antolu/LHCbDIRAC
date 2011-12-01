@@ -9,6 +9,8 @@ class DataStoragePlotter( BaseReporter ):
 
   _typeName = "DataStorage"
   _typeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields ]
+  _noSEtypeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields if dF[0] != 'StorageElement' ]
+  _noSEGrouping = ( ",".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
   ###
   _reportCatalogSpaceName = "LFN size"
@@ -24,8 +26,8 @@ class DataStoragePlotter( BaseReporter ):
                                 reportRequest[ 'endTime' ],
                                 selectFields,
                                 reportRequest[ 'condDict' ],
-                                reportRequest[ 'groupingFields' ],
-                                { 'convertToGranularity' : 'average', 'checkNone' : True } )
+                                DataStoragePlotter._noSEGrouping,
+                                { 'convertToGranularity' : 'sum', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
     dataDict, granularity = retVal[ 'Value' ]
@@ -60,8 +62,8 @@ class DataStoragePlotter( BaseReporter ):
                                 reportRequest[ 'endTime' ],
                                 selectFields,
                                 reportRequest[ 'condDict' ],
-                                reportRequest[ 'groupingFields' ],
-                                { 'convertToGranularity' : 'average', 'checkNone' : True } )
+                                DataStoragePlotter._noSEGrouping,
+                                { 'convertToGranularity' : 'sum', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
     dataDict, granularity = retVal[ 'Value' ]
