@@ -400,8 +400,8 @@ class IBookkeepingDatabaseClient( object ):
     return self.getManager().getFilesWithGivenDataSets(simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, visible, filesize, tck)
 
   #############################################################################
-  def getFilesWithGivenDataSetsForUsers( self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag ):
-    return self.getManager().getFilesWithGivenDataSetsForUsers( simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag )
+  def getFilesWithGivenDataSetsForUsers( self, simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag, tcks ):
+    return self.getManager().getFilesWithGivenDataSetsForUsers( simdesc, datataking, procPass, ftype, evt, configName, configVersion, production, flag, startDate, endDate, nbofEvents, startRunID, endRunID, runnumbers, replicaFlag,tcks )
 
   #############################################################################
   def getDataTakingCondId( self, condition ):

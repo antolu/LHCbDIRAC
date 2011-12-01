@@ -1278,8 +1278,12 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if values.has_key( 'ReplicaFlag' ):
       replicaFlag = values['ReplicaFlag']
 
+    tck = []
+    if values.has_key('TCK'):
+      tck = values['TCK']
+
     result = {}
-    retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers( simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag )
+    retVal = dataMGMT_.getFilesWithGivenDataSetsForUsers( simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, tck )
     summary = 0
     if not retVal['OK']:
       return S_ERROR( retVal['Message'] )
