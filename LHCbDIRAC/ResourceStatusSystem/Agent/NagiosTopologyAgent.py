@@ -5,7 +5,7 @@ Script.parseCommandLine()
 
 from LHCbDIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Base.AgentModule import AgentModule
-import time, xml.dom.minidom, re, os
+import time, xml.dom.minidom, os
 
 __RCSID__ = "$Id: $"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -111,14 +111,10 @@ class NagiosTopologyAgent(AgentModule):
         xml_root.removeChild(xml_site)
 
     # produce the xml
-
-    uglyXml = xml_doc.toprettyxml(indent='  ', encoding='utf-8')
-    text_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
-    prettyXml = text_re.sub('>\g<1></', uglyXml)
-
-    fname = self.xmlPath + "lhcb_topology.xml"
-    xmlf = open(fname,'w')
-    xmlf.write(prettyXml)
-    xmlf.close()
+    xmlf = open(self.xmlPath + "lhcb_topology.xml", 'w')
+    try:
+      xmlf.write(xml_doc.toxml())
+    finally:
+      xmlf.close()
 
     return S_OK()

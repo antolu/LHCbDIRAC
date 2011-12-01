@@ -21,7 +21,6 @@ __RCSID__ = "$Id: $"
 AGENT_NAME = "ResourceStatus/CondDBAgent"
 
 impl = xml.dom.getDOMImplementation()
-xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
 
 class CondDBTest(TestBase):
   def __init__(self, am):
@@ -94,15 +93,15 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
       os.environ["USER"] = pwd.getpwuid(os.getuid())[0]
 
     env = Utils.unpack(ProductionEnvironment.getProjectEnvironment('x86_64-slc5-gcc43-opt', "LHCb"))
+    f = open("result.log", "w")
     try:
-      f = open("result.log", "w")
       ret = subprocess.call(["gaudirun.py", "options.py"], env=env,stdout=f,stderr=subprocess.STDOUT)
     finally:
       f.close()
 
     if ret == 0:
+      res = open("result.log", "r")
       try:
-        res = open("result.log", "r")
         res_string = res.read()
       finally:
         res.close()
@@ -129,7 +128,7 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
                accessMode="readonly", authentication="password")
     xmlfile = open("dblookup.xml", "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -152,7 +151,7 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
 
     xmlfile = open("authentication.xml", "w")
     try:
-      xmlfile.write(doc.toprettyxml(indent="  ", encoding="utf-8"))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -180,9 +179,7 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
 
     xmlfile = open(self.xmlPath + site + "_" + "CondDB.xml", "w")
     try:
-      uglyXml = doc.toprettyxml(indent="  ", encoding="utf-8")
-      prettyXml = xml_re.sub('>\g<1></', uglyXml)
-      xmlfile.write(prettyXml)
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 

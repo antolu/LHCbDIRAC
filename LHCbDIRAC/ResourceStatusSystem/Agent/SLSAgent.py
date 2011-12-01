@@ -15,7 +15,7 @@ from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManag
 import xml.dom, xml.sax
 import time
 import urlparse, urllib
-import sys, re, os
+import sys, os
 
 __RCSID__ = "$Id$"
 
@@ -32,10 +32,6 @@ def gen_xml_stub():
   doc.documentElement.setAttribute("xsi:schemaLocation",
                                    "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
   return doc
-
-xml_re = re.compile('>\n\s+([^<>\s].*?)\n\s+</', re.DOTALL)
-def fix_xml(xml_str):
-  return xml_re.sub('>\g<1></', xml_str)
 
 #### Helper functions to send a warning mail to a site (for space-token test)
 
@@ -147,7 +143,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
     xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -239,7 +235,7 @@ class DIRACTest(TestBase):
 
     xmlfile = open(self.xmlPath + "Framework_Gateway.xml", "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -284,7 +280,7 @@ class DIRACTest(TestBase):
 
     xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -340,7 +336,7 @@ class DIRACTest(TestBase):
 
     xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -393,7 +389,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -417,7 +413,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -440,7 +436,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
@@ -463,7 +459,7 @@ class LOGSETest(TestBase):
 
     xmlfile = open(self.xmlPath + filename, "w")
     try:
-      xmlfile.write(fix_xml(doc.toprettyxml(indent="  ", encoding="utf-8")))
+      xmlfile.write(doc.toxml())
     finally:
       xmlfile.close()
 
