@@ -1,4 +1,4 @@
-from DIRAC import gLogger, gConfig, S_OK, rootPath
+from DIRAC import gLogger, S_OK, rootPath
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
@@ -11,16 +11,18 @@ from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 from LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent          import TestBase
 
 # For caching to DB
-from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 import xml.dom, xml.sax
 import time
+from datetime import datetime
 import re, os, subprocess, pwd
 
 __RCSID__ = "$Id: $"
 AGENT_NAME = "ResourceStatus/CondDBAgent"
 
 impl = xml.dom.getDOMImplementation()
+rmClient = ResourceManagementClient()
 
 class CondDBTest(TestBase):
   def __init__(self, am):
@@ -114,6 +116,9 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     else:
       loadTime = 0
       availability = 0
+
+    # Update results to DB
+    rmClient.addOrModifySLSCondDB(site, datetime.utcnow(), availability, loadTime)
 
     # Generate XML file
     self.generate_xml(site, loadTime, availability)

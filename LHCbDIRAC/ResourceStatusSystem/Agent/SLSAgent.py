@@ -10,10 +10,11 @@ from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
 from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
 # For caching to DB
-from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 import xml.dom, xml.sax
 import time
+from datetime import datetime
 import urlparse, urllib
 import sys, os
 
@@ -22,6 +23,7 @@ __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 impl = xml.dom.getDOMImplementation()
+rmClient = ResourceManagementClient()
 
 def gen_xml_stub():
   doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
@@ -79,7 +81,6 @@ class SpaceTokenOccupancyTest(TestBase):
     super(SpaceTokenOccupancyTest, self).__init__(am)
     self.xmlPath      = rootPath + "/" + self.getAgentOption("webRoot") + self.getTestOption("dir")
     self.SEs          = CS.getSpaceTokenEndpoints()
-    self.rmDB         = ResourceManagementDB()
 
     try:
       os.makedirs(self.xmlPath)
@@ -139,7 +140,7 @@ class SpaceTokenOccupancyTest(TestBase):
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
-    self.rmDB.updateSLSStorage(site, st, availability, "PT27M", validity, total, guaranteed, free)
+    rmClient.updateSLSStorage(site, st, datetime.utcnow(), availability, "PT27M", validity, total, guaranteed, free)
 
     xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
     try:
@@ -168,7 +169,6 @@ class DIRACTest(TestBase):
     self.setup     = gConfig.getValue('DIRAC/Setup', "")
     self.setupDict = CS.getTypedDictRootedAt(root="/DIRAC/Setups", relpath=self.setup)
     self.xmlPath   = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
-    self.rmDB      = ResourceManagementDB()
 
     try:
       os.makedirs(self.xmlPath)
@@ -268,14 +268,14 @@ class DIRACTest(TestBase):
       xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
 
       # Fill database
-      self.rmDB.updateSLSServices(system, service, 100,
+      rmClient.addOrModifySLSService(system, service, datetime.utcnow(), 100,
                                   res['service uptime'], res['host uptime'], res['load'].split()[0])
       gLogger.info("%s/%s successfully pinged" % (system, service))
 
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
-      self.rmDB.updateSLSServices(system, service, 0, Utils.SQLValues.null, Utils.SQLValues.null, Utils.SQLValues.null)
+      rmClient.addOrModifySLSService(system, service, datetime.utcnow(), 0, None, None, None)
       gLogger.info("%s/%s does not respond to ping" % (system, service))
 
     xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
@@ -314,7 +314,8 @@ class DIRACTest(TestBase):
       xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
-      self.rmDB.updateSLST1Services(site, system, 100, res['service uptime'], res['host uptime'])
+      rmClient.addOrModifySLST1Service(site, system, datetime.utcnow(),
+                                       100, res['service uptime'], res['host uptime'])
 
       if system == "RequestManagement":
         for k,v in res2["Value"].items():
@@ -330,7 +331,8 @@ class DIRACTest(TestBase):
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
-      self.rmDB.updateSLST1Services(site, service, 0, Utils.SQLValues.null, Utils.SQLValues.null)
+      rmClient.addOrModifySLST1Service(site, service, datetime.utcnow(),
+                                       0, None, None)
 
       gLogger.info("%s/%s does not respond to ping" % (site, system))
 
@@ -347,7 +349,6 @@ class LOGSETest(TestBase):
 
     self.entities = self.getTestValue("entities")
     self.lemon_url = self.getTestValue("lemon_url")
-    self.rmDB      = ResourceManagementDB()
 
     try:
       os.makedirs(self.xmlPath)
@@ -383,7 +384,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
     xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
 
-    self.rmDB.updateSLSLogSE("partition", "PT12H", (100 if percent < 90 else (5 if percent < 99 else 0)),
+    rmClient.addOrModifySLSLogSE("partition", datetime.utcnow(), "PT12H", (100 if percent < 90 else (5 if percent < 99 else 0)),
                              percent, space)
     gLogger.info("LogSE partition test done")
 
@@ -406,7 +407,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    self.rmDB.updateSLSLogSE("gridftp", "PT2H", int(round(float(data['data'][0])*100)),
+    rmClient.addOrModifySLSLogSE("gridftp", datetime.utcnow(), "PT2H", int(round(float(data['data'][0])*100)),
                              Utils.SQLValues.null, Utils.SQLValues.null)
     gLogger.info("LogSE gridftp test done")
 
@@ -430,7 +431,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    self.rmDB.updateSLSLogSE("cert", "PT24H", int(round(float(data['data'][0])*100)),
+    rmClient.addOrModifySLSLogSE("cert", datetime.utcnow(), "PT24H", int(round(float(data['data'][0])*100)),
                              Utils.SQLValues.null, Utils.SQLValues.null)
     gLogger.info("LogSE cert test done")
 
@@ -453,7 +454,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    self.rmDB.updateSLSLogSE("httpd", "PT2H", int(round(float(data['data'][0])*100)),
+    rmClient.addOrModifySLSLogSE("httpd", datetime.utcnow(), "PT2H", int(round(float(data['data'][0])*100)),
                              Utils.SQLValues.null, Utils.SQLValues.null)
     gLogger.info("LogSE httpd test done")
 
@@ -639,12 +640,12 @@ class LOGSETest(TestBase):
 
 class SLSAgent(AgentModule):
   def initialize(self):
-#    self.am_setOption( 'shifterProxy', 'DataManager' )
+    self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
   def execute(self):
-#    SpaceTokenOccupancyTest(self)
+    SpaceTokenOccupancyTest(self)
     DIRACTest(self)
     LOGSETest(self)
-    #    LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
+    # LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
     return S_OK()
