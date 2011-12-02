@@ -6,8 +6,8 @@ Script.parseCommandLine()
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
-from LHCbDIRAC.ResourceStatusSystem.Utilities               import CS, Utils
-from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils         import xml_append
+from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
 # For caching to DB
 from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
@@ -64,11 +64,11 @@ class TestBase(object):
   def __init__(self, am):
     self.am = am
 
-  def getAgentOption(self, name):
-    return self.am.am_getOption(name)
+  def getAgentOption(self, name, defaultValue = None):
+    return self.am.am_getOption(name, defaultValue)
 
-  def getTestOption(self, name):
-    return self.am.am_getOption(self.__class__.__name__ + "/" + name)
+  def getTestOption(self, name, defaultValue = None):
+    return self.am.am_getOption(self.__class__.__name__ + "/" + name, defaultValue)
 
   getAgentValue = getAgentOption
   getTestValue = getTestOption
@@ -92,7 +92,7 @@ class SpaceTokenOccupancyTest(TestBase):
 
   def generate_xml_and_dashboard(self, site, st):
     url          = self.SEs[site]['Endpoint']
-    fake         = Utils.typedobj_of_string(self.getTestOption("fake"))
+    fake         = self.getTestOption("fake", False)
     total        = 0
     guaranteed   = 0
     free         = 0
@@ -165,7 +165,7 @@ class SpaceTokenOccupancyTest(TestBase):
 class DIRACTest(TestBase):
   def __init__(self, am):
     super(DIRACTest, self).__init__(am)
-    self.setup     = CS.getValue('DIRAC/Setup')
+    self.setup     = gConfig.getValue('DIRAC/Setup', "")
     self.setupDict = CS.getTypedDictRootedAt(root="/DIRAC/Setups", relpath=self.setup)
     self.xmlPath   = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
     self.rmDB      = ResourceManagementDB()
@@ -201,7 +201,7 @@ class DIRACTest(TestBase):
 
   def run_t1_xml_sensors(self):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
-    request_management_urls = Utils.list_(CS.getValue("/Systems/RequestManagement/Development/URLs/allURLS"))
+    request_management_urls = gConfig.getValue("/Systems/RequestManagement/Development/URLs/allURLS", [])
     configuration_urls      = gConfig.getServersList()
     gLogger.info("DIRACTest: discovered %d request management url(s) and %d configuration url(s)"
                  % (len(request_management_urls),len(configuration_urls)))

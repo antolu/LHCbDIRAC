@@ -5,9 +5,9 @@ Script.parseCommandLine()
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 
-from LHCbDIRAC.Core.Utilities import ProductionEnvironment
-from LHCbDIRAC.ResourceStatusSystem.Utilities               import CS, Utils
-from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils         import xml_append
+from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
+from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 from LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent          import TestBase
 
 # For caching to DB

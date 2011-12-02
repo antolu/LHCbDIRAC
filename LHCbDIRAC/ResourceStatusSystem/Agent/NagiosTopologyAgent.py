@@ -3,7 +3,7 @@ from DIRAC import gLogger, gConfig, S_OK, rootPath
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-from LHCbDIRAC.ResourceStatusSystem.Utilities import Utils
+from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Base.AgentModule import AgentModule
 import time, xml.dom.minidom, os
 
