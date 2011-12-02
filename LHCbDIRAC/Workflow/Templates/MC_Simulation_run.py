@@ -750,7 +750,10 @@ else:
 
   MCProd.setProdGroup( '{{pDsc}}' )
   MCProd.setProdPriority( priority )
-  MCProd.setOutputMode( 'Any' )
+  if outputsCERN:
+    MCProd.setOutputMode( 'Any' )
+  else:
+    MCProd.setOutputMode( 'Local' )
   MCProd.setFileMask( outputFileMask )
 
   if banTier1s:
