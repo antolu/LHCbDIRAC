@@ -7,16 +7,16 @@ __RCSID__ = "$Id$"
 """ Queries BDII to pick out information about RANK.
 """
 
-from DIRAC import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                       import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.Utilities.Grid import ldapCEState
-from DIRAC  import gMonitor
+from DIRAC.Core.Utilities.Grid   import ldapCEState
+from DIRAC                       import gMonitor
 
 import sys, os
 
 AGENT_NAME = "ResourceStatusSystem/RankMonitorAgent"
 
-class RankMonitorAgent(AgentModule):
+class RankMonitorAgent( AgentModule ):
 
   def initialize( self ):
 
@@ -126,3 +126,6 @@ class RankMonitorAgent(AgentModule):
           cesqueues[ce] = queues['Value']
 
     return S_OK(cesqueues)
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
