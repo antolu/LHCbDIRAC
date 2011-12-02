@@ -8,11 +8,11 @@ __RCSID__ = "$Id$"
     and publishes it to the web
 """
 
-from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.AgentModule                              import AgentModule
+from DIRAC                                            import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC.Core.Base.AgentModule                      import AgentModule
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.WorkloadManagementSystem.DB.JobDB       import JobDB
-from DIRAC.Core.Utilities import Time
+from DIRAC.WorkloadManagementSystem.DB.JobDB          import JobDB
+from DIRAC.Core.Utilities                             import Time
 
 import sys, os, re
 import tempfile
@@ -20,14 +20,14 @@ import time
 import datetime
 import types
 
-MC_JOB_TYPES = ['normal','^MC']
+MC_JOB_TYPES   = ['normal','^MC']
 DATA_JOB_TYPES = ['^Data']
 USER_JOB_TYPES = ['user']
-SAM_JOB_TYPES = ['sam']
+SAM_JOB_TYPES  = ['sam']
 
 AGENT_NAME = "ResourceStatusSystem/GridSiteWMSMonitoringAgent"
 
-class GridSiteWMSMonitoringAgent(AgentModule):
+class GridSiteWMSMonitoringAgent( AgentModule ):
 
   def initialize( self ):
     self._lastUpdateTime = 0
@@ -354,3 +354,6 @@ class GridSiteWMSMonitoringAgent(AgentModule):
         monDict[site][jobType]['FinishedSuccessful'+interval] += count
 
     return monDict
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
