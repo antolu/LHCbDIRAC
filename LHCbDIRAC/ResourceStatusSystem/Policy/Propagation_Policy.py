@@ -28,7 +28,7 @@ class Propagation_Policy(PolicyBase):
     stats = super(Propagation_Policy, self).evaluate()
 
     if stats is None:
-      return {'Status':'Error'}
+      return { 'Status':'Error' }
 
     if stats == 'Unknown':
       return {'Status':'Unknown', 'Reason':'No info available from service'}
