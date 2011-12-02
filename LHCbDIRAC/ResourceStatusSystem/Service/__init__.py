@@ -1,3 +1,0 @@
-"""
-   LHCbDIRAC.ResourceStatusSystem.Service package
-"""
