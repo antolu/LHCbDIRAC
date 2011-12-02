@@ -22,7 +22,7 @@ CREATE TABLE MonitoringTests (
 ) ENGINE=MyISAM;
 
 DROP TABLE IF EXISTS HammerCloudTests;
-CREATE TABLE HammerCloudTests(
+CREATE TABLE HammerCloudTests (
   TestID INT UNSIGNED,
   SiteName VARCHAR(64) NOT NULL,
   ResourceName VARCHAR(64) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE HammerCloudTests(
 ) Engine=InnoDB;
 
 DROP TABLE IF EXISTS SLSService;
-CREATE TABLE SLSServices (
+CREATE TABLE SLSService (
   System varchar(64) NOT NULL,
   Service varchar(32) NOT NULL,
   TimeStamp DATETIME NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE SLSServices (
 ) Engine=InnoDB;
 
 DROP TABLE IF EXISTS SLST1Service;
-CREATE TABLE SLST1Services (
+CREATE TABLE SLST1Service (
   Site VARCHAR(64) NOT NULL,
   Service VARCHAR(32) NOT NULL,
   TimeStamp DATETIME NOT NULL,
