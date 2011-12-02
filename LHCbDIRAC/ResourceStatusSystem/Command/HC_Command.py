@@ -2,7 +2,7 @@ from DIRAC.ConfigurationSystem.Client.Config import gConfig
 from DIRAC.ResourceStatusSystem.Command.Command import *
 
 from LHCbDIRAC.ResourceStatusSystem.Client.HCClient import HCClient
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceStatusAgentClient import ResourceStatusAgentClient
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 from DIRAC import gLogger
 
@@ -34,8 +34,8 @@ class HC_Command(Command):
 #      gLogger.error( 'HC_command error getting testDurationMin ' )
 #      return None
 
-    rsa = ResourceStatusAgentClient()       
-    res = rsa.getLastTest( self.args[1], 'HClastfinished' )
+    rm  = ResourceManagementClient()       
+    res = rm.getLastHCTest( self.args[1], 'HClastfinished' )
     
     if res:
       
@@ -64,7 +64,7 @@ class HC_Command(Command):
         
  #     return {'Result':result}
       
- #   res = rsa.getTestListBySite( self.args[1], True )
+ #   res = rm.getTestListBySite( self.args[1], True )
     
  #   if res:
  #     res = res[-1]
