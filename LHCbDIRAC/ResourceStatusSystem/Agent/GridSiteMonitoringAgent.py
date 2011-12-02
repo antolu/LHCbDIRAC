@@ -8,10 +8,10 @@ __version__ = 0.1
 Queries BDII to pick out information about SRM2.2 space token descriptions.
 '''
 
-from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.AccountingSystem.Client.ReportsClient import ReportsClient
-from DIRAC.Core.Utilities import Time, List, DEncode
+from DIRAC                                            import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC.Core.Base.AgentModule                      import AgentModule
+from DIRAC.AccountingSystem.Client.ReportsClient      import ReportsClient
+from DIRAC.Core.Utilities                             import Time, List, DEncode
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 import sys, os
@@ -20,10 +20,10 @@ import time
 import datetime
 import types
 
-class GridSiteMonitoringAgent(AgentModule):
+class GridSiteMonitoringAgent( AgentModule ):
 
-  __sitesT1 = [ 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
-  __sitesAll = [ 'CERN', 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL']
+  __sitesT1  = [ 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL' ]
+  __sitesAll = [ 'CERN', 'PIC', 'GRIDKA', 'CNAF', 'IN2P3', 'NIKHEF', 'RAL' ]
 
   def initialize( self ):
     self.am_setOption( "PollingTime", 900 )
@@ -291,3 +291,6 @@ class GridSiteMonitoringAgent(AgentModule):
                                                                                 startEpoch, endEpoch, 
                                                                                 url ) )
     return S_OK( cvsLines ) 
+  
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
