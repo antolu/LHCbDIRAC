@@ -1,3 +1,5 @@
 """
-   LHCbDIRAC.ResourceStatusSystem.Client package
+LHCbDIRAC/ResourceStatusSystem/Client/__init__.py
 """
+
+__RCSID__ = "$Id$"
