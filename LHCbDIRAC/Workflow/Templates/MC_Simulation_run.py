@@ -915,12 +915,14 @@ else:
   mergingProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
   if mergingApp == 'LHCb':
-    mergingProd.addMergeStep( mergingVersion, mergingOptions, eventType = '{{eventType}}', inputDataType = mergingInputType,
-                              inputData = mergingType, condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
+    mergingProd.addMergeStep( mergingVersion, mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
+                              inputDataType = mergingInputType,
+                              condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   elif mergingApp == 'DaVinci':
     mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
-                                inputDataType = mergingInputType, inputProduction = prodID, outputSE = mergedDataSE,
+                                inputDataType = mergingInputType,
+                                condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                                 stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   else:
     gLogger.error( "No LHCb nor DaVinci in MC Merging...?" )
