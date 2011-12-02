@@ -18,7 +18,7 @@ class Synchronizer(BaseSync.Synchronizer):
     """
 
     # services in the DB now
-    VOBOXesInCS = set(Utils.unpack(CS.getT1s()))
+    VOBOXesInCS = set(CS.getT1s())
     VOBOXesInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
           serviceType = "VO-BOX", meta = { 'columns' : "SiteName" } ))))
 
@@ -28,7 +28,7 @@ class Synchronizer(BaseSync.Synchronizer):
       Utils.protect2(self.rsClient.addOrModifyService, service, 'VO-BOX', site )
 
   def _syncCondDBs(self):
-    CondDBinCS = set(Utils.unpack(CS.getCondDBs()))
+    CondDBinCS = set(CS.getCondDBs())
     CondDBinDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
             serviceType = "CondDB", meta = { 'columns' : "SiteName" } ))))
 
