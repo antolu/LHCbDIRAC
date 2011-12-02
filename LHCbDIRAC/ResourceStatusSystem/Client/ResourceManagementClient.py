@@ -1,22 +1,14 @@
-"""
-LHCbDIRAC/ResourceStatusSystem/Client/ResourceManagementClient.py
-"""
-
+################################################################################
+# $HeadURL $
+################################################################################
 __RCSID__ = "$Id$"
 
-# First pythonic stuff
-# ...
-
-# Second, DIRAC stuff
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
      ResourceManagementClient as DIRACResourceManagementClient
 
 from DIRAC.ResourceStatusSystem.Utilities.Decorators import ClientFastDec
 
 from datetime import datetime
-
-# Third, LHCbDIRAC stuff
-# ...
 
 class ResourceManagementClient( DIRACResourceManagementClient ):
   '''
@@ -55,12 +47,38 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   def deleteMonitoringTest( self, metricName = None, serviceURI = None, siteName = None, 
                             serviceFlavour = None, metricStatus = None, summaryData = None, 
                             timestamp = None, lastCheckTime = None, meta = {} ):
-    return locals()
-  
+    return locals() 
   def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName, 
                                  serviceFlavour, metricStatus, summaryData, 
                                  timestamp, lastCheckTime ):  
     return self.__addOrModifyElement( 'MonitoringTest', locals() )
+
+  @ClientFastDec  
+  def insertHammerCloudTest( self, testID, siteName, resourceName, testStatus, 
+                             submissionTime, startTime, endTime, counterTime, 
+                             agentStatus, formerAgentStatus, counter, meta = {} ):
+    return locals()
+  @ClientFastDec  
+  def updateHammerCloudTest( self, testID, siteName, resourceName, testStatus, 
+                             submissionTime, startTime, endTime, counterTime, 
+                             agentStatus, formerAgentStatus, counter, meta = {} ):
+    return locals()  
+  @ClientFastDec  
+  def getHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
+                          testStatus = None, submissionTime = None, startTime = None, 
+                          endTime = None, counterTime = None, agentStatus = None, 
+                          formerAgentStatus = None, counter = None, meta = {} ):
+    return locals()
+  @ClientFastDec  
+  def deleteHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
+                             testStatus = None, submissionTime = None, startTime = None, 
+                             endTime = None, counterTime = None, agentStatus = None, 
+                             formerAgentStatus = None, counter = None, meta = {} ):
+    return locals()
+  def addOrModifyHammerCloudTest( self, testID, siteName, resourceName, testStatus, 
+                                  submissionTime, startTime, endTime, counterTime, 
+                                  agentStatus, formerAgentStatus, counter ):  
+    return self.__addOrModifyElement( 'HammerCloudTest', locals() )  
   
   def __addOrModifyElement( self, element, kwargs ):
        
@@ -83,45 +101,4 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       return self._insertElement( element, **kwargs )
 
 ################################################################################
-## HammerCloudTest functions
-################################################################################
-#
-#  def getHCTestList( self ):
-#    '''
-#    Returns a list with the HammerCloud tests on the DB, if any.  
-#    '''
-#
-#    return self.rsM.getHCTestList()
-#
-################################################################################
-#
-#  def getHCTest( self, testID ):
-#    '''
-#    Returns the details of a specific HammerCloud test.
-#    
-#    :params:
-#      :attr: `testID` : integer - (optional) assigned (by HC) test ID    
-#    '''
-#
-#    return self.rsM.getHCTest( testID )    
-#
-################################################################################
-#      
-#  def getHCTestListBySite( self, siteName, last ):
-#    '''
-#    Returns the details of the tests on a specific site if any. If last
-#    parameter is used, only the last entry of the selection will be returned.
-#    
-#    :params:
-#      :attr:`siteName`: string - site where the test is submitted
-#      
-#      :attr: `last` : bool - return last entry
-#    '''
-#        
-#    return self.rsM.getHCTestListBySite( siteName, last )
-#
-################################################################################
-## END HammerCloudTest functions
-################################################################################
-
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF    
