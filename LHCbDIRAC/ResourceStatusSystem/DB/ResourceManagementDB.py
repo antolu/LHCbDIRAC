@@ -10,8 +10,7 @@ from datetime import datetime
 # Second, DIRAC stuff
 from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB as DIRACResourceManagementDB
 from DIRAC.ResourceStatusSystem.Utilities.Exceptions    import RSSException
-from LHCbDIRAC.ResourceStatusSystem.Utilities.Utils     import where
-from LHCbDIRAC.ResourceStatusSystem.Utilities           import Utils
+from DIRAC.ResourceStatusSystem.Utilities.Utils     import where
 
 # Third, LHCbDIRAC stuff
 # ...
@@ -336,60 +335,3 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
 ################################################################################
 # END MonitoringTest functions
 ################################################################################
-
-  def _doUpdate(self, req):
-    res = self.db._update(req)
-    if not res['OK']:
-      print "Unable to execute request " + req
-      raise RSSException, where(self, self.updateSLSServices) + res['Message']
-    return res['Value']
-
-
-  def updateSLSServices(self, system, service, avail, service_uptime, host_uptime, load):
-
-    req = Utils.sql_insert_update("SLSServices", ["System", "Service"], System=system, Service=service,
-                                  Availability=avail, TStamp=Utils.SQLParam("NOW()"),
-                                  ServiceUptime=service_uptime,
-                                  HostUptime=host_uptime,
-                                  InstantLoad=load)
-
-    return self._doUpdate(req)
-
-  def updateSLST1Services(self, site, service, avail, service_uptime, host_uptime):
-
-    req = Utils.sql_insert_update("SLST1Services", ["Site", "Service"], Site=site, Service=service,
-                                  Availability=avail, TStamp=Utils.SQLParam("NOW()"),
-                                  ServiceUptime=service_uptime,
-                                  HostUptime=host_uptime)
-
-    return self._doUpdate(req)
-
-
-  def updateSLSLogSE(self, id_, validity, avail, used, total):
-    req = Utils.sql_insert_update("SLSLogSE", ["ID"], ID=id_, TStamp=Utils.SQLValues.now,
-                                  ValidityDuration=validity, Availability=avail,
-                                  DataPartitionUsed=used, DataPartitionTotal=total)
-
-    return self._doUpdate(req)
-
-
-  def updateSLSStorage(self, site, sp_tok, avail, refresh, validity, total, guaranteed, free):
-    req = Utils.sql_insert_update("SLSStorage", ["Site","Token"], Site=site, Token=sp_tok,
-                                  Availability=avail, RefreshPeriod=refresh,
-                                  TStamp=Utils.SQLValues.now, ValidityDuration=validity,
-                                  TotalSpace=total, GuaranteedSpace=guaranteed, FreeSpace=free)
-
-    return self._doUpdate(req)
-
-  def getSLSServices(self, url=""):
-    req = "SELECT Url, Item, TStamp, Availability, ServiceUptime, HostUptime FROM SLSServices"
-    if url != "":
-      req += " WHERE Url = '%s'" % url
-
-    resQuery = self.db._query(req)
-    if not resQuery['OK']:
-      raise RSSManagementDBException, where(self, self.updateSLSServices) + resQuery['Message']
-    if not resQuery['Value']:
-      return []
-
-    return resQuery['Value'][0]
