@@ -9,6 +9,8 @@ __RCSID__ = "$Id$"
 import stomp
 import Queue
 
+from datetime import datetime
+
 # Second, DIRAC stuff
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                import AgentModule
@@ -113,7 +115,7 @@ class NagiosConsumerAgent( AgentModule ):
 
     try:
 
-      self.rmCl      = ResourceManagementClient()
+      self.rmClient      = ResourceManagementClient()
 
       # Get stomp parameters from CS
       self.sHOST = self.am_getOption( 'STOMP/HOST', self.__STOMP__[ 'HOST' ] )
@@ -176,12 +178,15 @@ class NagiosConsumerAgent( AgentModule ):
 
       # Let's try without threads, and see the polling time.
       for _m in xrange(msgs):
-        msg = msgQueue.get()[1]
+        
+        _head,msg = msgQueue.get()              
 
         params = self.__checkParams( msg )
 
         if params:
-          self.rmCl.addOrUpdateMonitoringTest( *params )
+          res = self.rmClient.addOrModifyMonitoringTest( **params )
+          if not res[ 'OK' ]:
+            gLogger.error( 'Error adding %s' % str( params ) )  
 
       return S_OK()
 
@@ -230,10 +235,10 @@ class NagiosConsumerAgent( AgentModule ):
     '''
 
     # Parameters we want to extract from the message
-    __PARAMS__ = [ 'siteName', 'timestamp', 'metricName', 'result',
-                   'serviceURI', 'hostName', 'summaryData', 'serviceFlavour']
+    __PARAMS__ = [ 'siteName', 'timestamp', 'metricName', 'metricStatus',
+                   'serviceURI', 'summaryData', 'serviceFlavour']
 
-    params = {}
+    params = { 'lastCheckTime' : None }
 
     for param in __PARAMS__:
       if not msg.has_key( param ):
@@ -242,6 +247,9 @@ class NagiosConsumerAgent( AgentModule ):
         params = {}
         break
       else:
+        if param == 'timestamp':
+          timeFormat = '%Y-%m-%dT%H:%M:%SZ'
+          msg[ param ] = datetime.strptime( msg[param], timeFormat )
         params[ param ] = msg[ param ]
 
     return params
