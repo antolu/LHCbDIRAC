@@ -7,9 +7,9 @@ SOURCE DIRAC/ResourceStatusSystem/DB/ResourceManagementDB.sql
 -- -------------------------------------------------------------------------------
 DROP TABLE IF EXISTS MonitoringTest;
 CREATE TABLE MonitoringTest (
-  MetricName VARCHAR(512) NOT NULL,
+  MetricName VARCHAR(128) NOT NULL,
   INDEX (MetricName),
-  ServiceURI VARCHAR(256) NOT NULL,
+  ServiceURI VARCHAR(128) NOT NULL,
   INDEX (ServiceURI),
   SiteName VARCHAR(64) NOT NULL,
   INDEX (SiteName),
