@@ -5,8 +5,8 @@
 SOURCE DIRAC/ResourceStatusSystem/DB/ResourceManagementDB.sql
 
 -- -------------------------------------------------------------------------------
-DROP TABLE IF EXISTS MonitoringTests;
-CREATE TABLE MonitoringTests (
+DROP TABLE IF EXISTS MonitoringTest;
+CREATE TABLE MonitoringTest (
   MetricName VARCHAR(512) NOT NULL,
   INDEX (MetricName),
   ServiceURI VARCHAR(256) NOT NULL,
@@ -15,14 +15,14 @@ CREATE TABLE MonitoringTests (
   INDEX (SiteName),
   ServiceFlavour VARCHAR(64) NOT NULL,
   MetricStatus VARCHAR(512) NOT NULL,
-  SummaryData VARCHAR(64) NOT NULL,
+  SummaryData BLOB NOT NULL,
   Timestamp DATETIME NOT NULL,
-  LastUpdate DATETIME NOT NULL,
+  LastCheckTime DATETIME NOT NULL,
   PRIMARY KEY  (`MetricName`,`ServiceURI`)
-) ENGINE=MyISAM;
+) ENGINE=InnoDB;
 
-DROP TABLE IF EXISTS HammerCloudTests;
-CREATE TABLE HammerCloudTests (
+DROP TABLE IF EXISTS HammerCloudTest;
+CREATE TABLE HammerCloudTest(
   TestID INT UNSIGNED,
   SiteName VARCHAR(64) NOT NULL,
   ResourceName VARCHAR(64) NOT NULL,
