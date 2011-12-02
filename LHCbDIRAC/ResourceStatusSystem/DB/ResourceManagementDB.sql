@@ -37,49 +37,57 @@ CREATE TABLE HammerCloudTests(
   PRIMARY KEY(SubmissionTime)
 ) Engine=InnoDB;
 
-drop table if exists SLSServices;
-create table SLSServices (
-       System varchar(64) not null,
-       Service varchar(32) not null,
-       TStamp DATETIME not null,
-       Availability DECIMAL(3) unsigned not null,
-       ServiceUptime INT unsigned,
-       HostUptime INT unsigned,
-       InstantLoad DECIMAL(10,5) unsigned,
-       primary key (System,Service)
+DROP TABLE IF EXISTS SLSServices;
+CREATE TABLE SLSServices (
+  System varchar(64) NOT NULL,
+  Service varchar(32) NOT NULL,
+  TStamp DATETIME NOT NULL,
+  Availability DECIMAL(3) UNSIGNED NOT NULL,
+  ServiceUptime INT unsigned,
+  HostUptime INT unsigned,
+  InstantLoad DECIMAL(10,5) unsigned,
+  PRIMARY KEY (System,Service)
 ) Engine=InnoDB;
 
-drop table if exists SLST1Services;
-create table SLST1Services (
-       Site varchar(64) not null,
-       Service varchar(32) not null,
-       TStamp DATETIME not null,
-       Availability DECIMAL(3) unsigned not null,
-       ServiceUptime INT unsigned,
-       HostUptime INT unsigned,
-       primary key (Site,Service)
+DROP TABLE IF EXISTS SLST1Services;
+CREATE TABLE SLST1Services (
+  Site VARCHAR(64) NOT NULL,
+  Service VARCHAR(32) NOT NULL,
+  TStamp DATETIME NOT NULL,
+  Availability DECIMAL(3) UNSIGNED NOT NULL,
+  ServiceUptime INT UNSIGNED,
+  HostUptime INT UNSIGNED,
+  PRIMARY KEY (Site,Service)
 ) Engine=InnoDB;
 
-drop table if exists SLSLogSE;
-create table SLSLogSE (
-       ID varchar(32) primary key,
-       TStamp         DATETIME not null,
-       ValidityDuration VARCHAR(32) not null,
-       Availability DECIMAL(3) UNSIGNED not null,
-       DataPartitionUsed DECIMAL(3) UNSIGNED,
-       DataPartitionTotal INT UNSIGNED
+DROP TABLE IF EXISTS SLSLogSE;
+CREATE TABLE SLSLogSE (
+  ID VARCHAR(32) PRIMARY KEY,
+  TStamp DATETIME NOT NULL,
+  ValidityDuration VARCHAR(32) NOT NULL,
+  Availability DECIMAL(3) UNSIGNED NOT NULL,
+  DataPartitionUsed DECIMAL(3) UNSIGNED,
+  DataPartitionTotal INT UNSIGNED
 ) Engine=InnoDB;
 
-drop table if exists SLSStorage;
-create table SLSStorage (
-       Site varchar(64) not null,
-       Token varchar(32) not null,
-       TStamp DATETIME not null,
-       Availability DECIMAL(3) UNSIGNED,
-       RefreshPeriod varchar(32) not null,
-       ValidityDuration varchar(32) not null,
-       TotalSpace int unsigned,
-       GuaranteedSpace int unsigned,
-       FreeSpace int unsigned,
-       primary key (Site, Token)
+DROP TABLE IF EXISTS SLSStorage;
+CREATE TABLE SLSStorage (
+  Site VARCHAR(64) NOT NULL,
+  Token VARCHAR(32) NOT NULL,
+  TStamp DATETIME NOT NULL,
+  Availability DECIMAL(3) UNSIGNED,
+  RefreshPeriod VARCHAR(32) NOT NULL,
+  ValidityDuration VARCHAR(32) NOT NULL,
+  TotalSpace INT UNSIGNED,
+  GuaranteedSpace INT UNSIGNED,
+  FreeSpace INT UNSIGNED,
+  PRIMARY KEY (Site, Token)
+) Engine=InnoDB;
+
+DROP TABLE IF EXISTS SLSCondDB;
+CREATE TABLE SLSCondDB (
+  Site VARCHAR(64) PRIMARY KEY,
+  TStamp DATETIME NOT NULL,
+  Availability DECIMAL(3) UNSIGNED,
+  AccessTime INT UNSIGNED
 ) Engine=InnoDB;
