@@ -55,20 +55,19 @@ swimm_priority = '{{priority#PROD-swimming-Moore: priority#5}}'
 swimmCPU = '{{swimmMaxCPUTime#PROD-swimming-Moore: Max CPU time in secs#1000000}}'
 swimmPlugin = '{{swimmPluginType#PROD-swimming-Moore: plugin name#LHCbStandard}}'
 swimmFilesPerJob = '{{swimmFilesPerJob#PROD-swimming-Moore: Group size or number of files per job#1}}'
-swimmTransFlag = '{{swimmTransformation#PROD-swimming-Moore: distribute output data True/False (False if merging)#False}}'
 unmergedStreamSE = '{{swimmStreamSE#PROD-swimming-Moore: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd = '{{swimmAncestorProd#PROD-swimming-Moore: ancestor production if any#0}}'
 swimmIDPolicy = '{{swimmIDPolicy#PROD-swimming-Moore: policy for input data access (download or protocol)#download}}'
 
 #swimming (DaVinci) params
-swimm_DV_priority = '{{priority#PROD-swimming-DaVinci: priority#5}}'
-swimmCPU_DV = '{{swimmMaxCPUTime#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
-swimmPlugin_DV = '{{swimmPluginType#PROD-swimming-DaVinci: plugin name#LHCbStandard}}'
-swimmFilesPerJob_DV = '{{swimmFilesPerJob#PROD-swimming-DaVinci: Group size or number of files per job#1}}'
-swimmTransFlag_DV = '{{swimmTransformation#PROD-swimming-DaVinci: distribute output data True/False (False if merging)#False}}'
-unmergedStreamSE_DV = '{{swimmStreamSE#PROD-swimming-DaVinci: output data SE (un-merged streams)#Tier1-DST}}'
-swimmAncestorProd_DV = '{{swimmAncestorProd#PROD-swimming-DaVinci: ancestor production if any#0}}'
-swimmIDPolicy_DV = '{{swimmIDPolicy#PROD-swimming-DaVinci: policy for input data access (download or protocol)#download}}'
+swimm_DV_priority = '{{priority-DV#PROD-swimming-DaVinci: priority#5}}'
+swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
+swimmPlugin_DV = '{{swimmPluginType-DV#PROD-swimming-DaVinci: plugin name#LHCbStandard}}'
+swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size or number of files per job#1}}'
+unmergedStreamSE_DV = '{{swimmStreamSE-DV#PROD-swimming-DaVinci: output data SE (un-merged streams)#Tier1-DST}}'
+swimmAncestorProd_DV = '{{swimmAncestor-DVProd#PROD-swimming-DaVinci: ancestor production if any#0}}'
+swimmIDPolicy_DV = '{{swimmIDPolicy-DV#PROD-swimming-DaVinci: policy for input data access (download or protocol)#download}}'
+swimmEO_DV = '{{swimmEO-DV#PROD-swimming-DaVinci: extra options#Swimming().OutputFile =from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
 
 
 #merging params
@@ -103,7 +102,6 @@ certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
 useOracle = eval( useOracle )
-swimmTransFlag = eval( swimmTransFlag )
 
 swimmEnabled = False
 mergingEnabled = False
@@ -237,10 +235,10 @@ recoInputDataList = []
 swimmInputDataList = []
 
 if not publishFlag:
-  swimmTestData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00010752/0000/00010752_00000509_1.charmcompleteevent.dst'
+  swimmTestData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00012586/0000/00012586_00000706_1.charmcompleteevent.dst'
   swimmInputDataList.append( swimmTestData )
   swimmIDPolicy = 'protocol'
-  evtsPerJob = '2000'
+  evtsPerJob = '50'
   BKscriptFlag = True
 else:
   BKscriptFlag = False
@@ -253,7 +251,7 @@ if testFlag:
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
   processingPass = 'Real Data/Reco12/Stripping17'
-  swimmFileType = 'CHARM.DST'
+  swimmFileType = 'CHARMCOMPLETEEVENT.DST'
   eventType = '90000000'
 else:
   outBkConfigName = bkConfigName
@@ -393,12 +391,12 @@ if swimmEnabled:
   try:
     production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                              inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                             dataType = 'Data', outputSE = unmergedStreamSE,
+                             dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
                              stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
   except:
     production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                              inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                             outputSE = unmergedStreamSE,
+                             outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
                              stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
 
 
@@ -433,7 +431,7 @@ if swimmEnabled:
                              bkScript = BKscriptFlag,
                              requestID = currentReqID,
                              reqUsed = 1,
-                             transformation = swimmTransFlag
+                             transformation = False
                              )
   if not result['OK']:
     gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
