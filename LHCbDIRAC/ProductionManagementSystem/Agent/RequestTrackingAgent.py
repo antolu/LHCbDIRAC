@@ -37,6 +37,8 @@ def bkInputNumberOfEvents(r,setup):
       v['SimulationConditions'] = str(r['SimCondition'])
     if str(r['inProductionID']) != '0':
       v['ProductionID'] = [int(x) for x in str(r['inProductionID']).split(',')]
+    if 'inTCKs' in r and str(r['inTCKs']) != '':
+      v['TCK'] = [str(x) for x in str(r['inTCKs']).split(',')]
   except Exception,e:
     return S_ERROR("Can not parse the request: %s" % str(e))
   RPC = RPCClient('Bookkeeping/NewBookkeepingManager',setup=setup)
