@@ -222,6 +222,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     kwargs[ 'meta' ] = { 'onlyUniqueKeys' : True }
     sqlQuery = self._getElement( element, **kwargs )
 
+    if "Value" not in sqlQuery.keys():
+      print (element, kwargs)
+
     if sqlQuery[ 'Value' ]:
       if kwargs.has_key( 'lastCheckTime' ):
         kwargs[ 'lastCheckTime' ] = datetime.utcnow().replace( microsecond = 0 )

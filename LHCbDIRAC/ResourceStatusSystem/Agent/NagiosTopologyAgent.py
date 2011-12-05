@@ -1,14 +1,11 @@
-from DIRAC import gLogger, gConfig, S_OK, rootPath
+__RCSID__ = "$Id: $"
+AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
-from DIRAC.Core.Base import Script
-Script.parseCommandLine()
+from DIRAC import gLogger, gConfig, S_OK, rootPath
 
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Base.AgentModule import AgentModule
 import time, xml.dom.minidom, os
-
-__RCSID__ = "$Id: $"
-AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 #
 # This agent loops over the Dirac CS and extracts the necessary

@@ -1,7 +1,10 @@
+__RCSID__ = "$Id: $"
+AGENT_NAME = "ResourceStatus/CondDBAgent"
+
 from DIRAC import gLogger, S_OK, rootPath
 
-from DIRAC.Core.Base import Script
-Script.parseCommandLine()
+# from DIRAC.Core.Base import Script
+# Script.parseCommandLine()
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 
@@ -17,9 +20,6 @@ import xml.dom, xml.sax
 import time
 from datetime import datetime
 import re, os, subprocess, pwd
-
-__RCSID__ = "$Id: $"
-AGENT_NAME = "ResourceStatus/CondDBAgent"
 
 impl = xml.dom.getDOMImplementation()
 rmClient = ResourceManagementClient()

@@ -1,12 +1,12 @@
+__RCSID__ = "$Id$"
+AGENT_NAME = 'ResourceStatus/SLSAgent'
+
 from DIRAC import gLogger, gConfig, S_OK, rootPath
-
-from DIRAC.Core.Base import Script
-Script.parseCommandLine()
-
+from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
-from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities                   import CS
 from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
 # For caching to DB
@@ -18,12 +18,9 @@ from datetime import datetime
 import urlparse, urllib
 import sys, os
 
-__RCSID__ = "$Id$"
-
-AGENT_NAME = 'ResourceStatus/SLSAgent'
-
 impl = xml.dom.getDOMImplementation()
 rmClient = ResourceManagementClient()
+dirac = Dirac() # For DIRAC ping
 
 def gen_xml_stub():
   doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
@@ -87,37 +84,35 @@ class SpaceTokenOccupancyTest(TestBase):
     except OSError:
       pass # The dir exist already, or cannot be created: do nothing
 
-    for site in self.SEs:
-      for st in CS.getSpaceTokens():
-        self.generate_xml_and_dashboard(site, st)
+    try:
+      import lcg_util
+      for site in self.SEs:
+        for st in CS.getSpaceTokens():
+          self.generate_xml_and_dashboard(site, st)
+    except ImportError:
+      gLogger.warn("SpaceTokenOccupancyTest cannot import lcg_util, aborting.")
 
   def generate_xml_and_dashboard(self, site, st):
     url          = self.SEs[site]['Endpoint']
-    fake         = self.getTestOption("fake", False)
     total        = 0
     guaranteed   = 0
     free         = 0
     validity     = 'PT0M'
     availability = 0
 
-    if fake == False:
-      import lcg_util
-      answer = lcg_util.lcg_stmd(st, url, True, 0)
+    answer = lcg_util.lcg_stmd(st, url, True, 0)
 
-      if answer[0] == 0:
-        output       = answer[1][0]
-        total        = float(output['totalsize']) / 1e12 # Bytes to Terabytes
-        guaranteed   = float(output['guaranteedsize']) / 1e12
-        free         = float(output['unusedsize']) / 1e12
-        availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
-        validity     = self.getTestOption("validity")
-      else:
-        gLogger.info("StorageSpace: problew with lcg_util:\
- lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
-        gLogger.info(str(answer))
-
+    if answer[0] == 0:
+      output       = answer[1][0]
+      total        = float(output['totalsize']) / 1e12 # Bytes to Terabytes
+      guaranteed   = float(output['guaranteedsize']) / 1e12
+      free         = float(output['unusedsize']) / 1e12
+      availability = 100 if free > 4 else (free*100/total if total != 0 else 0)
+      validity     = self.getTestOption("validity")
     else:
-      gLogger.warn("SpaceTokenOccupancyTest runs in fake mode, values are not real ones.")
+      gLogger.info("StorageSpace: problew with lcg_util:\
+ lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
+      gLogger.info(str(answer))
 
     doc = gen_xml_stub()
     xml_append(doc, "id", site + "_" + st)
@@ -140,7 +135,8 @@ class SpaceTokenOccupancyTest(TestBase):
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
-    rmClient.updateSLSStorage(site, st, datetime.utcnow(), availability, "PT27M", validity, total, guaranteed, free)
+    rmClient.updateSLSStorage(site, st, datetime.utcnow(), availability,
+                              "PT27M", validity, int(total), int(guaranteed), int(free))
 
     xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
     try:
@@ -240,10 +236,13 @@ class DIRACTest(TestBase):
       xmlfile.close()
 
   def xml_sensor(self, system, service):
-    from DIRAC.Interfaces.API.Dirac import Dirac
-    dirac = Dirac()
 
+    gLogger.info("Pinging %s/%s..." % (system,service))
     res = dirac.ping(system, service)
+    if res["OK"]:
+      gLogger.info("%s/%s successfully pinged" % (system, service))
+    else:
+      gLogger.info("%s/%s does not respond to ping" % (system, service))
 
     try:
       host = urlparse.urlparse(res['Value']['service url']).netloc.split(":")[0]
@@ -269,14 +268,12 @@ class DIRACTest(TestBase):
 
       # Fill database
       rmClient.addOrModifySLSService(system, service, datetime.utcnow(), 100,
-                                  res['service uptime'], res['host uptime'], res['load'].split()[0])
-      gLogger.info("%s/%s successfully pinged" % (system, service))
-
+                                     int(res['service uptime']), int(res['host uptime']),
+                                     float(res['load'].split()[0]))
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
       rmClient.addOrModifySLSService(system, service, datetime.utcnow(), 0, None, None, None)
-      gLogger.info("%s/%s does not respond to ping" % (system, service))
 
     xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
     try:
@@ -315,7 +312,7 @@ class DIRACTest(TestBase):
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
       rmClient.addOrModifySLST1Service(site, system, datetime.utcnow(),
-                                       100, res['service uptime'], res['host uptime'])
+                                       100, int(res['service uptime']), int(res['host uptime']))
 
       if system == "RequestManagement":
         for k,v in res2["Value"].items():
@@ -372,7 +369,7 @@ class LOGSETest(TestBase):
     for d in handler.data:
       if d['data'][0] == "/data":
         ts = int(d['ts'])
-        space = d['data'][3]
+        space = int(d['data'][3])
         percent = int(d['data'][4])
 
     doc = gen_xml_stub()
@@ -384,8 +381,9 @@ class LOGSETest(TestBase):
     xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
     xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
 
-    rmClient.addOrModifySLSLogSE("partition", datetime.utcnow(), "PT12H", (100 if percent < 90 else (5 if percent < 99 else 0)),
-                             percent, space)
+    rmClient.addOrModifySLSLogSE("partition", datetime.utcnow(), "PT12H",
+                                 (100 if percent < 90 else (5 if percent < 99 else 0)),
+                                 percent, space)
     gLogger.info("LogSE partition test done")
 
     xmlfile = open(self.xmlPath + filename, "w")
@@ -407,8 +405,8 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("gridftp", datetime.utcnow(), "PT2H", int(round(float(data['data'][0])*100)),
-                             Utils.SQLValues.null, Utils.SQLValues.null)
+    rmClient.addOrModifySLSLogSE("gridftp", datetime.utcnow(), "PT2H",
+                                 int(round(float(data['data'][0])*100)), None, None)
     gLogger.info("LogSE gridftp test done")
 
 
@@ -431,8 +429,8 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("cert", datetime.utcnow(), "PT24H", int(round(float(data['data'][0])*100)),
-                             Utils.SQLValues.null, Utils.SQLValues.null)
+    rmClient.addOrModifySLSLogSE("cert", datetime.utcnow(), "PT24H",
+                                 int(round(float(data['data'][0])*100)), None, None)
     gLogger.info("LogSE cert test done")
 
     xmlfile = open(self.xmlPath + filename, "w")
@@ -454,8 +452,8 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("httpd", datetime.utcnow(), "PT2H", int(round(float(data['data'][0])*100)),
-                             Utils.SQLValues.null, Utils.SQLValues.null)
+    rmClient.addOrModifySLSLogSE("httpd", datetime.utcnow(), "PT2H",
+                                 int(round(float(data['data'][0])*100)), None, None)
     gLogger.info("LogSE httpd test done")
 
     xmlfile = open(self.xmlPath + filename, "w")
