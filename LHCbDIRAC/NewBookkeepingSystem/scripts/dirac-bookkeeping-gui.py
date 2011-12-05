@@ -17,7 +17,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 
 Script.parseCommandLine( ignoreErrors = True )
 
-from DIRAC.Core.Security.Misc                                  import getProxyInfo
+from DIRAC.Core.Security.ProxyInfo                             import getProxyInfo
 from DIRAC.Core.Security.CS                                    import getDNForUsername
 from DIRAC                                                     import gLogger
 import DIRAC
