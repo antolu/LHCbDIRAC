@@ -16,12 +16,15 @@ from DIRAC.Core.LCG                                  import SLSClient
 def _getSESLSName(SE):
   """Return the SLS id corresponding to the given SE (LHCb Storage
   Space section in SLS"""
-  return re.split("[-_]", SE) + "_" + CS.getSEToken(SE)
+  return re.split("[-_]", SE)[0] + "_" + CS.getSEToken(SE)
 
 def _getCastorSESLSName(SE):
   """Return the SLS id corresponding to the given SE (CASTORLHCb
   section in SLS)"""
-  return "CASTORLHCB_LHCB" + re.split("[-_]", CS.getSEToken(SE))[1].upper()
+  try:
+    return "CASTORLHCB_LHCB" + re.split("[-_]", CS.getSEToken(SE))[1].upper()
+  except IndexError:
+    return ""
 
 def _getServiceSLSName(serv, type_):
   """Return the SLS id of various services."""
@@ -84,7 +87,7 @@ class SLSServiceInfo_Command(Command):
     else:
       raise InvalidRes, where(self, self.doCommand)
 
-    res = SLSClient.getServiceInfo(SLSName, self.args[2])
+    res = SLSClient.getServiceInfo(SLSName)
     if not res[ 'OK' ]:
       gLogger.error("No SLS sensors for " + self.args[0] + " " + self.args[1] )
       return { 'Result' : None }

@@ -25,7 +25,7 @@ class SEQueuedTransfers_Policy(PolicyBase):
 
     status = super(SEQueuedTransfers_Policy, self).evaluate()
 
-    if status is None or status == -1:
+    if not status or status == -1:
       return {'Status': 'Error'}
 
     if status == 'Unknown':
@@ -40,7 +40,7 @@ class SEQueuedTransfers_Policy(PolicyBase):
     else:
       self.result['Status'] = 'Probing'
 
-    if status is not None and status != -1:
+    if not status and status != -1:
 
       self.result['Reason'] = "Queued transfers on the SE: %d -> " % status
 
