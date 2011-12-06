@@ -1,8 +1,3 @@
-########################################################################
-# $HeadURL$
-# Author: Andrew C. Smith, Stuart Paterson
-########################################################################
-
 """
    LHCb API Class
 
@@ -33,11 +28,11 @@ COMPONENT_NAME = 'DiracLHCb'
 class DiracLHCb( Dirac ):
 
   #############################################################################
-  def __init__( self, WithRepo = False, RepoLocation = '' ):
+  def __init__( self, withRepo = False, repoLocation = '' ):
     """Internal initialization of the DIRAC API.
     """
 
-    Dirac.__init__( self, withRepo = WithRepo, repoLocation = RepoLocation )
+    Dirac.__init__( self, withRepo = withRepo, repoLocation = repoLocation )
     self.tier1s = []
 
     try:

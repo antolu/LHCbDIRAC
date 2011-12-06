@@ -1,9 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   Production.py
-# Author : Stuart Paterson
-########################################################################
-
 """ Production API
 
     Notes:
@@ -18,12 +12,12 @@ __RCSID__ = "$Id$"
 
 import string, shutil
 
-from DIRAC.Core.Workflow.Workflow                     import *
-from DIRAC.Core.Utilities.List                        import removeEmptyElements, uniqueElements
-from DIRAC                                            import gConfig
+from DIRAC import gConfig
+from DIRAC.Core.Workflow.Workflow import *
+from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
-from LHCbDIRAC.Core.Utilities.ProductionOptions                   import getOptions
-from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
+from LHCbDIRAC.Core.Utilities.ProductionOptions import getOptions
+from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 
 COMPONENT_NAME = 'LHCbSystem/Client/Production'
@@ -348,14 +342,13 @@ class Production():
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
                      overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
-                     condDBTag = 'global', ddDBTag = 'global', inputProduction = '',
-                     extraOutput = [],
+                     condDBTag = 'global', ddDBTag = 'global', extraOutput = [],
                      stepID = '', stepName = '', stepVisible = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
         inputDataType is dst / rdst / fetc / sdst 
-        [inputProduction is not used and is only there for backwards compatibility]
     """
+
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 0
