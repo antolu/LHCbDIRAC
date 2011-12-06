@@ -919,12 +919,12 @@ else:
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
   if mergingApp == 'LHCb':
     mergingProd.addMergeStep( mergingVersion, mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
-                              inputDataType = mergingInputType,
+                              inputDataType = mergingInputType, inputData = '',
                               condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   elif mergingApp == 'DaVinci':
     mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
-                                inputDataType = mergingInputType,
+                                inputDataType = mergingInputType, inputData = '',
                                 condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                                 stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility )
   else:

@@ -59,7 +59,7 @@ express = '{{express#GENERAL: Set True for EXPRESS (Run at CERN, saving only HIS
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO: priority#7}}'
 recoCPU = '{{RecoMaxCPUTime#PROD-RECO: Max CPU time in secs#1000000}}'
-recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#ByRun}}'
+recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#AtomicRun}}'
 recoAncestorProd = '{{RecoAncestorProd#PROD-RECO: ancestor production if any#0}}'
 recoDataSE = '{{RecoDataSE#PROD-RECO: Output Data Storage Element#Tier1-RDST}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO: Group size or number of files per job#1}}'
@@ -119,8 +119,8 @@ if not publishFlag:
   else:
     #this is 1380Gev MagUp
     recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
-    #this I don't know
-    #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/87667/087667_0000000019.raw'
+    #this is collision11
+    #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
   BKscriptFlag = True

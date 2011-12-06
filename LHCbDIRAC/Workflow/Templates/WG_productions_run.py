@@ -4,7 +4,7 @@
 """ WG productions, 2 or 3 steps  
 """
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id$"
 
 #################################################################################
 # Some import statements and standard DIRAC script preamble
@@ -541,12 +541,12 @@ if mergingEnabled:
 
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions,
+                                inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
                                 inputProduction = strippProdID, inputData = mergeInputDataList, outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = mergeInputDataList,
-                              inputDataType = mergeStream.lower(), outputSE = mergedStreamSE,
+                              inputDataType = mergeStream.lower(), outputSE = mergedStreamSE, numberOfEvents = evtsPerJob,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
     else:
@@ -555,7 +555,7 @@ if mergingEnabled:
 
     if threeSteps:
       mergeProd.addDaVinciStep( extraVersion, extraType, extraOpts, eventType = eventType, extraPackages = extraEP,
-                                inputDataType = extraInput.lower(), numberOfEvents = '-1',
+                                inputDataType = extraInput.lower(), numberOfEvents = evtsPerJob,
                                 dataType = 'Data', extraOpts = extraExtraOpts,
                                 stepID = extraStep, stepName = extraName, stepVisible = extraVisibility )
 

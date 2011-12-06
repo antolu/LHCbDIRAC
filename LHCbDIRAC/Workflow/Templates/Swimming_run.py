@@ -60,7 +60,6 @@ swimmAncestorProd = '{{swimmAncestorProd#PROD-swimming-Moore: ancestor productio
 swimmIDPolicy = '{{swimmIDPolicy#PROD-swimming-Moore: policy for input data access (download or protocol)#download}}'
 
 #swimming (DaVinci) params
-swimm_DV_priority = '{{priority-DV#PROD-swimming-DaVinci: priority#5}}'
 swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
 swimmPlugin_DV = '{{swimmPluginType-DV#PROD-swimming-DaVinci: plugin name#LHCbStandard}}'
 swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size or number of files per job#1}}'
@@ -233,6 +232,8 @@ else:
 
 recoInputDataList = []
 swimmInputDataList = []
+
+evtsPerJob = '-1'
 
 if not publishFlag:
   swimmTestData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00012586/0000/00012586_00000706_1.charmcompleteevent.dst'
