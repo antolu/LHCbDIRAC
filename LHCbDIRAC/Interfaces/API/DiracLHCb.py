@@ -15,16 +15,16 @@ Script.parseCommandLine()
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List                      import sortList, removeEmptyElements
-from DIRAC.Core.Utilities.SiteSEMapping             import getSEsForSite
-from DIRAC.Interfaces.API.Dirac                     import Dirac
-from DIRAC.Interfaces.API.DiracAdmin                import DiracAdmin
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.Utilities.List import sortList, removeEmptyElements
+from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 
-from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles, getRootFileGUID
+from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles     import getAncestorFiles
+from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles import getAncestorFiles
 
 import os, glob, fnmatch, string, time, re
 
@@ -39,9 +39,14 @@ class DiracLHCb( Dirac ):
 
     Dirac.__init__( self, withRepo = WithRepo, repoLocation = RepoLocation )
     self.tier1s = []
-    for site in getSites()['Value']:
-      if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
-        self.tier1s.append( site )
+
+    try:
+      for site in getSites()['Value']:
+        if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
+          self.tier1s.append( site )
+    except Exception, e:
+      return S_ERROR( 'Could not get the sites or sites tier', e )
+
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
