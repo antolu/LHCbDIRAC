@@ -352,7 +352,7 @@ Policies = {
     { 'Description' : "Queued transfers on the SE",
       'module': 'SEQueuedTransfers_Policy',
       'commandIn' : ( 'SLS_Command', 'SLSServiceInfo_Command' ),
-      'args' : ( ["Queued transfers"], ),
+      'args' : None,
       'SE_Panel' : [ {'WebLink': {'CommandIn':( 'SLS_Command', 'SLSLink_Command' ),
                                   'args': None}},
                       ]

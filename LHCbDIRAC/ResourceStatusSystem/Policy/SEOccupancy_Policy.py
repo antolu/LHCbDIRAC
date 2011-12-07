@@ -13,46 +13,31 @@ class SEOccupancy_Policy(PolicyBase):
 
   def evaluate(self):
     """
-    Evaluate policy on SE occupancy.
+    Evaluate policy on SE occupancy: Use SLS_Command
 
    :returns:
       {
-        'Status':Error|Unknown|Active|Probing|Banned,
-        'Reason':'SE_Occupancy:High'|'SE_Occupancy:Mid-High'|'SE_Occupancy:Low',
+        'Status':Error|Active|Bad|Banned,
+        'Reason': Some lame statements that have to be updated
       }
     """
 
+    # This call SLS_Command/SLSStatus_Command (see Configurations.py)
     status = super(SEOccupancy_Policy, self).evaluate()
 
-    if status == 'Unknown':
-      return {'Status':'Unknown'}
+    # SLSStatus_Command returns None if something goes wrong,
+    # otherwise returns an integer (the SLS availability)
 
-    if status is None or status == -1:
-      self.result['Status'] = 'Error'
+    if not status:
+      return {'Status':'Error', "Reason": "SLS_Command ERROR"}
 
     else:
-      if status == 0:
-        self.result['Status'] = 'Banned'
-      elif status > 10:
-        self.result['Status'] = 'Active'
-      else:
-        self.result['Status'] = 'Probing'
+      # FIXME: Use threshold from SLS, put more meaningful comments.
+      if status == 0   : self.result['Status'] = 'Banned'; comment = "SE Full!"
+      elif status > 10 : self.result['Status'] = 'Active'; comment = "SE has enough space left"
+      else             : self.result['Status'] = 'Bad';    comment = "SE has not much space left"
 
-    if status is not None and status != -1:
-      self.result['Reason'] = "Space availability: %d %% -> " % ( status )
-
-      if status == 0:
-        str_ = 'NONE!'
-      else:
-        if status > 30:
-          str_ = 'High'
-        elif status <= 10:
-          str_ = 'Poor'
-        else:
-          str_ = 'Sufficient'
-
-      self.result['Reason'] = self.result['Reason'] + str_
-
+      self.result['Reason'] = "Space availability: %d %% (%s)" % ( status, comment )
 
     return self.result
 

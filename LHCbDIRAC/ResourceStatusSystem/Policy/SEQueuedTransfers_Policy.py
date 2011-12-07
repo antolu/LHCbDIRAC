@@ -14,44 +14,29 @@ class SEQueuedTransfers_Policy(PolicyBase):
 
   def evaluate(self):
     """
-    Evaluate policy on SE Queued Transfers, using args (tuple).
+    Evaluate policy on SE Queued Transfers. Use
+    SLS_Command/SLSServiceInfo_Command.  Result of the command is a
+    dictionary with SLS infos, or None in case of failure.
 
     :returns:
         {
-          'Status':Error|Unknown|Active|Probing|Bad,
-          'Reason':'QueuedTransfers:High'|'QueuedTransfers:Mid-High'|'QueuedTransfers:Low',
+          'Status':Error|Active|Bad|Banned,
+          'Reason': high, low, mid-high
         }
     """
 
     status = super(SEQueuedTransfers_Policy, self).evaluate()
 
-    if not status or status == -1:
-      return {'Status': 'Error'}
+    if not status:
+      return {'Status': 'Error', "Reason": "SLS_Command ERROR"}
 
-    if status == 'Unknown':
-      return {'Status':'Unknown'}
+    status = int(status['Queued transfers']) # type float, but represent an int, no need to round.
 
-    status = int( round( status['Queued transfers'] ) )
+    if status > 100  : self.result['Status'] = 'Banned'; comment = "high"
+    elif status < 70 : self.result['Status'] = 'Active'; comment = "low"
+    else             : self.result['Status'] = 'Bad';    comment = "mid-high"
 
-    if status > 100:
-      self.result['Status'] = 'Bad'
-    elif status < 70:
-      self.result['Status'] = 'Active'
-    else:
-      self.result['Status'] = 'Probing'
-
-    if not status and status != -1:
-
-      self.result['Reason'] = "Queued transfers on the SE: %d -> " % status
-
-      if status > 100:
-        str_ = 'HIGH'
-      elif status < 70:
-        str_ = 'Low'
-      else:
-        str_ = 'Mid-High'
-
-      self.result['Reason'] = self.result['Reason'] + str_
+    self.result['Reason'] = "Queued transfers on the SE: %d (%s)" % (status, comment)
 
     return self.result
 

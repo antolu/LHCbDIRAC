@@ -13,7 +13,7 @@ class SLS_Policy(PolicyBase):
 
   def evaluate(self):
     """
-    Evaluate policy on SLS availability.
+    Evaluate policy on SLS availability. Use SLS_Command/SLSStatus_Command.
 
    :returns:
       {
@@ -25,17 +25,17 @@ class SLS_Policy(PolicyBase):
     # Execute the command and returns a value as a string.
     status = super(SLS_Policy, self).evaluate()
 
-    if status == 'Unknown':            return {'Status':'Unknown'}
-    if status == None or status == -1: return {'Status': 'Error'}
+    if not status:
+      return { 'Status': 'Error', "Reason": "SLSStatus_Command ERROR" }
 
-    # Here, status is not "Unknown", None, or -1
+    # From here, status is an integer
 
     # FIXME: Should get thresholds from SLS !!!!
-    if status < 40   : self.result['Status'] = 'Banned'; str_ = 'Poor'
-    elif status > 90 : self.result['Status'] = 'Active';  str_ = 'High'
-    else             : self.result['Status'] = 'Bad'; str_ = 'Low'
+    if status < 40   : self.result['Status'] = 'Banned'; comment = 'Poor'
+    elif status > 90 : self.result['Status'] = 'Active'; comment = 'High'
+    else             : self.result['Status'] = 'Bad';    comment = 'Low'
 
-    self.result['Reason'] = "SLS availability: %d %% -> %s" % (status, str_)
+    self.result['Reason'] = "SLS availability: %d %% (%s)" % (status, comment)
 
     return self.result
 
