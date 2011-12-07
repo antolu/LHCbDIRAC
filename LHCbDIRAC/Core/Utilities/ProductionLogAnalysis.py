@@ -268,8 +268,8 @@ def getEventsProcessed( logString, service ):
       If the string is not found an error is returned
   """
   global numberOfEventsInput
-  possibleServices = ['DaVinciInit', 'DaVinciInitAlg', 'DaVinciMonitor', 
-                      'BrunelInit', 'BrunelEventCount', 'ChargedProtoPAlg', 
+  possibleServices = ['DaVinciInit', 'DaVinciInitAlg', 'DaVinciMonitor',
+                      'BrunelInit', 'BrunelEventCount', 'ChargedProtoPAlg',
                       'BooleInit', 'GaussGen', 'GaussSim', 'L0Muon', 'LbAppInit']
   if not service in possibleServices:
     gLogger.error( "Requested service not available.", service )
@@ -295,7 +295,7 @@ def checkMooreEvents( logString ):
       the Moore job generated the correct number of events.
   """
   global firstStepInputEvents
-  global numberOfEventsOutput  
+  global numberOfEventsOutput
   global dataSummary
   # Get the last event processed
   lastEvent = getLastEventSummary( logString )['Value']
@@ -317,7 +317,7 @@ def checkMooreEvents( logString ):
     return res
 
   numberOfEventsOutput = res['Value']
-  
+
   return S_OK()
 
 #############################################################################
@@ -328,7 +328,7 @@ def checkLHCbEvents( logString ):
   global numberOfEventsOutput
   global numberOfEventsInput
   global firstStepInputEvents
-  
+
   # Get the last event read (at least the one that is written
   lastEvent = getLastEventSummary( logString )['Value']
   if not lastEvent:
@@ -337,7 +337,7 @@ def checkLHCbEvents( logString ):
   # Get the number of requested events
   res = getRequestedEvents( logString )
   if not res['OK']:
-    gLogger.info("Using old style logs for LHCb, can continue")
+    gLogger.info( "Using old style logs for LHCb, can continue" )
     requestedEvents = 0
   else:
     requestedEvents = res['Value']
@@ -350,7 +350,7 @@ def checkLHCbEvents( logString ):
         dataSummary[lastFile] = 'ApplicationCrash'
       gLogger.error( "Crash after event %s" % lastEvent )
       return S_ERROR( 'Crash During Execution' )
-  
+
     processedEvents = res['Value']
 
   # Get the number of events output by LHCb
@@ -360,7 +360,7 @@ def checkLHCbEvents( logString ):
 
   outputEvents = res['Value']
 
-  numberOfEventsInput = numberOfEventsOutput = outputEvents 
+  numberOfEventsInput = numberOfEventsOutput = outputEvents
   firstStepInputEvents = str( lastEvent )
 
   # Get whether all events in the input file were processed
@@ -382,7 +382,7 @@ def checkLHCbEvents( logString ):
       return S_ERROR( "Input events differ from the number of events in output" )
   except NameError:
     gLogger.warn( "Got requested events, not the processed events" )
-    
+
   if outputEvents < lastEvent:
     return S_ERROR( "Processed events are less than the number of events in output" )
   # If there were no events processed
@@ -531,9 +531,9 @@ def checkBrunelEvents( logString ):
       return S_ERROR( 'Too Few Events Processed' )
   # Check that the final reported processed events match those logged as processed during execution
   if lastEvent != processedEvents:
-    gLogger.verbose( 'Last reported event %s != processed events %s' % ( lastEvent, processedEvents ) )
-    if processedEvents > 100 and lastEvent < 0.9 * processedEvents:
-      return S_ERROR( "Processed Events Do Not Match" )
+    gLogger.warn( 'Last reported event %s != processed events %s' % ( lastEvent, processedEvents ) )
+#    if processedEvents > 100 and lastEvent < 0.9 * processedEvents:
+#      return S_ERROR( "Processed Events Do Not Match" )
   # If the output events are not equal to the processed events be sure there were no failed events
   if outputEvents != processedEvents:
     gLogger.warn( 'Number of processed events %s does not match output events %s (considered OK for Brunel)' % ( processedEvents, outputEvents ) )
