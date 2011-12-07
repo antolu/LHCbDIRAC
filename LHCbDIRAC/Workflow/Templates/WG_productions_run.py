@@ -565,7 +565,8 @@ if mergingEnabled:
     mergeProd.setProdGroup( prodGroup )
     mergeProd.setProdPriority( mergePriority )
     mergeProd.setJobFileGroupSize( mergeFileSize )
-    mergeProd.setFileMask( mergeStream.lower() )
+    if twoSteps:
+      mergeProd.setFileMask( mergeStream.lower() )
     mergeProd.setProdPlugin( mergePlugin )
 
     if ( not publishFlag ) and ( testFlag ):
