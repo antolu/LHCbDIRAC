@@ -60,6 +60,7 @@ swimmFilesPerJob = '{{swimmFilesPerJob#PROD-swimming-Moore: Group size or number
 unmergedStreamSE = '{{swimmStreamSE#PROD-swimming-Moore: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd = '{{swimmAncestorProd#PROD-swimming-Moore: ancestor production if any#0}}'
 swimmIDPolicy = '{{swimmIDPolicy#PROD-swimming-Moore: policy for input data access (download or protocol)#download}}'
+swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
 
 #swimming (DaVinci) params
 swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
@@ -68,7 +69,7 @@ swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size o
 unmergedStreamSE_DV = '{{swimmStreamSE-DV#PROD-swimming-DaVinci: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd_DV = '{{swimmAncestor-DVProd#PROD-swimming-DaVinci: ancestor production if any#0}}'
 swimmIDPolicy_DV = '{{swimmIDPolicy-DV#PROD-swimming-DaVinci: policy for input data access (download or protocol)#download}}'
-swimmEO_DV = '{{swimmEO-DV#PROD-swimming-DaVinci: extra options#Swimming().OutputFile =from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
+swimmEOpts_DV = '{{swimmEO_DV#PROD-swimming-DaVinci: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
 
 
 #merging params
@@ -242,7 +243,7 @@ if not publishFlag:
   swimmTestData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00012586/0000/00012586_00000706_1.charmcompleteevent.dst'
   swimmInputDataList.append( swimmTestData )
   swimmIDPolicy = 'protocol'
-  evtsPerJob = '50'
+  evtsPerJob = '5'
   BKscriptFlag = True
 else:
   BKscriptFlag = False
@@ -384,24 +385,24 @@ if swimmEnabled:
   try:
     production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
                            inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
-                           dataType = 'Data', outputSE = unmergedStreamSE,
+                           dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts,
                            stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility )
   except:
     production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
                            inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
-                           outputSE = unmergedStreamSE,
+                           outputSE = unmergedStreamSE, extraOpts = swimmEOpts,
                            stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility )
 
   if unifyMooreAndDV:
     try:
       production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
     except:
       production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
 
 
@@ -509,12 +510,12 @@ if swimmEnabled:
     try:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
     except:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
 
 
