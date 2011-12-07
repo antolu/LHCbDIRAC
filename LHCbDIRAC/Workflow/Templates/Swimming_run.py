@@ -41,6 +41,8 @@ certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification tes
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True to create validation productions#False}}'
 
+unifyMooreAndDV = '{{productionsCreated#GENERAL: Moore and DaVinci within the same job#True}}'
+
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
 useOracle = '{{useOracle#GENERAL: Use Oracle#False}}'
@@ -70,7 +72,6 @@ swimmEO_DV = '{{swimmEO-DV#PROD-swimming-DaVinci: extra options#Swimming().Outpu
 
 
 #merging params
-mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK#OK}}'
 mergePriority = '{{MergePriority#PROD-Merging: priority#9}}'
 mergePlugin = '{{MergePlugin#PROD-Merging: plugin#BySize}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
@@ -95,12 +96,14 @@ inDQFlag = '{{inDataQualityFlag}}'
 dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'
 eventType = '{{eventType}}'
+tck = '{{inTCKs}}'
 
 mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
 useOracle = eval( useOracle )
+unifyMooreAndDV = eval( unifyMooreAndDV )
 
 swimmEnabled = False
 mergingEnabled = False
@@ -330,7 +333,8 @@ if swimmEnabled:
                         'ConfigVersion'            : bkConfigVersion,
                         'ProductionID'             : 0,
                         'DataQualityFlag'          : swimmDQFlag,
-                        'Visible'                  : 'Yes'
+                        'Visible'                  : 'Yes',
+                        'TCK'                      : tck
                         }
 
 
@@ -388,17 +392,17 @@ if swimmEnabled:
                            outputSE = unmergedStreamSE,
                            stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility )
 
-
-  try:
-    production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                             inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                             dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
-                             stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
-  except:
-    production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                             inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                             outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
-                             stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
+  if unifyMooreAndDV:
+    try:
+      production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
+    except:
+      production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                               outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
 
 
   production.addFinalizationStep()
@@ -431,7 +435,7 @@ if swimmEnabled:
                              groupSize = swimmFilesPerJob,
                              bkScript = BKscriptFlag,
                              requestID = currentReqID,
-                             reqUsed = 1,
+                             reqUsed = 0,
                              transformation = False
                              )
   if not result['OK']:
@@ -456,6 +460,118 @@ if swimmEnabled:
   else:
     swimmProdID = 1
     gLogger.info( 'swimming production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, swimmProdID ) )
+
+
+  if not unifyMooreAndDV:
+
+    #################################################################################
+    # swimming-DV BK Query
+    #################################################################################
+
+    swimmDVInputBKQuery = {
+                          'FileType'                 : swimmDVInput,
+                          'ProductionID'             : swimmProdID,
+                          }
+
+    #################################################################################
+    # Create the swimming DV production
+    #################################################################################
+
+    DVProduction = Production()
+
+    if not destination.lower() in ( 'all', 'any' ):
+      gLogger.info( 'Forcing destination site %s for DVProduction' % ( destination ) )
+      DVProduction.setDestination( destination )
+
+    if sysConfig:
+      try:
+        DVProduction.setSystemConfig( sysConfig )
+      except:
+        DVProduction.setJobParameters( { 'SystemConfig': sysConfig } )
+
+    try:
+      DVProduction.setCPUTime( swimmCPU_DV )
+    except:
+      DVProduction.setJobParameters( { 'CPUTime': swimmCPU_DV } )
+    DVProduction.setProdType( 'DataStripping' )
+    wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
+    DVProduction.setWorkflowName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
+    DVProduction.setWorkflowDescription( "%s real data swimming DVProduction." % ( prodGroup ) )
+    DVProduction.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
+    DVProduction.setInputBKSelection( swimmDVInputBKQuery )
+    DVProduction.setDBTags( swimmDVCDb, swimmDVDDDb )
+    try:
+      DVProduction.setInputDataPolicy( swimmIDPolicy_DV )
+    except:
+      DVProduction.setJobParameters( { 'InputDataPolicy': swimmIDPolicy_DV } )
+    DVProduction.setProdPlugin( swimmPlugin )
+
+    try:
+      DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
+    except:
+      DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                               outputSE = unmergedStreamSE, extraOpts = swimmEO_DV,
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
+
+
+    DVProduction.addFinalizationStep()
+    DVProduction.setProdGroup( prodGroup )
+    DVProduction.setProdPriority( swimm_priority )
+    DVProduction.setJobFileGroupSize( swimmFilesPerJob )
+  #  DVProduction.setFileMask(  )
+
+    #################################################################################
+    # Publishing of the swimming DVProduction
+    #################################################################################
+
+    if ( not publishFlag ) and ( testFlag ):
+
+      gLogger.info( 'Production test will be launched with number of events set to %s.' % ( evtsPerJob ) )
+      try:
+        result = DVProduction.runLocal()
+        if result['OK']:
+          DIRAC.exit( 0 )
+        else:
+          DIRAC.exit( 2 )
+      except Exception, x:
+        gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
+        DIRAC.exit( 2 )
+
+    result = DVProduction.create( 
+                                 publish = publishFlag,
+                                 bkQuery = swimmDVInputBKQuery,
+                                 groupSize = swimmFilesPerJob,
+                                 bkScript = BKscriptFlag,
+                                 requestID = currentReqID,
+                                 reqUsed = 0,
+                                 transformation = False
+                               )
+    if not result['OK']:
+      gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
+      DIRAC.exit( 2 )
+
+    if publishFlag:
+      diracProd = DiracProduction()
+
+      swimmDVProdID = result['Value']
+
+      msg = 'swimming DVProduction %s successfully created ' % ( swimmDVProdID )
+
+      if testFlag:
+        diracProd.DVProduction( swimmDVProdID, 'manual', printOutput = True )
+        msg = msg + 'and started in manual mode.'
+      else:
+        diracProd.DVProduction( swimmDVProdID, 'automatic', printOutput = True )
+        msg = msg + 'and started in automatic mode.'
+      gLogger.info( msg )
+
+    else:
+      swimmDVProdID = 1
+      gLogger.info( 'swimming DVProduction creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, swimmProdID ) )
 
 
 
@@ -504,7 +620,6 @@ if mergingEnabled:
     #################################################################################
 
     mergeBKQuery = { 'ProductionID'             : swimmProdID,
-                     'DataQualityFlag'          : mergeDQFlag,
                      'FileType'                 : mergeStream}
       #below should be integrated in the ProductionOptions utility
     if mergeApp.lower() == 'davinci':
