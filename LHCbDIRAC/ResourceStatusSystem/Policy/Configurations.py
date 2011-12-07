@@ -293,6 +293,14 @@ Policies = {
                                   'args': ( 'VOMS', )}},
                               ]
      },
+
+  'CondDB-SLS' :
+    { 'Description' : "How the CondDB service is behaving in the SLS",
+      'module' : 'SLS_Policy',
+      'commandIn' : ( 'SLS_Command', 'SLSStatus_Command' ),
+      'args' : ( 'CondDB', )
+      },
+
 #  'OnServicePropagation' :
 #    {
 #      'module' : 'OnServicePropagation_Policy',
@@ -397,5 +405,5 @@ Policies = {
       'module'      : 'NagiosProbes_Policy',
       'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
       'args'        : ( 'LFC', )
-    }           
+    }
 }

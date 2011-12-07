@@ -25,26 +25,15 @@ class SLS_Policy(PolicyBase):
     # Execute the command and returns a value as a string.
     status = super(SLS_Policy, self).evaluate()
 
-    if status == 'Unknown':
-      return {'Status':'Unknown'}
-
-    if status == None or status == -1:
-      return {'Status': 'Error'}
+    if status == 'Unknown':            return {'Status':'Unknown'}
+    if status == None or status == -1: return {'Status': 'Error'}
 
     # Here, status is not "Unknown", None, or -1
 
-    # FIXME: Put thresholds in the CS.
-    if status < 40:
-      self.result['Status'] = 'Bad'
-    elif status > 90:
-      self.result['Status'] = 'Active'
-
-    if status > 90:
-      str_ = 'High'
-    elif status <= 40:
-      str_ = 'Poor'
-    else:
-      str_ = 'Sufficient'
+    # FIXME: Should get thresholds from SLS !!!!
+    if status < 40   : self.result['Status'] = 'Banned'; str_ = 'Poor'
+    elif status > 90 : self.result['Status'] = 'Active';  str_ = 'High'
+    else             : self.result['Status'] = 'Bad'; str_ = 'Low'
 
     self.result['Reason'] = "SLS availability: %d %% -> %s" % (status, str_)
 

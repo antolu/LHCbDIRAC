@@ -45,7 +45,7 @@ CREATE TABLE SLSService (
   Availability DECIMAL(3) UNSIGNED NOT NULL,
   ServiceUptime INT unsigned,
   HostUptime INT unsigned,
-  InstantLoad DECIMAL(10,5) unsigned,
+  InstantLoad DECIMAL(6,2) unsigned,
   PRIMARY KEY (System,Service)
 ) Engine=InnoDB;
 
