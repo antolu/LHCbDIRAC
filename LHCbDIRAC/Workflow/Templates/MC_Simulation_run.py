@@ -52,12 +52,12 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
 
 configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
-configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC10}}'
+configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC11a}}'
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
 outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
-sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#slc4_ia32_gcc34}}'
+sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
 
 events = '{{MCNumberOfEvents#PROD-MC: Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'

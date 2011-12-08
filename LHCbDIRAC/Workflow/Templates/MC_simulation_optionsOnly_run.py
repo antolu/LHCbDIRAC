@@ -39,7 +39,7 @@ Recipe:
   also the stepsList creation
 . Get the list of Bk steps (in a dictionary) : OK
 . Translate the Bk steps in production steps : OK
-  use TemplatesUtilities._splitIntoProductionSteps() (ready and tested)
+  use TemplatesUtilities._splitIntoProductionSteps() (ready and tested): OK
 . Make the correlation between production steps and productions to be created
   this would require user input
 . Create the production objects requested
@@ -59,7 +59,7 @@ args = Script.getPositionalArgs()
 
 import DIRAC
 
-from LHCbDIRAC.Workflow.Templates.TemplatesUtilities import *
+import LHCbDIRAC.Workflow.Templates.TemplatesUtilities
 
 from DIRAC import gLogger, gConfig
 gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
@@ -135,8 +135,10 @@ stepsList.append( '{{p4Step}}' )
 stepsList.append( '{{p5Step}}' )
 stepsList.append( '{{p6Step}}' )
 stepsList.append( '{{p7Step}}' )
+stepsList.append( '{{p8Step}}' )
+stepsList.append( '{{p9Step}}' )
 
 #get a list of steps dictionaries
-stepsDictList = resolveSteps( stepsList )
-
+stepsDictList = LHCbDIRAC.Workflow.Templates.TemplatesUtilities.resolveSteps( stepsList )
+productionStepsList = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList )
 

@@ -1,5 +1,5 @@
 import unittest
-from DIRAC.ResourceStatusSystem.Utilities.mock import Mock
+from mock import Mock
 from LHCbDIRAC.Workflow.Templates.TemplatesUtilities import resolveSteps, _splitIntoProductionSteps
 
 class TemplatesTestCase( unittest.TestCase ):

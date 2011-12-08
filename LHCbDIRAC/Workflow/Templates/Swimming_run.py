@@ -60,7 +60,7 @@ swimmFilesPerJob = '{{swimmFilesPerJob#PROD-swimming-Moore: Group size or number
 unmergedStreamSE = '{{swimmStreamSE#PROD-swimming-Moore: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd = '{{swimmAncestorProd#PROD-swimming-Moore: ancestor production if any#0}}'
 swimmIDPolicy = '{{swimmIDPolicy#PROD-swimming-Moore: policy for input data access (download or protocol)#download}}'
-swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
+swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#from Configurables import Swimming;Swimming().OutputFile=\"@{outputData}\"}}'
 
 #swimming (DaVinci) params
 swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'

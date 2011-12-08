@@ -1,3 +1,5 @@
+__RCSID__ = "$Id"
+
 """ Some utilities for the templates
 """
 
