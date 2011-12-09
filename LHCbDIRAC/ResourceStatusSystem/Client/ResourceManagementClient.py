@@ -102,45 +102,45 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     return self.__addOrModifyElement( 'HammerCloudTest', locals() )
   @ClientFastDec
   def insertSLSService( self, system, service, timeStamp, availability,
-                        serviceUptime, hostUptime, instantLoad, meta = {} ):
+                        serviceUptime, hostUptime, instantLoad, message, meta = {} ):
     return locals()
   @ClientFastDec
   def updateSLSService( self, system, service, timeStamp, availability,
-                        serviceUptime, hostUptime, instantLoad, meta = {} ):
+                        serviceUptime, hostUptime, instantLoad, message, meta = {} ):
     return locals()
   @ClientFastDec
   def getSLSService( self, system = None, service = None, timeStamp = None,
                      availability = None, serviceUptime = None,
-                     hostUptime = None, instantLoad = None, meta = {} ):
+                     hostUptime = None, instantLoad = None, message = None, meta = {} ):
     return locals()
   @ClientFastDec
   def deleteSLSService( self, system = None, service = None, timeStamp = None,
                         availability = None, serviceUptime = None,
-                        hostUptime = None, instantLoad = None, meta = {} ):
+                        hostUptime = None, instantLoad = None, message = None, meta = {} ):
     return locals()
   def addOrModifySLSService( self, system, service, timeStamp, availability,
-                             serviceUptime, hostUptime, instantLoad ):
+                             serviceUptime, hostUptime, instantLoad, message):
     return self.__addOrModifyElement( 'SLSService', locals() )
   @ClientFastDec
   def insertSLST1Service( self, site, service, timeStamp, availability,
-                          serviceUptime, hostUptime, meta = {} ):
+                          serviceUptime, hostUptime, message, meta = {} ):
     return locals()
   @ClientFastDec
   def updateSLST1Service( self, site, service, timeStamp, availability,
-                          serviceUptime, hostUptime, meta = {} ):
+                          serviceUptime, hostUptime, message, meta = {} ):
     return locals()
   @ClientFastDec
   def getSLST1Service( self, site = None, service = None, timeStamp = None,
                        availability = None, serviceUptime = None,
-                       hostUptime = None, meta = {} ):
+                       hostUptime = None, message = None, meta = {} ):
     return locals()
   @ClientFastDec
   def deleteSLST1Service( self, site = None, service = None, timeStamp = None,
                           availability = None, serviceUptime = None,
-                          hostUptime = None, meta = {} ):
+                          hostUptime = None, message = None, meta = {} ):
     return locals()
   def addOrModifySLST1Service( self, site, service, timeStamp, availability,
-                               serviceUptime, hostUptime ):
+                               serviceUptime, hostUptime, message ):
     return self.__addOrModifyElement( 'SLST1Service', locals() )
   @ClientFastDec
   def insertSLSLogSE( self, name, timeStamp, validityDuration, availability,

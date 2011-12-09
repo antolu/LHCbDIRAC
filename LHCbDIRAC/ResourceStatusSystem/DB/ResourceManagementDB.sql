@@ -43,9 +43,10 @@ CREATE TABLE SLSService (
   Service varchar(32) NOT NULL,
   TimeStamp DATETIME NOT NULL,
   Availability TINYINT UNSIGNED NOT NULL,
-  ServiceUptime INT unsigned,
-  HostUptime INT unsigned,
-  InstantLoad FLOAT unsigned,
+  ServiceUptime INT UNSIGNED,
+  HostUptime INT UNSIGNED,
+  InstantLoad FLOAT UNSIGNED,
+  Message TEXT,
   PRIMARY KEY (System,Service)
 ) Engine=InnoDB;
 
@@ -57,6 +58,7 @@ CREATE TABLE SLST1Service (
   Availability TINYINT UNSIGNED NOT NULL,
   ServiceUptime INT UNSIGNED,
   HostUptime INT UNSIGNED,
+  Message TEXT,
   PRIMARY KEY (Site,Service)
 ) Engine=InnoDB;
 

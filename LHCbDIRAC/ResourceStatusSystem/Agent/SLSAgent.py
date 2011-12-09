@@ -269,11 +269,13 @@ class DIRACTest(TestBase):
       # Fill database
       rmClient.addOrModifySLSService(system, service, datetime.now(), 100,
                                      int(res['service uptime']), int(res['host uptime']),
-                                     float(res['load'].split()[0]))
+                                     float(res['load'].split()[0]),
+                                     "Service " + res['service url'] + " completely up and running"
+                                     )
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
-      rmClient.addOrModifySLSService(system, service, datetime.now(), 0, None, None, None)
+      rmClient.addOrModifySLSService(system, service, datetime.now(), 0, None, None, None, res["Message"])
 
     xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
     try:
@@ -312,7 +314,9 @@ class DIRACTest(TestBase):
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
       rmClient.addOrModifySLST1Service(site, system, datetime.now(),
-                                       100, int(res['service uptime']), int(res['host uptime']))
+                                       100, int(res['service uptime']), int(res['host uptime']),
+                                       "Service " + url + " completely up and running"
+                                       )
 
       if system == "RequestManagement":
         for k,v in res2["Value"].items():
@@ -328,8 +332,10 @@ class DIRACTest(TestBase):
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
-      rmClient.addOrModifySLST1Service(site, service, datetime.now(),
-                                       0, None, None)
+      rmClient.addOrModifySLST1Service(site, system, datetime.now(),
+                                       0, None, None,
+                                       res["Message"]
+                                       )
 
       gLogger.info("%s/%s does not respond to ping" % (site, system))
 
