@@ -42,10 +42,10 @@ CREATE TABLE SLSService (
   System varchar(64) NOT NULL,
   Service varchar(32) NOT NULL,
   TimeStamp DATETIME NOT NULL,
-  Availability DECIMAL(3) UNSIGNED NOT NULL,
+  Availability TINYINT UNSIGNED NOT NULL,
   ServiceUptime INT unsigned,
   HostUptime INT unsigned,
-  InstantLoad DECIMAL(6,2) unsigned,
+  InstantLoad FLOAT unsigned,
   PRIMARY KEY (System,Service)
 ) Engine=InnoDB;
 
@@ -54,7 +54,7 @@ CREATE TABLE SLST1Service (
   Site VARCHAR(64) NOT NULL,
   Service VARCHAR(32) NOT NULL,
   TimeStamp DATETIME NOT NULL,
-  Availability DECIMAL(3) UNSIGNED NOT NULL,
+  Availability TINYINT UNSIGNED NOT NULL,
   ServiceUptime INT UNSIGNED,
   HostUptime INT UNSIGNED,
   PRIMARY KEY (Site,Service)
@@ -65,8 +65,8 @@ CREATE TABLE SLSLogSE (
   Name VARCHAR(32) PRIMARY KEY,
   TimeStamp DATETIME NOT NULL,
   ValidityDuration VARCHAR(32) NOT NULL,
-  Availability DECIMAL(3) UNSIGNED NOT NULL,
-  DataPartitionUsed DECIMAL(3) UNSIGNED,
+  Availability TINYINT UNSIGNED NOT NULL,
+  DataPartitionUsed TINYINT UNSIGNED,
   DataPartitionTotal INT UNSIGNED
 ) Engine=InnoDB;
 
@@ -75,7 +75,7 @@ CREATE TABLE SLSStorage (
   Site VARCHAR(64) NOT NULL,
   Token VARCHAR(32) NOT NULL,
   TimeStamp DATETIME NOT NULL,
-  Availability DECIMAL(3) UNSIGNED,
+  Availability TINYINT UNSIGNED,
   RefreshPeriod VARCHAR(32) NOT NULL,
   ValidityDuration VARCHAR(32) NOT NULL,
   TotalSpace INT UNSIGNED,
@@ -88,6 +88,6 @@ DROP TABLE IF EXISTS SLSCondDB;
 CREATE TABLE SLSCondDB (
   Site VARCHAR(64) PRIMARY KEY,
   TimeStamp DATETIME NOT NULL,
-  Availability DECIMAL(3) UNSIGNED,
-  AccessTime INT UNSIGNED
+  Availability TINYINT UNSIGNED,
+  AccessTime FLOAT UNSIGNED
 ) Engine=InnoDB;

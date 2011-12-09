@@ -135,7 +135,7 @@ class SpaceTokenOccupancyTest(TestBase):
     xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
-    rmClient.updateSLSStorage(site, st, datetime.utcnow(), availability,
+    rmClient.updateSLSStorage(site, st, datetime.now(), availability,
                               "PT27M", validity, int(total), int(guaranteed), int(free))
 
     xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
@@ -267,13 +267,13 @@ class DIRACTest(TestBase):
       xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
 
       # Fill database
-      rmClient.addOrModifySLSService(system, service, datetime.utcnow(), 100,
+      rmClient.addOrModifySLSService(system, service, datetime.now(), 100,
                                      int(res['service uptime']), int(res['host uptime']),
                                      float(res['load'].split()[0]))
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
-      rmClient.addOrModifySLSService(system, service, datetime.utcnow(), 0, None, None, None)
+      rmClient.addOrModifySLSService(system, service, datetime.now(), 0, None, None, None)
 
     xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
     try:
@@ -311,7 +311,7 @@ class DIRACTest(TestBase):
       xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
                  name="Host Uptime", desc="Seconds since last restart of machine")
 
-      rmClient.addOrModifySLST1Service(site, system, datetime.utcnow(),
+      rmClient.addOrModifySLST1Service(site, system, datetime.now(),
                                        100, int(res['service uptime']), int(res['host uptime']))
 
       if system == "RequestManagement":
@@ -328,7 +328,7 @@ class DIRACTest(TestBase):
     else:
       xml_append(doc, "availability", 0)
       xml_append(doc, "notes", res['Message'])
-      rmClient.addOrModifySLST1Service(site, service, datetime.utcnow(),
+      rmClient.addOrModifySLST1Service(site, service, datetime.now(),
                                        0, None, None)
 
       gLogger.info("%s/%s does not respond to ping" % (site, system))
@@ -381,7 +381,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
     xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
 
-    rmClient.addOrModifySLSLogSE("partition", datetime.utcnow(), "PT12H",
+    rmClient.addOrModifySLSLogSE("partition", datetime.now(), "PT12H",
                                  (100 if percent < 90 else (5 if percent < 99 else 0)),
                                  percent, space)
     gLogger.info("LogSE partition test done")
@@ -405,7 +405,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("gridftp", datetime.utcnow(), "PT2H",
+    rmClient.addOrModifySLSLogSE("gridftp", datetime.now(), "PT2H",
                                  int(round(float(data['data'][0])*100)), None, None)
     gLogger.info("LogSE gridftp test done")
 
@@ -429,7 +429,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("cert", datetime.utcnow(), "PT24H",
+    rmClient.addOrModifySLSLogSE("cert", datetime.now(), "PT24H",
                                  int(round(float(data['data'][0])*100)), None, None)
     gLogger.info("LogSE cert test done")
 
@@ -452,7 +452,7 @@ class LOGSETest(TestBase):
     xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
     xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("httpd", datetime.utcnow(), "PT2H",
+    rmClient.addOrModifySLSLogSE("httpd", datetime.now(), "PT2H",
                                  int(round(float(data['data'][0])*100)), None, None)
     gLogger.info("LogSE httpd test done")
 
