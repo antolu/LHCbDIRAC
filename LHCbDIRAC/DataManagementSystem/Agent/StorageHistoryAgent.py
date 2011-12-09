@@ -198,7 +198,10 @@ class StorageHistoryAgent( AgentModule ):
     self.totalRecords = 0
     self.recordsToCommit = 0
     self.limitForCommit = 200
-  
+    # keep a counter for all runs and productions returned by the Bkk queries, to compare with those stored in the LFC and check consistency
+    self.totalBkkProductions = []
+    self.totalBkkRuns = []
+ 
     self.log.notice(" Call the function to create the StorageUsageDB dump.." )
     res = self.generateStorageUsageDictionary()
     if not res[ 'OK' ]:
@@ -253,7 +256,7 @@ class StorageHistoryAgent( AgentModule ):
           continue
       processedBookkeepingQueries += 1
       progress = 1.0*processedBookkeepingQueries/totalBookkeepingQueries
-      if not processedBookkeepingQueries%10:
+      if not processedBookkeepingQueries%100:
         self.log.notice("Bookkeeping queries processed so far: %d ( %f of total queries ) " % ( processedBookkeepingQueries, progress ) )
 
 
@@ -266,20 +269,40 @@ class StorageHistoryAgent( AgentModule ):
     self.log.notice("------ End of cycle report ----------------------------------------------------------\n")
     self.log.notice( "End of full BKK browsing: total records sent to accounting for DataStorage:  %d " % self.totalRecords )
     self.log.notice( "Total Bookkeeping queries to process: %d and correctly processed: %d " %(totalBookkeepingQueries, processedBookkeepingQueries) )
+    self.log.notice( "Total productions returned by Bkk: %d  - Total productions in LFC: %d " % ( len( self.totalBkkProductions ), len(self.prodsInLFC.keys())))
+    self.log.notice( "Total runs returned by Bkk: %d - Total runs in LFC: %d " % (len( self.totalBkkRuns ),len(self.runsInLFC.keys())))    
+    fileName = os.path.join( self.__workDirectory, "totalBkkProductions.txt")
+    f = open( fileName, "w")
+    f.write("%s" % self.totalBkkProductions )
+    f.close()
+    fileName = os.path.join( self.__workDirectory, "totalBkkRuns.txt")
+    f = open( fileName, "w")
+    f.write("%s" % self.totalBkkRuns )
+    f.close()
+
     self.log.notice( "Consistency LFC vs BKK: " )
     runsInLFCNotInBKK = []
     for run in self.runsInLFC.keys():
       if not self.runsInLFC[ run ][ 'InBkk' ]:
         runsInLFCNotInBKK.append( run )
-    self.log.notice( "Runs in LFC not in BKK: %s " % runsInLFCNotInBKK )
+    fileName = os.path.join( self.__workDirectory, "runsInLFCNotInBkk.txt")
+    f = open( fileName, "w")
+    f.write("%s" % runsInLFCNotInBKK )
+    f.close()
+    self.log.notice( "Runs in LFC not in BKK: %d " % len(runsInLFCNotInBKK) )
+    # productions:
     prodsInLFCNotInBKK = []
     for prod in self.prodsInLFC.keys():
       if not self.prodsInLFC[ prod ]['InBkk']:
         prodsInLFCNotInBKK.append( prod )
-    self.log.notice( "Productions in LFC not in BKK: %s " % prodsInLFCNotInBKK )
+    fileName = os.path.join( self.__workDirectory, "prodsInLFCNotInBkk.txt")
+    f = open( fileName, "w")
+    f.write("%s" % prodsInLFCNotInBKK )
+    f.close()
+    self.log.notice( "Productions in LFC not in BKK: %d " % len( prodsInLFCNotInBKK) )
     self.log.notice( "Consistency BKK vs LFC: " )
-    self.log.notice( "Runs in BKK not in LFC: %s " % self.runsNotInLFC )
-    self.log.notice( "Productions in BKK not in LFC: %s " % self.prodsNotInLFC )
+    self.log.notice( "Runs in BKK not in LFC: %d " % len( self.runsNotInLFC) )
+    self.log.notice( "Productions in BKK not in LFC: %d " % len( self.prodsNotInLFC) )
     return S_OK()
 
 #..................................................................................
@@ -681,6 +704,8 @@ class StorageHistoryAgent( AgentModule ):
         if not dict3[ 'rawDataFlag']:
           self.log.warn("rawDataFlag was set to False. Now set to True")
           dict3[ 'rawDataFlag'] = True
+      else:
+        self.totalBkkProductions.append( prodID )
 
     #  MC and reconstructed data
     if not dict3[ 'rawDataFlag']:
@@ -699,17 +724,18 @@ class StorageHistoryAgent( AgentModule ):
         if 'SETC' not in prodFileTypes:
           prodFileTypes.append( 'SETC' )
         self.log.notice( "For prod %d list of file types: %s" % ( prodID, prodFileTypes ) )
-        # mark the production as existing in Bkk
-        if prodID in self.prodsInLFC.keys(): 
-          self.prodsInLFC[ prodID ][ 'InBkk'] = True
-        else:
-          self.prodsNotInLFC.append( prodID )
-      
+     
         # manipulates if necessary the prodId to match the format of the StorageUsage dictionary (string of 8 chars) 
         prodID = str(prodID)
         if len(prodID)< 8:
           diff = 8 - len(prodID)
           prodID = diff*'0' + prodID
+        # mark the production as existing in Bkk
+        if prodID in self.prodsInLFC.keys(): 
+          self.prodsInLFC[ prodID ][ 'InBkk'] = True
+        else:
+          self.prodsNotInLFC.append( prodID )
+          self.log.notice("Production %s is in Bkk but NOT in LFC! " % prodID )
         # select the dictionary: either reconstructed data or MC:
         if dict3[ 'dataTypeFlag' ] == 'RealData':
           myDirs =  self.dataDirs
@@ -718,7 +744,7 @@ class StorageHistoryAgent( AgentModule ):
 
         for fType in prodFileTypes:
           if prodID not in myDirs.keys():
-            self.log.warn("The storage usage for production %s  was not stored in dictionary!" % (prodID ) )
+            self.log.warn("The storage usage for production %s  was not stored in dictionary! (this should never happen! should have been checked before!)" % (prodID ) )
             continue
           if fType not in myDirs[ prodID ].keys():
             self.log.warn("The storage usage for production %s and fileType %s  was not stored in dictionary!" % (prodID, fType ) )
@@ -771,7 +797,9 @@ class StorageHistoryAgent( AgentModule ):
     else: # raw data
       myDirs = self.rawDirs
       for prodID in productions:
-        # Bkk returns a negative number for raw data runs, change it to positive
+        runNoForAccounting = str( prodID ) # for the accounting, keep the negative number not to confuse with productions.
+        self.totalBkkRuns.append( runNoForAccounting )
+        # Bkk returns a negative number for raw data runs, change it to positive (necessary to match the key in the dictionary where storage usage is stored)
         prodID = str(-1*prodID)
 
         if prodID not in myDirs.keys():
@@ -803,14 +831,15 @@ class StorageHistoryAgent( AgentModule ):
             self.log.warn("LFN size/files not stored for run,stream = %s, %s " %(prodID, streamInLFC ))
  
           #res = __fillAccountingRecord( )        
-          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d lfnFiles: %d lfnSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
+          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Run: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d lfnFiles: %d lfnSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, runNoForAccounting, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
           dataRecord = DataStorage()
           dataRecord.setStartTime( now )
           dataRecord.setEndTime( now )
           dataRecord.setValueByKey( "DataType", dict3['ConfigName'] )
           dataRecord.setValueByKey( "Activity", dict3['ConfigVersion'] )
           dataRecord.setValueByKey( "FileType", fType )
-          dataRecord.setValueByKey( "Production", prodID )
+          #dataRecord.setValueByKey( "Production", prodID )
+          dataRecord.setValueByKey( "Production", runNoForAccounting )
           dataRecord.setValueByKey( "ProcessingPass", dict3['ProcessingPass'] )
           dataRecord.setValueByKey( "Conditions", dict3['ConditionDescription'] )
           dataRecord.setValueByKey( "EventType", dict3['EventTypeDescription'] )
