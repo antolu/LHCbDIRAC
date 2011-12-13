@@ -3176,14 +3176,15 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getTypeVersion(self, lfn):
-    res = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getTypeVesrsion', [lfn] )
-    if res['OK']:
-      result =  []
-      if len(res['Value']) > 0:
-        result = res['Value'][0][0]
-      return S_OK(result)
-    else:
-      return res
+    result = {}
+    for i in lfn:
+      res = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getTypeVesrsion', [i] )
+      if res['OK']:
+        if len(res['Value']) > 0:
+          result[i] = res['Value'][0][0]
+      else:
+        result[i] = res['Message']
+    return S_OK(result)
 
   #############################################################################
   def insertRuntimeProject(self, projectid, runtimeprojectid):

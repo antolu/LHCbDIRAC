@@ -1441,7 +1441,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
       return retVal
 
   #############################################################################
-  types_getTypeVersion = [StringType]
+  types_getTypeVersion = [ListType]
   def export_getTypeVersion(self, lfn):
     return dataMGMT_.getTypeVersion(lfn)
 

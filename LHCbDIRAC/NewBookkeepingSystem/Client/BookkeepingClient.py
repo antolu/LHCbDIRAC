@@ -707,7 +707,10 @@ class BookkeepingClient:
   #############################################################################
   def getTypeVersion(self, lfn):
     server = self.__getServer()
-    return server.getTypeVersion(lfn)
+    if type(lfn) == types.StringType:
+      return server.getTypeVersion([lfn])
+    else:
+      return server.getTypeVersion(lfn)
 
   #############################################################################
   def getAvailableTcks(self, dict):
