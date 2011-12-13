@@ -5,22 +5,51 @@ from DIRAC import gLogger, gConfig, S_OK, rootPath
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
-
-from DIRAC.ResourceStatusSystem.Utilities                   import CS
+from DIRAC.Core.Base.DB import DB
+from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
 from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
-# For caching to DB
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
 
 import xml.dom, xml.sax
-import time
-from datetime import datetime
+import time, string
 import urlparse, urllib
-import sys, os
+import sys, os, re, subprocess, pwd
 
 impl = xml.dom.getDOMImplementation()
-rmClient = ResourceManagementClient()
+rmDB = DB("ResourceManagementDB", "ResourceStatus/ResourceManagementDB", 10)
 dirac = Dirac() # For DIRAC ping
+
+# Generate MySQL INSERT queries
+def gen_mysql(n, d, keys):
+  def norm(v):
+    if type(v) == str: return '"'+v.translate(string.maketrans("\"", "'"), ";")+'"'
+    else: return str(v)
+
+  req = "INSERT INTO " + n + " (" + ", ".join(d.keys()) + ") VALUES ("
+  req += ", ".join([norm(v) for v in d.values()]) + ") "
+  req += "ON DUPLICATE KEY UPDATE " + ", ".join([
+      ("%s=%s" % (k, norm(v))) for (k, v) in d.items() if k not in keys ])
+  return req
+
+# Convenience funs
+def insert_slsservice(**kw):
+  return rmDB._update(gen_mysql("SLSService", kw, ["System", "Service"]))
+
+def insert_slst1service(**kw):
+  return rmDB._update(gen_mysql("SLST1Service", kw, ["Site", "System"]))
+
+def insert_slslogse(**kw):
+  return rmDB._update(gen_mysql("SLSLogSE", kw, ["Name"]))
+
+def insert_slsstorage(**kw):
+  return rmDB._update(gen_mysql("SLSStorage", kw, ["Site", "Token"]))
+
+def insert_slsconddb(**kw):
+  return rmDB._update(gen_mysql("SLSCondDB", kw, ["Site"]))
+
+def insert_slsrmstats(**kw):
+  return rmDB._update(gen_mysql("SLSRMStats", kw, ["Site", "System", "Name"]))
 
 def gen_xml_stub():
   doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
@@ -114,35 +143,37 @@ class SpaceTokenOccupancyTest(TestBase):
  lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
       gLogger.info(str(answer))
 
-    doc = gen_xml_stub()
-    xml_append(doc, "id", site + "_" + st)
-    xml_append(doc, "availability", availability)
-    elt = xml_append(doc, "availabilitythresholds")
-    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
-    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/affected"), elt_=elt, level="affected")
-    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/degraded"), elt_=elt, level="degraded")
-    xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
-    xml_append(doc, "availabilitydesc", self.getTestValue("availabilitydesc"))
-    xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
-    xml_append(doc, "validityduration", validity)
-    elt = xml_append(doc, "data")
-    elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
-    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt2, name="Consumed")
-    xml_append(doc, "numericvalue", value_=str(total), elt_=elt2, name="Capacity")
-    xml_append(doc, "numericvalue", value_=str(free), elt_=elt, name="Free space")
-    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
-    xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
-    xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", site + "_" + st)
+    # xml_append(doc, "availability", availability)
+    # elt = xml_append(doc, "availabilitythresholds")
+    # xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
+    # xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/affected"), elt_=elt, level="affected")
+    # xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/degraded"), elt_=elt, level="degraded")
+    # xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
+    # xml_append(doc, "availabilitydesc", self.getTestValue("availabilitydesc"))
+    # xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
+    # xml_append(doc, "validityduration", validity)
+    # elt = xml_append(doc, "data")
+    # elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
+    # xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt2, name="Consumed")
+    # xml_append(doc, "numericvalue", value_=str(total), elt_=elt2, name="Capacity")
+    # xml_append(doc, "numericvalue", value_=str(free), elt_=elt, name="Free space")
+    # xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
+    # xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
+    # xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
-    rmClient.updateSLSStorage(site, st, datetime.now(), availability,
-                              "PT27M", validity, int(total), int(guaranteed), int(free))
+    Utils.unpack(insert_slsstorage(Site=site, Token=st, Availability=availability,
+                      RefreshPeriod="PT27M", ValidityDuration=validity,
+                      TotalSpace=int(total), GuaranteedSpace=int(guaranteed),
+                      FreeSpace=int(free)))
 
-    xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
     # Send notifications
     # pledged = get_pledged_value_for_token(site, st)
@@ -171,7 +202,7 @@ class DIRACTest(TestBase):
     except OSError:
       pass # The dir exist already, or cannot be created: do nothing
 
-    self.xml_gw()
+#    self.xml_gw()
     self.run_xml_sensors()
     self.run_t1_xml_sensors()
 
@@ -206,6 +237,7 @@ class DIRACTest(TestBase):
 
   # XML GENERATORS
 
+  # This test is an isolated SLS test for one service.. Why is it different ?
   def xml_gw(self):
     try:
       sites = gConfig.getSections('/Resources/Sites/LCG')['Value']
@@ -236,114 +268,111 @@ class DIRACTest(TestBase):
       xmlfile.close()
 
   def xml_sensor(self, system, service):
-
-    gLogger.info("Pinging %s/%s..." % (system,service))
     res = dirac.ping(system, service)
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", system + "_" + service)
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+
     if res["OK"]:
       gLogger.info("%s/%s successfully pinged" % (system, service))
-    else:
-      gLogger.info("%s/%s does not respond to ping" % (system, service))
-
-    try:
-      host = urlparse.urlparse(res['Value']['service url']).netloc.split(":")[0]
-    except KeyError:
-      host = "unknown.cern.ch"
-
-    doc = gen_xml_stub()
-    xml_append(doc, "id", system + "_" + service)
-    xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
-
-    if res['OK']:
-      res = res['Value']
-      xml_append(doc, "availability", 100)
-      elt = xml_append(doc, "data")
-      xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
-                 name="Service Uptime", desc="Seconds since last restart of service")
-      xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
-                 name="Host Uptime", desc="Seconds since last restart of machine")
-      xml_append(doc, "numericvalue", res['load'].split()[0], elt_=elt,
-                 name="Load", desc="Instantaneous load")
-      xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
+      res = res["Value"]
+      host = urlparse.urlparse(res['service url']).netloc.split(":")[0]
+      # xml_append(doc, "availability", 100)
+      # xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
+      # elt = xml_append(doc, "data")
+      # xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
+      #            name="Service Uptime", desc="Seconds since last restart of service")
+      # xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
+      #            name="Host Uptime", desc="Seconds since last restart of machine")
+      # xml_append(doc, "numericvalue", res['load'].split()[0], elt_=elt,
+      #            name="Load", desc="Instantaneous load")
+      # xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
 
       # Fill database
-      rmClient.addOrModifySLSService(system, service, datetime.now(), 100,
-                                     int(res['service uptime']), int(res['host uptime']),
-                                     float(res['load'].split()[0]),
-                                     "Service " + res['service url'] + " completely up and running"
-                                     )
+      Utils.unpack(insert_slsservice(System=system, Service=service, Availability=100,
+                                     Host=host,
+                                     ServiceUptime=res['service uptime'],
+                                     HostUptime=res['host uptime'],
+                                     InstantLoad=res['load'].split()[0],
+                                     Message=("Service " + res['service url'] + " completely up and running")))
     else:
-      xml_append(doc, "availability", 0)
-      xml_append(doc, "notes", res['Message'])
-      rmClient.addOrModifySLSService(system, service, datetime.now(), 0, None, None, None, res["Message"])
+      gLogger.info("%s/%s does not respond to ping" % (system, service))
+      # xml_append(doc, "availability", 0)
+      # xml_append(doc, "notes", res['Message'])
+      Utils.unpack(insert_slsservice(System=system, Service=service, Availability=0, Message=res["Message"]))
 
-    xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
   def xml_t1_sensor(self, url):
     parsed = urlparse.urlparse(url)
     if sys.version_info >= (2,6):
-      system, service = parsed.path.strip("/").split("/")
+      system, _service = parsed.path.strip("/").split("/")
       site = parsed.netloc.split(":")[0]
     else:
-      site, system, service = parsed[2].strip("/").split("/")
+      site, system, _service = parsed[2].strip("/").split("/")
       site = site.split(":")[0]
 
     pinger = RPCClient(url)
     res = pinger.ping()
 
     if system == "RequestManagement":
-      res2 = pinger.getDBSummary()
+      res2 = Utils.unpack(pinger.getDBSummary())
 
-    doc = gen_xml_stub()
-    xml_append(doc, "id", site + "_" + system)
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", site + "_" + system)
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     if res['OK']:
       res = res['Value']
-      xml_append(doc, "availability", 100)
-      xml_append(doc, "notes", "Service " + url + " completely up and running")
 
-      elt = xml_append(doc, "data")
-      xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
-                 name="Service Uptime", desc="Seconds since last restart of service")
-      xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
-                 name="Host Uptime", desc="Seconds since last restart of machine")
+      # xml_append(doc, "availability", 100)
+      # xml_append(doc, "notes", "Service " + url + " completely up and running")
 
-      rmClient.addOrModifySLST1Service(site, system, datetime.now(),
-                                       100, int(res['service uptime']), int(res['host uptime']),
-                                       "Service " + url + " completely up and running"
-                                       )
+      # elt = xml_append(doc, "data")
+      # xml_append(doc, "numericvalue", res.get('service uptime', 0), elt_=elt,
+      #            name="Service Uptime", desc="Seconds since last restart of service")
+      # xml_append(doc, "numericvalue", res.get('host uptime', 0), elt_=elt,
+      #            name="Host Uptime", desc="Seconds since last restart of machine")
+
+      Utils.unpack(insert_slst1service(Site=site, System=system, Availability=100,
+                                       Version=res.get("version", "unknown"),
+                                       ServiceUptime=int(res.get('service uptime', 0)),
+                                       HostUptime=int(res.get('host uptime', 0)),
+                                       Message=("Service " + url + " completely up and running")))
 
       if system == "RequestManagement":
-        for k,v in res2["Value"].items():
-          xml_append(doc, "numericvalue", v["Assigned"], elt_=elt,
-                     name=k + " - Assigned", desc="Number of Assigned " + k + "requests")
-          xml_append(doc, "numericvalue", v["Waiting"], elt_=elt,
-                     name=k + " - Waiting", desc="Number of Waiting " + k + "requests")
-          xml_append(doc, "numericvalue", v["Done"], elt_=elt,
-                     name=k + " - Done", desc="Number of Done " + k + "requests")
+        for k,v in res2.items():
+          # xml_append(doc, "numericvalue", v["Assigned"], elt_=elt,
+          #            name=k + " - Assigned", desc="Number of Assigned " + k + " requests")
+          # xml_append(doc, "numericvalue", v["Waiting"], elt_=elt,
+          #            name=k + " - Waiting", desc="Number of Waiting " + k + " requests")
+          # xml_append(doc, "numericvalue", v["Done"], elt_=elt,
+          #            name=k + " - Done", desc="Number of Done " + k + " requests")
+
+          Utils.unpack(insert_slsrmstats(Site=site, System=system, Name=k,
+                                         Assigned=int(v["Assigned"]),
+                                         Waiting=int(v["Waiting"]),
+                                         Done=int(v["Done"])))
 
       gLogger.info("%s/%s successfully pinged" % (site, system))
 
     else:
-      xml_append(doc, "availability", 0)
-      xml_append(doc, "notes", res['Message'])
-      rmClient.addOrModifySLST1Service(site, system, datetime.now(),
-                                       0, None, None,
-                                       res["Message"]
-                                       )
+      # xml_append(doc, "availability", 0)
+      # xml_append(doc, "notes", res['Message'])
+      Utils.unpack(insert_slst1service(Site=site, System=system, Availability=0,
+                          Message=res["Message"]))
 
       gLogger.info("%s/%s does not respond to ping" % (site, system))
 
-    xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
 class LOGSETest(TestBase):
   def __init__(self, am):
@@ -361,13 +390,13 @@ class LOGSETest(TestBase):
 
     # Generate XML files
 
-    self.partition("log_se_partition.xml")
-    self.gridftpd("log_se_gridftpd.xml")
-    self.cert("log_se_cert.xml")
-    self.httpd("log_se_httpd.xml")
+    self.partition()
+    self.gridftpd()
+    self.cert()
+    self.httpd()
 
   # LOG SE Partition
-  def partition(self, filename):
+  def partition(self):
     input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/partition"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
@@ -378,95 +407,96 @@ class LOGSETest(TestBase):
         space = int(d['data'][3])
         percent = int(d['data'][4])
 
-    doc = gen_xml_stub()
-    xml_append(doc, "id", "log_se_partition")
-    xml_append(doc, "validityduration", "PT12H")
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
-    xml_append(doc, "availability", (100 if percent < 90 else (5 if percent < 99 else 0)))
-    elt = xml_append(doc, "data")
-    xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
-    xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", "log_se_partition")
+    # xml_append(doc, "validityduration", "PT12H")
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
+    # xml_append(doc, "availability", (100 if percent < 90 else (5 if percent < 99 else 0)))
+    # elt = xml_append(doc, "data")
+    # xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
+    # xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
 
-    rmClient.addOrModifySLSLogSE("partition", datetime.now(), "PT12H",
-                                 (100 if percent < 90 else (5 if percent < 99 else 0)),
-                                 percent, space)
+    Utils.unpack(insert_slslogse(Name="partition",  ValidityDuration="PT12H",
+                                 TimeStamp=time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)),
+                                 Availability=(100 if percent < 90 else (5 if percent < 99 else 0)),
+                                 DataPartitionUsed=percent, DataPartitionTotal=space))
     gLogger.info("LogSE partition test done")
 
-    xmlfile = open(self.xmlPath + filename, "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + filename, "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
   # LOG SE GridFTPd
-  def gridftpd(self, filename):
+  def gridftpd(self):
     input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/gridftpd"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    doc = gen_xml_stub()
-    xml_append(doc, "id", "log_se_gridftp")
-    xml_append(doc, "validityduration", "PT2H")
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
-    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", "log_se_gridftp")
+    # xml_append(doc, "validityduration", "PT2H")
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    # xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("gridftp", datetime.now(), "PT2H",
-                                 int(round(float(data['data'][0])*100)), None, None)
+    Utils.unpack(insert_slslogse(Name="gridftpd", ValidityDuration="PT2H",
+                    Availability=int(round(float(data['data'][0])*100))))
     gLogger.info("LogSE gridftp test done")
 
 
-    xmlfile = open(self.xmlPath + filename, "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + filename, "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
   # LOG SE Cert
-  def cert(self, filename):
+  def cert(self):
     input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/cert"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    doc = gen_xml_stub()
-    xml_append(doc, "id", "log_se_cert")
-    xml_append(doc, "validityduration", "PT24H")
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
-    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", "log_se_cert")
+    # xml_append(doc, "validityduration", "PT24H")
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    # xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("cert", datetime.now(), "PT24H",
-                                 int(round(float(data['data'][0])*100)), None, None)
+    Utils.unpack(insert_slslogse(Name="cert", ValidityDuration="PT24H",
+                    Availability=int(round(float(data['data'][0])*100))))
     gLogger.info("LogSE cert test done")
 
-    xmlfile = open(self.xmlPath + filename, "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + filename, "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
   # LOG SE HTTPd
-  def httpd(self, filename):
+  def httpd(self):
     input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/httpd"))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    doc = gen_xml_stub()
-    xml_append(doc, "id", "log_se_httpd")
-    xml_append(doc, "validityduration", "PT2H")
-    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
-    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+    # doc = gen_xml_stub()
+    # xml_append(doc, "id", "log_se_httpd")
+    # xml_append(doc, "validityduration", "PT2H")
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    # xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    rmClient.addOrModifySLSLogSE("httpd", datetime.now(), "PT2H",
-                                 int(round(float(data['data'][0])*100)), None, None)
+    Utils.unpack(insert_slslogse(Name="httpd", ValidityDuration="PT2H",
+                    Availability=int(round(float(data['data'][0])*100))))
     gLogger.info("LogSE httpd test done")
 
-    xmlfile = open(self.xmlPath + filename, "w")
-    try:
-      xmlfile.write(doc.toxml())
-    finally:
-      xmlfile.close()
+    # xmlfile = open(self.xmlPath + filename, "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
   def getxml(self, **kw):
     params = urllib.urlencode(kw)
@@ -511,136 +541,174 @@ class LOGSETest(TestBase):
       if self.inside_d:
         self.cur_list.append(content)
 
-# This LFCReplicaTest has to be rewritten/improved to
-# work. Historically it has never been used. This piece of commented
-# code can serve as an inspiration medium to the person who will maybe
-# need one day to write such tests ;-)
+class CondDBTest(TestBase):
+  def __init__(self, am):
+    super(CondDBTest, self).__init__(am)
 
-# class LFCReplicaTest(object):
-#   def __init__(self, path, timeout, fake=False):
-#     self.path       = path
-#     self.timeout    = timeout
-#     self.cfg        = CS.getTypedDictRootedAt(
-#       root="", relpath="/Resources/FileCatalogs/LcgFileCatalogCombined")
-#     self.ro_mirrors = []
+    # Get ConDB infos
+    self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
+#    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
 
-#     if not fake: # If not fake, run it!
-#       import lfc
-#       from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
-#       self.master_lfc = LcgFileCatalogClient(self.cfg['LcgGfalInfosys'], self.cfg['MasterHost'])
-#       self.run_test()
-#     else:
-#       gLogger.warn("LFCReplicaTest runs in fake mode, nothing is done")
+    # try:
+    #   os.makedirs(self.xmlPath)
+    # except OSError:
+    #   pass # The dir exist already, or cannot be created: do nothing
 
-#   def run_test(self):
-#   # Load the list of mirrors
-#     for site in self.cfg:
-#       if type(self.cfg[site]) == dict:
-#         self.ro_mirrors.append(self.cfg[site]['ReadOnly'])
 
-#     # For all the mirrors, do the unit test:
-#     for mirror in self.ro_mirrors:
-#       lfn =  '/lhcb/test/lfc-replication/%s/testFile.%s' % (mirror,time.time())
-#       if not self.register_dummy(lfn):
-#         gLogger.error("Error: "+lfn+" is already in the master or can't be registered \
-# there...check your voms role is prodution \n")
-#         continue
+    # Go to work directory
+    oldcwd = os.getcwd()
+    os.chdir(am.am_getWorkDirectory())
 
-#       # Try to open a session
-#       if lfc.lfc_startsess(mirror, "DIRAC_test"): # rc != 0 means error
-#         continue
+    # Generate options file
+    options = """from Gaudi.Configuration import *
+from GaudiConf.Configuration import *
 
-#       # Measure time to create replica and write XML file
-#       time_to_create = self.time_to_create_rep(lfn)
-#       fd = open(self.path + mirror + ".timing", "w")
-#       try:
-#         fd.write("%s" % time_to_create)
-#       finally:
-#         fd.close()
+from Configurables import LoadDDDB
+from Configurables import CondDB
 
-#       # Measure time to find a replica
-#       if time_to_create == self.timeout:
-#         time_to_find = self.timeout
-#       else:
-#         time_to_find = self.time_to_find_rep(lfn)
+from Configurables import COOLConfSvc
+def disableLFC():
+    COOLConfSvc(UseLFCReplicaSvc = False)
+appendPostConfigAction(disableLFC)
 
-#       lfc.lfc_endsess()
 
-#       # Measure time to delete a replica
-#       removed = self.remove_replica(lfn)
-#       if removed:
-#         # Try to open a session
-#         if lfc.lfc_startsess(mirror, "DIRAC_test"): # rc != 0 means error
-#           continue
-#         time_to_remove = self.time_to_remove_rep(lfn)
-#         lfc.lfc_endsess()
-#         gLogger.always('%s %s %s %s' % (mirror, time_to_create, time_to_find, time_to_remove))
+# ---------- option to use Oracle CondDB instead of SQLDDDB
+CondDB(UseOracle = True, IgnoreHeartBeat = True)
 
-#   @staticmethod
-#   def pfn_of_token(SE):
-#     cfg = CS.getTypedDictRootedAt(
-#       root="",
-#       relpath="/Resources/StorageElements/" + SE + "/AccessProtocol.1")
-#     return "srm://" + cfg['Host'] + cfg['Path']
+LHCbApp(DataType = '2010')
 
-#   def register_dummy(self, lfn, size=0, SE="CERN-USER", guid=makeGuid(), chksum=""):
-#     pfn = self.pfn_of_token(SE) + lfn
-# #    res = self.master_lfc.addFile(lfn, pfn, size, SE, guid, chksum)
-#     res = self.master_lfc.addFile(lfn)
+ApplicationMgr().EvtSel     = "NONE"
+ApplicationMgr().EvtMax     = 1
 
-#     if not res['OK']:
-#       gLogger.info("register_dummy: %s" % res['Message'])
-#     return res['OK'] and res['Value']['Successful'].has_key(lfn)
+ApplicationMgr().TopAlg  = [ "GaudiSequencer" ]
+GaudiSequencer().Members += [ "LoadDDDB" ]
+GaudiSequencer().MeasureTime = True
 
-#   def get_replica(self, lfn):
-#     reps = {}
-#     rc, replica_objs = lfc.lfc_getreplica("/grid" + lfn, "", "")
-#     if rc:
-#       gLogger.error(lfc.sstrerror(lfc.cvar.serrno))
-#     else:
-#       for r in replica_objs:
-#         SE = r.host
-#         pfn = r.sfn.strip()
-#       reps[SE] = pfn
-#     return reps
+# ---------- option to select only a subtree
+LoadDDDB(Node = '/dd/Structure/LHCb')
+"""
+    options_file = open("options.py", "w")
+    try:
+      options_file.write(options)
+    finally:
+      options_file.close()
 
-#   def remove_replica(self, lfn, SE="CERN-USER"):
-#     pfn = self.pfn_of_token(SE) + lfn
-#     res = self.master_lfc.removeReplica((lfn, pfn, SE))
-#     if res['OK'] == False:
-#       gLogger.info("remove_replica: %s" % res['Message'])
-#     return res['OK'] and res['Value']['Successful'].has_key(lfn)
+    # For each CondDB, run the test and generate XML file
+    for site in self.CDB_infos:
+      gLogger.info("Starting SLS CondDB test for site %s" % site)
+      self.run_test(site)
 
-#   def remove_file(self, lfn):
-#     res = self.master_lfc.removeFile(lfn)
-#     return res['OK'] and res['Value']['Successful'].has_key(lfn)
+    # Go back to previous directory
+    os.chdir(oldcwd)
+    ### END OF TEST
 
-#   def time_to_find_rep(self, lfn):
-#     start_time = time.time()
-#     while True:
-#       reps = self.get_replica(lfn)
-#       if reps.has_key('CERN-USER'):
-#         return time.time() - start_time
-#       else:
-#         if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-#         else                                         : return self.timeout
+  def run_test(self, site):
+    # Generate the dblookup.xml and authentication.xml files needed by gaudirun.py
+    self.generate_lookup_file(site)
+    self.generate_authentication_file(site)
 
-#   def time_to_create_rep(self, lfn):
-#     start_time = time.time()
-#     while True:
-#       if lfc.lfc_access("/grid" + lfn, 0) == 0:
-#         return time.time() - start_time
-#       else:
-#         if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-#         else                                         : return self.timeout
+    if not os.environ.has_key("USER"):
+      # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
+      os.environ["USER"] = pwd.getpwuid(os.getuid())[0]
 
-#   def time_to_remove_rep(self, lfn):
-#     start_time = time.time()
-#     while not lfc.lfc_access("/grid" + lfn, 0): # rc = 0 if accessible
-#       if (time.time() - start_time < self.timeout) : time.sleep(0.1)
-#       else                                         : return self.timeout
-#     return time.time() - start_time
+    try:
+      env = Utils.unpack(ProductionEnvironment.getProjectEnvironment('x86_64-slc5-gcc43-opt', "LHCb"))
+    except Utils.RPCError:
+      gLogger.warn("Unable to run CondDB test for site %s: environment cannot be set. Aborting." % site)
+      return
 
+    f = open("result.log", "w")
+    try:
+      ret = subprocess.call(["gaudirun.py", "options.py"], env=env,stdout=f,stderr=subprocess.STDOUT)
+    finally:
+      f.close()
+
+    if ret == 0:
+      res = open("result.log", "r")
+      try:
+        res_string = res.read()
+      finally:
+        res.close()
+
+        regExp = re.compile("ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)")
+        reRes = regExp.search(res_string)
+        loadTime = float(reRes.group(6))
+        availability = 100
+
+    else:
+      loadTime = 0
+      availability = 0
+
+    # Update results to DB
+    Utils.unpack(insert_slsconddb(Site=site, Availability=availability, AccessTime=loadTime))
+
+    # Generate XML file
+    self.generate_xml(site, loadTime, availability)
+
+  def generate_lookup_file(self, site):
+    doc = impl.createDocument(None, "servicelist", None)
+    elt = xml_append(doc, "logicalservice", name="CondDB")
+    xml_append(doc, "service", elt_=elt, name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb",
+               accessMode="readonly", authentication="password")
+    elt2 = xml_append(doc, "logicalservice", name="CondDBOnline")
+    xml_append(doc, "service", elt_=elt2, name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb",
+               accessMode="readonly", authentication="password")
+    xmlfile = open("dblookup.xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
+
+  def generate_authentication_file(self, site):
+    doc = impl.createDocument(None, "connectionlist", None)
+    elt = xml_append(doc, "connection", name=self.CDB_infos[site]['Connection'] + "/lhcb_conddb")
+    xml_append(doc, "parameter", elt_=elt, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt, name="password", value=self.CDB_infos[site]["Password"])
+    elt2 = xml_append(doc, "role", name="reader")
+    xml_append(doc, "parameter", elt_=elt2, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt2, name="password", value=self.CDB_infos[site]["Password"])
+
+    elt = xml_append(doc, "connection", name=self.CDB_infos[site]['Connection'] + "/lhcb_online_conddb")
+    xml_append(doc, "parameter", elt_=elt, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt, name="password", value=self.CDB_infos[site]["Password"])
+    elt2 = xml_append(doc, "role", name="reader")
+    xml_append(doc, "parameter", elt_=elt2, name="user", value=self.CDB_infos[site]["Username"])
+    xml_append(doc, "parameter", elt_=elt2, name="password", value=self.CDB_infos[site]["Password"])
+
+
+    xmlfile = open("authentication.xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
+
+  def generate_xml(self, site, time_, availability):
+    # Insert into DB
+    Utils.unpack(insert_slsconddb(Site=site, Availability=availability, AccessTime=time_))
+
+    # doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+    #                           "serviceupdate",
+    #                           None)
+    # doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    # doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    # doc.documentElement.setAttribute("xsi:schemaLocation",
+    #                                  "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+
+    # xml_append(doc, "id", site + "_" + "CondDB")
+    # xml_append(doc, "availability", availability)
+    # xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
+    # xml_append(doc, "validityduration", self.getTestValue("validityduration"))
+    # elt2 = xml_append(doc, "data")
+    # xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
+    # xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
+    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+
+
+    # xmlfile = open(self.xmlPath + site + "_" + "CondDB.xml", "w")
+    # try:
+    #   xmlfile.write(doc.toxml())
+    # finally:
+    #   xmlfile.close()
 
 class SLSAgent(AgentModule):
   def initialize(self):
@@ -651,5 +719,5 @@ class SLSAgent(AgentModule):
     SpaceTokenOccupancyTest(self)
     DIRACTest(self)
     LOGSETest(self)
-    # LFCReplicaTest(path="/afs/cern.ch/project/gd/www/eis/docs/lfc/", timeout=60)
+    CondDBTest(self)
     return S_OK()
