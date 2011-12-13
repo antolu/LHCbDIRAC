@@ -5,11 +5,13 @@ import unittest, itertools, copy
 from mock import Mock
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask, getLogPath
+from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
   """
   def setUp( self ):
+
     self.bkClientMock = Mock()
     self.bkClientMock.getFileTypes.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
                                                                             {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
@@ -17,6 +19,13 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                              'Records': [['SDST'], ['PID.MDST'], ['GEN'],
                                                                          ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
+    self.bkClientMock.getTypeVersion.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+                                                                            {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
+                                                                           'getFileTypes', ( {'': ''}, ) ),
+                                                     'Value': {'lfn1':'ROOT', 'lfn2':'MDF'}}
+
+    self.IDR = InputDataResolution( {}, self.bkClientMock )
+
 
 #################################################
 
@@ -203,6 +212,13 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                                      'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
 
 
+class InputDataResolutionSuccess( UtilitiesTestCase ):
+
+  def test__addPfnType( self ):
+
+    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
+    self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} } )
+
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -210,6 +226,7 @@ class ProductionDataSuccess( UtilitiesTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionDataSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

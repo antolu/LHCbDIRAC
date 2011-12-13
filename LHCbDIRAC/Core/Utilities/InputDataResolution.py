@@ -21,8 +21,6 @@ from DIRAC                                                          import S_OK,
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-
 import string, types
 
 COMPONENT_NAME = 'LHCbInputDataResolution'
@@ -30,15 +28,22 @@ COMPONENT_NAME = 'LHCbInputDataResolution'
 class InputDataResolution:
 
   #############################################################################
-  def __init__( self, argumentsDict ):
+
+  def __init__( self, argumentsDict, bkkClient = None ):
     """ Standard constructor
     """
     self.arguments = argumentsDict
     self.name = COMPONENT_NAME
     self.log = gLogger.getSubLogger( self.name )
-    self.bkkClient = BookkeepingClient()
+
+    if not bkkClient:
+      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      self.bkkClient = BookkeepingClient()
+    else:
+      self.bkkClient = bkkClient
 
   #############################################################################
+
   def execute( self ):
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
@@ -67,20 +72,8 @@ class InputDataResolution:
       return S_ERROR( 'Could not access any requested input data' )
 
     resolvedData = result['Successful']
-    tmpDict = {}
-    for lfn, mdata in resolvedData.items():
-      tmpDict[lfn] = mdata
 
-      typeVersion = self.bkkClient.getTypeVersion( lfn )
-      if not typeVersion['OK']:
-        return typeVersion
-
-      typeVersion = typeVersion['Value']
-
-      self.log.verbose( 'Adding PFN file type %s for LFN:%s' % ( typeVersion, lfn ) )
-      tmpDict[lfn]['pfntype'] = typeVersion
-
-    resolvedData = tmpDict
+    resolvedData = self._addPfnType( resolvedData )
 
     #TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
     #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
@@ -107,6 +100,32 @@ class InputDataResolution:
     return result
 
   #############################################################################
+
+  def _addPfnType( self, resolvedData ):
+    """ Add the pfn type to the lfn list in input
+    """
+
+    tmpDict = {}
+
+    for lfn, mdata in resolvedData.items():
+      tmpDict[lfn] = mdata
+
+    lfnList = resolvedData.keys()
+    typeVersions = self.bkkClient.getTypeVersion( lfnList )
+    if not typeVersions['OK']:
+      return typeVersions
+
+    typeVersions = typeVersions['Value']
+
+    self.log.verbose( 'Adding PFN file types %s for LFNs: %s' % ( typeVersions.values(), typeVersions.keys() ) )
+
+    for lfn in typeVersions.keys():
+      tmpDict[lfn]['pfntype'] = typeVersions[lfn]
+
+    return tmpDict
+
+  #############################################################################
+
   def __resolveInputData( self ):
     """This method controls the execution of the DIRAC input data modules according
        to the LHCb VO policy defined in the configuration service.
