@@ -1,3 +1,4 @@
+from DIRAC import gLogger
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.ResourceStatusSystem.Utilities import CS
 from DIRAC.ResourceStatusSystem.Utilities import Synchronizer as BaseSync
@@ -22,7 +23,7 @@ class Synchronizer(BaseSync.Synchronizer):
     VOBOXesInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
           serviceType = "VO-BOX", meta = { 'columns' : "SiteName" } ))))
 
-    print "Updating %d VOBOXes on DB" % len(VOBOXesInCS - VOBOXesInDB)
+    gLogger.info("Updating %d VOBOXes on DB" % len(VOBOXesInCS - VOBOXesInDB))
     for site in VOBOXesInCS - VOBOXesInDB:
       service = 'VO-BOX@' + site
       Utils.protect2(self.rsClient.addOrModifyService, service, 'VO-BOX', site )
@@ -32,7 +33,7 @@ class Synchronizer(BaseSync.Synchronizer):
     CondDBinDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
             serviceType = "CondDB", meta = { 'columns' : "SiteName" } ))))
 
-    print "Updating %d CondDBs on DB" % len (CondDBinCS - CondDBinDB)
+    gLogger.info("Updating %d CondDBs on DB" % len (CondDBinCS - CondDBinDB))
     for site in CondDBinCS - CondDBinDB:
       service = "CondDB@" + site
       Utils.protect2(self.rsClient.addOrModifyService, service, 'CondDB', site )
