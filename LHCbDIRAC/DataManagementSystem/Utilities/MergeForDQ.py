@@ -3,6 +3,7 @@ from DIRAC                                                 import S_OK, S_ERROR,
 from DIRAC.Core.Utilities.List                             import sortList
 from DIRAC.FrameworkSystem.Client.NotificationClient                    import NotificationClient
 from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 import subprocess
 from subprocess import PIPE
 import os,sys
@@ -147,14 +148,14 @@ def GetRuns( bkTree, bkClient , eventType, evtTypeList, dqFlag ):
 
       gLogger.info( "There are %d runs in %s/%s" %
                     (len( runList ), cfgName, cfgVersion ) )
-
+     
       for ll in runList:
         for run in ll:
-## FIX THIS !!!!!!!!
-##
-#          if run == 102550 or run == 102762:
-#            continue
-#                      
+          #
+          #
+          #         Here a filter on special runs must be implemented
+          #            
+          #                      
           bkDict['EndRun'] = run
           bkDict['StartRun'] = run
           res = bkClient.getRunInformations( int( run ) )
@@ -221,21 +222,31 @@ def GetRuns( bkTree, bkClient , eventType, evtTypeList, dqFlag ):
  Scan the whole bookkeeping tree and process unflagged runs.                  
                                                                               
 '''
-def MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , testMode ,
-              specialMode , mergeExeDir , mergeStep1Command, mergeStep2Command, mergeStep3Command, 
-              specialmode,testmode, castorHistPre, castorHistPost , workDir ,
-              brunelCount , daVinciCount , logFile , logFileName ,dirac ,senderAddress , mailAddress):
+def MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testMode , specialMode , 
+              mergeExeDir , mergeStep1Command, mergeStep2Command, mergeStep3Command,
+              brunelCount , daVinciCount , logFile , logFileName , dirac , 
+              senderAddress , mailAddress,environment):
+
+  rm = ReplicaManager()
 
   run = bkDict['StartRun']
   procPass = bkDict['ProcessingPass']
   dqFlag = bkDict['DataQualityFlag']
   dtd = bkDict['ConditionDescription']
   eventTypeId = bkDict['EventType']
-  
+ 
   runData = {}
+  brunelList=[]
+  davinciList=[]
   for histType in histTypeList:
     bkDict['FileType'] = histType
     lfns, res = GetStreamHIST( bkDict , bkClient )
+    if res['OK']:
+      if histType=='BRUNELHIST':
+        brunelList=res['Value']
+      if histType=='DAVINCIHIST':
+        davinciList=res['Value']
+    #gLogger.info('==============GetStreamHIST %s' % str(lfns))
     if not res['OK']:
       return res
     runData[histType] = lfns
@@ -267,7 +278,7 @@ def MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , 
   #
   # Check if the histograms have already been merged.
   #
-  res = MakeDestination( run, bkDict , homeDir ,testDir ,testMode ,specialMode)
+  res = MakeDestination( run, bkDict , homeDir ,testMode ,specialMode)
   if not res['OK']:
     outMess = 'Cannot create destination directory for run %s in pass %s' % ( run, procPass )
     gLogger.error( outMess )
@@ -281,8 +292,11 @@ def MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , 
     res['OK'] = False
     return res
   targetFile = GetTargetFile( run, retVal, eventType, destDir  )
-  retVal , res = TargetFileExists( targetFile, run , homeDir ,dirac)
+  #retVal , res = TargetFileExists( targetFile, run , homeDir ,dirac)
+  retVal = os.path.exists(targetFile) 
   if retVal:
+    res['OK']=False
+    res['Message']='%s already merged' %targetFile
     return res
   #
   # Check if enough files have been reconstructed
@@ -295,17 +309,30 @@ def MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , 
   gLogger.info( "Now processing run %s in pass %s." % ( 
   run, bkDict['ProcessingPass'] ) )
   
-  brunelHist = retVal['BRUNELHIST']
-  daVinciHist = retVal['DAVINCIHIST']
+  #brunelHist = retVal['BRUNELHIST']
+  #daVinciHist = retVal['DAVINCIHIST']
+  brunelLocal=[]
+  davinciLocal=[]
+  gLogger.info('===>Retrieving Brunel histograms locally')
+  for lfn in brunelList:
+    res = rm.getFile(lfn,homeDir)
+    if res['OK']:
+      brunelLocal.append(res['Value']['Successful'][lfn])
+  gLogger.info('===>Retrieving DaVinci histograms locally')
+  for lfn in davinciList:
+    res = rm.getFile(lfn,homeDir)
+    if res['OK']:
+      davinciLocal.append(res['Value']['Successful'][lfn])
 
-  res = Merge( targetFile, run, brunelHist, daVinciHist , mergeExeDir ,
+  #return res
+  res = Merge( targetFile, run, brunelLocal , davinciLocal , mergeExeDir ,
                mergeStep1Command, mergeStep2Command, mergeStep3Command,
-               specialMode,testMode, castorHistPre, castorHistPost, homeDir, workDir ,
-               brunelCount , daVinciCount , logFile , logFileName , dirac)
-  os.remove(logFileName)
+               specialMode,testMode,homeDir, workDir ,
+               brunelCount , daVinciCount , logFile , logFileName , dirac , environment)
+  #os.remove(logFileName)
   
   if res['Merged'] and not testMode:
-    outMess = 'Run %s pass %s stream %s beam %s completed, merged and uploaded to castor.\n' %(
+    outMess = 'Run %s pass %s stream %s beam %s completed, merged and uploaded locally\n' %(
     run, procPass, eventType, dtd)
     outMess = outMess + 'ROOT file : %s' %(targetFile)
     notifyClient = NotificationClient()
@@ -322,13 +349,12 @@ MakeDestination:
 Create the path to the merged file location.                                 
                                                                               
 '''
-def MakeDestination( run, bkDict , homeDir , testDir ,testMode ,specialMode ):
+def MakeDestination( run, bkDict , homeDir , testMode ,specialMode ):
   retVal = {}
   retVal['OK'] = False
 
   baseDir = homeDir
-  if testMode:
-    baseDir = testDir
+
   res = MakeDir( baseDir, bkDict['ConfigVersion'] )
 
   if not res['OK']:
@@ -486,27 +512,6 @@ def GetTargetFile( run, prodId, eventType, destDir ):
                                                   run, prodId )
   return targetFile
 
-
-'''
-                                                                             
-TargetFileExists:                                                            
-                                                                             
-Check if the histogram output file is already on disk.                       
-                                                                             
-'''
-def TargetFileExists( targetFile, run , homeDir , dirac):
-  retVal = False
-  castorLFN = re.sub( homeDir, '/lhcb/dataquality', targetFile );
-  res = dirac.getReplicas( castorLFN )
-  if not res['OK']:
-    gLogger.error( "Cannot check castor status of %s" % ( castorLFN ) )
-    gLogger.error( res['Message'] )
-    return ( retVal, res )
-
-  if res['Value']['Successful'].has_key( castorLFN ):
-    gLogger.info( 'Run %s is already available on castor' % ( run ) )
-    retVal = True
-  return ( retVal, res )
 
 '''
                                                                              
@@ -670,9 +675,9 @@ Merge:
 Merge all root files into one.                                               
                                                                              
 '''
-def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
-           mergeStep1Command , mergeStep2Command, mergeStep3Command , specialMode,testMode,
-           castorHistPre, castorHistPost , homeDir , workDir, brunelCount , daVinciCount , logFile ,logFileName , dirac):
+def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,mergeStep1Command , mergeStep2Command, mergeStep3Command , 
+           specialMode,testMode, homeDir , workDir, brunelCount , daVinciCount , 
+           logFile ,logFileName , dirac , environment):
   retVal = {}
   retVal['OK'] = False
   retVal['Merged'] = False
@@ -686,9 +691,8 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
   # First step in Brunel and DaVinci merges the bulk of the files.
   # Second step merges the files previously merged/
   #
-  brunelStep1 = MergeStep1( brunelHist, 'Brunel', mergeStep1Command, runNumber ,
-                            castorHistPre, castorHistPost  , workDir,
-                            brunelCount , daVinciCount , logFile  , logFileName)
+  brunelStep1 = MergeStep1( brunelHist, 'Brunel', mergeStep1Command, runNumber , homeDir,
+                            brunelCount , daVinciCount , logFile  , logFileName,environment)
   StreamToLog(logFileName,gLogger,mergeStep1Command)
 
   if not brunelStep1['OK']:
@@ -698,7 +702,7 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
   dim = len( brunelHist )
   
   brunelStep2 = MergeStep2( brunelStep1['step2Hist'],
-                           'Brunel', mergeStep2Command, dim , workDir , logFile , logFileName )
+                           'Brunel', mergeStep2Command, dim , homeDir , logFile , logFileName,environment )
 
   StreamToLog(logFileName,gLogger,mergeStep2Command)
 
@@ -709,8 +713,8 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
   brunelFile = brunelStep2['file']
 
   daVinciStep1 = MergeStep1( daVinciHist, 'DaVinci', mergeStep1Command, runNumber ,
-                             castorHistPre, castorHistPost  , workDir,
-                             brunelCount , daVinciCount , logFile , logFileName)
+                             homeDir,
+                             brunelCount , daVinciCount , logFile , logFileName,environment)
   
   StreamToLog(logFileName,gLogger,mergeStep1Command)
   
@@ -722,7 +726,7 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
 
   dim = len( daVinciHist )
   daVinciStep2 = MergeStep2( daVinciStep1['step2Hist'],
-                            'DaVinci', mergeStep2Command, dim , workDir , logFile , logFileName)
+                            'DaVinci', mergeStep2Command, dim , homeDir , logFile , logFileName,environment)
 
   StreamToLog(logFileName,gLogger,mergeStep2Command)
 
@@ -740,7 +744,8 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
   merge = [brunelFile, daVinciFile]
   merge.insert( 0, targetFile )
   merge.insert( 0, mergeStep3Command )
-  p = subprocess.call( merge, stdout = logFile )
+  command = " ".join(merge)
+  p = subprocess.call( args = command, env = environment ,stdout = logFile , shell = True)
   gLogger.info("=== Final Merging OutPut")
   StreamToLog(logFileName,gLogger,mergeStep3Command)
 
@@ -760,15 +765,7 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir ,
   #
   # Upload the hist file to castor
   #
-
-  if not testMode:
-    castorLFN = re.sub( homeDir, '/lhcb/dataquality', targetFile );
-    res = dirac.addFile( castorLFN, targetFile, 'CERN-HIST' )
-    if not res['OK']:
-      gLogger.error( 'Error uploadding %s to %s. Error is: %s' % ( 
-        targetFile, castorLFN, res['Message'] ) )
-      return retVal
-
+  # MUST BE IMPLEMENTED
   #
   # Cd to the original workdir.
   #
@@ -787,8 +784,8 @@ Step 1 in the merging of root files.
                                                                              
 '''
 def MergeStep1( stepHist, histType, mergeStep1Command, runNumber,
-                castorHistPre, castorHistPost , workDir ,
-                brunelCount , daVinciCount , logFile , logFileName):
+                homeDir ,
+                brunelCount , daVinciCount , logFile , logFileName,environment):
   
   retVal = {}
   retVal['OK'] = False
@@ -809,21 +806,19 @@ def MergeStep1( stepHist, histType, mergeStep1Command, runNumber,
 
     merge = []
     for lfn in mergeLFN:
-      filename = '%s%s%s' % ( castorHistPre, lfn, castorHistPost )
-      merge.append( filename )
+      merge.append(lfn)
 
     if histType == 'Brunel':
-      targetFile = '%s/%s_%s_%s.root' % ( workDir, histType,
-                                        os.getpid(), str( brunelCount ) )
+      targetFile = '%s/%s_%s_%s.root' % ( homeDir , histType , os.getpid() , str( brunelCount ) )
       brunelCount += 1
     elif histType == 'DaVinci':
-      targetFile = '%s/%s_%s_%s.root' % ( workDir, histType,
-                                        os.getpid(), str( daVinciCount ) )
+      targetFile = '%s/%s_%s_%s.root' % ( homeDir , histType , os.getpid() , str( daVinciCount ) )
       daVinciCount += 1
 
     merge.insert( 0, targetFile )
     merge.insert( 0, mergeStep1Command )
-    p = subprocess.call( merge, stdout = logFile )
+    command = " ".join(merge)
+    p = subprocess.call( args = command, env = environment, stdout = logFile , shell=True)
     StreamToLog(logFileName,gLogger,mergeStep1Command)
     
     if not p == 0:
@@ -846,17 +841,18 @@ def MergeStep1( stepHist, histType, mergeStep1Command, runNumber,
 ################################################################################
 
 def MergeStep2( stepHist, histType,mergeStep2Command ,dim,
-                workDir , logFile , logFileName):
+                homeDir , logFile , logFileName , environment):
   retVal = {}
   retVal['OK'] = False
   retVal['file'] = []
 
-  targetFile = '%s/%s_%s.root' % ( workDir, histType, os.getpid() )
+  targetFile = '%s/%s_%s.root' % ( homeDir, histType, os.getpid() )
   merge = stepHist[0:len(stepHist)]
   merge.insert( 0, str( dim ) )
   merge.insert( 0, targetFile )
   merge.insert( 0, mergeStep2Command )
-  p = subprocess.call( merge, stdout = logFile )
+  command = " ".join(merge)
+  p = subprocess.call( args = command , env = environment , stdout = logFile , shell=True)
   StreamToLog(logFileName,gLogger,mergeStep2Command)
   if not p == 0:
     if os.path.isfile( targetFile ):
