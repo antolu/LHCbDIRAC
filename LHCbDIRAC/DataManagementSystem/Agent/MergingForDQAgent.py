@@ -1,5 +1,20 @@
-""" Put doc here
-"""
+__RCSID__ = "$Id: $"
+'''
+MergingForDQAgent automatize some operations done by the data quality crew. It looks for Runs that have not been flagged 
+(i.e. that are UNCHECKED). If it finds out some of them he performes a merging of the BRUNELHIST and DAVINCIHIST root files.
+The main steps are the following:
+
+- Retrieving the UNCHECKED DAVINCIHISTs and BRUNELHISTs by run. The BKquery the perform this will be changed in the new release.
+
+- The files are saved locally and merged in three steps. The first step consists in merging separatly the two kinds of histograms in groups of 50.
+  This grouping is made because the merging is basically CPU consuming. The output files of this first step are then merged as well.
+  Finally DAVINCI and BRUNEL histograms are then put together in a single file.
+ 
+- As it is no result is uploaded everything is left in the homeDir.
+
+- The initialize method gather informations from etc/dirac.cfg  
+          
+'''
 
 import DIRAC
 from DIRAC                                                     import S_OK, S_ERROR, gLogger
@@ -8,9 +23,13 @@ from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ       import *
 from DIRAC.Core.Base                                           import Script
 from DIRAC.Interfaces.API.Dirac                                import Dirac
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-import re
+from DIRAC import gConfig
+import re,os,string
+import subprocess
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 
 __RCSID__ = "$Id:"
+
 
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
 
@@ -18,83 +37,134 @@ class MergingForDQAgent( AgentModule ):
 
   def initialize( self ):
     self.am_setOption( 'shifterProxy', 'DataManager' )
-    # put these into CS (or remove completely!)
-    self.homeDir = '/afs/cern.ch/lhcb/group/dataquality/ROOT'
-    self.testDir = '/afs/cern.ch/lhcb/group/dataquality/Test'
-    self.workDir = '/afs/cern.ch/lhcb/group/dataquality/Work'
-    self.scriptsDir = '/afs/cern.ch/lhcb/group/dataquality/scripts'#TO BE CHANGED
-    # DIRAC can build these paths for you (e.g.: no need to do it here)
-    self.castorHistDir = '/castor/cern.ch/grid'
-    self.castorHistPre = 'castor://castorlhcb.cern.ch:9002//castor/cern.ch/grid'
-    self.castorHistPost = '?svcClass=lhcbdisk&castorVersion=2'
-    self.cfgName = "LHCb"
-    self.cfgVersion = 'Collision11'
-    self.thisEventType = 'EXPRESS'
+    self.systemConfiguration = 'x86_64-slc5-gcc43-opt' 
+    Configuration = {'ExeDir' : False,
+                     'homeDir' : False, 
+                     'senderAddress' : False,
+                     'mailAddress' : False,
+                     'applicationName' : False,
+                     'eventType' : False,
+                     'cfgName' : False,
+                     'cfgVersion' : False,
+                     'dqFlag' : False,
+                     'evtTypeDict' : False,
+                     'histTypeList' : False,
+                     'testMode' : False,
+                     'specialMode' : False,
+                     'specialRuns' : False}
+
+    gLogger.info('=====Gathering information from dirac.cfg=====')    
+    self.applicationName = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/applicationName" )
+    if self.applicationName: Configuration['applicationName']=True     
+    self.homeDir = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/homeDir" )
+    if self.homeDir: 
+      Configuration['homeDir']=True
+      '''
+      Local directory creation 
+      '''
+      d = os.path.dirname(self.homeDir)
+      gLogger.info( 'Checking temp dir %s' % ( d ) )
+      if not os.path.exists(d):
+        gLogger.info( '%s not found creating' % ( d ) )
+        os.makedirs(d)
+
+    
+    '''
+    Compiled C++ root macros for the three Merging steps. 
+    '''
+    self.mergeExeDir = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/ExeDir" )
+
+    if self.mergeExeDir: 
+      Configuration['ExeDir']=True
+      self.mergeStep1Command = self.mergeExeDir + '/Merge'
+      self.mergeStep2Command = self.mergeExeDir + '/Merge2'
+      self.mergeStep3Command = self.mergeExeDir + '/Merge3'
+
+    self.senderAddress = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/senderAddress" )
+    if self.senderAddress: Configuration['senderAddress']=True
+    self.mailAddress = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/mailAddress" )
+    if self.mailAddress:Configuration['mailAddress']=True
+    self.thisEventType = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/eventType" )
+    if self.thisEventType: Configuration['eventType']=True
+    self.cfgName = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/cfgName" )
+    if self.cfgName: Configuration['cfgName']=True
+    self.cfgVersion = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/cfgVersion" )
+    if self.cfgVersion: Configuration['cfgVersion']=True
+    self.dqFlag = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/dqFlag" )
+    if self.dqFlag: Configuration['dqFlag']=True
     self.dqFlag = 'UNCHECKED'
     self.evtTypeList = {'EXPRESS' : '91000000', 'FULL'    : '90000000'}
     self.histTypeList = ['BRUNELHIST', 'DAVINCIHIST']
     self.brunelCount = 0
     self.daVinciCount = 0
-    # can upload this log in the logSE (look for uploadLogFile module)
-    self.logFileName = '%s/logs/Merge_%s_histograms.log' % ( self.scriptsDir, self.thisEventType )
-    # no need?
-    self.args = Script.getPositionalArgs()
-    # ?
-    self.checkType = 'DATA'
-#    self.testMode = False
-#    self.specialMode = False
-#    self.specialRuns = {}
-    self.mergeExeDir = '/afs/cern.ch/lhcb/group/dataquality/adinolfi'#TO BE CHANGED
-    self.mergeStep1Command = self.mergeExeDir + '/Merge1'
-    self.mergeStep2Command = self.mergeExeDir + '/Merge2'
-    self.mergeStep3Command = self.mergeExeDir + '/Merge3'
-    self.senderAddress = 'marco.adinolfi@cern.ch'
-    self.mailAddress = 'lhcb-dataquality-shifters@cern.ch'
-    #self.senderAddress = 'falabella@fe.infn.it'
-    #self.mailAddress = 'falabella@fe.infn.it'
+
+    TypeDict = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/evtTypedict" )
+    if TypeDict:
+      l = string.join(TypeDict.split(),"")
+      ll = l.split(",")
+      self.evtTypeDict = {}
+      for t in ll:
+        s =  t.split(":")  
+        self.evtTypeDict[s[0]]=s[1]
+    Configuration['evtTypeDict']=True
+    
+    List = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/histTypeList" ) 
+    if List:
+      l = string.join(List.split(),"")
+      self.histTypeList = l.split(",")
+      Configuration['histTypeList']=True
+
+    self.testMode = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/testMode" )
+    if self.testMode: Configuration['testMode']=True
+    self.specialMode = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/specialMode" )
+    if self.specialMode: Configuration['specialMode']=True
+    Runs = gConfig.getValue( "Systems/DataManagement/Development/Agents/MergingForDQAgent/specialRuns" )
+    if Runs: 
+      l = string.join(Runs.split(),"")
+      self.specialRuns = l.split(",")
+    Configuration['specialRuns']=True
+   
+    nConf=False
+    for confVar in Configuration:
+      if not Configuration[confVar]:
+        gLogger.error('%s not specified in dirac.cfg'% confVar)
+        nConf=True
+    if nConf: DIRAC.exit(2) 
+
+    gLogger.info('=====All informations from dirac.cfg retrieved=====')     
     self.exitStatus = 0
+    env = dict(os.environ)
+    env['USER']='dirac'
+    res = getProjectEnvironment(self.systemConfiguration, self.applicationName, applicationVersion = '', extraPackages = '',
+                                runTimeProject = '', site = '', directory = '', generatorName = '',
+                                poolXMLCatalogName = 'pool_xml_catalog.xml', env = env )
 
-    return S_OK()
+    if not res['OK']:
+      gLogger.error('===== Cannot create the environment check LocalArea or SharedArea in dirac.cfg =====')
+      DIRAC.exit( 2 )
+    
+    self.environment = res['Value']
 
-  def execute( self ):
-    if re.search( 'FULL', Script.scriptName ):
-      self.dqFlag = 'EXPRESS_OK'
-      self.thisEventType = 'FULL'
-    if re.search( 'VALIDATION', Script.scriptName ):
-      self.checkType = 'VALIDATION'
-      self.homeDir = self.homeDir + '/Validation'
+    self.logFileName = '%s/Merge_%s_histograms.log' % (self.homeDir , self.thisEventType)    
 
-    self.logFileName = '%s/logs/Merge_%s_histograms.log' % ( self.scriptsDir, self.thisEventType )
-    logFile = open( self.logFileName, 'a' )
-    logFile = None
-
-    if len( self.args ):
-      if self.args[0] == "test":
-        self.testMode = True
-      elif self.args[0] == "special":
-        self.specialMode = True
-        if not len( self.args ) >= 2:
-          print 'You need to pass the run number in special mode'
-          DIRAC.exit( -1 )
-        for arg in self.args:
-          if arg == "special":
-            continue
-          self.specialRuns[arg] = True
-        gLogger.info( 'Special Mode selected, will download run %s only' % ( self.specialRuns.keys() ) )
-
-    evtTypeId = int( self.evtTypeList[self.thisEventType] )
-
-    dirac = Dirac()
-    bkClient = BookkeepingClient()
+    self.logFile = open( self.logFileName, 'a' )
+    
+    self.dirac = Dirac()
+    self.bkClient = BookkeepingClient()
+ 
+    evtTypeId = int( self.evtTypeDict[self.thisEventType] )
+    
     '''
-    Load the configuration names and versions we're interested in.
-    '''
-    if self.checkType == 'VALIDATION':
-      self.cfgName = 'validation'
 
+    Here the list of run is built
+
+    '''
+    
+    gLogger.info('=====Retrieving the list of runs=====')
+    
     bkTree = {self.cfgName : {}}
     bkDict = {'ConfigName' : self.cfgName}
-    allConfig = bkClient.getAvailableConfigurations()
+    allConfig = self.bkClient.getAvailableConfigurations()
     for i in range( len( allConfig['Value'] ) ):
       if allConfig['Value'][i][0] == self.cfgName:
         if re.search( self.cfgVersion, allConfig['Value'][i][1] ):
@@ -102,27 +172,29 @@ class MergingForDQAgent( AgentModule ):
           if not bkTree[self.cfgName].has_key( self.cfgVersion ):
             bkTree[self.cfgName][self.cfgVersion] = {}
 
-    bkTree, res = GetRunningConditions( bkTree , bkClient )
+    bkTree, res = GetRunningConditions( bkTree ,self.bkClient )
     if not res['OK']:
-      outMess = 'Running Conditions not found'
-      gLogger.error( outmess )
+      gLogger.error( 'Running Conditions not found' )
       DIRAC.exit( 2 )
 
-    bkTree, res = GetProcessingPasses( bkTree , bkClient )
+    bkTree, res = GetProcessingPasses( bkTree , self.bkClient )
     if not res['OK']:
-        DIRAC.exit( 2 )
+      DIRAC.exit( 2 )
 
-    bkDict , res = GetRuns( bkTree, bkClient, self.thisEventType,
-                            self.evtTypeList, self.dqFlag )
-    res = MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , testMode,
-                    specialMode , mergeExeDir , mergeStep1Command, mergeStep2Command,
-                    mergeStep3Command, castorHistPre, castorHistPost , workDir, brunelCount ,
-                    daVinciCount , logFile , self.logFileName , dirac , self.senderAddress, self.mailAddress )
+    self.bkDict , res = GetRuns( bkTree, self.bkClient, self.thisEventType,self.evtTypeDict, self.dqFlag )
 
     if not res['OK']:
-      gLogger.error( 'Cannot load the run list for version %s' % ( cfgVersion ) )
+      gLogger.error( 'Cannot load the run list for version %s' % ( self.cfgVersion ) )
       gLogger.error( res['Message'] )
       DIRAC.exit( 2 )
 
     return S_OK()
 
+  def execute( self ):
+    
+    res = MergeRun( self.bkDict, self.thisEventType , self.histTypeList , self.bkClient , self.homeDir , self.testMode, self.specialMode , 
+                    self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command,self.mergeStep3Command, 
+                    self.brunelCount ,self.daVinciCount , self.logFile , self.logFileName , self.dirac , 
+                    self.senderAddress,self.mailAddress,self.environment)
+    
+    return S_OK()
