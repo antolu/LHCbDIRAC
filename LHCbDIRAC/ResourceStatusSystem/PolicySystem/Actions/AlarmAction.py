@@ -2,10 +2,10 @@
 AlarmPolType Actions
 """
 import urllib
-from DIRAC.ResourceStatusSystem.PolicySystem.Actions import Alarm_PolType
-from DIRAC.ResourceStatusSystem.Utilities            import Utils
+from DIRAC.ResourceStatusSystem.PolicySystem.Actions.AlarmAction import AlarmAction as BaseAlarmAction
+from DIRAC.ResourceStatusSystem.Utilities import Utils
 
-class AlarmPolType(Alarm_PolType.AlarmPolType):
+class AlarmAction(BaseAlarmAction):
   def get_shiftdb_users(self):
     url = urllib.urlopen("http://lbshiftdb.cern.ch/shiftdb_report.php")
     lines = [l.split('|')[1:-1] for l in  url.readlines()]
@@ -19,4 +19,4 @@ class AlarmPolType(Alarm_PolType.AlarmPolType):
     return [ {'Users': lines, 'Notifications': ["Mail"]} ] # Only mail notification since others are not working
 
   def _getUsersToNotify(self):
-    return Alarm_PolType.AlarmPolType._getUsersToNotify(self) + self.get_shiftdb_users()
+    return BaseAlarmAction._getUsersToNotify(self) + self.get_shiftdb_users()
