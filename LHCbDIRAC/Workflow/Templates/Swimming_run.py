@@ -60,7 +60,7 @@ swimmFilesPerJob = '{{swimmFilesPerJob#PROD-swimming-Moore: Group size or number
 unmergedStreamSE = '{{swimmStreamSE#PROD-swimming-Moore: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd = '{{swimmAncestorProd#PROD-swimming-Moore: ancestor production if any#0}}'
 swimmIDPolicy = '{{swimmIDPolicy#PROD-swimming-Moore: policy for input data access (download or protocol)#download}}'
-swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#from Configurables import Swimming;Swimming().OutputFile=\"@{outputData}\"}}'
+swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
 
 #swimming (DaVinci) params
 swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
@@ -280,7 +280,7 @@ if swimmEnabled:
     gLogger.error( 'Error getting res from BKK: %s', swimmInput['Message'] )
     DIRAC.exit( 2 )
 
-  swimmInputList = [x[0].lower() for x in swimmInput['Value']['Records']]
+  swimmInputList = [x[0].lower().strip() for x in swimmInput['Value']['Records']]
   if len( swimmInputList ) == 1:
     swimmInput = swimmInputList[0]
   else:
@@ -292,7 +292,7 @@ if swimmEnabled:
     gLogger.error( 'Error getting res from BKK: %s', swimmOutput['Message'] )
     DIRAC.exit( 2 )
 
-  swimmOutputList = [x[0].lower() for x in swimmOutput['Value']['Records']]
+  swimmOutputList = [x[0].lower().strip() for x in swimmOutput['Value']['Records']]
   if len( swimmOutputList ) > 1:
     gLogger.error( 'Multiple outputs to swimming...?', swimmInput['Message'] )
     DIRAC.exit( 2 )
@@ -305,7 +305,7 @@ if swimmEnabled:
     gLogger.error( 'Error getting res from BKK: %s', swimmDVInput['Message'] )
     DIRAC.exit( 2 )
 
-  swimmDVInputList = [x[0].lower() for x in swimmDVInput['Value']['Records']]
+  swimmDVInputList = [x[0].lower().strip() for x in swimmDVInput['Value']['Records']]
   if len( swimmDVInputList ) == 1:
     swimmDVInput = swimmDVInputList[0]
   else:
@@ -317,7 +317,7 @@ if swimmEnabled:
     gLogger.error( 'Error getting res from BKK: %s', swimmDVOutput['Message'] )
     DIRAC.exit( 2 )
 
-  swimmDVOutputList = [x[0].lower() for x in swimmDVOutput['Value']['Records']]
+  swimmDVOutputList = [x[0].lower().strip() for x in swimmDVOutput['Value']['Records']]
   if len( swimmDVOutputList ) > 1:
     gLogger.error( 'Multiple outputs to swimmDVing...?', swimmDVInput['Message'] )
     DIRAC.exit( 2 )
@@ -328,7 +328,7 @@ if swimmEnabled:
   swimmInputBKQuery = {
                         'DataTakingConditions'     : dataTakingCond,
                         'ProcessingPass'           : processingPass,
-                        'FileType'                 : swimmFileType,
+                        'FileType'                 : swimmFileType.upper(),
                         'EventType'                : eventType,
                         'ConfigName'               : bkConfigName,
                         'ConfigVersion'            : bkConfigVersion,
@@ -470,7 +470,7 @@ if swimmEnabled:
     #################################################################################
 
     swimmDVInputBKQuery = {
-                          'FileType'                 : swimmDVInput,
+                          'FileType'                 : swimmDVInput.upper(),
                           'ProductionID'             : swimmProdID,
                           }
 
@@ -481,7 +481,7 @@ if swimmEnabled:
     DVProduction = Production()
 
     if not destination.lower() in ( 'all', 'any' ):
-      gLogger.info( 'Forcing destination site %s for DVProduction' % ( destination ) )
+      gLogger.info( 'Forcing destination site %s for DV Production' % ( destination ) )
       DVProduction.setDestination( destination )
 
     if sysConfig:
@@ -496,8 +496,8 @@ if swimmEnabled:
       DVProduction.setJobParameters( { 'CPUTime': swimmCPU_DV } )
     DVProduction.setProdType( 'DataStripping' )
     wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
-    DVProduction.setWorkflowName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
-    DVProduction.setWorkflowDescription( "%s real data swimming DVProduction." % ( prodGroup ) )
+    DVProduction.setWorkflowName( 'SWIMMING_DV_%s_%s' % ( wkfName, appendName ) )
+    DVProduction.setWorkflowDescription( "%s real data swimming DV Production." % ( prodGroup ) )
     DVProduction.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
     DVProduction.setInputBKSelection( swimmDVInputBKQuery )
     DVProduction.setDBTags( swimmDVCDb, swimmDVDDDb )
@@ -509,12 +509,12 @@ if swimmEnabled:
 
     try:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
                                dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
     except:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
+                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
                                outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
 
@@ -560,13 +560,13 @@ if swimmEnabled:
 
       swimmDVProdID = result['Value']
 
-      msg = 'swimming DVProduction %s successfully created ' % ( swimmDVProdID )
+      msg = 'swimming DV Production %s successfully created ' % ( swimmDVProdID )
 
       if testFlag:
-        diracProd.DVProduction( swimmDVProdID, 'manual', printOutput = True )
+        diracProd.production( swimmDVProdID, 'manual', printOutput = True )
         msg = msg + 'and started in manual mode.'
       else:
-        diracProd.DVProduction( swimmDVProdID, 'automatic', printOutput = True )
+        diracProd.production( swimmDVProdID, 'automatic', printOutput = True )
         msg = msg + 'and started in automatic mode.'
       gLogger.info( msg )
 
@@ -590,19 +590,25 @@ if mergingEnabled:
     gLogger.error( 'Error getting res from BKK: %s', mergeInput['Message'] )
     DIRAC.exit( 2 )
 
-  mergeInputList = [x[0].lower() for x in mergeInput['Value']['Records']]
+  mergeInputList = [x[0].lower().strip() for x in mergeInput['Value']['Records']]
 
   mergeOutput = BKClient.getStepOutputFiles( mergeStep )
   if not mergeOutput:
     gLogger.error( 'Error getting res from BKK: %s', mergeOutput['Message'] )
     DIRAC.exit( 2 )
 
-  mergeOutputList = [x[0].lower() for x in mergeOutput['Value']['Records']]
+  mergeOutputList = [x[0].lower().strip() for x in mergeOutput['Value']['Records']]
+
 
   if swimmEnabled:
-    if mergeInputList != swimmOutputList:
-      gLogger.error( 'MergeInput %s != swimmOutput %s' % ( mergeInputList, swimmOutputList ) )
-      DIRAC.exit( 2 )
+    if unifyMooreAndDV:
+      if mergeInputList != swimmOutputList:
+        gLogger.error( 'MergeInput %s != swimmOutput %s' % ( mergeInputList, swimmOutputList ) )
+        DIRAC.exit( 2 )
+    else:
+      if mergeInputList != swimmDVOutputList:
+        gLogger.error( 'MergeInput %s != swimmDVOutput %s' % ( mergeInputList, swimmDVOutputList ) )
+        DIRAC.exit( 2 )
 
   if mergeInputList != mergeOutputList:
     gLogger.error( 'MergeInput %s != mergeOutput %s' % ( mergeInputList, mergeOutputList ) )
@@ -620,8 +626,15 @@ if mergingEnabled:
     # Merging BK Query
     #################################################################################
 
-    mergeBKQuery = { 'ProductionID'             : swimmProdID,
-                     'FileType'                 : mergeStream}
+    if unifyMooreAndDV:
+      mergeInput = swimmProdID
+    else:
+      mergeInput = swimmDVProdID
+
+    mergeBKQuery = {
+                    'ProductionID'             : mergeInput,
+                    'FileType'                 : mergeStream
+                    }
       #below should be integrated in the ProductionOptions utility
     if mergeApp.lower() == 'davinci':
       dvExtraOptions = "from Configurables import RecordStream;"
