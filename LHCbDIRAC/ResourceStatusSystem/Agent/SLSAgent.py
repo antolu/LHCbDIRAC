@@ -117,11 +117,11 @@ class SpaceTokenOccupancyTest(TestBase):
       import lcg_util
       for site in self.SEs:
         for st in CS.getSpaceTokens():
-          self.generate_xml_and_dashboard(site, st)
+          self.generate_xml_and_dashboard(site, st,lcg_util)
     except ImportError:
       gLogger.warn("SpaceTokenOccupancyTest cannot import lcg_util, aborting.")
 
-  def generate_xml_and_dashboard(self, site, st):
+  def generate_xml_and_dashboard(self, site, st,lcg_util):
     url          = self.SEs[site]['Endpoint']
     total        = 0
     guaranteed   = 0
