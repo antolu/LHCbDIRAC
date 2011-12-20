@@ -113,7 +113,7 @@ class SEUsageAgent( AgentModule ):
             continue
           oneDirDict = {}
           dirPath = StorageDirPath
-          specialRep = ''
+          specialRep = False
           for sr in specialReplicas:
             prefix = '/lhcb/' + sr
             if prefix in dirPath:
