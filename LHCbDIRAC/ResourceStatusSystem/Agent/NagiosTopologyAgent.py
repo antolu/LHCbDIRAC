@@ -72,7 +72,8 @@ class NagiosTopologyAgent(AgentModule):
       # SE info
       if site_opts.has_key('SE') and site_tier in ['0', '1']:
         has_grid_elem=True
-        site_se_opts = gConfig.getOptionsDict('/Resources/StorageElements/%s-RAW/AccessProtocol.1'%site.split('.')[1])['Value']
+        real_site_name = site.split(".")[1] if site.split(".")[1] != "NIKHEF" else "SARA"
+        site_se_opts = gConfig.getOptionsDict('/Resources/StorageElements/%s-RAW/AccessProtocol.1' % real_site_name)['Value']
         site_se_name = site_se_opts.get('Host')
         site_se_type = site_se_opts.get('ProtocolName')
         if site_se_type == 'SRM2' : site_se_type = 'SRMv2'
