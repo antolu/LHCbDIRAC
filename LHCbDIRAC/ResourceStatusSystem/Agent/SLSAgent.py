@@ -117,11 +117,11 @@ class SpaceTokenOccupancyTest(TestBase):
       import lcg_util
       for site in self.SEs:
         for st in CS.getSpaceTokens():
-          self.generate_xml_and_dashboard(site, st,lcg_util)
+          self.generate_xml_and_dashboard(site, st, lcg_util)
     except ImportError:
       gLogger.warn("SpaceTokenOccupancyTest cannot import lcg_util, aborting.")
 
-  def generate_xml_and_dashboard(self, site, st,lcg_util):
+  def generate_xml_and_dashboard(self, site, st, lcg_util):
     url          = self.SEs[site]['Endpoint']
     total        = 0
     guaranteed   = 0
@@ -143,37 +143,37 @@ class SpaceTokenOccupancyTest(TestBase):
  lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (st, url, answer[0], answer[1]))
       gLogger.info(str(answer))
 
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", site + "_" + st)
-    # xml_append(doc, "availability", availability)
-    # elt = xml_append(doc, "availabilitythresholds")
-    # xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
-    # xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/affected"), elt_=elt, level="affected")
-    # xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/degraded"), elt_=elt, level="degraded")
-    # xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
-    # xml_append(doc, "availabilitydesc", self.getTestValue("availabilitydesc"))
-    # xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
-    # xml_append(doc, "validityduration", validity)
-    # elt = xml_append(doc, "data")
-    # elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
-    # xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt2, name="Consumed")
-    # xml_append(doc, "numericvalue", value_=str(total), elt_=elt2, name="Capacity")
-    # xml_append(doc, "numericvalue", value_=str(free), elt_=elt, name="Free space")
-    # xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
-    # xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
-    # xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    doc = gen_xml_stub()
+    xml_append(doc, "id", site + "_" + st)
+    xml_append(doc, "availability", availability)
+    elt = xml_append(doc, "availabilitythresholds")
+    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
+    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/affected"), elt_=elt, level="affected")
+    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/degraded"), elt_=elt, level="degraded")
+    xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
+    xml_append(doc, "availabilitydesc", self.getTestValue("availabilitydesc"))
+    xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
+    xml_append(doc, "validityduration", validity)
+    elt = xml_append(doc, "data")
+    elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
+    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt2, name="Consumed")
+    xml_append(doc, "numericvalue", value_=str(total), elt_=elt2, name="Capacity")
+    xml_append(doc, "numericvalue", value_=str(free), elt_=elt, name="Free space")
+    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
+    xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
+    xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     Utils.unpack(insert_slsstorage(Site=site, Token=st, Availability=availability,
                       RefreshPeriod="PT27M", ValidityDuration=validity,
                       TotalSpace=int(total), GuaranteedSpace=int(guaranteed),
                       FreeSpace=int(free)))
 
-    # xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
+    xmlfile = open(self.xmlPath + site + "_" + st + ".xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
 
     # Send notifications
     # pledged = get_pledged_value_for_token(site, st)
@@ -269,24 +269,24 @@ class DIRACTest(TestBase):
 
   def xml_sensor(self, system, service):
     res = dirac.ping(system, service)
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", system + "_" + service)
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    doc = gen_xml_stub()
+    xml_append(doc, "id", system + "_" + service)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     if res["OK"]:
       gLogger.info("%s/%s successfully pinged" % (system, service))
       res = res["Value"]
       host = urlparse.urlparse(res['service url']).netloc.split(":")[0]
-      # xml_append(doc, "availability", 100)
-      # xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
-      # elt = xml_append(doc, "data")
-      # xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
-      #            name="Service Uptime", desc="Seconds since last restart of service")
-      # xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
-      #            name="Host Uptime", desc="Seconds since last restart of machine")
-      # xml_append(doc, "numericvalue", res['load'].split()[0], elt_=elt,
-      #            name="Load", desc="Instantaneous load")
-      # xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
+      xml_append(doc, "availability", 100)
+      xml_append(doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host)
+      elt = xml_append(doc, "data")
+      xml_append(doc, "numericvalue", res['service uptime'], elt_=elt,
+                 name="Service Uptime", desc="Seconds since last restart of service")
+      xml_append(doc, "numericvalue", res['host uptime'], elt_=elt,
+                 name="Host Uptime", desc="Seconds since last restart of machine")
+      xml_append(doc, "numericvalue", res['load'].split()[0], elt_=elt,
+                 name="Load", desc="Instantaneous load")
+      xml_append(doc, "notes", "Service " + res['service url'] + " completely up and running")
 
       # Fill database
       Utils.unpack(insert_slsservice(System=system, Service=service, Availability=100,
@@ -297,15 +297,15 @@ class DIRACTest(TestBase):
                                      Message=("Service " + res['service url'] + " completely up and running")))
     else:
       gLogger.info("%s/%s does not respond to ping" % (system, service))
-      # xml_append(doc, "availability", 0)
-      # xml_append(doc, "notes", res['Message'])
+      xml_append(doc, "availability", 0)
+      xml_append(doc, "notes", res['Message'])
       Utils.unpack(insert_slsservice(System=system, Service=service, Availability=0, Message=res["Message"]))
 
-    # xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
+    xmlfile = open(self.xmlPath + system + "_" + service + ".xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
 
   def xml_t1_sensor(self, url):
     parsed = urlparse.urlparse(url)
@@ -322,21 +322,21 @@ class DIRACTest(TestBase):
     if system == "RequestManagement":
       res2 = Utils.unpack(pinger.getDBSummary())
 
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", site + "_" + system)
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    doc = gen_xml_stub()
+    xml_append(doc, "id", site + "_" + system)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
     if res['OK']:
       res = res['Value']
 
-      # xml_append(doc, "availability", 100)
-      # xml_append(doc, "notes", "Service " + url + " completely up and running")
+      xml_append(doc, "availability", 100)
+      xml_append(doc, "notes", "Service " + url + " completely up and running")
 
-      # elt = xml_append(doc, "data")
-      # xml_append(doc, "numericvalue", res.get('service uptime', 0), elt_=elt,
-      #            name="Service Uptime", desc="Seconds since last restart of service")
-      # xml_append(doc, "numericvalue", res.get('host uptime', 0), elt_=elt,
-      #            name="Host Uptime", desc="Seconds since last restart of machine")
+      elt = xml_append(doc, "data")
+      xml_append(doc, "numericvalue", res.get('service uptime', 0), elt_=elt,
+                 name="Service Uptime", desc="Seconds since last restart of service")
+      xml_append(doc, "numericvalue", res.get('host uptime', 0), elt_=elt,
+                 name="Host Uptime", desc="Seconds since last restart of machine")
 
       Utils.unpack(insert_slst1service(Site=site, System=system, Availability=100,
                                        Version=res.get("version", "unknown"),
@@ -346,12 +346,12 @@ class DIRACTest(TestBase):
 
       if system == "RequestManagement":
         for k,v in res2.items():
-          # xml_append(doc, "numericvalue", v["Assigned"], elt_=elt,
-          #            name=k + " - Assigned", desc="Number of Assigned " + k + " requests")
-          # xml_append(doc, "numericvalue", v["Waiting"], elt_=elt,
-          #            name=k + " - Waiting", desc="Number of Waiting " + k + " requests")
-          # xml_append(doc, "numericvalue", v["Done"], elt_=elt,
-          #            name=k + " - Done", desc="Number of Done " + k + " requests")
+          xml_append(doc, "numericvalue", v["Assigned"], elt_=elt,
+                     name=k + " - Assigned", desc="Number of Assigned " + k + " requests")
+          xml_append(doc, "numericvalue", v["Waiting"], elt_=elt,
+                     name=k + " - Waiting", desc="Number of Waiting " + k + " requests")
+          xml_append(doc, "numericvalue", v["Done"], elt_=elt,
+                     name=k + " - Done", desc="Number of Done " + k + " requests")
 
           Utils.unpack(insert_slsrmstats(Site=site, System=system, Name=k,
                                          Assigned=int(v["Assigned"]),
@@ -361,18 +361,18 @@ class DIRACTest(TestBase):
       gLogger.info("%s/%s successfully pinged" % (site, system))
 
     else:
-      # xml_append(doc, "availability", 0)
-      # xml_append(doc, "notes", res['Message'])
+      xml_append(doc, "availability", 0)
+      xml_append(doc, "notes", res['Message'])
       Utils.unpack(insert_slst1service(Site=site, System=system, Availability=0,
                           Message=res["Message"]))
 
       gLogger.info("%s/%s does not respond to ping" % (site, system))
 
-    # xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
+    xmlfile = open(self.xmlPath + site + "_" + system + ".xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
 
 class LOGSETest(TestBase):
   def __init__(self, am):
@@ -387,13 +387,11 @@ class LOGSETest(TestBase):
     except OSError:
       pass # The dir exist already, or cannot be created: do nothing
 
-
     # Generate XML files
-
     self.partition()
-    self.gridftpd()
-    self.cert()
-    self.httpd()
+    self.logse("gridftpd", "PT2H")
+    self.logse("cert", "PT24H")
+    self.logse("httpd", "PT2H")
 
   # LOG SE Partition
   def partition(self):
@@ -407,14 +405,14 @@ class LOGSETest(TestBase):
         space = int(d['data'][3])
         percent = int(d['data'][4])
 
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", "log_se_partition")
-    # xml_append(doc, "validityduration", "PT12H")
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
-    # xml_append(doc, "availability", (100 if percent < 90 else (5 if percent < 99 else 0)))
-    # elt = xml_append(doc, "data")
-    # xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
-    # xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
+    doc = gen_xml_stub()
+    xml_append(doc, "id", "log_se_partition")
+    xml_append(doc, "validityduration", "PT12H")
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)))
+    xml_append(doc, "availability", (100 if percent < 90 else (5 if percent < 99 else 0)))
+    elt = xml_append(doc, "data")
+    xml_append(doc, "numericvalue", percent, elt_=elt, name="LogSE data partition used")
+    xml_append(doc, "numericvalue", space, elt_=elt, name="Total space on data partition")
 
     Utils.unpack(insert_slslogse(Name="partition",  ValidityDuration="PT12H",
                                  TimeStamp=time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(ts)),
@@ -422,81 +420,33 @@ class LOGSETest(TestBase):
                                  DataPartitionUsed=percent, DataPartitionTotal=space))
     gLogger.info("LogSE partition test done")
 
-    # xmlfile = open(self.xmlPath + filename, "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
+    xmlfile = open(self.xmlPath + "log_se_partition.xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
 
-  # LOG SE GridFTPd
-  def gridftpd(self):
-    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/gridftpd"))
+  def logse(self, name, validity_duration):
+    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/" + name))
     handler = self.LemonHandler()
     xml.sax.parse(input_xml, handler)
     data = handler.data[0]
 
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", "log_se_gridftp")
-    # xml_append(doc, "validityduration", "PT2H")
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
-    # xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
+    doc = gen_xml_stub()
+    xml_append(doc, "id", "log_se_" + name)
+    xml_append(doc, "validityduration", validity_duration)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
+    xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
 
-    Utils.unpack(insert_slslogse(Name="gridftpd", ValidityDuration="PT2H",
+    Utils.unpack(insert_slslogse(Name=name, ValidityDuration=validity_duration,
                     Availability=int(round(float(data['data'][0])*100))))
-    gLogger.info("LogSE gridftp test done")
+    gLogger.info("LogSE " + name + " test done")
 
-
-    # xmlfile = open(self.xmlPath + filename, "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
-
-  # LOG SE Cert
-  def cert(self):
-    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/cert"))
-    handler = self.LemonHandler()
-    xml.sax.parse(input_xml, handler)
-    data = handler.data[0]
-
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", "log_se_cert")
-    # xml_append(doc, "validityduration", "PT24H")
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
-    # xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
-
-    Utils.unpack(insert_slslogse(Name="cert", ValidityDuration="PT24H",
-                    Availability=int(round(float(data['data'][0])*100))))
-    gLogger.info("LogSE cert test done")
-
-    # xmlfile = open(self.xmlPath + filename, "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
-
-  # LOG SE HTTPd
-  def httpd(self):
-    input_xml = self.getxml(entities=self.entities, metrics=self.getTestOption("/metrics/httpd"))
-    handler = self.LemonHandler()
-    xml.sax.parse(input_xml, handler)
-    data = handler.data[0]
-
-    # doc = gen_xml_stub()
-    # xml_append(doc, "id", "log_se_httpd")
-    # xml_append(doc, "validityduration", "PT2H")
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(data['ts'])))
-    # xml_append(doc, "availability", int(round(float(data['data'][0])*100)))
-
-    Utils.unpack(insert_slslogse(Name="httpd", ValidityDuration="PT2H",
-                    Availability=int(round(float(data['data'][0])*100))))
-    gLogger.info("LogSE httpd test done")
-
-    # xmlfile = open(self.xmlPath + filename, "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
+    xmlfile = open(self.xmlPath + "log_se_" + name + ".xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
 
   def getxml(self, **kw):
     params = urllib.urlencode(kw)
@@ -547,12 +497,12 @@ class CondDBTest(TestBase):
 
     # Get ConDB infos
     self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
-#    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
+    self.xmlPath      = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
 
-    # try:
-    #   os.makedirs(self.xmlPath)
-    # except OSError:
-    #   pass # The dir exist already, or cannot be created: do nothing
+    try:
+      os.makedirs(self.xmlPath)
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
 
 
     # Go to work directory
@@ -686,29 +636,29 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     # Insert into DB
     Utils.unpack(insert_slsconddb(Site=site, Availability=availability, AccessTime=time_))
 
-    # doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
-    #                           "serviceupdate",
-    #                           None)
-    # doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
-    # doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
-    # doc.documentElement.setAttribute("xsi:schemaLocation",
-    #                                  "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
+    doc = impl.createDocument("http://sls.cern.ch/SLS/XML/update",
+                              "serviceupdate",
+                              None)
+    doc.documentElement.setAttribute("xmlns", "http://sls.cern.ch/SLS/XML/update")
+    doc.documentElement.setAttribute("xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance')
+    doc.documentElement.setAttribute("xsi:schemaLocation",
+                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd")
 
-    # xml_append(doc, "id", site + "_" + "CondDB")
-    # xml_append(doc, "availability", availability)
-    # xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
-    # xml_append(doc, "validityduration", self.getTestValue("validityduration"))
-    # elt2 = xml_append(doc, "data")
-    # xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
-    # xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
-    # xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
+    xml_append(doc, "id", site + "_" + "CondDB")
+    xml_append(doc, "availability", availability)
+    xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
+    xml_append(doc, "validityduration", self.getTestValue("validityduration"))
+    elt2 = xml_append(doc, "data")
+    xml_append(doc, "numericvalue", str(time_), elt_=elt2, name="Time to access CondDB")
+    xml_append(doc, "textvalue", "ConditionDB access timex", elt_=elt2)
+    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 
 
-    # xmlfile = open(self.xmlPath + site + "_" + "CondDB.xml", "w")
-    # try:
-    #   xmlfile.write(doc.toxml())
-    # finally:
-    #   xmlfile.close()
+    xmlfile = open(self.xmlPath + site + "_" + "CondDB.xml", "w")
+    try:
+      xmlfile.write(doc.toxml())
+    finally:
+      xmlfile.close()
 
 class SLSAgent(AgentModule):
   def initialize(self):
