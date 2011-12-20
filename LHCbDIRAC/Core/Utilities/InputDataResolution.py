@@ -117,10 +117,17 @@ class InputDataResolution:
 
     typeVersions = typeVersions['Value']
 
-    self.log.verbose( 'Adding PFN file types %s for LFNs: %s' % ( typeVersions.values(), typeVersions.keys() ) )
+    if not typeVersions:
+      self.log.verbose( 'The requested files do not exist in the BKK, assuming ROOT (not really important at this stage)' )
 
-    for lfn in typeVersions.keys():
-      tmpDict[lfn]['pfntype'] = typeVersions[lfn]
+      for lfn in tmpDict.keys():
+        tmpDict[lfn]['pfntype'] = 'ROOT'
+
+    else:
+      self.log.verbose( 'Adding PFN file types %s for LFNs: %s' % ( typeVersions.values(), typeVersions.keys() ) )
+
+      for lfn in typeVersions.keys():
+        tmpDict[lfn]['pfntype'] = typeVersions[lfn]
 
     return tmpDict
 

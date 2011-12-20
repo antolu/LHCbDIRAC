@@ -219,6 +219,15 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
     self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} } )
 
+    self.bkClientMock.getTypeVersion.return_value = {'OK': True,
+                                                     'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+                                                                  {'skipCACheck': False} ),
+                                                                 'getTypeVersion', ( ['/lhcb/user/g/gligorov/2011_12/27896/27896178/SwimBs2KK.dst'], ) ),
+                                                     'Value': {}}
+
+    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
+    self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} } )
+
 #############################################################################
 # Test Suite run
 #############################################################################
