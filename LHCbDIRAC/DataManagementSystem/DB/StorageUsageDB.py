@@ -69,6 +69,7 @@ class StorageUsageDB( DB ):
                                                        'Path' : 'VARCHAR(255) NOT NULL',
                                                        'Site' : 'VARCHAR(32) NOT NULL',
                                                        'SpaceToken' : 'VARCHAR(32) NOT NULL',
+                                                       'SpecialReplica' : 'VARCHAR(32) default NULL',
                                                        'SEFiles' : 'INTEGER UNSIGNED NOT NULL',
                                                        'LFCFiles' : 'INTEGER UNSIGNED NOT NULL',
                                                        'SESize' : 'BIGINT UNSIGNED NOT NULL',
@@ -78,6 +79,25 @@ class StorageUsageDB( DB ):
                                                    },
                                         'PrimaryKey' : [ 'DID'],
                                         }
+    self.__tablesDesc[ 'Popularity' ] = { 'Fields' : { 'Path' : 'VARCHAR(255) NOT NULL',
+                                                       'SEName' : 'VARCHAR(32) NOT NULL',
+                                                       'Count' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'InsertTime' : 'DATETIME NOT NULL'
+                                                  },
+                                     } 
+    self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
+                                                       'ConfigName' : 'VARCHAR(64) NOT NULL',
+                                                       'ConfigVersion' : 'VARCHAR(64) NOT NULL',
+                                                       'Conditions' : 'VARCHAR(64) NOT NULL',
+                                                       'ProcessingPass' : 'VARCHAR(255) NOT NULL',
+                                                       'EventType' : 'VARCHAR(255) NOT NULL',
+                                                       'FileType' : 'VARCHAR(64) NOT NULL',
+                                                       'Production' : 'VARCHAR(64) NOT NULL'
+                                                  },
+                                       'PrimaryKey' : [ 'DID'],
+                                     }
+
+
 
     for tableName in self.__tablesDesc:
       if not tableName in tablesInDB:
@@ -135,6 +155,7 @@ class StorageUsageDB( DB ):
       spaceToken = directoryDict[ path ][ 'SpaceToken' ]
       problem = directoryDict[ path ][ 'Problem' ]
       site = directoryDict[ path ][ 'Site']
+      specialReplica = directoryDict[ path ]['SpecialReplica']
       try:
         SEfiles = int( directoryDict[ path ][ 'Files' ] )
         SEsize = int( directoryDict[ path ][ 'Size'] )
@@ -149,6 +170,7 @@ class StorageUsageDB( DB ):
       sqlSpaceToken = self._escapeString( spaceToken )['Value']
       sqlProblem = self._escapeString( problem )['Value']
       sqlSite = self._escapeString( site )['Value']
+      sqlSpecialReplica = self._escapeString( specialReplica )['Value']
       sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s AND Site=%s AND SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
       self.log.info( "sqlCmd: %s" % sqlCmd )
       result = self._query( sqlCmd )
@@ -158,7 +180,7 @@ class StorageUsageDB( DB ):
       DID = result['Value']
       if DID:
         # there is an entry for (path, Site, SpaceToken), make an update of the row
-        sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and Site = %s and SpaceToken=%s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlPath, sqlSite, sqlSpaceToken )
+        sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, SpecialReplica=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and Site = %s and SpaceToken=%s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlSpecialReplica, sqlPath, sqlSite, sqlSpaceToken )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -166,7 +188,7 @@ class StorageUsageDB( DB ):
           return result
       else:
         # entry is not there, make an insert of a new row
-        sqlCmd = "INSERT INTO problematicDirs (Path, Site, SpaceToken, SEFiles, SESize, LFCFiles, LFCSize, Problem, Updated) VALUES ( %s, %s, %s, %d, %d, %d, %d, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSite, sqlSpaceToken, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem )
+        sqlCmd = "INSERT INTO problematicDirs (Path, Site, SpaceToken, SEFiles, SESize, LFCFiles, LFCSize, Problem, SpecialReplica, Updated) VALUES ( %s, %s, %s, %d, %d, %d, %d, %s, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSite, sqlSpaceToken, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlSpecialReplica )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -785,3 +807,131 @@ class StorageUsageDB( DB ):
       path = "/lhcb/user/_/%"
     return self.__getSummary( path, groupingField = self.__userExpression( "Path" ) )
 
+  ######
+  # methods to interact with Popularity table
+  ######
+  
+
+  def sendDataUsageReport( self, se, directoryDict ):
+    """ Increase the counter for the usage of the given lfn and se """
+    self.log.info( "in addPopCount: dirDict: %s se: %s" % ( directoryDict, se ) )
+    # to be revisited: probably should just insert an lfn instead of querying for the did! it is a possible optimization
+    if not directoryDict:
+      return S_OK()
+    # get the IDs from the su_Directory table:
+    #result = self.__getIDs( directoryDict )
+    #if not result[ 'OK' ]:
+    #  return result
+    #dirIDs = result[ 'Value' ]
+    #if not dirIDs:
+    #  errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict 
+    #  self.log.error("%s" % errMsg )
+    #  return S_ERROR( errMsg )
+    #self.log.info( "in sendDataUsageReport: dirIDs: %s" % ( dirIDs ) )
+    # returns a dictionary of type:
+    #  {dir1: ID1, dir2: ID2, ...} 
+    sqlSe = self._escapeString( se )[ 'Value' ]
+    insertedEntries = 0
+    for d in directoryDict.keys():
+      if d[-1] != "/":
+        d = "%s/" % d
+      sqlPath = self._escapeString( d )[ 'Value' ]
+      #if d not in dirIDs.keys():
+      #  self.log.warn("in sendDataUsageReport: found no DID for directory %s" % d )
+      #  continue
+      #id = int( dirIDs[ d ] )
+      #if type( id ) != IntType:
+      #  self.log.warn("in sendDataUsageReport: type is not correct %s" % id )
+      #  continue
+      count = directoryDict[ d ]
+      if type( count ) != IntType:
+        self.log.warn("in sendDataUsageReport: type is not correct %s" % cound )
+        continue
+      sqlCmd = "INSERT INTO `Popularity` ( Path, SEName, Count, InsertTime) VALUES ( %s, %s, %d, UTC_TIMESTAMP() )" % ( sqlPath, sqlSe, count )
+      self.log.info("sqlCmd = %s " % sqlCmd )
+      result = self._update( sqlCmd )
+      if not result[ 'OK' ]:
+        self.log.error( "Cannot insert entry: %s" % (  result[ 'Message' ] ) )
+        continue
+      insertedEntries += 1
+    return S_OK( insertedEntries )
+
+  def insertToDirMetadata( self, directoryDict ):
+    """ Inserts a new entry into the DirMetadata table. The input dictionary should contain, for each
+        lfn directory, a dictionary with all the necessary metadata provided by the bookkeeping """
+    
+    if not directoryDict:
+      return S_OK()
+    # get the IDs from the su_Directory table:
+    result = self.__getIDs( directoryDict )
+    if not result[ 'OK' ]:
+      return result
+    dirIDs = result[ 'Value' ]
+    if not dirIDs:
+      errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict 
+      self.log.error("%s" % errMsg )
+      return S_ERROR( errMsg )
+    self.log.info( "in insertToDirMetadata: dirIDs: %s" % ( dirIDs ) )
+    # returns a dictionary of type:
+    #  {dir1: ID1, dir2: ID2, ...} 
+    insertedEntries = 0
+    for d in directoryDict.keys():
+      if d not in dirIDs.keys():
+        self.log.warn("in insertToDirMetadata: found no DID for directory %s" % d )
+        continue
+      id = int( dirIDs[ d ] )
+      try:
+        sqlConfigname = self._escapeString( directoryDict[d]['ConfigName'] )[ 'Value' ]
+        sqlConfigversion = self._escapeString( directoryDict[d]['ConfigVersion'] )[ 'Value' ]
+        sqlConditions = self._escapeString( directoryDict[d]['Conditions'] )[ 'Value' ]
+        sqlProcpass = self._escapeString( directoryDict[d]['ProcessingPass'] )[ 'Value' ]
+        sqlEvttype = self._escapeString( directoryDict[d]['EventType'] )[ 'Value' ]
+        sqlFiletype = self._escapeString( directoryDict[d]['FileType'] )[ 'Value' ]
+        sqlProd = self._escapeString( directoryDict[d]['Production'] )[ 'Value' ]
+      except KeyError:
+        self.log.error("in insertToDirMetadata: the input dictionary was not correctly formatted: %s " % directoryDict )
+        continue
+      sqlCmd = "INSERT INTO `DirMetadata` ( DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, EventType, FileType, Production ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s )" % ( id, sqlConfigname, sqlConfigversion, sqlConditions, sqlProcpass, sqlEvttype, sqlFiletype, sqlProd )
+      self.log.info("sqlCmd = %s " % sqlCmd )
+      result = self._update( sqlCmd )
+      if not result[ 'OK' ]:
+        self.log.error( "Cannot insert entry: %s" % (  result[ 'Message' ] ) )
+        return S_ERROR(result['Message'])
+      insertedEntries += 1
+    return S_OK( insertedEntries )
+
+  def getDirMetadata( self, directoryList ):
+    """ Return the directory meta-data, which have been previously provided by the Bookkeeping and stored in the 
+        DirMetadata table. The input is a list of LFN directories
+    """
+    if not directoryList:
+      return S_OK()
+    # get the IDs from the su_Directory table:
+    directoryDict = {}
+    for directory in directoryList:
+      directoryDict[ directory ] = {}
+    result = self.__getIDs( directoryDict )
+    if not result[ 'OK' ]:
+      return S_ERROR(result['Message'])
+    dirIDs = result[ 'Value' ]
+    if not dirIDs:
+      errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict 
+      self.log.error("%s" % errMsg )
+      return S_ERROR( errMsg )
+    self.log.info( "in getDirMetadata: dirIDs: %s" % ( dirIDs ) )
+    # returns a dictionary of type:
+    #  {dir1: ID1, dir2: ID2, ...}
+    idList = [] 
+    for d in directoryDict.keys():
+      if d not in dirIDs.keys():
+        self.log.warn("in insertToDirMetadata: found no DID for directory %s" % d )
+        continue
+      id = str( dirIDs[ d ] ) 
+      #idList.append( self._escapeString( id )[ 'Value' ] )
+      idList.append( id )
+    sqlCmd = "SELECT DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, EventType, FileType, Production FROM `DirMetadata` WHERE DID in ( %s )" % ", ".join( idList )
+    self.log.info("sqlCmd = %s " % sqlCmd )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return S_ERROR( result['Message'] )
+    return S_OK( result[ 'Value' ] )  
