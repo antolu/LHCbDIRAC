@@ -200,7 +200,7 @@ class ProductionRequestDB(DB):
                     'SimCondition', 'SimCondID', 'SimCondDetail',
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
-                    'Inform','RealNumberOfEvents',
+                    'Inform','RealNumberOfEvents','IsModel','Extra',
                     'TestState','TestActual', # from Test
                     'HasSubrequest', 'bk', 'bkSrTotal', 'bkTotal', # runtime
                     'rqTotal', 'crTime', 'upTime' ] # runtime
@@ -330,6 +330,7 @@ class ProductionRequestDB(DB):
           return S_ERROR("Please specify Event type/number or add subrequest(s)")
     if 'Comments' in rec:
       rec['Comments'] = self.__prefixComments(rec['Comments'],'',creds['User'])
+    rec['IsModel'] = 0
 
     recl = [ rec[x] for x in self.requestFields[1:-9] ]
     result = self._fixedEscapeValues(recl)
@@ -558,6 +559,19 @@ class ProductionRequestDB(DB):
     if creds['Group'] == 'diracAdmin':
       return S_OK(inform)
 
+
+    # Tech expert can (un)mark any master request as model. But only explicitly.
+    if creds['Group'] == 'lhcb_tech' and not old['MasterID']:
+      if len(update)==1 and 'IsModel' in update:
+        if str(update['IsModel']) == '1':
+          update['IsModel'] = 1
+        else:
+          update['IsModel'] = 0
+        return S_OK(inform)
+    else:
+      if 'IsModel' in update:
+        del update['IsModel']
+
     if requestState in ['Done','Cancelled'] and creds['Group'] != 'diracAdmin':
       self.lock.release()
       return S_ERROR("Done or cancelled requests can't be modified")
@@ -644,7 +658,7 @@ class ProductionRequestDB(DB):
         return S_ERROR("Rejected requests must be resurrected before modifications")
     elif requestState == 'BK Check':
       for x in update:
-        if not x in ['RequestState','SimCondition','SimCondID','SimCondDetail','Comments','Inform']:
+        if not x in ['RequestState','SimCondition','SimCondID','SimCondDetail','Comments','Inform','Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during BK check" % x)
       if not 'RequestState' in update:
@@ -657,7 +671,7 @@ class ProductionRequestDB(DB):
         return S_ERROR("Registered simulation conditions required to sign for BK OK")
     elif requestState == 'BK OK':
       for x in update:
-        if not x in ['RequestState','Comments','Inform']:
+        if not x in ['RequestState','Comments','Inform','Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified after BK check" % x)
       if not 'RequestState' in update:
@@ -668,7 +682,7 @@ class ProductionRequestDB(DB):
     elif requestState == 'Submitted':
       if creds['Group'] == 'lhcb_ppg':
         for x in update:
-          if not x in ['RequestState','Comments','Inform','RequestPriority']:
+          if not x in ['RequestState','Comments','Inform','RequestPriority','Extra']:
             self.lock.release()
             return S_ERROR("%s can't be modified during PPG signing" % x)
         if not 'RequestState' in update:
@@ -680,7 +694,7 @@ class ProductionRequestDB(DB):
           return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
       if creds['Group'] == 'lhcb_tech':
         for x in update:
-          if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail']:
+          if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail','Extra']:
             self.lock.release()
             return S_ERROR("%s can't be modified during Tech signing" % x)
         if not 'RequestState' in update:
@@ -696,7 +710,7 @@ class ProductionRequestDB(DB):
 #          return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState in ['PPG OK','On-hold']:
       for x in update:
-        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail']:
+        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail','Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during Tech signing" % x)
       if not 'RequestState' in update:
@@ -712,7 +726,7 @@ class ProductionRequestDB(DB):
 #        return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState == 'Tech OK':
       for x in update:
-        if not x in ['RequestState','Comments','Inform','RequestPriority']:
+        if not x in ['RequestState','Comments','Inform','RequestPriority','Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during PPG signing" % x)
       if not 'RequestState' in update:
@@ -724,7 +738,7 @@ class ProductionRequestDB(DB):
         return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
     elif requestState in ['Accepted','Active']:
       for x in update:
-        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail']:
+        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail','Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during the progress" % x)
       if not 'RequestState' in update:
@@ -1004,6 +1018,7 @@ class ProductionRequestDB(DB):
     rec = result['Value']
     if clearpp:
       self.__clearProcessingPass(rec)
+    rec['IsModel'] = 0
   
     if masterID and not rec['MasterID']:
       return S_OK("") # substructured request

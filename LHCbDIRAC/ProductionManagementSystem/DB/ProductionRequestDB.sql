@@ -57,6 +57,9 @@ CREATE TABLE ProductionRequests (
     Comments BLOB,
     Inform   BLOB,
     RealNumberOfEvents BIGINT DEFAULT 0,
+    IsModel BOOL DEFAULT 0,
+    INDEX(IsModel),
+    Extra BLOB,
     PRIMARY KEY(RequestID)
 );
 
