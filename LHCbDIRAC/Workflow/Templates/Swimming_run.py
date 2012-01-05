@@ -282,7 +282,7 @@ if swimmEnabled:
 
   swimmInputList = [x[0].lower().strip() for x in swimmInput['Value']['Records']]
   if len( swimmInputList ) == 1:
-    swimmInput = swimmInputList[0]
+    swimmInput = swimmInputList[0].strip()
   else:
     gLogger.error( 'Multiple inputs to swimming...?', swimmInput['Message'] )
     DIRAC.exit( 2 )
@@ -297,7 +297,7 @@ if swimmEnabled:
     gLogger.error( 'Multiple outputs to swimming...?', swimmInput['Message'] )
     DIRAC.exit( 2 )
   else:
-    swimmType = swimmOutputList[0]
+    swimmType = swimmOutputList[0].strip()
     swimmEO = []
 
   swimmDVInput = BKClient.getStepInputFiles( swimmDVStep )
@@ -307,7 +307,7 @@ if swimmEnabled:
 
   swimmDVInputList = [x[0].lower().strip() for x in swimmDVInput['Value']['Records']]
   if len( swimmDVInputList ) == 1:
-    swimmDVInput = swimmDVInputList[0]
+    swimmDVInput = swimmDVInputList[0].strip()
   else:
     gLogger.error( 'Multiple inputs to swimmDVing...?', swimmDVInput['Message'] )
     DIRAC.exit( 2 )
@@ -322,7 +322,7 @@ if swimmEnabled:
     gLogger.error( 'Multiple outputs to swimmDVing...?', swimmDVInput['Message'] )
     DIRAC.exit( 2 )
   else:
-    swimmDVType = swimmDVOutputList[0]
+    swimmDVType = swimmDVOutputList[0].strip()
     swimmDVEO = []
 
   swimmInputBKQuery = {
@@ -397,12 +397,12 @@ if swimmEnabled:
     try:
       production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
+                               dataType = 'Data', outputSE = unmergedStreamSE_DV, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
     except:
       production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
+                               outputSE = unmergedStreamSE_DV, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility )
 
 
@@ -505,7 +505,7 @@ if swimmEnabled:
       DVProduction.setInputDataPolicy( swimmIDPolicy_DV )
     except:
       DVProduction.setJobParameters( { 'InputDataPolicy': swimmIDPolicy_DV } )
-    DVProduction.setProdPlugin( swimmPlugin )
+    DVProduction.setProdPlugin( swimmPlugin_DV )
 
     try:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
@@ -522,7 +522,7 @@ if swimmEnabled:
     DVProduction.addFinalizationStep()
     DVProduction.setProdGroup( prodGroup )
     DVProduction.setProdPriority( swimm_priority )
-    DVProduction.setJobFileGroupSize( swimmFilesPerJob )
+    DVProduction.setJobFileGroupSize( swimmFilesPerJob_DV )
   #  DVProduction.setFileMask(  )
 
     #################################################################################
@@ -545,7 +545,7 @@ if swimmEnabled:
     result = DVProduction.create( 
                                  publish = publishFlag,
                                  bkQuery = swimmDVInputBKQuery,
-                                 groupSize = swimmFilesPerJob,
+                                 groupSize = swimmFilesPerJob_DV,
                                  bkScript = BKscriptFlag,
                                  requestID = currentReqID,
                                  reqUsed = 0,
