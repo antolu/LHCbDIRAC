@@ -1,7 +1,8 @@
 ########################################################################
 ########################################################################
 
-""" WG productions, 2 or 3 steps  
+""" WG productions: 2 3 or 4 steps:
+        selection + mergeDST + nTupleCreation (opt) + nTupleMerging (opt)
 """
 
 __RCSID__ = "$Id$"
@@ -70,7 +71,13 @@ mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#
 mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
 mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
 
-extraExtraOpts = '{{extraExtraOpts#STEP-Extra: extra options, if needed#}}'
+step3_ExtraOpts = '{{step3_ExtraOpts#STEP-3: extra options, if needed#}}'
+
+step4_ExtraOpts = '{{step4_ExtraOpts#STEP-4: extra options, if needed#}}'
+step4_StreamSE = '{{step4_StreamSE#STEP-4: output data SE (fourth step)#CERN-HIST}}'
+step4_IDPolicy = '{{step4_IDPolicy#STEP-4: policy for input data access (download or protocol)#download}}'
+step4_CPU = '{{step4_MaxCPUTime#STEP-$: Max CPU time in secs#100000}}'
+
 
 ###########################################
 # Fixed and implied parameters 
@@ -103,6 +110,7 @@ oneStep = '{{p1App}}'
 twoSteps = '{{p2App}}'
 threeSteps = '{{p3App}}'
 fourSteps = '{{p4App}}'
+fiveSteps = '{{p5App}}'
 
 evtsPerJob = '-1'
 
@@ -111,12 +119,14 @@ evtsPerJob = '-1'
 #####################################################
 
 error = False
-if fourSteps:
-  gLogger.error( 'Three steps specified, not sure what to do! Exiting...' )
+
+if fiveSteps:
+  gLogger.error( 'Five steps specified, not sure what to do! Exiting...' )
   error = True
-elif threeSteps:
-  if oneStep.lower() == 'davinci' and twoSteps.lower() in ( 'lhcb', 'davinci' ) and threeSteps.lower() == 'davinci':
-    gLogger.info( "Stripping/streaming production + merging is requested..." )
+
+if fourSteps:
+  if oneStep.lower() == 'davinci' and twoSteps.lower() in ( 'lhcb', 'davinci' ) and threeSteps.lower() == 'davinci' and fourSteps.lower() == 'davinci':
+    gLogger.info( "Stripping/streaming production + merging + 3rd and 4th step is requested..." )
 
     strippEnabled = True
     strippDQFlag = inDQFlag
@@ -149,44 +159,167 @@ elif threeSteps:
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
-    extraApp = '{{p3App}}'
-    extraStep = int( '{{p3Step}}' )
-    extraName = '{{p3Name}}'
-    extraVisibility = '{{p3Vis}}'
-    extraCDb = '{{p3CDb}}'
-    extraDDDb = '{{p3DDDb}}'
-    extraOpts = '{{p3Opt}}'
-    if extraApp.lower() == 'davinci':
+    step3Enabled = True
+    step3_App = '{{p3App}}'
+    step3_Step = int( '{{p3Step}}' )
+    step3_Name = '{{p3Name}}'
+    step3_Visibility = '{{p3Vis}}'
+    step3_CDb = '{{p3CDb}}'
+    step3_DDDb = '{{p3DDDb}}'
+    step3_Options = '{{p3Opt}}'
+    if step3_App.lower() == 'davinci':
       if useOracle:
-        if not 'useoracle.py' in extraOptions.lower():
-          extraOptions = extraOptions + ';$APPCONFIGOPTS/UseOracle.py'
-    extraVersion = '{{p3Ver}}'
-    extraEP = '{{p3EP}}'
+        if not 'useoracle.py' in step3_Options.lower():
+          step3_Options = step3_Options + ';$APPCONFIGOPTS/UseOracle.py'
+    step3_Version = '{{p3Ver}}'
+    step3_EP = '{{p3EP}}'
 
-    extraInput = BKClient.getStepInputFiles( extraStep )
-    if not extraInput:
-      gLogger.error( 'Error getting res from BKK: %s', extraInput['Message'] )
+    step3_Input = BKClient.getStepInputFiles( step3_Step )
+    if not step3_Input:
+      gLogger.error( 'Error getting res from BKK: %s', step3_Input['Message'] )
       DIRAC.exit( 2 )
 
-    extraInputList = [x[0].lower() for x in extraInput['Value']['Records']]
-    if len( extraInputList ) == 1:
-      extraInput = extraInputList[0]
+    step3_InputList = [x[0].lower() for x in step3_Input['Value']['Records']]
+    if len( step3_InputList ) == 1:
+      step3_Input = step3_InputList[0]
     else:
-      gLogger.error( 'Multiple inputs to extra step...?', extraInput['Message'] )
+      gLogger.error( 'Multiple inputs to step3_ step...?', step3_Input['Message'] )
       DIRAC.exit( 2 )
 
-    extraOutput = BKClient.getStepOutputFiles( extraStep )
-    if not extraOutput:
-      gLogger.error( 'Error getting res from BKK: %s', extraOutput['Message'] )
+    step3_Output = BKClient.getStepOutputFiles( step3_Step )
+    if not step3_Output:
+      gLogger.error( 'Error getting res from BKK: %s', step3_Output['Message'] )
       DIRAC.exit( 2 )
 
-    extraOutputList = [x[0].lower() for x in extraOutput['Value']['Records']]
-    if len( extraOutputList ) > 1:
-      extraType = 'stripping'
-      extraEO = extraOutputList
+    step3_OutputList = [x[0].lower() for x in step3_Output['Value']['Records']]
+    if len( step3_OutputList ) > 1:
+      step3_Type = 'stripping'
+      step3_EO = step3_OutputList
     else:
-      extraType = extraOutputList[0]
-      extraEO = []
+      step3_Type = step3_OutputList[0]
+      step3_EO = []
+
+
+    step4Enabled = True
+    step4_App = '{{p3App}}'
+    step4_Step = int( '{{p3Step}}' )
+    step4_Name = '{{p3Name}}'
+    step4_Visibility = '{{p3Vis}}'
+    step4_CDb = '{{p3CDb}}'
+    step4_DDDb = '{{p3DDDb}}'
+    step4_Options = '{{p3Opt}}'
+    if step4_App.lower() == 'davinci':
+      if useOracle:
+        if not 'useoracle.py' in step4_Options.lower():
+          step4_Options = step4_Options + ';$APPCONFIGOPTS/UseOracle.py'
+    step4_Version = '{{p3Ver}}'
+    step4_EP = '{{p3EP}}'
+
+    step4_Input = BKClient.getStepInputFiles( step4_Step )
+    if not step4_Input:
+      gLogger.error( 'Error getting res from BKK: %s', step4_Input['Message'] )
+      DIRAC.exit( 2 )
+
+    step4_InputList = [x[0].lower() for x in step4_Input['Value']['Records']]
+    if len( step4_InputList ) == 1:
+      step4_Input = step4_InputList[0]
+    else:
+      gLogger.error( 'Multiple inputs to step4_ step...?', step4_Input['Message'] )
+      DIRAC.exit( 2 )
+
+    step4_Output = BKClient.getStepOutputFiles( step4_Step )
+    if not step4_Output:
+      gLogger.error( 'Error getting res from BKK: %s', step4_Output['Message'] )
+      DIRAC.exit( 2 )
+
+    step4_OutputList = [x[0].lower() for x in step4_Output['Value']['Records']]
+    if len( step4_OutputList ) > 1:
+      step4_Type = 'stripping'
+      step4_EO = step4_OutputList
+    else:
+      step4_Type = step4_OutputList[0]
+      step4_EO = []
+
+  else:
+    gLogger.error( 'First step is %s, second is %s, third is %s, fourth is %s' % ( oneStep, twoSteps, threeSteps, fourSteps ) )
+    error = True
+
+
+
+elif threeSteps:
+  if oneStep.lower() == 'davinci' and twoSteps.lower() in ( 'lhcb', 'davinci' ) and threeSteps.lower() == 'davinci':
+    gLogger.info( "Stripping/streaming production + merging + 3rd step is requested..." )
+
+    strippEnabled = True
+    strippDQFlag = inDQFlag
+    strippStep = int( '{{p1Step}}' )
+    strippName = '{{p1Name}}'
+    strippVisibility = '{{p1Vis}}'
+    strippCDb = '{{p1CDb}}'
+    strippDDDb = '{{p1DDDb}}'
+    strippOptions = '{{p1Opt}}'
+    if useOracle:
+      if not 'useoracle.py' in strippOptions.lower():
+        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
+
+    strippVersion = '{{p1Ver}}'
+    strippEP = '{{p1EP}}'
+    strippFileType = '{{inFileType}}'
+
+    mergingEnabled = True
+    mergeApp = '{{p2App}}'
+    mergeStep = int( '{{p2Step}}' )
+    mergeName = '{{p2Name}}'
+    mergeVisibility = '{{p2Vis}}'
+    mergeCDb = '{{p2CDb}}'
+    mergeDDDb = '{{p2DDDb}}'
+    mergeOptions = '{{p2Opt}}'
+    if mergeApp.lower() == 'davinci':
+      if useOracle:
+        if not 'useoracle.py' in mergeOptions.lower():
+          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
+    mergeVersion = '{{p2Ver}}'
+    mergeEP = '{{p2EP}}'
+
+    step3Enabled
+    step3_App = '{{p3App}}'
+    step3_Step = int( '{{p3Step}}' )
+    step3_Name = '{{p3Name}}'
+    step3_Visibility = '{{p3Vis}}'
+    step3_CDb = '{{p3CDb}}'
+    step3_DDDb = '{{p3DDDb}}'
+    step3_Opts = '{{p3Opt}}'
+    if step3_App.lower() == 'davinci':
+      if useOracle:
+        if not 'useoracle.py' in step3_Options.lower():
+          step3_Options = step3_Options + ';$APPCONFIGOPTS/UseOracle.py'
+    step3_Version = '{{p3Ver}}'
+    step3_EP = '{{p3EP}}'
+
+    step3_Input = BKClient.getStepInputFiles( step3_Step )
+    if not step3_Input:
+      gLogger.error( 'Error getting res from BKK: %s', step3_Input['Message'] )
+      DIRAC.exit( 2 )
+
+    step3_InputList = [x[0].lower() for x in step3_Input['Value']['Records']]
+    if len( step3_InputList ) == 1:
+      step3_Input = step3_InputList[0]
+    else:
+      gLogger.error( 'Multiple inputs to step3_ step...?', step3_Input['Message'] )
+      DIRAC.exit( 2 )
+
+    step3_Output = BKClient.getStepOutputFiles( step3_Step )
+    if not step3_Output:
+      gLogger.error( 'Error getting res from BKK: %s', step3_Output['Message'] )
+      DIRAC.exit( 2 )
+
+    step3_OutputList = [x[0].lower() for x in step3_Output['Value']['Records']]
+    if len( step3_OutputList ) > 1:
+      step3_Type = 'stripping'
+      step3_EO = step3_OutputList
+    else:
+      step3_Type = step3_OutputList[0]
+      step3_EO = []
 
   else:
     gLogger.error( 'First step is %s, second is %s, third is %s' % ( oneStep, twoSteps, threeSteps ) )
@@ -276,6 +409,7 @@ else:
 
 strippInputDataList = []
 mergeInputDataList = []
+step4_InputDataList = []
 
 if not publishFlag:
   strippTestData = 'LFN:/lhcb/LHCb/Collision11/DIMUON.DST/00012707/0000/00012707_00000069_1.dimuon.dst'
@@ -553,11 +687,11 @@ if mergingEnabled:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
       DIRAC.exit( 2 )
 
-    if threeSteps:
-      mergeProd.addDaVinciStep( extraVersion, extraType, extraOpts, eventType = eventType, extraPackages = extraEP,
-                                inputDataType = extraInput.lower(), numberOfEvents = evtsPerJob,
-                                dataType = 'Data', extraOpts = extraExtraOpts,
-                                stepID = extraStep, stepName = extraName, stepVisible = extraVisibility )
+    if step3Enabled:
+      mergeProd.addDaVinciStep( step3_Version, step3_Type, step3_Opts, eventType = eventType, step3_Packages = step3_EP,
+                                inputDataType = step3_Input.lower(), numberOfEvents = evtsPerJob,
+                                dataType = 'Data', step3_Opts = step3_ExtraOpts,
+                                stepID = step3_Step, stepName = step3_Name, stepVisible = step3_Visibility )
 
     mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
     mergeProd.setInputBKSelection( mergeBKQuery )
@@ -610,6 +744,146 @@ if mergingEnabled:
     else:
       prodID = 1
       gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+
+
+
+
+#################################################################################
+# step 4
+#################################################################################
+
+if step4Enabled:
+
+  step4_Input = BKClient.getStepInputFiles( step4_Step )
+  if not step4_Input:
+    gLogger.error( 'Error getting res from BKK: %s', step4_Input['Message'] )
+    DIRAC.exit( 2 )
+
+  step4_InputList = [x[0].lower() for x in step4_Input['Value']['Records']]
+
+  step4_Output = BKClient.getStepOutputFiles( step4_Step )
+  if not step4_Output:
+    gLogger.error( 'Error getting res from BKK: %s', step4_Output['Message'] )
+    DIRAC.exit( 2 )
+
+  step4_OutputList = [x[0].lower() for x in step4_Output['Value']['Records']]
+
+  if strippEnabled:
+    if step4_InputList != strippOutputList:
+      gLogger.error( 'MergeInput %s != strippOutput %s' % ( step4_InputList, strippOutputList ) )
+      DIRAC.exit( 2 )
+
+  if step4_InputList != step4_OutputList:
+    gLogger.error( 'MergeInput %s != step4_Output %s' % ( step4_InputList, step4_OutputList ) )
+    DIRAC.exit( 2 )
+
+  step4_ProductionList = []
+
+  for step4_Stream in step4_OutputList:
+#    if step4_Stream.lower() in onlyCERN:
+#      step4_SE = 'CERN_M-DST'
+
+    step4_Stream = step4_Stream.upper()
+
+    #################################################################################
+    # Merging BK Query
+    #################################################################################
+
+    step4_BKQuery = {
+                     'ProductionID'             : strippProdID,
+                     'DataQualityFlag'          : 'OK',
+                     'FileType'                 : step4_Stream
+                     }
+      #below should be integrated in the ProductionOptions utility
+    if step4_App.lower() == 'davinci':
+      dvExtraOptions = "from Configurables import RecordStream;"
+      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
+      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
+
+    ###########################################
+    # Create the merging production
+    ###########################################
+
+
+    step4_Prod = Production()
+    step4_Prod.setCPUTime( step4_CPU )
+    step4_Prod.setProdType( 'Merge' )
+    wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
+    step4_Prod.setWorkflowName( '%s_%s_%s' % ( step4_Stream.split( '.' )[0], wkfName, appendName ) )
+
+    if sysConfig:
+      step4_Prod.setSystemConfig( sysConfig )
+
+    step4_Prod.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( step4_Stream, strippProdID ) )
+    step4_Prod.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
+    step4_Prod.setDBTags( step4_CDb, step4_DDDb )
+
+    if step4_App.lower() == 'davinci':
+      step4_Prod.addDaVinciStep( step4_Version, 'step4_', step4_Options, extraPackages = step4_EP, eventType = eventType,
+                                inputDataType = step4_Stream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
+                                inputProduction = strippProdID, inputData = step4_InputDataList, outputSE = step4_StreamSE,
+                                stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility )
+    elif step4_App.lower() == 'lhcb':
+      step4_Prod.addMergeStep( step4_Version, step4_Options, strippProdID, eventType, step4_EP, inputData = step4_InputDataList,
+                              inputDataType = step4_Stream.lower(), outputSE = step4_StreamSE, numberOfEvents = evtsPerJob,
+                              condDBTag = step4_CDb, ddDBTag = step4_DDDb, dataType = 'Data',
+                              stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility )
+    else:
+      gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % step4_App )
+      DIRAC.exit( 2 )
+
+    step4_Prod.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+    step4_Prod.setInputBKSelection( step4_BKQuery )
+    step4_Prod.setInputDataPolicy( step4_IDPolicy )
+    step4_Prod.setProdGroup( prodGroup )
+    step4_Prod.setProdPriority( mergePriority )
+    step4_Prod.setJobFileGroupSize( mergeFileSize )
+    step4_Prod.setProdPlugin( mergePlugin )
+
+    if ( not publishFlag ) and ( testFlag ):
+
+      gLogger.info( 'Production test will be launched with number of events set to %s.' % ( evtsPerJob ) )
+      try:
+        result = step4_Prod.runLocal()
+        if result['OK']:
+          DIRAC.exit( 0 )
+        else:
+          DIRAC.exit( 2 )
+      except Exception, x:
+        gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
+        DIRAC.exit( 2 )
+
+    result = step4_Prod.create( 
+                              publish = publishFlag,
+                              bkScript = BKscriptFlag,
+                              requestID = currentReqID,
+                              reqUsed = 1,
+                              transformation = False
+                              )
+    if not result['OK']:
+      gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
+      DIRAC.exit( 2 )
+
+    if publishFlag:
+      diracProd = DiracProduction()
+
+      prodID = result['Value']
+      msg = 'Merging production %s for %s successfully created ' % ( prodID, step4_Stream )
+
+      if testFlag:
+        diracProd.production( prodID, 'manual', printOutput = True )
+        msg = msg + 'and started in manual mode.'
+      else:
+        diracProd.production( prodID, 'automatic', printOutput = True )
+        msg = msg + 'and started in automatic mode.'
+      gLogger.info( msg )
+
+      step4_ProductionList.append( int( prodID ) )
+
+    else:
+      prodID = 1
+      gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+
 
 
 gLogger.info( 'Template finished successfully.' )

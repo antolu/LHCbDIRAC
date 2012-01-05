@@ -69,7 +69,7 @@ swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size o
 unmergedStreamSE_DV = '{{swimmStreamSE-DV#PROD-swimming-DaVinci: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd_DV = '{{swimmAncestor-DVProd#PROD-swimming-DaVinci: ancestor production if any#0}}'
 swimmIDPolicy_DV = '{{swimmIDPolicy-DV#PROD-swimming-DaVinci: policy for input data access (download or protocol)#download}}'
-swimmEOpts_DV = '{{swimmEO_DV#PROD-swimming-DaVinci: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
+swimmEOpts_DV = '{{swimmEO_DV#PROD-swimming-DaVinci: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}";from Swimming.Configuration import ConfigureDaVinci;ConfigureDaVinci()}}'
 
 
 #merging params
@@ -284,7 +284,7 @@ if swimmEnabled:
   if len( swimmInputList ) == 1:
     swimmInput = swimmInputList[0].strip()
   else:
-    gLogger.error( 'Multiple inputs to swimming...?', swimmInput['Message'] )
+    gLogger.error( 'Multiple inputs to swimming...?', swimmInput['Value']['Records'] )
     DIRAC.exit( 2 )
 
   swimmOutput = BKClient.getStepOutputFiles( swimmStep )
@@ -294,7 +294,7 @@ if swimmEnabled:
 
   swimmOutputList = [x[0].lower().strip() for x in swimmOutput['Value']['Records']]
   if len( swimmOutputList ) > 1:
-    gLogger.error( 'Multiple outputs to swimming...?', swimmInput['Message'] )
+    gLogger.error( 'Multiple outputs to swimming...?', swimmInput['Value']['Records'] )
     DIRAC.exit( 2 )
   else:
     swimmType = swimmOutputList[0].strip()
@@ -309,7 +309,7 @@ if swimmEnabled:
   if len( swimmDVInputList ) == 1:
     swimmDVInput = swimmDVInputList[0].strip()
   else:
-    gLogger.error( 'Multiple inputs to swimmDVing...?', swimmDVInput['Message'] )
+    gLogger.error( 'Multiple inputs to swimming DV...?', swimmDVInput['Value']['Records'] )
     DIRAC.exit( 2 )
 
   swimmDVOutput = BKClient.getStepOutputFiles( swimmDVStep )
@@ -319,7 +319,7 @@ if swimmEnabled:
 
   swimmDVOutputList = [x[0].lower().strip() for x in swimmDVOutput['Value']['Records']]
   if len( swimmDVOutputList ) > 1:
-    gLogger.error( 'Multiple outputs to swimmDVing...?', swimmDVInput['Message'] )
+    gLogger.error( 'Multiple outputs to swimming DV...?', swimmDVInput['Value']['Records'] )
     DIRAC.exit( 2 )
   else:
     swimmDVType = swimmDVOutputList[0].strip()

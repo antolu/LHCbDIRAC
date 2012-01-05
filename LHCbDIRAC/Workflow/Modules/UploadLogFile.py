@@ -126,6 +126,7 @@ class UploadLogFile( ModuleBase ):
   #############################################################################
 
   def finalize( self, rm, ft ):
+
     """ finalize method performs final operations after all the job
         steps were executed. Only production jobs are treated.
     """
@@ -200,7 +201,7 @@ class UploadLogFile( ModuleBase ):
     random.shuffle( self.failoverSEs )
     self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName, string.join( self.failoverSEs, ', ' ) ) )
     result = ft.transferAndRegisterFile( tarFileName, '%s/%s' % ( self.logdir, tarFileName ), self.logLFNPath,
-                                                       self.failoverSEs, fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
+                                         self.failoverSEs, fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
 
     if not result['OK']:
       self.log.error( 'Failed to upload logs to all destinations' )
