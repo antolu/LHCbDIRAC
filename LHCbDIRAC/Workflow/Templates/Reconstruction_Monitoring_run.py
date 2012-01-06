@@ -67,6 +67,7 @@ recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/Fal
 recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
 recoType = '{{RecoType#PROD-RECO: DataReconstruction or DataReprocessing#DataReconstruction}}'
+recoRuns = '{{RecoRuns#PROD-RECO: dicrete list of run numbers (do not mix with start/endrun)#}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -77,7 +78,6 @@ prodGroup = '{{pDsc}}'
 #used in case of a test e.g. certification etc.
 bkConfigName = '{{configName}}'
 bkConfigVersion = '{{configVersion}}'
-recoRunNumbers = '{{inProductionID}}'
 
 #Other parameters from the request page
 recoDQFlag = '{{inDataQualityFlag}}' #UNCHECKED
@@ -129,8 +129,8 @@ if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '25'
-  recoStartRun = '87962'
-  recoEndRun = '87977'
+#  recoStartRun = '87962'
+#  recoEndRun = '87977'
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
   processingPass = 'Real Data'
@@ -171,10 +171,8 @@ if int( recoStartRun ):
 if int( recoEndRun ):
   recoInputBKQuery['EndRun'] = int( recoEndRun )
 
-if re.search( ',', recoRunNumbers ) and not int( recoStartRun ) and not int( recoEndRun ):
-  gLogger.info( 'Found run numbers to add to BK Query...' )
-  runNumbers = [int( i ) for i in recoRunNumbers.replace( ' ', '' ).split( ',' )]
-  recoInputBKQuery['RunNumbers'] = runNumbers
+if recoRuns:
+  recoInputBKQuery['RunNumbers'] = recoRuns.replace( ',', ';;;' ).replace( ' ', '' )
 
 #Have to confirm this isn't a FULL request for example
 threeSteps = '{{p3App}}'
