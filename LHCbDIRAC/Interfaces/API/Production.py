@@ -1432,8 +1432,17 @@ class Production():
     tier1s = []
     from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
     sites = getSites()
-    if not sites['OK']:
-      return S_ERROR( 'Can\'t get sites list' )
+
+    # fix for bug in RSS 
+#    if not sites['OK']:
+#      return S_ERROR( 'Can\'t get sites list' )
+#    for site in sites['Value']:
+#      tier = getSiteTier( site )
+#      if not tier['OK']:
+#        return S_ERROR( 'Can\'t get site %s tier' % site )
+#      if tier['Value'] in ( ['0'], ['1'] ):
+#        tier1s.append( site )
+
     for site in sites['Value']:
       tier = getSiteTier( site )
       if not tier['OK']:
