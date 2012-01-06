@@ -200,7 +200,9 @@ class GaudiApplication( ModuleBase ):
 
       if not projectEnvironment:
         #Now obtain the project environment for execution
-        result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, self.extraPackages, '', '', '', self.generator_name, self.poolXMLCatName, None )
+        result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, self.extraPackages,
+                                        generatorName = self.generator_name,
+                                        poolXMLCatalogName = self.poolXMLCatName )
         if not result['OK']:
           self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
           return result # this will distinguish between LbLogin / SetupProject / actual application failures
