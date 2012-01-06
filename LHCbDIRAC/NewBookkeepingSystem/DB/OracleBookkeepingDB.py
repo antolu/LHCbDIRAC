@@ -617,8 +617,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if evt != default:
       condition += ' and bview.eventtypeid=' + str(evt)
 
-    if production != default:
+    if production != default and type(production) == types.StringType:
       condition += ' and bview.production=' + str(production)
+    elif production != default and type(production) == types.ListType:
+      cond = ' and ('
+      for i in production:
+        cond += ' bview.production=%d or '%(i)
+      condition += cond[:-3] + ') '
 
     tables = ''
     if runnb != default:
