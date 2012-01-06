@@ -36,11 +36,15 @@ class DiracLHCb( Dirac ):
     self.tier1s = []
 
     try:
-      for site in getSites()['Value']:
-        if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
+      #fix for bug in RSS
+#      for site in getSites()['Value']:
+#        if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
+#          self.tier1s.append( site )
+      for site in getSites():
+        if getSiteTier( site ) in ( 0, 1 ):
           self.tier1s.append( site )
     except Exception, e:
-      return S_ERROR( 'Could not get the sites or sites tier', e )
+      return S_ERROR( 'Could not get the sites or sites tier ' + e )
 
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.softwareSection = '/Operations/SoftwareDistribution'
