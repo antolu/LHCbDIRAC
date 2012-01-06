@@ -1443,11 +1443,9 @@ class Production():
 #      if tier['Value'] in ( ['0'], ['1'] ):
 #        tier1s.append( site )
 
-    for site in sites['Value']:
+    for site in sites:
       tier = getSiteTier( site )
-      if not tier['OK']:
-        return S_ERROR( 'Can\'t get site %s tier' % site )
-      if tier['Value'] in ( ['0'], ['1'] ):
+      if tier in ( 0, 1 ):
         tier1s.append( site )
 
     self.LHCbJob.setBannedSites( tier1s )
