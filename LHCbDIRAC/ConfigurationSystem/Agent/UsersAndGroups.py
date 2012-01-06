@@ -75,6 +75,36 @@ class UsersAndGroups( AgentModule ):
         self.log.info( "Destroying proxy..." )
         os.unlink( self.proxyLocation )
 
+  def getLFCRegisteredBANDNs( self ):
+    #Request a proxy
+    if gConfig.useServerCertificate():
+      if not self.__generateProxy():
+        return False
+    #Execute the call
+    cmdEnv = dict( os.environ )
+    cmdEnv['LFC_HOST'] = 'lfc-lhcb.cern.ch'
+    if os.path.isfile( self.proxyLocation ):
+      cmdEnv[ 'X509_USER_PROXY' ] = self.proxyLocation
+    lfcBANDNs = []
+    try:
+      retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = cmdEnv )
+      if not retlfc['OK']:
+        self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
+        return retlfc
+      if retlfc['Value'][0]:
+        self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
+        return S_ERROR( "lfc-listusrmap failed" )
+      else:
+        for item in List.fromChar( retlfc['Value'][1], '\n' ):
+          dn = item.split( ' ', 1 )[1]
+          if str( dn ).find( 'LOCAL_BAN' ) != -1:
+            lfcBANDNs.append( dn )
+      return S_OK( lfcBANDNs )
+    finally:
+      if os.path.isfile( self.proxyLocation ):
+        self.log.info( "Destroying proxy..." )
+        os.unlink( self.proxyLocation )
+
   def checkLFCRegisteredUsers( self, usersData ):
     self.log.info( "Checking LFC registered users" )
     usersToBeRegistered = {}
@@ -83,18 +113,30 @@ class UsersAndGroups( AgentModule ):
       self.log.error( "Could not get a list of registered DNs from LFC", result[ 'Message' ] )
       return result
     lfcDNs = result[ 'Value' ]
+    self.log.info( "Checking LFC registered but BAN users" )
+    usersToBeRegisteredAgain = {}
+    result = self.getLFCRegisteredBANDNs()
+    if not result[ 'OK' ]:
+      self.log.error( "Could not get a list of registered but BAN DNs from LFC", result[ 'Message' ] )
+      return result
+    lfcBANDNs = result[ 'Value' ]
+    found = False
     for user in usersData:
       for userDN in usersData[ user ][ 'DN' ]:
-        found = False
-        for indDN in lfcDNs:
-          if not str( indDN ).find( userDN ):
+        for dn in lfcBANDNs:
+          if not str( dn ).find( userDN ):
+            self.log.info( userDN )
             found = True
+            if user not in usersToBeRegisteredAgain:
+              usersToBeRegisteredAgain[ user ] = []
+            usersToBeRegisteredAgain[ user ].append( userDN )
             break
-        if userDN not in lfcDNs:
-          self.log.info( 'DN "%s" need to be registered in LFC for user %s' % ( userDN, user ) )
-          if user not in usersToBeRegistered:
-            usersToBeRegistered[ user ] = []
-          usersToBeRegistered[ user ].append( userDN )
+        if not found:
+          if userDN not in lfcDNs:
+            self.log.info( 'DN "%s" need to be registered in LFC for user %s' % ( userDN, user ) )
+            if user not in usersToBeRegistered:
+              usersToBeRegistered[ user ] = []
+            usersToBeRegistered[ user ].append( userDN )
 
     address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
     fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
@@ -110,6 +152,18 @@ class UsersAndGroups( AgentModule ):
           body += 'add_DN_LFC --userDN="' + lfc_dn.strip() + '" --nickname=' + lfcuser + '\n'
 
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+
+    if usersToBeRegisteredAgain:
+      subject = 'New LFC Users found but BANNED'
+      self.log.info( subject, ", ".join( usersToBeRegisteredAgain ) )
+      body = 'Command to change the entries into LFC: \n'
+      for lfcuser in usersToBeRegisteredAgain:
+        for lfc_dn in usersToBeRegisteredAgain[lfcuser]:
+          print lfc_dn
+          body += 'Change --userDN="' + lfc_dn + '" --nickname=' + lfcuser + '\n'
+
+      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+
     return S_OK()
 
   def execute( self ):
