@@ -588,6 +588,8 @@ class Production():
                         ['generatorName', 'string', '', 'GeneratorName'],
                         ['applicationName', 'string', '', 'ApplicationName'],
                         ['applicationVersion', 'string', '', 'ApplicationVersion'],
+                        ['runTimeProjectName', 'string', '', 'runTimeProjectName'],
+                        ['runTimeProjectVersion', 'string', '', 'runTimeProjectVersion'],
                         ['applicationType', 'string', '', 'ApplicationType'],
                         ['applicationLog', 'string', '', 'ApplicationLogFile'],
                         ['optionsFile', 'string', '', 'OptionsFile'],
