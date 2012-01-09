@@ -33,7 +33,7 @@ def getOptions( appName, outputFileType, extraOpts = None, inputType = None,
 
   #General options
   options.append( "from Configurables import LHCbApp" )
-  options.append( "LHCbApp().XMLSummary='summary%s_@{STEP_ID}.xml'" % appName )
+  options.append( "LHCbApp().XMLSummary='summary@{applicationName}_@{STEP_ID}.xml'" )
   dddbOpt = "LHCbApp().DDDBtag = \"%s\"" % ( ddDB )
   conddbOpt = "LHCbApp().CondDBtag = \"%s\"" % ( condDB )
 
