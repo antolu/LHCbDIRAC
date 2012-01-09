@@ -34,6 +34,9 @@ class GaudiApplication( ModuleBase ):
     self.systemConfig = ''
     self.applicationLog = ''
     self.applicationName = ''
+    self.applicationVersion = ''
+    self.runTimeProjectName = ''
+    self.runTimeProjectVersion = ''
     self.inputDataType = 'MDF'
     self.numberOfEvents = 0
     self.inputData = '' # to be resolved
@@ -78,6 +81,10 @@ class GaudiApplication( ModuleBase ):
 
     if self.step_commons.has_key( 'generatorName' ):
       self.generator_name = self.step_commons['generatorName']
+
+    if self.step_commons.has_key( 'runTimeProjectName' ):
+      self.runTimeProjectName = self.step_commons['runTimeProjectName']
+      self.runTimeProjectVersion = self.step_commons['runTimeProjectVersion']
 
     if self.step_commons.has_key( 'extraPackages' ):
       self.extraPackages = self.step_commons['extraPackages']
@@ -200,9 +207,15 @@ class GaudiApplication( ModuleBase ):
 
       if not projectEnvironment:
         #Now obtain the project environment for execution
-        result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, self.extraPackages,
+        result = getProjectEnvironment( systemConfiguration = self.systemConfig,
+                                        applicationName = self.applicationName,
+                                        applicationVersion = self.applicationVersion,
+                                        extraPackages = self.extraPackages,
+                                        runTimeProject = self.runTimeProjectName,
+                                        runTimeProjectVersion = self.runTimeProjectVersion,
                                         generatorName = self.generator_name,
                                         poolXMLCatalogName = self.poolXMLCatName )
+
         if not result['OK']:
           self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
           return result # this will distinguish between LbLogin / SetupProject / actual application failures

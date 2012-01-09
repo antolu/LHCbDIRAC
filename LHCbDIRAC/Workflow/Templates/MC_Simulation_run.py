@@ -183,6 +183,7 @@ if testFlag:
   events = '3'
   extend = '10'
   mergingGroupSize = '1'
+  cpu = '50000'
   replicationFlag = False
 
 if eightSteps:
