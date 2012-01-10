@@ -184,7 +184,6 @@ if testFlag:
   extend = '10'
   mergingGroupSize = '1'
   cpu = '50000'
-  replicationFlag = False
 
 if eightSteps:
   gLogger.error( 'Eight steps specified, not sure what to do! Exiting...' )
@@ -941,7 +940,7 @@ else:
     mergingProd.setJobParameters( {"InputDataPolicy": 'download' } )
   except:
     mergingProd.addFinalizationStep( removeInputData = True )
-    mergingProd.setInputDataPolicy( 'donwload' )
+    mergingProd.setInputDataPolicy( 'download' )
 
   mergingProd.setJobFileGroupSize( mergingGroupSize )
   mergingProd.setProdGroup( '{{pDsc}}' )
