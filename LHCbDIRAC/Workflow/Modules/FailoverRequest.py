@@ -45,7 +45,7 @@ class FailoverRequest( ModuleBase ):
 
       #useless, IMHO
 #    if self.workflow_commons.has_key( 'PRODUCTION_ID' ):
-#      self.productionID = self.workflow_commons['PRODUCTION_ID']
+#      self.production_id = self.workflow_commons['PRODUCTION_ID']
 #
 #    if self.workflow_commons.has_key( 'JOB_ID' ):
 #      self.prodJobID = self.workflow_commons['JOB_ID']
@@ -79,14 +79,14 @@ class FailoverRequest( ModuleBase ):
         for lfn in self.inputData:
           if not lfn in inputFiles:
             self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
-            self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
+            self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
 
       if not self._checkWFAndStepStatus( noPrint = True ):
         inputFiles = self.fileReport.getFiles()
         for lfn in inputFiles:
           if inputFiles[lfn] != 'ApplicationCrash':
             self.log.info( 'Forcing status to "Unused" due to workflow failure for: %s' % ( lfn ) )
-            self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Unused' )
+            self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
       else:
         inputFiles = self.fileReport.getFiles()
 
@@ -94,7 +94,7 @@ class FailoverRequest( ModuleBase ):
           self.log.info( 'Workflow status OK, setting input file status to Processed' )
         for lfn in inputFiles:
           self.log.info( 'Setting status to "Processed" for: %s' % ( lfn ) )
-          self.fileReport.setFileStatus( int( self.productionID ), lfn, 'Processed' )
+          self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Processed' )
 
       result = self.fileReport.commit()
 
