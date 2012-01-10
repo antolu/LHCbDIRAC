@@ -223,7 +223,12 @@ class BookkeepingReport( ModuleBase ):
     # Generate SimulationConditions
     jobNode = self.__generateSimulationCondition( jobNode )
 
-    return doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
+    prettyXMLDoc = doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
+
+    #horrible, necessary hack!
+    prettyXMLDoc = prettyXMLDoc.replace( '\'book.dtd\'', '\"book.dtd\"' )
+
+    return prettyXMLDoc
 
 ################################################################################
 
