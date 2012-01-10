@@ -105,6 +105,8 @@ strippTransFlag = eval( strippTransFlag )
 
 strippEnabled = False
 mergingEnabled = False
+step3Enabled = False
+step4Enabled = False
 
 oneStep = '{{p1App}}'
 twoSteps = '{{p2App}}'
@@ -281,7 +283,7 @@ elif threeSteps:
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
-    step3Enabled
+    step3Enabled = True
     step3_App = '{{p3App}}'
     step3_Step = int( '{{p3Step}}' )
     step3_Name = '{{p3Name}}'
