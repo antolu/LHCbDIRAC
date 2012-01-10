@@ -829,7 +829,7 @@ else:
 
   selectionProd.setProdType( 'DataStripping' )
   selectionName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( selectionInputType, evtType, prodID, mergingGroupSize )
-  selectionProd.setWorkflowName( selectionName )
+  selectionProd.setWorkflowName( '%s_%s' % ( selectionName, appendName ) )
   selectionProd.setWorkflowDescription( 'MC workflow selection from a previous production.' )
   selectionProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   selectionProd.setDBTags( selectionCDb, selectionDDDb )
@@ -913,7 +913,7 @@ else:
 
   mergingProd.setProdType( 'Merge' )
   mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( mergingInputType, evtType, prodID, mergingGroupSize )
-  mergingProd.setWorkflowName( mergingName )
+  mergingProd.setWorkflowName( '%s_%s' % ( mergingName, appendName ) )
   mergingProd.setWorkflowDescription( 'MC workflow for merging outputs from a previous production.' )
   mergingProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
