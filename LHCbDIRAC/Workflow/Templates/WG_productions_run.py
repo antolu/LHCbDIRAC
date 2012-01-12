@@ -40,6 +40,8 @@ certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification tes
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True to create validation productions#False}}'
 
+simulationFlag = '{{simulationFlag#GENERAL: Input Data is from simulation#False}}'
+
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
 useOracle = '{{useOracle#GENERAL: Use Oracle#False}}'
@@ -96,6 +98,7 @@ dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'
 eventType = '{{eventType}}'
 
+simulation = eval( simulationFlag )
 mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
@@ -485,7 +488,6 @@ if strippEnabled:
       histFlag = True
 
   strippInputBKQuery = {
-                        'DataTakingConditions'     : dataTakingCond,
                         'ProcessingPass'           : processingPass,
                         'FileType'                 : strippFileType,
                         'EventType'                : eventType,
@@ -495,6 +497,11 @@ if strippEnabled:
                         'DataQualityFlag'          : strippDQFlag,
                         'Visible'                  : 'Yes'
                         }
+
+  if simulation:
+    strippInputBKQuery['SimulationConditions'] = dataTakingCond
+  else:
+    strippInputBKQuery['DataTakingConditions'] = dataTakingCond
 
 
   if int( endRun ) and int( startRun ):
