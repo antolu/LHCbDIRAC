@@ -1,13 +1,7 @@
 ########################################################################
 # $Id$
 ########################################################################
-""" Production log analysis is a utility to simplify the maintenance of log file
-    analysis.  The primary client of this is AnalyseLogFile but the aim
-    is to create a standalone utility for checking the sanity of log files
-    that can also be used outside of workflows.
-
-    Hopefully this will make use of File Summary Records at some point and as a
-    standalone utility this makes future development a lot easier.
+""" Utility to check the XML summary, used within the jobs
 """
 
 __RCSID__ = "$Id$"
@@ -30,7 +24,7 @@ import string, re, os
 #numberOfEventsInput = 0
 #numberOfEventsOutput = 0
 #firstStepInputEvents = 0
-                                
+
 def analyseXMLLogFile( fileName, applicationName = '', stepName = '', prod = '', job = '', jobType = '' ):
 
   analyser = AnalyseXMLLogFile( fileName, applicationName, stepName, prod, job, jobType )
