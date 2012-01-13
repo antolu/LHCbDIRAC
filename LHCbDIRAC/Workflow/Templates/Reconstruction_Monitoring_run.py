@@ -99,10 +99,8 @@ if certificationFlag or localTestFlag:
   replicationFlag = False
   if certificationFlag:
     publishFlag = True
-    mergingFlag = True
   if localTestFlag:
     publishFlag = False
-    mergingFlag = False
 else:
   publishFlag = True
   testFlag = False
@@ -129,10 +127,10 @@ if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '25'
-#  recoStartRun = '87962'
-#  recoEndRun = '87977'
+  recoStartRun = '93718'
+  recoEndRun = '93730'
   recoCPU = '100000'
-  dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
+  dataTakingCond = 'Beam3500GeV-VeloClosed-MagUp'
   processingPass = 'Real Data'
   BKfileType = 'RAW'
   if express:
