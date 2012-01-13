@@ -94,9 +94,18 @@ class OracleBookkeepingDB(IBookkeepingDB):
         flist = dict['InputFileTypes']
         flist.sort()
         if self.__isSpecialFileType(flist):
-          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleStepsRealAndMC', [], True, flist)
+          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForIfiles', [], True, flist)
         else:
-          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getAvailebleSteps', [], True, flist)
+          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificIfiles', [], True, flist)
+
+      if dict.has_key('OutputFileTypes'):
+        flist = dict['OutputFileTypes']
+        flist.sort()
+        if self.__isSpecialFileType(flist):
+          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForOfiles', [], True, flist)
+        else:
+          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificOfiles', [], True, flist)
+
       command = 'select ' + selection + ' from ' + tables + ' where ' + condition + 'order by inserttimestamps desc'
       return self.dbR_._query(command)
     else:
