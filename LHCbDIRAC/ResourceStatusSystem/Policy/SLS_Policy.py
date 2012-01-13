@@ -24,19 +24,26 @@ class SLS_Policy(PolicyBase):
 
     # Execute the command and returns a value as a string.
     status = super(SLS_Policy, self).evaluate()
+    result = {}
 
-    if not status:
-      return { 'Status': 'Error', "Reason": "SLSStatus_Command ERROR" }
-
-    # From here, status is an integer
-
+    if not status[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = status[ 'Message' ]
+      return result
+   
+    status = status[ 'Value' ]
     # FIXME: Should get thresholds from SLS !!!!
-    if status < 40   : self.result['Status'] = 'Banned'; comment = 'Poor'
-    elif status > 90 : self.result['Status'] = 'Active'; comment = 'High'
-    else             : self.result['Status'] = 'Bad';    comment = 'Low'
+    if status < 40: 
+      result[ 'Status' ] = 'Banned' 
+      comment            = 'Poor'
+    elif status < 90:
+      result[ 'Status' ] = 'Bad'
+      comment            = 'Low'
+    else:   
+      result[ 'Status' ] = 'Active' 
+      comment            = 'High'
 
-    self.result['Reason'] = "SLS availability: %d %% (%s)" % (status, comment)
-
-    return self.result
+    result[ 'Reason' ] = 'SLS availability: %d %% (%s)' % ( status, comment )
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

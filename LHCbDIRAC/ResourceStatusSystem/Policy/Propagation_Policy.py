@@ -26,12 +26,17 @@ class Propagation_Policy(PolicyBase):
     """
 
     stats = super(Propagation_Policy, self).evaluate()
+    result = {}
 
-    if stats is None:
-      return { 'Status':'Error' }
+    if not stats[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = stats[ 'Message' ]
+      return result
 
-    if stats == 'Unknown':
-      return {'Status':'Unknown', 'Reason':'No info available from service'}
+    stats = stats[ 'Value' ]
+
+#    if stats == 'Unknown':
+#      return { 'Status' : 'Unknown', 'Reason': 'No info available from service' }
 
     if stats['Active'] > 0 and stats['Probing'] == 0 and stats['Bad'] == 0 and stats['Banned'] == 0:
       status = 'Active'
@@ -42,15 +47,15 @@ class Propagation_Policy(PolicyBase):
     else:
       status = 'Unknown'
 
-    self.result['Status'] = status
+    result['Status'] = status
     # TODO: Check that self.args[2] is correct, in the future, use
     # named fields instead of numbers
-    self.result['Reason'] = '%s: Active:%d, Probing :%d, Bad: %d, Banned:%d' % ( self.args[2],
+    result['Reason'] = '%s: Active:%d, Probing :%d, Bad: %d, Banned:%d' % ( self.args[2],
                                                                            stats['Active'],
                                                                            stats['Probing'],
                                                                            stats['Bad'],
                                                                            stats['Banned'] )
 
-    return self.result
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

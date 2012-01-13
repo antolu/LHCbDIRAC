@@ -24,26 +24,35 @@ class JobsEfficiency_Simple_Policy(PolicyBase):
   """
 
     status = super(JobsEfficiency_Simple_Policy, self).evaluate()
+    result = {}
 
-    if status == 'Unknown':
-      return {'Status':'Unknown'}
+    if not status[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = status[ 'Message' ]
+      return result
 
-    self.result['Reason'] = 'Simple Jobs Efficiency: '
+    status = status[ 'Value' ]
 
+#    elif status == 'Unknown':
+#      return { 'Status' : 'Unknown' }
+      
     if status == 'Good':
-      self.result['Status'] = 'Active'
+      result[ 'Status' ] = 'Active'
     elif status == 'Fair':
-      self.result['Status'] = 'Active'
+      result[ 'Status' ] = 'Active'   
     elif status == 'Poor':
-      self.result['Status'] = 'Probing'
+      result[ 'Status' ] = 'Probing'
     elif status == 'Idle':
-      self.result['Status'] = 'Unknown'
+      result[ 'Status' ] = 'Unknown'
     elif status == 'Bad':
-      self.result['Status'] = 'Bad'
+      result[ 'Status' ] = 'Bad'
 
+    result[ 'Reason' ] = 'Simple Jobs Efficiency: '
     if status != 'Idle':
-      self.result['Reason'] = self.result['Reason'] + status
+      result[ 'Reason' ] = result[ 'Reason' ] + status
+    else:
+      result[ 'Reason' ] = 'No values to take a decision'
 
-    return self.result
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
