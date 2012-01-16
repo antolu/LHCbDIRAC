@@ -105,18 +105,18 @@ if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'I told you to select at least one workflow!' )
   DIRAC.exit( 2 )
 
-if w1 or w2:
-  gLogger.error( 'Not yet completely implemented, sorry! (ask Federico)' )
-  DIRAC.exit( 2 )
-else:
-  oneStep = '{{p1App}}'
-  twoSteps = '{{p2App}}'
-  threeSteps = '{{p3App}}'
-  fourSteps = '{{p4App}}'
-  fiveSteps = '{{p5App}}'
-  sixSteps = '{{p6App}}'
-  sevenSteps = '{{p7App}}'
-  eightSteps = '{{p8App}}'
+#if w1 or w2:
+#  gLogger.error( 'Not yet completely implemented, sorry! (ask Federico)' )
+#  DIRAC.exit( 2 )
+#else:
+oneStep = '{{p1App}}'
+twoSteps = '{{p2App}}'
+threeSteps = '{{p3App}}'
+fourSteps = '{{p4App}}'
+fiveSteps = '{{p5App}}'
+sixSteps = '{{p6App}}'
+sevenSteps = '{{p7App}}'
+eightSteps = '{{p8App}}'
 
 selection = False
 merging = False

@@ -697,9 +697,9 @@ if mergingEnabled:
       DIRAC.exit( 2 )
 
     if step3Enabled:
-      mergeProd.addDaVinciStep( step3_Version, step3_Type, step3_Opts, eventType = eventType, step3_Packages = step3_EP,
+      mergeProd.addDaVinciStep( step3_Version, step3_Type, step3_Opts, eventType = eventType, extraPackages = step3_EP,
                                 inputDataType = step3_Input.lower(), numberOfEvents = evtsPerJob,
-                                dataType = 'Data', step3_Opts = step3_ExtraOpts,
+                                dataType = 'Data', extraOpts = step3_ExtraOpts,
                                 stepID = step3_Step, stepName = step3_Name, stepVisible = step3_Visibility )
 
     mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
