@@ -504,98 +504,102 @@ if mergingEnabled:
 
     mergeBKQuery = { 'ProductionID'             : strippProdID,
                      'DataQualityFlag'          : mergeDQFlag,
-                     'FileType'                 : mergeStreamsList
+                     'FileType'                 : mergeStream
                     }
     if mergeApp.lower() == 'davinci':
       dvExtraOptions = "from Configurables import RecordStream;"
       dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
       dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
-  mergeProd = Production( BKKClientIn = BKClient )
-  try:
-    production.setJobParameters( { 'CPUTime': mergeCPU } )
-  except:
-    mergeProd.setCPUTime( mergeCPU )
-  mergeProd.setProdType( 'Merge' )
-  wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
-  mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStreamsList, wkfName, appendName ) )
+    mergeProd = Production( BKKClientIn = BKClient )
+    try:
+      production.setJobParameters( { 'CPUTime': mergeCPU } )
+    except:
+      mergeProd.setCPUTime( mergeCPU )
+    mergeProd.setProdType( 'Merge' )
+    wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
+    mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream, wkfName, appendName ) )
 
-  if sysConfig:
-    mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
+    if sysConfig:
+      mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
-  mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStreamsList, strippProdID ) )
-  mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
-  mergeProd.setDBTags( mergeCDb, mergeDDDb )
+    mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, strippProdID ) )
+    mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
+    mergeProd.setDBTags( mergeCDb, mergeDDDb )
 
-  if mergeApp.lower() == 'davinci':
-    mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                              inputDataType = 'MIX_MERGE', extraOpts = dvExtraOptions,
-                              inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
+    if mergeApp.lower() == 'davinci':
+      try:
+        mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
+                                  extraOpts = dvExtraOptions, inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
+                                  extraOutput = mergeOutputList,
+                                  stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
+      except:
+        mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
+                                  extraOpts = dvExtraOptions, inputData = [], outputSE = mergedStreamSE,
+                                  extraOutput = mergeOutputList,
+                                  stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
+    elif mergeApp.lower() == 'lhcb':
+      mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
+                              outputSE = mergedStreamSE,
+                              condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               extraOutput = mergeOutputList,
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
-  elif mergeApp.lower() == 'lhcb':
-    mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
-                            inputDataType = 'MIX_MERGE', outputSE = mergedStreamSE,
-                            condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
-                            extraOutput = mergeOutputList,
-                            stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
-  else:
-    gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
-    DIRAC.exit( 2 )
-
-  try:
-    mergeProd.setInputDataPolicy( mergeIDPolicy )
-    mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
-  except:
-    mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
-    if mergeRemoveInputsFlag:
-      mergeProd.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
-                                      'RemoveInputData',
-                                      'UploadLogFile'] )
     else:
-      mergeProd.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
-                                      'UploadLogFile'] )
+      gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
+      DIRAC.exit( 2 )
 
-  mergeProd.setInputBKSelection( mergeBKQuery )
-  mergeProd.setProdGroup( prodGroup )
-  mergeProd.setProdPriority( mergePriority )
-  mergeProd.setJobFileGroupSize( mergeFileSize )
-#  mergeProd.setFileMask( mergeStream.lower() )
-  mergeProd.setProdPlugin( mergePlugin )
+    try:
+      mergeProd.setInputDataPolicy( mergeIDPolicy )
+      mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+    except:
+      mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
+      if mergeRemoveInputsFlag:
+        mergeProd.addFinalizationStep( ['UploadOutputData',
+                                        'FailoverRequest',
+                                        'RemoveInputData',
+                                        'UploadLogFile'] )
+      else:
+        mergeProd.addFinalizationStep( ['UploadOutputData',
+                                        'FailoverRequest',
+                                        'UploadLogFile'] )
 
-  result = mergeProd.create( 
-                            publish = publishFlag,
-                            bkScript = BKscriptFlag,
-                            requestID = currentReqID,
-                            reqUsed = 1,
-                            transformation = False
-                            )
-  if not result['OK']:
-    gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
-    DIRAC.exit( 2 )
+    mergeProd.setInputBKSelection( mergeBKQuery )
+    mergeProd.setProdGroup( prodGroup )
+    mergeProd.setProdPriority( mergePriority )
+    mergeProd.setJobFileGroupSize( mergeFileSize )
+  #  mergeProd.setFileMask( mergeStream.lower() )
+    mergeProd.setProdPlugin( mergePlugin )
 
-  if publishFlag:
-    diracProd = DiracProduction()
+    result = mergeProd.create( 
+                              publish = publishFlag,
+                              bkScript = BKscriptFlag,
+                              requestID = currentReqID,
+                              reqUsed = 1,
+                              transformation = False
+                              )
+    if not result['OK']:
+      gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
+      DIRAC.exit( 2 )
 
-    prodID = result['Value']
-    msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStreamsList )
+    if publishFlag:
+      diracProd = DiracProduction()
 
-    if testFlag:
-      diracProd.production( prodID, 'manual', printOutput = True )
-      msg = msg + 'and started in manual mode.'
+      prodID = result['Value']
+      msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStreamsList )
+
+      if testFlag:
+        diracProd.production( prodID, 'manual', printOutput = True )
+        msg = msg + 'and started in manual mode.'
+      else:
+        diracProd.production( prodID, 'automatic', printOutput = True )
+        msg = msg + 'and started in automatic mode.'
+      gLogger.info( msg )
+
+      mergeProductionList.append( int( prodID ) )
+
     else:
-      diracProd.production( prodID, 'automatic', printOutput = True )
-      msg = msg + 'and started in automatic mode.'
-    gLogger.info( msg )
-
-    mergeProductionList.append( int( prodID ) )
-
-  else:
-    prodID = 1
-    gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
-
+      prodID = 1
+      gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 #################################################################################
