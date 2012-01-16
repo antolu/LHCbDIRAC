@@ -8,6 +8,7 @@
 <path>/LHCbDIRAC</path>
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
-<path>/home/toffo/DIRAC-Code</path>
+<path>/home/ubeda/code/development/LHCbDIRAC</path>
+<path>/home/ubeda/git/DIRAC</path>
 </pydev_pathproperty>
 </pydev_project>
