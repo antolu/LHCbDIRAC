@@ -1,4 +1,4 @@
-"$Id: "
+__RCSID__ = "$Id: "
 
 #!/usr/bin/env python
 import os, sys
