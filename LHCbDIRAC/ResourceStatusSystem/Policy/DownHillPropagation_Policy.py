@@ -34,8 +34,10 @@ class DownHillPropagation_Policy(PolicyBase):
 
     resourceStatus = resourceStatus[ 'Value' ]
     
-#    elif resourceStatus == 'Unknown':
-#      return { 'Status' : 'Unknown' }
+    if resourceStatus is None:
+      result[ 'Status' ] = 'Unknown'
+      result[ 'Reason' ] = 'No values to take a decission'
+      return result
 
     result[ 'Status' ] = resourceStatus
     result[ 'Reason' ] = 'DownHill propagated status: %s' % resourceStatus
