@@ -75,20 +75,23 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getAvailableSteps(self, dict={}):
+    start = 0
+    max = 10
+    paging = False
+
     condition = ''
-    selection = 'stepid,stepname, applicationname,applicationversion,optionfiles,DDDB,CONDDB, extrapackages,Visible, ProcessingPass, Usable'
+    tables = 'steps s'
     if len(dict) > 0:
-      tables = 'steps'
       if dict.has_key('StartDate'):
-        condition += ' steps.inserttimestamps >= TO_TIMESTAMP (\'' + dict['StartDate'] + '\',\'YYYY-MM-DD HH24:MI:SS\')'
+        condition += ' s.inserttimestamps >= TO_TIMESTAMP (\'' + dict['StartDate'] + '\',\'YYYY-MM-DD HH24:MI:SS\')'
       if dict.has_key('StepId'):
         if len(condition) > 0:
           condition += ' and '
-        condition += ' stepid=' + str(dict['StepId'])
+        condition += ' s.stepid=' + str(dict['StepId'])
       if dict.has_key('StepName'):
         if len(condition) > 0:
           condition += ' and '
-        condition += " stepname='%s'" % (dict['StepName'])
+        condition += " s.stepname='%s'" % (dict['StepName'])
 
       if dict.has_key('InputFileTypes'):
         flist = dict['InputFileTypes']
@@ -105,11 +108,75 @@ class OracleBookkeepingDB(IBookkeepingDB):
           return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForOfiles', [], True, flist)
         else:
           return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificOfiles', [], True, flist)
+      if dict.has_key('ApplicationName'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.applicationName='%s'" % (dict['ApplicationName'])
 
-      command = 'select ' + selection + ' from ' + tables + ' where ' + condition + 'order by inserttimestamps desc'
+      if dict.has_key('ApplicationVersion'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.applicationversion='%s'" % (dict['ApplicationVersion'])
+
+      if dict.has_key('OptionFiles'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.optionfiles='%s'" % (dict['OptionFiles'])
+
+      if dict.has_key('DDDB'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.dddb='%s'" % (dict['DDDB'])
+
+      if dict.has_key('CONDDB'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.conddb='%s'" % (dict['CONDDB'])
+
+      if dict.has_key('ExtraPackages'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.extrapackages='%s'" % (dict['ExtraPackages'])
+
+      if dict.has_key('Visible'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.visible='%s'" % (dict['Visible'])
+
+      if dict.has_key('ProcessingPass'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.processingpass='%s'" % (dict['ProcessingPass'])
+
+      if dict.has_key('Usable'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.usable='%s'" % (dict['Usable'])
+
+      if dict.has_key('RuntimeProjects'):
+        if len(condition) > 0:
+          condition += ' and '
+        condition += " s.runtimeProject=%d" % (dict['RuntimeProjects'])
+
+
+      if dict.has_key('StartItem') and dict.has_key('MaxItem'):
+        start = dict['StartItem']
+        max = dict['MaxItem']
+        paging = True
+
+      if paging:
+        if len(condition) > 0:
+          condition = " where " + condition
+        command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable from \
+  ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable from \
+    ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
+    s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible , s.ProcessingPass sprocessingpass, s.Usable susable from %s  %s order by inserttimestamps desc \
+     ) where rownum <=%d ) where r >%d"%(tables, condition, max, start)
+      else:
+        command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable from %s where %s order by inserttimestamps desc' %(tables, condition)
       return self.dbR_._query(command)
     else:
-      command = 'select ' + selection + ' from steps order by inserttimestamps desc'
+      command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable from %s order by inserttimestamps desc' %(tables)
       return self.dbR_._query(command)
 
   #############################################################################
