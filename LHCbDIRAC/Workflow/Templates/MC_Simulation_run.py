@@ -58,6 +58,7 @@ outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
 outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
+setTargetSite = '{{TargetSite#GENERAL: Set a target site (blank for everything)#}}'
 
 events = '{{MCNumberOfEvents#PROD-MC: Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
@@ -755,6 +756,9 @@ else:
   else:
     MCProd.setOutputMode( 'Local' )
   MCProd.setFileMask( outputFileMask )
+
+  if setTargetSite:
+    MCProd.setTargetSite( setTargetSite )
 
   if banTier1s:
     MCProd.banTier1s()
