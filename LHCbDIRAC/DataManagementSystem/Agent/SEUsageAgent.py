@@ -68,7 +68,7 @@ class SEUsageAgent( AgentModule ):
     timingPerSite = {}
     self.spaceTokens = {}
     self.siteConfig = {}
-    specialReplicas = ['archive', 'freezer', 'failover']
+    self.specialReplicas = ['archive', 'freezer', 'failover']
     siteList.sort()
     for LcgSite in siteList:
       site = LcgSite.split('.')[1]
@@ -87,12 +87,21 @@ class SEUsageAgent( AgentModule ):
         gLogger.warn("Input files successfully, but not valid for checks (probably too old ). Skip site %s " % site )
         continue
 
+      # ONLY FOR DEBUGGING 
+      DEBUG = False
+      if DEBUG: # get the problematic summary at the beginning (to debug this part without waiting until the end)
+        res = self.getProblematicDirsSummary( site )
+        if not res[ 'OK' ]:
+          return S_ERROR( res['Message'] )
+      else: # follow the usual work flow
       # Flush the problematicDirs table
-      res = self.__storageUsage.removeAllFromProblematicDirs( site )
-      if not res['OK']:
-        gLogger.error("Error for site %s: Could not remove old entries from the problematicDirs table! %s " %( site, res['Message']))
-        continue
-      gLogger.info("Removed %d entries from the problematic directories table for site %s" %( res['Value'], site ))
+        gLogger.info("Flushing the problematic directories table for site %s..." % site)
+        res = self.__storageUsage.removeAllFromProblematicDirs( site )
+        if not res['OK']:
+          gLogger.error("Error for site %s: Could not remove old entries from the problematicDirs table! %s " %( site, res['Message']))
+          continue
+        gLogger.info("Removed %d entries from the problematic directories table for site %s" %( res['Value'], site ))
+     # END OF DEBUGGING MODIFICATION ###########
       # Start the main loop:
       # read all file of type directory summary for the given site:
       pathToSummary = self.siteConfig[ site ][ 'pathToInputFiles' ]
@@ -113,14 +122,15 @@ class SEUsageAgent( AgentModule ):
             continue
           oneDirDict = {}
           dirPath = StorageDirPath
-          specialRep = False
-          for sr in specialReplicas:
+          #specialRep = False
+          replicaType = 'normal'
+          for sr in self.specialReplicas:
             prefix = '/lhcb/' + sr
             if prefix in dirPath:
               dirPath = StorageDirPath.split( prefix )[1] # strip the initial prefix, to get the LFN as registered in the LFC
-              specialRep = sr
+              replicaType = sr
               gLogger.info( "prefix: %s \n StorageDirPath: %s\n dirPath: %s" % ( prefix, StorageDirPath, dirPath ) )
-          oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size , 'Updated': 'na', 'Site': site, 'SpecialReplica': specialRep }
+          oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size , 'Updated': 'na', 'Site': site, 'ReplicaType': replicaType }
           # the format of the entry to be processed must be a dictionary with LFN path as key
           # use this format for consistency with already existing methods of StorageUsageDB which take in input a dictionary like this
           gLogger.info( "Processing directory: %s" % ( oneDirDict ) )
@@ -165,9 +175,9 @@ class SEUsageAgent( AgentModule ):
                 for se in res['Value'][lfn].keys():
                   gLogger.verbose( "SpaceToken: %s -- se: %s" % ( spaceToken, se ) )
                   if se in associatedDiracSEs:
-                    if oneDirDict[ dirPath ][ 'SpecialReplica' ]:# consider only the LFC replicas of the corresponding Dirac SE
-                      gLogger.info( "SpecialReplica: %s" % oneDirDict[ dirPath ][ 'SpecialReplica' ] )
-                      SESuffix = oneDirDict[ dirPath ][ 'SpecialReplica' ].upper()
+                    if oneDirDict[ dirPath ][ 'ReplicaType' ] in self.specialReplicas:# consider only the LFC replicas of the corresponding Dirac SE
+                      gLogger.info( "SpecialReplica: %s" % oneDirDict[ dirPath ][ 'ReplicaType' ] )
+                      SESuffix = oneDirDict[ dirPath ][ 'ReplicaType' ].upper()
                       if SESuffix not in se:
                         gLogger.info( "Se does not contain the suffix: %s. Skip it" % SESuffix )
                         continue
@@ -251,7 +261,7 @@ class SEUsageAgent( AgentModule ):
       gLogger.info( "Get the summary of problematic directories.." )
       res = self.getProblematicDirsSummary( site )
       if not res[ 'OK' ]:
-        return S_ERROR( res )
+        return S_ERROR( res['Message'] )
         continue
       
       end = time.time()
@@ -737,29 +747,50 @@ class SEUsageAgent( AgentModule ):
     return True
 
 
-
+  def PathInLFC( self, dirName ):
+    """ get the path as registered in the LFC. Different from the path that is used to build the pfn only for the special replicas (failover, archive, freezer)
+    """
+    LFCDirName = dirName
+    for specialReplica in self.specialReplicas:
+      prefix = '/lhcb/'+ specialReplica
+      if prefix in dirName:
+        LFCDirName = dirName.split( prefix )[1]
+        gLogger.verbose("special replica! dirname = %s -- LFCDirName = %s" %(dirName, LFCDirName))
+        return LFCDirName
+    return LFCDirName
 
   def getProblematicDirsSummary( self, site ):
-    """ Produce a list of files that are not registered in the File Catalog
+    """ Produce a list of files that are not registered in the File Catalog. 
+        1- queries the problematicDirs table to get all directories for a given site that have more data on SE than in LFC
+        for each replica type: (normal, archive, failover, freezer )
+        2- scan the input files (from the sites storage dumps) to get all the files belonging to the problematic directories
+        3- lookup in in FC file by file to check if they have a replica registered at the site
+        4- the files that are found not to have a replica registered for the site, are written down to a file
     """
+    gLogger.info("*** Execute getProblematicDirsSummary method for site: %s " % site )
     problem = 'NotRegisteredInFC'
     res = self.__storageUsage.getProblematicDirsSummary( site, problem )
     if not res['OK']:
       gLogger.error( "ERROR! %s" % res )
       return S_ERROR( res )
     val = res[ 'Value' ]
-    problematicDirectories = []
+    problematicDirectories = {} # store a list of directories for each replica type
     gLogger.verbose("List of problematic directories: " )
     for row in val:
-      #('SARA', 'LHCb-Disk', 0L, 43L, '/lhcb/MC/2010/DST/00007332/0000/', 'NotRegisteredInFC')
-      site, spaceToken, LFCFiles, SDFiles, Path, problem = row
-      gLogger.verbose("%s " % Path )
-      if Path not in problematicDirectories:
-        problematicDirectories.append( Path )
+      #('SARA', 'LHCb-Disk', 0L, 43L, '/lhcb/MC/2010/DST/00007332/0000/', 'NotRegisteredInFC','failover')
+      site, spaceToken, LFCFiles, SDFiles, LFCPath, problem, replicaType = row
+      gLogger.info("%s %s" % (LFCPath, replicaType) )
+      if replicaType not in problematicDirectories.keys():
+        problematicDirectories[ replicaType ] = []
+      if LFCPath not in problematicDirectories[ replicaType ]:
+	problematicDirectories[ replicaType ].append( LFCPath )
       else:
-        gLogger.error("ERROR: the directory should be listed only once for a given site! %s %s " %(site, Path))  
-
-    # retrieve the list of files belonging to problematic directories:
+        gLogger.error("ERROR: the directory should be listed only once for a given site and type of replica! site=%s, path= %s, type of replica =%s  " %(site, LFCPath, replicaType))  
+        continue
+    gLogger.info("Found the following problematic directories:")
+    for replicaType in problematicDirectories.keys():
+      gLogger.info("replica type: %s , directories: %s " %(replicaType, problematicDirectories[replicaType]))
+    # retrieve the list of files belonging to problematic directories from the merged files:
     filesInProblematicDirs = {}
     # read the files from the Merged files
     pathToMergedFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
@@ -769,88 +800,116 @@ class SEUsageAgent( AgentModule ):
       if 'Merge' not in mergedFile:
         continue
       fullFilePath = os.path.join( pathToMergedFiles, mergedFile )
-      gLogger.info("Scanning file: %s " % fullFilePath )
+      gLogger.info("Scanning file: %s ... " % fullFilePath )
       for line in open( fullFilePath, "r").readlines():
         lfn, size, creationdate = line.split()
         directories = lfn.split('/')
         basePath = ''
         for segment in directories[0:-1]:
           basePath = basePath + segment + '/'
-        if basePath in problematicDirectories:
-          if lfn not in filesInProblematicDirs.keys():
-            filesInProblematicDirs[ lfn ] = {}
-          filesInProblematicDirs[ lfn ]['size'] = int( size ) 
+        for replicaType in problematicDirectories.keys():
+          if self.PathInLFC( basePath ) in problematicDirectories[ replicaType ]:
+            if replicaType not in filesInProblematicDirs.keys():
+              filesInProblematicDirs[ replicaType ] = []
+            if lfn not in filesInProblematicDirs[ replicaType ]:
+              filesInProblematicDirs[ replicaType ].append( lfn )
 
+    gLogger.info("Files in problematic directories:")
+    for replicaType in filesInProblematicDirs.keys():
+      gLogger.info("replica type: %s files: %d " %(replicaType, len(filesInProblematicDirs[replicaType])))  
+   
 
-    
+    for replicaType in filesInProblematicDirs.keys():
+      res = self.checkReplicasInFC( replicaType, filesInProblematicDirs[ replicaType ] , site )
+    return S_OK()
+
+#...............................................................................................................
+  def checkReplicasInFC(self, replicaType, filesToBeChecked, site ):
+    """ Check the existance of the replicas for the given site and replica type in the FC
+    """
+    gLogger.info("*** Execute checkReplicasInFC for replicaType=%s, site=%s " %(replicaType, site))
     filesMissingFromFC = []
     replicasMissingFromSite = []
-    totalSizeMissingFromFC = 0
-    totalSizeReplicasMissingFromSite = 0
+    #totalSizeMissingFromFC = 0
+    #totalSizeReplicasMissingFromSite = 0
     # for files in problematic directories look up in the FC:
-    gLogger.info("Total number or files in problematic directories: %d " % len(filesInProblematicDirs.keys()) )
-   
-    active = True # then this should be moved to a config parameter 
+    specialReplicasSEs = []
+    for sr in self.specialReplicas:
+      se = site + '-' + sr.upper()
+      specialReplicasSEs.append( se )
+    gLogger.info("SEs for special replicas: %s " % specialReplicasSEs )
+
+    filesInProblematicDirs = []
+    if replicaType in self.specialReplicas:
+      for lfn in filesToBeChecked:
+        filesInProblematicDirs.append( self.PathInLFC( lfn ) )
+    else:
+      filesInProblematicDirs = filesToBeChecked
+
+    active = False # then this should be moved to a config parameter 
     start = time.time()
-    if len( filesInProblematicDirs.keys() )< 1:
+    if not filesInProblematicDirs:
       gLogger.info("No file to be checked in the FC for site %s " % site )
       return S_OK()
     if active:
-      repsResult = self.__replicaManager.getActiveReplicas( filesInProblematicDirs.keys() )
+      repsResult = self.__replicaManager.getActiveReplicas( filesInProblematicDirs )
     else:
-      repsResult = self.__replicaManager.getReplicas( filesInProblematicDirs.keys() )
+      repsResult = self.__replicaManager.getReplicas( filesInProblematicDirs )
     timing = time.time() - start
-    gLogger.info( ' %d replicas Lookup Time: %.2f s -> %.2f s/replica ' % (  len( filesInProblematicDirs ), timing, timing*1./len( filesInProblematicDirs.keys() ) ) )
+    gLogger.info( ' %d replicas Lookup Time: %.2f s -> %.2f s/replica ' % (  len( filesInProblematicDirs ), timing, timing*1./len( filesInProblematicDirs ) ) )
     #gLogger.info( repsResult )
     if not repsResult['OK']:
-      gLogger.error( repsResult['Message'] )
-      return S_ERROR( repsResult )
+      return S_ERROR( repsResult['Message'] )
     goodFiles = repsResult['Value']['Successful']
     badFiles = repsResult['Value']['Failed']
     for lfn in badFiles.keys():
       if "No such file or directory" in badFiles[ lfn ]:
         filesMissingFromFC.append( lfn )
-        try:
-          totalSizeMissingFromFC += filesInProblematicDirs[ lfn ]['size']
-        except (KeyError, TypeError):
-          gLogger.error("could not get the size of LFN! %s" % lfn )
       else:
         gLogger.info("Unknown message from Fc: %s - %s "  %(lfn, badFiles[ lfn ])) 
-        continue
     for lfn in goodFiles.keys():
       #check if the replica exists at the given site:
       replicaAtSite = False
-      for se in goodFiles[lfn].keys():
-        if site in se:
-          replicaAtSite = True
-          break
+      if replicaType in self.specialReplicas:
+        specialReplicaSE = site + '-' + replicaType.upper()        
+        for se in goodFiles[lfn].keys():
+          if se == specialReplicaSE:
+            gLogger.info("matching se: %s " % se )
+            replicaAtSite = True
+            break
+      else:
+        for se in goodFiles[lfn].keys():
+          if se in specialReplicasSEs:
+            gLogger.info("skip thi se: %s " % se )
+            continue
+          if site in se:
+            gLogger.verbose("matching se: %s " % se )
+            replicaAtSite = True
+            break
       if not replicaAtSite:
         replicasMissingFromSite.append( lfn )
-        try:
-          totalSizeReplicasMissingFromSite += filesInProblematicDirs[ lfn ]['size']
-        except (KeyError, TypeError):
-          gLogger.error("could not get the size of LFN! %s" % lfn )
-        
     
     # write results of checks to files:
-    fileName = os.path.join( self.__workDirectory, site + ".replicasMissingFromSite.txt" )
+    fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".replicasMissingFromSite.txt" )
     gLogger.info("Writing list of replicas missing from site to file %s " % fileName )
     fp = open( fileName , "w" )
     for lfn in replicasMissingFromSite:
       fp.write("%s\n" % lfn )
     fp.close()
-    fileName = os.path.join( self.__workDirectory, site + ".filesMissingFromFC.txt" )
+    fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".filesMissingFromFC.txt" )
     gLogger.info("Writing list of files missing from FC to file %s " % fileName )
     fp = open( fileName , "w" )
     for lfn in filesMissingFromFC:
       fp.write("%s\n" % lfn )
     fp.close()
-    fileName = os.path.join( self.__workDirectory, site + ".consistencyChecksSummary.txt" )
+    fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".consistencyChecksSummary.txt" )
     gLogger.info("Writing consistency checsk summary to file %s " % fileName )
     date = time.asctime()
     line = "Site: " + site + "  Date: " + date
     fp = open( fileName , "w" )
     fp.write( "%s\n" % line)
+    totalSizeMissingFromFC = 0 # to be implemented!!!
+    totalSizeReplicasMissingFromSite = 0 # to be implemented!!!
     fp.write( "Total number of LFN at site not registered in the FC: %d , total size: %.2f GB \n" % (len(filesMissingFromFC), totalSizeMissingFromFC/1.0e9 ))
     fp.write( "Total number of replicas  at site not registered in the FC: %d , total size: %.2f GB \n" % (len(replicasMissingFromSite), totalSizeReplicasMissingFromSite/1.0e9 ))
     fp.close()
