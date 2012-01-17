@@ -43,10 +43,10 @@ class TransferQuality_Policy( PolicyBase ):
     if 'FAILOVER'.lower() in self.args[1].lower():
 
       
-      if quality < Configurations.pp.Transfer_QUALITY_LOW :
+      if quality < Configurations.pp['Transfer_QUALITY_LOW'] :
         result[ 'Status' ] = 'Probing'
         strReason = 'Low'
-      elif quality < Configurations.pp.Transfer_QUALITY_HIGH:
+      elif quality < Configurations.pp['Transfer_QUALITY_HIGH']:
         result[ 'Status' ] = 'Active'
         strReason = 'Mean'
       else:
@@ -61,10 +61,10 @@ class TransferQuality_Policy( PolicyBase ):
 
     else:
 
-      if quality < Configurations.pp.Transfer_QUALITY_LOW :
+      if quality < Configurations.pp['Transfer_QUALITY_LOW'] :
         result[ 'Status' ] = 'Bad'
         strReason          = 'Low'
-      elif quality < Configurations.pp.Transfer_QUALITY_HIGH:
+      elif quality < Configurations.pp['Transfer_QUALITY_HIGH']:
         result[ 'Status' ] = 'Probing'
         strReason          = 'Mean'
       else:

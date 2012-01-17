@@ -58,31 +58,31 @@ class JobsEfficiency_Policy( PolicyBase ):
 
     result = {}
     if args[2] == 'Active':
-      if status['JobsEff'] > Configurations.pp.GOOD_JOBS_EFFICIENCY:
+      if status['JobsEff'] > Configurations.pp['GOOD_JOBS_EFFICIENCY']:
         result['SAT'] = False
         result['Status'] = 'Active'
         result['Reason'] = 'JobsEff:good'
       else:
-        if status['JobsEff'] < Configurations.pp.MEDIUM_JOBS_EFFICIENCY:
+        if status['JobsEff'] < Configurations.pp['MEDIUM_JOBS_EFFICIENCY']:
           result['SAT'] = True
           result['Status'] = 'Banned'
           result['Reason'] = 'JobsEff:low'
-        elif status['JobsEff'] > Configurations.pp.MEDIUM_JOBS_EFFICIENCY and status['JobsEff'] < Configurations.pp.GOOD_JOBS_EFFICIENCY:
+        elif status['JobsEff'] > Configurations.pp['MEDIUM_JOBS_EFFICIENCY'] and status['JobsEff'] < Configurations.pp['GOOD_JOBS_EFFICIENCY']:
           result['SAT'] = True
           result['Status'] = 'Probing'
           result['Reason'] = 'JobsEff:med'
 
     elif args[2] == 'Probing':
-      if status['JobsEff'] > Configurations.pp.GOOD_JOBS_EFFICIENCY:
+      if status['JobsEff'] > Configurations.pp['GOOD_JOBS_EFFICIENCY']:
         result['SAT'] = True
         result['Status'] = 'Active'
         result['Reason'] = 'JobsEff:good'
       else:
-        if status['JobsEff'] < Configurations.pp.MEDIUM_JOBS_EFFICIENCY:
+        if status['JobsEff'] < Configurations.pp['MEDIUM_JOBS_EFFICIENCY']:
           result['SAT'] = True
           result['Status'] = 'Banned'
           result['Reason'] = 'JobsEff:low'
-        elif status['JobsEff'] > Configurations.pp.MEDIUM_JOBS_EFFICIENCY and status['JobsEff'] < Configurations.pp.GOOD_JOBS_EFFICIENCY:
+        elif status['JobsEff'] > Configurations.pp['MEDIUM_JOBS_EFFICIENCY'] and status['JobsEff'] < Configurations.pp['GOOD_JOBS_EFFICIENCY']:
           result['SAT'] = False
           result['Status'] = 'Probing'
           result['Reason'] = 'JobsEff:med'
@@ -108,14 +108,14 @@ class JobsEfficiency_Policy( PolicyBase ):
     """
 
     if meanProcessedJobs is not None:
-      if meanProcessedJobs > Configurations.pp.HIGH_JOBS_NUMBER:
-        hours = Configurations.pp.SHORT_JOBS_PERIOD_WINDOW
-      elif  meanProcessedJobs < Configurations.pp.HIGH_JOBS_NUMBER and meanProcessedJobs > Configurations.pp.MEDIUM_JOBS_NUMBER:
-        hours = Configurations.pp.MEDIUM_JOBS_PERIOD_WINDOW
+      if meanProcessedJobs > Configurations.pp['HIGH_JOBS_NUMBER']:
+        hours = Configurations.pp['SHORT_JOBS_PERIOD_WINDOW']
+      elif  meanProcessedJobs < Configurations.pp['HIGH_JOBS_NUMBER'] and meanProcessedJobs > Configurations.pp['MEDIUM_JOBS_NUMBER']:
+        hours = Configurations.pp['MEDIUM_JOBS_PERIOD_WINDOW']
       else:
-        hours = Configurations.pp.LARGE_JOBS_PERIOD_WINDOW
+        hours = Configurations.pp['LARGE_JOBS_PERIOD_WINDOW']
     else:
-      hours = Configurations.pp.MAX_JOBS_PERIOD_WINDOW
+      hours = Configurations.pp['MAX_JOBS_PERIOD_WINDOW']
 
     if commandIn is not None:
       command = commandIn
