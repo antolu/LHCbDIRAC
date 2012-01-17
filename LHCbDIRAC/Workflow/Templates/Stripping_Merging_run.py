@@ -402,61 +402,6 @@ if strippEnabled:
     gLogger.info( 'Stripping production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, strippProdID ) )
 
 
-
-#################################################################################
-# Create the merging productions if there are enough workflow steps
-#################################################################################
-
-#
-####################################################################################
-##### TEMPORARY HACK SINCE THERE IS NO REASONABLE WAY TO GET THE LIST OF STREAMS ###
-####################################################################################
-##
-###The below list is not yet defined in the central CS but can be to allow a bit of flexibility
-###anything in the above list will trigger a merging production.
-##streamsListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST',
-##                      'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST',
-##                      'LEPTONICFULL.DST', 'CHARMFULL.DST', 'CALIBRATION.DST']
-##
-##streamsList = gConfig.getValue( '/Operations/Reconstruction/MergingStreams', streamsListDefault )
-##
-###The below list is not yet defined in the central CS but can be to allow a bit of flexibility
-###anything in the above list will trigger default replication policy according to the computing
-###model. 
-#replicateListDefault = ['SEMILEPTONIC.DST', 'RADIATIVE.DST', 'MINIBIAS.DST', 'LEPTONIC.MDST', 'EW.DST',
-#                         'DIMUON.DST', 'DIELECTRON.DST', 'CHARM.MDST', 'CHARMCONTROL.DST', 'BHADRON.DST']
-#
-#replicateList = gConfig.getValue( '/Operations/Reconstruction/ReplicationStandard', replicateListDefault )
-##
-###This new case will be handled outside of this template (at least initially)
-##onlyOneOtherSite = ['LEPTONICFULL.DST', 'CHARMFULL.DST']
-##
-##The use-case of not performing replication and sending a stream to CERN is handled by the below
-##CS section, similarly to the above I did not add the section to the CS. 
-#onlyCERNDefault = ['CALIBRATION.DST']
-#
-#onlyCERN = gConfig.getValue( '/Operations/Reconstruction/OnlyCERN', onlyCERNDefault )
-#
-#
-#dstList = streamsList # call it dstList just to accommodate future hacks
-#
-###################################################################################
-#
-#
-############################################
-## Now remove the banned streams
-############################################
-#
-#if not dstList: # or not setcList:
-#  gLogger.error( 'Could not find any file types to merge! Exiting...' )
-#  DIRAC.exit( 2 )
-#
-#gLogger.info( 'List of DST file types is: %s' % ( string.join( dstList, ', ' ) ) )
-
-###########################################
-# Some parameters
-###########################################
-
 #################################################################################
 # Merging
 #################################################################################
@@ -491,11 +436,9 @@ if mergingEnabled:
 
   mergeProductionList = []
 
-  mergeStreamsList = []
   for mergeStream in mergeOutputList:
 #    if mergeStream.lower() in onlyCERN:
 #      mergeSE = 'CERN_M-DST'
-    mergeStreamsList.append( mergeStream )
     mergeStream = mergeStream.upper()
 
     #################################################################################
@@ -585,7 +528,7 @@ if mergingEnabled:
       diracProd = DiracProduction()
 
       prodID = result['Value']
-      msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStreamsList )
+      msg = 'Merging production %s for %s successfully created ' % ( prodID, mergeStream )
 
       if testFlag:
         diracProd.production( prodID, 'manual', printOutput = True )
