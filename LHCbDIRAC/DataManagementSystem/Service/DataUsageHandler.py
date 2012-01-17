@@ -22,9 +22,13 @@ def initializeDataUsageHandler( serviceInfo ):
   return S_OK()
 
 class DataUsageHandler( RequestHandler ):
-  types_sendDataUsageReport = [ ( StringType, DictType ) ]
-  def export_sendDataUsageReport( self, se , directoryDict ):
-    return storageUsageDB.sendDataUsageReport( se, directoryDict )
+  types_sendDataUsageReport = [ ( StringType, DictType, StringType ) ]
+  def export_sendDataUsageReport( self, se , directoryDict, status ='New' ):
+    return storageUsageDB.sendDataUsageReport( se, directoryDict, status )
+
+  types_getDataUsageSummary = [ ( StringType, StringType, StringType ) ]
+  def export_getDataUsageSummary( self, startTime, endTime, status = 'New' ):
+    return storageUsageDB.getDataUsageSummary( startTime, endTime, status )
 
   types_insertToDirMetadata = [ ( DictType ) ]
   def export_insertToDirMetadata( self, directoryDict ):
@@ -36,4 +40,5 @@ class DataUsageHandler( RequestHandler ):
     return storageUsageDB.getDirMetadata( directoryList )
 
  
+
  
