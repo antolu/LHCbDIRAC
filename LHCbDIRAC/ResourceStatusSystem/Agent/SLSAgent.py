@@ -664,32 +664,32 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
 
 ################################################################################
 
-class LFCMirrorTest(TestBase):
-  def __init__(self, am):
-    super(LFCMirrorTest, self).__init__(am)
-
-    # Get ConDB infos
-#    self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
-    self.xmlPath   = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
-    
-  def registerFile(self):
-
-    file={}
-    file['GUID'] = makeGuid()
-    file['PFN']  = 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid%s' % lfn
-    file['Size'] = 0
-    file[''] = 'CERN-USER' 
-    checksum = ''
-    file['Checksum']=''
-    fileTuple = (lfn,pfn,size,se,guid,checksum)
-    res = masterLFC.addFile(fileTuple)
-#  res = masterLFC.addFile(file)
-    if not res['OK']:
-      print res
-    return False
-    if res['Value']['Successful'].has_key(lfn):
-      return True
-    return False
+#class LFCMirrorTest(TestBase):
+#  def __init__(self, am):
+#    super(LFCMirrorTest, self).__init__(am)
+#
+#    # Get ConDB infos
+##    self.CDB_infos = CS.getTypedDictRootedAt(root="", relpath="/Resources/CondDB")
+#    self.xmlPath   = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
+#    
+#  def registerFile(self):
+#
+#    file={}
+#    file['GUID'] = makeGuid()
+#    file['PFN']  = 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid%s' % lfn
+#    file['Size'] = 0
+#    file[''] = 'CERN-USER' 
+#    checksum = ''
+#    file['Checksum']=''
+#    fileTuple = (lfn,pfn,size,se,guid,checksum)
+#    res = masterLFC.addFile(fileTuple)
+##  res = masterLFC.addFile(file)
+#    if not res['OK']:
+#      print res
+#    return False
+#    if res['Value']['Successful'].has_key(lfn):
+#      return True
+#    return False
   
 
 ################################################################################
