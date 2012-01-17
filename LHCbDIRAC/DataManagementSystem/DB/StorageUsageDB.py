@@ -69,7 +69,7 @@ class StorageUsageDB( DB ):
                                                        'Path' : 'VARCHAR(255) NOT NULL',
                                                        'Site' : 'VARCHAR(32) NOT NULL',
                                                        'SpaceToken' : 'VARCHAR(32) NOT NULL',
-                                                       'SpecialReplica' : 'VARCHAR(32) default NULL',
+                                                       'ReplicaType' : 'VARCHAR(32) NOT NULL',
                                                        'SEFiles' : 'INTEGER UNSIGNED NOT NULL',
                                                        'LFCFiles' : 'INTEGER UNSIGNED NOT NULL',
                                                        'SESize' : 'BIGINT UNSIGNED NOT NULL',
@@ -82,7 +82,8 @@ class StorageUsageDB( DB ):
     self.__tablesDesc[ 'Popularity' ] = { 'Fields' : { 'Path' : 'VARCHAR(255) NOT NULL',
                                                        'SEName' : 'VARCHAR(32) NOT NULL',
                                                        'Count' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'InsertTime' : 'DATETIME NOT NULL'
+                                                       'InsertTime' : 'DATETIME NOT NULL',
+                                                       'Status' : 'VARCHAR(32) NOT NULL'
                                                   },
                                      } 
     self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
@@ -155,7 +156,7 @@ class StorageUsageDB( DB ):
       spaceToken = directoryDict[ path ][ 'SpaceToken' ]
       problem = directoryDict[ path ][ 'Problem' ]
       site = directoryDict[ path ][ 'Site']
-      specialReplica = directoryDict[ path ]['SpecialReplica']
+      replicaType = directoryDict[ path ]['ReplicaType']
       try:
         SEfiles = int( directoryDict[ path ][ 'Files' ] )
         SEsize = int( directoryDict[ path ][ 'Size'] )
@@ -170,7 +171,7 @@ class StorageUsageDB( DB ):
       sqlSpaceToken = self._escapeString( spaceToken )['Value']
       sqlProblem = self._escapeString( problem )['Value']
       sqlSite = self._escapeString( site )['Value']
-      sqlSpecialReplica = self._escapeString( specialReplica )['Value']
+      sqlReplicaType = self._escapeString( replicaType )['Value']
       sqlCmd = "SELECT DID FROM problematicDirs WHERE Path=%s AND Site=%s AND SpaceToken=%s" % ( sqlPath, sqlSite, sqlSpaceToken )
       self.log.info( "sqlCmd: %s" % sqlCmd )
       result = self._query( sqlCmd )
@@ -180,7 +181,7 @@ class StorageUsageDB( DB ):
       DID = result['Value']
       if DID:
         # there is an entry for (path, Site, SpaceToken), make an update of the row
-        sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, SpecialReplica=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and Site = %s and SpaceToken=%s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlSpecialReplica, sqlPath, sqlSite, sqlSpaceToken )
+        sqlCmd = "UPDATE `problematicDirs` SET SEFiles=%d, SESize=%d, LFCFiles=%d, LFCSize=%d, Problem=%s, ReplicaType=%s, Updated=UTC_TIMESTAMP() WHERE Path = %s and Site = %s and SpaceToken=%s" % ( SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlReplicaType, sqlPath, sqlSite, sqlSpaceToken )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -188,7 +189,7 @@ class StorageUsageDB( DB ):
           return result
       else:
         # entry is not there, make an insert of a new row
-        sqlCmd = "INSERT INTO problematicDirs (Path, Site, SpaceToken, SEFiles, SESize, LFCFiles, LFCSize, Problem, SpecialReplica, Updated) VALUES ( %s, %s, %s, %d, %d, %d, %d, %s, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSite, sqlSpaceToken, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlSpecialReplica )
+        sqlCmd = "INSERT INTO problematicDirs (Path, Site, SpaceToken, SEFiles, SESize, LFCFiles, LFCSize, Problem, ReplicaType, Updated) VALUES ( %s, %s, %s, %d, %d, %d, %d, %s, %s, UTC_TIMESTAMP())" % ( sqlPath, sqlSite, sqlSpaceToken, SEfiles, SEsize, LFCfiles, LFCsize, sqlProblem, sqlReplicaType )
         self.log.info( "sqlCmd: %s" % sqlCmd )
         result = self._update( sqlCmd )
         if not result[ 'OK' ]:
@@ -682,12 +683,12 @@ class StorageUsageDB( DB ):
       sqlProblem = self._escapeString( problem )['Value']
       sqlCond.append( "Problem=%s" % sqlProblem )
 
-    sqlCmd = "SELECT Site, SpaceToken, LFCFiles, SEFiles, Path, Problem from `problematicDirs` WHERE %s" % ( " AND ".join( sqlCond ) )
+    sqlCmd = "SELECT Site, SpaceToken, LFCFiles, SEFiles, Path, Problem, ReplicaType from `problematicDirs` WHERE %s" % ( " AND ".join( sqlCond ) )
     gLogger.info( " getProblematicDirsSummary sqlCmd is: %s " %sqlCmd )
     result = self._query( sqlCmd )
     gLogger.info( " getProblematicDirsSummary result: %s " %result )
     if not result[ 'OK' ]:
-      return S_ERROR( result )
+      return S_ERROR( result['Message'] )
     return S_OK( result[ 'Value' ] )
     
     
@@ -812,42 +813,23 @@ class StorageUsageDB( DB ):
   ######
   
 
-  def sendDataUsageReport( self, se, directoryDict ):
-    """ Increase the counter for the usage of the given lfn and se """
+  def sendDataUsageReport( self, se, directoryDict, status = 'New' ):
+    """ Add a new trace in the Popularity table  """
     self.log.info( "in addPopCount: dirDict: %s se: %s" % ( directoryDict, se ) )
-    # to be revisited: probably should just insert an lfn instead of querying for the did! it is a possible optimization
     if not directoryDict:
       return S_OK()
-    # get the IDs from the su_Directory table:
-    #result = self.__getIDs( directoryDict )
-    #if not result[ 'OK' ]:
-    #  return result
-    #dirIDs = result[ 'Value' ]
-    #if not dirIDs:
-    #  errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict 
-    #  self.log.error("%s" % errMsg )
-    #  return S_ERROR( errMsg )
-    #self.log.info( "in sendDataUsageReport: dirIDs: %s" % ( dirIDs ) )
-    # returns a dictionary of type:
-    #  {dir1: ID1, dir2: ID2, ...} 
     sqlSe = self._escapeString( se )[ 'Value' ]
     insertedEntries = 0
     for d in directoryDict.keys():
       if d[-1] != "/":
         d = "%s/" % d
       sqlPath = self._escapeString( d )[ 'Value' ]
-      #if d not in dirIDs.keys():
-      #  self.log.warn("in sendDataUsageReport: found no DID for directory %s" % d )
-      #  continue
-      #id = int( dirIDs[ d ] )
-      #if type( id ) != IntType:
-      #  self.log.warn("in sendDataUsageReport: type is not correct %s" % id )
-      #  continue
+      sqlStatus = self._escapeString( status )[ 'Value' ]
       count = directoryDict[ d ]
       if type( count ) != IntType:
         self.log.warn("in sendDataUsageReport: type is not correct %s" % cound )
         continue
-      sqlCmd = "INSERT INTO `Popularity` ( Path, SEName, Count, InsertTime) VALUES ( %s, %s, %d, UTC_TIMESTAMP() )" % ( sqlPath, sqlSe, count )
+      sqlCmd = "INSERT INTO `Popularity` ( Path, SEName, Count, Status, InsertTime) VALUES ( %s, %s, %d, %s, UTC_TIMESTAMP() )" % ( sqlPath, sqlSe, count, sqlStatus )
       self.log.info("sqlCmd = %s " % sqlCmd )
       result = self._update( sqlCmd )
       if not result[ 'OK' ]:
@@ -855,6 +837,38 @@ class StorageUsageDB( DB ):
         continue
       insertedEntries += 1
     return S_OK( insertedEntries )
+
+
+  def getDataUsageSummary( self, startTime, endTime, status ='New' ):
+    """ returns a summary of the counts for each tuple (SE,Path) in the given time interval
+    """ 
+    if startTime > endTime:
+      return S_OK()
+    if ( type( startTime ) != StringType or type( endTime ) != StringType ):
+      return S_ERROR('wrong arguments format')
+          
+    sqlStartTime = self._escapeString( startTime )[ 'Value' ]
+    sqlEndTime = self._escapeString( endTime )[ 'Value' ]
+    sqlStatus = self._escapeString( status )[ 'Value' ]
+    sqlCmd = "SELECT Path, SEName, SUM(Count) from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s GROUP BY Path,SEName " %( sqlStatus, sqlStartTime, sqlEndTime )
+    self.log.info("sqlCmd = %s " % sqlCmd )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return S_ERROR( result['Message'])
+    Data = {}
+    for row in result[ 'Value' ]:
+      path = row[ 0 ]
+      seName = row[ 1 ]
+      usage = int( row[ 2 ] )
+      if path not in Data.keys():
+        Data[ path ] = {}
+      if seName not in Data[ path ].keys():
+        Data[ path ][ seName] = {}
+      Data[ path ][ seName]['Count'] = usage
+    self.log.info("return dict is: %s " % Data )
+    return S_OK( Data )
+
+
 
   def insertToDirMetadata( self, directoryDict ):
     """ Inserts a new entry into the DirMetadata table. The input dictionary should contain, for each
