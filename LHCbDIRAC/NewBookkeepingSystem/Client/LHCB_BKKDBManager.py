@@ -752,16 +752,17 @@ class LHCB_BKKDBManager( BaseESManager ):
           for record in dbResult['Records']:
             entityList += [self._getEntityFromPath( path, str( record[0] ), levels, 'Production(s)/Run(s)', dict, 'getProductions' )]
           self._cacheIt( entityList )
+
+    if len(procpass) > 0:
+      dict['ProcessingPass'] = procpass
+      result = self.db_.getFileTypes( dict )
+      if result['OK']:
+        dbResult = result['Value']
+        for record in dbResult['Records']:
+          entityList += [self._getEntityFromPath( path, record[0], levels, 'FileTypes', dict, 'getFileTypes' )]
+        self._cacheIt( entityList )
       else:
-        dict['ProcessingPass'] = procpass
-        result = self.db_.getFileTypes( dict )
-        if result['OK']:
-          dbResult = result['Value']
-          for record in dbResult['Records']:
-            entityList += [self._getEntityFromPath( path, record[0], levels, 'FileTypes', dict, 'getFileTypes' )]
-          self._cacheIt( entityList )
-    else:
-      gLogger.error( result['Message'] )
+        gLogger.error( result['Message'] )
     return entityList
 
   #############################################################################
