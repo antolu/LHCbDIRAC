@@ -1,6 +1,6 @@
 __RCSID__ = "$Id: ProductionStatusAgent.py 36439 2011-03-23 08:53:13Z roma $"
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, exit
+from DIRAC                                                     import S_OK, S_ERROR, gConfig, exit, gLogger
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
@@ -24,9 +24,16 @@ class DataProcessingProgressAgent( AgentModule ):
 
     self.pollingTime = self.am_getOption( 'PollingTime', 6 * 60 * 60 )
     self.printResult = self.am_getOption( 'Verbose', False )
+    if self.printResult:
+      gLogger.setLevel( 'VERBOSE' )
     self.workDirectory = self.am_getWorkDirectory()
     self.statCollector = ProcessingProgress( os.path.join( self.workDirectory, "dirac-production-stats.pkl" ) )
     self.uploadDirectory = self.am_getOption( 'UploadDirectory', None )
+
+    # This sets the Default Proxy to used as that defined under
+    # /Operations/Shifter/ProductionManager
+    # the shifterProxy option in the Configuration can be used to change this default.
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
     # Get back the loop number
     self.cacheFile = os.path.join( self.workDirectory, "cacheFile" )
@@ -51,6 +58,7 @@ class DataProcessingProgressAgent( AgentModule ):
       report['Frequency'] = self.am_getOption( os.path.join( optionPath, 'Frequency' ), 1 )
       report['HTMLFile'] = self.am_getOption( os.path.join( optionPath, 'HTMLFile' ), reportName.replace( '.', '' ) + '-Progress' + os.path.extsep + 'htm' )
       report['BKQuery'] = []
+      report['ClearCache'] = self.am_getOption( os.path.join( optionPath, 'ClearCache' ), [] )
       for processingPass in processingPasses:
         bkPath = os.path.join( bkConfig, '*/Real Data', processingPass, str( eventType ), fileType )
         bkQuery = BKQuery( bkPath, visible = False )
@@ -86,6 +94,7 @@ class DataProcessingProgressAgent( AgentModule ):
       if report['Frequency'] == 0 or ( self.iterationNumber % report['Frequency'] ) != 0:
         self.log.info( "Skipping this iteration for %s" % reportName )
         continue
+      self.statCollector.setClearCache( report['ClearCache'] )
       summaryProdStats = []
       printOutput = ''
       outputHTML = os.path.join( self.workDirectory, report['HTMLFile'] )

@@ -14,7 +14,7 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
-  dmScript = DMScript( useBKQuery = True )
+  dmScript = DMScript()
   dmScript.registerBKSwitches()
   Script.registerSwitch( '', 'Conditions=', '   comma separated list of DataTakingConditions' )
   Script.registerSwitch( '', 'HTML=', '   <file> : Output in html format to <file>' )

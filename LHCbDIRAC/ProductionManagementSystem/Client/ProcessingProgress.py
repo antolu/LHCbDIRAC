@@ -244,12 +244,16 @@ class ProcessingProgress:
     else:
       self.prodStatFile = cacheFile
     self.cacheVersion = '0.0'
+    self.clearCache = []
 
     # Recuperate the previous cached information
     self.readCache()
 
     self.bk = BookkeepingClient()
     self.transClient = TransformationClient()
+
+  def setClearCache( self, clearCache ):
+    self.clearCache = clearCache
 
   def __getProdBkDict( self, prod ):
     res = self.transClient.getBookkeepingQueryForTransformation( prod )
@@ -366,9 +370,9 @@ class ProcessingProgress:
     # Create the info for the 3 sets of productions
     prodSets = []
     fileType = bkQuery.getFileTypeList()[0]
-    prodSets.append( {'Name': processingPass[2], 'FileType': "SDST", 'List':recoList, 'RunRange':recoRunRanges, 'MotherProds':None} )
-    prodSets.append( {'Name': processingPass[3], 'FileType': fileType, 'List':stripList, 'RunRange':stripRunRanges, 'MotherProds':None} )
-    prodSets.append( {'Name': "Merging (%s)" % fileType.split( '.' )[0], 'FileType': fileType, 'List':mergeList, 'RunRange':None, 'MotherProds':mergeStripProds } )
+    prodSets.append( {'Name': processingPass[2], 'FileType': "SDST", 'List':recoList, 'RunRange':recoRunRanges, 'MotherProds':None, 'AllReplicas':False } )
+    prodSets.append( {'Name': processingPass[3], 'FileType': fileType, 'List':stripList, 'RunRange':stripRunRanges, 'MotherProds':None, 'AllReplicas':True } )
+    prodSets.append( {'Name': "Merging (%s)" % fileType.split( '.' )[0], 'FileType': fileType, 'List':mergeList, 'RunRange':None, 'MotherProds':mergeStripProds, 'AllReplicas':False } )
 
     prevInfo = rawInfo
     for prodSet in prodSets:
@@ -392,7 +396,7 @@ class ProcessingProgress:
     if printResult:
       gLogger.info( "" )
     for prod in prodSet['List']:
-      info, runInfo = self._getStatsFromBK( prod, prodSet['FileType'], runList )
+      info, runInfo = self._getStatsFromBK( prod, prodSet['FileType'], runList, prodSet['AllReplicas'] )
       if info['Files'][''] == 0:
         continue
       totInfo = self.__sumProdInfo( info, totInfo )
@@ -446,28 +450,18 @@ class ProcessingProgress:
           outputString += "From %s : %.1f%% files, " % ( name, 100. * info.getItem( 'Files' ) / prevInfo.getItem( 'Files' ) )
           if info.getItem( 'Events' ) and prevInfo.getItem( 'Events' ):
             outputString += "%.1f%% events\n" % ( 100. * info.getItem( 'Events' ) / prevInfo.getItem( 'Events' ) )
-          else:
-            outputString += "%.1f%% runs, %.1f%% luminosity\n" \
-                  % ( 100. * info.getItem( 'Runs' ) / prevInfo.getItem( 'Runs' ), 100. * info.getItem( 'Lumi' ) / prevInfo.getItem( 'Lumi' ) )
+          outputString += "%.1f%% runs, %.1f%% luminosity\n" \
+                          % ( 100. * info.getItem( 'Runs' ) / prevInfo.getItem( 'Runs' ), 100. * info.getItem( 'Lumi' ) / prevInfo.getItem( 'Lumi' ) )
     return outputString
 
-  def __getBadRuns( self, runList ):
-    res = self.bk.getDataQualityForRuns( runList )
-    badRuns = []
-    if res['OK']:
-      dqFlags = res['Value']
-      for dq in dqFlags:
-        if dq[1] == 'BAD':
-          badRuns.append( dq[0] )
-    return badRuns
-
-  def __getRunsDQFlag( self, runList ):
+  def __getRunsDQFlag( self, runList, evtType ):
     res = self.bk.getDataQualityForRuns( runList )
     runFlags = {}
     if res['OK']:
       dqFlags = res['Value']
       for dq in dqFlags:
-        runFlags.setdefault( dq[0], [] ).append( dq[1] )
+        if dq[2] == evtType:
+          runFlags.setdefault( dq[0], [] ).append( dq[1] )
     runDQFlags = {}
     flags = ( 'BAD', 'OK', 'EXPRESS_OK', 'UNCHECKED' )
     for run in runFlags:
@@ -483,13 +477,13 @@ class ProcessingProgress:
       info[c] = dict.fromkeys( ( 'Bad', 'OK', '' ), 0 )
     now = datetime.datetime.utcnow()
     # Set to True to renew the cache
-    force = False
-    newRuns = [ run for run in runList if force
+    clearCache = 'RAW' in self.clearCache
+    newRuns = [ run for run in runList if clearCache
                 or run not in self.cachedInfo
                 or 'DQFlag' not in self.cachedInfo[run]
                 or ( now - self.cachedInfo[run]['Time'] ) < datetime.timedelta( days = 2 )   ]
     if newRuns:
-      runFlags = self.__getRunsDQFlag( newRuns )
+      runFlags = self.__getRunsDQFlag( newRuns, evtType )
     else:
       runFlags = {}
     runsByDQFlag = {}
@@ -526,7 +520,7 @@ class ProcessingProgress:
       if dqFlag != 'BAD':
         flags.append( '' )
         # OK in recoDQFlags means we take everything that is not BAD (reprocessing or new convention)
-        if dqFlag in recoDQFlags or dqFlag == 'OK' or 'OK' in recoDQFlags:
+        if dqFlag in recoDQFlags or dqFlag == 'OK':
           flags.append( 'OK' )
       else:
         flags.append( 'Bad' )
@@ -536,7 +530,6 @@ class ProcessingProgress:
         info['Events'][f] += cachedEvents
         info['Lumi'][f] += cachedLumi
 
-    self.saveCache()
     # Set lumi in pb-1
     for f in info['Lumi']:
       info['Lumi'][f] /= 1000000.
@@ -548,42 +541,52 @@ class ProcessingProgress:
     return info, runInfo
 
   def __getLfnsMetadata( self, lfns ):
+    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     lfnDict = {}
-    cachedParams = ( 'EventStat', 'Luminosity', 'DQFlag' )
     if len( lfns ):
       gLogger.verbose( "Getting metadata for %d files" % len( lfns ) )
-      res = self.bk.getFileMetadata( lfns )
-      if not res['OK']:
-        gLogger.error( "Error getting files metadata", res['Message'] )
-        return {}
-      metadata = res['Value']
-      for lfn in lfns:
-        lfnDict[lfn] = {'RunNumber':metadata[lfn]['RunNumber']}
-        for m in cachedParams:
-          lfnDict[lfn][m] = metadata[lfn][m]
+      for lfnChunk in breakListIntoChunks( lfns, 5000 ):
+        while True:
+          res = self.bk.getFileMetadata( lfnChunk )
+          if not res['OK']:
+            gLogger.error( "Error getting files metadata, retrying...", res['Message'] )
+          else:
+            break
+        metadata = res['Value']
+        for lfn in lfnChunk:
+          lfnDict[lfn] = {}
+          for m in ( 'EventStat', 'Luminosity', 'DQFlag', 'RunNumber' ):
+            lfnDict[lfn][m] = metadata[lfn][m]
     return lfnDict
 
-  def _getStatsFromBK( self, prod, fileType, runList ):
+  def _getStatsFromBK( self, prod, fileType, runList, allReplicas ):
     bkQueryDict = { "ProductionID": prod, "FileType": fileType }
-    cachedParams = ( 'EventStat', 'Luminosity', 'DQFlag' )
     bkStr = str( bkQueryDict )
-    bkQuery = BKQuery( bkQueryDict )
-    bkQuery.setOption( 'ReplicaFlag', "All" )
+    bkQuery = BKQuery( bkQueryDict, visible = False )
+    if allReplicas:
+      bkQuery.setOption( 'ReplicaFlag', "All" )
     cached = self.cachedInfo.get( bkStr, {} )
     cachedTime = cached.get( 'Time', None )
     cachedLfns = cached.get( 'Lfns', {} )
+    if fileType in self.clearCache:
+      cachedTime = datetime.datetime.utcnow() - datetime.timedelta( days = 8 )
+      cachedTime = None
+      cachedLfns = {}
+      gLogger.verbose( "Cleared cache for production %s, file type %s" % ( str( prod ), fileType ) )
     # Update if needed the cached information on LFNs
     if cachedLfns:
       lfns = [lfn for lfn in cachedLfns if cachedLfns[lfn].get( 'DQFlag' ) not in ( 'OK', 'BAD' )]
       if len( lfns ):
         #  get the DQFlag of files that are not yet OK
-        res = self.bk.getFileMetadata( lfns )
-        if not res['OK']:
-          gLogger.error( "Error getting files metadata for cached files, bkQuery %s: %s" % ( bkStr, res['Message'] ) )
-        else:
-          metadata = res['Value']
-          for lfn in lfns:
-            cachedLfns[lfn]['DQFlag'] = metadata[lfn]['DQFlag']
+        while True:
+          res = self.bk.getFileMetadata( lfns )
+          if not res['OK']:
+            gLogger.error( "Error getting files metadata for cached files, bkQuery %s: %s" % ( bkStr, res['Message'] ) )
+          else:
+            metadata = res['Value']
+            for lfn in lfns:
+              cachedLfns[lfn]['DQFlag'] = metadata[lfn]['DQFlag']
+            break
 
     # Now get the new files since last time...
     if cachedTime:
@@ -595,7 +598,6 @@ class ProcessingProgress:
     cachedLfns.update( self.__getLfnsMetadata( lfns ) )
 
     self.cachedInfo[bkStr] = { 'Time':cachedTime, 'Lfns':cachedLfns }
-    self.saveCache()
 
     # Now sum up all information for the files
     info = dict.fromkeys( ( 'Events', 'Runs', 'Files', 'Lumi' ), {} )
@@ -667,9 +669,10 @@ class ProcessingProgress:
         with FileLock( self.prodStatFile ):
           f = open( self.prodStatFile, 'r' )
           cachedVersion = pickle.load( f )
+          startTime = time.time()
           if cachedVersion == self.cacheVersion:
             self.cachedInfo = pickle.load( f )
-            gLogger.info( "Loaded cached information from %s" % self.prodStatFile )
+            gLogger.info( "Loaded cached information from %s in %.3f seconds" % ( self.prodStatFile, time.time() - startTime ) )
           else:
             gLogger.info( "Incompatible versions of cache, reset information (%s, expect %s)" % ( cachedVersion, self.cacheVersion ) )
             self.cachedInfo = {}
@@ -686,13 +689,14 @@ class ProcessingProgress:
     fileSaved = False
     while not fileSaved:
       f = None
+      startTime = time.time()
       try:
         with FileLock( self.prodStatFile ) as lock:
           f = open( self.prodStatFile, 'w' )
           pickle.dump( self.cacheVersion, f )
           pickle.dump( self.cachedInfo, f )
           f.close()
-          gLogger.verbose( "Successfully wrote pickle file %s" % self.prodStatFile )
+          gLogger.verbose( "Successfully wrote pickle file %s in %.3f seconds" % ( self.prodStatFile, time.time() - startTime ) )
           fileSaved = True
       except KeyboardInterrupt:
         gLogger.info( "<CTRL-C> hit while saving cache file, retry..." )
