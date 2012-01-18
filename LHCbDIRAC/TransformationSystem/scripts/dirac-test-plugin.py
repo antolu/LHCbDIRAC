@@ -131,7 +131,7 @@ class fakeClient:
     if not lfns:
       return ( None, None )
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
+    from DIRAC.Core.Utilities.List                        import breakListIntoChunks
     rm = ReplicaManager()
     res = bk.getFileMetadata( lfns )
     if res['OK']:
@@ -178,11 +178,12 @@ if __name__ == "__main__":
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
   replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares", 'FakeReplication' )
 
-  pluginScript = PluginScript( useBKQuery = True )
+  pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
 
   Script.registerSwitch( '', 'AsIfProduction=', '   Production # that this test using as source of information' )
   Script.registerSwitch( '', 'AllFiles', '   Sets visible = False (useful if files were marked invisible)' )
+  Script.registerSwitch( '', 'NoReplicaFiles', '   Also gets the files without replica (just for BK test)' )
   Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin' )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -194,6 +195,7 @@ if __name__ == "__main__":
   asIfProd = None
   allFiles = False
   debugPlugin = False
+  noRepFiles = False
   switches = Script.getUnprocessedSwitches()
   for opt, val in switches:
     if opt == 'AsIfProduction':
@@ -202,15 +204,17 @@ if __name__ == "__main__":
       allFiles = True
     elif opt == 'Debug':
       debugPlugin = True
-  #print pluginScript.options
-  plugin = pluginScript.options.get( 'Plugin' )
-  requestID = pluginScript.options.get( 'RequestID', 0 )
-  pluginParams = pluginScript.options.get( 'Parameters', {} )
-  for key in pluginScript.options:
+    elif opt == 'NoReplicaFiles':
+      noRepFiles = True
+  #print pluginScript.getOptions()
+  plugin = pluginScript.getOption( 'Plugin' )
+  requestID = pluginScript.getOption( 'RequestID', 0 )
+  pluginParams = pluginScript.getOption( 'Parameters', {} )
+  for key in pluginScript.getOptions():
       if key.endswith( "SE" ) or key.endswith( "SEs" ):
-        pluginParams[key] = pluginScript.options[key]
-  nbCopies = pluginScript.options.get( 'Replicas' )
-  groupSize = pluginScript.options.get( 'GroupSize', 5 )
+        pluginParams[key] = pluginScript.getOption( key )
+  nbCopies = pluginScript.getOption( 'Replicas' )
+  groupSize = pluginScript.getOption( 'GroupSize', 5 )
   #print pluginParams
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
@@ -226,13 +230,15 @@ if __name__ == "__main__":
     transType = "Replication"
   else:
     transType = "Processing"
-  transType = pluginScript.options.get( 'Type', transType )
+  transType = pluginScript.getOption( 'Type', transType )
   transformation.setType( transType )
 
   visible = True
-  if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.options.get( 'Productions' ) or plugin not in removalPlugins + replicationPlugins:
+  if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.getOption( 'Productions' ) or plugin not in removalPlugins + replicationPlugins:
     visible = False
   bkQuery = pluginScript.getBKQuery( visible = visible )
+  if noRepFiles and not plugin:
+    bkQuery.setOption( 'ReplicaFlag', "All" )
   bkQueryDict = bkQuery.getQueryDict()
   if not bkQueryDict:
     print "No BK query was given..."
@@ -266,7 +272,7 @@ if __name__ == "__main__":
     print "RequestID:", requestID
   # get the list of files from BK
   print "Getting the files from BK"
-  lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' ), visible = visible )
+  lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
   if len( lfns ) == 0:
     print "No files found in BK...Exiting now"
     DIRAC.exit( 0 )

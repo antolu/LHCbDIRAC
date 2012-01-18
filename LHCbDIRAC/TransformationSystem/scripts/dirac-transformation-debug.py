@@ -5,7 +5,6 @@ __RCSID__ = "$Id$"
 import sys
 
 def getFilesForRun( id, runID, status = None, lfnList = None ):
-    #print id,runID,status
     selectDict = {'TransformationID':id}
     if runID:
         selectDict["RunNumber"] = runID
@@ -13,9 +12,12 @@ def getFilesForRun( id, runID, status = None, lfnList = None ):
         selectDict['Status'] = status
     if lfnList:
         selectDict['LFN'] = lfnList
+    #print selectDict
     res = transClient.getTransformationFiles( selectDict )
     #print res
-    return res['Value']
+    if res['OK']:
+        return res['Value']
+    return []
 
 def filesProcessed( id, runID ):
     filesList = getFilesForRun( id, runID, None )
@@ -29,34 +31,36 @@ def filesProcessed( id, runID ):
 
 #====================================
 verbose = False
-listFiles = False
-byRun = False
+byFiles = False
+byRuns = False
 byTasks = False
+byJobs = False
 dumpFiles = False
 status = None
-lfnList = None
-taskList = None
+lfnList = []
+taskList = []
 resetRuns = None
 runList = None
 kickRequests = False
 justStats = False
 from DIRAC.Core.Base import Script
 
-infoList = ["Files", "Runs", "Tasks"]
-statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC"]
+infoList = ["Files", "Runs", "Tasks", 'Jobs']
+statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MaxReset"]
 Script.registerSwitch( 'i:', 'Info=', "Specify what to print out from %s" % str( infoList ) )
 Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
 Script.registerSwitch( 'l:', 'LFNs=', "Specify a (list of) LFNs" )
-Script.registerSwitch( '', 'Runs=', "Specify a (list of) runss" )
+Script.registerSwitch( '', 'Runs=', "Specify a (list of) runs" )
 Script.registerSwitch( '', 'Tasks=', "Specify a (list of) tasks" )
 Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with care!)" )
 Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
 Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
 Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
+Script.registerSwitch( 'v', 'Verbose', '' )
 
 Script.parseCommandLine( ignoreErrors = True )
 import DIRAC
-from DIRAC.ConfigurationSystem.Client import PathFinder
+#from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 switches = Script.getUnprocessedSwitches()
@@ -71,11 +75,13 @@ for switch in switches:
                 print "Unknown information... Select in %s" % str( infoList )
                 DIRAC.exit( 0 )
             elif val == "Files":
-                listFiles = True
+                byFiles = True
             elif val == "Runs":
-                byRun = True
+                byRuns = True
             elif val == "Tasks":
                 byTasks = True
+            elif val == "Jobs":
+                byJobs = True
     elif opt == 'status':
         if val not in statusList:
             print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
@@ -87,7 +93,7 @@ for switch in switches:
         runList = val.split( ',' )
     elif opt == 'resetruns':
         resetRuns = "Active"
-        byRun = True
+        byRuns = True
     elif opt in ( 'v', 'verbose' ):
         verbose = True
     elif opt == 'tasks':
@@ -100,9 +106,9 @@ for switch in switches:
         justStats = True
 
 if lfnList:
-    listFiles = True
+    byFiles = True
 if dumpFiles:
-    listFiles = True
+    byFiles = True
 
 args = Script.getPositionalArgs()
 
@@ -156,8 +162,8 @@ for id in idList:
             taskType = "Job"
         transGroup = res['Value']['TransformationGroup']
     print "\n==============================\nTransformation", id, ":", transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
-    if verbose:
-        print "Transformation body:", transBody
+    #if verbose:
+        #print "Transformation body:", transBody
     res = transClient.getBookkeepingQueryForTransformation( id )
     if res['OK'] and res['Value']:
         print "BKQuery:", res['Value']
@@ -197,9 +203,14 @@ for id in idList:
     ################
     if runList:
         runs = []
-        for run in runList:
-            runs.append( {'RunNumber':run} )
-    elif not byRun:
+        for runRange in runList:
+            runRange = runRange.split( ':' )
+            if len( runRange ) == 1:
+                runs.append( {'RunNumber':int( runRange[0] )} )
+            else:
+                for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
+                    runs.append( {'RunNumber':run} )
+    elif not byRuns:
         runs = [{'RunNumber': 0}]
     else:
         res = transClient.getTransformationRuns( {'TransformationID':id} )
@@ -212,11 +223,12 @@ for id in idList:
     SEStat = {"Total":0}
     allFiles = []
     toBeKicked = 0
+    jobList = []
     for runDict in runs:
         runID = runDict['RunNumber']
         SEs = runDict.get( 'SelectedSite', 'None' ).split( ',' )
         runStatus = runDict.get( 'Status' )
-        if verbose and byRun: print '\nRun:', runID, 'SelectedSite:', SEs, 'Status:', runStatus
+        if verbose and byRuns: print '\nRun:', runID, 'SelectedSite:', SEs, 'Status:', runStatus
         filesList = getFilesForRun( id, runID, status, lfnList )
         filesList.sort()
         if lfnList and len( lfnList ) != len( filesList ):
@@ -247,7 +259,7 @@ for id in idList:
             for fileDict in filesList:
                 taskID = fileDict['TaskID']
                 taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
-                if listFiles and not taskList:
+                if byFiles and not taskList:
                     print "LFN:", fileDict['LFN'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
             if status == 'MissingLFC':
                 lfns = [fileDict['LFN'] for fileDict in filesList]
@@ -268,11 +280,22 @@ for id in idList:
             nbReplicasProblematic = {}
             problematicReplicas = {}
             failedFiles = []
-            for taskID in [t for t in taskDict if not taskList or t in taskList]:
+            if not taskList:
+                taskList = [t for t in taskDict]
+            for taskID in taskList:
                 res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskID} )
+                #print res
                 if res['OK'] and res['Value']:
                     task = res['Value'][0]
-                    lfns = taskDict[taskID]
+                    if byJobs and taskType == 'Job':
+                        jobList.append( task['ExternalID'] )
+                        if not byFiles and not byTasks:
+                            continue
+                    if taskID not in taskDict:
+                        print 'Task %s not found in the transformation files table' % taskID
+                        lfns = []
+                    else:
+                        lfns = taskDict[taskID]
                     allFiles += lfns
                     replicas = {}
                     if transType in dmTransTypes:
@@ -314,7 +337,7 @@ for id in idList:
                                     SEStat[se] = SEStat.setdefault( se, 0 ) + 1
                     if byTasks:
                         prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
-                        if listFiles:
+                        if byFiles and lfns:
                             prString += " (" + str( taskDict[taskID] ) + ")"
                         prString += "- %s: %s - Status: %s" % ( taskType, task['ExternalID'], task['ExternalStatus'] )
                         if targetSE:
@@ -389,7 +412,7 @@ for id in idList:
                                                 print 'Request %d reset Waiting' % requestID
 
                         print ""
-        elif not byRun:
+        elif not byRuns:
             print "No files found with given criteria"
 
     if status == 'Problematic':
@@ -458,3 +481,14 @@ for id in idList:
     if dumpFiles and allFiles:
         print "List of files found:"
         print " ".join( allFiles )
+        newStatus = None
+        if newStatus:
+            res = transClient.setFileStatusForTransformation( id, newStatus, allFiles )
+            if res['OK']:
+                print 'Of %d files, %d set to %s' % ( len( allFiles ), len( res['Value']['Successful'] ), newStatus )
+            else:
+                print "Failed to set status %s" % newStatus
+
+    if byJobs and jobList:
+        print "List of jobs found:"
+        print " ".join( jobList )

@@ -22,6 +22,8 @@ for switch in switches:
     requestType = switch[1].lower()
   elif switch[0] == 'KickRequests':
     kickRequests = True
+  elif switch[0] == 'Delay':
+    delay = float( switch[1] )
 
 if not requestType:
   print "--RequestType <type> is a mandatory option"

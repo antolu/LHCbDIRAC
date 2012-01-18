@@ -26,8 +26,8 @@ class setter:
     return DIRAC.S_OK()
 
 class PluginScript( DMScript ):
-  def __init__( self, useBKQuery = False ):
-    DMScript.__init__( self, useBKQuery = useBKQuery )
+  def __init__( self ):
+    DMScript.__init__( self )
 
   def registerPluginSwitches( self ):
     self.registerBKSwitches()
