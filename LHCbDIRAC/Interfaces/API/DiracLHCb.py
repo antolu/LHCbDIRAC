@@ -20,6 +20,7 @@ from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles import getAncestorFiles
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import  DMScript
 
 import os, glob, fnmatch, string, time, re
 
@@ -464,7 +465,7 @@ class DiracLHCb( Dirac ):
 
     #remove any double slashes, spaces must be preserved
     #remove any empty components from leading and trailing slashes
-    bkPath = self.__translateBKPath( bkPath, procPassID = 0 )
+    bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
     if len( bkPath ) < 2:
       return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
     query = self.bkQueryTemplate.copy()
