@@ -24,7 +24,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 if __name__ == "__main__":
 
-  dmScript = DMScript( useBKQuery = True )
+  dmScript = DMScript()
   dmScript.registerBKSwitches()
   dmScript.registerNamespaceSwitches()
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
   repStats = {}
   lfnReplicas = {}
-  directories = dmScript.options.get( 'Directory' )
+  directories = dmScript.getOption( 'Directory' )
   if directories:
     for directory in directories:
       res = rm.getReplicasFromDirectory( directory )
@@ -66,6 +66,7 @@ if __name__ == "__main__":
       lfnReplicas.update( res['Value'] )
   else:
     bkQuery = dmScript.getBKQuery( visible = visible )
+    print "Executing BK query:", bkQuery
     lfns = bkQuery.getLFNs()
     if lfns:
       res = rm.getReplicas( lfns )

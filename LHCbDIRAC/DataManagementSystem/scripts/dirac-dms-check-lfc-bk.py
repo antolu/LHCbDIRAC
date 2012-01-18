@@ -21,10 +21,43 @@ import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
+def checkLFC2BK( lfns, fixIt ):
+  bk = BookkeepingClient()
+  res = bk.getFileMetadata( lfns )
+  if not res['OK']: return
+  metadata = res['Value']
+  missingLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == None]
+  noFlagLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'No']
+  okLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
+  print "Out of %d files, %d have a replica flag in the BK, %d are not in the BK and %d don't have the flag" % ( len( lfns ), len( okLFNs ), len( missingLFNs ), len( noFlagLFNs ) )
+  if missingLFNs:
+    print "Files not in BK:"
+    for lfn in missingLFNs:
+      print lfn
+  if noFlagLFNs:
+    print "Files without replica flag in BK:"
+    for lfn in noFlagLFNs:
+      print lfn
+  if fixIt:
+    if missingLFNs:
+      print "Attempting to remove %d files from SE and LFC:" % len( missingLFNs )
+      res = rm.removeFile( missingLFNs )
+      if res['OK']:
+        success = len( res['Value']['Successful'] )
+        failures = len( res['Value']['Failed'] )
+        print "\t%d success, %d failures" % ( success, failures )
+
+    if noFlagLFNs:
+      print "Setting the replica flag in BK for %d files:" % len( noFlagLFNs )
+      res = bk.addFiles( noFlagLFNs )
+      if res['OK']:
+        print "\tSuccessfully added replica flag"
+
 if __name__ == "__main__":
 
-  dmScript = DMScript( useBKQuery = True )
+  dmScript = DMScript()
   dmScript.registerNamespaceSwitches()
+  dmScript.registerFileSwitches()
   dmScript.registerBKSwitches()
 
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
@@ -42,41 +75,25 @@ if __name__ == "__main__":
       fixIt = True
 
   directories = dmScript.getOption( "Directory", [] )
+  lfns = dmScript.getOption( "LFNs", [] )
 
   from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
   rm = ReplicaManager()
-  bk = BookkeepingClient()
+
+  if lfns:
+    checkLFC2BK( lfns, fixIt )
 
   for dir in directories:
     res = rm.getFilesFromDirectory( dir )
     if not res['OK']: continue
     lfns = res['Value']
-    res = bk.getFileMetadata( lfns )
-    if not res['OK']: continue
-    metadata = res['Value']
-    missingLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == None]
-    noFlagLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'No']
-    okLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
-    print "Out of %d files, %d have a replica flag in the BK, %d are not in the BK and %d don't have the flag" % ( len( lfns ), len( okLFNs ), len( missingLFNs ), len( noFlagLFNs ) )
-    if fixIt:
-      if missingLFNs:
-        print "Attempting to remove %d files from SE and LFC:" % len( missingLFNs )
-        res = rm.removeFile( missingLFNs )
-        if res['OK']:
-          success = len( res['Value']['Successful'] )
-          failures = len( res['Value']['Failed'] )
-          print "\t%d success, %d failures" % ( success, failures )
-
-      if noFlagLFNs:
-        print "Setting the replica flag in BK for %d files:" % len( noFlagLFNs )
-        res = bk.addFiles( noFlagLFNs )
-        if res['OK']:
-          print "\tSuccessfully added replica flag"
+    checkLFC2BK( lfns, fixIt )
 
   bkQuery = dmScript.getBKQuery( visible = False )
   if bkQuery.getQueryDict():
+    bk = BookkeepingClient()
     lfns = bkQuery.getLFNs()
     print len( lfns ), 'files found in BK'
     success = 0

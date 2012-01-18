@@ -12,11 +12,12 @@ if __name__ == "__main__":
   import DIRAC
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+  import time
 
   removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
   replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares", 'FakeReplication' )
 
-  pluginScript = PluginScript( useBKQuery = True )
+  pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
   test = False
   start = False
@@ -40,9 +41,9 @@ if __name__ == "__main__":
   requestID = pluginScript.getOption( 'RequestID' )
   fileType = pluginScript.getOption( 'FileType' )
   pluginParams = pluginScript.getOption( 'Parameters', {} )
-  for key in pluginScript.options:
+  for key in pluginScript.getOptions():
       if key.endswith( "SE" ) or key.endswith( "SEs" ):
-        pluginParams[key] = pluginScript.options[key]
+        pluginParams[key] = pluginScript.getOption( key )
   nbCopies = pluginScript.getOption( 'Replicas' )
   groupSize = pluginScript.getOption( 'GroupSize' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -51,7 +52,6 @@ if __name__ == "__main__":
 
 
   switches = Script.getUnprocessedSwitches()
-  import DIRAC
   for switch in switches:
     opt = switch[0].lower()
     val = switch[1]
@@ -111,13 +111,17 @@ if __name__ == "__main__":
     fileStr = ','.join( fileType )
     longName = transGroup + " of " + fileStr + " for productions %s " % prodsStr
     transName += '-' + fileStr + '-' + prodsStr
-  elif 'BKQuery' not in pluginScript.options:
-    longName = transGroup + "for fileType " + str( transBKQuery['FileType'] )
+  elif 'BKPath' not in pluginScript.getOptions():
+    if type( transBKQuery['FileType'] ) == type( [] ):
+      strQuery = ','.join( transBKQuery['FileType'] )
+    else:
+      strQuery = str( transBKQuery['FileType'] )
+    longName = transGroup + " for fileType " + strQuery
     transName += '-' + str( transBKQuery['FileType'] )
   else:
-    query = pluginScript.options['BKQuery']
-    longName = transGroup + " for BKQuery " + query
-    transName += '-' + query
+    queryPath = bkQuery.getPath()
+    longName = transGroup + " for BKQuery " + queryPath
+    transName += '-' + queryPath
 
   if requestID:
     transName += '-Request%d' % ( requestID )
@@ -164,8 +168,11 @@ if __name__ == "__main__":
 
   if transBKQuery:
     print "Executing the BK query..."
-    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' ), visible = visible )
+    startTime = time.time()
+    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
+    bkTime = time.time() - startTime
     nfiles = len( lfns )
+    print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
   else:
     print "No BK query provided..."
     Script.showHelp()
@@ -191,11 +198,13 @@ if __name__ == "__main__":
     bk = BookkeepingClient()
     success = 0
     missingLFNs = []
+    startTime = time.time()
     for chunk in breakListIntoChunks( lfns, 500 ):
       res = rm.getCatalogExists( chunk )
       if res['OK']:
         success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
         missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
+    print "Files checked in LFC in %.3f seconds" % ( time.time() - startTime )
     if missingLFNs:
       print '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) )
       res = bk.removeFiles( missingLFNs )

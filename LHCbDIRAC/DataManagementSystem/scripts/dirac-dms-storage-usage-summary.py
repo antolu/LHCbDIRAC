@@ -115,14 +115,14 @@ def browseBK( bkQuery, ses, scaleFactor ):
     strCond = "Browsing conditions %s" % cond
     writeInfo( strCond )
     bkQuery.setConditions( cond )
-    processingPasses = bkQuery.getBKProcessingPasses()
-    #print processingPasses
-    for processingPass in [pp for pp in processingPasses if processingPasses[pp]]:
+    eventTypesForPP = bkQuery.getBKProcessingPasses()
+    #print eventTypesForPP
+    for processingPass in [pp for pp in eventTypesForPP if eventTypesForPP[pp]]:
       if requestedEventTypes:
-        eventTypes = [t for t in requestedEventTypes if t in processingPasses[processingPass]]
+        eventTypes = [t for t in requestedEventTypes if t in eventTypesForPP[processingPass]]
         if not eventTypes: continue
       else:
-        eventTypes = processingPasses[processingPass]
+        eventTypes = eventTypesForPP[processingPass]
       strPP = " - ProcessingPass %s" % processingPass
       writeInfo( strCond + strPP )
       bkQuery.setProcessingPass( processingPass )
@@ -137,7 +137,7 @@ def browseBK( bkQuery, ses, scaleFactor ):
         fileTypes = bkQuery.getBKFileTypes()
         bkQuery.setFileType( fileTypes )
         #print fileTypes
-        if None in fileTypes: continue
+        if not fileTypes or None in fileTypes: continue
         prods = bkQuery.getBKProductions()
         prods.sort()
         #print prods
@@ -208,7 +208,7 @@ def getStorageSummary( totalUsage, grandTotal, dir, fileTypes, prodID, ses ):
 #=====================================================================================
 if __name__ == "__main__":
 
-  dmScript = DMScript( useBKQuery = True )
+  dmScript = DMScript()
   dmScript.registerBKSwitches()
   dmScript.registerNamespaceSwitches()
   dmScript.registerSiteSwitches()
@@ -267,28 +267,34 @@ if __name__ == "__main__":
     DIRAC.exit( 0 )
 
   dirs = dmScript.getOption( 'Directory' )
-  prods = ['']
-  fileTypes = ['']
+  prods = None
+  fileTypes = None
   if not dirs:
     dirs = ['']
     bkQuery = dmScript.getBKQuery( visible = False )
-    prods = bkQuery.getBKProductions()
-    if not prods:
-      print 'No productions found for bkQuery %s' % str( bkQuery )
-      DIRAC.exit( 0 )
-    prods.sort()
-    print "Looking for %d productions:" % len( prods ), prods
-    fileTypes = bkQuery.getFileTypeList()
-    if fileTypes:
-      print 'FileTypes:', fileTypes
-    else:
-      fileTypes = ['']
-    # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
-    if 'DST' not in fileTypes:
-      fileTypes.append( 'DST' )
+    if bkQuery.getQueryDict():
+      print "BK query:", bkQuery
+      prods = bkQuery.getBKProductions()
+      if not prods:
+        print 'No productions found for bkQuery %s' % str( bkQuery )
+        DIRAC.exit( 0 )
+      prods.sort()
+      print "Looking for %d productions:" % len( prods ), prods
+      fileTypes = bkQuery.getFileTypeList()
+      if fileTypes:
+        print 'FileTypes:', fileTypes
+      else:
+        fileTypes = ['']
+      # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
+      if 'DST' not in fileTypes:
+        fileTypes.append( 'DST' )
 
   rpc = RPCClient( 'DataManagement/StorageUsage' )
 
+  if not prods:
+    prods = ['']
+  if not fileTypes:
+    fileTypes = ['']
   if full:
     dirData = {}
     for prodID in sortList( prods ):
