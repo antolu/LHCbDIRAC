@@ -2674,7 +2674,7 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getFilesSumary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default):
+  def getFilesSumary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default, startrun = default, endrun = default):
 
     condition = ''
     tables = ' jobs j, files f'
@@ -2702,8 +2702,13 @@ and files.qualityid= dataquality.qualityid'
     if production != default:
       condition += ' and j.production=' + str(production)
 
-    if runnb != default:
+    if runnb != default and (type(runnb) != types.ListType):
       condition += ' and j.runnumber=' + str(runnb)
+    elif type(runnb) == types.ListType:
+      cond = ' ( '
+      for i in runnb:
+        cond += 'j.runnumber=' + str(i) + ' or '
+      condition += " and %s )" %(cond[:-3])
 
 
     tables += ' ,filetypes ftypes '
@@ -2716,10 +2721,10 @@ and files.qualityid= dataquality.qualityid'
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
 
 
-    if quality != 'ALL':
+    if quality != default:
       tables += ' , dataquality d'
       if type(quality) == types.StringType:
-        command = "select QualityId from dataquality where dataqualityflag='%s'" % (str(i))
+        command = "select QualityId from dataquality where dataqualityflag='%s'" % (quality)
         res = self.dbR_._query(command)
         if not res['OK']:
           gLogger.error('Data quality problem:', res['Message'])
@@ -2755,6 +2760,12 @@ and files.qualityid= dataquality.qualityid'
                                bview.production=prod.production \
                                %s %s %s \
                 )" % (processing.split('/')[1], processing, tables2, fcond, econd, sim_dq_conditions)
+
+    if startrun != default:
+      condition += " and j.runnumber > %d" % (startrun)
+
+    if endrun != default:
+      condition += " and j.runnumber < %d" % (endrun)
 
     command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \

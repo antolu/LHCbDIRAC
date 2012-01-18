@@ -92,7 +92,7 @@ class IBookkeepingDB( object ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################
-  def getFilesSumary( self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb ):
+  def getFilesSumary( self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun ):
     gLogger.error( 'This method is not implemented!' )
 
   #############################################################################

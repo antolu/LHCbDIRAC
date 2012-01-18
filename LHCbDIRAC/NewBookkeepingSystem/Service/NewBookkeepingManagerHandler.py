@@ -25,6 +25,9 @@ dataMGMT_ = None
 
 reader_ = None
 
+global default
+default = 'ALL'
+
 def initializeNewBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
@@ -181,7 +184,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getConfigVersions = [DictType]
   def export_getConfigVersions( self, dict ):
 
-    configName = 'ALL'
+    configName = default
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
 
@@ -198,9 +201,9 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getConditions = [DictType]
   def export_getConditions( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    evt = 'ALL'
+    configName = default
+    configVersion = default
+    evt = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -235,11 +238,11 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getProcessingPass = [DictType, StringType]
   def export_getProcessingPass( self, dict, path ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    prod = 'ALL'
-    runnb = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    prod = default
+    runnb = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -260,11 +263,11 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   ############################################################################
   types_getStandardProcessingPass = [DictType, StringType]
   def export_getStandardProcessingPass( self, dict, path ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    prod = 'ALL'
-    evt = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    prod = default
+    evt = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -286,11 +289,11 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getProductions = [DictType]
   def export_getProductions( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    processing = 'ALL'
-    evt = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    processing = default
+    evt = default
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
 
@@ -319,13 +322,13 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getFileTypes = [DictType]
   def export_getFileTypes( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    processing = 'ALL'
-    evt = 'ALL'
-    production = 'ALL'
-    runnb = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    processing = default
+    evt = default
+    production = default
+    runnb = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -361,9 +364,9 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getStandardEventTypes = [DictType]
   def export_getStandardEventTypes( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    production = 'ALL'
+    configName = default
+    configVersion = default
+    production = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -379,15 +382,15 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   def transfer_toClient( self, parameters, token, fileHelper ):
     dict = cPickle.loads( parameters )
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    processing = 'ALL'
-    evt = 'ALL'
-    production = 'ALL'
-    filetype = 'ALL'
-    quality = 'ALL'
-    runnb = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    processing = default
+    evt = default
+    production = default
+    filetype = default
+    quality = default
+    runnb = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -437,44 +440,20 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getFilesSumary = [DictType]
   def export_getFilesSumary( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    processing = 'ALL'
-    evt = 'ALL'
-    production = 'ALL'
-    filetype = 'ALL'
-    quality = 'ALL'
-    runnb = 'ALL'
 
-    if dict.has_key( 'ConfigName' ):
-      configName = dict['ConfigName']
+    configName = dict.get('ConfigName', default)
+    configVersion = dict.get('ConfigVersion', default)
+    conddescription = dict.get('ConditionDescription', default)
+    processing = dict.get('ProcessingPass', default)
+    evt = dict.get('EventTypeId', default)
+    production = dict.get('Production', default)
+    filetype = dict.get('FileType', default)
+    quality = dict.get('Quality', default)
+    runnb = dict.get('RunNumbers',dict.get('RunNumber', default))
+    startrun = dict.get('StartRun', default)
+    endrun = dict.get('EndRun', default)
 
-    if dict.has_key( 'ConfigVersion' ):
-      configVersion = dict['ConfigVersion']
-
-    if dict.has_key( 'ConditionDescription' ):
-      conddescription = dict['ConditionDescription']
-
-    if dict.has_key( 'ProcessingPass' ):
-      processing = dict['ProcessingPass']
-
-    if dict.has_key( 'EventTypeId' ):
-      evt = dict['EventTypeId']
-
-    if dict.has_key( 'Production' ):
-      production = dict['Production']
-
-    if dict.has_key( 'RunNumber' ):
-      runnb = dict['RunNumber']
-
-    if dict.has_key( 'FileType' ):
-      filetype = dict['FileType']
-
-    if dict.has_key( 'Quality' ):
-      quality = dict['Quality']
-
-    retVal = dataMGMT_.getFilesSumary( configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb )
+    retVal = dataMGMT_.getFilesSumary( configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun )
     if retVal['OK']:
       records = []
       parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
@@ -488,15 +467,15 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getLimitedFiles = [DictType]
   def export_getLimitedFiles( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    processing = 'ALL'
-    evt = 'ALL'
-    production = 'ALL'
-    filetype = 'ALL'
-    quality = 'ALL'
-    runnb = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    processing = default
+    evt = default
+    production = default
+    filetype = default
+    quality = default
+    runnb = default
     start = 0
     max = 10
 
@@ -585,7 +564,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getProductionFiles = [IntType, StringType]
-  def export_getProductionFiles( self, prod, fileType, replica = 'ALL' ):
+  def export_getProductionFiles( self, prod, fileType, replica = default ):
     return dataMGMT_.getProductionFiles( int( prod ), fileType, replica )
 
   #############################################################################
@@ -839,7 +818,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
       if val['OK']:
         return S_OK( str( evid ) + ' event type updated successfully!' )
       else:
-        return S_ERROR( value['Message'] )
+        return S_ERROR( val['Message'] )
 
   #############################################################################
   types_addFiles = [ListType]
@@ -868,37 +847,37 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if dict.has_key( 'ConfigName' ):
       cName = dict['ConfigName']
     else:
-      cName = 'ALL'
+      cName = default
 
     if dict.has_key( 'ConfigVersion' ):
       cVersion = dict['ConfigVersion']
     else:
-      cVersion = 'ALL'
+      cVersion = default
 
     if dict.has_key( 'Production' ):
       production = dict['Production']
     else:
-      production = 'ALL'
+      production = default
 
     if dict.has_key( 'SimulationDescription' ):
       simdesc = dict['SimulationDescription']
     else:
-      simdesc = 'ALL'
+      simdesc = default
 
     if dict.has_key( 'ProcessingPass' ):
       pgroup = dict['ProcessingPass']
     else:
-      pgroup = 'ALL'
+      pgroup = default
 
     if dict.has_key( 'FileType' ):
       ftype = dict['FileType']
     else:
-      ftype = 'ALL'
+      ftype = default
 
     if dict.has_key( 'EventType' ):
       evttype = dict['EventType']
     else:
-      evttype = 'ALL'
+      evttype = default
 
     retVal = dataMGMT_.getProductionSummary( cName, cVersion, simdesc, pgroup, production, ftype, evttype )
 
@@ -1096,20 +1075,20 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getFilesWithGivenDataSets = [DictType]
   def export_getFilesWithGivenDataSets( self, values ):
 
-    simdesc = 'ALL'
+    simdesc = default
     if values.has_key( 'SimulationConditions' ):
       simdesc = str( values['SimulationConditions'] )
 
-    datataking = 'ALL'
+    datataking = default
     if values.has_key( 'DataTakingConditions' ):
       datataking = str( values['DataTakingConditions'] )
 
     if values.has_key( 'ProcessingPass' ):
       procPass = values['ProcessingPass']
     else:
-      procPass = 'ALL'
+      procPass = default
 
-    ftype = 'ALL'
+    ftype = default
     if values.has_key( 'FileType' ):
       ftype = values['FileType']
 
@@ -1121,24 +1100,24 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if values.has_key( 'ConfigName' ):
       configname = values['ConfigName']
     else:
-      configname = 'ALL'
+      configname = default
 
     if values.has_key( 'ConfigVersion' ):
       configversion = values['ConfigVersion']
     else:
-      configversion = 'ALL'
+      configversion = default
 
     if values.has_key( 'ProductionID' ):
       prod = values['ProductionID']
       if prod == 0:
-        prod = 'ALL'
+        prod = default
     else:
-      prod = 'ALL'
+      prod = default
 
     if values.has_key( 'DataQualityFlag' ):
       flag = values['DataQualityFlag']
     else:
-      flag = 'ALL'
+      flag = default
 
     if values.has_key( 'StartDate' ):
       startd = values['StartDate']
@@ -1173,7 +1152,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if values.has_key( 'ReplicaFlag' ):
       replicaFlag = values['ReplicaFlag']
 
-    visible = 'ALL'
+    visible = default
     if values.has_key( 'Visible' ):
       visible = values['Visible']
 
@@ -1200,18 +1179,18 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   types_getFilesWithGivenDataSetsForUsers = [DictType]
   def export_getFilesWithGivenDataSetsForUsers( self, values ):
 
-    simdesc = 'ALL'
+    simdesc = default
     if values.has_key( 'SimulationConditions' ):
       simdesc = str( values['SimulationConditions'] )
 
-    datataking = 'ALL'
+    datataking = default
     if values.has_key( 'DataTakingConditions' ):
       datataking = str( values['DataTakingConditions'] )
 
     if values.has_key( 'ProcessingPass' ):
       procPass = values['ProcessingPass']
     else:
-      procPass = 'ALL'
+      procPass = default
 
     if values.has_key( 'FileType' ):
       ftype = values['FileType']
@@ -1226,24 +1205,24 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if values.has_key( 'ConfigName' ):
       configname = values['ConfigName']
     else:
-      configname = 'ALL'
+      configname = default
 
     if values.has_key( 'ConfigVersion' ):
       configversion = values['ConfigVersion']
     else:
-      configversion = 'ALL'
+      configversion = default
 
     if values.has_key( 'ProductionID' ):
       prod = values['ProductionID']
       if prod == 0:
-        prod = 'ALL'
+        prod = default
     else:
-      prod = 'ALL'
+      prod = default
 
     if values.has_key( 'DataQualityFlag' ):
       flag = values['DataQualityFlag']
     else:
-      flag = 'ALL'
+      flag = default
 
     if values.has_key( 'StartDate' ):
       startd = values['StartDate']
@@ -1347,8 +1326,8 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getEventTypes = [DictType]
   def export_getEventTypes( self, dict ):
-    configName = 'ALL'
-    configVersion = 'ALL'
+    configName = default
+    configVersion = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
@@ -1369,9 +1348,9 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getProcessingPassSteps = [DictType]
   def export_getProcessingPassSteps( self, dict ):
-    procpass = 'ALL'
-    cond = 'ALL'
-    stepname = 'ALL'
+    procpass = default
+    cond = default
+    stepname = default
 
     if dict.has_key( 'StepName' ):
       stepname = dict['StepName']
@@ -1402,7 +1381,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getRunQuality = [StringType, StringType]
-  def export_getRunQuality(self, procpass, flag='ALL'):
+  def export_getRunQuality(self, procpass, flag=default):
     return dataMGMT_.getRunQuality(procpass, flag)
 
   #############################################################################
@@ -1430,7 +1409,7 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     if dict.has_key('RunNumber'):
       runnb = dict['RunNumber']
 
-    evt = 'ALL'
+    evt = default
     if dict.has_key('EventTypeId'):
       evt = dict['EventTypeId']
 
@@ -1448,15 +1427,15 @@ class NewBookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getAvailableTcks = [DictType]
   def export_getAvailableTcks(self, dict):
-    configName = 'ALL'
-    configVersion = 'ALL'
-    conddescription = 'ALL'
-    processing = 'ALL'
-    evt = 'ALL'
-    production = 'ALL'
-    filetype = 'ALL'
-    quality = 'ALL'
-    runnb = 'ALL'
+    configName = default
+    configVersion = default
+    conddescription = default
+    processing = default
+    evt = default
+    production = default
+    filetype = default
+    quality = default
+    runnb = default
 
     if dict.has_key( 'ConfigName' ):
       configName = dict['ConfigName']
