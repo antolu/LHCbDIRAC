@@ -21,7 +21,6 @@ class UsersAndGroups( AgentModule ):
     self.vomsSrv = VOMSService()
     self.proxyLocation = os.path.join( self.am_getWorkDirectory(), ".volatileId" )
     self.__adminMsgs = {}
-    print self.getLFCRegisteredDNs()
     return S_OK()
 
   def __generateProxy( self ):
@@ -47,63 +46,38 @@ class UsersAndGroups( AgentModule ):
     return True
 
   def getLFCRegisteredDNs( self ):
-    #Request a proxy
-    if gConfig.useServerCertificate():
-      if not self.__generateProxy():
-        return False
-    #Execute the call
-    cmdEnv = dict( os.environ )
-    cmdEnv['LFC_HOST'] = 'lfc-lhcb.cern.ch'
-    if os.path.isfile( self.proxyLocation ):
-      cmdEnv[ 'X509_USER_PROXY' ] = self.proxyLocation
-    lfcDNs = []
-    try:
-      retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = cmdEnv )
-      if not retlfc['OK']:
-        self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
-        return retlfc
-      if retlfc['Value'][0]:
-        self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
-        return S_ERROR( "lfc-listusrmap failed" )
-      else:
-        for item in List.fromChar( retlfc['Value'][1], '\n' ):
-          dn = item.split( ' ', 1 )[1]
-          lfcDNs.append( dn )
-      return S_OK( lfcDNs )
-    finally:
-      if os.path.isfile( self.proxyLocation ):
-        self.log.info( "Destroying proxy..." )
-        os.unlink( self.proxyLocation )
+    lfcUIDs = {}
+    retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = self.cmdEnv )
+    if not retlfc['OK']:
+      self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
+      return retlfc
+    if retlfc['Value'][0]:
+      self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
+      return S_ERROR( "lfc-listusrmap failed" )
+    else:
+      for item in List.fromChar( retlfc['Value'][1], '\n' ):
+        dn = item.split( ' ', 1 )[1]
+        uid = item.split( ' ', 1 )[0]
+        lfcUIDs[dn] = uid
+    return S_OK( lfcUIDs )
 
   def getLFCRegisteredBANDNs( self ):
-    #Request a proxy
-    if gConfig.useServerCertificate():
-      if not self.__generateProxy():
-        return False
-    #Execute the call
-    cmdEnv = dict( os.environ )
-    cmdEnv['LFC_HOST'] = 'lfc-lhcb.cern.ch'
-    if os.path.isfile( self.proxyLocation ):
-      cmdEnv[ 'X509_USER_PROXY' ] = self.proxyLocation
-    lfcBANDNs = []
-    try:
-      retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = cmdEnv )
-      if not retlfc['OK']:
-        self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
-        return retlfc
-      if retlfc['Value'][0]:
-        self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
-        return S_ERROR( "lfc-listusrmap failed" )
-      else:
-        for item in List.fromChar( retlfc['Value'][1], '\n' ):
-          dn = item.split( ' ', 1 )[1]
-          if str( dn ).find( 'LOCAL_BAN' ) != -1:
-            lfcBANDNs.append( dn )
-      return S_OK( lfcBANDNs )
-    finally:
-      if os.path.isfile( self.proxyLocation ):
-        self.log.info( "Destroying proxy..." )
-        os.unlink( self.proxyLocation )
+    self.lfcBANDNs = []
+    lfcBANUIDs = {}
+    retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = self.cmdEnv )
+    if not retlfc['OK']:
+      self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
+      return retlfc
+    if retlfc['Value'][0]:
+      self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
+      return S_ERROR( "lfc-listusrmap failed" )
+    else:
+      for item in List.fromChar( retlfc['Value'][1], '\n' ):
+        dn = item.split( ' ', 1 )[1]
+        if str( dn ).find( 'LOCAL_BAN' ) != -1:
+          uid = item.split( ' ', 1 )[0]
+          lfcBANUIDs[dn] = uid
+    return S_OK( lfcBANUIDs )
 
   def checkLFCRegisteredUsers( self, usersData ):
     self.log.info( "Checking LFC registered users" )
@@ -112,18 +86,18 @@ class UsersAndGroups( AgentModule ):
     if not result[ 'OK' ]:
       self.log.error( "Could not get a list of registered DNs from LFC", result[ 'Message' ] )
       return result
-    lfcDNs = result[ 'Value' ]
+    self.lfcDNs = result[ 'Value' ]
     self.log.info( "Checking LFC registered but BAN users" )
     usersToBeRegisteredAgain = {}
     result = self.getLFCRegisteredBANDNs()
     if not result[ 'OK' ]:
       self.log.error( "Could not get a list of registered but BAN DNs from LFC", result[ 'Message' ] )
       return result
-    lfcBANDNs = result[ 'Value' ]
+    self.lfcBANDNs = result[ 'Value' ]
     found = False
     for user in usersData:
       for userDN in usersData[ user ][ 'DN' ]:
-        for dn in lfcBANDNs:
+        for dn in self.lfcBANDNs:
           if not str( dn ).find( userDN ):
             self.log.info( userDN )
             found = True
@@ -132,39 +106,99 @@ class UsersAndGroups( AgentModule ):
             usersToBeRegisteredAgain[ user ].append( userDN )
             break
         if not found:
-          if userDN not in lfcDNs:
+          if userDN not in self.lfcDNs:
             self.log.info( 'DN "%s" need to be registered in LFC for user %s' % ( userDN, user ) )
             if user not in usersToBeRegistered:
               usersToBeRegistered[ user ] = []
             usersToBeRegistered[ user ].append( userDN )
 
+    if usersToBeRegistered:
+      result = self.changeLFCRegisteredUsers( usersToBeRegistered, 'add' )
+      if not result['OK']:
+        self.log.error( 'Problem to add a new user : %s' % result['Message'] )
+
+    if usersToBeRegisteredAgain:
+      result = self.changeLFCRegisteredUsers( usersToBeRegisteredAgain, 'change' )
+      if not result['OK']:
+        self.log.error( 'Problem to add a new user : %s' % result['Message'] )
+
+    return S_OK()
+
+  def changeLFCRegisteredUsers( self, registerUsers, action ):
+    self.log.info( "Changing LFC registered users" )
+
     address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
     fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
-    if usersToBeRegistered:
+
+    if action == "add":
       subject = 'New LFC Users found'
-      self.log.info( subject, ", ".join( usersToBeRegistered ) )
+      self.log.info( subject, ", ".join( registerUsers ) )
       body = 'Command to add new entries into LFC: \n'
       body += 'login to volhcbXX and run : \n'
       body += 'source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh \n\n'
-      for lfcuser in usersToBeRegistered:
-        for lfc_dn in usersToBeRegistered[lfcuser]:
+      for lfcuser in registerUsers:
+        for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
           body += 'add_DN_LFC --userDN="' + lfc_dn.strip() + '" --nickname=' + lfcuser + '\n'
 
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
 
-    if usersToBeRegisteredAgain:
+    if action == "change":
       subject = 'New LFC Users found but BANNED'
-      self.log.info( subject, ", ".join( usersToBeRegisteredAgain ) )
+      self.log.info( subject, ", ".join( registerUsers ) )
       body = 'Command to change the entries into LFC: \n'
-      for lfcuser in usersToBeRegisteredAgain:
-        for lfc_dn in usersToBeRegisteredAgain[lfcuser]:
+      for lfcuser in registerUsers:
+        for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
-          body += 'Change --userDN="' + lfc_dn + '" --nickname=' + lfcuser + '\n'
+          for l in lfcBANDNs:
+            if str( l ).find( lfc_dn ) != -1:
+              lfc_uid = self.lfcBANDNs[l]
+              break
+
+          cmd_exe = ['lfc-modifyusrmap']
+          cmd_exe += ['--uid']
+          cmd_exe += [lfc_uid]
+          cmd_exe += ['--user']
+          cmd_exe += [lfc_dn]
+          cmd_exe += ['--status']
+          cmd_exe += ['0']
+          try:
+            retlfc = Subprocess.systemCall( 0, cmd_exe, env = self.cmdEnv )
+            if not retlfc['OK']:
+              self.log.error( retlfc['Message'] )
+          except:
+            return S_ERROR( 'can not execute command' )
+
+    if action == "ban":
+      subject = 'Ban LFC Users'
+      self.log.info( subject, ", ".join( registerUsers ) )
+      body = 'Command to change the entries into LFC: \n'
+      for lfcuser in registerUsers:
+        for lfc_dn in registerUsers[lfcuser]:
+          print lfc_dn
+          for l in self.lfcDNs:
+            if str( l ).find( lfc_dn ) != -1:
+              lfc_uid = self.lfcDNs[l]
+              break
+
+          cmd_exe = ['lfc-modifyusrmap']
+          cmd_exe += ['--uid']
+          cmd_exe += [lfc_uid]
+          cmd_exe += ['--user']
+          cmd_exe += [lfc_dn]
+          cmd_exe += ['--status']
+          cmd_exe += ['LOCAL_BAN']
+          try:
+            retlfc = Subprocess.systemCall( 0, cmd_exe, env = self.cmdEnv )
+            if not retlfc['OK']:
+              self.log.error( retlfc['Message'] )
+          except:
+            return S_ERROR( 'can not execute command' )
 
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
 
     return S_OK()
+
 
   def execute( self ):
     result = self.__syncCSWithVOMS()
@@ -195,7 +229,7 @@ class UsersAndGroups( AgentModule ):
     #Get VOMS VO name
     self.log.info( "Getting VOMS VO name" )
     result = self.vomsSrv.admGetVOName()
-    if not ret['OK']:
+    if not result['OK']:
       self.log.fatal( 'Could not retrieve VOMS VO name' )
     voNameInVOMS = result[ 'Value' ]
     self.log.info( "VOMS VO Name is %s" % voNameInVOMS )
@@ -203,7 +237,7 @@ class UsersAndGroups( AgentModule ):
     #Get VOMS roles
     self.log.info( "Getting the list of registered roles in VOMS" )
     result = self.vomsSrv.admListRoles()
-    if not ret['OK']:
+    if not result['OK']:
       self.log.fatal( 'Could not retrieve registered roles in VOMS' )
     rolesInVOMS = result[ 'Value' ]
     self.log.info( "There are %s registered roles in VOMS" % len( rolesInVOMS ) )
@@ -240,7 +274,7 @@ class UsersAndGroups( AgentModule ):
     #Get VOMS user entries
     self.log.info( "Getting the list of registered user entries in VOMS" )
     result = self.vomsSrv.admListMembers()
-    if not ret['OK']:
+    if not result['OK']:
       self.log.fatal( 'Could not retrieve registered user entries in VOMS' )
     usersInVOMS = result[ 'Value' ]
     self.__adminMsgs[ 'Info' ].append( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
@@ -250,7 +284,7 @@ class UsersAndGroups( AgentModule ):
     usersData = {}
     newUserNames = []
     knownUserNames = []
-    obsoleteUserNames = []
+    obsoleteUserNames = {}
     self.log.info( "Retrieving usernames..." )
     usersInVOMS.sort()
     for iUPos in range( len( usersInVOMS ) ):
@@ -265,7 +299,7 @@ class UsersAndGroups( AgentModule ):
         self.log.error( "Empty nickname for DN %s" % user[ 'DN' ] )
         self.__adminMsgs[ 'Errors' ].append( "Empty nickname for DN %s" % user[ 'DN' ] )
         continue
-      self.log.info( " (%02d%%) Found username %s" % ( ( iUPos * 100 / len( usersInVOMS ) ), userName ) )
+      self.log.info( " (%02d %%) Found username %s" % ( ( iUPos * 100 / len( usersInVOMS ) ), userName ) )
       if userName not in usersData:
         usersData[ userName ] = { 'DN': [], 'CA': [], 'Email': [], 'Groups' : [] }
       for key in ( 'DN', 'CA', 'mail' ):
@@ -284,7 +318,9 @@ class UsersAndGroups( AgentModule ):
     for user in currentUsers:
       if user not in usersData:
         self.log.info( 'User %s is no longer valid' % user )
-        obsoleteUserNames.append( user )
+        if user not in obsoleteUserNames:
+          obsoleteUserNames[user] = []
+        obsoleteUserNames[user].append( currentUsers[user]['DN'] )
 
     if newUserNames:
       self.log.info( "There are %s new users" % len( newUserNames ) )
@@ -399,12 +435,12 @@ class UsersAndGroups( AgentModule ):
       address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
       fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
       subject = 'Obsolete LFC Users found'
-      body = 'Delete entries into LFC: \n'
+      body = 'Ban entries into LFC: \n'
       for obsoleteUser in obsoleteUserNames:
         self.log.info( subject, ", ".join( obsoleteUserNames ) )
-        body += 'for ' + obsoleteUser + '\n'
+        body += 'Ban user ' + obsoleteUser + '\n'
         self.__adminMsgs[ 'Info' ].append( "  %s" % obsoleteUser )
-      self.log.info( "Deleting %s users" % len( obsoleteUserNames ) )
+      self.log.info( "Banning %s users" % len( obsoleteUserNames ) )
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
       csapi.deleteUsers( obsoleteUserNames )
 
@@ -418,9 +454,26 @@ class UsersAndGroups( AgentModule ):
 
     #LFC Check
     if self.am_getOption( "LFCCheckEnabled", True ):
-      result = self.checkLFCRegisteredUsers( usersData )
-      if not result[ 'OK' ]:
-        return result
+    #Request a proxy
+      if gConfig.useServerCertificate():
+        if not self.__generateProxy():
+          return False
+    #Execute the call
+      self.cmdEnv = dict( os.environ )
+      self.cmdEnv['LFC_HOST'] = 'lfc-lhcb.cern.ch'
+      if os.path.isfile( self.proxyLocation ):
+        self.cmdEnv[ 'X509_USER_PROXY' ] = self.proxyLocation
+      try:
+        result = self.checkLFCRegisteredUsers( usersData )
+        if not result[ 'OK' ]:
+          return result
+        result = self.changeLFCRegisteredUsers( obsoleteUserNames, 'ban' )
+        if not result[ 'OK' ]:
+          return result
+      finally:
+        if os.path.isfile( self.proxyLocation ):
+          self.log.info( "Destroying proxy..." )
+          os.unlink( self.proxyLocation )
 
     return S_OK()
 
