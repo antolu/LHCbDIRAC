@@ -71,7 +71,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     descendants = {}
     startTime = time.time()
     for lfns in breakListIntoChunks( self.data.keys(), 500 ):
-      res = self.bk.getAllDescendents( lfns, production = int( transID ), depth = 1 )
+      # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
+      #          may have themselves descendants with replicas
+      res = self.bk.getAllDescendents( lfns, production = int( transID ), depth = 1, checkreplica=True )
       if not res['OK']:
         self.__logError( "Cannot get descendants of files: %s", res['Message'] )
       else:
