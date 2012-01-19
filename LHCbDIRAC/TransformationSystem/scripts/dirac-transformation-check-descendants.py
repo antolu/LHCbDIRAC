@@ -100,7 +100,7 @@ for id in idList:
   sys.stdout.write( '.'*len( lfnChunks ) )
   sys.stdout.flush()
   for lfnChunk in lfnChunks:
-    res = bk.getAllDescendents( lfnChunk, depth = 2, production = id )
+    res = bk.getAllDescendents( lfnChunk, depth = 1, production = id )
     if res['OK']:
       descChunk = res['Value']['Successful']
     else:
