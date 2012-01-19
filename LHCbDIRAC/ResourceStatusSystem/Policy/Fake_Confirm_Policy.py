@@ -14,6 +14,6 @@ class Fake_Confirm_Policy(PolicyBase):
 
     Fake_R = super(Fake_Confirm_Policy, self).evaluate()
 
-    return { 'Status' : 'Active', 'Reason' : 'fake' }
+    return {'Status': 'Active', 'Reason':'fake'}
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

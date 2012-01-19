@@ -1,18 +1,15 @@
 __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
-from DIRAC                                      import gLogger, gConfig, S_OK, S_ERROR, rootPath
-from DIRAC.Core.Base.AgentModule                import AgentModule
-from DIRAC.Core.Base.DB                         import DB
-from DIRAC.Core.DISET.RPCClient                 import RPCClient
-from DIRAC.Core.Utilities.File                  import makeGuid
-from DIRAC.Interfaces.API.Dirac                 import Dirac
-from DIRAC.ResourceStatusSystem.Utilities       import CS, Utils
-from DIRAC.ResourceStatusSystem.Utilities.Utils import xml_append
+from DIRAC import gLogger, gConfig, S_OK, rootPath
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Core.Base.AgentModule                            import AgentModule
+from DIRAC.Core.DISET.RPCClient                             import RPCClient
+from DIRAC.Core.Base.DB import DB
+from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
-from LHCbDIRAC.Core.Utilities                   import ProductionEnvironment
-
-import lfc2, lcg_util
+from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
 
 import xml.dom, xml.sax
 import time, string
@@ -663,234 +660,6 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     finally:
       xmlfile.close()
 
-################################################################################
-
-class LFCMirrorTest( TestBase ):
-  '''
-  This agent needs production role !
-  '''
-  
-  def __init__( self, am ):
-    super( LFCMirrorTest, self ).__init__( am )
-
-    self.xmlPath   = rootPath + "/" + self.getAgentValue("webRoot") + self.getTestValue("dir")
-    
-    configPath = '/Resources/FileCatalogs/LcgFileCatalogCombined/LcgGfalInfosys'
-    infosys    = gConfig.getValue(configPath)
-    
-    os.environ['LCG_GFAL_INFOSYS'] = infosys
-    
-    configPath  = '/Resources/FileCatalogs/LcgFileCatalogCombined/MasterHost'
-    master_host = gConfig.getValue(configPath)
-    
-    from DIRAC.Resources.Catalog.LcgFileCatalogClient import LcgFileCatalogClient
-    self.masterLFC = LcgFileCatalogClient(infosys,master_host)  
-    
-    #
-    # WTF must be countlimit ?
-    #
-    self.COUNTLIMIT = 60
-    
-    self.mirrors = [ 
-#                     'prod-lfc-lhcb-ro.cern.ch',
-#                     'lhcb-lfc.gridpp.rl.ac.uk',
-#                     'lfc-lhcb-ro.in2p3.fr',
-#                     'lhcb-lfc-fzk.gridka.de',
-#                     'lfc-lhcb.grid.sara.nl',
-#                     'lfclhcb.pic.es',
-#                     'lfc-lhcb-ro.cr.cnaf.infn.it',
-                     'lfc-lhcb-ro.cern.ch',
-                   ]
-    
-    self.results = {}
-    
-  def __registerFile( self, lfn ):
-
-    guid     = makeGuid()
-    pfn      = 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid%s' % lfn
-    size     = 0
-    se       = 'CERN-USER' 
-    checksum = ''   
-    
-    fileTuple = ( lfn, pfn, size, se, guid, checksum )
-    res = self.masterLFC.addFile( fileTuple )
-
-    if not res[ 'OK' ]:
-      gLogger.error( res[ 'Message' ] )
-      return False
-    if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
-      return True
-    gLogger.warn( res[ 'Value' ] )
-    return False
-  
-  def __removeReplica( self, lfn ):
-  
-    pfn = 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid%s' % lfn
-    se  = 'CERN-USER'
-    
-    replicaTuple = (lfn,pfn,se)
-    res = self.masterLFC.removeReplica(replicaTuple)
-  
-    if not res['OK']:
-      gLogger.error( res['Message'] )
-      return False
-    if res['Value']['Successful'].has_key( lfn ):
-      return True
-    gLogger.warn( res[ 'Value' ] ) 
-    return False
-  
-  def __openSession( self, host ):
-    """Open the LFC client/server session"""
-    
-    sessionName = 'DIRAC_test'
-    return lfc2.lfc_startsess( host, sessionName )  
-
-  def __closeSession( self ):
-    """Close the LFC client/server session"""
-    lfc2.lfc_endsess()
-
-  def __exists( self, lfn ):
-    
-    fullLfn = '%s%s' % ( '/grid', lfn )
-    value   = lfc2.lfc_access( fullLfn, 0 )
-    if value == 0:
-      return True
-    else:
-      return False
-  
-#  def __getReplicas( self, lfn ):
-#    
-#    reps = {}
-#    
-#    fullLfn          = '%s%s' % ( '/grid', lfn )
-#    val, replicaObjs = lfc2.lfc_getreplica( fullLfn, '', '' )
-#    
-#    if val != 0:
-#      gLogger.error( lfc2.sstrerror( lfc2.cvar.serrno ) )
-#    else:
-#      for replica in replicaObjs:
-#        se  = replica.host
-#        pfn = replica.sfn.strip()
-#        reps[ se ] = pfn
-#  
-#    return reps
-    
-  def getTimeTillExists( self, mirror ):
-    
-    lfn = '/lhcb/test/lfc-replication/%s/testFile.%s' % ( mirror, time.time() ) 
-    
-    if not self._registerFile( lfn ):
-      _msg = "%s is already in the master or can't be registered there... check your voms role is prodution " % lfn
-      gLogger.error( _msg )
-      return S_ERROR( _msg )
-    
-    startTime = time.time()
-#    session   = self.__openSession( mirror )  
-    
-#    if session:
-#      _msg = "I do not why, but here the method is exited..."
-#      gLogger.warn( _msg )
-#      return S_ERROR( _msg )
-      
-    exists = False
-    count  = 0
-    
-    # Someone must have been hung for writting such exotic logic ! Refactoring.
-    while not exists:
-      exists = self.__exists( lfn )
-      time.sleep( 0.1 )
-      count += 1
-      if count * 0.1 >= self.COUNTLIMIT:
-        gLogger.warn( 'Reached COUNTILIMIT: %s' % self.COUNTLIMIT )
-        break
-
-    timeTillExists = time.time() - startTime
-    
-#    self.__closeSession()
-    res = self.__removeReplica( lfn )
-    if not res[ 'OK' ]:
-      return res
-    
-    return S_OK( timeTillExists )
-    
-  def getReplicas( self ):
-    
-    fileToTest = 'lfn:/grid/lhcb/test/lfc_mirror_test/1.test'
-    count      = 0
-    
-    iterations = 180
-    
-    for _i in xrange( 0, iterations ):
-    
-      res = lcg_util.lcg_lr( fileToTest, 'lhcb', None, 0 )
-      if res[ 0 ] == 0:    
-        count += 1    
-      else:
-        gLogger.warn( res )
-      
-    return count * 100. / iterations    
-  
-  def run( self ):
-        
-    rwHost  = 'lfc-lhcb.cern.ch' #lfclhcbrw01.cern.ch
-    lfnDir  = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
-    gridDir = '/grid' + lfnDir
-    
-    # This environment variable is required for the lfc_mkdir method
-    # It specifies where to create the dir
-    os.environ[ 'LFC_HOST' ] = rwHost
-    
-    res = lfc2.lfc_mkdir( gridDir , 0777 )
-    if res != 0:
-      gLogger.error( 'Return code %s while creating %s at %s' % ( res, gridDir, rwHost ) )
-      return False  
-    
-    for mirror in self.mirrors:
-      
-      self.results[ mirror ] = {}
-      os.environ['LFC_HOST'] = mirror
-      
-      session   = self.__openSession( mirror )
-      if session:
-        _msg = "Open session returned %s" % session
-        gLogger.warn( _msg )
-        self.results[ mirror ][ 'error' ] = _msg
-        continue     
-      
-      res = self.getTimeTillExists( mirror )
-      if not res['OK']:
-        self.results[ mirror ][ 'error' ] = res[ 'Message' ]
-        continue
-      
-      self.results[ mirror ][ 'time' ] = res[ 'Value' ]
-      
-      # I do not understand yet the reason of skipping this mirror..
-#      #if mirror == 'lfc-lhcb-ro.cern.ch':
-#      #  #self.results[ mirror ][ 'error' ] = 
-#      #  continue
-         
-      availability = self.getTestReplicas()
-      
-      if not self.__exists( lfnDir ) or self.results[ mirror ][ 'time' ] > 120:
-        availability = availability * 0.7
-        
-      self.results[ mirror ][ 'availability' ] = availability
-      
-      
-      self.__closeSession() 
-        
-    os.environ[ 'LFC_HOST' ] = rwHost
-    res = lfc2.lfc_rmdir( gridDir )
-    if res != 0:
-      gLogger.error( 'Return code %s while removing %s at %s' % ( res, gridDir, rwHost ) )
-      return False
-    
-    print 
-    
-    return True
-        
-################################################################################
-
 class SLSAgent(AgentModule):
   def initialize(self):
     self.am_setOption( 'shifterProxy', 'DataManager' )
@@ -902,6 +671,3 @@ class SLSAgent(AgentModule):
     LOGSETest(self)
     CondDBTest(self)
     return S_OK()
-
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

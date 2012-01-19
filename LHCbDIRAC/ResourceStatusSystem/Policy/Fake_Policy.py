@@ -14,6 +14,6 @@ class Fake_Policy(PolicyBase):
 
     Fake_R = super(Fake_Policy, self).evaluate()
 
-    return { 'Status' : 'Unknown' }
+    return {'Status':'NeedConfirmation'}
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

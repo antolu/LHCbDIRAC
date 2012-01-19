@@ -15,7 +15,7 @@ class AlarmAction(BaseAlarmAction):
     lines = [ e for e in lines if e['Function'] == "Grid Expert" or e['Function'] == "Production" ]
     lines = [ (e["Morning"], e["Evening"], e["Night"]) for e in lines ]
     lines = [ e for e in Utils.list_flatten(lines) if e]
-    lines = [ Utils.unpack(self.rmClient.getUserRegistryCache(name = e))[0][0] for e in lines ]
+    lines = [ Utils.unpack(self.rmAPI.getUserRegistryCache(name = e))[0][0] for e in lines ]
     return [ {'Users': lines, 'Notifications': ["Mail"]} ] # Only mail notification since others are not working
 
   def _getUsersToNotify(self):

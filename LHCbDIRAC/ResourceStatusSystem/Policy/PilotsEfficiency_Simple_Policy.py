@@ -24,35 +24,29 @@ class PilotsEfficiency_Simple_Policy(PolicyBase):
     """
 
     status = super(PilotsEfficiency_Simple_Policy, self).evaluate()
-    result = {}
 
-    if not status[ 'OK' ]:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = status[ 'Message' ]
-      return result
+    if status == 'Unknown':
+      return {'Status':'Unknown'}
 
-    status = status[ 'Value' ]
+    if status == None:
+      return {'Status':'Error'}
 
-#    elif status == 'Unknown':
-#      return { 'Status' : 'Unknown' }
+    self.result['Reason'] = 'Simple pilots Efficiency: '
 
     if status == 'Good':
-      result[ 'Status' ] = 'Active'
+      self.result['Status'] = 'Active'
     elif status == 'Fair':
-      result[ 'Status' ] = 'Active'
+      self.result['Status'] = 'Active'
     elif status == 'Poor':
-      result[ 'Status' ] = 'Probing'
+      self.result['Status'] = 'Probing'
     elif status == 'Idle':
-      result[ 'Status' ] = 'Unknown'
+      self.result['Status'] = 'Unknown'
     elif status == 'Bad':
-      result[ 'Status' ] = 'Bad'
+      self.result['Status'] = 'Bad'
 
-    result[ 'Reason' ] = 'Simple pilots Efficiency: '
     if status != 'Idle':
-      result[ 'Reason' ] = result[ 'Reason' ] + status
-    else:
-      result[ 'Reason' ] = 'No values to take a decision'
-      
-    return result
+      self.result['Reason'] = self.result['Reason'] + status
+
+    return self.result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

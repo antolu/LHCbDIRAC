@@ -10,7 +10,7 @@ __RCSID__ = "$Id: "
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 
-class TransferQuality_Policy( PolicyBase ):
+class TransferQuality_Policy(PolicyBase):
 
   def evaluate(self):
     """
@@ -24,58 +24,45 @@ class TransferQuality_Policy( PolicyBase ):
     """
 
     quality = super(TransferQuality_Policy, self).evaluate()
-    result  = {}
-    
-    if not quality[ 'OK' ]:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = quality[ 'Message' ]
-      return result
-    
-    quality = quality[ 'Value' ]
+
     if quality == None:
-      result[ 'Status' ] = 'Unknown'
-      result[ 'Reason' ] = 'No values to take a decision'
-      return result 
-    
+      self.result['Status'] = 'Error'
+      return self.result
+    elif quality == 'Unknown':
+      return {'Status':'Unknown'}
+
     quality = int( round( quality ) )
-    result[ 'Reason' ] = 'TransferQuality: %d %% -> ' % quality
 
     if 'FAILOVER'.lower() in self.args[1].lower():
 
-      
-      if quality < Configurations.pp['Transfer_QUALITY_LOW'] :
-        result[ 'Status' ] = 'Probing'
+      self.result['Reason'] = 'TransferQuality: %d %% -> ' % quality
+      if quality < Configurations.Transfer_QUALITY_LOW :
+        self.result['Status'] = 'Probing'
         strReason = 'Low'
-      elif quality < Configurations.pp['Transfer_QUALITY_HIGH']:
-        result[ 'Status' ] = 'Active'
-        strReason = 'Mean'
-      else:
-      #elif quality >= Configurations.Transfer_QUALITY_HIGH :
-        result[ 'Status' ] = 'Active'
+      elif quality >= Configurations.Transfer_QUALITY_HIGH :
+        self.result['Status'] = 'Active'
         strReason = 'High'
-      #else:
-      #  result[ 'Status' ] = 'Active'
-      #  strReason = 'Mean'
+      else:
+        self.result['Status'] = 'Active'
+        strReason = 'Mean'
 
-      #result[ 'Reason' ] = result[ 'Reason' ] + strReason
+      self.result['Reason'] = self.result['Reason'] + strReason
 
     else:
 
-      if quality < Configurations.pp['Transfer_QUALITY_LOW'] :
-        result[ 'Status' ] = 'Bad'
-        strReason          = 'Low'
-      elif quality < Configurations.pp['Transfer_QUALITY_HIGH']:
-        result[ 'Status' ] = 'Probing'
-        strReason          = 'Mean'
-      else:
-#      elif quality >= Configurations.Transfer_QUALITY_HIGH :
-        result[ 'Status' ] = 'Active'
-        strReason          = 'High'
-#      elif quality >= Configurations.Transfer_QUALITY_LOW and quality < Configurations.Transfer_QUALITY_HIGH:
-#        result[ 'Status' ] = 'Probing'
-#        strReason = 'Mean'
+      self.result['Reason'] = 'TransferQuality: %d %% -> ' % quality
+      if quality < Configurations.Transfer_QUALITY_LOW :
+        self.result['Status'] = 'Bad'
+        strReason = 'Low'
+      elif quality >= Configurations.Transfer_QUALITY_HIGH :
+        self.result['Status'] = 'Active'
+        strReason = 'High'
+      elif quality >= Configurations.Transfer_QUALITY_LOW and quality < Configurations.Transfer_QUALITY_HIGH:
+        self.result['Status'] = 'Probing'
+        strReason = 'Mean'
 
-    result[ 'Reason' ] = result[ 'Reason' ] + strReason
-    return result
+      self.result['Reason'] = self.result['Reason'] + strReason
+
+    return self.result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
