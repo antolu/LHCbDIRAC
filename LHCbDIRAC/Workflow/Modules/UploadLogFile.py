@@ -304,7 +304,7 @@ class UploadLogFile( ModuleBase ):
     """
     self.log.info( 'Setting log upload request for %s at %s' % ( logFileLFN, targetSE ) )
     res = self.request.addSubRequest( {'Attributes':{'Operation':'uploadLogFiles',
-                                                       'TargetSE':targetSE,
+                                                      'TargetSE':targetSE,
                                                       'ExecutionOrder':0}},
                                          'logupload' )
     if not res['OK']:

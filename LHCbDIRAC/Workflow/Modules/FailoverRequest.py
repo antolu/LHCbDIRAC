@@ -23,7 +23,6 @@ class FailoverRequest( ModuleBase ):
 
     self.version = __RCSID__
 
-    #Workflow parameters
     self.inputData = []
 
   #############################################################################
@@ -42,13 +41,6 @@ class FailoverRequest( ModuleBase ):
         self.inputData = []
 
       self.inputData = [x.replace( 'LFN:', '' ) for x in self.inputData]
-
-      #useless, IMHO
-#    if self.workflow_commons.has_key( 'PRODUCTION_ID' ):
-#      self.production_id = self.workflow_commons['PRODUCTION_ID']
-#
-#    if self.workflow_commons.has_key( 'JOB_ID' ):
-#      self.prodJobID = self.workflow_commons['JOB_ID']
 
   #############################################################################
 
