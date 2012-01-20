@@ -456,7 +456,7 @@ if mergingEnabled:
 
     mergeProd = Production( BKKClientIn = BKClient )
     try:
-      production.setJobParameters( { 'CPUTime': mergeCPU } )
+      mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     except:
       mergeProd.setCPUTime( mergeCPU )
     mergeProd.setProdType( 'Merge' )
@@ -473,19 +473,18 @@ if mergingEnabled:
     if mergeApp.lower() == 'davinci':
       try:
         mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
+                                  inputDataType = mergeStream,
                                   extraOpts = dvExtraOptions, inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
-                                  extraOutput = mergeOutputList,
                                   stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
       except:
         mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
+                                  inputDataType = mergeStream,
                                   extraOpts = dvExtraOptions, inputData = [], outputSE = mergedStreamSE,
-                                  extraOutput = mergeOutputList,
                                   stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
-                              outputSE = mergedStreamSE,
+                              outputSE = mergedStreamSE, inputDataType = mergeStream,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
-                              extraOutput = mergeOutputList,
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
     else:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
