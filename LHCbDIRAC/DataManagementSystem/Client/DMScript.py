@@ -265,7 +265,7 @@ class BKQuery():
       if type( eventTypes ) == type( '' ):
         eventTypes = eventTypes.split( ',' )
       try:
-        eventTypes = [int( et ) for et in eventTypes]
+        eventTypes = [str(int( et )) for et in eventTypes]
       except:
         print eventTypes, 'invalid as list of event types'
         return {}
