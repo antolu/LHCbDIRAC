@@ -165,12 +165,17 @@ class AnalyseXMLLogFile:
     #standalone utility this may not always be true so try to guess
     if not self.applicationName:
       for line in self.fileString.split( '\n' ):
-        if re.search( 'Welcome to', line ) and re.search( 'version', line ):
+        if ( re.search( 'Welcome to', line ) and re.search( 'version', line ) ) or \
+           ( re.search( 'Welcome to', line ) and re.search( 'Revision', line ) ):
+
           try:
             self.applicationName = line.split()[2]
           except Exception:
             return S_ERROR( 'Could not obtain application name' )
           self.gLogger.info( 'Guessing application name is "%s" from log file %s' % ( self.applicationName, self.fileName ) )
+
+    if self.applicationName == 'ApplicationMgr':
+      self.applicationName = 'LHCb'
 
     if not self.applicationName in self.__APPLICATION_NAMES__:
       appNames = ', '.join( self.__APPLICATION_NAMES__ )
