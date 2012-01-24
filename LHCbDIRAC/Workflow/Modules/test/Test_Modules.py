@@ -1,4 +1,4 @@
-import unittest, itertools, os, copy
+import unittest, itertools, os, copy, shutil
 
 #import DIRAC.ResourceStatusSystem.test.fake_Logger
 from mock import Mock
@@ -161,6 +161,16 @@ class ModulesTestCase( unittest.TestCase ):
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
     self.ulf = UploadLogFile()
 
+  def tearDown( self ):
+    for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst',
+                     'ccc.charm.mdst', 'prova.txt', 'foo.txt', 'BAR.txt', 'FooBAR.ext.txt',
+                     'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2',
+                     'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData']:
+      try:
+        os.remove( fileProd )
+      except OSError:
+        continue
+
 #############################################################################
 # ModuleBase.py
 #############################################################################
@@ -263,8 +273,6 @@ class ModuleBaseSuccess( ModulesTestCase ):
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], result )
 
-    os.remove( 'foo.txt' )
-
   def test__enableModule( self ):
 
     self.mb.execute( self.version, self.prod_id, self.prod_job_id, self.wms_job_id,
@@ -334,14 +342,6 @@ class GaudiApplicationSuccess( ModulesTestCase ):
     self.assert_( out == outExp )
     self.assert_( bk == bkExp )
 
-
-
-    os.remove( 'aaa.Bhadron.dst' )
-    os.remove( 'bbb.Calibration.dst' )
-    os.remove( 'ccc.charm.mdst' )
-    os.remove( 'prova.txt' )
-
-
 #############################################################################
 # GaudiApplicationScript.py
 #############################################################################
@@ -382,10 +382,6 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
     self.assert_( 'foo.txt' in os.listdir( '.' ) )
     self.assert_( 'BAR.txt' in os.listdir( '.' ) )
     self.assert_( 'FooBAR.ext.txt' in os.listdir( '.' ) )
-
-    os.remove( 'foo.txt' )
-    os.remove( 'BAR.txt' )
-    os.remove( 'FooBAR.ext.txt' )
 
   #################################################
 
@@ -431,7 +427,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
                                           self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
-    os.remove( 'ErrorLogging_Step1_coredump.log' )
+
 
   def test__updateFileStatus( self ):
     inputs = [{'i1':'OK', 'i2':'OK'},
@@ -522,8 +518,6 @@ class MergeMDFSuccess( ModulesTestCase ):
                                         wf_commons, self.step_commons,
                                         self.step_number, self.step_id,
                                         self.rm_mock )['OK'] )
-      os.remove( 'lfn1' )
-      os.remove( 'lfn2' )
 
 ##############################################################################
 ## ProtocolAccessTest.py
