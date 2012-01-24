@@ -2,7 +2,7 @@
 # $Id$
 ########################################################################
 
-""" Analyse log file module
+""" Analyse log file(s) module
 """
 
 __RCSID__ = "$Id$"
@@ -18,6 +18,8 @@ from DIRAC import S_OK, S_ERROR, gLogger
 import DIRAC
 
 class AnalyseXMLSummary( ModuleBase ):
+  """ Analyse not only the XML summary, also the log file is inspected
+  """
 
   def __init__( self ):
     """Module initialization.
@@ -79,12 +81,14 @@ class AnalyseXMLSummary( ModuleBase ):
       self.log.info( 'Resolved the job input data to be:\n%s' % '\n'.join( self.jobInputData.keys() ) )
 
       #First check for the presence of any core dump files caused by an abort of some kind
-      for file in os.listdir( '.' ):
-        if re.search( 'coredump', file.lower() ):
-          self.coreFile = file
+      for fileInDir in os.listdir( '.' ):
+        if re.search( 'coredump', fileInDir.lower() ):
+          self.coreFile = fileInDir
           self.log.error( 'Found a core dump file in the current working directory: %s' % self.coreFile )
-          self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s' % self.coreFile, nc, rm, bk )
-          self._updateFileStatus( self.jobInputData, 'ApplicationCrash', int( self.production_id ), rm, self.fileReport )
+          self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s'
+                                    % self.coreFile, nc, rm, bk )
+          self._updateFileStatus( self.jobInputData, 'ApplicationCrash',
+                                  int( self.production_id ), rm, self.fileReport )
           # return S_OK if the Step already failed to avoid overwriting the error
           if not self.stepStatus['OK']:
             return S_OK()
@@ -93,9 +97,12 @@ class AnalyseXMLSummary( ModuleBase ):
 
       if not logAnalyser:
         from LHCbDIRAC.Core.Utilities.ProductionXMLLogAnalysis import analyseXMLLogFile
-        analyseLogResult = analyseXMLLogFile( self.applicationLog, self.applicationName,
-                                              self.step_id, self.production_id, self.prod_job_id,
-                                              self.jobType )
+        analyseLogResult = analyseXMLLogFile( fileName = self.applicationLog,
+                                              applicationName = self.applicationName,
+                                              stepName = self.step_id,
+                                              prod = self.production_id,
+                                              job = self.prod_job_id,
+                                              jobType = self.jobType )
       else:
         analyseLogResult = logAnalyser( self.applicationLog, self.applicationName,
                                         self.step_id, self.production_id, self.prod_job_id,
@@ -135,13 +142,6 @@ class AnalyseXMLSummary( ModuleBase ):
         if analyseLogResult.has_key( 'numberOfEventsOutput' ):
           self.numberOfEventsOutput = analyseLogResult['numberOfEventsOutput']
           self.log.info( 'Setting numberOfEventsOutput to %s' % self.numberOfEventsOutput )
-
-    #    Ignoring FirstStepInputEvents
-    #    if analyseLogResult.has_key( 'FirstStepInputEvents' ):
-    #      if not self.workflow_commons.has_key( 'FirstStepInputEvents' ):
-    #        firstStepInputEvents = analyseLogResult['FirstStepInputEvents']
-    #        self.workflow_commons['FirstStepInputEvents'] = firstStepInputEvents
-    #        self.log.info( 'Setting FirstStepInputEvents to %s' % ( firstStepInputEvents ) )
 
         # If the job was successful Update the status of the files to processed
         self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
@@ -267,7 +267,6 @@ class AnalyseXMLSummary( ModuleBase ):
       from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
       rm = ReplicaManager()
 
-
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     #Have to check that the output list is defined in the workflow commons, this is
     #done by the first BK report module that executes at the end of a step but in 
@@ -307,8 +306,10 @@ class AnalyseXMLSummary( ModuleBase ):
           coreLFN = lfn
       if self._WMSJob():
         if coreLFN:
-          self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"' % ( coreLFN, self.coreFile ) )
-          result = rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG', catalog = 'LcgFileCatalogCombined' )
+          self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"'
+                         % ( coreLFN, self.coreFile ) )
+          result = rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG',
+                                      catalog = 'LcgFileCatalogCombined' )
           self.log.info( result )
           if not result['OK']:
             self.log.error( 'Could not save core dump file', result['Message'] )
@@ -339,8 +340,10 @@ class AnalyseXMLSummary( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"' % ( fname, lfn, guidInput ) )
-        result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG', guidInput, catalog = 'LcgFileCatalogCombined' )
+        self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"'
+                       % ( fname, lfn, guidInput ) )
+        result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
+                                    guidInput, catalog = 'LcgFileCatalogCombined' )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result ) )
@@ -348,7 +351,8 @@ class AnalyseXMLSummary( ModuleBase ):
         else:
           msg = msg + lfn + '\n' + str( result ) + '\n'
       else:
-        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to CERN-DEBUG' % ( lfn, fname, guidInput ) )
+        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to CERN-DEBUG'
+                       % ( lfn, fname, guidInput ) )
 
     if self.applicationLog:
       logurl = 'http://lhcb-logs.cern.ch/storage' + self.logFilePath
@@ -371,10 +375,12 @@ class AnalyseXMLSummary( ModuleBase ):
         fd.close()
 
     if not self._WMSJob():
-      self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End" % ( msg ) )
+      self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End"
+                     % ( msg ) )
     else:
       from DIRAC import gConfig
-      mailAddress = gConfig.getValue( '/Operations/EMail/JobFailuresPerSetup/%s' % gConfig.getValue( "DIRAC/Setup" ) )
+      mailAddress = gConfig.getValue( '/Operations/EMail/JobFailuresPerSetup/%s'
+                                      % gConfig.getValue( "DIRAC/Setup" ) )
       if not mailAddress:
         mailAddress = 'lhcb-datacrash@cern.ch'
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
