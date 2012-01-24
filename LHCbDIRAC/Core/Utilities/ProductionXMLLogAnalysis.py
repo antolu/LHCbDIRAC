@@ -126,6 +126,13 @@ class AnalyseXMLLogFile:
         res['Data'] = self.dataSummary
         return res
 
+    # Check output files. This check is redundant ( its output is taken into account
+    # in the success field. But it is harmless.
+    res = self.__checkReadOutputFiles()
+    if not res[ 'OK' ]:
+      res['Data'] = self.dataSummary
+      return res
+
     # Check that the number of events handled is correct
     res = self.__checkApplicationEvents()
     if not res['OK']:
@@ -396,6 +403,62 @@ class AnalyseXMLLogFile:
 
     return S_OK()
 
+
+  def __checkReadOutputFiles( self ):
+    """Checks that every output file has reached the full status.
+       Four possible statuses of the files:
+       - full : the file has been fully read
+       - part : the file has been partially read
+       - mult : the file has been read multiple times
+       - fail : failure while reading the file
+    """
+
+    res = self.__getOutputStatus()
+    if not res[ 'OK' ]:
+      self.gLogger.error( 'XMLSummary bad formated %s' % res[ 'Message' ] )
+      return res
+
+    fileCounter = {
+                   'full'  : 0,
+                   'part'  : 0,
+                   'mult'  : 0,
+                   'fail'  : 0,
+                   'other' : 0
+                   }
+
+    for file, status in res[ 'Value' ]:
+
+      if status == 'fail':
+        self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'fail' ] += 1
+
+      elif status == 'mult':
+        self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'mult' ] += 1
+
+      elif status == 'part':
+        self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'part' ] += 1
+
+      elif status == 'full':
+        #If it is Ok, we do not print anything
+        #self.gLogger.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'full' ] += 1
+
+      # This should never happen, but just in case
+      else:
+        self.gLogger.error( 'File %s is on unknown status: %s' % ( file, status ) )
+        fileCounter[ 'other'] += 1
+
+    files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
+    filesMsg = ', '.join( files )
+    self.gLogger.info( filesMsg )
+
+    if fileCounter[ 'full' ] != sum( fileCounter.values() ):
+      return S_ERROR( filesMsg )
+
+    return S_OK()
+
 ################################################################################
 
   def __checkApplicationEvents( self ):
@@ -493,6 +556,30 @@ class AnalyseXMLLogFile:
     return S_OK( inputEvents )
 
 ####  
+
+  def __getOutputStatus( self ):
+    '''
+      We know beforehand the structure of the XML, which makes our life
+      easier.
+      
+      < summary >
+        ...
+        < output >
+        ...
+    '''
+
+    files = []
+
+    sum = self.xmlTree[ 0 ]
+
+    for output in sum.childrens( 'output' ):
+      for file in output.childrens( 'file' ):
+        try:
+          files.append( ( file.attributes[ 'name' ], file.attributes[ 'status' ] ) )
+        except Exception, e:
+          return S_ERROR( 'Bad formatted file keys. %s' % e )
+
+    return S_OK( files )
 
   def __getOutputEvents( self ):
     '''
