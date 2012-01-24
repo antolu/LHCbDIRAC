@@ -21,6 +21,7 @@ class ProductionXMLLogAnalysisTestCase( unittest.TestCase ):
         res = analyseXMLLogFile( '%s/%s' % ( workdir, filename ) )    
         if res[ 'OK' ] != result:
           print '   %s' % filename
+          print res[ 'Message' ]
         self.assertEqual( res[ 'OK' ], result )
   
 class ProductionXMLLogAnalysisDataReconstruction( ProductionXMLLogAnalysisTestCase ):
