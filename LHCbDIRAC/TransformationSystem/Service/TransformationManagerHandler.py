@@ -8,7 +8,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                                      import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Service.TransformationManagerHandler   import TransformationManagerHandlerBase
 from LHCbDIRAC.TransformationSystem.DB.TransformationDB         import TransformationDB
-from types import *
+from types import LongType, IntType, StringType, DictType, ListType, StringTypes
 
 database = False
 def initializeTransformationManagerHandler( serviceInfo ):
@@ -79,7 +79,9 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
 
 #  types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
 #  def export_getTransformationRunsSummaryWeb(self,selectDict,sortList,startItem,maxItems):
-#    return self.__getTableSummaryWeb('TransformationRuns',selectDict,sortList,startItem,maxItems,selectColumns=['TransformationID','RunNumber','SelectedSite','Status'],timeStamp='LastUpdate',statusColumn='Status')
+#    return self.__getTableSummaryWeb('TransformationRuns',selectDict,sortList,startItem,maxItems,
+#                                     selectColumns=['TransformationID','RunNumber','SelectedSite','Status'],
+#                                     timeStamp='LastUpdate',statusColumn='Status')
 
   types_addTransformationRunFiles = [[LongType, IntType, StringType], [LongType, IntType], ListType]
   def export_addTransformationRunFiles( self, transName, runID, lfns ):
@@ -116,7 +118,8 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
       orderAttribute = None
 
     # Get the transformations that match the selection
-    res = database.getTransformationRuns( condDict = selectDict, older = toDate, newer = fromDate, orderAttribute = orderAttribute )
+    res = database.getTransformationRuns( condDict = selectDict, older = toDate,
+                                          newer = fromDate, orderAttribute = orderAttribute )
     if not res['OK']:
       return self._parseRes( res )
 
@@ -134,7 +137,8 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     #taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
     #resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
     # Add the file states to the ParameterNames entry
-    fileStateNames = ['PercentProcessed', 'Processed', 'Unused', 'Assigned', 'Total', 'Problematic', 'ApplicationCrash', 'MaxReset']
+    fileStateNames = ['PercentProcessed', 'Processed', 'Unused', 'Assigned',
+                      'Total', 'Problematic', 'ApplicationCrash', 'MaxReset']
     resultDict['ParameterNames'] += ['Files_' + x for x in fileStateNames]
 
     # Get the transformations which are within the selected window
