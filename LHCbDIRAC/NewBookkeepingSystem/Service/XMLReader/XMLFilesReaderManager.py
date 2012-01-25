@@ -119,6 +119,13 @@ class XMLFilesReaderManager:
         typeID = long( result['Value'] )
         file.setTypeID( typeID )
 
+      if job.getParam('JobType') and job.getParam('JobType').getValue() == 'DQHISTOMERGING': #all the merged histogram files have to be visible
+        newFileParams = FileParam()
+        newFileParams.setParamName( 'VisibilityFlag' )
+        newFileParams.setParamValue( 'Y' )
+        file.addFileParam( newFileParams )
+        gLogger.debug('The Merged histograms visibility flag has to be Y!')
+
       params = file.getFileParams()
       evtExists = False
       runExists = False
@@ -148,6 +155,7 @@ class XMLFilesReaderManager:
 
         gLogger.debug( 'EventTypeId checking!' )
         if paramName == "EventTypeId":
+          gLogger.debug('ParamName:'+str(paramName))
           if param.getParamValue() != '':
             value = long( param.getParamValue() )
             result = dataManager_.checkEventType( value )
@@ -190,6 +198,7 @@ class XMLFilesReaderManager:
         if not retVal['OK']:
           return S_ERROR(retVal['Message'])
         if len(retVal['Value']) > 0:
+          gLogger.debug('RunTCK:'+str(retVal['Value']))
           runnumber = retVal['Value'][0][0]
           tck = retVal['Value'][0][1]
           if not job.exists('Tck'):
@@ -199,11 +208,25 @@ class XMLFilesReaderManager:
             job.addJobParams(newJobParams)
 
           if runnumber != None:
+            prod = None
             newJobParams = JobParameters()
             newJobParams.setName('RunNumber')
             newJobParams.setValue(str(runnumber))
             job.addJobParams(newJobParams)
-            prod = job.getParam('Production').getValue()
+            gLogger.debug('Production!')
+            if job.getParam('JobType') and job.getParam('JobType').getValue() == 'DQHISTOMERGING':
+              gLogger.debug('DQ merging!')
+              retVal = dataManager_.getJobInfo(fileName)
+              if retVal['OK']:
+                prod = retVal['Value'][0][18]
+                newJobParams = JobParameters()
+                newJobParams.setName('Production')
+                newJobParams.setValue(str(prod))
+                job.addJobParams(newJobParams)
+                gLogger.debug('Production inherited from input:'+str(prod))
+            else:
+              prod = job.getParam('Production').getValue()
+              gLogger.debug('Production:'+str(prod))
 
             retVal = dataManager_.getProductionProcessingPassID(prod)
             if retVal['OK']:
@@ -319,6 +342,7 @@ class XMLFilesReaderManager:
         vFileParams.setParamName( 'VisibilityFlag' )
         vFileParams.setParamValue( outputFileTypes[ftype] )
         file.addFileParam( vFileParams )
+        gLogger.debug('The visibility flag is:'+outputFileTypes[ftype])
 
       result = self.__insertOutputFiles( job, file )
       if not result['OK']:
@@ -378,13 +402,14 @@ class XMLFilesReaderManager:
       ver = config.getConfigVersion() # online bug fix
       ver = ver.capitalize()
       config.setConfigVersion( ver )
-
+      gLogger.debug(str(datataking))
       context = Context( datataking, config.getConfigName() )
       conditions = [BeamEnergyCondition(), VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
               MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
       for condition in conditions:
         condition.interpret( context )
 
+      gLogger.debug(context.getOutput())
       datataking['Description'] = context.getOutput()
 
       res = dataManager_.getDataTakingCondDesc( datataking )
@@ -397,11 +422,11 @@ class XMLFilesReaderManager:
         else:
           res = dataManager_.insertDataTakingCond( datataking )
           if not res['OK']:
-            return S_ERROR( "DATA TAKING Problem" + str( res['Message'] ) )
+            return S_ERROR( "DATA TAKING Problem:" + str( res['Message'] ) )
           else:
             dataTackingPeriodDesc = datataking['Description'] # The new data taking condition inserted. The name should be the generated name.
       else:
-        return S_ERROR( "DATA TAKING Problem" + str( res['Message'] ) )
+        return S_ERROR( "DATA TAKING Problem:" + str( res['Message'] ) )
 
       #insert processing pass
       programName = None
