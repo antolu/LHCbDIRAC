@@ -24,17 +24,25 @@ class GGUSTickets_Policy(PolicyBase):
     """
 
     GGUS_N = super(GGUSTickets_Policy, self).evaluate()
+    result = {}
 
-    if GGUS_N == 'Unknown':
-      return {'Status':'Unknown'}
+    if not GGUS_N[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = GGUS_N[ 'Message' ]
+      return result
 
-    if GGUS_N >= 1:
-      self.result['Status'] = 'Probing'
-      self.result['Reason'] = 'GGUSTickets unsolved: %d' % ( GGUS_N )
+    GGUS_N = GGUS_N[ 'Value' ]
+
+#    elif GGUS_N == 'Unknown':
+#      return { 'Status' : 'Unknown' }
+
+    if GGUS_N == 0:
+      result[ 'Status' ] = 'Active'
+      result[ 'Reason' ] = 'NO GGUSTickets unsolved'
     else:
-      self.result['Status'] = 'Active'
-      self.result['Reason'] = 'NO GGUSTickets unsolved'
+      result[ 'Status' ] = 'Probing'
+      result[ 'Reason' ] = 'GGUSTickets unsolved: %d' % ( GGUS_N )     
 
-    return self.result
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

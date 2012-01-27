@@ -24,14 +24,17 @@ class SAMResults_Policy(PolicyBase):
     """
 
     SAMstatus = super(SAMResults_Policy, self).evaluate()
+    result = {}
 
-    if SAMstatus is None:
-      return {'Status':'Error'}
+    if not SAMstatus[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = SAMstatus[ 'Message' ]
+      return result
 
-    if SAMstatus == 'Unknown':
-      return {'Status':'Unknown'}
-
-    status = 'ok'
+#    elif SAMstatus == 'Unknown':
+#      return { 'Status' : 'Unknown' }
+    SAMstatus = SAMstatus[ 'Value' ]
+    status    = 'ok'
 
     for s in SAMstatus.values():
       if s == 'error':
@@ -56,22 +59,21 @@ class SAMResults_Policy(PolicyBase):
       if na == True:
         status = 'na'
 
-    self.result['Reason'] = 'SAM status: '
-
     if status == 'ok':
-      self.result['Status'] = 'Active'
+      result[ 'Status' ] = 'Active'
     elif status == 'down':
-      self.result['Status'] = 'Bad'
+      result[ 'Status' ] = 'Bad'
     elif status == 'na':
-      self.result['Status'] = 'Unknown'
+      result[ 'Status' ] = 'Unknown'
     elif status == 'degraded':
-      self.result['Status'] = 'Probing'
+      result[ 'Status' ] = 'Probing'
     elif status == 'maint':
-      self.result['Status'] = 'Bad'
+      result[ 'Status' ] = 'Bad'
 
+    result[ 'Reason' ] = 'SAM status: '
     if status != 'na':
-      self.result['Reason'] = self.result['Reason'] + status
+      result[ 'Reason' ] = result[ 'Reason' ] + status
 
-    return self.result
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

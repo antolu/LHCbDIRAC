@@ -25,16 +25,22 @@ class DownHillPropagation_Policy(PolicyBase):
     """
 
     resourceStatus = super(DownHillPropagation_Policy, self).evaluate()
+    result = {}
 
+    if not resourceStatus[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = resourceStatus[ 'Message' ]
+      return result
+
+    resourceStatus = resourceStatus[ 'Value' ]
+    
     if resourceStatus is None:
-      return {'Status':'Error'}
+      result[ 'Status' ] = 'Unknown'
+      result[ 'Reason' ] = 'No values to take a decission'
+      return result
 
-    elif resourceStatus == 'Unknown':
-      return {'Status':'Unknown'}
-
-    else:
-      self.result['Status'] = resourceStatus
-      self.result['Reason'] = 'Site/Node status: ' + resourceStatus
-      return self.result
+    result[ 'Status' ] = resourceStatus
+    result[ 'Reason' ] = 'DownHill propagated status: %s' % resourceStatus
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

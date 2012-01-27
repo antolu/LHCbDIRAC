@@ -26,18 +26,29 @@ class SEQueuedTransfers_Policy(PolicyBase):
     """
 
     status = super(SEQueuedTransfers_Policy, self).evaluate()
+    result = {}
 
-    if not status:
-      return {'Status': 'Error', "Reason": "SLS_Command ERROR"}
+    if not status[ 'OK' ]:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = status[ 'Message' ]
+      return result
+    
+#    elif status == 'Unknown':
+#      return { 'Status' : 'Unknown' }
+    status = status[ 'Value' ]
+    status = int( status[ 'Queued transfers' ] ) # type float, but represent an int, no need to round.
 
-    status = int(status['Queued transfers']) # type float, but represent an int, no need to round.
-
-    if status > 100  : self.result['Status'] = 'Banned'; comment = "high"
-    elif status < 70 : self.result['Status'] = 'Active'; comment = "low"
-    else             : self.result['Status'] = 'Bad';    comment = "mid-high"
-
-    self.result['Reason'] = "Queued transfers on the SE: %d (%s)" % (status, comment)
-
-    return self.result
+    if status < 70: 
+      result['Status'] = 'Active'
+      comment          = 'low'
+    elif status < 100: 
+      result['Status'] = 'Bad'
+      comment          = 'mid-high'
+    else:
+      result['Status'] = 'Banned'
+      comment          = 'high'
+    
+    result[ 'Reason' ] = 'Queued transfers on the SE: %d (%s)' % ( status, comment )
+    return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
