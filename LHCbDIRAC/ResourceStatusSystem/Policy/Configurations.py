@@ -329,7 +329,7 @@ Policies = {
       'argsNewRes':None,
 #      'commandIn' : ('DIRACAccounting_Command', 'TransferQualityCached_Command'),
       'commandIn' : ( 'DIRACAccounting_Command', 'TransferQualityFromCachedPlot_Command' ),
-      'args' : ( 'DataOperation', 'TransferQualityByDestSplitted' ),
+      'args' : ( 'DataOperation', 'TransferQualityByDestSplitted_2' ),
       'SE_Panel' : [ {'FillChart - Transfer quality in the last 24 hours, incoming in the space token':
                       {'CommandIn':( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
                        'args':( 'DataOperation', 'TransferQualityByDestSplitted_24' ),
