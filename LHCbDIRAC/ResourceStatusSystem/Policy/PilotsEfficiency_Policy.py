@@ -61,7 +61,7 @@ class PilotsEfficiency_Policy( PolicyBase ):
 
       if pilotsStats['MeanProcessedPilots'] < ( 3 * pilotsStats['LastProcessedPilots'] ):
         # unusual amount of pilots
-        if status['PilotsEff'] < Configurations.GOOD_PILOTS_EFFICIENCY:
+        if status['PilotsEff'] < Configurations.pp['GOOD_PILOTS_EFFICIENCY']:
           if args[2] == 'Active':
             result['SAT'] = True
             result['Status'] = 'Probing'
@@ -84,31 +84,31 @@ class PilotsEfficiency_Policy( PolicyBase ):
     result = {}
     #standard situation
     if args[2] == 'Active':
-      if status['PilotsEff'] > Configurations.GOOD_PILOTS_EFFICIENCY:
+      if status['PilotsEff'] > Configurations.pp['GOOD_PILOTS_EFFICIENCY']:
         result['SAT'] = False
         result['Status'] = 'Active'
         result['Reason'] = 'PilotsEff:good'
       else:
-        if status['PilotsEff'] < Configurations.MEDIUM_PILOTS_EFFICIENCY:
+        if status['PilotsEff'] < Configurations.pp['MEDIUM_PILOTS_EFFICIENCY']:
           result['SAT'] = True
           result['Status'] = 'Banned'
           result['Reason'] = 'PilotsEff:low'
-        elif status['PilotsEff'] > Configurations.MEDIUM_PILOTS_EFFICIENCY and status['PilotsEff'] < Configurations.GOOD_PILOTS_EFFICIENCY:
+        elif status['PilotsEff'] > Configurations.pp['MEDIUM_PILOTS_EFFICIENCY'] and status['PilotsEff'] < Configurations.pp['GOOD_PILOTS_EFFICIENCY']:
           result['SAT'] = True
           result['Status'] = 'Probing'
           result['Reason'] = 'PilotsEff:med'
 
     elif args[2] == 'Probing':
-      if status['PilotsEff'] > Configurations.GOOD_PILOTS_EFFICIENCY:
+      if status['PilotsEff'] > Configurations.pp['GOOD_PILOTS_EFFICIENCY']:
         result['SAT'] = True
         result['Status'] = 'Active'
         result['Reason'] = 'PilotsEff:good'
       else:
-        if status['PilotsEff'] < Configurations.MEDIUM_PILOTS_EFFICIENCY:
+        if status['PilotsEff'] < Configurations.pp['MEDIUM_PILOTS_EFFICIENCY']:
           result['SAT'] = True
           result['Status'] = 'Banned'
           result['Reason'] = 'PilotsEff:low'
-        elif status['PilotsEff'] > Configurations.MEDIUM_PILOTS_EFFICIENCY and status['PilotsEff'] < Configurations.GOOD_PILOTS_EFFICIENCY:
+        elif status['PilotsEff'] > Configurations.pp['MEDIUM_PILOTS_EFFICIENCY'] and status['PilotsEff'] < Configurations.pp['GOOD_PILOTS_EFFICIENCY']:
           result['SAT'] = False
           result['Status'] = 'Probing'
           result['Reason'] = 'PilotsEff:med'
