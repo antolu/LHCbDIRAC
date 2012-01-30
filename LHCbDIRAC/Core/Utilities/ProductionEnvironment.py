@@ -55,8 +55,8 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
   result = getProjectCommand( setupProjectLocation, applicationName, applicationVersion, extraPackages,
-                              generatorName, site, runTimeProject,runTimeProjectVersion, '', directory ) #leave out additional options initially
-  
+                              generatorName, site, runTimeProject, runTimeProjectVersion, '', directory ) #leave out additional options initially
+
   if not result['OK']:
     return result
 
@@ -300,7 +300,6 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
   """
   cmd = [location]
   cmd.append( '--debug' )
-  cmd.append( '--ignore-missing' )
 
   if extraPackages:
     if not type( extraPackages ) == type( [] ) and extraPackages:
