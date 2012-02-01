@@ -96,17 +96,10 @@ class AnalyseXMLSummary( ModuleBase ):
           return S_ERROR( '%s %s Core Dump' % ( self.applicationName, self.applicationVersion ) )
 
       if not logAnalyser:
-        from LHCbDIRAC.Core.Utilities.ProductionXMLLogAnalysis import analyseXMLLogFile
-        analyseLogResult = analyseXMLLogFile( fileName = self.applicationLog,
-                                              applicationName = self.applicationName,
-                                              stepName = self.step_id,
-                                              prod = self.production_id,
-                                              job = self.prod_job_id,
-                                              jobType = self.jobType )
+        from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary
+        analyseLogResult = analyseXMLSummary( self.XMLSummary, self.log )
       else:
-        analyseLogResult = logAnalyser( self.applicationLog, self.applicationName,
-                                        self.step_id, self.production_id, self.prod_job_id,
-                                        self.jobType )
+        analyseLogResult = logAnalyser( self.XMLSummary, self.log )
 
       if not analyseLogResult['OK']:
         self.log.error( analyseLogResult )
@@ -207,8 +200,8 @@ class AnalyseXMLSummary( ModuleBase ):
     if self.step_commons.has_key( 'applicationVersion' ):
       self.applicationVersion = self.step_commons['applicationVersion']
 
-    if self.step_commons.has_key( 'applicationLog' ):
-      self.applicationLog = self.step_commons['applicationLog']
+    if self.step_commons.has_key( 'XMLSummary' ):
+      self.XMLSummary = self.step_commons['XMLSummary']
 
     if self.step_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = self.step_commons['numberOfEvents']

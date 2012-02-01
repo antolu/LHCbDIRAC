@@ -576,6 +576,7 @@ class Production():
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
       modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
+                                                                                    'AnalyseLogFile',
                                                                                     'AnalyseXMLSummary',
                                                                                     'ErrorLogging',
                                                                                     'BookkeepingReport'] )
@@ -592,6 +593,7 @@ class Production():
                         ['runTimeProjectVersion', 'string', '', 'runTimeProjectVersion'],
                         ['applicationType', 'string', '', 'ApplicationType'],
                         ['applicationLog', 'string', '', 'ApplicationLogFile'],
+                        ['XMLSummary', 'string', '', 'XMLSummaryFile']
                         ['optionsFile', 'string', '', 'OptionsFile'],
                         ['optionsLine', 'string', '', 'OptionsLines'],
                         ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
@@ -633,6 +635,7 @@ class Production():
 #                   ['applicationLog', '@{STEP_ID}_@{applicationName}_Logs.log'],
 #                   ['outputData', '@{STEP_ID}_@{applicationName}_Data.@{applicationType}'],
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
+                   ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml']
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
                    ]
 
