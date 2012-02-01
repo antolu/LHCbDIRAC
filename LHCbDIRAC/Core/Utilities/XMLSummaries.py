@@ -29,7 +29,7 @@ class XMLSummary:
 
     if not log:
       from DIRAC import gLogger
-      self.log = gLogger.getSubLogger( 'analyseXMLSummaryFile' )
+      self.log = gLogger.getSubLogger( 'XMLSummary' )
     else:
       self.log = log
 
@@ -230,7 +230,7 @@ class XMLSummary:
     for output in sum.childrens( 'input' ):
       for fileIn in output.childrens( 'file' ):
         inputEventsTotal += int( fileIn.value )
-        inputsEvents[fileIn.attributes['name']] = fileIn.value
+        inputsEvents[fileIn.attributes['name'].replace( 'LFN:', '' ).replace( 'PFN:', '' ).split( '/' ).pop()] = fileIn.value
 
     return inputEventsTotal, inputsEvents
 
@@ -281,7 +281,7 @@ class XMLSummary:
     for output in sum.childrens( 'output' ):
       for fileIn in output.childrens( 'file' ):
         outputEventsTotal += int( fileIn.value )
-        outputsEvents[fileIn.attributes['name']] = fileIn.value
+        outputsEvents[fileIn.attributes['name'].replace( 'LFN:', '' ).replace( 'PFN:', '' ).split( '/' ).pop()] = fileIn.value
 
     return outputEventsTotal, outputsEvents
 

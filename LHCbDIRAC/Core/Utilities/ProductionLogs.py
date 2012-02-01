@@ -56,7 +56,7 @@ class ProductionLog:
 
     if not log:
       from DIRAC import gLogger
-      self.log = gLogger.getSubLogger( 'analyseLogFile' )
+      self.log = gLogger.getSubLogger( 'ProductionLogs' )
     else:
       self.log = log
 

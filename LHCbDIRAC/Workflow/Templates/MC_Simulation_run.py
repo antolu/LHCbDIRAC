@@ -78,7 +78,7 @@ mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
 
 replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
-replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcast}}'
+replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcastRandom}}'
 
 evtType = '{{eventType}}'
 #Often MC requests are defined with many subrequests but we want to retain
@@ -162,12 +162,12 @@ if publishFlag:
   diracProd = DiracProduction()
 
 if outputsCERN:
-  defaultOutputSE = 'CERN-MC-DST'
+  defaultOutputSE = 'CERN_MC-DST'
   brunelDataSE = 'CERN_MC-DST'
   daVinciDataSE = 'CERN_MC-DST'
   mergedDataSE = 'CERN_MC_M-DST'
 else:
-  defaultOutputSE = 'Tier1-MC-DST'
+  defaultOutputSE = 'Tier1_MC-DST'
   brunelDataSE = 'Tier1_MC-DST'
   daVinciDataSE = 'Tier1_MC-DST'
   mergedDataSE = 'Tier1_MC_M-DST'

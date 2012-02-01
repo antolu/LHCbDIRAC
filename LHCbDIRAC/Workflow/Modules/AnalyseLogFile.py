@@ -351,7 +351,8 @@ class AnalyseLogFile( ModuleBase ):
       if not nc:
         from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
         nc = NotificationClient()
-      res = nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
+      for mA in mailAddress.replace( ' ', '' ).split( ',' ):
+        res = nc.sendMail( mA, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
       if not res['OK']:
         self.log.warn( "The mail could not be sent" )
 
