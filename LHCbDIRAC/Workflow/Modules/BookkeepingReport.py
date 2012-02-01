@@ -11,7 +11,7 @@ from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID, getType
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
+from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
 
 from xml.dom.minidom                         import Document, DocumentType
 
@@ -303,8 +303,12 @@ class BookkeepingReport( ModuleBase ):
       typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ] ) )
       typedParams.append( ( "WNCACHE", nodeInfo[ "CacheSize(kB)" ] ) )
 
-    memoryFromXMLSummary = self.__getMemoryFromXMLSummary()
-    typedParams.append( ( "WNMEMORY", memoryFromXMLSummary ) )
+    try:
+      memoryFromXMLSummary = self.__getMemoryFromXMLSummary()
+      typedParams.append( ( "WNMEMORY", memoryFromXMLSummary ) )
+    except XMLSummaryError, e:
+      self.log.warn( str( e ) + ": Using OS memory" )
+      typedParams.append( ( "WNMEMORY", nodeInfo[ "Memory(kB)" ] ) )
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )

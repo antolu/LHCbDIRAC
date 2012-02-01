@@ -17,7 +17,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 from DIRAC import S_OK, S_ERROR, gLogger
 import DIRAC
 
-class AnalyseXMLSummary( ModuleBase ):
+class AnalyseLogFile( ModuleBase ):
   """ Analyse not only the XML summary, also the log file is inspected
   """
 
@@ -26,7 +26,7 @@ class AnalyseXMLSummary( ModuleBase ):
     """
 
     self.log = gLogger.getSubLogger( 'AnalyseXMLSummary' )
-    super( AnalyseXMLSummary, self ).__init__( self.log )
+    super( AnalyseLogFile, self ).__init__( self.log )
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
@@ -59,7 +59,7 @@ class AnalyseXMLSummary( ModuleBase ):
     """
 
     try:
-      super( AnalyseXMLSummary, self ).execute( self.version,
+      super( AnalyseLogFile, self ).execute( self.version,
                                                 production_id, prod_job_id, wms_job_id,
                                                 workflowStatus, stepStatus,
                                                 wf_commons, step_commons,
@@ -103,7 +103,7 @@ class AnalyseXMLSummary( ModuleBase ):
                                            job = self.prod_job_id,
                                            stepName = self.step_id,
                                            jobType = self.jobType,
-                                           self.log )
+                                           log = self.log )
       else:
         analyseLogResult = logAnalyser( fileName = self.applicationLog,
                                         applicationName = self.applicationName,
@@ -111,7 +111,7 @@ class AnalyseXMLSummary( ModuleBase ):
                                         job = self.prod_job_id,
                                         stepName = self.step_id,
                                         jobType = self.jobType,
-                                        self.log )
+                                        log = self.log )
 
       if not analyseLogResult['OK']:
         self.log.error( analyseLogResult )
@@ -163,7 +163,7 @@ class AnalyseXMLSummary( ModuleBase ):
       return S_ERROR( e )
 
     finally:
-      super( AnalyseXMLSummary, self ).finalize( self.version )
+      super( AnalyseLogFile, self ).finalize( self.version )
 
 
 ################################################################################
@@ -174,7 +174,7 @@ class AnalyseXMLSummary( ModuleBase ):
     """ By convention any workflow parameters are resolved here.
     """
 
-    super( AnalyseXMLSummary, self )._resolveInputVariables()
+    super( AnalyseLogFile, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']

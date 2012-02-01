@@ -105,7 +105,7 @@ class ModulesTestCase( unittest.TestCase ):
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir' }
                        ]
     self.step_commons = {'applicationName':'someApp', 'applicationVersion':'v1r0',
-                         'applicationLog':'appLog', 'extraPackages':'',
+                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
                                        'outputDataType':'bbb'}]}
     self.step_number = '321'
