@@ -16,66 +16,6 @@ def analyseXMLLogFile( fileName, applicationName = '', stepName = '', prod = '',
   analyser = AnalyseXMLLogFile( fileName, applicationName, stepName, prod, job, jobType )
   return analyser.analise()
 
-
-
-
-
-def analyseLogFile():
-  """ Analyse a log file
-  """
-  res = _openFile()
-  if not res[ 'OK' ]:
-    return res
-
-  #For the production case the application name will always be given, for the
-  #standalone utility this may not always be true so try to guess
-  res = _guessAppName()
-  if not res[ 'OK' ]:
-    return res
-
-  res = _guessStepID()
-  if not res[ 'OK' ]:
-    return res
-
-  # Check that no errors were seen in the log
-  res = _checkGaudiErrors()
-  if not res['OK']:
-    res['Data'] = self.dataSummary
-    return res
-
-  def _openFile():
-    self.gLogger.info( "Attempting to open log file: %s" % self.fileName )
-
-    if not os.path.exists( self.fileName ):
-      self.gLogger.error( 'Requested log file "%s" is not available' % self.fileName )
-      return S_ERROR( 'Log File Not Available' )
-
-    if os.stat( self.fileName )[6] == 0:
-      self.gLogger.error( 'Requested log file "%s" is empty' % self.fileName )
-      return S_ERROR( 'Log File Is Empty' )
-
-    fopen = open( self.fileName, 'r' )
-    self.fileString = fopen.read()
-    fopen.close()
-
-    return S_OK()
-
-  def _guessAppName():
-    pass
-
-  def _guessStepID():
-    pass
-
-  def _checkGaudiErrors():
-    pass
-
-
-
-def analyseXMLSummary():
-  """ Analyse a XML summary
-  """
-  pass
-
 class AnalyseXMLLogFile:
 
   ''' Allowed application names '''
