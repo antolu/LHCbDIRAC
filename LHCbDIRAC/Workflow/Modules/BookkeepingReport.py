@@ -9,8 +9,9 @@ from DIRAC                                   import gLogger, S_OK, S_ERROR, gCon
 from DIRAC.Core.Utilities.Subprocess         import shellCall
 from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID, getType
 
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
 
 from xml.dom.minidom                         import Document, DocumentType
 
@@ -170,6 +171,7 @@ class BookkeepingReport( ModuleBase ):
       self.applicationName = self.step_commons['applicationName']
       self.applicationVersion = self.step_commons['applicationVersion']
       self.applicationLog = self.step_commons['applicationLog']
+      self.XMLSummary = self.step_commons['XMLSummary']
 
     self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
@@ -584,6 +586,12 @@ class BookkeepingReport( ModuleBase ):
       return result
 
     return result
+
+  def __getMemoryFromXMLSummary( self ):
+    """ Use XMLSummary module
+    """
+    x_o = XMLSummary( self.XMLSummary )
+    return x_o.memory
 
 ################################################################################
 # END AUXILIAR FUNCTIONS
