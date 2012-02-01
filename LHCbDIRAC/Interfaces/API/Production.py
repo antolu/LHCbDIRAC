@@ -635,7 +635,7 @@ class Production():
 #                   ['applicationLog', '@{STEP_ID}_@{applicationName}_Logs.log'],
 #                   ['outputData', '@{STEP_ID}_@{applicationName}_Data.@{applicationType}'],
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
-                   ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml']
+                   ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
                    ]
 
