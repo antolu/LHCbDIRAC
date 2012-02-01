@@ -25,23 +25,17 @@ class AnalyseLogFile( ModuleBase ):
     """Module initialization.
     """
 
-    self.log = gLogger.getSubLogger( 'AnalyseXMLSummary' )
+    self.log = gLogger.getSubLogger( 'AnalyseLogFile' )
     super( AnalyseLogFile, self ).__init__( self.log )
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
-    self.systemConfig = ''
-    self.numberOfEventsInput = ''
-    self.numberOfEventsOutput = ''
-    self.numberOfEvents = ''
     self.applicationName = ''
     self.applicationLog = ''
     self.applicationVersion = ''
     self.logFilePath = ''
     self.coreFile = ''
     self.logString = ''
-    self.jobType = ''
-#    self.stepName             = ''
 
     #Resolved to be the input data of the current step
     self.stepInputData = []
@@ -60,10 +54,10 @@ class AnalyseLogFile( ModuleBase ):
 
     try:
       super( AnalyseLogFile, self ).execute( self.version,
-                                                production_id, prod_job_id, wms_job_id,
-                                                workflowStatus, stepStatus,
-                                                wf_commons, step_commons,
-                                                step_number, step_id )
+                                             production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons,
+                                             step_number, step_id )
 
       self._resolveInputVariables( bk )
 
@@ -75,9 +69,9 @@ class AnalyseLogFile( ModuleBase ):
         self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
         return S_OK()
 
-      self.log.verbose( "Performing log file analysis for %s" % ( self.applicationLog ) )
+      self.log.info( "Performing log file analysis for %s" % ( self.applicationLog ) )
       # Resolve the step and job input data
-      self.log.info( 'Resolved the step input data to be:\n%s' % '\n'.join( self.stepInputData ) )
+      self.log.verbose( 'Resolved the step input data to be:\n%s' % '\n'.join( self.stepInputData ) )
       self.log.info( 'Resolved the job input data to be:\n%s' % '\n'.join( self.jobInputData.keys() ) )
 
       #First check for the presence of any core dump files caused by an abort of some kind
@@ -102,7 +96,6 @@ class AnalyseLogFile( ModuleBase ):
                                            prod = self.production_id,
                                            job = self.prod_job_id,
                                            stepName = self.step_id,
-                                           jobType = self.jobType,
                                            log = self.log )
       else:
         analyseLogResult = logAnalyser( fileName = self.applicationLog,
@@ -110,20 +103,19 @@ class AnalyseLogFile( ModuleBase ):
                                         prod = self.production_id,
                                         job = self.prod_job_id,
                                         stepName = self.step_id,
-                                        jobType = self.jobType,
                                         log = self.log )
 
       if not analyseLogResult['OK']:
-        self.log.error( analyseLogResult )
-        if analyseLogResult.has_key( 'Data' ):
-          fNameStatusDict = analyseLogResult['Data']
-          fNameLFNs = {}
-          for lfn in self.jobInputData.keys():
-            for fName, status in fNameStatusDict.items():
-              if os.path.basename( lfn ) == fName:
-                fNameLFNs[lfn] = status
-          for lfn, status in fNameLFNs.items():
-            self.jobInputData[lfn] = status
+        self.log.error( analyseLogResult['Message'] )
+#        if analyseLogResult.has_key( 'Data' ):
+#          fNameStatusDict = analyseLogResult['Data']
+#          fNameLFNs = {}
+#          for lfn in self.jobInputData.keys():
+#            for fName, status in fNameStatusDict.items():
+#              if os.path.basename( lfn ) == fName:
+#                fNameLFNs[lfn] = status
+#          for lfn, status in fNameLFNs.items():
+#            self.jobInputData[lfn] = status
 
         self._finalizeWithErrors( analyseLogResult['Message'], nc, rm, bk )
 
@@ -140,20 +132,10 @@ class AnalyseLogFile( ModuleBase ):
         return S_OK()
 
       else:
-        if analyseLogResult.has_key( 'numberOfEventsInput' ):
-          self.numberOfEventsInput = analyseLogResult['numberOfEventsInput']
-          self.log.info( 'Setting numberOfEventsInput to %s' % self.numberOfEventsInput )
-
-        if analyseLogResult.has_key( 'numberOfEventsOutput' ):
-          self.numberOfEventsOutput = analyseLogResult['numberOfEventsOutput']
-          self.log.info( 'Setting numberOfEventsOutput to %s' % self.numberOfEventsOutput )
-
         # If the job was successful Update the status of the files to processed
         self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self.step_commons['numberOfEventsInput'] = self.numberOfEventsInput
-        self.step_commons['numberOfEventsOutput'] = self.numberOfEventsOutput
         self._updateFileStatus( self.jobInputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
         return S_OK()
@@ -176,13 +158,8 @@ class AnalyseLogFile( ModuleBase ):
 
     super( AnalyseLogFile, self )._resolveInputVariables()
 
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
-
-    if not self.step_commons.has_key( 'applicationName' ):
-      raise ValueError, 'Step does not have an applicationName'
-
     self.applicationName = self.step_commons['applicationName']
+    self.applicationVersion = self.step_commons['applicationVersion']
 
     if self.workflow_commons.has_key( 'InputData' ):
       if self.workflow_commons['InputData']:
@@ -209,20 +186,7 @@ class AnalyseLogFile( ModuleBase ):
     else:
       self.log.verbose( 'Job has no input data requirement' )
 
-    if self.step_commons.has_key( 'applicationVersion' ):
-      self.applicationVersion = self.step_commons['applicationVersion']
-
-    if self.step_commons.has_key( 'applicationLog' ):
-      self.applicationLog = self.step_commons['applicationLog']
-
-    if self.step_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = self.step_commons['numberOfEvents']
-
-    if self.step_commons.has_key( 'numberOfEventsInput' ):
-      self.numberOfEventsInput = self.step_commons['numberOfEventsInput']
-
-    if self.step_commons.has_key( 'numberOfEventsOutput' ):
-      self.numberOfEventsOutput = self.step_commons['numberOfEventsOutput']
+    self.applicationLog = self.step_commons['applicationLog']
 
     #Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key( 'LogFilePath' ):
@@ -236,12 +200,6 @@ class AnalyseLogFile( ModuleBase ):
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         raise Exception, result['Message']
       self.logFilePath = result['Value']['LogFilePath'][0]
-
-#    if self.step_commons.has_key( 'name' ):
-#      self.stepName = self.step_commons['name']
-
-    if self.workflow_commons.has_key( 'JobType' ):
-      self.jobType = self.workflow_commons['JobType']
 
 ################################################################################
 
@@ -298,7 +256,7 @@ class AnalyseLogFile( ModuleBase ):
     subject = '[' + self.site + '][' + self.applicationName + '] ' + self.applicationVersion + \
               ": " + subj + ' ' + self.production_id + '_' + self.prod_job_id + ' JobID=' + str( self.jobID )
     msg = 'The Application ' + self.applicationName + ' ' + self.applicationVersion + ' had a problem \n'
-    msg = msg + 'at site ' + self.site + ' for platform ' + self.systemConfig + '\n'
+    msg = msg + 'at site ' + self.site + '\n'
     msg = msg + 'JobID is ' + str( self.jobID ) + '\n'
     msg = msg + 'JobName is ' + self.production_id + '_' + self.prod_job_id + '\n'
 

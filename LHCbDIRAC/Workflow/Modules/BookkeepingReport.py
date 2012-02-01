@@ -5,18 +5,18 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                   import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities.Subprocess         import shellCall
-from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID, getType
-
-from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
-
-from xml.dom.minidom                         import Document, DocumentType
+import os, time, re, socket
+from xml.dom.minidom import Document, DocumentType
 
 import DIRAC
-import os, time, re, socket
+
+from DIRAC import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Resources.Catalog.PoolXMLFile import getGUID, getType
+
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummaryError
 
 class BookkeepingReport( ModuleBase ):
 
@@ -33,13 +33,8 @@ class BookkeepingReport( ModuleBase ):
 
     self.version = __RCSID__
 
-    self.configName = ''
-    self.configVersion = ''
-    self.run_number = 0
     self.firstEventNumber = 1
-    self.numberOfEvents = ''
-    self.numberOfEventsInput = ''
-    self.numberOfEventsOutput = ''
+    self.eventsRequested = ''
     self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
@@ -62,7 +57,8 @@ class BookkeepingReport( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, saveOnFile = True, bk = None ):
+               step_number = None, step_id = None, saveOnFile = True,
+               bk = None, xf_o = None ):
 
     try:
 
@@ -73,7 +69,7 @@ class BookkeepingReport( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK()
 
-      result = self._resolveInputVariables( bk )
+      result = self._resolveInputVariables( bk, xf_o )
       if not result['OK']:
         self.log.error( result['Message'] )
         return result
@@ -104,7 +100,7 @@ class BookkeepingReport( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self, bk = None ):
+  def _resolveInputVariables( self, bk = None, xf_o = None ):
 
     super( BookkeepingReport, self )._resolveInputVariables()
 
@@ -171,7 +167,6 @@ class BookkeepingReport( ModuleBase ):
       self.applicationName = self.step_commons['applicationName']
       self.applicationVersion = self.step_commons['applicationVersion']
       self.applicationLog = self.step_commons['applicationLog']
-      self.XMLSummary = self.step_commons['XMLSummary']
 
     self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
@@ -180,6 +175,13 @@ class BookkeepingReport( ModuleBase ):
       startTime = self.step_commons['StartTime']
       self.ldatestart = time.strftime( "%Y-%m-%d", time.localtime( startTime ) )
       self.ltimestart = time.strftime( "%H:%M", time.localtime( startTime ) )
+
+    self.eventsRequested = self.step_commons['numberOfEvents']
+
+    if not xf_o:
+      self.xf_o = self.step_commons['XMLSummary_o']
+    else:
+      self.xf_o = xf_o
 
     return S_OK()
 
@@ -278,6 +280,7 @@ class BookkeepingReport( ModuleBase ):
         - ProgramVersion
         - DiracVersion
         - FirstEventNumber
+        - EventInputStat
         - StatisticsRequested
         - NumberOfEvents
     '''
@@ -343,13 +346,13 @@ class BookkeepingReport( ModuleBase ):
     else:
       typedParams.append( ( "FirstEventNumber", 1 ) )
 
-    if self.numberOfEvents != None and self.numberOfEvents != '':
-      typedParams.append( ( "StatisticsRequested", self.numberOfEvents ) )
+    typedParams.append( ( "StatisticsRequested", self.eventsRequested ) )
 
-    if self.numberOfEventsInput != None and self.numberOfEventsInput != '':
-      typedParams.append( ( "NumberOfEvents", self.numberOfEventsInput ) )
-    else:
-      typedParams.append( ( "NumberOfEvents", self.numberOfEvents ) )
+    try:
+      typedParams.append( ( "EventInputStat", self.xf_o.inputEventsTotal ) )
+      typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
+    except:
+      raise XMLSummaryError
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
@@ -387,13 +390,7 @@ class BookkeepingReport( ModuleBase ):
          <Replica Location="" Name=""/>
          ....
        </OutputFile>
-      
-      What this exactly does, it is a mystery to me.
     '''
-
-    ####################################################################
-    # Output files
-    # Define DATA TYPES - ugly! should find another way to do that
 
     statistics = "0"
 
@@ -403,17 +400,6 @@ class BookkeepingReport( ModuleBase ):
       self.log.warn( 'BookkeepingReport: no eventType specified' )
       eventtype = 'Unknown'
     self.log.info( 'Event type = %s' % ( str( self.eventType ) ) )
-    self.log.info( 'stats = %s' % ( str( self.numberOfEventsOutput ) ) )
-
-    if self.numberOfEventsOutput != '':
-      statistics = self.numberOfEventsOutput
-    elif self.numberOfEventsInput != '':
-      statistics = self.numberOfEventsInput
-    elif self.numberOfEvents != '':
-      statistics = self.numberOfEvents
-    else:
-      self.log.warn( 'BookkeepingReport: no numberOfEvents specified' )
-      statistics = "0"
 
     outputs = []
     count = 0
@@ -446,11 +432,14 @@ class BookkeepingReport( ModuleBase ):
           self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
         typeName = bkTypeDict[ output ].upper()
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
-        if self.workflow_commons.has_key( 'StreamEvents' ):
-          streamEvents = self.workflow_commons['StreamEvents']
-          if streamEvents.has_key( typeName ):
-            fileStats = streamEvents[typeName]
-            self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
+
+        fileStats = self.xf_o.outputsEvents[output]
+
+#        if self.workflow_commons.has_key( 'StreamEvents' ):
+#          streamEvents = self.workflow_commons['StreamEvents']
+#          if streamEvents.has_key( typeName ):
+#            fileStats = streamEvents[typeName]
+#            self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )
@@ -523,8 +512,10 @@ class BookkeepingReport( ModuleBase ):
       if oldTypeName:
         typeName = oldTypeName
 
-      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
-      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
+      if outputtype != 'LOG':
+        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
+        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
+
       oFile = self.__addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
 
       ############################################################
@@ -594,8 +585,7 @@ class BookkeepingReport( ModuleBase ):
   def __getMemoryFromXMLSummary( self ):
     """ Use XMLSummary module
     """
-    x_o = XMLSummary( self.XMLSummary )
-    return x_o.memory
+    return self.xf_o.memory
 
 ################################################################################
 # END AUXILIAR FUNCTIONS

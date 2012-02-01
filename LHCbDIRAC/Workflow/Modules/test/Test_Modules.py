@@ -76,6 +76,9 @@ class ModulesTestCase( unittest.TestCase ):
     self.nc_mock = Mock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
 
+    self.xf_o_mock = Mock()
+    self.xf_o_mock.analyse.return_value = {'OK': True, 'Value': ''}
+
     self.version = 'someVers'
     self.prod_id = '123'
     self.prod_job_id = '00000456'
@@ -106,6 +109,7 @@ class ModulesTestCase( unittest.TestCase ):
                        ]
     self.step_commons = {'applicationName':'someApp', 'applicationVersion':'v1r0',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                         'numberOfEvents':'100',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
                                        'outputDataType':'bbb'}]}
     self.step_number = '321'
@@ -405,7 +409,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
+                                          self.nc_mock, self.rm_mock, logAnalyser,
+                                          self.bkc_mock, self.xf_o_mock )['OK'] )
 
 
     #logAnalyser gives errors
@@ -416,13 +421,56 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
+                                          self.nc_mock, self.rm_mock, logAnalyser,
+                                          self.bkc_mock, self.xf_o_mock )['OK'] )
+
+
+  def test__updateFileStatus( self ):
+    inputs = [{'i1':'OK', 'i2':'OK'},
+              {'i1':'OK', 'i2':'ApplicationCrash'},
+              {'i1':'Unused', 'i2':'ApplicationCrash'}
+              ]
+    for input in inputs:
+      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.rm_mock, self.fr_mock )
+
+#############################################################################
+# AnalyseLogFile.py
+#############################################################################
+
+class AnalyseLogFileSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    logAnalyser = Mock()
+
+    logAnalyser.return_value = {'OK':True, 'Value':''}
+
+    #no errors, no input data
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, self.step_commons,
+                                          self.step_number, self.step_id,
+                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
+
+
+    #logAnalyser gives errors
+    logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, self.step_commons,
+                                          self.step_number, self.step_id,
                                           self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
 
     #there's a core dump
     logAnalyser.return_value = {'OK':True, 'Message':''}
     open( 'ErrorLogging_Step1_coredump.log', 'w' ).close()
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id,
@@ -453,7 +501,8 @@ class BookkeepingReportSuccess( ModulesTestCase ):
       self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, self.step_commons,
-                                         self.step_number, self.step_id, False, self.bkc_mock )['OK'] )
+                                         self.step_number, self.step_id, False,
+                                         self.bkc_mock, self.xf_o_mock )['OK'] )
 
     #TODO: make other tests (how?)!
 
@@ -706,6 +755,7 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseXMLSummarySuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )

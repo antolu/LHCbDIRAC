@@ -13,7 +13,6 @@ from DIRAC.Core.Utilities.Subprocess  import shellCall
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
-from LHCbDIRAC.Core.Utilities.ProductionLogAnalysis import getDaVinciStreamEvents
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 #from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
@@ -310,14 +309,6 @@ class GaudiApplication( ModuleBase ):
     self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
     self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
     self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
-
-    if self.applicationName.lower() == 'davinci' and ( self.applicationType.lower() not in ['dst', 'mdst'] ) :
-      #Now will attempt to find the number of output events per stream and convey them via the workflow commons dictionary
-      streamEvents = getDaVinciStreamEvents( self.applicationLog, bkFileTypes )
-      if streamEvents['OK']:
-        streamEvents = streamEvents['Value']
-        self.workflow_commons['StreamEvents'] = streamEvents
-
 
   #############################################################################
 

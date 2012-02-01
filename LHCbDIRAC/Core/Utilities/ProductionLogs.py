@@ -182,12 +182,13 @@ class ProductionLog:
 
 
 def analyseLogFile( fileName, applicationName = '', prod = '', job = '',
-                    stepName = '', jobType = '', log = None ):
+                    stepName = '', log = None, lf_o = None ):
   """ Analyse a log file
   """
 
   try:
-    lf_o = ProductionLog( fileName, applicationName, prod, job, stepName, log = log )
+    if not lf_o:
+      lf_o = ProductionLog( fileName, applicationName, prod, job, stepName, log = log )
     return lf_o.analyse()
   except LogError, e:
     return S_ERROR ( str( e ) )

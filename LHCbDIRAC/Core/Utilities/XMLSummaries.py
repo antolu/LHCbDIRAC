@@ -52,7 +52,7 @@ class XMLSummary:
     self.step = self.__getStep()
     self.memory = self.__getMemory()
     self.inputFileStats = self.__getInputFileStats()
-    self.inputEvents = self.__getInputEvents()
+    self.inputEventsTotal, self.inputsEvents = self.__getInputEvents()
     self.outputFileStats = self.__getOutputFileStats()
     self.outputEventsTotal, self.outputsEvents = self.__getOutputEvents()
 
@@ -341,13 +341,16 @@ class XMLSummary:
 
 ################################################################################
 
-def analyseXMLSummary( xmlFileName, log = None ):
+def analyseXMLSummary( xmlFileName = None, xf_o = None, log = None ):
   """ Analyse a XML summary file
   """
 
   try:
-    xf_o = XMLSummary( xmlFileName, log = log )
+
+    if not xf_o:
+      xf_o = XMLSummary( xmlFileName, log = log )
     return xf_o.analyse()
+
   except XMLSummaryError, e:
     return S_ERROR ( str( e ) )
 
