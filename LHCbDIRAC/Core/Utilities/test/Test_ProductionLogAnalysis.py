@@ -63,13 +63,21 @@ class ProductionLogAnalysisDataStripping( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisDataStripping, self ).setUp()
     self.workdir += '/DataStripping'
 
-#  def test_brunel_ok( self ):  
-#    self.generalTest( self.workdir, 'ok', 'Brunel' )     
   def test_daVinci_ok( self ):
     self.generalTest( self.workdir, 'ok', 'DaVinci' )
 
-#  def test_brunel_nok( self ):  
-#    self.generalTest( self.workdir, 'nok', 'Brunel' )  
+  def test_daVinci_nok( self ):
+    self.generalTest( self.workdir, 'nok', 'DaVinci' )
+
+class ProductionLogAnalysisSelection( ProductionLogAnalysisTestCase ):
+
+  def setUp( self ):
+    super( ProductionLogAnalysisSelection, self ).setUp()
+    self.workdir += '/Selection'
+
+  def test_daVinci_ok( self ):
+    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+
   def test_daVinci_nok( self ):
     self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -126,6 +134,7 @@ def run():
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionLogAnalysisDataReconstruction ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionLogAnalysisDataReprocessing ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionLogAnalysisDataStripping ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionLogAnalysisSelection ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionLogAnalysisMCSimulation ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionLogAnalysisMerge ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

@@ -54,7 +54,7 @@ class XMLSummary:
     self.inputFileStats = self.__getInputFileStats()
     self.inputEvents = self.__getInputEvents()
     self.outputFileStats = self.__getOutputFileStats()
-    self.outputEvents = self.__getOutputEvents()
+    self.outputEventsTotal, self.outputsEvents = self.__getOutputEvents()
 
 ################################################################################
 
@@ -179,18 +179,18 @@ class XMLSummary:
                    'other' : 0
                    }
 
-    for file, status in res:
+    for fileIn, status in res:
 
       if status == 'fail':
-        self.log.error( 'Input File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
         fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
-        self.log.error( 'Input File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
         fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
-        self.log.error( 'Input File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
@@ -200,7 +200,7 @@ class XMLSummary:
 
       # This should never happen, but just in case
       else:
-        self.log.error( 'Input File %s is on unknown status: %s' % ( file, status ) )
+        self.log.error( 'Input File %s is on unknown status: %s' % ( fileIn, status ) )
         fileCounter[ 'other'] += 1
 
     files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
@@ -221,15 +221,18 @@ class XMLSummary:
         < input >
         ...
     '''
-    inputEvents = 0
+
+    inputEventsTotal = 0
+    inputsEvents = {}
 
     sum = self.xmlTree[ 0 ]
 
-    for input in sum.childrens( 'input' ):
-      for file in input.childrens( 'file' ):
-        inputEvents += int( file.value )
+    for output in sum.childrens( 'input' ):
+      for fileIn in output.childrens( 'file' ):
+        inputEventsTotal += int( fileIn.value )
+        inputsEvents[fileIn.attributes['name']] = fileIn.value
 
-    return inputEvents
+    return inputEventsTotal, inputsEvents
 
 ################################################################################
 
@@ -249,9 +252,9 @@ class XMLSummary:
     sum = self.xmlTree[ 0 ]
 
     for output in sum.childrens( 'output' ):
-      for file in output.childrens( 'file' ):
+      for fileIn in output.childrens( 'file' ):
         try:
-          files.append( ( file.attributes[ 'name' ], file.attributes[ 'status' ] ) )
+          files.append( ( fileIn.attributes[ 'name' ], fileIn.attributes[ 'status' ] ) )
         except Exception:
           raise XMLSummaryError, 'Bad formatted file keys. %s'
 
@@ -270,15 +273,17 @@ class XMLSummary:
         ...
     '''
 
-    outputEvents = 0
+    outputEventsTotal = 0
+    outputsEvents = {}
 
     sum = self.xmlTree[ 0 ]
 
     for output in sum.childrens( 'output' ):
-      for file in output.childrens( 'file' ):
-        outputEvents += int( file.value )
+      for fileIn in output.childrens( 'file' ):
+        outputEventsTotal += int( fileIn.value )
+        outputsEvents[fileIn.attributes['name']] = fileIn.value
 
-    return outputEvents
+    return outputEventsTotal, outputsEvents
 
 ################################################################################
 
