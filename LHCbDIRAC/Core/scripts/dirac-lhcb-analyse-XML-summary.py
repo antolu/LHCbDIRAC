@@ -2,7 +2,7 @@
 ########################################################################
 # $HeadURL$
 # File :    dirac-lhcb-analyse-log-file.py
-# Author :  Stuart Paterson
+# Author :  Federico Stagni
 ########################################################################
 """
   Perform comprehensive checks on the supplied log file if it exists.
@@ -14,8 +14,7 @@ import sys, string, os, shutil
 import DIRAC
 from DIRAC.Core.Base import Script
 
-Script.registerSwitch( "f:", "LogFile=", "Path to log file you wish to analyze (mandatory)" )
-Script.registerSwitch( "p:", "Project=", "Optional: project name (will be guessed if not specified)" )
+Script.registerSwitch( "f:", "XMLSummary=", "Path to XML summary you wish to analyze (mandatory)" )
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -23,7 +22,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
-from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
+from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary
 
 args = Script.getPositionalArgs()
 
@@ -35,25 +34,23 @@ if args or not Script.getUnprocessedSwitches():
   Script.showHelp()
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower() in ( 'p', 'project' ):
-    projectName = switch[1]
-  elif switch[0].lower() in ( 'f', 'logfile' ):
+  if switch[0].lower() in ( 'f', 'XMLSummary' ):
     logFile = switch[1]
 
 exitCode = 0
 try:
-  result = analyseLogFile( logFile, projectName )
+  result = analyseXMLSummary( logFile, projectName )
 except Exception, x:
-  gLogger.exception( 'Log file analysis failed with exception: "%s"' % x )
+  gLogger.exception( 'XML summary analysis failed with exception: "%s"' % x )
   exitCode = 2
   DIRAC.exit( exitCode )
 
 if not result['OK']:
   gLogger.warn( result )
-  gLogger.error( 'Problem found with log file %s: "%s"' % ( logFile, result['Message'] ) )
+  gLogger.error( 'Problem found with XML summary %s: "%s"' % ( logFile, result['Message'] ) )
   exitCode = 2
 else:
   gLogger.verbose( result )
-  gLogger.info( 'Log file %s, %s' % ( logFile, result['Value'] ) )
+  gLogger.info( 'XML summary %s, %s' % ( logFile, result['Value'] ) )
 
 DIRAC.exit( exitCode )
