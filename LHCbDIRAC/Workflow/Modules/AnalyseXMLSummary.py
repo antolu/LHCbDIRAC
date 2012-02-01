@@ -69,8 +69,6 @@ class AnalyseXMLSummary( ModuleBase ):
 
       self.log.info( "Performing XML summary analysis for %s" % ( self.XMLSummary ) )
       # Resolve the step and job input data
-      self.log.verbose( 'Resolved the step input data to be:\n%s' % '\n'.join( self.stepInputData ) )
-      self.log.info( 'Resolved the job input data to be:\n%s' % '\n'.join( self.jobInputData.keys() ) )
 
       if not xf_o:
         self.XMLSummary_o = XMLSummary( self.XMLSummary, log = self.log )

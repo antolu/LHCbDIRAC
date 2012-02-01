@@ -203,6 +203,7 @@ class XMLSummary:
         self.log.error( 'Input File %s is on unknown status: %s' % ( fileIn, status ) )
         fileCounter[ 'other'] += 1
 
+<<<<<<< HEAD
     files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
     filesMsg = ', '.join( files )
     self.log.info( filesMsg )
@@ -330,7 +331,135 @@ class XMLSummary:
         self.log.error( 'Output File %s is on unknown status: %s' % ( file, status ) )
         fileCounter[ 'other'] += 1
 
-    files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
+    files = [ '%d input file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
+    filesMsg = ', '.join( files )
+    self.log.info( filesMsg )
+
+    return fileCounter
+
+################################################################################
+
+  def __getInputEvents( self ):
+    '''
+      We know beforehand the structure of the XML, which makes our life
+      easier.
+      
+      < summary >
+        ...
+        < input >
+        ...
+    '''
+
+    inputEventsTotal = 0
+    inputsEvents = {}
+
+    sum = self.xmlTree[ 0 ]
+
+    for output in sum.childrens( 'input' ):
+      for fileIn in output.childrens( 'file' ):
+        inputEventsTotal += int( fileIn.value )
+        inputsEvents[fileIn.attributes['name'].replace( 'LFN:', '' ).replace( 'PFN:', '' ).split( '/' ).pop()] = fileIn.value
+
+    return inputEventsTotal, inputsEvents
+
+################################################################################
+
+  def __getOutputStatus( self ):
+    '''
+      We know beforehand the structure of the XML, which makes our life
+      easier.
+      
+      < summary >
+        ...
+        < output >
+        ...
+    '''
+
+    files = []
+
+    sum = self.xmlTree[ 0 ]
+
+    for output in sum.childrens( 'output' ):
+      for fileIn in output.childrens( 'file' ):
+        try:
+          files.append( ( fileIn.attributes[ 'name' ], fileIn.attributes[ 'status' ] ) )
+        except Exception:
+          raise XMLSummaryError, 'Bad formatted file keys. %s'
+
+    return files
+
+################################################################################
+
+  def __getOutputEvents( self ):
+    '''
+      We know beforehand the structure of the XML, which makes our life
+      easier.
+      
+      < summary >
+        ...
+        < output >
+        ...
+    '''
+
+    outputEventsTotal = 0
+    outputsEvents = {}
+
+    sum = self.xmlTree[ 0 ]
+
+    for output in sum.childrens( 'output' ):
+      for fileIn in output.childrens( 'file' ):
+        outputEventsTotal += int( fileIn.value )
+        outputsEvents[fileIn.attributes['name'].replace( 'LFN:', '' ).replace( 'PFN:', '' ).split( '/' ).pop()] = fileIn.value
+
+    return outputEventsTotal, outputsEvents
+
+################################################################################
+
+  def __getOutputFileStats( self ):
+    """Checks that every output file has reached the full status.
+       Four possible statuses of the files:
+       - full : the file has been fully read
+       - part : the file has been partially read
+       - mult : the file has been read multiple times
+       - fail : failure while reading the file
+    """
+
+    res = self.__getOutputStatus()
+
+    fileCounter = {
+                   'full'  : 0,
+                   'part'  : 0,
+                   'mult'  : 0,
+                   'fail'  : 0,
+                   'other' : 0
+                   }
+
+    for file, status in res:
+
+      if status == 'fail':
+        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'fail' ] += 1
+
+      elif status == 'mult':
+        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'mult' ] += 1
+
+      elif status == 'part':
+        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'part' ] += 1
+
+      elif status == 'full':
+        #If it is Ok, we do not print anything
+        #self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        fileCounter[ 'full' ] += 1
+
+      # This should never happen, but just in case
+      else:
+        self.log.error( 'Output File %s is on unknown status: %s' % ( file, status ) )
+        fileCounter[ 'other'] += 1
+
+    files = [ '%d output file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
+>>>>>>> refs / heads / memFromXMLSum
     filesMsg = ', '.join( files )
     self.log.info( filesMsg )
 

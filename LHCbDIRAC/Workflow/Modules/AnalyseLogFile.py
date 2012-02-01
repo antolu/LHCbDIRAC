@@ -71,8 +71,6 @@ class AnalyseLogFile( ModuleBase ):
 
       self.log.info( "Performing log file analysis for %s" % ( self.applicationLog ) )
       # Resolve the step and job input data
-      self.log.verbose( 'Resolved the step input data to be:\n%s' % '\n'.join( self.stepInputData ) )
-      self.log.info( 'Resolved the job input data to be:\n%s' % '\n'.join( self.jobInputData.keys() ) )
 
       #First check for the presence of any core dump files caused by an abort of some kind
       for fileInDir in os.listdir( '.' ):
