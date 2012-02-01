@@ -593,7 +593,7 @@ class Production():
                         ['runTimeProjectVersion', 'string', '', 'runTimeProjectVersion'],
                         ['applicationType', 'string', '', 'ApplicationType'],
                         ['applicationLog', 'string', '', 'ApplicationLogFile'],
-                        ['XMLSummary', 'string', '', 'XMLSummaryFile']
+                        ['XMLSummary', 'string', '', 'XMLSummaryFile'],
                         ['optionsFile', 'string', '', 'OptionsFile'],
                         ['optionsLine', 'string', '', 'OptionsLines'],
                         ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
