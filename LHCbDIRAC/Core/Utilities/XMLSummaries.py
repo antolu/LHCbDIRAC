@@ -58,6 +58,38 @@ class XMLSummary:
 
 ################################################################################
 
+  def analyse( self ):
+    """ analyse the XML summary
+    """
+    if self.success == 'True' and self.step == 'finalize' and self._inputsOK() and self._outputsOK():
+      return S_OK( 'XML Summary OK' )
+    else:
+      return S_ERROR( 'XML Summary reports errors' )
+
+################################################################################
+
+  def _inputsOK( self ):
+    """ check self.inputFileStats
+    """
+
+    if sum( self.inputFileStats.values() ) == self.inputFileStats['full']:
+      return True
+    else:
+      return False
+
+################################################################################
+
+  def _outputsOK( self ):
+    """ check self.outputFileStats
+    """
+
+    if sum( self.outputFileStats.values() ) == self.outputFileStats['full']:
+      return True
+    else:
+      return False
+
+################################################################################
+
   def __getSuccess( self ):
     """get the success
     """
@@ -150,15 +182,15 @@ class XMLSummary:
     for file, status in res:
 
       if status == 'fail':
-        self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Input File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
-        self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Input File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
-        self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Input File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
@@ -168,7 +200,7 @@ class XMLSummary:
 
       # This should never happen, but just in case
       else:
-        self.log.error( 'File %s is on unknown status: %s' % ( file, status ) )
+        self.log.error( 'Input File %s is on unknown status: %s' % ( file, status ) )
         fileCounter[ 'other'] += 1
 
     files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
@@ -272,15 +304,15 @@ class XMLSummary:
     for file, status in res:
 
       if status == 'fail':
-        self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
-        self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
-        self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
@@ -290,7 +322,7 @@ class XMLSummary:
 
       # This should never happen, but just in case
       else:
-        self.log.error( 'File %s is on unknown status: %s' % ( file, status ) )
+        self.log.error( 'Output File %s is on unknown status: %s' % ( file, status ) )
         fileCounter[ 'other'] += 1
 
     files = [ '%d file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
@@ -309,24 +341,9 @@ def analyseXMLSummary( xmlFileName, log = None ):
   """
 
   try:
-    log.info( "Attempting to parse XML summary file: %s" % xmlFileName )
-    xmlTree = _parseXML( xmlFileName )
-
-    res = _getSuccess( xmlTree )
-    if not res == 'True':
-      raise XMLSummaryError, 'XMLSummary reports success = False'
-
-    res = _getStep( xmlTree )
-    if res != 'finalize':
-      raise XMLSummaryError, 'XMLSummary reports step did not finalize'
-
-    res = _get
-    if fileCounter[ 'full' ] != sum( fileCounter.values() ):
-      return S_ERROR( filesMsg )
-
-
+    xf_o = XMLSummary( xmlFileName, log = log )
+    return xf_o.analyse()
   except XMLSummaryError, e:
-    log.error( "Found error in " + xmlFileName + ": " + str( e ) )
-    return S_ERROR( e )
+    return S_ERROR ( str( e ) )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

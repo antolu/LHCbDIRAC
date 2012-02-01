@@ -95,7 +95,6 @@ class ProductionLog:
       self.log.error( "Found error in " + self.fileName + ": " + str( e ) )
       return S_ERROR( e )
 
-
 ################################################################################
 
   def _guessStepID( self ):
