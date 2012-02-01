@@ -298,9 +298,11 @@ class BookkeepingReport( ModuleBase ):
     if nodeInfo['OK']:
 
       typedParams.append( ( "WNMODEL", nodeInfo[ "ModelName" ] ) )
-      typedParams.append( ( "WNMEMORY", nodeInfo[ "Memory(kB)" ] ) )
       typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ] ) )
       typedParams.append( ( "WNCACHE", nodeInfo[ "CacheSize(kB)" ] ) )
+
+    memoryFromXMLSummary = self.__getMemoryFromXMLSummary()
+    typedParams.append( ( "WNMEMORY", memoryFromXMLSummary ) )
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
