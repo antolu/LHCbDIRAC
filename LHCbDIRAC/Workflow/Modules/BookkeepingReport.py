@@ -306,12 +306,8 @@ class BookkeepingReport( ModuleBase ):
       typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ] ) )
       typedParams.append( ( "WNCACHE", nodeInfo[ "CacheSize(kB)" ] ) )
 
-    try:
-      memoryFromXMLSummary = self.__getMemoryFromXMLSummary()
-      typedParams.append( ( "WNMEMORY", memoryFromXMLSummary ) )
-    except XMLSummaryError, e:
-      self.log.warn( str( e ) + ": Using OS memory" )
-      typedParams.append( ( "WNMEMORY", nodeInfo[ "Memory(kB)" ] ) )
+    memoryFromXMLSummary = self.__getMemoryFromXMLSummary()
+    typedParams.append( ( "WNMEMORY", memoryFromXMLSummary ) )
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
