@@ -48,7 +48,7 @@ class StorageHistoryAgent( AgentModule ):
     if not os.path.isdir( self.__workDirectory ):
       os.makedirs( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )
-
+    self.bkkCacheTimeout = self.am_getOption( 'BookkeepingCacheTimeout', 259200 ) # by default 3 days
     return S_OK()
 
   def execute( self ):
@@ -212,15 +212,30 @@ class StorageHistoryAgent( AgentModule ):
     self.persistentDictList = [] # persistency Bookkeeping dictionary    
 
 
-    self.log.notice(" Try to read persistentDict from disk..")
+    self.log.notice(" Try to read cached Bookkeeping dictionary from disk..")
+    BkkCachedInfo = False
     self.bkkDictFile = os.path.join( self.__workDirectory, "bkkPersistentDict.txt" )
     if not os.path.exists(self.bkkDictFile):
-      self.log.notice("Could not read persistent Bkk dictionary from file => regenerate the dictionary")
+      self.log.notice("Could not read cached Bookkeeping dictionary from file => regenerate the dictionary")
+    else:
+      self.log.notice("File with cached Bookkeeping dictionary found. Checking the creation time...")
+      (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat( self.bkkDictFile )
+      elapsedTime = time.time() - mtime
+      self.log.notice("Creation time: %s,  elapsed time: %d h (maximum delay allowed : %d h ) " %(time.ctime( mtime ), elapsedTime/3600, self.bkkCacheTimeout/3600))
+      if elapsedTime > self.bkkCacheTimeout:
+        self.log.info("WARNING: Bookkeeping cached dictionary is older than maximum limit! %s s ( %d h )  => It will be re-created and dump to file: %s " % ( self.bkkCacheTimeout, self.bkkCacheTimeout/3600, self.bkkDictFile ) ) 
+      else:
+        self.log.notice("Bookkeeping cached dictionary is fresh") 
+        BkkCachedInfo = True
+
+    if not BkkCachedInfo: 
+      creationStart =  time.time()
       res = self.generateBookkeepingDictionary()
       if not res[ 'OK' ]:
         self.log.error("ERROR! %s " % res )
         return S_ERROR( res )
-    
+      creationEnd = time.time()
+      self.log.notice("Bookkeeping dictionary creation took: %d s " %(creationEnd-creationStart) )
     self.log.notice("Reading Bookkeeping persistent dictionary from file %s " % self.bkkDictFile )
     for line in open( self.bkkDictFile , "r" ).readlines():
       thisList = eval( line )
@@ -231,7 +246,6 @@ class StorageHistoryAgent( AgentModule ):
     self.numDataRows = 0 # count the total number of records sent to the accounting
     self.dict1 = {}
     for bkkDict in self.persistentDictList:
-      #self.log.notice("Bkk dictionary : %s " % bkkDict)
       self.dict1[ 'ConfigName' ] = bkkDict[ 'ConfigName' ]
       self.dict1[ 'ConfigVersion' ] = bkkDict[ 'ConfigVersion' ]
       self.dict1[ 'EventTypeId' ] = bkkDict[ 'EventTypeId' ]
