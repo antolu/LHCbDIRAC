@@ -278,6 +278,9 @@ class XMLFilesReaderManager:
 
     currentEventInputStat = job.getParam( 'EventInputStat' )
     if currentEventInputStat != None:
+        if currentEventInputStat != evtinput:
+          glogger.error('EventInputStat is not equal'+str(currentEventInputStat)+'  '+str(evtinput))
+          print job
         currentEventInputStat.setValue( evtinput )
     elif not job.exists( 'EventInputStat' ) and len( inputfiles ) > 0:
       newJobParams = JobParameters()
