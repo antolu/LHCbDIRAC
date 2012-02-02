@@ -43,6 +43,7 @@ resetRuns = None
 runList = None
 kickRequests = False
 justStats = False
+fixIt = False
 from DIRAC.Core.Base import Script
 
 infoList = ["Files", "Runs", "Tasks", 'Jobs']
@@ -56,6 +57,7 @@ Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with c
 Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
 Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
 Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
+Script.registerSwitch( '', 'FixIt', 'Fix the run number in transformation table')
 Script.registerSwitch( 'v', 'Verbose', '' )
 
 Script.parseCommandLine( ignoreErrors = True )
@@ -104,6 +106,10 @@ for switch in switches:
         dumpFiles = True
     elif opt == 'statistics':
         justStats = True
+    elif opt == 'fixit':
+      fixIt = True
+      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+      bkClient = BookkeepingClient()
 
 if lfnList:
     byFiles = True
@@ -256,11 +262,32 @@ for id in idList:
             if status:
                 prString += " with status %s" % status
             print prString + '\n'
+            filesToBeFixed = []
             for fileDict in filesList:
                 taskID = fileDict['TaskID']
                 taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
                 if byFiles and not taskList:
-                    print "LFN:", fileDict['LFN'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
+                    print "LFN:", fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
+                if fileDict['RunNumber'] == 0:
+                  filesToBeFixed.append( fileDict['LFN'] )
+            if filesToBeFixed:
+              if not fixIt:
+                print '%d files have run number 0, use --FixIt to get this fixed' %len(filesToBeFixed)
+              else:
+                fixedFiles = 0
+                res = bkClient.getFileMetadata(filesToBeFixed)
+                if res['OK']:
+                  runFiles = {}
+                  for lfn, metadata in res['Value'].items():
+                    runFiles.setdefault(metadata['RunNumber'], []).append(lfn)
+                  for run in runFiles:
+                    res = transClient.addTransformationRunFiles( id, run, runFiles[run])
+                    # print run, runFiles[run], res
+                    if not res['OK']:
+                      print "Failed to set %d files to run %d in transformation %d" %(len(runFiles[run]), run, id)
+                    else:
+                      fixedFiles += len(runFiles[run])
+                print "Successfully fixed run number for %d files" % fixedFiles
             if status == 'MissingLFC':
                 lfns = [fileDict['LFN'] for fileDict in filesList]
                 res = rm.getReplicas( lfns )
@@ -281,8 +308,10 @@ for id in idList:
             problematicReplicas = {}
             failedFiles = []
             if not taskList:
-                taskList = [t for t in taskDict]
-            for taskID in taskList:
+                taskList1 = [t for t in taskDict]
+            else:
+              taskList1 = taskList
+            for taskID in taskList1:
                 res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskID} )
                 #print res
                 if res['OK'] and res['Value']:
