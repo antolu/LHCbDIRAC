@@ -7,9 +7,8 @@
 
 __RCSID__ = "$Id$"
 
-import string, os
-from DIRAC                                                 import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
+from DIRAC import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class RemoveInputData( ModuleBase ):
 
@@ -30,7 +29,7 @@ class RemoveInputData( ModuleBase ):
 
   #############################################################################
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
 
@@ -68,7 +67,7 @@ class RemoveInputData( ModuleBase ):
       if not self._enableModule():
         return S_OK()
 
-      result = self.resolveInputVariables()
+      result = self._resolveInputVariables()
       if not result['OK']:
         self.log.error( result['Message'] )
         return result
@@ -88,11 +87,15 @@ class RemoveInputData( ModuleBase ):
       if not result['OK']:
         self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
         failover = self.inputData
-      if result['Value']['Failed']:
-        failureDict = result['Value']['Failed']
-        if failureDict:
-          self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
-        failover = failureDict.keys()
+      try:
+        if result['Value']['Failed']:
+          failureDict = result['Value']['Failed']
+          if failureDict:
+            self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
+          failover = failureDict.keys()
+      except KeyError:
+        self.log.error( 'Setting files for removal request to be the input data: %s' % self.inputData )
+        failover = self.inputData
 
       for lfn in failover:
         self.__setFileRemovalRequest( lfn )

@@ -217,7 +217,6 @@ class AnalyseLogFile( ModuleBase ):
         self.log.info( "%s will be updated to default status '%s'" % ( fileName, defaultStatus ) )
       self.setFileStatus( prod_id, lfn = fileName, status = stat, fileReport = fr )
 
-
 ################################################################################
 
   def _finalizeWithErrors( self, subj, nc, rm, bk = None ):

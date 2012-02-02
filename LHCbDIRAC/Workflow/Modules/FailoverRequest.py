@@ -2,13 +2,17 @@
 # $Id$
 ########################################################################
 """ Create and send a combined request for any pending operations at
-    the end of a job.
+    the end of a job:
+      fileReport (for the transformation)
+      jobReport (for jobs)
+      accounting
+      request (for failover)
 """
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                 import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
+from DIRAC import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class FailoverRequest( ModuleBase ):
 
@@ -62,10 +66,12 @@ class FailoverRequest( ModuleBase ):
 
       self._resolveInputVariables()
 
+      #preparing the request, just in case
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
+      #report on the status of the input data
       if self.inputData:
         inputFiles = self.fileReport.getFiles()
         for lfn in self.inputData:
@@ -89,11 +95,18 @@ class FailoverRequest( ModuleBase ):
           self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Processed' )
 
       result = self.fileReport.commit()
-
       if not result['OK']:
         self.log.error( 'Failed to report file status to TransformationDB, request will be generated', result['Message'] )
+        result = self.fileReport.generateRequest()
+        if not result['OK']:
+          self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result ) )
+        else:
+          self.log.info( 'Populating request with file report information' )
+          result = self.request.update( result['Value'] )
       else:
         self.log.info( 'Status of files have been properly updated in the TransformationDB' )
+
+
 
       # Must ensure that the local job report instance is used to report the final status
       # in case of failure and a subsequent failover operation
@@ -110,17 +123,6 @@ class FailoverRequest( ModuleBase ):
       if reportRequest:
         self.log.info( 'Populating request with job report information' )
         self.request.update( reportRequest )
-
-      fileReportRequest = None
-      if self.fileReport:
-        result = self.fileReport.generateRequest()
-        if not result['OK']:
-          self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result ) )
-        else:
-          fileReportRequest = result['Value']
-      if fileReportRequest:
-        self.log.info( 'Populating request with file report information' )
-        result = self.request.update( fileReportRequest )
 
       accountingReport = None
       if self.workflow_commons.has_key( 'AccountingReport' ):
