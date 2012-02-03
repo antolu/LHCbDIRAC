@@ -200,11 +200,15 @@ class UploadLogFile( ModuleBase ):
     ############################################################W
     random.shuffle( self.failoverSEs )
     self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName, string.join( self.failoverSEs, ', ' ) ) )
-    result = ft.transferAndRegisterFile( tarFileName, '%s/%s' % ( self.logdir, tarFileName ), self.logLFNPath,
-                                         self.failoverSEs, fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
+    result = ft.transferAndRegisterFile( fileName = tarFileName,
+                                         localPath = '%s/%s' % ( self.logdir, tarFileName ),
+                                         lfn = self.logLFNPath,
+                                         destinationSEList = self.failoverSEs,
+                                         fileGUID = None,
+                                         fileCatalog = 'LcgFileCatalogCombined' )
 
     if not result['OK']:
-      self.log.error( 'Failed to upload logs to all destinations' )
+      self.log.error( 'Failed to upload logs to all failover destinations' )
       self.setApplicationStatus( 'Failed To Upload Logs' )
       return S_OK()
 
@@ -313,8 +317,6 @@ class UploadLogFile( ModuleBase ):
     fileDict = {'Status': 'Waiting', 'LFN': logFileLFN}
     result = self.request.setSubRequestFiles( index, 'logupload', [fileDict] )
 
-
-
     self.log.info( 'Setting log removal request for s' % ( logFileLFN ) )
     result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
                                                        'TargetSE':result['Value']['UploadedSE'],
@@ -324,8 +326,7 @@ class UploadLogFile( ModuleBase ):
       return res
     index = result['Value']
     fileDict = {'LFN':logFileLFN, 'PFN':'', 'Status':'Waiting'}
-    resukt = self.request.setSubRequestFiles( index, 'removal', [fileDict] )
-
+    self.request.setSubRequestFiles( index, 'removal', [fileDict] )
 
     return S_OK()
 
