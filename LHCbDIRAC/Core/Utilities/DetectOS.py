@@ -1,9 +1,9 @@
 """ General LHCb platform configuration """
 
-__RCSID__ = "$Id$"
-
 import sys, platform, os
 import re
+import logging
+
 # CMTCONFIG extraction
 
 def isNewStyleBinary( cmtconfig ):
@@ -12,6 +12,10 @@ def isNewStyleBinary( cmtconfig ):
     if len( cmtconfig.split( "-" ) ) > 1 :
         newstyle = True
     return newstyle
+
+def isOldStyleBinary( cmtconfig ):
+    """ check if the CMTCONFIG value is new styled """
+    return not isNewStyleBinary( cmtconfig )
 
 def isBinaryDbg( cmtconfig ):
     """ check if the CMTCONFIG value is a debug one """
@@ -74,6 +78,8 @@ def getPlatformType( cmtconfig ):
         platformtype = cmtconfig.split( "-" )[1]
     else :
         platformtype = cmtconfig.split( "_" )[0]
+    if platformtype == "sl6" :
+        platformtype = "slc6"
     if platformtype == "sl5" :
         platformtype = "slc5"
     if platformtype == "sl4" :
@@ -105,19 +111,39 @@ def getArchitecture( cmtconfig ):
 def getConfig( architecture, platformtype, compiler, debug = False ):
     cmtconfig = None
     if platformtype.startswith( "win" ) :
-        cmtconfig = "_".join( [platformtype, compiler] )
+        if compiler :
+            cmtconfig = "_".join( [platformtype, compiler] )
+            if compiler.startswith( "vc9" ) :
+                if architecture == "ia32" :
+                    architecture = "i686"
+                elif architecture == "amd64" :
+                    architecture = "x86_64"
+                cmtconfig = "-".join( [architecture, "winxp", compiler, "opt"] )
+        else :
+            cmtconfig = platformtype
+
     else :
         if architecture == "ia32" :
             architecture = "i686"
         elif architecture == "amd64" :
             architecture = "x86_64"
-        cmtconfig = "-".join( [architecture, platformtype, compiler, "opt"] )
-        if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
-            if architecture in arch_runtime_compatiblity["ia32"] :
-                architecture = "ia32"
-            elif architecture == "x86_64" :
-                architecture = "amd64"
-            cmtconfig = "_".join( [platformtype, architecture, compiler] )
+        if compiler :
+            cmtconfig = "-".join( [architecture, platformtype, compiler, "opt"] )
+            if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
+                if architecture in arch_runtime_compatiblity["ia32"] :
+                    architecture = "ia32"
+                elif architecture == "x86_64" :
+                    architecture = "amd64"
+                cmtconfig = "_".join( [platformtype, architecture, compiler] )
+        else :
+            cmtconfig = "-".join( [architecture, platformtype, "opt"] )
+            if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
+                if architecture in arch_runtime_compatiblity["ia32"] :
+                    architecture = "ia32"
+                elif architecture == "x86_64" :
+                    architecture = "amd64"
+                cmtconfig = "_".join( [platformtype, architecture] )
+
 
     if debug :
         cmtconfig = getBinaryDbg( cmtconfig )
@@ -125,12 +151,15 @@ def getConfig( architecture, platformtype, compiler, debug = False ):
     return cmtconfig
 
 # officially supported binaries
-binary_opt_list = ["slc3_ia32_gcc323",
-                   "slc4_ia32_gcc34", "slc4_amd64_gcc34",
-                   "x86_64-slc5-gcc43-opt",
-                   "win32_vc71"]
+binary_opt_list = ["slc4_ia32_gcc34", "slc4_amd64_gcc34",
+                   "x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
+                   "x86_64-slc5-gcc46-opt", "i686-slc5-gcc46-opt",
+                   "win32_vc71", "i686-winxp-vc9-opt",
+                   "x86_64-slc5-icc11-opt", "i686-slc5-icc11-opt",
+                   "x86_64-slc6-gcc46-opt", "i686-slc6-gcc46-opt" ]
 # future possible supported binaries
-extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
+extra_binary_opt_list = ["slc3_ia32_gcc323",
+                         "x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-slc5-gcc43-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
                          "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
@@ -141,6 +170,50 @@ extra_binary_dbg_list = [ getBinaryDbg( x ) for x in extra_binary_opt_list ]
 binary_list = binary_opt_list + binary_dbg_list
 extra_binary_list = extra_binary_opt_list + extra_binary_dbg_list
 
+
+def pathBinaryMatch( path, cmtconfig ):
+    """ returns True if the path belong to the cmtconfig distribution
+    @param path: file/path to be tested
+    @param cmtconfig: target cmtconfig
+    """
+    selected = False
+    log = logging.getLogger()
+    if cmtconfig not in binary_list :
+        log.error( "the value of CMTCONFIG %s is not supported" % cmtconfig )
+    else :
+        match_str = "%s" % cmtconfig
+        if isOldStyleBinary( cmtconfig ) and isBinaryOpt( cmtconfig ):
+            match_str = "%s(?!_dbg)" % cmtconfig
+        cfg_match = re.compile( match_str )
+        if cfg_match.search( path ) :
+            selected = True
+    return selected
+
+def pathSharedMatch( path, cmtconfig = None ):
+    """ select path with are not part of a binary distribution
+    @param path: file/dir path to be tested
+    @param cmtconfig: optional parameter to exclude specific files for a given cmtconfig
+    """
+    selected = True
+    for b in binary_list :
+        if pathBinaryMatch( path, b ) :
+            selected = False
+            break
+    return selected
+
+def pathMatch( path, cmtconfig, shared = False ):
+    """
+    return True if the path belong to the CMTCONFIG.
+    """
+    selected = False
+    if not shared :
+        selected = pathBinaryMatch( path, cmtconfig )
+    else :
+        selected = pathSharedMatch( path, cmtconfig )
+    return selected
+
+def pathFilter( pathlist, cmtconfig, shared = False ):
+    return [ p for p in pathlist if pathMatch( p, cmtconfig, shared ) ]
 
 # supported shells
 supported_shells = ["csh", "sh", "bat"]
@@ -166,12 +239,21 @@ linux_flavour_aliases = {
                          "ml"   : ["Mandriva Linux"]
                         }
 
+lsb_flavour_aliases = {
+                         "sl"   : ["ScientificSL"],
+                         "slc"  : ["ScientificCERNSLC"],
+                         "fc"   : ["Fedora", "Fedora Core"],
+                         "co"   : ["CentOS"]
+                        }
+
 flavor_runtime_compatibility = {
+                                "slc6"  : ["slc6", "slc5"],
                                 "slc5"  : ["slc5", "slc4"],
                                 "slc4"  : ["slc4", "slc3"],
                                 "slc3"  : ["slc3"],
                                 "rh73"  : ["rh73"],
                                 "win32" : ["win32"],
+                                "win64" : ["win64"],
                                 "osx105": ["osx105"],
                                 "osx106": ["osx105", "osx106"]
                                 }
@@ -188,26 +270,33 @@ arch_runtime_compatiblity = {
                                 }
 
 flavor_runtime_equivalence = {
-                              "slc5"  : ["slc5", "co5", "rhel5", "ub9", "fc12", "fc11", "fc10"],
+                              "slc6"  : ["slc6"],
+                              "slc5"  : ["slc5", "co5", "rhel5", "ub9", "fc13", "fc12", "fc11", "fc10"],
                               "slc4"  : ["slc4", "co4", "rhel4", "deb4"],
                               "slc3"  : ["slc3", "suse90", "suse100"],
                               "rh73"  : ["rh73", "suse80", "suse81", "suse82", "suse83"],
                               "win32" : ["win32"],
+                              "win64" : ["win64"],
                               "osx105": ["osx105"],
                               "osx106": ["osx106"]
                              }
 
 supported_compilers = {
-                       "slc5"   : ["gcc43"],
+                       "slc6"   : ["gcc46", "gcc45", "gcc44"],
+                       "slc5"   : ["gcc43", "gcc46", "gcc45", "icc11"] ,
                        "slc4"   : ["gcc34"],
                        "slc3"   : ["gcc323"],
-                       "win32"  : ["vc71"],
+                       "win32"  : ["vc71", "vc9"],
+                       "win64"  : ["vc71", "vc9"],
                        "osx104" : ["gcc40"],
                        "osx105" : ["gcc401"],
                        "osx106" : ["gcc42"]
                        }
 class NativeMachine:
     def __init__( self ):
+        """
+        constructor
+        """
         self._arch = None
         self._ostype = None
         self._machine = None
@@ -215,7 +304,13 @@ class NativeMachine:
         self._osversion = None
         self._compversion = None
         self._compiler = None
-        self._sysinfo = platform.uname()
+        self._sysinfo = None
+        self._lsb_distributor_id = None
+        self._lsb_description = None
+        self._lsb_release = None
+        self._lsb_codename = None
+        if hasattr( platform, "uname" ) :
+            self._sysinfo = platform.uname()
         if sys.platform == "win32" :
             self._arch = "32"
             self._ostype = "Windows"
@@ -301,6 +396,11 @@ class NativeMachine:
         return self._osflavor
 
     def OSVersion( self, position = None, teststring = None ):
+        """
+        returns version of the OS up to position
+        @param position: last position of version (no included)
+        @param teststring: test entry
+        """
         if not self._osversion :
             if self._ostype == "Windows" :
                 self._osversion = self._sysinfo[3]
@@ -332,21 +432,31 @@ class NativeMachine:
 
         return osver
     def nativeCompilerVersion( self, position = None ):
+        """
+        return the native compiler version
+        @param position: if not None returns up to the nth position. ie for gcc 3.4.5 with
+        position=2, it returns 3.4
+        """
         if not self._compversion :
             if self._ostype == "Windows" :
-                self._compversion = "vc71"
+                self._compversion = "vc9"
             else :
-                compstr = " ".join( os.popen( "g++ --version" ).readlines() )[:-1]
-                vmatch = re.compile( "\ +(\d+(?:\.\d+)*)" )
-                m = vmatch.search( compstr )
-                if m :
-                    self._compversion = m.group( 1 )
-
+                if filter( os.path.exists, [os.path.join( d, "g++" )
+                                           for d in os.environ["PATH"].split( os.pathsep )] ):
+                    compstr = " ".join( os.popen( "g++ --version" ).readlines() )[:-1]
+                    vmatch = re.compile( "\ +(\d+(?:\.\d+)*)" )
+                    m = vmatch.search( compstr )
+                    if m :
+                        self._compversion = m.group( 1 )
+                else:
+                    self._compversion = None
         ncv = self._compversion
 
         if position :
-            ncv = ".".join( self._compversion.split( "." )[:position] )
-
+            try :
+                ncv = ".".join( self._compversion.split( "." )[:position] )
+            except AttributeError:
+                ncv = None
         return ncv
 
     def nativeCompiler( self ):
@@ -354,12 +464,15 @@ class NativeMachine:
             if self._ostype == "Windows" :
                 self._compiler = self.nativeCompilerVersion()
             else :
-                cvers = [int( c ) for c in self.nativeCompilerVersion( position = 2 ).split( "." )]
-                self._compiler = "gcc%d%d" % ( cvers[0], cvers[1] )
-                if cvers[0] == 3 and cvers[1] < 4 :
-                    self._compiler = "gcc%s" % self.nativeCompilerVersion( position = 3 ).replace( ".", "" )
-                if self._ostype == "Darwin" and self.OSVersion( position = 2 ) == "10.5" :
-                    self._compiler = "gcc%s" % self.nativeCompilerVersion( position = 3 ).replace( ".", "" )
+                try :
+                    cvers = [int( c ) for c in self.nativeCompilerVersion( position = 2 ).split( "." )]
+                    self._compiler = "gcc%d%d" % ( cvers[0], cvers[1] )
+                    if cvers[0] == 3 and cvers[1] < 4 :
+                        self._compiler = "gcc%s" % self.nativeCompilerVersion( position = 3 ).replace( ".", "" )
+                    if self._ostype == "Darwin" and self.OSVersion( position = 2 ) == "10.5" :
+                        self._compiler = "gcc%s" % self.nativeCompilerVersion( position = 3 ).replace( ".", "" )
+                except :
+                    self._compiler = None
         return self._compiler
     # CMT derived informations
     def CMTArchitecture( self ):
@@ -427,7 +540,14 @@ class NativeMachine:
         if equiv in flavor_runtime_compatibility :
             for f in flavor_runtime_compatibility[equiv] :
                 for m in arch_runtime_compatiblity[machine] :
-                    for c in supported_compilers[f] :
+                    allcomp = []
+                    if f in supported_compilers :
+                        allcomp += supported_compilers[f]
+                    # add the native compiler
+                    nc = self.nativeCompiler()
+                    if nc :
+                        allcomp.append( nc )
+                    for c in allcomp :
                         n = getConfig( m, f, c, debug = False )
                         if n not in compatibles :
                             compatibles.append( n )
@@ -439,7 +559,11 @@ class NativeMachine:
         return compatibles
 
     def CMTSupportedConfig( self, debug = False ):
-        """ returns the list of supported CMT configs among the compatible ones"""
+        """
+        returns the list of supported CMT configs among the compatible ones. This
+        means the ones which are shipped and usable on a local site.
+        @param debug: if True returns also the debug configs. Otherwise only the opt ones.
+        """
         compatibles = self.CMTCompatibleConfig( debug )
         supported = []
         for c in compatibles :
@@ -450,6 +574,7 @@ class NativeMachine:
         """
         Returns the native configuration if possible. Guess also the compiler
         on linux platforms
+        @param debug: if True returns also the debug configs. Otherwise only the opt ones.
         """
         comp = self.nativeCompiler()
         mach = self.machine()
@@ -457,4 +582,153 @@ class NativeMachine:
         natconf = getConfig( architecture = mach, platformtype = osflav,
                             compiler = comp, debug = debug )
         return natconf
+    def DiracPlatform( self ):
+        """
+        return Dirac-style platform
+        """
+        platformlist = [ platform.system(), platform.machine() ]
+        if self.OSType() == "Linux" :
+            # get version of highest libc installed
+            if self.arch() == "64":
+                lib = '/lib64'
+            else:
+                lib = '/lib'
+            libs = []
+            for l in os.listdir( lib ):
+                if l.find( 'libc-' ) == 0 or l.find( 'libc.so' ) == 0 :
+                    libs.append( os.path.join( lib, l ) )
+            libs.sort()
+            platformlist.append( '-'.join( platform.libc_ver( libs[-1] ) ) )
+        elif self.OSType() == "Darwin" :
+            platformlist.append( '.'.join( platform.mac_ver()[0].split( "." )[:2] ) )
+        elif self.OSType() == "Windows" :
+            platformlist.append( platform.win32_ver()[0] )
+        else :
+            platformlist.append( platform.release() )
+
+
+        platformstr = "_".join( platformlist )
+        return platformstr
+    def numberOfCPUs( self ):
+        """ Number of virtual or physical CPUs on this system, i.e.
+        user/real as output by time(1) when called with an optimally scaling userspace-only program"""
+        res = 1
+        # Python 2.6+
+        try:
+            import multiprocessing
+            return multiprocessing.cpu_count()
+        except ( ImportError, NotImplementedError ):
+            pass
+
+        # POSIX
+        try:
+            res = int( os.sysconf( 'SC_NPROCESSORS_ONLN' ) )
+
+            if res > 0:
+                return res
+        except ( AttributeError, ValueError ):
+            pass
+
+        # Windows
+        try:
+            res = int( os.environ['NUMBER_OF_PROCESSORS'] )
+
+            if res > 0:
+                return res
+        except ( KeyError, ValueError ):
+            pass
+        # BSD
+        try:
+            import subprocess
+            sysctl = subprocess.Popen( ['sysctl', '-n', 'hw.ncpu'], stdout = subprocess.PIPE )
+            scStdout = sysctl.communicate()[0]
+            res = int( scStdout )
+
+            if res > 0:
+                return res
+        except ( OSError, ValueError, ImportError ):
+            pass
+
+        # Linux
+        try:
+            res = open( '/proc/cpuinfo' ).read().count( 'processor\t:' )
+
+            if res > 0:
+                return res
+        except IOError:
+            pass
+
+        # Solaris
+        try:
+            pseudoDevices = os.listdir( '/devices/pseudo/' )
+            expr = re.compile( '^cpuid@[0-9]+$' )
+
+            res = 0
+            for pd in pseudoDevices:
+                if expr.match( pd ) != None:
+                    res += 1
+
+            if res > 0:
+                return res
+        except OSError:
+            pass
+
+        # Other UNIXes (heuristic)
+        try:
+            try:
+                dmesg = open( '/var/run/dmesg.boot' ).read()
+            except IOError:
+                dmesgProcess = subprocess.Popen( ['dmesg'], stdout = subprocess.PIPE )
+                dmesg = dmesgProcess.communicate()[0]
+
+            res = 0
+            while '\ncpu' + str( res ) + ':' in dmesg:
+                res += 1
+
+            if res > 0:
+                return res
+        except OSError:
+            pass
+
+        return res
+    def LSBDistributorID( self ):
+        """
+        wrapper around lsb_release -i
+        """
+        if not self._lsb_distributor_id and self.OSType() == "Linux" :
+            if os.path.exists( "/usr/bin/lsb_release" ) :
+                lsbstr = os.popen( "lsb_release -i" ).read()[:-1]
+                if lsbstr :
+                    self._lsb_distributor_id = lsbstr.split( ":" )[-1].strip()
+        return self._lsb_distributor_id
+    def LSBDescription( self ):
+        """
+        wrapper around lsb_release -d
+        """
+        if not self._lsb_description and self.OSType() == "Linux" :
+            if os.path.exists( "/usr/bin/lsb_release" ) :
+                lsbstr = os.popen( "lsb_release -d" ).read()[:-1]
+                if lsbstr :
+                    self._lsb_description = lsbstr.split( ":" )[-1].strip()
+        return self._lsb_description
+    def LSBRelease( self ):
+        """
+        wrapper around lsb_release -r
+        """
+        if not self._lsb_release and self.OSType() == "Linux" :
+            if os.path.exists( "/usr/bin/lsb_release" ) :
+                lsbstr = os.popen( "lsb_release -r" ).read()[:-1]
+                if lsbstr :
+                    self._lsb_release = lsbstr.split( ":" )[-1].strip()
+        return self._lsb_release
+    def LSBCodeName( self ):
+        """
+        wrapper around lsb_release -c
+        """
+        if not self._lsb_codename and self.OSType() == "Linux" :
+            if os.path.exists( "/usr/bin/lsb_release" ) :
+                lsbstr = os.popen( "lsb_release -c" ).read()[:-1]
+                if lsbstr :
+                    self._lsb_codename = lsbstr.split( ":" )[-1].strip()
+        return self._lsb_codename
 
