@@ -1,5 +1,7 @@
 """ General LHCb platform configuration """
 
+__RCSID__ = "$Id$"
+
 import sys, platform, os
 import re
 import logging
