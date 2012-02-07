@@ -92,6 +92,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             if fileDict['LFN'] in processedLfns:
               self.files.remove( fileDict )
       else:
+        # Here one should check descendants of children
         self.__logVerbose( "No input files have already been processed" )
 
   def _RAWShares( self ):
@@ -852,8 +853,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Now select the secondary copies
     # Missing secondary copies, make a list of candidates, without already existing SEs
-    candidateSEs = [se for se in mandatorySEs]
-    candidateSEs += [se for se in existingSEs if se not in candidateSEs]
+    #candidateSEs = [se for se in mandatorySEs]
+    #candidateSEs += [se for se in existingSEs if se not in candidateSEs]
+    candidateSEs = [se for se in existingSEs if se not in targetSEs+archive1SEs+archive2SEs]
+    candidateSEs += [se for se in mandatorySEs if se not in candidateSEs]
     candidateSEs += [se for se in randomize( secondaryActiveSEs ) if se not in candidateSEs]
     ( ses, targetSites ) = self.__selectSEs( candidateSEs, numberOfCopies, targetSites )
     self.__logVerbose( "SecondarySEs: %s" % ses )
