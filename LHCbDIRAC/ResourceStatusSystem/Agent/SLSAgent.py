@@ -666,8 +666,23 @@ class SLSAgent(AgentModule):
     return S_OK()
 
   def execute(self):
-    SpaceTokenOccupancyTest(self)
-    DIRACTest(self)
-    LOGSETest(self)
-    CondDBTest(self)
+    
+    # Future me, forgive me for this. TO BE Fixed.
+    try:
+      SpaceTokenOccupancyTest(self)
+    except:
+      pass
+    try:  
+      DIRACTest(self)
+    except:
+      pass
+    try:
+      LOGSETest(self)
+    except:
+      pass
+    try:  
+      CondDBTest(self)
+    except:
+      pass
+      
     return S_OK()
