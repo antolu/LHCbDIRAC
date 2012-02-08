@@ -166,7 +166,7 @@ class BookkeepingWatchAgent( AgentModule ):
             if not result['OK']:
               self.__logWarn( "[%d] Failed to add lfns to transformation" % transID, result['Message'] )
             else:
-              printFailed = [self.__logWarn( "[%d] Failed to add %s to transformation" % ( transID, lfn ), error ) for (lfn,error) in res['Value']['Failed'].items()]
+              printFailed = [self.__logWarn( "[%d] Failed to add %s to transformation" % ( transID, lfn ), error ) for (lfn,error) in result['Value']['Failed'].items()]
               addedLfns = [lfn for (lfn,status) in result['Value']['Successful'].items() if status == 'Added']
               if addedLfns:
                 self.__logInfo( "[%d] Added %d files to transformation %d, now including run information" % ( transID, len( addedLfns ), transID ) )
