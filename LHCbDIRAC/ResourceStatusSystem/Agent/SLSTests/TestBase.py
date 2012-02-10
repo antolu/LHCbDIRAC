@@ -145,7 +145,7 @@ class TestBase( threading.Thread ):
       for attr in d.get( 'attrs', [] ):
         el.setAttribute( attr[0], attr[1] )
         
-      el = self._writeXml( doc, el, d.get( 'nodes', None ) )
+      el = self._writeXml2( doc, el, d.get( 'nodes', None ) )
       topElement.appendChild( el )
     
     return topElement  
