@@ -43,7 +43,7 @@ validationFlag = '{{validationFlag#GENERAL: Set True to create validation produc
 simulationFlag = '{{simulationFlag#GENERAL: Input Data is from simulation#False}}'
 
 # workflow params for all productions
-sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. slc4_ia32_gcc34#x86_64-slc5-gcc43-opt}}'
+sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
 useOracle = '{{useOracle#GENERAL: Use Oracle#False}}'
 
 # workflow params for all productions
