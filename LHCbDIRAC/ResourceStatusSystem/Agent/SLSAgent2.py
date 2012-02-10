@@ -47,7 +47,7 @@ class SLSAgent2( AgentModule ):
           self.tModules[ tName ] = { 'mod' : testMod, 'config' : modConfig }
           
         except ImportError:
-          gLogger.warn( 'Error loading test module %s' % _tName )          
+          gLogger.warn( 'Error loading test module %s' % tName )          
       
       self.testQueue  = Queue.Queue()
       self.threadPool = ThreadPool( _maxThreads, _maxThreads )
