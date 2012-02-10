@@ -13,11 +13,7 @@ import os, time
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
-#from DIRAC.Core.Security.ProxyInfo import getProxyInfo
-from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 
-from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class StepAccounting( ModuleBase ):
@@ -28,61 +24,75 @@ class StepAccounting( ModuleBase ):
     super( StepAccounting, self ).__init__( self.log )
 
     self.version = __RCSID__
-#    self.STEP_NUMBER = None
-    self.STEP_TYPE = None
 
-    self.user = ''
-    self.group = ''
-    self.appStatus = 'Unknown'
-    self.parameters = []
-
-    self.stepDictionary = {}
-
-    if self.workflow_commons.has_key( 'AccountingClient' ):
-      self.accounting = self.workflow_commons['AccountingClient']
-      self.globalAccounting = True
-    else:
-      self.accounting = DataStoreClient()
-      self.globalAccounting = False
+#    if self.workflow_commons.has_key( 'AccountingClient' ):
+#      self.accounting = self.workflow_commons['AccountingClient']
+#      self.globalAccounting = True
+#    else:
+#      self.accounting = DataStoreClient()
+#      self.globalAccounting = False
 
   ########################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None ):
+               step_number = None, step_id = None,
+               js = None, xf_o = None ):
 
     try:
       super( StepAccounting, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
                                              workflowStatus, stepStatus,
                                              wf_commons, step_commons, step_number, step_id )
 
-
-      if not self._enableModule():
+      # Check if the step is worth accounting
+      if not self.step_commons.has_key( 'applicationName' ):
+        self.log.info( 'Not an application step: it will not be accounted' )
         return S_OK()
+
+      if not js:
+        from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
+        jobStep = JobStep()
+      else:
+        jobStep = js
+
+      if not xf_o:
+        self.xf_o = self.step_commons['XMLSummary_o']
+      else:
+        self.xf_o = xf_o
 
       self._resolveInputVariables()
 
-  #    sname = 'Step_%d' % int( self.step_commons['STEP_NUMBER'] )
-#      result = getProxyInfo()
-#      if result['OK']:
-#        proxyDict = result[ 'Value' ]
-#        if 'group' in proxyDict:
-#          self.group = proxyDict[ 'group' ]
-#        else:
-#          self.group = 'unknown'
-#        if 'username' in proxyDict:
-#          self.user = proxyDict[ 'username' ]
-#        else:
-#          self.user = 'unknown'
+      dataDict = {'JobGroup': str( self.production_id ),
+                  'RunNumber': self.runNumber,
+                  'EventType': self.eventType,
+                  'ProcessingType': self.stepProcPass, #this is the processing pass of the step
+                  'ProcessingStep': self.BKstepID, #the step ID
+                  'Site': DIRAC.siteName(),
+                  'FinalStepState': self.stepStat,
 
-      status = 'Done'
+                  'CPUTime': self.CPUTime,
+                  'NormCPUTime': self.normCPUTime,
+                  'ExecTime': self.execTime,
+                  'InputData': len( self.input_data ),
+                  'OutputData': len( self.output_data ),
+                  'InputEvents': self.xf_o.inputEventsTotal,
+                  'OutputEvents': self.xf_o.outputEventsTotal
+                  }
 
-      # This is the final step module. Its output status is the status of the whole step
-      if self.appStatus == "Failed":
-        return S_ERROR( 'Application failed' )
-      if status == "Failed":
-        return S_ERROR( 'Workflow failure' )
+      jobStep.setValuesFromDict( dataDict )
+
+      if not self._enableModule():
+        self.log.info( 'Not enabled, would have accounted for %s' % dataDict )
+        return S_OK()
+
+      result = jobStep.commit()
+      if not result['OK']:
+        # Failover request
+        if self.workflow_commons.has_key( 'Request' ):
+          from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
+          request = self.workflow_commons['Request']
+          request.addSubRequest( DISETSubRequest( result['rpStub'] ).getDictionary(), 'accounting' )
 
       return S_OK()
 
@@ -93,9 +103,7 @@ class StepAccounting( ModuleBase ):
     finally:
       super( StepAccounting, self ).finalize( self.version )
 
-
   ########################################################################
-
 
   def _resolveInputVariables( self ):
     """ By convention all workflow parameters are resolved here.
@@ -103,46 +111,23 @@ class StepAccounting( ModuleBase ):
 
     super( StepAccounting, self )._resolveInputVariables()
 
-#    buono per FinalState?
-    if self.step_commons.has_key( 'Status' ):
-      if self.step_commons['Status'] == "Failed":
-        status = 'Failed'
+    if self.stepStatus['OK']:
+      self.stepStat = 'Done'
+    else:
+      self.stepStat = 'Failed'
 
-    # Check if the step is worth accounting
-    sname = 'Step_%d' % int( self.step_number )
-    do_accounting = True
-    if not self.step_commons.has_key( 'applicationName' ):
-      do_accounting = False
+    self.BKstepID = self.step_commons['BKStepID']
+    self.stepProcPass = self.step_commons['StepProcPass']
 
-    if do_accounting:
-      appName = self.step_commons['applicationName']
-      appVersion = "Unknown"
-      if self.step_commons.has_key( 'applicationVersion' ):
-        appVersion = self.step_commons['applicationVersion']
-      eventType = "Unknown"
-      if self.step_commons.has_key( 'eventType' ):
-        eventType = self.step_commons['eventType']
-      self.appStatus = "Unknown"
+    self.input_data = self.xf_o.inputFileStats.keys()
+    self.output_data = self.xf_o.outputFileStats.keys()
 
-      # ApplicationStatus never provided
-      if self.step_commons.has_key( 'ApplicationStatus' ):
-        self.appStatus = self.step_commons['ApplicationStatus']
+    #FIXME: put something!
+    self.runNumber = 'Unknown'
 
-      self.stepDictionary['ApplicationName'] = appName
-      self.stepDictionary['ApplicationVersion'] = appVersion
-      if self.appStatus != "Unknown":
-        self.stepDictionary['FinalState'] = self.appStatus
-      else:
-        self.stepDictionary['FinalState'] = status
-      self.stepDictionary['EventType'] = eventType
-      self.stepDictionary['JobGroup'] = self.production_id
-      self.stepDictionary['User'] = self.user
-      self.stepDictionary['Group'] = self.group
-      self.stepDictionary['Site'] = DIRAC.siteName()
-
-#    che me ne faccio?
-#    self.parameters.append((jobID,sname+' Status',status))
-#    self.parameters.append((jobID,sname+' Type',self.STEP_TYPE))
+    self.eventType = "Unknown"
+    if self.step_commons.has_key( 'eventType' ):
+      self.eventType = self.step_commons['eventType']
 
     ########################################################################
     # Timing
@@ -158,40 +143,8 @@ class StepAccounting( ModuleBase ):
     if cpuNormFactor:
       normcpu = cputime * cpuNormFactor
 
-    self.parameters.append( ( self.jobID, sname + ' CPUTime', cputime ) )
-    self.parameters.append( ( self.jobID, sname + ' NormCPUTime', normcpu ) )
-    self.parameters.append( ( self.jobID, sname + ' ExecutionTime', exectime ) )
-
-    if do_accounting:
-      self.stepDictionary['CPUTime'] = cputime
-      self.stepDictionary['NormCPUTime'] = normcpu
-      self.stepDictionary['ExecTime'] = exectime
-
-    ########################################################################
-    # Data
-
-    # Assume that the application module managed to define these values
-    for item in ['InputData', 'OutputData', 'InputEvents', 'OutputEvents']:
-      if self.step_commons.has_key( item ):
-        self.parameters.append( ( self.jobID, sname + ' ' + item, self.step_commons[item] ) )
-        if do_accounting:
-          self.stepDictionary[item] = self.step_commons[item]
-
-    ########################################################################
-    # Data collected, send it now
-    if do_accounting:
-      stepAccount = JobStep()
-      stepAccount.setValuesFromDict( self.stepDictionary )
-      result = stepAccount.commit()
-      if not result['OK']:
-        # Failover request
-        if self.workflow_commons.has_key( 'Request' ):
-          request = self.workflow_commons['Request']
-          request.addSubRequest( DISETSubRequest( result['rpStub'] ).getDictionary(), 'accounting' )
-
-    # Send step parameters
-    if self.workflow_commons.has_key( 'JobReport' ):
-      jobReport = self.workflow_commons['JobReport']
-      result = jobReport.setJobParameters( self.parameters )
+    self.CPUTime = cputime
+    self.normCPUTime = normcpu
+    self.execTime = exectime
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

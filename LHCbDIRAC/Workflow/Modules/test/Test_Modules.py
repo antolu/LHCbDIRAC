@@ -77,7 +77,13 @@ class ModulesTestCase( unittest.TestCase ):
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
 
     self.xf_o_mock = Mock()
+    self.xf_o_mock.inputFileStats = {'a':1, 'b':2}
+    self.xf_o_mock.outputFileStats = {'a':1, 'b':2}
     self.xf_o_mock.analyse.return_value = {'OK': True, 'Value': ''}
+
+    self.jobStep_mock = Mock()
+    self.jobStep_mock.commit.return_value = {'OK': True, 'Value': ''}
+    self.jobStep_mock.setValuesFromDict.return_value = {'OK': True, 'Value': ''}
 
     self.version = 'someVers'
     self.prod_id = '123'
@@ -109,7 +115,7 @@ class ModulesTestCase( unittest.TestCase ):
                        ]
     self.step_commons = {'applicationName':'someApp', 'applicationVersion':'v1r0',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
-                         'numberOfEvents':'100',
+                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
                                        'outputDataType':'bbb'}]}
     self.step_number = '321'
@@ -159,9 +165,9 @@ class ModulesTestCase( unittest.TestCase ):
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
     self.ujf = UserJobFinalization()
 
-#    from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
-#    self.sa = StepAccounting()
-#
+    from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
+    self.sa = StepAccounting()
+
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
     self.ulf = UploadLogFile()
 
@@ -641,25 +647,26 @@ class SendBookkeepingSuccess( ModulesTestCase ):
                                         wf_commons, self.step_commons,
                                         self.step_number, self.step_id, self.bkc_mock )['OK'] )
 
-    #TODO: make others cases tests!
+#############################################################################
+# StepAccounting.py
+#############################################################################
 
-##############################################################################
-## StepAccounting.py
-##############################################################################
-#
-#class StepAccountingSuccess( ModulesTestCase ):
-#
-#  #################################################
-#
-#  def test_execute( self ):
-#
-#    self.assertTrue( self.sa.execute() )
-#
-#    #TODO: make others cases tests!
-#
-##############################################################################
-## UploadLogFile.py
-##############################################################################
+class StepAccountingSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      self.assertTrue( self.sa.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                        self.workflowStatus, self.stepStatus,
+                                        wf_commons, self.step_commons,
+                                        self.step_number, self.step_id,
+                                        self.jobStep_mock, self.xf_o_mock )['OK'] )
+
+#############################################################################
+# UploadLogFile.py
+#############################################################################
 
 class UploadLogFileSuccess( ModulesTestCase ):
 
@@ -766,7 +773,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SendBookkeepingSuccess ) )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadOutputDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobFinalizationSuccess ) )

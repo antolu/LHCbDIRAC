@@ -204,7 +204,7 @@ class Production():
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
                    extraPackages = '', outputSE = None, histograms = False, overrideOpts = '', extraOpts = '',
                    appType = 'sim', condDBTag = 'global', ddDBTag = 'global',
-                   stepID = '', stepName = '', stepVisible = '' ):
+                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType can be sim / gen 
     """
@@ -232,7 +232,7 @@ class Production():
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
                                    histograms, firstEventNumber, {}, condDBTag, ddDBTag, '',
-                                   stepID, stepName, stepVisible )
+                                   stepID, stepName, stepVisible, stepPass )
     gaussStep.setValue( 'numberOfEventsInput', 0 )
     gaussStep.setValue( 'numberOfEventsOutput', 0 )
     gaussStep.setValue( 'generatorName', generatorName )
@@ -242,7 +242,7 @@ class Production():
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    outputSE = None, histograms = False, inputData = 'previousStep', overrideOpts = '',
                    extraOpts = '', extraOutputFile = [], condDBTag = 'global', ddDBTag = 'global',
-                   stepID = '', stepName = '', stepVisible = '' ):
+                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
         currently assumes input data type is sim
@@ -279,7 +279,8 @@ class Production():
                        firstEventNumber, extraOutput = extraOutputFile,
                        condDBTag = condDBTag, ddDBTag = ddDBTag,
                        outputAppendName = '',
-                       stepID = stepID, stepName = stepName, stepVisible = stepVisible )
+                       stepID = stepID, stepName = stepName, stepVisible = stepVisible,
+                       stepPass = stepPass )
 
   #############################################################################
 
@@ -287,7 +288,7 @@ class Production():
                     inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
                     overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
                     condDBTag = 'global', ddDBTag = 'global',
-                    stepID = '', stepName = '', stepVisible = '' ):
+                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst / sdst
         inputDataType is mdf / digi
@@ -335,7 +336,8 @@ class Production():
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
                        outputAppendName = '',
-                       stepID = stepID, stepName = stepName, stepVisible = stepVisible )
+                       stepID = stepID, stepName = stepName, stepVisible = stepVisible,
+                       stepPass = stepPass )
 
   #############################################################################
 
@@ -343,7 +345,7 @@ class Production():
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
                      overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
                      condDBTag = 'global', ddDBTag = 'global', extraOutput = [],
-                     stepID = '', stepName = '', stepVisible = '' ):
+                     stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
         inputDataType is dst / rdst / fetc / sdst 
@@ -402,7 +404,7 @@ class Production():
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                        extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
-                       stepID, stepName, stepVisible )
+                       stepID, stepName, stepVisible, stepPass )
 
   #############################################################################
 
@@ -410,7 +412,7 @@ class Production():
                    inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
                    overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
                    condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
-                   stepID = '', stepName = '', stepVisible = '' ):
+                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
     """
     eventType = self.__getEventType( eventType )
@@ -442,7 +444,8 @@ class Production():
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
                        outputAppendName = outputAppendName,
-                       stepID = stepID, stepName = stepName, stepVisible = stepVisible )
+                       stepID = stepID, stepName = stepName, stepVisible = stepVisible,
+                       stepPass = stepPass )
 
 
   #############################################################################
@@ -452,7 +455,7 @@ class Production():
                    inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
                    condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
                    extraOutput = [],
-                   stepID = '', stepName = '', stepVisible = '' ):
+                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
     """
@@ -482,7 +485,7 @@ class Production():
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
-                       stepID, stepName, stepVisible )
+                       stepID, stepName, stepVisible, stepPass )
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
@@ -564,7 +567,7 @@ class Production():
                      extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
                      histograms = False, firstEventNumber = 0, extraOutput = [],
                      condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
-                     stepID = 0, stepName = '', stepVisible = '' ):
+                     stepID = 0, stepName = '', stepVisible = '', stepPass = '' ):
     """Helper function.
     """
     if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
@@ -579,7 +582,14 @@ class Production():
                                                                                     'AnalyseLogFile',
                                                                                     'AnalyseXMLSummary',
                                                                                     'ErrorLogging',
-                                                                                    'BookkeepingReport'] )
+                                                                                    'BookkeepingReport',
+                                                                                    'StepAccounting'] )
+
+      #ErrorLogging is needed only for Gauss and Boole
+      if appName not in ( 'Gauss', 'Boole' ):
+        if 'ErrorLogging' in modulesNameList:
+          modulesNameList.remove( 'ErrorLogging' )
+
       #pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
@@ -603,6 +613,8 @@ class Production():
                         ['listoutput', 'list', [], 'StepOutputList'],
                         ['extraPackages', 'string', '', 'ExtraPackages'],
                         ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
+                        ['BKStepID', 'string', '', 'BKKStepID']
+                        ['StepProcPass', 'string', '', 'StepProcessingPass']
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -637,6 +649,8 @@ class Production():
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
                    ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
+                   ['BKStepID', str( stepID )],
+                   ['StepProcPass', stepPass]
                    ]
 
     if extraPackages:
