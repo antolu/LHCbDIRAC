@@ -57,9 +57,11 @@ class StepAccounting( ModuleBase ):
         jobStep = js
 
       if not xf_o:
-        self.xf_o = self.step_commons['XMLSummary_o']
-      else:
-        self.xf_o = xf_o
+        try:
+          xf_o = self.step_commons['XMLSummary_o']
+        except KeyError:
+          self.log.error( 'XML Summary object could not be found (not produced?), skipping the report' )
+          return S_OK()
 
       self._resolveInputVariables()
 
@@ -74,10 +76,10 @@ class StepAccounting( ModuleBase ):
                   'CPUTime': self.CPUTime,
                   'NormCPUTime': self.normCPUTime,
                   'ExecTime': self.execTime,
-                  'InputData': self.input_data,
-                  'OutputData': self.output_data,
-                  'InputEvents': self.xf_o.inputEventsTotal,
-                  'OutputEvents': self.xf_o.outputEventsTotal
+                  'InputData': sum( xf_o.inputFileStats.values() ),
+                  'OutputData': sum( xf_o.outputFileStats.values() ),
+                  'InputEvents': xf_o.inputEventsTotal,
+                  'OutputEvents': xf_o.outputEventsTotal
                   }
 
       jobStep.setValuesFromDict( dataDict )
@@ -118,9 +120,6 @@ class StepAccounting( ModuleBase ):
 
     self.BKstepID = self.step_commons['BKStepID']
     self.stepProcPass = self.step_commons['StepProcPass']
-
-    self.input_data = sum( self.xf_o.inputFileStats.values() )
-    self.output_data = sum( self.xf_o.outputFileStats.values() )
 
     self.runNumber = 'Unknown'
     if self.workflow_commons.has_key( 'runNumber' ):

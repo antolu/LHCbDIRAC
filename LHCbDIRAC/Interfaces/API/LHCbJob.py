@@ -1157,8 +1157,10 @@ class LHCbJob( Job ):
 
     if len( runNumbers ) > 1:
       runNumber = 'Multiple'
-    else:
+    elif len( runNumbers ) == 1:
       runNumber = str( runNumbers[0] )
+    else:
+      runNumber = 'Unknown'
 
     self._addParameter( self.workflow, 'runNumber', 'String', runNumber, 'Input run rumber' )
 
