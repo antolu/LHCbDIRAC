@@ -28,6 +28,9 @@ class SLSAgent2( AgentModule ):
       
       # Load test modules 
       for tName in _tNames:
+
+        if tName in [ 'test1', 'test2' ]:
+          continue
         
         try:
       
@@ -37,7 +40,7 @@ class SLSAgent2( AgentModule ):
           else:
             modConfig = modConfig[ 'Value' ]
            
-          _modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s' % tName
+          _modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s.%s' % ( tName, tName )
           testMod  = Utils.voimport( _modPath )
           
           self.tModules[ tName ] = { 'mod' : testMod, 'config' : modConfig }
