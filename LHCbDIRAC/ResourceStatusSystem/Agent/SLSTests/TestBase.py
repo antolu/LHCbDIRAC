@@ -105,22 +105,22 @@ class TestBase( threading.Thread ):
 #    el.setAttribute( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
 #    d.appendChild( el )
     
-    XML_STUB = { 
-                'serviceupdate' : { 
-                             'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
-                                         ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
-                                         ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-                                       ]
-                                  } 
-                } 
+#    XML_STUB = { 
+#                'serviceupdate' : { 
+#                             'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
+#                                         ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
+#                                         ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
+#                                       ]
+#                                  } 
+#                } 
     
     XML_STUB2 = [ { 
                   'tag'   : 'serviceupdate',
                   'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
                               ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
                               ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-                            ]
-                  }
+                            ],
+                  'nodes' : xmlList }
                 ]
     
     
