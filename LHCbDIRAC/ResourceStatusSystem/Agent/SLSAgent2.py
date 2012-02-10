@@ -40,7 +40,7 @@ class SLSAgent2( AgentModule ):
           else:
             modConfig = modConfig[ 'Value' ]
            
-          _modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s.%s' % ( tName, tName )
+          _modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s' % ( tName )
           testMod  = Utils.voimport( _modPath )
           
           self.tModules[ tName ] = { 'mod' : testMod, 'config' : modConfig }
@@ -77,7 +77,7 @@ class SLSAgent2( AgentModule ):
       try:
         
         testConfig = tModule.get( 'config', {} )
-        testModule = tModule[ 'mod' ]
+        testModule = tModule[ 'mod' ].TestModule
         
         cTest = testModule( tName, testConfig )
         self.tests.append( [ tName, cTest ] )
