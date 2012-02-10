@@ -3,7 +3,7 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC import gLogger
+from DIRAC import gLogger, gConfig
 
 from xml.dom.minidom import Document
 
@@ -13,14 +13,48 @@ class TestBase( threading.Thread ):
   '''
     Base class for all SLS tests.
   '''
-  def __init__( self, testName, testConfig ):
+  def __init__( self, testName, testPath ):
     # Initialize the Threading
     threading.Thread.__init__( self )
     
+    # Get fresh data from the CS
+    self.testConfig = self.getConfig( testPath )
+    
+    timeout = 600
+    
     # If not timeout provided, the default is 600 secs.
-    timeout   = testConfig.get( 'timeout', 600 ) 
+    #timeout   = testConfig.get( 'timeout', 600 ) 
     self.t    = threading.Timer( timeout, self.nuke )
     self.name = testName 
+  
+  def getConfig( self, path ):
+    
+    try:
+      
+      modConfig = gConfig.getOptionsDict( testPath )
+      if not modConfig[ 'OK' ]:
+         gLogger.exception( 'Error loading "%s".\n %s' % ( testPath, modConfig[ 'Message' ] ) )
+         self.nuke()
+      modConfig = modConfig[ 'Value' ]
+      
+      for section in gConfig.getSections( testPath ):
+        
+        sectionPath   = '%s/%s' % ( testPath, section )
+        sectionConfig = gConfig.getOptionsDict( sectionPath )
+        
+        if not sectionConfig[ 'OK' ]:
+          gLogger.exception( 'Error loading "%s".\n %s' % ( sectionPath, sectionConfig[ 'Message' ] ) )
+          self.nuke()
+        sectionConfig = sectionConfig[ 'Value' ]
+          
+        modConfig[ section ] = sectionConfig
+        
+      return modConfig  
+          
+    except Exception, e:
+      
+      gLogger.exception( 'Exception loading configuration.\n %s' % e )
+      self.nuke()
    
   def run( self ):
     
