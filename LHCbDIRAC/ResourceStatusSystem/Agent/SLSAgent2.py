@@ -30,17 +30,11 @@ class SLSAgent2( AgentModule ):
       for tName in _tNames:
         
         try:
-      
-          modConfig = gConfig.getOptionsDict( '%s/%s' % ( _testPath, tName ) )
-          if not modConfig[ 'OK' ]:
-            modConfig = {}
-          else:
-            modConfig = modConfig[ 'Value' ]
            
           _modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s' % ( tName )
           testMod  = Utils.voimport( _modPath )
           
-          self.tModules[ tName ] = { 'mod' : testMod, 'config' : modConfig }
+          self.tModules[ tName ] = { 'mod' : testMod, 'path' : '%s/%s' % ( _testPath, tName ) }
           
           gLogger.info( '-> Loaded test module %s' % tName )
           
@@ -73,10 +67,7 @@ class SLSAgent2( AgentModule ):
       
       try:
         
-        testConfig = tModule.get( 'config', {} )
-        testModule = tModule[ 'mod' ].TestModule
-        
-        cTest = testModule( tName, testConfig )
+        cTest = tModule[ 'mod' ].TestModule( tName, tModule[ 'path' ] )
         self.tests.append( [ tName, cTest ] )
         cTest.start()
         del cTest    
