@@ -6,10 +6,7 @@ AGENT_NAME = 'ResourceStatus/SLSAgent2'
 
 from DIRAC                                import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Base.AgentModule          import AgentModule
-from DIRAC.Core.Utilities.ThreadPool      import ThreadPool
 from DIRAC.ResourceStatusSystem.Utilities import Utils
-
-import Queue
 
 class SLSAgent2( AgentModule ):
   '''
@@ -24,9 +21,8 @@ class SLSAgent2( AgentModule ):
     try:
     
       _testPath     = '%s/tests' % self.am_getModuleParam( 'section' )
-      _maxThreads   = self.am_getOption( 'maxThreadsInPool', 1 )
-      _tNames       = gConfig.getSections( _testPath, [] )
-      
+      _tNames       = gConfig.getSections( _testPath, [] ).get( 'Value', [] )
+    
       self.tModules = {}
       self.tests    = []
       
@@ -46,19 +42,11 @@ class SLSAgent2( AgentModule ):
           
           self.tModules[ tName ] = { 'mod' : testMod, 'config' : modConfig }
           
+          gLogger.info( '-> Loaded test module %s' % tName )
+          
         except ImportError:
           gLogger.warn( 'Error loading test module %s' % tName )          
-      
-      self.testQueue  = Queue.Queue()
-      self.threadPool = ThreadPool( _maxThreads, _maxThreads )
-    
-      if not self.threadPool:
-        self.log.error( 'Can not create Thread Pool' )
-        return S_ERROR( 'Can not create Thread Pool' )
-
-      for _i in xrange( _maxThreads ):
-        self.threadPool.generateJobAndQueueIt( self._executeTest, args = ( None, ) )
-    
+   
       return S_OK()
     
     except Exception, e:
@@ -112,24 +100,6 @@ class SLSAgent2( AgentModule ):
       test[1].nuke()
       
     return S_OK()      
-  
-################################################################################  
-  
-  def _executeTest( self, args ):
-    
-    while True:
-      
-      tModule = self.testQueue.get()
-      
-      testModule = tModule[ 'mod' ]
-      testConfig = tModule[ 'config' ]
-        
-      gLooger.info( 'Starting %s test' % ( testModule.__class__ ) )
-      try:
-        testModule( testConfig ).launch()
-      except Exception, e:
-        _msg = 'Error running %s, %s' % ( testModule.__class__, e )
-        gLogger.exception( _msg )    
   
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
