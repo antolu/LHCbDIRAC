@@ -28,9 +28,6 @@ class SLSAgent2( AgentModule ):
       
       # Load test modules 
       for tName in _tNames:
-
-        if tName in [ 'test1', 'test2' ]:
-          continue
         
         try:
       
@@ -85,7 +82,7 @@ class SLSAgent2( AgentModule ):
         del cTest    
         
       except Exception, e:
-        _msg = 'Error running %s, %s' % ( testModule.__class__, e )
+        _msg = 'Error running %s, %s' % ( tName, e )
         gLogger.exception( _msg )  
         
     return S_OK()        
