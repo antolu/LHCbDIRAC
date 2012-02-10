@@ -95,7 +95,9 @@ class SLSAgent2( AgentModule ):
         
       except Exception, e:
         _msg = 'Error running %s, %s' % ( testModule.__class__, e )
-        gLogger.exception( _msg )    
+        gLogger.exception( _msg )  
+        
+    return S_OK()        
         
   def finalize( self ):
     '''
