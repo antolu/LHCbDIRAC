@@ -20,6 +20,7 @@ class SLSAgent2( AgentModule ):
     
     try:
     
+      _workdir      = self.am_getWorkDirectory()
       _testPath     = '%s/tests' % self.am_getModuleParam( 'section' )
       _tNames       = gConfig.getSections( _testPath, [] ).get( 'Value', [] )
     
@@ -67,7 +68,7 @@ class SLSAgent2( AgentModule ):
       
       try:
         
-        cTest = tModule[ 'mod' ].TestModule( tName, tModule[ 'path' ] )
+        cTest = tModule[ 'mod' ].TestModule( tName, tModule[ 'path' ], _workdir )
         self.tests.append( [ tName, cTest ] )
         cTest.start()
         del cTest    
