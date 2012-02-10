@@ -74,8 +74,8 @@ class StepAccounting( ModuleBase ):
                   'CPUTime': self.CPUTime,
                   'NormCPUTime': self.normCPUTime,
                   'ExecTime': self.execTime,
-                  'InputData': len( self.input_data ),
-                  'OutputData': len( self.output_data ),
+                  'InputData': self.input_data,
+                  'OutputData': self.output_data,
                   'InputEvents': self.xf_o.inputEventsTotal,
                   'OutputEvents': self.xf_o.outputEventsTotal
                   }
@@ -119,8 +119,8 @@ class StepAccounting( ModuleBase ):
     self.BKstepID = self.step_commons['BKStepID']
     self.stepProcPass = self.step_commons['StepProcPass']
 
-    self.input_data = self.xf_o.inputFileStats.keys()
-    self.output_data = self.xf_o.outputFileStats.keys()
+    self.input_data = sum( self.xf_o.inputFileStats.values() )
+    self.output_data = sum( self.xf_o.outputFileStats.values() )
 
     #FIXME: put something!
     self.runNumber = 'Unknown'

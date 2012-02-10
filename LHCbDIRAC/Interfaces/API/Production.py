@@ -585,11 +585,6 @@ class Production():
                                                                                     'BookkeepingReport',
                                                                                     'StepAccounting'] )
 
-      #ErrorLogging is needed only for Gauss and Boole
-      if appName not in ( 'Gauss', 'Boole' ):
-        if 'ErrorLogging' in modulesNameList:
-          modulesNameList.remove( 'ErrorLogging' )
-
       #pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
@@ -613,8 +608,8 @@ class Production():
                         ['listoutput', 'list', [], 'StepOutputList'],
                         ['extraPackages', 'string', '', 'ExtraPackages'],
                         ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
-                        ['BKStepID', 'string', '', 'BKKStepID']
-                        ['StepProcPass', 'string', '', 'StepProcessingPass']
+                        ['BKStepID', 'string', '', 'BKKStepID'],
+                        ['StepProcPass', 'string', '', 'StepProcessingPass'],
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -650,7 +645,7 @@ class Production():
                    ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
                    ['BKStepID', str( stepID )],
-                   ['StepProcPass', stepPass]
+                   ['StepProcPass', stepPass],
                    ]
 
     if extraPackages:

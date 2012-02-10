@@ -141,6 +141,7 @@ if fourSteps:
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
     strippOptions = '{{p1Opt}}'
+    strippPass = '{{p1Pass}}'
     if useOracle:
       if not 'useoracle.py' in strippOptions.lower():
         strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
@@ -157,6 +158,7 @@ if fourSteps:
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
     mergeOptions = '{{p2Opt}}'
+    mergePass = '{{p2Pass}}'
     if mergeApp.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in mergeOptions.lower():
@@ -172,6 +174,7 @@ if fourSteps:
     step3_CDb = '{{p3CDb}}'
     step3_DDDb = '{{p3DDDb}}'
     step3_Options = '{{p3Opt}}'
+    step3_Pass = '{{p3Pass}}'
     if step3_App.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in step3_Options.lower():
@@ -213,6 +216,7 @@ if fourSteps:
     step4_CDb = '{{p3CDb}}'
     step4_DDDb = '{{p3DDDb}}'
     step4_Options = '{{p3Opt}}'
+    step4_Pass = '{{p4Pass}}'
     if step4_App.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in step4_Options.lower():
@@ -263,6 +267,7 @@ elif threeSteps:
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
     strippOptions = '{{p1Opt}}'
+    strippPass = '{{p1Pass}}'
     if useOracle:
       if not 'useoracle.py' in strippOptions.lower():
         strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
@@ -279,6 +284,7 @@ elif threeSteps:
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
     mergeOptions = '{{p2Opt}}'
+    mergePass = '{{p2Pass}}'
     if mergeApp.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in mergeOptions.lower():
@@ -294,6 +300,7 @@ elif threeSteps:
     step3_CDb = '{{p3CDb}}'
     step3_DDDb = '{{p3DDDb}}'
     step3_Opts = '{{p3Opt}}'
+    step3_Pass = '{{p3Pass}}'
     if step3_App.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in step3_Options.lower():
@@ -342,6 +349,7 @@ elif twoSteps:
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
     strippOptions = '{{p1Opt}}'
+    strippPass = '{{p1Pass}}'
     if useOracle:
       if not 'useoracle.py' in strippOptions.lower():
         strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
@@ -358,6 +366,7 @@ elif twoSteps:
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
     mergeOptions = '{{p2Opt}}'
+    mergePass = '{{p2Pass}}'
     if mergeApp.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in mergeOptions.lower():
@@ -381,7 +390,8 @@ elif oneStep:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
-    strippOptions = "{{p1Opt}}"
+    strippOptions = '{{p1Opt}}'
+    strippPass = '{{p1Pass}}'
     if useOracle:
       if not 'useoracle.py' in strippOptions.lower():
         strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
@@ -553,7 +563,7 @@ if strippEnabled:
                              outputSE = unmergedStreamSE,
                              extraOpts = extraOptions,
                              histograms = histFlag, extraOutput = strippEO,
-                             stepID = strippStep, stepName = strippName, stepVisible = strippVisibility )
+                             stepID = strippStep, stepName = strippName, stepVisible = strippVisibility, stepPass = strippPass )
 
   production.addFinalizationStep()
   production.setProdGroup( prodGroup )
@@ -689,12 +699,12 @@ if mergingEnabled:
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
                                 inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
                                 inputProduction = strippProdID, inputData = mergeInputDataList, outputSE = mergedStreamSE,
-                                stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
+                                stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = mergeInputDataList,
                               inputDataType = mergeStream.lower(), outputSE = mergedStreamSE, numberOfEvents = evtsPerJob,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
-                              stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility )
+                              stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass )
     else:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
       DIRAC.exit( 2 )
@@ -703,7 +713,8 @@ if mergingEnabled:
       mergeProd.addDaVinciStep( step3_Version, step3_Type, step3_Opts, eventType = eventType, extraPackages = step3_EP,
                                 inputDataType = step3_Input.lower(), numberOfEvents = evtsPerJob,
                                 dataType = 'Data', extraOpts = step3_ExtraOpts,
-                                stepID = step3_Step, stepName = step3_Name, stepVisible = step3_Visibility )
+                                stepID = step3_Step, stepName = step3_Name, stepVisible = step3_Visibility,
+                                stepPass = step3_Pass )
 
     mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
     mergeProd.setInputBKSelection( mergeBKQuery )
@@ -834,12 +845,12 @@ if step4Enabled:
       step4_Prod.addDaVinciStep( step4_Version, 'step4_', step4_Options, extraPackages = step4_EP, eventType = eventType,
                                 inputDataType = step4_Stream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
                                 inputProduction = strippProdID, inputData = step4_InputDataList, outputSE = step4_StreamSE,
-                                stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility )
+                                stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility, stepPass = step4_Pass )
     elif step4_App.lower() == 'lhcb':
       step4_Prod.addMergeStep( step4_Version, step4_Options, strippProdID, eventType, step4_EP, inputData = step4_InputDataList,
                               inputDataType = step4_Stream.lower(), outputSE = step4_StreamSE, numberOfEvents = evtsPerJob,
                               condDBTag = step4_CDb, ddDBTag = step4_DDDb, dataType = 'Data',
-                              stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility )
+                              stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility, stepPass = step4_Pass )
     else:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % step4_App )
       DIRAC.exit( 2 )

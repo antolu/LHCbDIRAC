@@ -231,7 +231,8 @@ production.addBrunelStep( "{{p1Ver}}", brunelOutput.lower(), brunelOptions, extr
                          eventType = eventType, inputData = inputDataList, inputDataType = 'mdf',
                          outputSE = recoDataSE,
                          dataType = 'Data', numberOfEvents = recoEvtsPerJob, histograms = histograms,
-                         stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}' )
+                         stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}',
+                         stepPass = '{{p1Pass}}' )
 
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
@@ -275,7 +276,8 @@ if "{{p2Ver}}":
 
   production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, daVinciOptions, extraPackages = '{{p2EP}}',
                             inputDataType = daVinciInput.lower(), histograms = histograms,
-                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}' )
+                            stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}',
+                            stepPass = '{{p2Pass}}' )
 
 production.addFinalizationStep( ['UploadOutputData',
                                  'FailoverRequest',
