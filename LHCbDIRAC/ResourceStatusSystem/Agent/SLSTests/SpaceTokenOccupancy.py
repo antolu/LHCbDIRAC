@@ -95,11 +95,11 @@ class TestModule( TestBase ):
     #   send_mail_to_site(site, st, pledged, total)
 
     # Dashboard
-    dbfile = open(self.xmlPath + site + "_" + st  + "_space_monitor", "w")
-    try:
-      dbfile.write(st + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
-    finally:
-      dbfile.close()
+#    dbfile = open(self.xmlPath + site + "_" + st  + "_space_monitor", "w")
+#    try:
+#      dbfile.write(st + ' ' + str(total) + ' ' + str(guaranteed) + ' ' + str(free) + '\n')
+#    finally:
+#      dbfile.close()
 
     gLogger.info("SpaceTokenOccupancyTest: %s/%s done." % (site, st))
 
