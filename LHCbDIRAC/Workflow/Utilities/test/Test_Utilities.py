@@ -7,8 +7,7 @@ import unittest
 import string
 
 from DIRAC.Core.Workflow.Parameter import Parameter
-#TODO: fix Mock location 
-from DIRAC.ResourceStatusSystem.Utilities.mock import Mock
+from mock import Mock
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Interfaces.API.Job import Job
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
