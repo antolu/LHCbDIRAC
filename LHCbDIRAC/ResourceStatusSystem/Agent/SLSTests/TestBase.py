@@ -35,7 +35,7 @@ class TestBase( threading.Thread ):
       gLogger.exception( '%s test crashed. \n %s' % ( self.name, e ) )
         
     # kill via a schedule
-    gLogger.info( str(self) + ' Happily scheduling my own destruction' )
+    gLogger.info( str( self ) + ' Happily scheduling my own destruction.' )
     self.t.cancel()
     self.t = threading.Timer( 1, self.nuke )
     self.t.start() 
@@ -51,6 +51,7 @@ class TestBase( threading.Thread ):
     '''
       Self destruction by exiting thread.
     '''
+    gLogger.info( str( self ) + ' au revoir.' )
     sys.exit()    
     
   def writeXml( self ):
