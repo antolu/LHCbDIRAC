@@ -1131,6 +1131,39 @@ class LHCbJob( Job ):
 
   #############################################################################
 
+  def setInputData( self, lfns, BKKClientIn = None ):
+    """ Add the input data and the run number, if available
+    """
+
+    if BKKClientIn is not None:
+      bkClient = BKKClientIn
+    else:
+      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      bkClient = BookkeepingClient()
+
+    Job.setInputData( self, lfns )
+
+    res = bkClient.getFileMetadata( lfns )
+    if not res['OK']:
+      return res
+
+    runNumbers = []
+    for fileMeta in res['Value'].values():
+      try:
+        if fileMeta['RunNumber'] not in runNumbers and fileMeta['RunNumber'] != None:
+          runNumbers.append( fileMeta['RunNumber'] )
+      except:
+        continue
+
+    if len( runNumbers ) > 1:
+      runNumber = 'Multiple'
+    else:
+      runNumber = str( runNumbers[0] )
+
+    self._addParameter( self.workflow, 'runNumber', 'String', runNumber, 'Input run rumber' )
+
+  #############################################################################
+
   def runLocal( self, DiracLHCb = None, BKKClientIn = None ):
     """ The DiracLHCb (API) object is for local submission.
         A BKKClient might be needed.

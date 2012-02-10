@@ -1585,3 +1585,5 @@ class Production():
       self._setParameter( 'MaxNumberOfTasks', 'string', str( maxJobs ), 'MaxNumberOfTasks' )
     else:
       self.LHCbJob.log.warn( 'Either EventsTotal "%s" or EventsPerTask "%s" were set to null' % ( eventsTotal, eventsPerTask ) )
+
+  #############################################################################

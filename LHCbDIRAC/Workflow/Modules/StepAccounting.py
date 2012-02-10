@@ -122,10 +122,11 @@ class StepAccounting( ModuleBase ):
     self.input_data = sum( self.xf_o.inputFileStats.values() )
     self.output_data = sum( self.xf_o.outputFileStats.values() )
 
-    #FIXME: put something!
     self.runNumber = 'Unknown'
+    if self.workflow_commons.has_key( 'runNumber' ):
+      self.runNumber = self.workflow_commons['runNumber']
 
-    self.eventType = "Unknown"
+    self.eventType = 'Unknown'
     if self.step_commons.has_key( 'eventType' ):
       self.eventType = self.step_commons['eventType']
 

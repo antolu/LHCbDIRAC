@@ -96,13 +96,13 @@ class ErrorLogging( ModuleBase ):
                                            workflowStatus, stepStatus,
                                            wf_commons, step_commons, step_number, step_id )
 
-      if self.applicationName not in ( 'Gauss', 'Boole' ):
-        self.log.info( 'Not Gauss nor Boole, exiting' )
-        return S_OK()
-
       result = self._resolveInputVariables()
       if not result['OK']:
         self.log.info( result['Message'] )
+        return S_OK()
+
+      if self.applicationName.lower() not in ( 'gauss', 'boole' ):
+        self.log.info( 'Not Gauss nor Boole, exiting' )
         return S_OK()
 
       self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
