@@ -4,7 +4,7 @@
 __RCSID__  = "$Id:  $"
 
 from DIRAC.ResourceStatusSystem.Utilities             import CS
-from LHCbDIRAC.ResourceStatus.Agent.SLSTests.TestBase import TestBase
+from LHCbDIRAC.ResourceStatusSystem.Agent.SLSTests.TestBase import TestBase
 
 import lcg_util
 
