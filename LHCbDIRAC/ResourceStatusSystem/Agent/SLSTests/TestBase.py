@@ -27,7 +27,7 @@ class TestBase( threading.Thread ):
     self.t    = threading.Timer( timeout, self.nuke )
     self.name = testName 
   
-  def getConfig( self, path ):
+  def getConfig( self, testPath ):
     
     try:
       
