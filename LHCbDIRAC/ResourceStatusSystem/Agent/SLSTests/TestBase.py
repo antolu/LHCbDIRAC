@@ -37,7 +37,13 @@ class TestBase( threading.Thread ):
          self.nuke()
       modConfig = modConfig[ 'Value' ]
       
-      for section in gConfig.getSections( testPath ):
+      sections = gConfig.getSections( testPath ) 
+      if not sections[ 'OK' ]:
+         gLogger.exception( 'Error loading "%s".\n %s' % ( testPath, sections[ 'Message' ] ) )
+         self.nuke()
+      sections = sections[ 'Value' ]
+      
+      for section in sections:
         
         sectionPath   = '%s/%s' % ( testPath, section )
         sectionConfig = gConfig.getOptionsDict( sectionPath )
