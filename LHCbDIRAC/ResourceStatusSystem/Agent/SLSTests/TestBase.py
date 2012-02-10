@@ -70,8 +70,7 @@ class TestBase( threading.Thread ):
     
     try:
       
-      #self.launchTest()
-      self.writeXml( )
+      self.launchTest()
       
     except Exception, e:
       
@@ -97,7 +96,7 @@ class TestBase( threading.Thread ):
     gLogger.info( str( self ) + ' au revoir.' )
     sys.exit()    
     
-  def writeXml( self, xmlDict = None ):
+  def writeXml( self, xmlList = None ):
     
     d = Document()
 #    el = d.createElement( 'serviceupdate' )
@@ -115,9 +114,41 @@ class TestBase( threading.Thread ):
                                   } 
                 } 
     
-    d = self._writeXml( d, d, XML_STUB )
+    XML_STUB2 = [ { 
+                  'tag'   : 'serviceupdate',
+                  'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
+                              ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
+                              ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
+                            ]
+                  }
+                ]
     
-    d.toxml()
+    
+    d = self._writeXml2( d, d, XML_STUB2 )
+    
+    gLogger.info( d.toxml() )
+
+  def _writeXml2( self, doc, topElement, elementList ):
+
+    if elementList is None:
+      return topElement
+    
+    elif not isinstance( elementList, list ):
+      tn = doc.createTextNode( str( elementList ) )
+      topElement.appendChild( tn )
+      return topElement
+
+    for d in elementList:
+      
+      el = doc.createElement( d[ 'tag' ] )
+      
+      for attr in d.get( 'attrs', [] ):
+        el.setAttribute( attr[0], attr[1] )
+        
+      el = self._writeXml( doc, el, d.get( 'nodes', None ) )
+      topElement.appendChild( el )
+    
+    return topElement  
     
   def _writeXml( self, doc, topElement, elementDict ):
 
