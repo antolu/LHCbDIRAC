@@ -82,9 +82,8 @@ class FailoverRequest( ModuleBase ):
       if not self._checkWFAndStepStatus( noPrint = True ):
         inputFiles = self.fileReport.getFiles()
         for lfn in inputFiles:
-          if inputFiles[lfn] != 'ApplicationCrash':
-            self.log.info( 'Forcing status to "Unused" due to workflow failure for: %s' % ( lfn ) )
-            self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
+          self.log.info( 'Forcing status to "Unused" due to workflow failure for: %s' % ( lfn ) )
+          self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
       else:
         inputFiles = self.fileReport.getFiles()
 

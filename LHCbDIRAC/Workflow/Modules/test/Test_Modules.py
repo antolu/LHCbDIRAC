@@ -433,8 +433,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
 
   def test__updateFileStatus( self ):
     inputs = [{'i1':'OK', 'i2':'OK'},
-              {'i1':'OK', 'i2':'ApplicationCrash'},
-              {'i1':'Unused', 'i2':'ApplicationCrash'}
+              {'i1':'OK', 'i2':'Unused'},
+              {'i1':'Unused', 'i2':'Unused'}
               ]
     for input in inputs:
       self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.rm_mock, self.fr_mock )
@@ -485,8 +485,8 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
 
   def test__updateFileStatus( self ):
     inputs = [{'i1':'OK', 'i2':'OK'},
-              {'i1':'OK', 'i2':'ApplicationCrash'},
-              {'i1':'Unused', 'i2':'ApplicationCrash'}
+              {'i1':'OK', 'i2':'Unused'},
+              {'i1':'Unused', 'i2':'Unused'}
               ]
     for input in inputs:
       self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.rm_mock, self.fr_mock )

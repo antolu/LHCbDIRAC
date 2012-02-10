@@ -72,21 +72,6 @@ class AnalyseLogFile( ModuleBase ):
       self.log.info( "Performing log file analysis for %s" % ( self.applicationLog ) )
       # Resolve the step and job input data
 
-      #First check for the presence of any core dump files caused by an abort of some kind
-      for fileInDir in os.listdir( '.' ):
-        if re.search( 'coredump', fileInDir.lower() ):
-          self.coreFile = fileInDir
-          self.log.error( 'Found a core dump file in the current working directory: %s' % self.coreFile )
-          self._finalizeWithErrors( 'Found a core dump file in the current working directory: %s'
-                                    % self.coreFile, nc, rm, bk )
-          self._updateFileStatus( self.jobInputData, 'ApplicationCrash',
-                                  int( self.production_id ), rm, self.fileReport )
-          # return S_OK if the Step already failed to avoid overwriting the error
-          if not self.stepStatus['OK']:
-            return S_OK()
-
-          return S_ERROR( '%s %s Core Dump' % ( self.applicationName, self.applicationVersion ) )
-
       if not logAnalyser:
         from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
         analyseLogResult = analyseLogFile( fileName = self.applicationLog,
@@ -207,10 +192,7 @@ class AnalyseLogFile( ModuleBase ):
     """
     for fileName in inputs.keys():
       stat = inputs[fileName]
-      #FIXME: this part is actually never EVER reached
-#      if stat == "Problematic":
-#        res = self.setReplicaProblematic( lfn = fileName, se = self.site, reason = 'Problematic', rm = rm )
-      if stat in ['Unused', 'ApplicationCrash']:
+      if stat == 'Unused':
         self.log.info( "%s will be updated to status '%s'" % ( fileName, stat ) )
       else:
         stat = defaultStatus

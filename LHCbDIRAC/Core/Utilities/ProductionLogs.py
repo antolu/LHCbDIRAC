@@ -119,17 +119,9 @@ class ProductionLog:
   def __checkErrors( self ):
 
     for errString in self.__GAUDI_ERRORS__.keys():
-  #    log.info( 'Checking for "%s" meaning job would fail with "%s"' % ( errString, description ) )
       found = re.findall( errString, self.fileString )
       if found:
         raise LogError, errString
-
-  #      if type == 'APPLICATION':
-  #        result = self.__getLastFile()
-  #        if result[ 'OK' ]:
-  #          lastFile = result[ 'Value' ]
-  #          self.log.info( 'Determined last file before crash to be: %s => ApplicationCrash' % lastFile )
-  #          self.dataSummary[ lastFile ] = 'ApplicationCrash'
 
 ################################################################################
 

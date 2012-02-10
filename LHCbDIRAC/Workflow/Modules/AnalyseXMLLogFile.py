@@ -237,13 +237,7 @@ class AnalyseXMLLogFile( ModuleBase ):
     """
     for fileName in inputs.keys():
       stat = inputs[fileName]
-      if stat == "Problematic":
-        res = self.setReplicaProblematic( lfn = fileName, se = self.site, reason = 'Problematic', rm = rm )
-        if not res['OK']:
-          gLogger.error( "Failed to update replica status to problematic", res['Message'] )
-        self.log.info( '%s is problematic at %s - reset as Unused' % ( fileName, self.site ) )
-        stat = "Unused"
-      elif stat in ['Unused', 'ApplicationCrash']:
+      if stat == 'Unused':
         self.log.info( "%s will be updated to status '%s'" % ( fileName, stat ) )
       else:
         stat = defaultStatus

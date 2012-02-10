@@ -235,33 +235,6 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def setReplicaProblematic( self, lfn, se, pfn = '', reason = 'Access failure', rm = None ):
-    """ Set replica status to Problematic in the File Catalog
-    """
-
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
-
-    source = "Job %d at %s" % ( self.jobID, DIRAC.siteName() )
-    result = rm.setReplicaProblematic( ( lfn, pfn, se, reason ), source )
-    if not result['OK'] or result['Value']['Failed']:
-      # We have failed the report, let's attempt the Integrity DB failover
-      from DIRAC.Core.DISET.RPCClient import RPCClient
-      integrityDB = RPCClient( 'DataManagement/DataIntegrity', timeout = 120 )
-      fileMetadata = {'Prognosis':reason, 'LFN':lfn, 'PFN':pfn, 'StorageElement':se}
-      result = integrityDB.insertProblematic( source, fileMetadata )
-      if not result['OK']:
-        # Add it to the request
-        request = self._getRequestContainer()
-        from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
-        subrequest = DISETSubRequest( result['rpcStub'] ).getDictionary()
-        request.addSubRequest( subrequest, 'integrity' )
-
-    return S_OK()
-
-  #############################################################################
-
   def getCandidateFiles( self, outputList, outputLFNs, fileMask, stepMask = '' ):
     """ Returns list of candidate files to upload, check if some outputs are missing.
         

@@ -167,7 +167,7 @@ class AnalyseXMLSummary( ModuleBase ):
     """
     for fileName in inputs.keys():
       stat = inputs[fileName]
-      if stat in ['Unused', 'ApplicationCrash']:
+      if stat == 'Unused':
         self.log.info( "%s will be updated to status '%s'" % ( fileName, stat ) )
       else:
         stat = defaultStatus
