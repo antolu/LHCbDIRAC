@@ -429,13 +429,14 @@ class BookkeepingReport( ModuleBase ):
         typeName = bkTypeDict[ output ].upper()
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
 
-        fileStats = self.xf_o.outputsEvents[output]
-
-#        if self.workflow_commons.has_key( 'StreamEvents' ):
-#          streamEvents = self.workflow_commons['StreamEvents']
-#          if streamEvents.has_key( typeName ):
-#            fileStats = streamEvents[typeName]
-#            self.log.info( 'Found explicit number of events = %s for file %s, type %s' % ( fileStats, output, typeName ) )
+        try:
+          fileStats = self.xf_o.outputsEvents[output]
+        except KeyError, e:
+          if 'hist' in outputtype.lower():
+            self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
+            fileStats = 'Unknown'
+          else:
+            raise KeyError, e
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )

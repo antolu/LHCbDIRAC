@@ -267,7 +267,10 @@ class GaudiApplication( ModuleBase ):
   #    lowerExtension()
 
       self.log.info( "Going to manage %s output" % self.applicationName )
-      self._manageGaudiAppOutput()
+      try:
+        self._manageGaudiAppOutput()
+      except IOError, e:
+        return S_ERROR( e )
 
       # Still have to set the application status e.g. user job case.
       self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
@@ -342,7 +345,8 @@ class GaudiApplication( ModuleBase ):
         output['outputDataName'] = fileOnDisk
         filesFound.append( output )
       else:
-        self.log.warn( '%s not found' % output['outputDataName'] )
+        self.log.error( '%s not found' % output['outputDataName'] )
+        raise IOError, '%s not found' % output['outputDataName']
 
     for f in filesFound:
       bkFileTypes.append( f['outputDataType'].upper() )
