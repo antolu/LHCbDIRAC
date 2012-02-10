@@ -8,7 +8,7 @@ from LHCbDIRAC.ResourceStatusSystem.Agent.SLSTests.TestBase import TestBase
 
 import lcg_util
 
-class SpaceTokenOccupancy( TestBase ):
+class TestModule( TestBase ):
   
   def launchTest( self ):
     
