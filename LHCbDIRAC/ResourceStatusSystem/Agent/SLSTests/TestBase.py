@@ -96,25 +96,14 @@ class TestBase( threading.Thread ):
     gLogger.info( str( self ) + ' au revoir.' )
     sys.exit()    
     
+  def writeText( self ):
+    pass  
+    
   def writeXml( self, xmlList = None ):
     
     d = Document()
-#    el = d.createElement( 'serviceupdate' )
-#    el.setAttribute( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' )
-#    el.setAttribute( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' )
-#    el.setAttribute( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-#    d.appendChild( el )
     
-#    XML_STUB = { 
-#                'serviceupdate' : { 
-#                             'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
-#                                         ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
-#                                         ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-#                                       ]
-#                                  } 
-#                } 
-    
-    XML_STUB2 = [ { 
+    XML_STUB = [ { 
                   'tag'   : 'serviceupdate',
                   'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
                               ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
@@ -124,11 +113,11 @@ class TestBase( threading.Thread ):
                 ]
     
     
-    d = self._writeXml2( d, d, XML_STUB2 )
+    d = self._writeXml( d, d, XML_STUB )
     
     gLogger.info( d.toxml() )
 
-  def _writeXml2( self, doc, topElement, elementList ):
+  def _writeXml( self, doc, topElement, elementList ):
 
     if elementList is None:
       return topElement
@@ -145,30 +134,10 @@ class TestBase( threading.Thread ):
       for attr in d.get( 'attrs', [] ):
         el.setAttribute( attr[0], attr[1] )
         
-      el = self._writeXml2( doc, el, d.get( 'nodes', None ) )
+      el = self._writeXml( doc, el, d.get( 'nodes', None ) )
       topElement.appendChild( el )
     
-    return topElement  
-    
-  def _writeXml( self, doc, topElement, elementDict ):
-
-    if elementDict is None:
-      return topElement
-    elif not isinstance( elementDict, dict ):
-      tn = doc.createTextNode( str( elementDict ) )
-      topElement.appendChild( tn )
-      return topElement
-
-    for k,v in elementDict.items():
-      
-      el = doc.createElement( k )
-      for attr in v.get( 'attrs', [] ):
-        el.setAttribute( attr[0], attr[1] )
-        
-      el = self._writeXml( doc, el, v.get( 'nodes', None ) )
-      topElement.appendChild( el )
-    
-    return topElement  
+    return topElement   
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

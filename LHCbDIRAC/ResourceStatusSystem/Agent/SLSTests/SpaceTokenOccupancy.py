@@ -50,7 +50,8 @@ class TestModule( TestBase ):
       #validity     = self.getTestOption( "validity" )
       validityduration = self.testConfig[ 'validityduration' ]
     else:
-      gLogger.info("StorageSpace: problem with lcg_util:\ lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % (spaceToken, url, answer[0], answer[1]))
+      _msg = 'StorageTokenOccupancy: problem with lcg_util.lcg_stmd( "%s","%s",True,0 ) = (%d, %s)'
+      gLogger.info(  _msg % ( spaceToken, url, answer[0], answer[1] ) )
       gLogger.info( str( answer ) )
 
     ## XML generation
@@ -89,27 +90,6 @@ class TestModule( TestBase ):
     xmlReport.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
     
     self.writeXml( xmlList = xmlReport )
-
-#    doc = gen_xml_stub()
-#    xml_append(doc, "id", site + "_" + st)
-#    xml_append(doc, "availability", availability)
-#    elt = xml_append(doc, "availabilitythresholds")
-#    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/available"), elt_=elt, level="available")
-#    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/affected"), elt_=elt, level="affected")
-#    xml_append(doc, "threshold", value_=self.getTestOption("Thresholds/degraded"), elt_=elt, level="degraded")
-#    xml_append(doc, "availabilityinfo", "Free="+str(free)+" Total="+str(total))
-#    xml_append(doc, "availabilitydesc", self.getTestValue("availabilitydesc"))
-#    xml_append(doc, "refreshperiod", self.getTestValue("refreshperiod"))
-#    xml_append(doc, "validityduration", validity)
-#    elt = xml_append(doc, "data")
-#    elt2 = xml_append(doc, "grp", name="Space occupancy", elt_=elt)
-#    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt2, name="Consumed")
-#    xml_append(doc, "numericvalue", value_=str(total), elt_=elt2, name="Capacity")
-#    xml_append(doc, "numericvalue", value_=str(free), elt_=elt, name="Free space")
-#    xml_append(doc, "numericvalue", value_=str(total-free), elt_=elt, name="Occupied space")
-#    xml_append(doc, "numericvalue", value_=str(total), elt_=elt, name="Total space")
-#    xml_append(doc, "textvalue", "Storage space for the specific space token", elt_=elt)
-#    xml_append(doc, "timestamp", time.strftime("%Y-%m-%dT%H:%M:%S"))
 #
 #    Utils.unpack(insert_slsstorage(Site=site, Token=st, Availability=availability,
 #                      RefreshPeriod="PT27M", ValidityDuration=validity,
@@ -135,7 +115,7 @@ class TestModule( TestBase ):
 #    finally:
 #      dbfile.close()
 
-    gLogger.info("SpaceTokenOccupancyTest: %s/%s done." % (site, st))
+    gLogger.info("SpaceTokenOccupancyTest: %s/%s done." % ( site, st ) )
 
 
 ################################################################################
