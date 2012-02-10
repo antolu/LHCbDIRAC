@@ -12,11 +12,11 @@ class TestModule( TestBase ):
   
   def launchTest( self ):
     
-    SEs         = CS.getSpaceTokenEndpoints()
-    spaceTokens = CS.getSpaceTokens() 
+    self.SEs         = CS.getSpaceTokenEndpoints()
+    self.spaceTokens = CS.getSpaceTokens() 
 
     for site in self.SEs:
-      for spaceToken in spaceTokens:
+      for spaceToken in self.spaceTokens:
         self.__launch( site, spaceToken )
 
 
