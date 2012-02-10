@@ -38,6 +38,7 @@ class BookkeepingReport( ModuleBase ):
     self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
+    self.inputData = ''
     self.InputData = ''
     self.sourceData = ''
     self.inputData = ''
