@@ -63,8 +63,8 @@ class BookkeepingReport( ModuleBase ):
     try:
 
       super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                               workflowStatus, stepStatus,
-                                               wf_commons, step_commons, step_number, step_id )
+                                                workflowStatus, stepStatus,
+                                                wf_commons, step_commons, step_number, step_id )
 
       if not self._checkWFAndStepStatus():
         return S_OK()

@@ -13,24 +13,19 @@ import os, time
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
-from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from DIRAC.AccountingSystem.Client.DataStoreClient import DataStoreClient
-from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+#from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
 
+from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class StepAccounting( ModuleBase ):
 
-  def __init__( self, production_id = None, prod_job_id = None, wms_job_id = None,
-                workflowStatus = None, stepStatus = None,
-                wf_commons = None, step_commons = None,
-                step_number = None, step_id = None ):
+  def __init__( self ):
 
     self.log = gLogger.getSubLogger( "StepAccounting" )
-    super( StepAccounting, self ).__init__( self.log, production_id, prod_job_id, wms_job_id,
-                                             workflowStatus, stepStatus,
-                                             wf_commons, step_commons, step_number, step_id )
+    super( StepAccounting, self ).__init__( self.log )
 
     self.version = __RCSID__
 #    self.STEP_NUMBER = None
@@ -52,28 +47,34 @@ class StepAccounting( ModuleBase ):
 
   ########################################################################
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None ):
 
     try:
-      self.log.info( 'Initializing %s' % self.version )
+      super( StepAccounting, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                             workflowStatus, stepStatus,
+                                             wf_commons, step_commons, step_number, step_id )
+
 
       if not self._enableModule():
         return S_OK()
 
-      self.resolveInputVariables()
+      self._resolveInputVariables()
 
   #    sname = 'Step_%d' % int( self.step_commons['STEP_NUMBER'] )
-      result = getProxyInfo()
-      if result['OK']:
-        proxyDict = result[ 'Value' ]
-        if 'group' in proxyDict:
-          self.group = proxyDict[ 'group' ]
-        else:
-          self.group = 'unknown'
-        if 'username' in proxyDict:
-          self.user = proxyDict[ 'username' ]
-        else:
-          self.user = 'unknown'
+#      result = getProxyInfo()
+#      if result['OK']:
+#        proxyDict = result[ 'Value' ]
+#        if 'group' in proxyDict:
+#          self.group = proxyDict[ 'group' ]
+#        else:
+#          self.group = 'unknown'
+#        if 'username' in proxyDict:
+#          self.user = proxyDict[ 'username' ]
+#        else:
+#          self.user = 'unknown'
 
       status = 'Done'
 
@@ -96,12 +97,11 @@ class StepAccounting( ModuleBase ):
   ########################################################################
 
 
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention all workflow parameters are resolved here.
     """
 
-    self.log.debug( self.workflow_commons )
-    self.log.debug( self.step_commons )
+    super( StepAccounting, self )._resolveInputVariables()
 
 #    buono per FinalState?
     if self.step_commons.has_key( 'Status' ):
@@ -193,3 +193,5 @@ class StepAccounting( ModuleBase ):
     if self.workflow_commons.has_key( 'JobReport' ):
       jobReport = self.workflow_commons['JobReport']
       result = jobReport.setJobParameters( self.parameters )
+
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
