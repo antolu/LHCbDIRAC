@@ -3,7 +3,7 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC.ResourceStatusSystem.Utilities             import CS
+from DIRAC.ResourceStatusSystem.Utilities                   import CS
 from LHCbDIRAC.ResourceStatusSystem.Agent.SLSTests.TestBase import TestBase
 
 import lcg_util
@@ -11,13 +11,17 @@ import lcg_util
 class TestModule( TestBase ):
   
   def launchTest( self ):
+    '''
+      Main test method.
+    '''
     
     self.SEs         = CS.getSpaceTokenEndpoints()
     self.spaceTokens = CS.getSpaceTokens() 
 
     for site in self.SEs:
       for spaceToken in self.spaceTokens:
-        self.__launch( site, spaceToken )
+#        self.__launchTest( site, spaceToken )
+        print site, spaceToken
 
 
   def __launch( self, site, spaceToken ):

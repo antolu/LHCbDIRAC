@@ -5,6 +5,8 @@ __RCSID__  = "$Id:  $"
 
 from DIRAC import gLogger
 
+from xml.dom.minidom import Document
+
 import threading, sys
 
 class TestBase( threading.Thread ):
@@ -28,7 +30,8 @@ class TestBase( threading.Thread ):
     
     try:
       
-      self.launchTest()
+      #self.launchTest()
+      self.writeXml( )
       
     except Exception, e:
       
@@ -54,11 +57,47 @@ class TestBase( threading.Thread ):
     gLogger.info( str( self ) + ' au revoir.' )
     sys.exit()    
     
-  def writeXml( self ):
+  def writeXml( self, xmlDict = None ):
     
-    pass
-  
-  
+    d = Document()
+#    el = d.createElement( 'serviceupdate' )
+#    el.setAttribute( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' )
+#    el.setAttribute( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' )
+#    el.setAttribute( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
+#    d.appendChild( el )
+    
+    XML_STUB = { 
+                'serviceupdate' : { 
+                             'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
+                                         ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
+                                         ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
+                                       ]
+                                  } 
+                } 
+    
+    d = self._writeXML( d, d, XML_STUB )
+    
+    d.toxml()
+    
+  def _writeXml( self, doc, topElement, elementDict ):
+
+    if elementDict is None:
+      return topElement
+    elif not isinstance( elementDict, dict ):
+      tn = doc.createTextNode( str( elementDict ) )
+      topElement.appendChild( tn )
+      return topElement
+
+    for k,v in elementDict.items():
+      
+      el = doc.createElement( k )
+      for attr in v.get( 'attrs', [] ):
+        el.setAttribute( attr[0], attr[1] )
+        
+      el = self._writeXML( doc, el, v.get( 'nodes', None ) )
+      topElement.appendChild( el )
+    
+    return topElement  
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
