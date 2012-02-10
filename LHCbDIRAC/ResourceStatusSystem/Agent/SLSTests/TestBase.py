@@ -75,7 +75,7 @@ class TestBase( threading.Thread ):
                                   } 
                 } 
     
-    d = self._writeXML( d, d, XML_STUB )
+    d = self._writeXml( d, d, XML_STUB )
     
     d.toxml()
     
