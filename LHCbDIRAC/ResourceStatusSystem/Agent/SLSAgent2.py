@@ -4,10 +4,10 @@
 __RCSID__  = "$Id:  $"
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
 
-from DIRAC                               import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.Core.Base.AgentModule         import AgentModule
-from DIRAC.Core.Utilities.ThreadPool     import ThreadPool
-from DIRAC.ResourceStatusSytem.Utilities import Utils
+from DIRAC                                import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC.Core.Base.AgentModule          import AgentModule
+from DIRAC.Core.Utilities.ThreadPool      import ThreadPool
+from DIRAC.ResourceStatusSystem.Utilities import Utils
 
 import Queue
 
