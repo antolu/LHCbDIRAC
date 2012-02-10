@@ -56,40 +56,37 @@ class TestModule( TestBase ):
 
     ## XML generation
 
-    xmlReport = []
-    xmlReport.append( { 'tag' : 'id', 'nodes' : '%s_%s' % ( site, spaceToken ) } )
-    xmlReport.append( { 'tag' : 'availability', 'nodes' : availability } )
+    xmlList = []
+    xmlList.append( { 'tag' : 'id', 'nodes' : '%s_%s' % ( site, spaceToken ) } )
+    xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
     
     thresholdNodes = []
     for t,v in self.testConfig[ 'thresholds' ].items():
       thresholdNodes.append( { 'tag' : 'threshold', 'attrs' : [ ( 'level', t ) ], 'nodes' : v } )
     
-    xmlReport.append( { 'tag' : 'availabilitythresholds', 'nodes' : thresholdNodes } )
+    xmlList.append( { 'tag' : 'availabilitythresholds', 'nodes' : thresholdNodes } )
     
-    xmlReport.append( { 'tag' : 'availabilityinfo' , 'nodes' : 'Free=%s Total=%s' % ( free, total ) } )
-    xmlReport.append( { 'tag' : 'availabilitydesc' , 'nodes' : self.testConfig[ 'availabilitydesc' ] } )
-    xmlReport.append( { 'tag' : 'refreshperiod'    , 'nodes' : self.testConfig[ 'refreshperiod' ] } )
-    xmlReport.append( { 'tag' : 'validityduration' , 'nodes' : validityduration } )
+    xmlList.append( { 'tag' : 'availabilityinfo' , 'nodes' : 'Free=%s Total=%s' % ( free, total ) } )
+    xmlList.append( { 'tag' : 'availabilitydesc' , 'nodes' : self.testConfig[ 'availabilitydesc' ] } )
+    xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : self.testConfig[ 'refreshperiod' ] } )
+    xmlList.append( { 'tag' : 'validityduration' , 'nodes' : validityduration } )
 
     dataNodes = []
     grpNodes  = []
-    
     grpNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Consumed' ) ], 'nodes' : total - free } ) 
     grpNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Capacity' ) ], 'nodes' : total } )
-    grp  = { 'tag' : 'grp', 'attrs' : [ ( 'name', 'Space occupancy' ) ], 'nodes' : grpNodes }
     
-    dataNodes.append( grp )
+    dataNodes.append( { 'tag' : 'grp', 'attrs' : [ ( 'name', 'Space occupancy' ) ], 'nodes' : grpNodes } )
     
     dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Free space' ) ], 'nodes' : free } )
     dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Occupied space' ) ], 'nodes' : total - free } )
     dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Total space' ) ], 'nodes' : total } )
     dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'Storage space for the specific space token' } )
     
-    xmlReport.append( { 'tag' : 'data', 'nodes' : dataNodes } )
-        
-    xmlReport.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
+    xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
+    xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
     
-    self.writeXml( xmlList = xmlReport )
+    self.writeXml( xmlList, 'fileName' )
 #
 #    Utils.unpack(insert_slsstorage(Site=site, Token=st, Availability=availability,
 #                      RefreshPeriod="PT27M", ValidityDuration=validity,

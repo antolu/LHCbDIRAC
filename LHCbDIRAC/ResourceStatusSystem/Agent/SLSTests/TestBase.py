@@ -13,12 +13,13 @@ class TestBase( threading.Thread ):
   '''
     Base class for all SLS tests.
   '''
-  def __init__( self, testName, testPath ):
+  def __init__( self, testName, testPath, workdir ):
     # Initialize the Threading
     threading.Thread.__init__( self )
     
     # Get fresh data from the CS
     self.testConfig = self.getConfig( testPath )
+    self.workdir    = workdir
     
     timeout = 600
     
@@ -99,9 +100,10 @@ class TestBase( threading.Thread ):
   def writeText( self ):
     pass  
     
-  def writeXml( self, xmlList = None ):
-    
-    d = Document()
+  def writeXml( self, xmlList, fileName, useStub = True, path = None ):
+
+    if path is None:
+      path = self.workdir
     
     XML_STUB = [ { 
                   'tag'   : 'serviceupdate',
@@ -113,9 +115,16 @@ class TestBase( threading.Thread ):
                 ]
     
     
-    d = self._writeXml( d, d, XML_STUB )
+    d = Document()
+    d = self._writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
     
     gLogger.info( d.toxml() )
+    
+    file = open( '%s/%s' % ( path, name ), 'w' )
+    try:
+      file.write( d.toxml() )
+    finally:  
+      file.close()
 
   def _writeXml( self, doc, topElement, elementList ):
 
