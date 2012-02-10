@@ -56,7 +56,7 @@ class TestModule( TestBase ):
     ## XML generation
 
     xmlReport = []
-    xmlReport.append( { 'tag' : 'id', 'nodes' : '%s_%s' % ( site, st ) } )
+    xmlReport.append( { 'tag' : 'id', 'nodes' : '%s_%s' % ( site, spaceToken ) } )
     xmlReport.append( { 'tag' : 'availability', 'nodes' : availability } )
     
     thresholdNodes = []
