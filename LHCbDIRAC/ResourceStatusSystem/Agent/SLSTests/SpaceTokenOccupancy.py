@@ -61,7 +61,7 @@ class TestModule( TestBase ):
     
     thresholdNodes = []
     for t,v in self.testConfig[ 'thresholds' ].items():
-      thresholdNodes.append( { 'tag' : 'threshold', 'attr' : [ ( 'level', t ) ], 'nodes' : v } )
+      thresholdNodes.append( { 'tag' : 'threshold', 'attrs' : [ ( 'level', t ) ], 'nodes' : v } )
     
     xmlReport.append( { 'tag' : 'availabilitythresholds', 'nodes' : thresholdNodes } )
     
@@ -82,9 +82,10 @@ class TestModule( TestBase ):
     dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Free space' ) ], 'nodes' : free } )
     dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Occupied space' ) ], 'nodes' : total - free } )
     dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Total space' ) ], 'nodes' : total } )
+    dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'Storage space for the specific space token' } )
     
     xmlReport.append( { 'tag' : 'data', 'nodes' : dataNodes } )
-    
+        
     xmlReport.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
     
     self.writeXml( xmlList = xmlReport )
