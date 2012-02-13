@@ -512,7 +512,8 @@ class BookkeepingReport( ModuleBase ):
 
       if outputtype != 'LOG':
         oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
-        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
+        if fileStats != 'Unknown':
+          oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
 
       oFile = self.__addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
 
