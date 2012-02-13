@@ -673,7 +673,25 @@ class StorageUsageDB( DB ):
     """Returns a summary of space usage for the given site, on the basis of the information 
        provided by the SRM db dumps from sites """
     return self.__getSTSummary( site, spaceToken )
-   
+  
+  def removeSTSummary( self, site,  spaceToken = False ):
+    """ Remove from se_STSummary table the entry relative to the given site and space token (if specified). 
+    If no space token is specified, remove all entries relative to site
+    """ 
+    sqlSite = self._escapeString( site )['Value']
+    sqlCond = [ "Site=%s" % sqlSite ]
+    if spaceToken:
+      sqlSpaceToken = self._escapeString( spaceToken )['Value']
+      sqlCond.append( "SpaceToken=%s" % sqlSpaceToken )
+
+    sqlCmd = "DELETE FROM `se_STSummary` WHERE %s" % ( " AND ".join( sqlCond ) )
+    gLogger.info( " __getSTSummary sqlCmd is: %s " %sqlCmd )
+    result = self._update( sqlCmd )
+    gLogger.info( " __getSTSummary result: %s " %result )
+    if not result[ 'OK' ]:
+      return S_ERROR( result )
+    return S_OK( result[ 'Value' ] )
+
   def getProblematicDirsSummary( self, site, problem = False ):
     """ Get a summary of problematic directories for a given site and given problem (optional)
     """ 
