@@ -288,7 +288,7 @@ production.setProdPlugin( recoPlugin )
 production.setJobParameters( { 'InputDataPolicy': recoIDPolicy } )
 if express:
   gLogger.info( 'EXPRESS: Forcing destination site LCG.CERN.ch for production' )
-  production.setDestination( 'LCG.CERN.ch' )
+  production.setTargetSite( 'LCG.CERN.ch' )
   gLogger.info( 'EXPRESS: Saving only histograms' )
   production.setFileMask( 'HIST' )
 else:

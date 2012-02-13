@@ -315,7 +315,7 @@ if strippEnabled:
 
   if not destination.lower() in ( 'all', 'any' ):
     gLogger.info( 'Forcing destination site %s for production' % ( destination ) )
-    production.setDestination( destination )
+    production.setTargetSite( destination )
 
   if sysConfig:
     try:
