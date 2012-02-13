@@ -362,7 +362,7 @@ if swimmEnabled:
 
   if not destination.lower() in ( 'all', 'any' ):
     gLogger.info( 'Forcing destination site %s for production' % ( destination ) )
-    production.setDestination( destination )
+    production.setTargetSite( destination )
 
   if sysConfig:
     try:
@@ -487,7 +487,7 @@ if swimmEnabled:
 
     if not destination.lower() in ( 'all', 'any' ):
       gLogger.info( 'Forcing destination site %s for DV Production' % ( destination ) )
-      DVProduction.setDestination( destination )
+      DVProduction.setTargetSite( destination )
 
     if sysConfig:
       try:
