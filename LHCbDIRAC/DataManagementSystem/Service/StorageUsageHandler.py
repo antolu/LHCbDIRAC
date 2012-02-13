@@ -249,6 +249,12 @@ class StorageUsageHandler( RequestHandler ):
     """ Exports getSTSummary method: returns a summary of the used space for the given
         site, based on the storage dumps provided by sites """
     return storageUsageDB.getSTSummary( site, spaceToken )
+
+  types_removeSTSummary = []
+  def export_removeSTSummary( self, site, spaceToken = False ):
+    """ Exports removeSTSummary method: removes from the se_STSummary table all entries relative
+        to the given site and (optionally ) space token """
+    return storageUsageDB.removeSTSummary( site, spaceToken )
   
   ####
   # Tier1 SE status for web
