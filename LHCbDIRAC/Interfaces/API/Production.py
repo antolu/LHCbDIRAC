@@ -583,7 +583,7 @@ class Production():
                                                                                     'AnalyseXMLSummary',
                                                                                     'ErrorLogging',
                                                                                     'BookkeepingReport',
-#                                                                                    'StepAccounting'
+                                                                                    'StepAccounting'
                                                                                     ] )
 
       #pName, pType, pValue, pDesc
