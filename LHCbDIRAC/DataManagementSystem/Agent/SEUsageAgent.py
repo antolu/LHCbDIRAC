@@ -79,6 +79,7 @@ class SEUsageAgent( AgentModule ):
         gLogger.warn("Error during site configuration %s " %res['Message'])
         continue  
 
+      gLogger.info("Parse and read input files for site: %s" % site )       
       res = self.readInputFile( site )
       if not res['OK']:
         gLogger.error("Failed to read input files for site %s " % site )
@@ -101,7 +102,10 @@ class SEUsageAgent( AgentModule ):
           gLogger.error("Error for site %s: Could not remove old entries from the problematicDirs table! %s " %( site, res['Message']))
           continue
         gLogger.info("Removed %d entries from the problematic directories table for site %s" %( res['Value'], site ))
+ 
      # END OF DEBUGGING MODIFICATION ###########
+
+
       # Start the main loop:
       # read all file of type directory summary for the given site:
       pathToSummary = self.siteConfig[ site ][ 'pathToInputFiles' ]
@@ -539,6 +543,14 @@ class SEUsageAgent( AgentModule ):
 #          gLogger.error( "Error in input line format! Line is: %s" % line ) # the last line of these files is empty, so it will give this exception
 #          continue
       fP2.flush()
+
+      gLogger.info("Cleaning the STSummary table entries for site %s and space token %s ..." % (site, completeSTId))
+      res = self.__storageUsage.removeSTSummary( site, completeSTId )
+      if not res['OK']:
+        gLogger.error("Error for site %s: Could not remove old entries from the STSummary table! %s " %( site, res['Message']))
+        continue
+      gLogger.info("Removed %d entries from the STSummary table for site %s" %( res['Value'], site ))
+
       gLogger.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % (site, completeSTId, totalSize, totalFiles))
       res = self.__storageUsage.publishTose_STSummary( site, completeSTId, totalSize, totalFiles )
       if not res['OK']:
@@ -759,6 +771,16 @@ class SEUsageAgent( AgentModule ):
         return LFCDirName
     return LFCDirName
 
+  def PathWithSuffix( self, dirName, replicaType ):
+    """ Takes in input the path as registered in LFC and 
+        returns the path with the initial suffix for the special replicas
+    """
+    pathWithSuffix = dirName
+    if replicaType in self.specialReplicas:
+      pathWithSuffix = '/lhcb/' + replicaType + dirName
+    return pathWithSuffix
+
+
   def getProblematicDirsSummary( self, site ):
     """ Produce a list of files that are not registered in the File Catalog. 
         1- queries the problematicDirs table to get all directories for a given site that have more data on SE than in LFC
@@ -779,11 +801,14 @@ class SEUsageAgent( AgentModule ):
     for row in val:
       #('SARA', 'LHCb-Disk', 0L, 43L, '/lhcb/MC/2010/DST/00007332/0000/', 'NotRegisteredInFC','failover')
       site, spaceToken, LFCFiles, SDFiles, LFCPath, problem, replicaType = row
-      gLogger.info("%s %s" % (LFCPath, replicaType) )
+      pathWithSuffix =  self.PathWithSuffix( LFCPath, replicaType )
+      gLogger.info("%s %s - %s" % (LFCPath, replicaType, pathWithSuffix) )
       if replicaType not in problematicDirectories.keys():
         problematicDirectories[ replicaType ] = []
-      if LFCPath not in problematicDirectories[ replicaType ]:
-	problematicDirectories[ replicaType ].append( LFCPath )
+      #if LFCPath not in problematicDirectories[ replicaType ]:
+      if pathWithSuffix not in problematicDirectories[ replicaType ]:
+	#problematicDirectories[ replicaType ].append( LFCPath )
+	problematicDirectories[ replicaType ].append( pathWithSuffix )
       else:
         gLogger.error("ERROR: the directory should be listed only once for a given site and type of replica! site=%s, path= %s, type of replica =%s  " %(site, LFCPath, replicaType))  
         continue
@@ -802,16 +827,17 @@ class SEUsageAgent( AgentModule ):
       fullFilePath = os.path.join( pathToMergedFiles, mergedFile )
       gLogger.info("Scanning file: %s ... " % fullFilePath )
       for line in open( fullFilePath, "r").readlines():
-        lfn, size, creationdate = line.split()
+        lfn, size, creationdate = line.split() # this LFN includes the initial suffix (e.g./lhcb/archive/)
         directories = lfn.split('/')
         basePath = ''
         for segment in directories[0:-1]:
-          basePath = basePath + segment + '/'
+          basePath = basePath + segment + '/' # basepath is the directory including the initial suffix
         for replicaType in problematicDirectories.keys():
-          if self.PathInLFC( basePath ) in problematicDirectories[ replicaType ]:
+          #if self.PathInLFC( basePath ) in problematicDirectories[ replicaType ]: # these paths do NOT include initial suffix
+          if basePath in problematicDirectories[ replicaType ]: # these paths do include initial suffix
             if replicaType not in filesInProblematicDirs.keys():
               filesInProblematicDirs[ replicaType ] = []
-            if lfn not in filesInProblematicDirs[ replicaType ]:
+            if lfn not in filesInProblematicDirs[ replicaType ]: # lfn including suffix
               filesInProblematicDirs[ replicaType ].append( lfn )
 
     gLogger.info("Files in problematic directories:")
@@ -880,15 +906,18 @@ class SEUsageAgent( AgentModule ):
       else:
         for se in goodFiles[lfn].keys():
           if se in specialReplicasSEs:
-            gLogger.info("skip thi se: %s " % se )
+            gLogger.info("Replica type is %s, skip this SE: %s " % (replicaType, se ) )
             continue
           if site in se:
-            gLogger.verbose("matching se: %s " % se )
+            gLogger.info("matching se: %s " % se )
             replicaAtSite = True
             break
       if not replicaAtSite:
         replicasMissingFromSite.append( lfn )
-    
+   
+    # check if the storage files have been removed in the meanwhile after the storage dump creation and the check
+    # to be done
+     
     # write results of checks to files:
     fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".replicasMissingFromSite.txt" )
     gLogger.info("Writing list of replicas missing from site to file %s " % fileName )
