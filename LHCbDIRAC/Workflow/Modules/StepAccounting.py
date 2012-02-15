@@ -13,6 +13,7 @@ import os, time
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC.Core.Utilities import Time
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
@@ -25,20 +26,13 @@ class StepAccounting( ModuleBase ):
 
     self.version = __RCSID__
 
-#    if self.workflow_commons.has_key( 'AccountingClient' ):
-#      self.accounting = self.workflow_commons['AccountingClient']
-#      self.globalAccounting = True
-#    else:
-#      self.accounting = DataStoreClient()
-#      self.globalAccounting = False
-
   ########################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               js = None, xf_o = None ):
+               js = None, xf_o = None, dsc = None ):
 
     try:
       super( StepAccounting, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
@@ -63,7 +57,11 @@ class StepAccounting( ModuleBase ):
           self.log.error( 'XML Summary object could not be found (not produced?), skipping the report' )
           return S_OK()
 
-      self._resolveInputVariables()
+      self._resolveInputVariables( dsc )
+
+      now = Time.dateTime()
+      jobStep.setStartTime( now )
+      jobStep.setEndTime( now )
 
       dataDict = {'JobGroup': str( self.production_id ),
                   'RunNumber': self.runNumber,
@@ -84,17 +82,16 @@ class StepAccounting( ModuleBase ):
 
       jobStep.setValuesFromDict( dataDict )
 
+      res = jobStep.checkValues()
+      if not res['OK']:
+        self.log.error( 'Values for StepAccounting are wrong', res['Message'], dataDict )
+        return S_ERROR( 'Values for StepAccounting are wrong' )
+
       if not self._enableModule():
         self.log.info( 'Not enabled, would have accounted for %s' % dataDict )
         return S_OK()
 
-      result = jobStep.commit()
-      if not result['OK']:
-        # Failover request
-        if self.workflow_commons.has_key( 'Request' ):
-          from DIRAC.RequestManagementSystem.Client.DISETSubRequest import DISETSubRequest
-          request = self.workflow_commons['Request']
-          request.addSubRequest( DISETSubRequest( result['rpStub'] ).getDictionary(), 'accounting' )
+      self.dsc.addRegister( jobStep )
 
       return S_OK()
 
@@ -107,11 +104,16 @@ class StepAccounting( ModuleBase ):
 
   ########################################################################
 
-  def _resolveInputVariables( self ):
+  def _resolveInputVariables( self, dsc = None ):
     """ By convention all workflow parameters are resolved here.
     """
 
     super( StepAccounting, self )._resolveInputVariables()
+
+    if dsc is not None:
+      self.dsc = dsc
+    else:
+      self.dsc = self.workflow_commons['AccountingClient']
 
     if self.stepStatus['OK']:
       self.stepStat = 'Done'
