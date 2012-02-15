@@ -84,6 +84,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.jobStep_mock = Mock()
     self.jobStep_mock.commit.return_value = {'OK': True, 'Value': ''}
     self.jobStep_mock.setValuesFromDict.return_value = {'OK': True, 'Value': ''}
+    self.jobStep_mock.checkValues.return_value = {'OK': True, 'Value': ''}
 
     self.version = 'someVers'
     self.prod_id = '123'

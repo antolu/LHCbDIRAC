@@ -113,7 +113,7 @@ class StepAccounting( ModuleBase ):
     if dsc is not None:
       self.dsc = dsc
     else:
-      self.dsc = self.workflow_commons['AccountingClient']
+      self.dsc = self.workflow_commons['AccountingReport']
 
     if self.stepStatus['OK']:
       self.stepStat = 'Done'
