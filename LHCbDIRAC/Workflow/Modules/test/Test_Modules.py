@@ -501,7 +501,27 @@ class BookkeepingReportSuccess( ModulesTestCase ):
                                          self.step_number, self.step_id, False,
                                          self.bkc_mock, self.xf_o_mock )['OK'] )
 
-    #TODO: make other tests (how?)!
+
+class BookkeepingReportFailure( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, self.step_commons,
+                                          self.step_number, self.step_id, False,
+                                          self.bkc_mock )['OK'] )
+      step_commons = copy.deepcopy( self.step_commons )
+      step_commons.pop( 'XMLSummary' )
+      self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons,
+                                          self.step_number, self.step_id, False,
+                                          self.bkc_mock )['OK'] )
+
 
 ##############################################################################
 ## ErrorLogging.py
@@ -758,6 +778,7 @@ if __name__ == '__main__':
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )

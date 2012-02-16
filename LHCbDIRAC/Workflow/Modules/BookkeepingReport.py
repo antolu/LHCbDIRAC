@@ -180,7 +180,31 @@ class BookkeepingReport( ModuleBase ):
     self.eventsRequested = self.step_commons['numberOfEvents']
 
     if not xf_o:
-      self.xf_o = self.step_commons['XMLSummary_o']
+      try:
+        self.xf_o = self.step_commons['XMLSummary_o']
+      except KeyError:
+        self.log.warn( 'XML Summary object not found, will try to create it (again?)' )
+        from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
+        try:
+          XMLSummaryFile = self.step_commons['XMLSummary']
+        except KeyError:
+          self.log.warn( 'XML Summary file name not found, will try to guess it' )
+          XMLSummaryFile = 'summary%s_%s_%s_%s.xml' % ( self.applicationName,
+                                                        self.production_id,
+                                                        self.prod_job_id,
+                                                        self.step_number )
+          self.log.warn( 'Trying %s' % XMLSummaryFile )
+          if not XMLSummaryFile in os.listdir( '.' ):
+            self.log.warn( 'XML Summary file %s not found, will try to guess a second time' % XMLSummaryFile )
+            XMLSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
+                                                    self.step_id )
+            self.log.warn( 'Trying %s' % XMLSummaryFile )
+            if not XMLSummaryFile in os.listdir( '.' ):
+              self.log.warn( 'XML Summary file %s not found, will try to guess a third and last time' % XMLSummaryFile )
+              XMLSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
+                                                      self.step_number )
+              self.log.warn( 'Trying %s' % XMLSummaryFile )
+        self.xf_o = XMLSummary( XMLSummaryFile )
     else:
       self.xf_o = xf_o
 
