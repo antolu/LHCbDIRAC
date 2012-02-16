@@ -117,7 +117,10 @@ class SpaceTokenOccupancyTest(TestBase):
       import lcg_util
       for site in self.SEs:
         for st in CS.getSpaceTokens():
-          self.generate_xml_and_dashboard(site, st, lcg_util)
+          try:
+            self.generate_xml_and_dashboard(site, st, lcg_util)
+          except:
+            gLogger.warn( 'SpaceTokenOccupancyTest crashed at %s, %s' % ( site, st ) )  
     except ImportError:
       gLogger.warn("SpaceTokenOccupancyTest cannot import lcg_util, aborting.")
 
@@ -224,7 +227,10 @@ class DIRACTest(TestBase):
     gLogger.info("DIRACTest: discovered %d services" % len(discovered_services))
 
     for (s, srv) in discovered_services:
-      self.xml_sensor(s, srv)
+      try:
+        self.xml_sensor(s, srv)
+      except:
+        gLogger.warn( 'DIRACTest.xml_sensors crashed on %s, %s' % ( s, srv ) )  
 
   def run_t1_xml_sensors(self):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
@@ -233,7 +239,11 @@ class DIRACTest(TestBase):
     gLogger.info("DIRACTest: discovered %d request management url(s) and %d configuration url(s)"
                  % (len(request_management_urls),len(configuration_urls)))
     for url in request_management_urls + configuration_urls:
-      self.xml_t1_sensor(url)
+      try:
+        self.xml_t1_sensor(url)
+      except:
+        gLogger.warn( 'DIRACTest.t1_xml_sensors crashed on %s' % url )
+          
 
   # XML GENERATORS
 
@@ -546,7 +556,10 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
     # For each CondDB, run the test and generate XML file
     for site in self.CDB_infos:
       gLogger.info("Starting SLS CondDB test for site %s" % site)
-      self.run_test(site)
+      try:
+        self.run_test(site)
+      except:
+        gLogger.warn( 'CondDBTest crashed at %s' % site )  
 
     # Go back to previous directory
     os.chdir(oldcwd)
@@ -670,19 +683,19 @@ class SLSAgent(AgentModule):
     # Future me, forgive me for this. TO BE Fixed.
     try:
       SpaceTokenOccupancyTest(self)
-    except:
-      pass
+    except Exception, e:
+      gLogger.warn( 'SpaceTokenOccupancyTest crashed with %s' % e )
     try:  
       DIRACTest(self)
-    except:
-      pass
+    except Exception, e:
+      gLogger.warn( 'DIRACTest crashed with %s' % e )
     try:
       LOGSETest(self)
-    except:
-      pass
+    except Exception, e:
+      gLogger.warn( 'LOGSETest crashed with %s' % e )
     try:  
       CondDBTest(self)
-    except:
-      pass
+    except Exception, e:
+      gLogger.warn( 'ConDBTest crashed with %s' % e )
       
     return S_OK()
