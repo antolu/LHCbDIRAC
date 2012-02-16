@@ -256,52 +256,52 @@ class StorageUsageHandler( RequestHandler ):
         to the given site and (optionally ) space token """
     return storageUsageDB.removeSTSummary( site, spaceToken )
   
-  ####
-  # Tier1 SE status for web
-  ####
-  types_getTier1SEStatusWeb = [ DictType, ListType, IntType, IntType ]
-  def export_getTier1SEStatusWeb( self, selectDict = {}, sortList = [ "SE", "DESC" ], startItem = 0, maxItems = 56 ):
-    """get Tier1 SE status
-
-    :warning:
-    Always returning information about all T1 SEs but could be easly modified to see only few of them.
-
-    :todo:
-    Read space tokens quota from DIRAC config.
-
-    :param self: self reference
-    :param dict SelectionDict: not used, required by the web interface
-    :param list SortList: as above
-    :param int StartItem: as above
-    :param MaxItems: as above
-    """
-    res = gConfig.getOptionsDict( "/Resources/StorageElementGroups" )
-    if not res["OK"]:
-      return S_ERROR( res["Message"] )
-    tier1SEs = list()
-    for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith( "Tier1" ) ]:
-      tier1SEs += [ se.strip() for se in seStr.split( "," ) if not se.endswith( "-disk" ) ]
-    SEs = { "ParameterNames" : [ "SE", "ReadAccess", "WriteAccess", "Used", "Quota", "Free" ],
-            "Records" : [],
-            "TotalRecords" : 0,
-            "Extras" : "" }
-    for seName in sorted( tier1SEs ):
-      storageElement = StorageElement( seName )
-      if not storageElement.valid:
-        gLogger.error( "invalid StorageElement '" + seName + "' reason: " + storageElement.errorReason )
-      else:
-        seStatus = storageElement.getStatus()
-        if not seStatus["OK"]:
-          return S_ERROR( seStatus["Message"] )
-        seStatus = seStatus["Value"]
-        seFree = seStatus["DiskCacheTB"] * 100.0 / seStatus["TotalCapacityTB"]
-
-        SEs["Records"].append( [ seName,
-                                 "Active" if seStatus["Read"] else "InActive",
-                                 "Active" if seStatus["Write"] else "InActive",
-                                 "%4.2f" % seStatus["DiskCacheTB"],
-                                 "%4.2f" % seStatus["TotalCapacityTB"],
-                                 "%4.2f" % seFree ] )
-        SEs["TotalRecords"] += 1
-    return S_OK( SEs )
+#  ####
+#  # Tier1 SE status for web
+#  ####
+#  types_getTier1SEStatusWeb = [ DictType, ListType, IntType, IntType ]
+#  def export_getTier1SEStatusWeb( self, selectDict = {}, sortList = [ "SE", "DESC" ], startItem = 0, maxItems = 56 ):
+#    """get Tier1 SE status
+#
+#    :warning:
+#    Always returning information about all T1 SEs but could be easly modified to see only few of them.
+#
+#    :todo:
+#    Read space tokens quota from DIRAC config.
+#
+#    :param self: self reference
+#    :param dict SelectionDict: not used, required by the web interface
+#    :param list SortList: as above
+#    :param int StartItem: as above
+#    :param MaxItems: as above
+#    """
+#    res = gConfig.getOptionsDict( "/Resources/StorageElementGroups" )
+#    if not res["OK"]:
+#      return S_ERROR( res["Message"] )
+#    tier1SEs = list()
+#    for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith( "Tier1" ) ]:
+#      tier1SEs += [ se.strip() for se in seStr.split( "," ) if not se.endswith( "-disk" ) ]
+#    SEs = { "ParameterNames" : [ "SE", "ReadAccess", "WriteAccess", "Used", "Quota", "Free" ],
+#            "Records" : [],
+#            "TotalRecords" : 0,
+#            "Extras" : "" }
+#    for seName in sorted( tier1SEs ):
+#      storageElement = StorageElement( seName )
+#      if not storageElement.valid:
+#        gLogger.error( "invalid StorageElement '" + seName + "' reason: " + storageElement.errorReason )
+#      else:
+#        seStatus = storageElement.getStatus()
+#        if not seStatus["OK"]:
+#          return S_ERROR( seStatus["Message"] )
+#        seStatus = seStatus["Value"]
+#        seFree = seStatus["DiskCacheTB"] * 100.0 / seStatus["TotalCapacityTB"]
+#
+#        SEs["Records"].append( [ seName,
+#                                 "Active" if seStatus["Read"] else "InActive",
+#                                 "Active" if seStatus["Write"] else "InActive",
+#                                 "%4.2f" % seStatus["DiskCacheTB"],
+#                                 "%4.2f" % seStatus["TotalCapacityTB"],
+#                                 "%4.2f" % seFree ] )
+#        SEs["TotalRecords"] += 1
+#    return S_OK( SEs )
 
