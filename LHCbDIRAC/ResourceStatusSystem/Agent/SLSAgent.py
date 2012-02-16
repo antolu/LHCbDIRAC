@@ -236,15 +236,16 @@ class DIRACTest(TestBase):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
     request_management_urls = gConfig.getValue("/Systems/RequestManagement/Development/URLs/allURLS", [])
     configuration_urls      = gConfig.getServersList()
-    gLogger.info("DIRACTest: discovered %d request management url(s) and %d configuration url(s)"
-                 % (len(request_management_urls),len(configuration_urls)))
-    for url in request_management_urls + configuration_urls:
+    framework_urls          = gConfig.getValue("/DIRAC/Framework/SystemAdministrator", [])
+    
+    gLogger.info("DIRACTest: discovered %d request management url(s), %d configuration url(s) and %d framework url(s)"
+                 % (len(request_management_urls),len(configuration_urls), len( framework_urls )))
+    for url in request_management_urls + configuration_urls + framework_urls:
       try:
-        self.xml_t1_sensor(url)
+        self.xml_t1_sensor( url )
       except:
         gLogger.warn( 'DIRACTest.t1_xml_sensors crashed on %s' % url )
           
-
   # XML GENERATORS
 
   # This test is an isolated SLS test for one service.. Why is it different ?
