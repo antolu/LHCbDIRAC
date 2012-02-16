@@ -5,6 +5,7 @@ __RCSID__ = "$Id$"
 
 
 from DIRAC                                                             import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
@@ -1027,10 +1028,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __getActiveSEs( self, selist ):
     activeSE = []
-    for se in selist:
-      res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
-      if res['OK'] and res['Value'] == 'Active':
-        activeSE.append( se )
+   
+    res = ResourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
+    if res[ 'OK' ]:
+      for k,v in res[ 'Value' ].items():
+        if v.has_key( 'Write' ) and v[ 'Write' ] in [ 'Active', 'Bad' ]:
+          activeSE.append( k )
+     
     return activeSE
 
   def __getListFromString( self, s ):
