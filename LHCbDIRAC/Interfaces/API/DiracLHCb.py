@@ -17,6 +17,8 @@ from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 
+from DIRAC.ResourceStatusSystem.Client import ResourceStatus
+
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles import getAncestorFiles
@@ -923,6 +925,7 @@ class DiracLHCb( Dirac ):
     """
     storageCFGBase = '/Resources/StorageElements'
     res = gConfig.getSections( storageCFGBase, True )
+   
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
 
@@ -930,23 +933,27 @@ class DiracLHCb( Dirac ):
       print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
 
     result = {}
-    for se in sortList( res['Value'] ):
-      res = gConfig.getOptionsDict( '%s/%s' % ( storageCFGBase, se ) )
-      if not res['OK']:
-        gLogger.warn( 'Failed to get options dict for SE %s' % se )
-      else:
-        readState = 'Active'
-        if res['Value'].has_key( 'ReadAccess' ):
-          readState = res['Value']['ReadAccess']
-        writeState = 'Active'
-        if res['Value'].has_key( 'WriteAccess' ):
-          writeState = res['Value']['WriteAccess']
-        result[se] = {'ReadStatus':readState, 'WriteStatus':writeState}
-        if printOutput:
-          print '%s %s %s' % ( se.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
+   
+    seList = sortList( res['Value'] )
+    res    = ResourceStatus.getStorageElementStatus( seList )
+    if not res[ 'OK' ]:
+      gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
+   
+    for k,v in res[ 'Value' ].items():
+   
+      readState, writeState = 'Active', 'Active'
+ 
+      if v.has_key( 'Read' ):
+        readState = v[ 'Read' ]  
+ 
+      if v.has_key( 'Write' ):
+        writeState = v[ 'Write']
+       
+      result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
+      if printOutput:
+        print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
 
     return S_OK( result )
-
   #############################################################################
   def __errorReport( self, error, message = None ):
     """Internal function to return errors and exit with an S_ERROR()
