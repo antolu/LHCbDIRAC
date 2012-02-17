@@ -3,7 +3,7 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC                                                  import gLogger
+from DIRAC                                                  import gLogger, S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Utilities                   import CS
 
 import lcg_util, time
@@ -34,6 +34,12 @@ class SpaceTokenOccupancyTest:
       _msg = '%s: Exception gettingElementsToCheck' % self.name
       gLogger.debug( '%s: \n %s' % ( _msg, e ) )
       return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
+
+  def runProbe( self, probeInfo ):
+    
+    print probeInfo
+    
+    return probeInfo
   
 #  def launchTest( self ):
 #    '''

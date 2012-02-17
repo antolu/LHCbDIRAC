@@ -31,7 +31,7 @@ class SLSAgent2( AgentModule ):
     testPath = '%s/tests' % self.am_getModuleParam( 'section' )
     tNames   = gConfig.getSections( testPath, [] ).get( 'Value', [] )
    
-    self.pool = ProcessPool( maxSize = 4, maxQueuedRequests = 25 )
+    self.processPool = ProcessPool( maxSize = 4, maxQueuedRequests = 25 )
 
     # Load test modules 
     for tName in tNames:
@@ -84,8 +84,21 @@ class SLSAgent2( AgentModule ):
         gLogger.error( elementsToCheck[ 'Message' ] )
         continue
 
-      print elementsToCheck
-#          
+      for elementToCheck in elementsToCheck:
+        
+        res = self.processPool.createAndQueueTask( cTest.runProbe,
+                                                   args = elementToCheck )
+        
+#                                      kwargs = { "kwarg1" : value1, "kwarg2" : value2 },
+#                                      callback = callbackDef,
+#                                      exceptionCallback = exceptionCallBackDef )
+#       
+        if not res[ 'OK' ]:
+          gLogger.error( 'Error queueing task %s' % res[ 'Message' ] )
+        
+    print self.processPool.processAllResults() 
+    print self.processPool.finalize()           
+   
 #      saveHandler = signal.signal( signal.SIGALRM, self.handler )
 #      signal.alarm( 10 )
 #      try:

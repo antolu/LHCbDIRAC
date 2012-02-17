@@ -3,7 +3,7 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC                                                  import gLogger, gConfig, S_ERROR
+from DIRAC                                                  import gLogger, gConfig, S_ERROR, S_OK
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
 from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
@@ -39,6 +39,9 @@ class ConditionDBTest:
       _msg = '%s: Exception gettingElementsToCheck' % self.name
       gLogger.debug( '%s: \n %s' % ( _msg, e ) )
       return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
+
+  def runProbe( self, probeInfo ):
+    pass
    
 #  def launchTest( self ):
 #    '''
