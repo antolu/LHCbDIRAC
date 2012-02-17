@@ -25,8 +25,7 @@ class ConditionDBTest:
       condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
     
       if not condDBs[ 'OK' ]:
-        gLogger.error( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
-        return S_ERROR( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
+        return S_ERROR( '%s: No CondDBs found on the RSS: %s' % ( self.name, condDBs[ 'Message' ] ) )
     
       if not os.environ.has_key( 'USER' ):
         # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
@@ -37,13 +36,10 @@ class ConditionDBTest:
       return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
     
     except Exception, e:
-      _msg = 'Error gettingElementsToCheck in ConditionDBTest: \n %s' % e
-      gLogger.exception( _msg )
-      return S_ERROR( _msg )
-      
-  
-  
- 
+      _msg = '%s: Exception gettingElementsToCheck' % self.name
+      gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+      return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
+   
 #  def launchTest( self ):
 #    '''
 #      Main test method.

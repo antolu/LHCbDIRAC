@@ -72,13 +72,17 @@ class SLSAgent2( AgentModule ):
         
     for tName, tModule in self.tModules.items():
       
-      gLogger.info( tName )
+      gLogger.info( '%s: Launching probes' % tName )
         
       elementsToCheck = []  
     
       mTest           = getattr( tModule[ 'mod' ], '%sTest' % tName )
       cTest           = mTest( tModule[ 'path' ], self.workdir )
       elementsToCheck = cTest.getElementsToCheck()
+
+      if not elementsToCheck[ 'OK' ]:
+        gLogger.error( elementsToCheck[ 'Message' ] )
+        continue
 
       print elementsToCheck
 #          
