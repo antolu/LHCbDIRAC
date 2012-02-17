@@ -10,7 +10,7 @@ from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
 from DIRAC.Core.Utilities.SiteSEMapping                import getSEsForSite
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.List import sortList
-
+from DIRAC.Resources.Storage.StorageElement         import StorageElement
 import time, os, urllib2, tarfile, signal
 from types import *
 
@@ -805,9 +805,7 @@ class SEUsageAgent( AgentModule ):
       gLogger.info("%s %s - %s" % (LFCPath, replicaType, pathWithSuffix) )
       if replicaType not in problematicDirectories.keys():
         problematicDirectories[ replicaType ] = []
-      #if LFCPath not in problematicDirectories[ replicaType ]:
       if pathWithSuffix not in problematicDirectories[ replicaType ]:
-	#problematicDirectories[ replicaType ].append( LFCPath )
 	problematicDirectories[ replicaType ].append( pathWithSuffix )
       else:
         gLogger.error("ERROR: the directory should be listed only once for a given site and type of replica! site=%s, path= %s, type of replica =%s  " %(site, LFCPath, replicaType))  
@@ -833,7 +831,6 @@ class SEUsageAgent( AgentModule ):
         for segment in directories[0:-1]:
           basePath = basePath + segment + '/' # basepath is the directory including the initial suffix
         for replicaType in problematicDirectories.keys():
-          #if self.PathInLFC( basePath ) in problematicDirectories[ replicaType ]: # these paths do NOT include initial suffix
           if basePath in problematicDirectories[ replicaType ]: # these paths do include initial suffix
             if replicaType not in filesInProblematicDirs.keys():
               filesInProblematicDirs[ replicaType ] = []
@@ -843,8 +840,9 @@ class SEUsageAgent( AgentModule ):
     gLogger.info("Files in problematic directories:")
     for replicaType in filesInProblematicDirs.keys():
       gLogger.info("replica type: %s files: %d " %(replicaType, len(filesInProblematicDirs[replicaType])))  
+      for fil in filesInProblematicDirs[ replicaType ]:
+        gLogger.verbose("file in probl Dir %s %s" %(fil, replicaType)) 
    
-
     for replicaType in filesInProblematicDirs.keys():
       res = self.checkReplicasInFC( replicaType, filesInProblematicDirs[ replicaType ] , site )
     return S_OK()
@@ -863,7 +861,7 @@ class SEUsageAgent( AgentModule ):
     for sr in self.specialReplicas:
       se = site + '-' + sr.upper()
       specialReplicasSEs.append( se )
-    gLogger.info("SEs for special replicas: %s " % specialReplicasSEs )
+    gLogger.verbose("SEs for special replicas: %s " % specialReplicasSEs )
 
     filesInProblematicDirs = []
     if replicaType in self.specialReplicas:
@@ -883,14 +881,23 @@ class SEUsageAgent( AgentModule ):
       repsResult = self.__replicaManager.getReplicas( filesInProblematicDirs )
     timing = time.time() - start
     gLogger.info( ' %d replicas Lookup Time: %.2f s -> %.2f s/replica ' % (  len( filesInProblematicDirs ), timing, timing*1./len( filesInProblematicDirs ) ) )
-    #gLogger.info( repsResult )
     if not repsResult['OK']:
       return S_ERROR( repsResult['Message'] )
     goodFiles = repsResult['Value']['Successful']
     badFiles = repsResult['Value']['Failed']
     for lfn in badFiles.keys():
       if "No such file or directory" in badFiles[ lfn ]:
-        filesMissingFromFC.append( lfn )
+        gLogger.info("missing from FC %s %s" % (lfn, replicaType) )
+        # check if the storage files have been removed in the meanwhile after the storage dump creation and the check
+        # to be done
+        storageFileStatus = self.storageFileExists( lfn, replicaType, site )
+        if storageFileStatus == 1:
+          gLogger.info("Inconsistent file! %s " % lfn )
+          filesMissingFromFC.append( lfn )
+        elif storageFileStatus == 0:
+          gLogger.info("storage file does not exist (temporary file) %s " % lfn )  
+        else:
+          gLogger.warning("Failed request for storage file %s " % lfn )
       else:
         gLogger.info("Unknown message from Fc: %s - %s "  %(lfn, badFiles[ lfn ])) 
     for lfn in goodFiles.keys():
@@ -900,7 +907,7 @@ class SEUsageAgent( AgentModule ):
         specialReplicaSE = site + '-' + replicaType.upper()        
         for se in goodFiles[lfn].keys():
           if se == specialReplicaSE:
-            gLogger.info("matching se: %s " % se )
+            gLogger.verbose("matching se: %s " % se )
             replicaAtSite = True
             break
       else:
@@ -909,14 +916,12 @@ class SEUsageAgent( AgentModule ):
             gLogger.info("Replica type is %s, skip this SE: %s " % (replicaType, se ) )
             continue
           if site in se:
-            gLogger.info("matching se: %s " % se )
+            gLogger.verbose("matching se: %s " % se )
             replicaAtSite = True
             break
       if not replicaAtSite:
         replicasMissingFromSite.append( lfn )
    
-    # check if the storage files have been removed in the meanwhile after the storage dump creation and the check
-    # to be done
      
     # write results of checks to files:
     fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".replicasMissingFromSite.txt" )
@@ -946,6 +951,62 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
 
+  def storageFileExists( self, lfn, replicaType, site ):
+    """ Check if the replica exists on storage. This is to filter many temporary files (e.g. un-merged..) that are
+          removed in the while between storage dump and consistency check.
+        Return values:
+         -1 : request failed
+          0 : storage file does not exist
+          1 : storage file exists
+    """
+    storageFileExist = -1
+    # get the PFN
+    seList = []
+    if replicaType in self.specialReplicas:
+      seName = site + '-' + replicaType.upper()  
+      seList.append( seName )
+    else:
+      specialReplicasSEs = []
+      for sr in self.specialReplicas:
+        se = site + '-' + sr.upper()
+        specialReplicasSEs.append( se )
+      # seName is not known
+      # try with all the SEs available for the site, except the ones for special replicas
+      allSEs = self.siteConfig[ site ]['SEs']
+      for se in allSEs:
+        if se not in specialReplicasSEs:
+          seList.append( se )  
+    gLogger.verbose("list of SEs : %s" % seList )
+
+    for seName in seList:
+      storageElement = StorageElement( seName )
+      res = storageElement.getPfnForLfn( lfn )  
+      if not res['OK']:
+        gLogger.error("Could not create storage element object %s " % res['Message'])
+        continue
+      surl = res[ 'Value']
+      gLogger.verbose("checking existance for %s - %s" % (surl, seName) )
+      res = self.__replicaManager.getStorageFileExists( surl, seName )
+      gLogger.verbose("result of getStorageFileExists: %s " % res )
+      if not res['OK']:
+        gLogger.error("error executing replicaManager.getStorageFileExists %s " % res['Message'] )
+        storageFileExist = -1
+        continue
+      if res['Value']['Failed']:
+        gLogger.error("error executing replicaManager.getStorageFileExists %s " % res )
+        storageFileExist = -1
+        continue
+      elif res['Value']['Successful']:
+        if res['Value']['Successful'][ surl ]:
+          gLogger.info("storage file exists: %s " % res['Value'] )
+          storageFileExist = 1
+          return storageFileExist  
+        else:
+          gLogger.verbose("storage file NOT found: %s " % res['Value'] )
+          storageFileExist = 0
+            
+    return storageFileExist
+      
   def castorPreParser( self, site, inputFilesDir ):
     """ Preliminary parsing for Castor nameserver dump
         Separates the files in 3 space tokens relying on the namespace
