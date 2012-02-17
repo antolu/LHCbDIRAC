@@ -3,22 +3,10 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC                                                  import gLogger, S_OK, S_ERROR
-from DIRAC.ResourceStatusSystem.Utilities                   import CS
+from DIRAC                                import gLogger, S_OK, S_ERROR
+from DIRAC.ResourceStatusSystem.Utilities import CS
 
-import lcg_util #, time, signal, time
-
-#class TimedOutError( Exception ): pass
-#
-#def handler(signum, frame):
-#  raise TimedOutError() 
-
-#class SpaceTokenOccupancyTest:
-#  
-#  def __init__( self, name, workdir ):
-#    
-#    self.name    = name
-#    self.workdir = workdir
+import lcg_util, time
     
 def getElementsToCheck():
   
@@ -40,38 +28,68 @@ def getElementsToCheck():
     gLogger.debug( '%s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
 
-def runProbe( self, probeInfo ):
+################################################################################
+
+def runProbe( probeInfo, testConfig ):
+      
+  total, guaranteed, free, availability = 0, 0, 0, 0
+  
+  site, siteDict, spaceToken = probeInfo
+  url                        = siteDict[ 'Endpoint' ]
+  validityduration           = 'PT0M'  
     
-  gLogger.info( probeInfo )
-  gLogger.info( 'endProbe' )
-
-#  saveHandler = signal.signal( signal.SIGALRM, handler )
-#  signal.alarm( 1 )
-#  try:
-#    gLogger.info( 'Start run' )
-#    time.sleep( 10 )
-#    gLogger.info( 'End run')
-#  except TimedOutError:
-#    gLogger.info( 'Killed' )    
-#  finally:
-#    signal.signal( signal.SIGALRM, saveHandler )  
-#  signal.alarm( 0 )            
-        
-        
-#      try:
-#        
-#        cTest = tModule[ 'mod' ].TestModule( tName, tModule[ 'path' ], self.workdir )
-#        self.tests.append( [ tName, cTest ] )
-#        cTest.start()
-#        del cTest    
-#        
-#      except Exception, e:
-#        _msg = 'Error running %s, %s' % ( tName, e )
-#        gLogger.exception( _msg )  
-
-
+  answer = lcg_util.lcg_stmd( spaceToken, url, True, 0 )  
+  
+  if answer[ 0 ] == 0:
     
-  return probeInfo
+    output       = answer[1][0]
+    total        = float( output[ 'totalsize' ] ) / 1e12 # Bytes to Terabytes
+    guaranteed   = float( output[ 'guaranteedsize' ] ) / 1e12
+    free         = float( output[ 'unusedsize' ] ) / 1e12
+    availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
+    
+    #validity     = self.getTestOption( "validity" )
+    validityduration = testConfig[ 'validityduration' ]
+  else:
+    _msg = 'StorageTokenOccupancy: problem with lcg_util.lcg_stmd( "%s","%s",True,0 ) = (%d, %s)'
+    gLogger.info(  _msg % ( spaceToken, url, answer[0], answer[1] ) )
+    gLogger.info( str( answer ) )
+  
+  ## Now, write xmlList 
+  
+  xmlList = []
+  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_Storage_Space_%s_%s' % ( site, spaceToken ) } )
+  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
+    
+  thresholdNodes = []
+  for t,v in self.testConfig[ 'thresholds' ].items():
+    thresholdNodes.append( { 'tag' : 'threshold', 'attrs' : [ ( 'level', t ) ], 'nodes' : v } )
+    
+  xmlList.append( { 'tag' : 'availabilitythresholds', 'nodes' : thresholdNodes } )
+    
+  xmlList.append( { 'tag' : 'availabilityinfo' , 'nodes' : 'Free=%s Total=%s' % ( free, total ) } )
+  xmlList.append( { 'tag' : 'availabilitydesc' , 'nodes' : self.testConfig[ 'availabilitydesc' ] } )
+  xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : self.testConfig[ 'refreshperiod' ] } )
+  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : validityduration } )
+
+  dataNodes = []
+  grpNodes  = []
+  grpNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Consumed' ) ], 'nodes' : total - free } ) 
+  grpNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Capacity' ) ], 'nodes' : total } )
+    
+  dataNodes.append( { 'tag' : 'grp', 'attrs' : [ ( 'name', 'Space occupancy' ) ], 'nodes' : grpNodes } )
+    
+  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Free space' ) ], 'nodes' : free } )
+  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Occupied space' ) ], 'nodes' : total - free } )
+  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Total space' ) ], 'nodes' : total } )
+  dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'Storage space for the specific space token' } )
+    
+  xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
+  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
+    
+#  self.writeXml( xmlList, 'fileName' )  
+     
+  return xmlList
   
 #  def launchTest( self ):
 #    '''

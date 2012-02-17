@@ -9,6 +9,8 @@ from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
 
+from xml.dom.minidom                      import Document
+
 import signal
 
 class SLSAgent2( AgentModule ):
@@ -54,8 +56,16 @@ class SLSAgent2( AgentModule ):
         
     for tName, tModule in self.tModules.items():
       
-      gLogger.info( '%s: Launching probes' % tName )
-        
+      gLogger.info( '%s: Getting test configuration' % tName )
+      testPath = tModule[ 'path' ]
+      
+      testConfig = self.getTestConfig( testPath )
+      if not testConfig[ 'OK' ]:
+        gLogger.error( testConfig[ 'Message' ] )
+        continue
+      testConfig = testConfig[ 'Value' ]
+      
+      gLogger.info( '%s: Getting test probes' % tName )        
       mTest           = tModule[ 'mod' ]
       elementsToCheck = mTest.getElementsToCheck()
 
@@ -64,33 +74,112 @@ class SLSAgent2( AgentModule ):
         continue
       elementsToCheck = elementsToCheck[ 'Value' ]
 
+      gLogger.info( '%s: Launching test probes' % tName )
       for elementToCheck in elementsToCheck:
         
         res = self.processPool.createAndQueueTask( runSLSProbe,
                                                    args              = ( mTest.runProbe, elementToCheck ),
-                                                   callback          = slsCallback,
+                                                   kwargs            = { 'testConfig' : testConfig },
+                                                   callback          = self.writeXml,
                                                    exceptionCallback = slsExceptionCallback )
         
         if not res[ 'OK' ]:
           gLogger.error( 'Error queuing task %s' % res[ 'Message' ] )
         
-    print self.processPool.processAllResults() 
-    print self.processPool.finalize()           
+    self.processPool.processAllResults() 
+    self.processPool.finalize()           
            
     return S_OK()        
+
+  def getTestConfig( self, testPath ):
+    
+    try:
+      
+      modConfig = gConfig.getOptionsDict( testPath )
+      if not modConfig[ 'OK' ]:
+         return S_ERROR( 'Error loading "%s".\n %s' % ( testPath, modConfig[ 'Message' ] ) )
+       
+      modConfig = modConfig[ 'Value' ]
+      sections  = gConfig.getSections( testPath ) 
+      
+      if not sections[ 'OK' ]:
+         return S_ERROR( 'Error loading "%s".\n %s' % ( testPath, sections[ 'Message' ] ) )
+      sections = sections[ 'Value' ]
+      
+      for section in sections:
+        
+        sectionPath   = '%s/%s' % ( testPath, section )
+        sectionConfig = gConfig.getOptionsDict( sectionPath )
+        
+        if not sectionConfig[ 'OK' ]:
+          return S_ERROR( 'Error loading "%s".\n %s' % ( sectionPath, sectionConfig[ 'Message' ] ) )
+        
+        sectionConfig        = sectionConfig[ 'Value' ]  
+        modConfig[ section ] = sectionConfig
+        
+      return S_OK( modConfig )  
+          
+    except Exception, e:
+      
+      return S_ERROR( 'Exception loading configuration.\n %s' % e )
+
+  #def writeXml( self, xmlList, fileName, useStub = True, path = None ):
+  def writeXml( self, task, taskResult ):  
+
+    return 1
+
+#    if path is None:
+#      path = self.workdir
+#    
+#    XML_STUB = [ { 
+#                  'tag'   : 'serviceupdate',
+#                  'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
+#                              ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
+#                              ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
+#                            ],
+#                  'nodes' : xmlList }
+#                ]
+#    
+#    
+#    d = Document()
+#    d = self._writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
+#    
+#    gLogger.info( d.toxml() )
+#    
+#    file = open( '%s/%s' % ( path, name ), 'w' )
+#    try:
+#      file.write( d.toxml() )
+#    finally:  
+#      file.close()
+
+  def _writeXml( self, doc, topElement, elementList ):
+
+    if elementList is None:
+      return topElement
+    
+    elif not isinstance( elementList, list ):
+      tn = doc.createTextNode( str( elementList ) )
+      topElement.appendChild( tn )
+      return topElement
+
+    for d in elementList:
+      
+      el = doc.createElement( d[ 'tag' ] )
+      
+      for attr in d.get( 'attrs', [] ):
+        el.setAttribute( attr[0], attr[1] )
+        
+      el = self._writeXml( doc, el, d.get( 'nodes', None ) )
+      topElement.appendChild( el )
+    
+    return topElement 
   
   def finalize( self ):
     '''
      blu blu blu
     '''
-    
     gLogger.info( 'Terminating all threads' )
-    
-    # Stop threads by force
-    for test in self.tests:
-      
-      test[1].nuke()
-      
+        
     return S_OK()      
 
 ################################################################################
@@ -100,8 +189,11 @@ class TimedOutError( Exception ): pass
 def handler( signum, frame ):
   raise TimedOutError() 
 
-def runSLSProbe( func, probeInfo ):
+def runSLSProbe( testArgs, testConfig = {} ):
     
+  func      = testArgs[ 0 ]
+  probeInfo = testArgs[ 1 ]
+
   gLogger.info( probeInfo )
   
   saveHandler = signal.signal( signal.SIGALRM, handler )
@@ -109,7 +201,7 @@ def runSLSProbe( func, probeInfo ):
   
   try:
     gLogger.info( 'Start run' )
-    res = func( probeInfo )    
+    res = func( probeInfo, testConfig )    
     gLogger.info( 'End run' )
   except TimedOutError:
     gLogger.info( 'Killed' )
