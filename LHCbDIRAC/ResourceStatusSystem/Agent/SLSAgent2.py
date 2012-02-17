@@ -34,7 +34,7 @@ class SLSAgent2( AgentModule ):
         
       try:
          
-        modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s.TestModule' % ( tName )
+        modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s.%sTest' % ( tName, tName )
         testMod = Utils.voimport( modPath )
           
         self.tModules[ tName ] = { 'mod' : testMod, 'path' : '%s/%s' % ( testPath, tName ) }
@@ -72,7 +72,7 @@ class SLSAgent2( AgentModule ):
         
       elementsToCheck = []  
     
-      cTest           = tModule[ 'mod' ]( tName, tModule[ 'path' ], self.workdir )
+      cTest           = tModule[ 'mod' ]( tModule[ 'path' ], self.workdir )
       elementsToCheck = cTest.getElementsToCheck()
           
       saveHandler = signal.signal( signal.SIGALRM, self.handler )
