@@ -6,46 +6,72 @@ __RCSID__  = "$Id:  $"
 from DIRAC                                                  import gLogger, S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Utilities                   import CS
 
-import lcg_util, time
+import lcg_util #, time, signal, time
 
-class SpaceTokenOccupancyTest:
-  
-  def __init__( self, name, workdir ):
+#class TimedOutError( Exception ): pass
+#
+#def handler(signum, frame):
+#  raise TimedOutError() 
+
+#class SpaceTokenOccupancyTest:
+#  
+#  def __init__( self, name, workdir ):
+#    
+#    self.name    = name
+#    self.workdir = workdir
     
-    self.name    = name
-    self.workdir = workdir
-    
-  def getElementsToCheck( self ):
+def getElementsToCheck():
   
-    try:
+  try:
 
-      elementsToCheck = []      
-      SEs             = CS.getSpaceTokenEndpoints()
-      spaceTokens     = CS.getSpaceTokens() 
+    elementsToCheck = []      
+    SEs             = CS.getSpaceTokenEndpoints()
+    spaceTokens     = CS.getSpaceTokens() 
 
-      for site in SEs.items():
-        for spaceToken in spaceTokens:
+    for site in SEs.items():
+      for spaceToken in spaceTokens:
 
-          elementsToCheck.append( ( site, spaceToken ) )
+        elementsToCheck.append( ( site, spaceToken ) )
         
-      return S_OK( elementsToCheck )    
+    return S_OK( elementsToCheck )    
   
-    except Exception, e:
-      _msg = '%s: Exception gettingElementsToCheck' % self.name
-      gLogger.debug( '%s: \n %s' % ( _msg, e ) )
-      return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
+  except Exception, e:
+    _msg = 'Exception gettingElementsToCheck'
+    gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+    return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
 
-  def runProbe( self, probeInfo ):
+def runProbe( self, probeInfo ):
     
-    gLogger.info( probeInfo )
+  gLogger.info( probeInfo )
+  gLogger.info( 'endProbe' )
+
+#  saveHandler = signal.signal( signal.SIGALRM, handler )
+#  signal.alarm( 1 )
+#  try:
+#    gLogger.info( 'Start run' )
+#    time.sleep( 10 )
+#    gLogger.info( 'End run')
+#  except TimedOutError:
+#    gLogger.info( 'Killed' )    
+#  finally:
+#    signal.signal( signal.SIGALRM, saveHandler )  
+#  signal.alarm( 0 )            
+        
+        
+#      try:
+#        
+#        cTest = tModule[ 'mod' ].TestModule( tName, tModule[ 'path' ], self.workdir )
+#        self.tests.append( [ tName, cTest ] )
+#        cTest.start()
+#        del cTest    
+#        
+#      except Exception, e:
+#        _msg = 'Error running %s, %s' % ( tName, e )
+#        gLogger.exception( _msg )  
+
+
     
-    return probeInfo
-  
-  def f1( self ):
-    gLogger.info( 'f1' )
-  
-  def f2( self ):
-    gLogger.info( 'f2' )
+  return probeInfo
   
 #  def launchTest( self ):
 #    '''

@@ -9,10 +9,7 @@ from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
 
-
-import signal, time
-
-class TimedOutError( Exception ): pass
+import signal
 
 class SLSAgent2( AgentModule ):
   '''
@@ -49,88 +46,39 @@ class SLSAgent2( AgentModule ):
         gLogger.warn( 'Error loading test module %s' % tName )          
    
     return S_OK()
-    
-#    except Exception, e:
-#      _msg = 'Error initializing: %s' %e
-#      gLogger.exception( _msg )
-#      return S_ERROR( _msg )  
   
   def execute( self ):
     '''
       bli bli bli
     '''
         
-    # If are there running old threads, we terminate them. Well, we terminate all
-    # them, via scheduled nuke.
-#    for test in self.tests:
-#  
-#      if test[1].isAlive():
-#        gLogger.error( '%s thread is taking too long, killing it.' % th[0] )
-#        
-#      test[1].nuke()
-#      self.tests.remove( test )
-        
     for tName, tModule in self.tModules.items():
       
       gLogger.info( '%s: Launching probes' % tName )
         
-      elementsToCheck = []  
-    
-      mTest           = getattr( tModule[ 'mod' ], '%sTest' % tName )
-      cTest           = mTest( tModule[ 'path' ], self.workdir )
-      elementsToCheck = cTest.getElementsToCheck()
+      mTest           = tModule[ 'mod' ]
+      elementsToCheck = mTest.getElementsToCheck()
 
       if not elementsToCheck[ 'OK' ]:
         gLogger.error( elementsToCheck[ 'Message' ] )
         continue
+      elementsToCheck = elementsToCheck[ 'Value' ]
 
       for elementToCheck in elementsToCheck:
         
-        res = self.processPool.createAndQueueTask( cTest.runProbe,
-                                                   args = elementToCheck,
-                                                   callback = cTest.f1,
-                                                   exceptionCallback = cTest.f2 )
+        res = self.processPool.createAndQueueTask( runSLSProbe,
+                                                   args              = ( mTest.runProbe, elementToCheck ),
+                                                   callback          = slsCallback,
+                                                   exceptionCallback = slsExceptionCallback )
         
-#                                      kwargs = { "kwarg1" : value1, "kwarg2" : value2 },
-#                                      callback = callbackDef,
-#                                      exceptionCallback = exceptionCallBackDef )
-#       
         if not res[ 'OK' ]:
-          gLogger.error( 'Error queueing task %s' % res[ 'Message' ] )
+          gLogger.error( 'Error queuing task %s' % res[ 'Message' ] )
         
     print self.processPool.processAllResults() 
     print self.processPool.finalize()           
-   
-#      saveHandler = signal.signal( signal.SIGALRM, self.handler )
-#      signal.alarm( 10 )
-#      try:
-#        gLogger.info( 'Start run' )
-#        print 'Start run'
-#        time.sleep( 15 )
-#      except TimedOutError:
-#        gLogger.info( 'Start run' )    
-#        print 'End run'
-#      finally:
-#        signal.signal( signal.SIGALRM, saveHandler )  
-#      signal.alarm( 0 )            
-        
-        
-#      try:
-#        
-#        cTest = tModule[ 'mod' ].TestModule( tName, tModule[ 'path' ], self.workdir )
-#        self.tests.append( [ tName, cTest ] )
-#        cTest.start()
-#        del cTest    
-#        
-#      except Exception, e:
-#        _msg = 'Error running %s, %s' % ( tName, e )
-#        gLogger.exception( _msg )  
-#        
+           
     return S_OK()        
   
-  def sigHandler( self, signum, frame ):
-    raise TimedOutError()
-        
   def finalize( self ):
     '''
      blu blu blu
@@ -144,6 +92,41 @@ class SLSAgent2( AgentModule ):
       test[1].nuke()
       
     return S_OK()      
+
+################################################################################
+
+class TimedOutError( Exception ): pass
+
+def handler( signum, frame ):
+  raise TimedOutError() 
+
+def runSLSProbe( func, probeInfo ):
+    
+  gLogger.info( probeInfo )
+  
+  saveHandler = signal.signal( signal.SIGALRM, handler )
+  signal.alarm( 1 )
+  
+  try:
+    gLogger.info( 'Start run' )
+    res = func( probeInfo )    
+    gLogger.info( 'End run' )
+  except TimedOutError:
+    gLogger.info( 'Killed' )
+    res = S_ERROR( 'Timeout' )    
+  finally:
+    signal.signal( signal.SIGALRM, saveHandler )
+      
+  signal.alarm( 0 )  
+  return res
+
+def slsCallback( task, taskResult ):
+  gLogger.info( 'slsCallback' )
+  gLogger.info( taskResult )
+  
+def slsExceptionCallback( task, exec_info ):
+  gLogger.info( 'slsExceptionCallback' )
+  gLogger.info( exec_info )  
   
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
