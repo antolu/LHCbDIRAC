@@ -87,7 +87,9 @@ class SLSAgent2( AgentModule ):
       for elementToCheck in elementsToCheck:
         
         res = self.processPool.createAndQueueTask( cTest.runProbe,
-                                                   args = elementToCheck )
+                                                   args = elementToCheck,
+                                                   callback = cTest.f1,
+                                                   exceptionCallback = cTest.f2 )
         
 #                                      kwargs = { "kwarg1" : value1, "kwarg2" : value2 },
 #                                      callback = callbackDef,

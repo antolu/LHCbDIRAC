@@ -37,9 +37,15 @@ class SpaceTokenOccupancyTest:
 
   def runProbe( self, probeInfo ):
     
-    print probeInfo
+    gLogger.info( probeInfo )
     
     return probeInfo
+  
+  def f1( self ):
+    gLogger.info( 'f1' )
+  
+  def f2( self ):
+    gLogger.info( 'f2' )
   
 #  def launchTest( self ):
 #    '''
