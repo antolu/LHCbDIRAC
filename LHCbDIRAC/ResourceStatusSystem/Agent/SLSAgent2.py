@@ -34,7 +34,7 @@ class SLSAgent2( AgentModule ):
         
       try:
          
-        modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s.%sTest' % ( tName, tName )
+        modPath = 'DIRAC.ResourceStatusSystem.Agent.SLSTests.%s' % tName
         testMod = Utils.voimport( modPath )
           
         self.tModules[ tName ] = { 'mod' : testMod, 'path' : '%s/%s' % ( testPath, tName ) }
@@ -69,10 +69,10 @@ class SLSAgent2( AgentModule ):
     for tName, tModule in self.tModules.items():
       
       gLogger.info( tName )
-        
-      elementsToCheck = []  
     
-      cTest           = tModule[ 'mod' ]( tModule[ 'path' ], self.workdir )
+      tClass          = getattr( tModule[ 'mod' ], '%sTest' %tName )
+      cTest           = tClass( tModule[ 'path' ], self.workdir )
+      
       elementsToCheck = cTest.getElementsToCheck()
           
       saveHandler = signal.signal( signal.SIGALRM, self.handler )

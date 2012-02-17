@@ -7,7 +7,6 @@ from DIRAC                                                  import gLogger, gCon
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
 from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
-from LHCbDIRAC.ResourceStatusSystem.Agent.SLSTests.TestBase import TestBase
 
 import os, pwd, re, time
 
@@ -20,108 +19,116 @@ class ConditionDBTest:
     
   def getElementsToCheck( self ):  
   
-    rsc     = ResourceStatusClient()
-    condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
+    try:
+  
+      rsc     = ResourceStatusClient()
+      condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
     
-    if not condDBs[ 'OK' ]:
-      gLogger.error( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
-      return S_ERROR( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
+      if not condDBs[ 'OK' ]:
+        gLogger.error( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
+        return S_ERROR( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
     
-    if not os.environ.has_key( 'USER' ):
-      # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
-      os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
+      if not os.environ.has_key( 'USER' ):
+        # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
+        os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
     
-    env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
+      env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
     
-    return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
+      return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
+    
+    except Exception, e:
+      _msg = 'Error gettingElementsToCheck in ConditionDBTest: \n %s' % e
+      gLogger.exception( _msg )
+      return S_ERROR( _msg )
+      
   
   
  
-  def launchTest( self ):
-    '''
-      Main test method.
-    '''
-    
-    self.writeOptionsFile()
-    
-    rsc     = ResourceStatusClient()
-    condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
-    
-    if not condDBs[ 'OK' ]:
-      gLogger.error( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
-      return False
-    
-    if not os.environ.has_key( 'USER' ):
-      # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
-      os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
-    
-    env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
-    
-    for condDB in condDBs[ 'Value' ]:
-      
-      try:
-        
-        self.__launchTest( condDB[ 0 ], env )
-      
-      except Exception, e:
-        gLogger.exception( 'ConditionDB for %s.\n %s' % ( condDB, e ) )
-  
-  def __launchTest( self, condDB, env ):
-    
-    conDBPath = '/Resources/CondDB/%s' % condDB
-    
-    config = gConfig.getOptionsDict( condDBPath )
-    if not config[ 'OK' ]:
-      gLogger.error( 'ConditionDB: not found config for %s.\n %s' % ( conDBPath, config[ 'Message' ] ) )     
-    
-    self.writeDBlookup( config[ 'Value' ] )
-    self.writeAuthentication( config[ 'Value' ] )
-    
-    _resultPath = '%s/condDB_result.log' % self.workdir
-    res_log = open( _resultPath, 'w' )
-    
-    try:
-      ret = subprocess.call( [ 'gaudirun.py', '%s/options.py' % self.workdir ], env = env, stdout = f, stderr=subprocess.STDOUT )
-    finally:
-      res_log.close()       
-    
-    loadTime, availability = 0, 0
-    
-    if ret == 0:
-    
-      res = open( _resultPath, 'r' )
-      try:
-        res_string = res.read()
-      finally:
-        res.close()
-        
-        _str = 'ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)'
-        regExp = re.compile( _str )
-        reRes  = regExp.search( res_string )
-      
-        loadTime     = float( reRes.group( 6 ) )
-        availability = 100   
-  
-    # Update results to DB
-    # Utils.unpack(insert_slsconddb(Site=site, Availability=availability, AccessTime=loadTime))       
-
-    ## XML generation
-    
-    xmlList = []
-    xmlList.append( { 'tag' : 'id', 'nodes' : '%s_CondDB' % condDB } )
-    xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )  
-    
-    xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : self.testConfig[ 'refreshperiod' ] })
-    xmlList.append( { 'tag' : 'validityduration' , 'nodes' : self.testConfig[ 'validityduration' ] } )
-    
-    dataNodes = []
-    dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Time to access CondDB' ) ], 'nodes' : loadTime } )
-    dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'ConditionDB access timex' } )
-    
-    xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
-    xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
-    
-    self.writeXml( xmlList, 'fileName' )         
+#  def launchTest( self ):
+#    '''
+#      Main test method.
+#    '''
+#    
+#    self.writeOptionsFile()
+#    
+#    rsc     = ResourceStatusClient()
+#    condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
+#    
+#    if not condDBs[ 'OK' ]:
+#      gLogger.error( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
+#      return False
+#    
+#    if not os.environ.has_key( 'USER' ):
+#      # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
+#      os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
+#    
+#    env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
+#    
+#    for condDB in condDBs[ 'Value' ]:
+#      
+#      try:
+#        
+#        self.__launchTest( condDB[ 0 ], env )
+#      
+#      except Exception, e:
+#        gLogger.exception( 'ConditionDB for %s.\n %s' % ( condDB, e ) )
+#  
+#  def __launchTest( self, condDB, env ):
+#    
+#    conDBPath = '/Resources/CondDB/%s' % condDB
+#    
+#    config = gConfig.getOptionsDict( condDBPath )
+#    if not config[ 'OK' ]:
+#      gLogger.error( 'ConditionDB: not found config for %s.\n %s' % ( conDBPath, config[ 'Message' ] ) )     
+#    
+#    self.writeDBlookup( config[ 'Value' ] )
+#    self.writeAuthentication( config[ 'Value' ] )
+#    
+#    _resultPath = '%s/condDB_result.log' % self.workdir
+#    res_log = open( _resultPath, 'w' )
+#    
+#    try:
+#      ret = subprocess.call( [ 'gaudirun.py', '%s/options.py' % self.workdir ], env = env, stdout = f, stderr=subprocess.STDOUT )
+#    finally:
+#      res_log.close()       
+#    
+#    loadTime, availability = 0, 0
+#    
+#    if ret == 0:
+#    
+#      res = open( _resultPath, 'r' )
+#      try:
+#        res_string = res.read()
+#      finally:
+#        res.close()
+#        
+#        _str = 'ToolSvc.Sequenc...\s+INFO\s+LoadDDDB\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)\s+(\d+\.\d)\s+\|\s+(\d)\s+\|\s+(\d+\.\d+)'
+#        regExp = re.compile( _str )
+#        reRes  = regExp.search( res_string )
+#      
+#        loadTime     = float( reRes.group( 6 ) )
+#        availability = 100   
+#  
+#    # Update results to DB
+#    # Utils.unpack(insert_slsconddb(Site=site, Availability=availability, AccessTime=loadTime))       
+#
+#    ## XML generation
+#    
+#    xmlList = []
+#    xmlList.append( { 'tag' : 'id', 'nodes' : '%s_CondDB' % condDB } )
+#    xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )  
+#    
+#    xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : self.testConfig[ 'refreshperiod' ] })
+#    xmlList.append( { 'tag' : 'validityduration' , 'nodes' : self.testConfig[ 'validityduration' ] } )
+#    
+#    dataNodes = []
+#    dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Time to access CondDB' ) ], 'nodes' : loadTime } )
+#    dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'ConditionDB access timex' } )
+#    
+#    xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
+#    xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
+#    
+#    self.writeXml( xmlList, 'fileName' )         
       
   def writeDBlookup( self, config ):
     
