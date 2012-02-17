@@ -3,7 +3,7 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC                                                  import gLogger, gConfig
+from DIRAC                                                  import gLogger, gConfig, S_ERROR
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
 from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment

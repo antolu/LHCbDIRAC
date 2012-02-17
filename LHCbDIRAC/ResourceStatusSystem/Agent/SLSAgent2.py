@@ -7,6 +7,8 @@ AGENT_NAME = 'ResourceStatus/SLSAgent2'
 from DIRAC                                import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
+from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
+
 
 import signal, time
 
@@ -29,6 +31,8 @@ class SLSAgent2( AgentModule ):
     testPath = '%s/tests' % self.am_getModuleParam( 'section' )
     tNames   = gConfig.getSections( testPath, [] ).get( 'Value', [] )
    
+    self.pool = ProcessPool( maxSize = 4, maxQueuedRequests = 25 )
+
     # Load test modules 
     for tName in tNames:
         
@@ -69,24 +73,27 @@ class SLSAgent2( AgentModule ):
     for tName, tModule in self.tModules.items():
       
       gLogger.info( tName )
+        
+      elementsToCheck = []  
     
-      tClass          = getattr( tModule[ 'mod' ], '%sTest' %tName )
-      cTest           = tClass( tModule[ 'path' ], self.workdir )
-      
+      mTest           = getattr( tModule[ 'mod' ], '%sTest' % tName )
+      cTest           = mTest( tModule[ 'path' ], self.workdir )
       elementsToCheck = cTest.getElementsToCheck()
-          
-      saveHandler = signal.signal( signal.SIGALRM, self.handler )
-      signal.alarm( 10 )
-      try:
-        gLogger.info( 'Start run' )
-        print 'Start run'
-        time.sleep( 15 )
-      except TimedOutError:
-        gLogger.info( 'Start run' )    
-        print 'End run'
-      finally:
-        signal.signal( signal.SIGALRM, saveHandler )  
-      signal.alarm( 0 )            
+
+      print elementsToCheck
+#          
+#      saveHandler = signal.signal( signal.SIGALRM, self.handler )
+#      signal.alarm( 10 )
+#      try:
+#        gLogger.info( 'Start run' )
+#        print 'Start run'
+#        time.sleep( 15 )
+#      except TimedOutError:
+#        gLogger.info( 'Start run' )    
+#        print 'End run'
+#      finally:
+#        signal.signal( signal.SIGALRM, saveHandler )  
+#      signal.alarm( 0 )            
         
         
 #      try:
