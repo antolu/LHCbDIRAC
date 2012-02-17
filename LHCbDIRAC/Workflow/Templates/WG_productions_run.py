@@ -582,8 +582,10 @@ if strippEnabled:
     try:
       result = production.runLocal()
       if result['OK']:
+        gLogger.info( 'Template finished successfully' )
         DIRAC.exit( 0 )
       else:
+        gLogger.error( 'Something wrong with execution!' )
         DIRAC.exit( 2 )
     except Exception, x:
       gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
@@ -730,8 +732,10 @@ if mergingEnabled:
       try:
         result = mergeProd.runLocal()
         if result['OK']:
+          gLogger.info( 'Template finished successfully' )
           DIRAC.exit( 0 )
         else:
+          gLogger.error( 'Something wrong with execution!' )
           DIRAC.exit( 2 )
       except Exception, x:
         gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
@@ -869,8 +873,10 @@ if step4Enabled:
       try:
         result = step4_Prod.runLocal()
         if result['OK']:
+          gLogger.info( 'Template finished successfully' )
           DIRAC.exit( 0 )
         else:
+          gLogger.error( 'Something wrong with execution!' )
           DIRAC.exit( 2 )
       except Exception, x:
         gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )

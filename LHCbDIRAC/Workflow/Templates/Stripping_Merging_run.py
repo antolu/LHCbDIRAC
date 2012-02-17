@@ -365,9 +365,11 @@ if strippEnabled:
     gLogger.info( 'Production test will be launched with number of events set to %s.' % ( evtsPerJob ) )
     try:
       result = production.runLocal()
+      gLogger.info( 'Template finished successfully' )
       if result['OK']:
         DIRAC.exit( 0 )
       else:
+        gLogger.error( 'Something wrong with execution!' )
         DIRAC.exit( 2 )
     except Exception, x:
       gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )

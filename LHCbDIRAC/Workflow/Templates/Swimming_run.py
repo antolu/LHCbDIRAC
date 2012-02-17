@@ -428,8 +428,10 @@ if swimmEnabled:
     try:
       result = production.runLocal()
       if result['OK']:
+        gLogger.info( 'Template finished successfully' )
         DIRAC.exit( 0 )
       else:
+        gLogger.error( 'Something wrong with execution!' )
         DIRAC.exit( 2 )
     except Exception, x:
       gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
@@ -540,8 +542,10 @@ if swimmEnabled:
       try:
         result = DVProduction.runLocal()
         if result['OK']:
+          gLogger.info( 'Template finished successfully' )
           DIRAC.exit( 0 )
         else:
+          gLogger.error( 'Something wrong with execution!' )
           DIRAC.exit( 2 )
       except Exception, x:
         gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
