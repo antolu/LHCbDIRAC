@@ -8,7 +8,7 @@ from DIRAC.ResourceStatusSystem.Utilities import CS
 
 import lcg_util, time
     
-def getElementsToCheck():
+def getProbeElements():
   
   try:
 
@@ -24,9 +24,14 @@ def getElementsToCheck():
     return S_OK( elementsToCheck )    
   
   except Exception, e:
-    _msg = 'Exception gettingElementsToCheck'
+    _msg = 'Exception gettingProbeElements'
     gLogger.debug( '%s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
+
+################################################################################
+
+def setupProbe( testConfig ):
+  return S_OK()
 
 ################################################################################
 

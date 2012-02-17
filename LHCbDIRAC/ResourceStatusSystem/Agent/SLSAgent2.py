@@ -9,18 +9,27 @@ from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
 
-from xml.dom.minidom                      import Document
+from LHCbDIRAC.ResourceStatusSystem.Utilities import SLSXML
 
 import signal
 
 class SLSAgent2( AgentModule ):
   '''
-   bla bla bla
+  SLSAgent, it runs all SLS sensors defined on the agent configuration, more
+  specifically under tests.
+  
+  This agent runs tests sequentially, but using a process pool of size four.
+  In case some process gets stuck, it applies a timeout by default of 5 minutes,
+  which can be overwritten on the test configuration.
   '''
   
   def initialize( self ):
     '''
-    ble ble ble
+    Gets the tests from the CS ( only their names ) and generates the process 
+    pool. 
+    
+    Note: if a new test is added in the CS, the agent will need to be restarted
+    to pick it up.
     '''
 
     self.workdir  = self.am_getWorkDirectory()
@@ -51,7 +60,12 @@ class SLSAgent2( AgentModule ):
   
   def execute( self ):
     '''
-      bli bli bli
+    Let's run the tests:
+    1.- get test configuration from the CS
+    2.- get probes that the test will run
+    3.- set up ( if needed ) environment, scripts for the probes
+    4.- add the probes to the processPool.
+    5.- after execution, if successful, it will write an xml report.
     '''
         
     for tName, tModule in self.tModules.items():
@@ -67,12 +81,17 @@ class SLSAgent2( AgentModule ):
       
       gLogger.info( '%s: Getting test probes' % tName )        
       mTest           = tModule[ 'mod' ]
-      elementsToCheck = mTest.getElementsToCheck()
 
+      elementsToCheck = mTest.getProbeElements()
       if not elementsToCheck[ 'OK' ]:
         gLogger.error( elementsToCheck[ 'Message' ] )
         continue
       elementsToCheck = elementsToCheck[ 'Value' ]
+
+      setupProbe = mTest.setupProbe( testConfig )
+      if not setupProbe[ 'OK' ]:
+        gLogger.error( setupProbe[ 'Message' ] )
+        continue
 
       gLogger.info( '%s: Launching test probes' % tName )
       for elementToCheck in elementsToCheck:
@@ -80,7 +99,7 @@ class SLSAgent2( AgentModule ):
         res = self.processPool.createAndQueueTask( runSLSProbe,
                                                    args              = ( mTest.runProbe, elementToCheck ),
                                                    kwargs            = { 'testConfig' : testConfig },
-                                                   callback          = self.writeXml,
+                                                   callback          = SLSXML.writeXml,
                                                    exceptionCallback = slsExceptionCallback )
         
         if not res[ 'OK' ]:
@@ -92,6 +111,11 @@ class SLSAgent2( AgentModule ):
     return S_OK()        
 
   def getTestConfig( self, testPath ):
+    '''
+    Generic function that gets the configuration for the test from the CS.
+    It also adds the agent working dir to the configuration ( used to write 
+    scripts, temp files, etc... )
+    '''
     
     try:
       
@@ -127,13 +151,17 @@ class SLSAgent2( AgentModule ):
   
   def finalize( self ):
     '''
-     blu blu blu
+    To be done, but it sould kill all running processes.
     '''
     gLogger.info( 'Terminating all threads' )
         
     return S_OK()      
 
 ################################################################################
+
+'''
+  all this will be obsolete soon :)
+'''
 
 class TimedOutError( Exception ): pass
 
@@ -162,68 +190,6 @@ def runSLSProbe( testArgs, testConfig = {} ):
       
   signal.alarm( 0 )  
   return res
-
-#def writeXml( xmlList, fileName, useStub = True, path = None ):
-def writeXml( xmlTuple ):  
-
-  print xmlTuple
-
-  xmlList, testConfig = xmlTuple
-
-  
-
-  return 1
-
-  if path is None:
-    path = workdir
-    
-  XML_STUB = [ { 
-                'tag'   : 'serviceupdate',
-                'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
-                            ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
-                            ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-                          ],
-                'nodes' : xmlList }
-              ]
-    
-    
-  d = Document()
-  d = _writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
-    
-  gLogger.info( d.toxml() )
-    
-  file = open( '%s/%s' % ( path, name ), 'w' )
-  try:
-    file.write( d.toxml() )
-  finally:  
-    file.close()
-
-def _writeXml( doc, topElement, elementList ):
-
-  if elementList is None:
-    return topElement
-    
-  elif not isinstance( elementList, list ):
-    tn = doc.createTextNode( str( elementList ) )
-    topElement.appendChild( tn )
-    return topElement
-
-  for d in elementList:
-      
-    el = doc.createElement( d[ 'tag' ] )
-      
-    for attr in d.get( 'attrs', [] ):
-      el.setAttribute( attr[0], attr[1] )
-        
-    el = _writeXml( doc, el, d.get( 'nodes', None ) )
-    topElement.appendChild( el )
-    
-  return topElement 
-
-
-#def slsCallback( task, taskResult ):
-#  gLogger.info( 'slsCallback' )
-#  gLogger.info( taskResult )
   
 def slsExceptionCallback( task, exec_info ):
   gLogger.info( 'slsExceptionCallback' )
