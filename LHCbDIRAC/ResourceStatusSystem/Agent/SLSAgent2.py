@@ -116,63 +116,14 @@ class SLSAgent2( AgentModule ):
         
         sectionConfig        = sectionConfig[ 'Value' ]  
         modConfig[ section ] = sectionConfig
+      
+      modConfig[ 'workdir' ] = self.workdir
         
       return S_OK( modConfig )  
           
     except Exception, e:
       
       return S_ERROR( 'Exception loading configuration.\n %s' % e )
-
-  #def writeXml( self, xmlList, fileName, useStub = True, path = None ):
-  def writeXml( self, task, taskResult ):  
-
-    return 1
-
-#    if path is None:
-#      path = self.workdir
-#    
-#    XML_STUB = [ { 
-#                  'tag'   : 'serviceupdate',
-#                  'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
-#                              ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
-#                              ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-#                            ],
-#                  'nodes' : xmlList }
-#                ]
-#    
-#    
-#    d = Document()
-#    d = self._writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
-#    
-#    gLogger.info( d.toxml() )
-#    
-#    file = open( '%s/%s' % ( path, name ), 'w' )
-#    try:
-#      file.write( d.toxml() )
-#    finally:  
-#      file.close()
-
-  def _writeXml( self, doc, topElement, elementList ):
-
-    if elementList is None:
-      return topElement
-    
-    elif not isinstance( elementList, list ):
-      tn = doc.createTextNode( str( elementList ) )
-      topElement.appendChild( tn )
-      return topElement
-
-    for d in elementList:
-      
-      el = doc.createElement( d[ 'tag' ] )
-      
-      for attr in d.get( 'attrs', [] ):
-        el.setAttribute( attr[0], attr[1] )
-        
-      el = self._writeXml( doc, el, d.get( 'nodes', None ) )
-      topElement.appendChild( el )
-    
-    return topElement 
   
   def finalize( self ):
     '''
@@ -212,9 +163,67 @@ def runSLSProbe( testArgs, testConfig = {} ):
   signal.alarm( 0 )  
   return res
 
-def slsCallback( task, taskResult ):
-  gLogger.info( 'slsCallback' )
-  gLogger.info( taskResult )
+#def writeXml( xmlList, fileName, useStub = True, path = None ):
+def writeXml( xmlTuple ):  
+
+  print xmlTuple
+
+  xmlList, testConfig = xmlTuple
+
+  
+
+  return 1
+
+  if path is None:
+    path = workdir
+    
+  XML_STUB = [ { 
+                'tag'   : 'serviceupdate',
+                'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
+                            ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
+                            ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
+                          ],
+                'nodes' : xmlList }
+              ]
+    
+    
+  d = Document()
+  d = _writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
+    
+  gLogger.info( d.toxml() )
+    
+  file = open( '%s/%s' % ( path, name ), 'w' )
+  try:
+    file.write( d.toxml() )
+  finally:  
+    file.close()
+
+def _writeXml( doc, topElement, elementList ):
+
+  if elementList is None:
+    return topElement
+    
+  elif not isinstance( elementList, list ):
+    tn = doc.createTextNode( str( elementList ) )
+    topElement.appendChild( tn )
+    return topElement
+
+  for d in elementList:
+      
+    el = doc.createElement( d[ 'tag' ] )
+      
+    for attr in d.get( 'attrs', [] ):
+      el.setAttribute( attr[0], attr[1] )
+        
+    el = _writeXml( doc, el, d.get( 'nodes', None ) )
+    topElement.appendChild( el )
+    
+  return topElement 
+
+
+#def slsCallback( task, taskResult ):
+#  gLogger.info( 'slsCallback' )
+#  gLogger.info( taskResult )
   
 def slsExceptionCallback( task, exec_info ):
   gLogger.info( 'slsExceptionCallback' )
