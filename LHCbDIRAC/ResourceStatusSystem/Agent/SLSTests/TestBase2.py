@@ -18,7 +18,7 @@ class TestBase( threading.Thread ):
   '''
   def __init__( self, testName, testPath, workdir ):
     # Initialize the Threading
-#    threading.Thread.__init__( self )
+    threading.Thread.__init__( self )
     
     # Get fresh data from the CS
     self.testConfig = self.getConfig( testPath )
@@ -31,6 +31,9 @@ class TestBase( threading.Thread ):
 #    self.t    = threading.Timer( timeout, self.nuke )
     self.name = testName 
 
+  def getConfig( self, path ):
+    return 1
+
   def nuke( self ):
     pass
   
@@ -41,7 +44,7 @@ class TestBase( threading.Thread ):
   
   def run( self ):
     
-    saveHandler = signal.signal( signal.SIGALARM, self.handler )
+    saveHandler = signal.signal( signal.SIGALRM, self.handler )
     signal.alarm( 10 )
     try:
       gLogger.info( 'Start run' )
@@ -51,7 +54,7 @@ class TestBase( threading.Thread ):
       gLogger.info( 'Start run' )    
       print 'End run'
     finally:
-      signal.signal( signal.SIGALARM, saveHandler )  
+      signal.signal( signal.SIGALRM, saveHandler )  
     signal.alarm( 0 )
  
  
