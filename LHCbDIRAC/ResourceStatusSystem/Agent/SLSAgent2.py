@@ -73,7 +73,7 @@ class SLSAgent2( AgentModule ):
       gLogger.info( '%s: Getting test configuration' % tName )
       testPath = tModule[ 'path' ]
       
-      testConfig = self.getTestConfig( testPath )
+      testConfig = self.getTestConfig( tName, testPath )
       if not testConfig[ 'OK' ]:
         gLogger.error( testConfig[ 'Message' ] )
         continue
@@ -110,7 +110,7 @@ class SLSAgent2( AgentModule ):
            
     return S_OK()        
 
-  def getTestConfig( self, testPath ):
+  def getTestConfig( self, testName, testPath ):
     '''
     Generic function that gets the configuration for the test from the CS.
     It also adds the agent working dir to the configuration ( used to write 
@@ -141,7 +141,8 @@ class SLSAgent2( AgentModule ):
         sectionConfig        = sectionConfig[ 'Value' ]  
         modConfig[ section ] = sectionConfig
       
-      modConfig[ 'workdir' ] = self.workdir
+      modConfig[ 'workdir'  ] = self.workdir
+      modConfig[ 'testName' ] = testName
         
       return S_OK( modConfig )  
           
@@ -179,9 +180,9 @@ def runSLSProbe( *testArgs, **testKwargs ):
   signal.alarm( 120 )
   
   try:
-    gLogger.info( 'Start run' )
+#    gLogger.info( 'Start run' )
     res = func( probeInfo, testConfig )    
-    gLogger.info( 'End run' )
+#    gLogger.info( 'End run' )
   except TimedOutError:
     gLogger.info( 'Killed' )
     res = S_ERROR( 'Timeout' )    

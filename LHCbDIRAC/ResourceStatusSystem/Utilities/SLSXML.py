@@ -18,11 +18,12 @@ def writeXml( task, taskResult ):
   # The following are optional
   useStub  = taskResult.get( 'useStub', True )
   
-  path    = config.get( 'path', None ) 
-  workdir = config.get( 'workdir' )
+  path     = config.get( 'path', None ) 
+  workdir  = config.get( 'workdir' )
+  testName = config.get( 'testName' )
 
   if path is None:
-    path = workdir
+    path = '%s/%s' % ( workdir, testName )
     
   XML_STUB = [ { 
                 'tag'   : 'serviceupdate',
@@ -35,12 +36,13 @@ def writeXml( task, taskResult ):
     
     
   d = Document()
-  d = _writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
+  d = _writeXml( d, d, ( useStub and XML_STUB ) or xmlList )
     
 #  gLogger.info( d.toxml() )
   
   print path
   print filename
+  
     
 #  file = open( '%s/%s' % ( path, filename ), 'w' )
 #  try:
