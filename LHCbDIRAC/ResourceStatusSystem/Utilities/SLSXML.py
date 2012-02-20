@@ -37,20 +37,15 @@ def writeXml( task, taskResult ):
     
   d = Document()
   d = _writeXml( d, d, ( useStub and XML_STUB ) or xmlList )
-    
-#  gLogger.info( d.toxml() )
   
-  print path
-  print filename
-  
+#  try:       
+  file = open( '%s/%s' % ( path, filename ), 'w' )
+  file.write( d.toxml() )
+  file.close()
+#  except:
+#    print 'Banzaaaaaiiiii'
+#    return False  
     
-#  file = open( '%s/%s' % ( path, filename ), 'w' )
-#  try:
-#    file.write( d.toxml() )
-#  finally:  
-#    file.close()
-
-  print d.toxml()
   return d.toxml()
 
 def _writeXml( doc, topElement, elementList ):

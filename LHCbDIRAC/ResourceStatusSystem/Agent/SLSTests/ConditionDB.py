@@ -63,6 +63,8 @@ def runProbe( probeInfo, testConfig ):
   
   loadTime, availability = 0, 0
   
+  filename               = 'LHCb_%s_%s' % ( testConfig[ 'testName' ], condDB )
+  
   if not config[ 'OK' ]:
     gLogger.error( 'ConditionDB: not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] ) )     
   
@@ -112,7 +114,7 @@ def runProbe( probeInfo, testConfig ):
   xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
   xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
     
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'filename' }         
+  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : '%s.xml' % filename }         
        
 ################################################################################
       

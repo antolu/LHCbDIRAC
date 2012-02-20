@@ -44,6 +44,8 @@ def runProbe( probeInfo, testConfig ):
   url                        = siteDict[ 'Endpoint' ]
   validityduration           = 'PT0M'  
     
+  filename                   = 'LHCb_%s_%s_%s' % ( testConfig[ 'testName' ], site, spaceToken ) 
+    
   answer = lcg_util.lcg_stmd( spaceToken, url, True, 0 )  
   
   if answer[ 0 ] == 0:
@@ -64,7 +66,7 @@ def runProbe( probeInfo, testConfig ):
   ## Now, write xmlList 
   
   xmlList = []
-  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_Storage_Space_%s_%s' % ( site, spaceToken ) } )
+  xmlList.append( { 'tag' : 'id', 'nodes' : filename } )
   xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
     
   thresholdNodes = []
@@ -93,7 +95,7 @@ def runProbe( probeInfo, testConfig ):
   xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
   xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
      
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'filename' }
+  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : '%s.xml' % filename }
      
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
