@@ -168,15 +168,15 @@ class TimedOutError( Exception ): pass
 def handler( signum, frame ):
   raise TimedOutError() 
 
-def runSLSProbe( testArgs, testConfig = {} ):
+def runSLSProbe( *testArgs, **testKwargs ):
     
   func      = testArgs[ 0 ]
   probeInfo = testArgs[ 1 ]
 
-  gLogger.info( probeInfo )
-  
+  testConfig = testKwargs.get( 'testConfig', {} )
+
   saveHandler = signal.signal( signal.SIGALRM, handler )
-  signal.alarm( 1 )
+  signal.alarm( 120 )
   
   try:
     gLogger.info( 'Start run' )

@@ -35,7 +35,7 @@ def setupProbe( testConfig ):
 
 ################################################################################
 
-def runProbe( probeInfo, testConfig ):
+def runProbe( probeInfo, testConfig ):  
       
   total, guaranteed, free, availability = 0, 0, 0, 0
   
@@ -93,7 +93,7 @@ def runProbe( probeInfo, testConfig ):
   xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
   xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
      
-  return ( xmlList, testConfig )
-
+  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'filename' }
+     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

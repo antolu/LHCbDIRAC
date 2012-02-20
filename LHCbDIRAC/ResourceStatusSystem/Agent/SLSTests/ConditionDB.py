@@ -11,7 +11,7 @@ from LHCbDIRAC.ResourceStatusSystem.Utilities               import SLSXML
 
 import os, pwd, re, time, subprocess
    
-def getProbeElements( self ):  
+def getProbeElements():  
   
   try:
   
@@ -26,6 +26,9 @@ def getProbeElements( self ):
       os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
     
     env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
+    if not env[ 'OK' ]:
+      return env
+    env = env[ 'Value' ]
     
     return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
     
@@ -41,6 +44,7 @@ def setupProbe( testConfig ):
   try:
     
     writeOptionsFile( testConfig[ 'workdir' ]  )
+    return S_OK()
     
   except Exception, e:  
     _msg = '%s: Exception settingProbe'
@@ -54,17 +58,17 @@ def runProbe( probeInfo, testConfig ):
   workdir = testConfig[ 'workdir' ]
   condDB  = probeInfo[ 0 ]
   
-  conDBPath = '/Resources/CondDB/%s' % condDB  
-  config    = gConfig.getOptionsDict( condDBPath )
+  condDBPath = '/Resources/CondDB/%s' % condDB  
+  config     = gConfig.getOptionsDict( condDBPath )
   
   loadTime, availability = 0, 0
   
   if not config[ 'OK' ]:
-    gLogger.error( 'ConditionDB: not found config for %s.\n %s' % ( conDBPath, config[ 'Message' ] ) )     
+    gLogger.error( 'ConditionDB: not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] ) )     
   
   else:  
-    writeDBlookup( config[ 'Value' ] )
-    writeAuthentication( config[ 'Value' ] )
+    writeDBlookup( testConfig, config[ 'Value' ] )
+    writeAuthentication( testConfig, config[ 'Value' ] )
     
     _resultPath = '%s/condDB_result.log' % workdir
     res_log = open( _resultPath, 'w' )
@@ -108,36 +112,39 @@ def runProbe( probeInfo, testConfig ):
   xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
   xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
     
-  return ( xmlList, testConfig )         
+  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'filename' }         
        
 ################################################################################
       
-def writeDBlookup( config ):
+def writeDBlookup( testConfig, condDBConfig ):
     
   service = [ { 'tag' : 'service', 'attrs' : [ ( 'accessMode', 'readonly' ),
                                                ( 'authentication', 'password'),
-                                               ( 'name', '%s/lhcb_conddb' % config['Connection'] ) 
+                                               ( 'name', '%s/lhcb_conddb' % condDBConfig['Connection'] ) 
                                              ]
              }]
   logicse = [ { 'tag' : 'logicalservice', 'attrs' : [ ( 'name', 'CondDB' ) ], 'nodes' : service } ]
   xmlList = [ { 'tag' : 'servicelist', 'nodes' : logicse }]
+  
+  xmlDict = { 'xmlList' : xmlList, 'filename' : 'dblookup.xml', 
+              'useStub' : False, 'config' : testConfig }
     
-  writeXml( xmlList, 'dblookup.xml', useStub = False )
+  writeXml( 0, xmlDict )
     
-def writeAuthentication( config ):
+def writeAuthentication( testConfig, condDBConfig ):
     
   connlist, conn = [], []
     
-  conn.append( { 'tag' : 'parameter',  'attrs' : [ ( 'name', 'user' ), ( 'value', config['Username'] ) ] } )
-  conn.append( { 'tag' : 'parameter',  'attrs' : [ ( 'name', 'password' ), ( 'value', config['Password'] ) ] } )
-  connection = { 'tag' : 'connection', 'attrs' : [ ( 'name', '%s/lhcb_conddb' % config['Connection'] ) ], 'nodes' : conn }
+  conn.append( { 'tag' : 'parameter',  'attrs' : [ ( 'name', 'user' ), ( 'value', condDBConfig['Username'] ) ] } )
+  conn.append( { 'tag' : 'parameter',  'attrs' : [ ( 'name', 'password' ), ( 'value', condDBConfig['Password'] ) ] } )
+  connection = { 'tag' : 'connection', 'attrs' : [ ( 'name', '%s/lhcb_conddb' % condDBConfig['Connection'] ) ], 'nodes' : conn }
     
   connlist.append( connection )
     
   role = { 'tag' : 'role', 'attrs' : [ ( 'name','reader' )], 'nodes' : conn }
   connlist.append( role )
     
-  connection[ 'attrs' ] = [ ( 'name', '%s/lhcb_online_conddb' % config['Connection'] ) ]
+  connection[ 'attrs' ] = [ ( 'name', '%s/lhcb_online_conddb' % condDBConfig['Connection'] ) ]
   connlist.append( connection )
     
   ### WTF !!?? This dict should not be appended
@@ -145,7 +152,10 @@ def writeAuthentication( config ):
     
   xmlList = [ { 'tag' : 'connectionlist', 'nodes' : connlist } ]
     
-  writeXml( xmlList, 'authentication.xml', useStub = False )
+  xmlDict = { 'xmlList' : xmlList, 'filename' : 'authentication.xml', 
+              'useStub' : False , 'config' : testConfig }  
+    
+  writeXml( 0, xmlDict )
     
       
 def writeOptionsFile( workdir ):
