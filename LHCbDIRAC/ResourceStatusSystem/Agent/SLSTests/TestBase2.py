@@ -44,7 +44,7 @@ class TestBase( threading.Thread ):
   
   def run( self ):
     
-    saveHandler = signal.signal( signal.SIGALRM, self.handler )
+    saveHandler = signal.signal( signal.SIGALARM, self.handler )
     signal.alarm( 10 )
     try:
       gLogger.info( 'Start run' )
@@ -54,7 +54,7 @@ class TestBase( threading.Thread ):
       gLogger.info( 'Start run' )    
       print 'End run'
     finally:
-      signal.signal( signal.SIGALRM, saveHandler )  
+      signal.signal( signal.SIGALARM, saveHandler )  
     signal.alarm( 0 )
  
  
