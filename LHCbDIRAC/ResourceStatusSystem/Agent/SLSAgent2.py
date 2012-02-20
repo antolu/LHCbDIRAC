@@ -76,6 +76,7 @@ class SLSAgent2( AgentModule ):
       testConfig = self.getTestConfig( tName, testPath )
       if not testConfig[ 'OK' ]:
         gLogger.error( testConfig[ 'Message' ] )
+        gLogger.info( '%s: Skipping... after getTestConfig' % tName )
         continue
       testConfig = testConfig[ 'Value' ]
       
@@ -85,12 +86,14 @@ class SLSAgent2( AgentModule ):
       elementsToCheck = mTest.getProbeElements()
       if not elementsToCheck[ 'OK' ]:
         gLogger.error( elementsToCheck[ 'Message' ] )
+        gLogger.info( '%s: Skipping... after getProbeElements' % tName )
         continue
       elementsToCheck = elementsToCheck[ 'Value' ]
 
-      setupProbe = mTest.setupProbe( testConfig )
+      setupProbe = mTest.setupProbes( testConfig )
       if not setupProbe[ 'OK' ]:
         gLogger.error( setupProbe[ 'Message' ] )
+        gLogger.info( '%s: Skipping... after setupProbes' % tName )
         continue
 
       gLogger.info( '%s: Launching test probes' % tName )
