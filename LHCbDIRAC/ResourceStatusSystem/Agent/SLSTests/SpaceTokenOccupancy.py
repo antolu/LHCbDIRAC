@@ -31,6 +31,14 @@ def getProbeElements():
 ################################################################################
 
 def setupProbes( testConfig ):
+  
+  path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
+  
+  try:
+    os.makedirs( path )
+  except OSError:
+    pass # The dir exist already, or cannot be created: do nothin
+  
   return S_OK()
 
 ################################################################################

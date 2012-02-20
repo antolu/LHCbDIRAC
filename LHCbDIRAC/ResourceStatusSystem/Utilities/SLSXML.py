@@ -18,12 +18,12 @@ def writeXml( task, taskResult ):
   # The following are optional
   useStub  = taskResult.get( 'useStub', True )
   
-  path     = config.get( 'path', None ) 
+#  path     = config.get( 'path', None ) 
   workdir  = config.get( 'workdir' )
   testName = config.get( 'testName' )
 
-  if path is None:
-    path = '%s/%s' % ( workdir, testName )
+#  if path is None:
+  path = '%s/%s' % ( workdir, testName )
     
   XML_STUB = [ { 
                 'tag'   : 'serviceupdate',
