@@ -6,11 +6,20 @@ __RCSID__  = "$Id:  $"
 from xml.dom.minidom                      import Document
 
 #def writeXml( xmlList, fileName, useStub = True, path = None ):
-def writeXml( xmlTuple ):  
+def writeXml( task, taskResult ):  
 
-  print xmlTuple
+  print taskResult
 
-  xmlList, testConfig = xmlTuple
+  # This 3 keys must exist
+  xmlList  = taskResult.get( 'xmlList' )
+  filename = taskResult.get( 'filename' )
+  config   = taskResult.get( 'config' )
+  
+  # The following are optional
+  useStub  = taskResult.get( 'useStub', True )
+  
+  path    = config.get( 'path', None ) 
+  workdir = config.get( 'workdir' )
 
   if path is None:
     path = workdir
@@ -29,12 +38,15 @@ def writeXml( xmlTuple ):
   d = _writeXml( d, d, ( XML_STUB and useStub ) or xmlList )
     
 #  gLogger.info( d.toxml() )
+  
+  print path
+  print filename
     
-  file = open( '%s/%s' % ( path, name ), 'w' )
-  try:
-    file.write( d.toxml() )
-  finally:  
-    file.close()
+#  file = open( '%s/%s' % ( path, filename ), 'w' )
+#  try:
+#    file.write( d.toxml() )
+#  finally:  
+#    file.close()
 
   print d.toxml()
   return d.toxml()
