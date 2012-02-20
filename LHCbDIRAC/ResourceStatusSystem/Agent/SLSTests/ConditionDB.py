@@ -39,7 +39,7 @@ def getProbeElements():
 
 ################################################################################
 
-def setupProbe( testConfig ):
+def setupProbes( testConfig ):
 
   try:
     
