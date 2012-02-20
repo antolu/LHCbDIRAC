@@ -4,6 +4,7 @@
 __RCSID__  = "$Id:  $"
 
 from xml.dom.minidom                      import Document
+from DIRAC import gLogger
 
 def writeXml( task, taskResult ):  
 
@@ -40,6 +41,8 @@ def writeXml( task, taskResult ):
 #  except:
 #    print 'Banzaaaaaiiiii'
 #    return False  
+  
+  gLogger.info( '%s: %s written' % ( config[ 'testName' ], filename ) )  
     
   return d.toxml()
 
