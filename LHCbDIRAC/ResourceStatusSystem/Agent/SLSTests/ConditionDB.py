@@ -50,7 +50,7 @@ def setupProbes( testConfig ):
 
   try:
     
-    writeOptionsFile( testConfig[ 'workdir' ]  )
+    writeOptionsFile( path  )
     return S_OK()
     
   except Exception, e:  

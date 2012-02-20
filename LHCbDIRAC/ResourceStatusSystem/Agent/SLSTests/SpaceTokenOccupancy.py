@@ -6,7 +6,7 @@ __RCSID__  = "$Id:  $"
 from DIRAC                                import gLogger, S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Utilities import CS
 
-import lcg_util, time
+import lcg_util, time, os
     
 def getProbeElements():
   
@@ -51,6 +51,7 @@ def runProbe( probeInfo, testConfig ):
   site, siteDict             = siteTuple
   url                        = siteDict[ 'Endpoint' ]
   validityduration           = 'PT0M'  
+  notes                      = 'Probe run without problems.'
     
   filename                   = 'LHCb_%s_%s_%s' % ( testConfig[ 'testName' ], site, spaceToken ) 
     
@@ -64,18 +65,19 @@ def runProbe( probeInfo, testConfig ):
     free         = float( output[ 'unusedsize' ] ) / 1e12
     availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
     
-    #validity     = getTestOption( "validity" )
     validityduration = testConfig[ 'validityduration' ]
   else:
     _msg = 'StorageTokenOccupancy: problem with lcg_util.lcg_stmd( "%s","%s",True,0 ) = (%d, %s)'
     gLogger.info(  _msg % ( spaceToken, url, answer[0], answer[1] ) )
     gLogger.info( str( answer ) )
+    notes = str( answer ) 
   
   ## Now, write xmlList 
   
   xmlList = []
   xmlList.append( { 'tag' : 'id', 'nodes' : filename } )
   xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
+  xmlList.append( { 'tag' : 'notes', 'nodes' : notes } )  
     
   thresholdNodes = []
   for t,v in testConfig[ 'thresholds' ].items():
