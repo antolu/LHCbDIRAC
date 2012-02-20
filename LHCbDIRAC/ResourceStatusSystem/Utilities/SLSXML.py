@@ -5,10 +5,7 @@ __RCSID__  = "$Id:  $"
 
 from xml.dom.minidom                      import Document
 
-#def writeXml( xmlList, fileName, useStub = True, path = None ):
 def writeXml( task, taskResult ):  
-
-  print taskResult
 
   # This 3 keys must exist
   xmlList  = taskResult.get( 'xmlList' )
@@ -18,11 +15,9 @@ def writeXml( task, taskResult ):
   # The following are optional
   useStub  = taskResult.get( 'useStub', True )
   
-#  path     = config.get( 'path', None ) 
   workdir  = config.get( 'workdir' )
   testName = config.get( 'testName' )
 
-#  if path is None:
   path = '%s/%s' % ( workdir, testName )
     
   XML_STUB = [ { 
