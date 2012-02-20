@@ -1,20 +1,21 @@
 __RCSID__ = "$Id: $"
 '''
 MergingForDQAgent automatize some operations done by the data quality crew. It looks for Runs that have not been flagged 
-(i.e. that are UNCHECKED). If it finds out some of them he performes a merging of the BRUNELHIST and DAVINCIHIST root files.
+(i.e. that are UNCHECKED). If it finds out some of them it performs a merging of the BRUNELHIST and DAVINCIHIST root files.
 The main steps are the following:
 
-- Retrieving the UNCHECKED DAVINCIHISTs and BRUNELHISTs by run. The BKquery the perform this will be changed in the new release.
+- The initialize method gather informations from the CS
 
-- The files are saved locally and merged in three steps. The first step consists in merging separatly the two kinds of histograms in groups of 50.
-  This grouping is made because the merging is basically CPU consuming. The output files of this first step are then merged as well.
+- Retrieving the UNCHECKED (or OK) DAVINCIHISTs and BRUNELHISTs by run.
+
+- The files are saved locally and merged in three steps. The first step consists of merging separately the two kinds of histograms 
+  in groups of 50. This grouping is made because the merging is CPU consuming and if you attempt to merge a lot of file in a row 
+  you probably stuck the machine. The output files of this first step are then merged as well. 
   Finally DAVINCI and BRUNEL histograms are then put together in a single file.
  
-- As it is no result is uploaded everything is left in the homeDir.
+- The results (data an logs) are uploaded in the bookkeeping.
 
-- The initialize method gather informations from etc/dirac.cfg  
-
-Systems/DataManagement/Development/Agents/
+Systems/DataManagement/Production/Agents/
 
         MergingForDQAgent
         {
@@ -79,20 +80,14 @@ class MergingForDQAgent( AgentModule ):
                      'specialRuns' : False}
 
     gLogger.info('=====Gathering information from dirac.cfg=====')
-    sections = gConfig.getSections( "Systems/DataManagement/Development")
-    if sections:
-      section = "Development"
-    else:   
-      sections = gConfig.getSections( "Systems/DataManagement/Production")
-      if sections:
-        section = "Production"
-      else: 
-        gLogger.error("No configuration for the agent found in dirac.cfg")
-        DIRAC.exit(2) 
-    self.applicationName = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/applicationName"%section )
+    options = "Systems/DataManagement/Production/Agents/MergingForDQAgent"
+    if not options:
+      gLogger.error("No configuration for MergingForDQAgent found in the CS")
+      DIRAC.exit(2) 
+    self.applicationName = gConfig.getValue( "%s/applicationName"%options )
     gLogger.info('applicationName %s'%self.applicationName)
     if self.applicationName: Configuration['applicationName']=True     
-    self.homeDir = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/homeDir"%section )
+    self.homeDir = gConfig.getValue( "%s/homeDir"%options )
     if self.homeDir: 
       Configuration['homeDir']=True
       gLogger.info(self.homeDir)
@@ -108,7 +103,7 @@ class MergingForDQAgent( AgentModule ):
     '''
     Compiled C++ root macros for the three Merging steps. 
     '''
-    self.mergeExeDir = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/ExeDir"%section )
+    self.mergeExeDir = gConfig.getValue( "%s/ExeDir"%options )
 
     if self.mergeExeDir: 
       Configuration['ExeDir']=True
@@ -123,26 +118,26 @@ class MergingForDQAgent( AgentModule ):
       gLogger.info( 'Executables found in %s' %self.mergeExeDir)
     
 
-    self.senderAddress = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/senderAddress"%section )
+    self.senderAddress = gConfig.getValue( "%s/senderAddress"%options )
     if self.senderAddress: Configuration['senderAddress']=True
-    self.mailAddress = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/mailAddress"%section )
+    self.mailAddress = gConfig.getValue( "%s/mailAddress"%options )
     if self.mailAddress:Configuration['mailAddress']=True
-    self.thisEventType = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/eventType"%section )
+    self.thisEventType = gConfig.getValue( "%s/eventType"%options )
     if self.thisEventType: Configuration['eventType']=True
-    cfgName = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/cfgNameList"%section )
+    cfgName = gConfig.getValue( "%s/cfgNameList"%options )
     if cfgName: 
       Configuration['cfgNameList']=True
       l = string.join(cfgName.split(),"")
       self.cfgNameList = l.split(",")
       
 
-    cfgVersion = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/cfgVersionList"%section )
+    cfgVersion = gConfig.getValue( "%s/cfgVersionList"%options )
     if cfgVersion: 
       Configuration['cfgVersionList']=True
       l = string.join(cfgVersion.split(),"")
       self.cfgVersionList = l.split(",")
       
-    dqFlag = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/dqFlag"%section )
+    dqFlag = gConfig.getValue( "%s/dqFlag"%options )
     if dqFlag: 
       Configuration['dqFlag']=True
       l = string.join(dqFlag.split(),"")
@@ -151,7 +146,7 @@ class MergingForDQAgent( AgentModule ):
     self.brunelCount = 0
     self.daVinciCount = 0
 
-    TypeDict = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/evtTypeDict"%section )
+    TypeDict = gConfig.getValue( "%s/evtTypeDict"%options )
     if TypeDict:
       l = string.join(TypeDict.split(),"")
       ll = l.split(",")
@@ -161,13 +156,13 @@ class MergingForDQAgent( AgentModule ):
         self.evtTypeDict[s[0]]=s[1]
     Configuration['evtTypeDict']=True
     
-    List = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/histTypeList"%section ) 
+    List = gConfig.getValue( "%s/histTypeList"%options ) 
     if List:
       l = string.join(List.split(),"")
       self.histTypeList = l.split(",")
       Configuration['histTypeList']=True
     
-    List = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/ProcessingPasses"%section ) 
+    List = gConfig.getValue( "%s/ProcessingPasses"%options ) 
     self.ProcessingPasses=[]
     if List:
       l = string.join(List.split(),"")
@@ -179,18 +174,18 @@ class MergingForDQAgent( AgentModule ):
       Configuration['ProcessingPasses']=True
 
     
-    List = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/DataTakingConditions"%section ) 
+    List = gConfig.getValue( "%s/DataTakingConditions"%options ) 
     if List:
       l = string.join(List.split(),"")
       self.DataTakingConditions = l.split(",")
       Configuration['DataTakingConditions']=True
 
 
-    self.testMode = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/testMode"%section )
+    self.testMode = gConfig.getValue( "%s/testMode"%options )
     if self.testMode: Configuration['testMode']=True
-    self.specialMode = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/specialMode"%section )
+    self.specialMode = gConfig.getValue( "%s/specialMode"%options )
     if self.specialMode: Configuration['specialMode']=True
-    Runs = gConfig.getValue( "Systems/DataManagement/%s/Agents/MergingForDQAgent/specialRuns"%section )
+    Runs = gConfig.getValue( "%s/specialRuns"%options )
     if Runs: 
       l = string.join(Runs.split(),"")
       self.specialRuns = l.split(",")
@@ -200,7 +195,7 @@ class MergingForDQAgent( AgentModule ):
     nConf=False
     for confVar in Configuration:
       if not Configuration[confVar]:
-        gLogger.error('%s not specified in dirac.cfg'% confVar)
+        gLogger.error('%s not specified in CS'% confVar)
         gLogger.error('---------------------------------')
         nConf=True
     if nConf: DIRAC.exit(2) 
