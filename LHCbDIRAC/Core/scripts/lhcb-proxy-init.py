@@ -7,5 +7,5 @@
 __RCSID__ = "$Id: "
 
 import os, sys
-out = os.system( "dirac-proxy-init -o LogLevel=INFO -t '%s'" % "' '".join( sys.argv[1:] ) )
+out = os.system( "dirac-proxy-init -o LogLevel=NOTICE -t '%s'" % "' '".join( sys.argv[1:] ) )
 sys.exit( out / 256 )
