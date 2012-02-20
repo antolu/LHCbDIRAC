@@ -7,7 +7,7 @@ from DIRAC                        import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC                        import gConfig 
 from DIRAC.Core.DISET.RPCClient   import RPCClient
 
-import sys, time, urlparse
+import sys, time, urlparse, os
 
 def getProbeElements():
   
@@ -27,27 +27,32 @@ def getProbeElements():
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def setupProbes( testConfig ):
+  
+  path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
+  
+  try:
+    os.makedirs( path )
+  except OSError:
+    pass # The dir exist already, or cannot be created: do nothin
+  
   return S_OK()
 
 def runProbe( probeInfo, testConfig ):
 
   shortNames = { 
-                 'RequestManagement'    : 'ReqMgmt',
-                 'ConfigurationService' : 'ConfigSvc',
-                 'SystemAdministrator'  : 'SysAdmin'
+                 'RequestManagement' : 'ReqMgmt',
+                 'Configuration'     : 'ConfigSvc',
+                 'Framework'         : 'SysAdmin'
                 }
 
   availability, suptime, muptime = 0, 0, 0
+  url                            = probeInfo
     
   parsed = urlparse.urlparse( url )
     
   if sys.version_info >= (2,6):
     system, _service = parsed.path.strip("/").split("/")
     site = parsed.netloc.split(":")[0]
-    print 1
-#  else:
-#    site, system, _service = parsed[2].strip("/").split("/")
-#    site = site.split(":")[0]
 
   pinger = RPCClient( url )
   res    = pinger.ping()  
@@ -66,7 +71,7 @@ def runProbe( probeInfo, testConfig ):
     notes = res[ 'Message' ]  
 
   xmlList = []
-  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_VOBOX_%s_%s' % ( site, shortName[ system ] ) } )
+  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_VOBOX_%s_%s' % ( site, shortNames[ system ] ) } )
   xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
   xmlList.append( { 'tag' : 'notes', 'nodes' : notes } )
     
@@ -81,6 +86,8 @@ def runProbe( probeInfo, testConfig ):
     if not res[ 'OK' ]:
       gLogger.warn( 'Error getting DB Summary for %s \n. %s' % ( url, res[ 'Message' ] ) )
     else:  
+    
+      res = res[ 'Value' ]
     
       for k,v in res.items():
           
@@ -101,7 +108,7 @@ def runProbe( probeInfo, testConfig ):
     
   return { 
            'xmlList' : xmlList, 'config' : testConfig, 
-           'filename' : 'LHCb_VOBOX_%s_%s' % ( site, shortName[ system ] )
+           'filename' : 'LHCb_VOBOX_%s_%s.xml' % ( site, shortNames[ system ] )
            }  
     
 ################################################################################
