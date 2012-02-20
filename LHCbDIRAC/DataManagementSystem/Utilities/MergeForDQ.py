@@ -340,10 +340,10 @@ GetDescendants: Get the list of descendants of a raw file in a given stream.
 def GetDescendants( rawLFN , bkClient ):
   descLFN = []
 
-  res = bkClient.getFileDescendents( [rawLFN], 5, 0, True )
+  res = bkClient.getDescendents( rawLFN, 5)
 
   if not res['OK']:
-    gLogger.error( res['Message'] )
+    gLogger.error("Unable to retrieve descendants for RAW %s"%rawLFN)
     return ( descLFN, res )
 
   if res['Value'].has_key( 'Successful' ):
@@ -351,6 +351,7 @@ def GetDescendants( rawLFN , bkClient ):
       for lfn in res['Value']['Successful'][rawLFN]:
         descLFN.append( lfn )
   return ( descLFN, res )
+
 
 '''
                                                                              
