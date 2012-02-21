@@ -45,8 +45,8 @@ def runProbe( probeInfo, testConfig ):
                  'Framework'         : 'SysAdmin'
                 }
 
-  availability, suptime, muptime = 0, 0, 0
-  url                            = probeInfo
+  availability, suptime, muptime, notes = 0, 0, 0, ''
+  url                                   = probeInfo
     
   parsed = urlparse.urlparse( url )
     
@@ -70,17 +70,31 @@ def runProbe( probeInfo, testConfig ):
       
     notes = res[ 'Message' ]  
 
-  xmlList = []
-  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_VOBOX_%s_%s' % ( site, shortNames[ system ] ) } )
-  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
-  xmlList.append( { 'tag' : 'notes', 'nodes' : notes } )
-    
-  dataNodes = []
-  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Seconds since last restart of service' ),
-                                                            ( 'name', 'Service Uptime') ], 'nodes' : suptime } )
-  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Seconds since last restart of machine' ),
-                                                            ( 'name', 'Host Uptime') ], 'nodes' : muptime } )
-    
+#  xmlList = []
+#  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_VOBOX_%s_%s' % ( site, shortNames[ system ] ) } )
+#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
+#  xmlList.append( { 'tag' : 'notes', 'nodes' : notes } )
+#    
+#  dataNodes = []
+#  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Seconds since last restart of service' ),
+#                                                            ( 'name', 'Service Uptime') ], 'nodes' : suptime } )
+#  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Seconds since last restart of machine' ),
+#                                                            ( 'name', 'Host Uptime') ], 'nodes' : muptime } )
+              
+#  xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
+#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
+  
+  xmlDict = {}
+  xmlDict[ 'id' ]          = 'LHCb_VOBOX_%s_%s' % ( site, shortNames[ system ] )
+  xmlDict[ 'availability'] = availability
+  xmlDict[ 'availabilityinfo' ] = ''
+  xmlDict[ 'availabilitydesc' ] = ''
+  xmlDict[ 'notes' ]       = notes
+  xmlDict[ 'data' ]        = [ #node name, name attr, desc attr, node value
+                               ( 'numericvalue', 'Service Uptime', 'Seconds since last restart of service', suptime ),
+                               ( 'numericvalue', 'Host Uptime',    'Seconds since last restart of machine', muptime )
+                              ] 
+  
   if system == 'RequestManagement':
     res = pinger.getDBSummary()
     if not res[ 'OK' ]:
@@ -90,26 +104,34 @@ def runProbe( probeInfo, testConfig ):
       res = res[ 'Value' ]
     
       for k,v in res.items():
+        
+        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Assigned' % k,
+                                    'Number of Assigned %s requests' % k, v[ 'Assigned' ] ) )
+        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Waiting' % k,
+                                    'Number of Waiting %s requests' % k, v[ 'Waiting' ] ) )
+        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Done' % k,
+                                    'Number of Done %s requests' % k, v[ 'Done' ] ) )
           
-        dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Number of Assigned %s requests' % k ),
-                                                                  ( 'name', '%s - Assigned' % k) ], 
-                              'nodes' : v[ 'Assigned' ] } )
-          
-        dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Number of Waiting %s requests' % k ),
-                                                                  ( 'name', '%s - Waiting' % k) ], 
-                              'nodes' : v[ 'Assigned' ] } )
-          
-        dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Number of Done %s requests' % k ),
-                                                                  ( 'name', '%s - Waiting' % k) ], 
-                              'nodes' : v[ 'Done' ] } )
-              
-  xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
-  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) })
+
+#        dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Number of Assigned %s requests' % k ),
+#                                                                  ( 'name', '%s - Assigned' % k) ], 
+#                              'nodes' : v[ 'Assigned' ] } )
+#          
+#        dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Number of Waiting %s requests' % k ),
+#                                                                  ( 'name', '%s - Waiting' % k) ], 
+#                              'nodes' : v[ 'Assigned' ] } )
+#          
+#        dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'desc', 'Number of Done %s requests' % k ),
+#                                                                  ( 'name', '%s - Waiting' % k) ], 
+#                              'nodes' : v[ 'Done' ] } )  
+  
+  
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }   
     
-  return { 
-           'xmlList' : xmlList, 'config' : testConfig, 
-           'filename' : 'LHCb_VOBOX_%s_%s.xml' % ( site, shortNames[ system ] )
-           }  
+#  return { 
+#           'xmlList' : xmlList, 'config' : testConfig, 
+#           'filename' : 'LHCb_VOBOX_%s_%s.xml' % ( site, shortNames[ system ] )
+#           }  
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -55,14 +55,24 @@ def runProbe( probeInfo, testConfig ):
 
   availability = ( ( _create and _remove ) and 100 ) or 0
   
-  xmlList = []
-  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_LFC_Master_%s' % master } )
-  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
-  xmlList.append( { 'tag' : 'notes', 'nodes' : 'Either 0 or 100, 0 no basic operations performed, 100 all working.' } )
-  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
-  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
+#  xmlList = []
+#  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_LFC_Master_%s' % master } )
+#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
+#  xmlList.append( { 'tag' : 'notes', 'nodes' : 'Either 0 or 100, 0 no basic operations performed, 100 all working.' } )
+#  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
+#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
 
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Master_%s.xml' % master }  
+  notes = 'Either 0 or 100, 0 no basic operations performed, 100 all working.'
+
+  xmlDict = {}
+  xmlDict[ 'id' ]           = 'LHCb_LFC_Master_%s' % master
+  xmlDict[ 'availability' ] = availability
+  xmlDict[ 'notes' ]        = notes 
+  xmlDict[ 'availabilityinfo' ] = ''
+  xmlDict[ 'availabilitydesc' ] = ''
+
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }
+#  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Master_%s.xml' % master }  
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

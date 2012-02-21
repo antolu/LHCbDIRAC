@@ -68,7 +68,7 @@ def runProbe( probeInfo, testConfig ):
   condDBPath = '/Resources/CondDB/%s' % condDB  
   config     = gConfig.getOptionsDict( condDBPath )
   
-  loadTime, availability = 0, 0
+  loadTime, availability, notes = 0, 0, ''
   
   filename               = 'LHCb_%s_%s' % ( testConfig[ 'testName' ], condDB )
   
@@ -107,21 +107,33 @@ def runProbe( probeInfo, testConfig ):
 
   ## XML generation
     
-  xmlList = []
-  xmlList.append( { 'tag' : 'id', 'nodes' : '%s_CondDB' % condDB } )
-  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )  
+#  xmlList = []
+#  xmlList.append( { 'tag' : 'id', 'nodes' : '%s_CondDB' % condDB } )
+#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )  
+#    
+#  xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : testConfig[ 'refreshperiod' ] })
+#  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : testConfig[ 'validityduration' ] } )
     
-  xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : testConfig[ 'refreshperiod' ] })
-  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : testConfig[ 'validityduration' ] } )
+#  dataNodes = []
+#  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Time to access CondDB' ) ], 'nodes' : loadTime } )
+#  dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'ConditionDB access timex' } )
+#    
+#  xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
+#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
+  
+  xmlDict = {}
+  xmlDict[ 'id' ]          = 'LHCb_ConditionDB_%s' % condDB
+  xmlDict[ 'availability'] = availability
+  xmlDict[ 'availabilityinfo' ] = ''
+  xmlDict[ 'availabilitydesc' ] = ''
+  xmlDict[ 'notes' ]       = notes
+  xmlDict[ 'data' ]        = [ #node name, name attr, desc attr, node value
+                               ( 'numericvalue', 'Time to access ConditionDB', None, loadTime ),
+                               ( 'textvalue'   , None, None, 'ConditionDB access time' )
+                              ] 
     
-  dataNodes = []
-  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Time to access CondDB' ) ], 'nodes' : loadTime } )
-  dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'ConditionDB access timex' } )
-    
-  xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
-  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
-    
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : '%s.xml' % filename }         
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }         
+#  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : '%s.xml' % filename }
        
 ################################################################################
       

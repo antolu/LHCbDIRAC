@@ -113,14 +113,24 @@ def runProbe( probeInfo, testConfig ):
       gLogger.warn( res[ 'Value' ] )
       res = False   
 
-  xmlList = []
-  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_LFC_Mirror_%s' % mirror } )
-  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
-  xmlList.append( { 'tag' : 'notes', 'nodes' : 'Either 0 or 100, 0 no basic operations performed, 100 all working.' } )
-  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
-  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
+  notes = 'Either 0 or 100, 0 no basic operations performed, 100 all working.'
 
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Mirror_%s.xml' % mirror }  
+#  xmlList = []
+#  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_LFC_Mirror_%s' % mirror } )
+#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
+#  xmlList.append( { 'tag' : 'notes', 'nodes' : 'Either 0 or 100, 0 no basic operations performed, 100 all working.' } )
+#  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
+#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
+
+  xmlDict = {}
+  xmlDict[ 'id' ]           = 'LHCb_LFC_Mirror_%s' % mirror
+  xmlDict[ 'availability' ] = availability
+  xmlDict[ 'availabilityinfo' ] = ''
+  xmlDict[ 'availabilitydesc' ] = ''
+  xmlDict[ 'notes' ]        = notes
+
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }
+#  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Mirror_%s.xml' % mirror }  
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
