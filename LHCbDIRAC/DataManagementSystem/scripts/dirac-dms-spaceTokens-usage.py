@@ -1,16 +1,15 @@
 #!/usr/bin/env python
+
 """
   Check the space token usage at the site and report the space usage from several sources: File Catalogue,
   Storage dumps, SRM interface
 """
 
+__RCSID__ = "$Id:  $"
+
 from DIRAC.Core.Base import Script
 unit = 'TB'
 sites = []
-dir = ''
-fileType = ''
-prods = []
-prodID = ''
 Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" %unit )
 Script.registerSwitch( "S:", "Sites=", "  Sites to consider [ALL] (space or comma separated list, e.g. LCG.CERN.ch, LCG.CNAF.it" )
 #Script.registerSwitch( "l:", "Site=", "   LCG Site list to check [%s] (e.g. LCG.CERN.ch, LCG.CNAF.it, ... )" %sites )
