@@ -80,6 +80,8 @@ class SLSAgent2( AgentModule ):
         continue
       testConfig = testConfig[ 'Value' ]
       
+      TIMEOUT = testConfig.get( 'timeout', 120 )
+      
       gLogger.info( '%s: Getting test probes' % tName )        
       mTest           = tModule[ 'mod' ]
 
@@ -99,11 +101,12 @@ class SLSAgent2( AgentModule ):
       gLogger.info( '%s: Launching test probes' % tName )
       for elementToCheck in elementsToCheck:
         
-        res = self.processPool.createAndQueueTask( runSLSProbe,
-                                                   args              = ( mTest.runProbe, elementToCheck ),
+        res = self.processPool.createAndQueueTask( mTest.runProbe,
+                                                   args              = ( elementToCheck, ),
                                                    kwargs            = { 'testConfig' : testConfig },
-                                                   callback          = SLSXML.writeXml,
-                                                   exceptionCallback = slsExceptionCallback )
+                                                   callback          = SLSXML.writeSLSXml,
+                                                   exceptionCallback = slsExceptionCallback,
+                                                   timeOut           = timeout )
         
         if not res[ 'OK' ]:
           gLogger.error( 'Error queuing task %s' % res[ 'Message' ] )
@@ -167,33 +170,33 @@ class SLSAgent2( AgentModule ):
   all this will be obsolete soon :)
 '''
 
-class TimedOutError( Exception ): pass
-
-def handler( signum, frame ):
-  raise TimedOutError() 
-
-def runSLSProbe( *testArgs, **testKwargs ):
-    
-  func      = testArgs[ 0 ]
-  probeInfo = testArgs[ 1 ]
-
-  testConfig = testKwargs.get( 'testConfig', {} )
-
-  saveHandler = signal.signal( signal.SIGALRM, handler )
-  signal.alarm( 120 )
-  
-  try:
-#    gLogger.info( 'Start run' )
-    res = func( probeInfo, testConfig )    
-#    gLogger.info( 'End run' )
-  except TimedOutError:
-    gLogger.info( 'Killed' )
-    res = S_ERROR( 'Timeout' )    
-  finally:
-    signal.signal( signal.SIGALRM, saveHandler )
-      
-  signal.alarm( 0 )  
-  return res
+#class TimedOutError( Exception ): pass
+#
+#def handler( signum, frame ):
+#  raise TimedOutError() 
+#
+#def runSLSProbe( *testArgs, **testKwargs ):
+#    
+#  func      = testArgs[ 0 ]
+#  probeInfo = testArgs[ 1 ]
+#
+#  testConfig = testKwargs.get( 'testConfig', {} )
+#
+#  saveHandler = signal.signal( signal.SIGALRM, handler )
+#  signal.alarm( 120 )
+#  
+#  try:
+##    gLogger.info( 'Start run' )
+#    res = func( probeInfo, testConfig )    
+##    gLogger.info( 'End run' )
+#  except TimedOutError:
+#    gLogger.info( 'Killed' )
+#    res = S_ERROR( 'Timeout' )    
+#  finally:
+#    signal.signal( signal.SIGALRM, saveHandler )
+#      
+#  signal.alarm( 0 )  
+#  return res
   
 def slsExceptionCallback( task, exec_info ):
   gLogger.info( 'slsExceptionCallback' )
