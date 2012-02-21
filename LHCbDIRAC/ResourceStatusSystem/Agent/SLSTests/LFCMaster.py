@@ -35,12 +35,7 @@ def runProbe( probeInfo, testConfig ):
     
   lfnDir  = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
   gridDir = '/grid' + lfnDir
-
-#  try:
-#    lfc2.lfc_rmdir( gridDir )
-#  except:
-#    pass
-    
+   
   _create, _remove = False, False  
     
   try:
@@ -67,7 +62,7 @@ def runProbe( probeInfo, testConfig ):
   xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
   xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
 
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Master_%s' % master }  
+  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Master_%s.xml' % master }  
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

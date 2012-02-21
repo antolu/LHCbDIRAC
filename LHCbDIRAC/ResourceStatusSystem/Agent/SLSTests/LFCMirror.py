@@ -120,7 +120,7 @@ def runProbe( probeInfo, testConfig ):
   xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
   xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
 
-  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Mirror_%s' % mirror }  
+  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Mirror_%s.xml' % mirror }  
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
