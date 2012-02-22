@@ -38,7 +38,7 @@ class PilotsEfficiency_Policy( PolicyBase ):
       raise InvalidRes, where( self, self.evaluate )
 
     if args[2] not in ValidStatus:
-      raise InvalidStatus, where( self, self.evaluate )
+      return { 'SAT' : None }
 
     if knownInfo is not None:
       if 'PilotsEff' in knownInfo.keys():

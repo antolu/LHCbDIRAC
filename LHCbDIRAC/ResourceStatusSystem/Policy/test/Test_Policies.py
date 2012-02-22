@@ -171,7 +171,6 @@ class Res2SiteStatus_Policy_Failure( PoliciesTestCase ):
       self.failUnlessRaises( Exception, self.Res2SiteStatus_P.evaluate, ( 'XX', status ), self.mock_command )
 
   def test_badArgs( self ):
-    self.failUnlessRaises( InvalidStatus, self.Res2SiteStatus_P.evaluate, ( 'XX', '' ) )
     self.failUnlessRaises( TypeError, self.Res2SiteStatus_P.evaluate, None )
 
 
