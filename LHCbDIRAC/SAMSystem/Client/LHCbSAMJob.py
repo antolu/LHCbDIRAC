@@ -56,7 +56,6 @@ class LHCbSAMJob( Job ):
     """
     Job.__init__( self, script, stdout, stderr )
     self.gaudiStepCount = 0
-    self.currentStepPrefix = ''
     self.samLogLevel = gConfig.getValue( '/Operations/SAM/LogLevel', 'verbose' )
     self.samDefaultCPUTime = gConfig.getValue( '/Operations/SAM/CPUTime', 50000 )
     self.samPlatform = gConfig.getValue( '/Operations/SAM/Platform', 'gLite-SAM' )
@@ -160,8 +159,6 @@ except Exception,x:
     stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
     self.addToOutputSandbox.append( '*.log' )
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     if forceDeletion:
       self._addJDLParameter( 'LockRemovalFlag', 'True' )
@@ -222,8 +219,6 @@ except Exception,x:
       self.addToOutputSandbox.append( '*.log' )
 
       self.workflow.addStep( step )
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
       stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -277,8 +272,6 @@ except Exception,x:
       stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
       self.addToOutputSandbox.append( '*.log' )
       self.workflow.addStep( step )
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
       stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -337,8 +330,6 @@ except Exception,x:
       stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
       self.addToOutputSandbox.append( '*.log' )
       self.workflow.addStep( step )
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
       self._addJDLParameter( 'DeleteSharedArea', str( forceDeletion ) )
 
     # Define Step and its variables
@@ -400,8 +391,6 @@ except Exception,x:
       stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
       self.addToOutputSandbox.append( '*.log' )
       self.workflow.addStep( step )
-      stepPrefix = '%s_' % stepName
-      self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
       stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -471,10 +460,8 @@ except Exception,x:
         stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
         self.addToOutputSandbox.append( '*.log' )
         self.workflow.addStep( step )
-        stepPrefix = '%s_' % stepName
-        self.currentStepPrefix = stepPrefix
 
-      # Define Step and its variables
+        # Define Step and its variables
         stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
         stepInstance.setValue( "enable", enableFlag )
         stepInstance.setValue( "samTestName", testName )
@@ -534,8 +521,6 @@ except Exception,x:
     stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
     self.addToOutputSandbox.append( '*.log' )
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -601,8 +586,6 @@ except Exception,x:
     self.addToOutputSandbox.append( '*.log' )
 
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )

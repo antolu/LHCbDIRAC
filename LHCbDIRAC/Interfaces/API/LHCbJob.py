@@ -121,7 +121,6 @@ class LHCbJob( Job ):
     """
     Job.__init__( self, script, stdout, stderr )
     self.gaudiStepCount = 0
-    self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
     self.scratchDir = gConfig.getValue( self.section + '/LocalSite/ScratchDir', '/tmp' )
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
@@ -235,8 +234,6 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( logName )
 
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -399,8 +396,6 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( logName )
 
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -661,8 +656,6 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( logName )
 
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -1048,8 +1041,6 @@ class LHCbJob( Job ):
     stepName = 'RunProtocolTestStep%s' % ( stepNumber )
 
     self.workflow.addStep( step )
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
