@@ -53,14 +53,18 @@ def runProbe( probeInfo, testConfig ):
     
   answer = lcg_util.lcg_stmd( spaceToken, url, True, 0 )  
   
+  #SpaceToken[-4:] must be either USER, Disk, Tape
+  tokenType = spaceToken[-4: ]   
+  testThreshold = testConfig[ 'testThresholds' ][ tokenType ]
+  
   if answer[ 0 ] == 0:
     
     output       = answer[1][0]
     total        = float( output[ 'totalsize' ] ) / 1e12 # Bytes to Terabytes
     guaranteed   = float( output[ 'guaranteedsize' ] ) / 1e12
     free         = float( output[ 'unusedsize' ] ) / 1e12
-    availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
-    availabilityinfo = 'Total = %s (TB), free = %s(TB)' % ( total, free )
+    availability = 100 if free > testThreshold else ( free * 100 / total if total != 0 else 0 )
+    availabilityinfo = 'Total = %s (TB), free = %s(TB), threshold = %s(TB)' % ( total, free, testThreshold )
     
   else:
     _msg = 'StorageTokenOccupancy: problem with lcg_util.lcg_stmd( "%s","%s",True,0 ) = (%d, %s)'
