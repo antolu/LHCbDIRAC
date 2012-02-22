@@ -15,26 +15,12 @@ def writeXml( task, taskResult ):
   filename = taskResult.get( 'filename' )
   config   = taskResult.get( 'config' )
   
-  # The following are optional
-#  useStub  = taskResult.get( 'useStub', True )
-  
   workdir  = config.get( 'workdir' )
   testName = config.get( 'testName' )
 
   path = '%s/%s' % ( workdir, testName )
     
-#  XML_STUB = [ { 
-#                'tag'   : 'serviceupdate',
-#                'attrs' : [ ( 'xmlns', 'http://sls.cern.ch/SLS/XML/update' ),
-#                            ( 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance' ),
-#                            ( 'xsi:schemaLocation', 'http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd' )
-#                          ],
-#                'nodes' : xmlList }
-#              ]
-    
-    
   d = Document()
-#  d = _writeXml( d, d, ( useStub and XML_STUB ) or xmlList )
   d = _writeXml( d, d, xmlList )
   
   try:       
@@ -52,13 +38,9 @@ def writeSLSXml( task, taskResult ):
 
   # This 2 keys must exist
   xmlDict  = taskResult.get( 'xmlDict' )
-#  filename = taskResult.get( 'filename' )
   config   = taskResult.get( 'config' )
-  filename = '%s.xml' % config[ 'id' ]
-  
-  # The following are optional
-  # useStub  = taskResult.get( 'useStub', True )
-  
+  filename = '%s.xml' % xmlDict[ 'id' ]
+   
   workdir  = config.get( 'workdir' )
   testName = config.get( 'testName' )
   path     = '%s/%s' % ( workdir, testName )  
@@ -69,10 +51,11 @@ def writeSLSXml( task, taskResult ):
   xmlList.append( { 'tag' : 'id',                'nodes' : xmlDict[ 'id' ] } )
   xmlList.append( { 'tag' : 'availability',      'nodes' : xmlDict[ 'availability' ] } )
   xmlList.append( { 'tag' : 'availabilityinfo',  'nodes' : xmlDict[ 'availabilityinfo' ] } )
-  xmlList.append( { 'tag' : 'availabilitydesc',  'nodes' : xmlDict[ 'availabilitydesc' ] } )
-  xmlList.append( { 'tag' : 'notes',             'nodes' : xmlDict[ 'notes' ] } )
+
+  xmlList.append( { 'tag' : 'availabilitydesc',  'nodes' : config[ 'availabilitydesc' ] } )
   xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : config[ 'refreshperiod' ] } )
-  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : config[ 'validityduration' ] } )
+  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : config[ 'validityduration' ] } )   
+  
   xmlList.append( { 'tag' : 'timestamp' ,        'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) } )
   
   xmlThresholds = []
@@ -88,10 +71,8 @@ def writeSLSXml( task, taskResult ):
     attrs = []
     if dItem[1] is not None:
       attrs.append( ( 'name', dItem[ 1 ] ) )
-      #dataDict[ 'name' ] = dItem[ 1 ]
     if dItem[2] is not None:
       attrs.append( ( 'desc', dItem[ 2 ] ) )
-      #dataDict[ 'desc' ] = dItem[ 2 ]
     if attrs:
       dataDict[ 'attrs' ] = attrs  
     dataDict[ 'nodes' ] = dItem[ 3 ]
@@ -111,7 +92,7 @@ def writeSLSXml( task, taskResult ):
         name = dItem.keys()[ 0 ]
         groupDict = { 'tag' : 'grp', 'attrs' : [ ( 'name', name ) ] }
         groupList = []
-        for v in dItem[ 'name' ]:
+        for v in dItem[ name ]:
           groupList.append( processData( v ) )
         if groupList:
           groupDict[ 'nodes' ] = groupList               
