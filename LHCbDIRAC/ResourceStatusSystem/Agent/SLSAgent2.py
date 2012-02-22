@@ -4,7 +4,7 @@
 __RCSID__  = "$Id:  $"
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
 
-from DIRAC                                import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC                                import S_OK, S_ERROR, gConfig, gLogger, rootPath
 from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
@@ -32,7 +32,9 @@ class SLSAgent2( AgentModule ):
     to pick it up.
     '''
 
-    self.workdir  = self.am_getWorkDirectory()
+    webRoot = self.am_getOption( 'webRoot', 'webRoot/www/sls2/')
+
+    self.workdir  = '%s/%s' % ( rootPath, webRoot )
     self.tModules = {}
     self.tests    = []
     
@@ -105,7 +107,6 @@ class SLSAgent2( AgentModule ):
                                                    args              = ( elementToCheck, ),
                                                    kwargs            = { 'testConfig' : testConfig },
                                                    callback          = SLSXML.writeSLSXml,
-                                                   exceptionCallback = slsExceptionCallback,
                                                    timeOut           = timeout )
         
         if not res[ 'OK' ]:
@@ -163,44 +164,6 @@ class SLSAgent2( AgentModule ):
     gLogger.info( 'Terminating all threads' )
         
     return S_OK()      
-
-################################################################################
-
-'''
-  all this will be obsolete soon :)
-'''
-
-#class TimedOutError( Exception ): pass
-#
-#def handler( signum, frame ):
-#  raise TimedOutError() 
-#
-#def runSLSProbe( *testArgs, **testKwargs ):
-#    
-#  func      = testArgs[ 0 ]
-#  probeInfo = testArgs[ 1 ]
-#
-#  testConfig = testKwargs.get( 'testConfig', {} )
-#
-#  saveHandler = signal.signal( signal.SIGALRM, handler )
-#  signal.alarm( 120 )
-#  
-#  try:
-##    gLogger.info( 'Start run' )
-#    res = func( probeInfo, testConfig )    
-##    gLogger.info( 'End run' )
-#  except TimedOutError:
-#    gLogger.info( 'Killed' )
-#    res = S_ERROR( 'Timeout' )    
-#  finally:
-#    signal.signal( signal.SIGALRM, saveHandler )
-#      
-#  signal.alarm( 0 )  
-#  return res
-  
-def slsExceptionCallback( task, exec_info ):
-  gLogger.info( 'slsExceptionCallback' )
-  gLogger.info( exec_info )  
   
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
