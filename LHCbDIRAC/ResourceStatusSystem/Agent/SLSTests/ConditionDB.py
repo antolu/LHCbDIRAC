@@ -68,12 +68,14 @@ def runProbe( probeInfo, testConfig ):
   condDBPath = '/Resources/CondDB/%s' % condDB  
   config     = gConfig.getOptionsDict( condDBPath )
   
-  loadTime, availability, notes = 0, 0, ''
+  loadTime, availability = 0, 0
   
   filename               = 'LHCb_%s_%s' % ( testConfig[ 'testName' ], condDB )
   
   if not config[ 'OK' ]:
-    gLogger.error( 'ConditionDB: not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] ) )     
+    _msg = 'ConditionDB: not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] )
+    gLogger.error( _msg )  
+    availavilityinfo = _msg   
   
   else:  
     writeDBlookup( testConfig, config[ 'Value' ] )
@@ -101,39 +103,26 @@ def runProbe( probeInfo, testConfig ):
       
         loadTime     = float( reRes.group( 6 ) )
         availability = 100   
+        availabilityinfo = 'Everything all right'
+  
+    else:  
+      availabilityinfo = 'Error running gaudirun.py'
   
     # Update results to DB
     # Utils.unpack(insert_slsconddb(Site=site, Availability=availability, AccessTime=loadTime))       
 
   ## XML generation
-    
-#  xmlList = []
-#  xmlList.append( { 'tag' : 'id', 'nodes' : '%s_CondDB' % condDB } )
-#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )  
-#    
-#  xmlList.append( { 'tag' : 'refreshperiod'    , 'nodes' : testConfig[ 'refreshperiod' ] })
-#  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : testConfig[ 'validityduration' ] } )
-    
-#  dataNodes = []
-#  dataNodes.append( { 'tag' : 'numericvalue', 'attrs' : [ ( 'name', 'Time to access CondDB' ) ], 'nodes' : loadTime } )
-#  dataNodes.append( { 'tag' : 'textvalue', 'nodes' : 'ConditionDB access timex' } )
-#    
-#  xmlList.append( { 'tag' : 'data', 'nodes' : dataNodes } )
-#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( '%Y-%m-%dT%H:%M:%S' ) })
   
   xmlDict = {}
   xmlDict[ 'id' ]          = 'LHCb_ConditionDB_%s' % condDB
   xmlDict[ 'availability'] = availability
-  xmlDict[ 'availabilityinfo' ] = ''
-  xmlDict[ 'availabilitydesc' ] = ''
-  xmlDict[ 'notes' ]       = notes
+  xmlDict[ 'availabilityinfo' ] = availabilityinfo
   xmlDict[ 'data' ]        = [ #node name, name attr, desc attr, node value
                                ( 'numericvalue', 'Time to access ConditionDB', None, loadTime ),
                                ( 'textvalue'   , None, None, 'ConditionDB access time' )
                               ] 
     
   return { 'xmlDict' : xmlDict, 'config' : testConfig }         
-#  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : '%s.xml' % filename }
        
 ################################################################################
       

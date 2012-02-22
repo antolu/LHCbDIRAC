@@ -3,7 +3,7 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC import S_OK
+from DIRAC import S_OK, gLogger
 
 import os, time
 import lfc2
@@ -46,33 +46,27 @@ def runProbe( probeInfo, testConfig ):
     lfc2.lfc_rmdir( gridDir )
     _remove  = True
     gLogger.info( 'removed %s' % gridDir )
+  
+    availabilityinfo = 'Mkdir test %s, rmDir test %s' % ( _create, _remove )
       
   except ValueError:
-    _lfcMsg = 'Error manipulating directory, are you sure it does not exist ?'
+    _lfcMsg = 'Error manipulating directory %s' % gridDir
     gLogger.error( _lfcMsg )
+    availabilityinfo = _lfcMsg
   except Exception, e:
     gLogger.error( e )
-
-  availability = ( ( _create and _remove ) and 100 ) or 0
+    availabilityinfo = 'Exception running test'
+    
+  availability = (( _create and 50 ) or 0 ) + (( _remove and 50 ) or 0 )
   
-#  xmlList = []
-#  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_LFC_Master_%s' % master } )
-#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
-#  xmlList.append( { 'tag' : 'notes', 'nodes' : 'Either 0 or 100, 0 no basic operations performed, 100 all working.' } )
-#  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
-#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
-
-  notes = 'Either 0 or 100, 0 no basic operations performed, 100 all working.'
+  ## XML generation
 
   xmlDict = {}
-  xmlDict[ 'id' ]           = 'LHCb_LFC_Master_%s' % master
-  xmlDict[ 'availability' ] = availability
-  xmlDict[ 'notes' ]        = notes 
-  xmlDict[ 'availabilityinfo' ] = ''
-  xmlDict[ 'availabilitydesc' ] = ''
-
-  return { 'xmlDict' : xmlDict, 'config' : testConfig }
-#  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Master_%s.xml' % master }  
+  xmlDict[ 'id' ]               = 'LHCb_LFC_Master_%s' % master
+  xmlDict[ 'availability' ]     = availability 
+  xmlDict[ 'availabilityinfo' ] = availabilityinfo
+  
+  return { 'xmlDict' : xmlDict, 'config' : testConfig } 
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

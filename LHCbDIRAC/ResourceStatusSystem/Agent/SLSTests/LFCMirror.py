@@ -80,57 +80,58 @@ def runProbe( probeInfo, testConfig ):
   
   if not res[ 'OK' ]:
     gLogger.error( res[ 'Message' ] )
+    availabilityinfo = res[ 'Message' ]
     res = False
   else:
     if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
       res = True
     else:
       gLogger.warn( res[ 'Value' ] )
+      availabilityinfo = res[ 'Value' ]
       res = False   
 
-  counter = -1
+  counter = 0
   while res:
 
     fullLfn = '%s%s' % ( '/grid', lfn )
     value   = lfc2.lfc_access( fullLfn, 0 )
     
-    if value == 0 or counter == 20:
+    if value == 0:
+      availabilityinfo = 'File accessed in %s seconds' % counter
+      break
+    elif counter == 120:
+      availabilityinfo = 'Timeout after %s seconds' % counter
       break
 
     counter += 0.5
     time.sleep( 0.5 )
     
-  availability = ( ( counter > -1 and  counter < 20 ) and 100 ) or 0
+  availability = ( ( counter > -1 and counter < 120 ) and 100 ) or 0
 
   res = diracAPI.removeFile( lfn )
   if not res[ 'OK' ]:
     gLogger.error( res[ 'Message' ] )
+    availabilityinfo = res[ 'Message' ]
     res = False
   else:
     if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
       res = True
     else:
       gLogger.warn( res[ 'Value' ] )
-      res = False   
+      availabilityinfo = res[ 'Value' ]
+      res = False  
 
-  notes = 'Either 0 or 100, 0 no basic operations performed, 100 all working.'
+  availability = ( res and availability ) and 0
 
-#  xmlList = []
-#  xmlList.append( { 'tag' : 'id', 'nodes' : 'LHCb_LFC_Mirror_%s' % mirror } )
-#  xmlList.append( { 'tag' : 'availability', 'nodes' : availability } )
-#  xmlList.append( { 'tag' : 'notes', 'nodes' : 'Either 0 or 100, 0 no basic operations performed, 100 all working.' } )
-#  xmlList.append( { 'tag' : 'validityduration' , 'nodes' : 'PT2H' } )
-#  xmlList.append( { 'tag' : 'timestamp', 'nodes' : time.strftime( "%Y-%m-%dT%H:%M:%S" ) }) 
+  ## XML generation ############################################################
 
   xmlDict = {}
-  xmlDict[ 'id' ]           = 'LHCb_LFC_Mirror_%s' % mirror
-  xmlDict[ 'availability' ] = availability
-  xmlDict[ 'availabilityinfo' ] = ''
-  xmlDict[ 'availabilitydesc' ] = ''
-  xmlDict[ 'notes' ]        = notes
+  xmlDict[ 'id' ] = 'LHCb_LFC_Mirror_%s' % mirror
+  
+  xmlDict[ 'availability' ]     = availability
+  xmlDict[ 'availabilityinfo' ] = availabilityinfo
 
-  return { 'xmlDict' : xmlDict, 'config' : testConfig }
-#  return { 'xmlList' : xmlList, 'config' : testConfig, 'filename' : 'LHCb_LFC_Mirror_%s.xml' % mirror }  
+  return { 'xmlDict' : xmlDict, 'config' : testConfig } 
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
