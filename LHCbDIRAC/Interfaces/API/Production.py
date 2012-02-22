@@ -841,25 +841,12 @@ class Production():
     return self.getParameters( int( productionID ), 'DetailedInfo' )
 
   #############################################################################
-  def _getProductionParameters( self, prodID, groupDescription = '', bkPassInfo = {}, bkInputQuery = {},
-                               derivedProd = 0, prodXMLFile = '', reqID = 0 ):
+
+  def _getProductionParameters( self, prodXMLFile, prodID, groupDescription = '',
+                                bkPassInfo = {}, bkInputQuery = {},
+                                derivedProd = 0, reqID = 0 ):
     """ This method will publish production parameters.
     """
-    if not prodXMLFile: #e.g. setting parameters for old productions
-      prodXMLFile = 'Production%s.xml' % prodID
-      if os.path.exists( prodXMLFile ):
-        self.LHCbJob.log.verbose( 'Using %s for production body' % prodXMLFile )
-      else:
-        result = self.transClient.getTransformationParameters( int( prodID ), ['Body'] )
-        if not result['OK']:
-          return S_ERROR( "Error during command execution: %s" % result['Message'] )
-        if not result['Value']:
-          return S_ERROR( "No body of production %s was found" % prodID )
-
-        body = result['Value']
-        fd = open( prodXMLFile, 'wb' )
-        fd.write( body )
-        fd.close()
 
     prodWorkflow = Workflow( prodXMLFile )
     if not bkPassInfo:
@@ -933,7 +920,9 @@ class Production():
     #Create detailed information string similar to ELOG entry
     #TODO: put tags per step and include other interesting parameters
     info = []
-    info.append( '%s Production %s for event type %s has following parameters:\n' % ( parameters['JobType'], prodID, parameters['eventType'] ) )
+    info.append( '%s Production %s for event type %s has following parameters:\n' % ( parameters['JobType'],
+                                                                                      prodID,
+                                                                                      parameters['eventType'] ) )
     info.append( 'Production priority: %s' % ( parameters['Priority'] ) )
     info.append( 'BK Config Name Version: %s %s' % ( parameters['configName'], parameters['configVersion'] ) )
     info.append( 'BK Processing Pass Name: %s' % ( parameters['groupDescription'] ) )
@@ -944,7 +933,9 @@ class Production():
     stepKeys = bkPassInfo.keys()
     stepKeys.sort()
     for step in stepKeys:
-      info.append( '====> %s %s %s' % ( bkPassInfo[step]['ApplicationName'], bkPassInfo[step]['ApplicationVersion'], step ) )
+      info.append( '====> %s %s %s' % ( bkPassInfo[step]['ApplicationName'],
+                                        bkPassInfo[step]['ApplicationVersion'],
+                                        step ) )
       info.append( '  %s Option Files:' % ( bkPassInfo[step]['ApplicationName'] ) )
       for opts in bkPassInfo[step]['OptionFiles'].split( ';' ):
         info.append( '    %s' % opts )
@@ -957,7 +948,11 @@ class Production():
 
     #BK output directories (very useful)
     bkPaths = []
-    bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'], parameters['configVersion'], parameters['BKCondition'], parameters['groupDescription'], parameters['eventType'] )
+    bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'],
+                                        parameters['configVersion'],
+                                        parameters['BKCondition'],
+                                        parameters['groupDescription'],
+                                        parameters['eventType'] )
     fileTypes = parameters['outputDataFileMask']
     fileTypes = [a.upper() for a in fileTypes.split( ';' )]
 
