@@ -3,10 +3,10 @@
 ################################################################################
 __RCSID__ = "$Id$"
 
+from DIRAC import S_ERROR, gLogger
+
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
      ResourceManagementClient as DIRACResourceManagementClient
-
-from DIRAC.ResourceStatusSystem.Utilities.Decorators import ClientFastDec
 
 from datetime import datetime
 
@@ -40,172 +40,179 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   the client considerably.
   """
 
-  @ClientFastDec
+  def __query( self, queryType, tableName, kwargs ):
+    '''
+      This method is a rather important one. It will format the input for the DB
+      queries, instead of doing it on a decorator. Two dictionaries must be passed
+      to the DB. First one contains 'columnName' : value pairs, being the key
+      lower camel case. The second one must have, at lease, a key named 'table'
+      with the right table name. 
+    '''
+    # Functions we can call, just a light safety measure.
+    _gateFunctions = [ 'insert', 'update', 'get', 'delete' ] 
+    if not queryType in _gateFunctions:
+      return S_ERROR( '"%s" is not a proper gate call' % queryType )
+    
+    gateFunction = getattr( self.gate, queryType )
+    
+    meta   = kwargs.pop( 'meta' )
+    params = kwargs
+    del params[ 'self' ]     
+        
+    meta[ 'table' ] = tableName
+    
+    gLogger.info( 'Calling %s, with \n params %s \n meta %s' % ( queryType, params, meta ) )  
+    return gateFunction( params, meta )
+
   def insertMonitoringTest( self, metricName, serviceURI, siteName,
                             serviceFlavour, metricStatus, summaryData,
                             timestamp, lastCheckTime, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'MonitoringTest', locals() )
   def updateMonitoringTest( self, metricName, serviceURI, siteName,
                             serviceFlavour, metricStatus, summaryData,
                             timestamp, lastCheckTime, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'MonitoringTest', locals() )
   def getMonitoringTest( self, metricName = None, serviceURI = None,
                          siteName = None, serviceFlavour = None,
                          metricStatus = None, summaryData = None,
                          timestamp = None, lastCheckTime = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'MonitoringTest', locals() )
   def deleteMonitoringTest( self, metricName = None, serviceURI = None,
                             siteName = None, serviceFlavour = None,
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'MonitoringTest', locals() )
   def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
                                  serviceFlavour, metricStatus, summaryData,
                                  timestamp, lastCheckTime ):
     return self.__addOrModifyElement( 'MonitoringTest', locals() )
 
-  @ClientFastDec
+
   def insertHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
                              agentStatus, formerAgentStatus, counter,
                              meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'HammerCloudTest', locals() )
   def updateHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
                              agentStatus, formerAgentStatus, counter,
                              meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'HammerCloudTest', locals() )
   def getHammerCloudTest( self, testID = None, siteName = None,
                           resourceName = None, testStatus = None,
                           submissionTime = None, startTime = None,
                           endTime = None, counterTime = None,
                           agentStatus = None, formerAgentStatus = None,
                           counter = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'HammerCloudTest', locals() )
   def deleteHammerCloudTest( self, testID = None, siteName = None,
                              resourceName = None, testStatus = None,
                              submissionTime = None, startTime = None,
                              endTime = None, counterTime = None,
                              agentStatus = None, formerAgentStatus = None,
                              counter = None, meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'HammerCloudTest', locals() )
   def addOrModifyHammerCloudTest( self, testID, siteName, resourceName,
                                   testStatus, submissionTime, startTime,
                                   endTime, counterTime, agentStatus,
                                   formerAgentStatus, counter ):
     return self.__addOrModifyElement( 'HammerCloudTest', locals() )
-  @ClientFastDec
+  
+  
   def insertSLSService( self, system, service, timeStamp, availability,
                         serviceUptime, hostUptime, instantLoad, message, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'SLSService', locals() )
   def updateSLSService( self, system, service, timeStamp, availability,
                         serviceUptime, hostUptime, instantLoad, message, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'SLSService', locals() )
   def getSLSService( self, system = None, service = None, timeStamp = None,
                      availability = None, serviceUptime = None,
                      hostUptime = None, instantLoad = None, message = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'SLSService', locals() )
   def deleteSLSService( self, system = None, service = None, timeStamp = None,
                         availability = None, serviceUptime = None,
                         hostUptime = None, instantLoad = None, message = None, meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'SLSService', locals() )
   def addOrModifySLSService( self, system, service, timeStamp, availability,
                              serviceUptime, hostUptime, instantLoad, message):
     return self.__addOrModifyElement( 'SLSService', locals() )
-  @ClientFastDec
+  
+  
   def insertSLST1Service( self, site, service, timeStamp, availability,
                           serviceUptime, hostUptime, message, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'SLST1Service', locals() )
   def updateSLST1Service( self, site, service, timeStamp, availability,
                           serviceUptime, hostUptime, message, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'SLST1Service', locals() )
   def getSLST1Service( self, site = None, service = None, timeStamp = None,
                        availability = None, serviceUptime = None,
                        hostUptime = None, message = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'SLST1Service', locals() )
   def deleteSLST1Service( self, site = None, service = None, timeStamp = None,
                           availability = None, serviceUptime = None,
                           hostUptime = None, message = None, meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'SLST1Service', locals() )
   def addOrModifySLST1Service( self, site, service, timeStamp, availability,
                                serviceUptime, hostUptime, message ):
     return self.__addOrModifyElement( 'SLST1Service', locals() )
-  @ClientFastDec
+  
+  
   def insertSLSLogSE( self, name, timeStamp, validityDuration, availability,
                      dataPartitionUsed, dataPartitionTotal, meta = {}):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'SLSLogSE', locals() )
   def updateSLSLogSE( self, name, timeStamp, validityDuration, availability,
                       dataPartitionUsed, dataPartitionTotal, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'SLSLogSE', locals() )
   def getSLSLogSE( self, name = None, timeStamp = None, validityDuration = None,
                    availability = None, dataPartitionUsed = None,
                    dataPartitionTotal = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'SLSLogSE', locals() )
   def deleteSLSLogSE( self, name = None, timeStamp = None,
                       validityDuration = None, availability = None,
                       dataPartitionUsed = None, dataPartitionTotal = None,
                       meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'SLSLogSE', locals() )
   def addOrModifySLSLogSE( self, name, timeStamp, validityDuration, availability,
                            dataPartitionUsed, dataPartitionTotal ):
     return self.__addOrModifyElement( 'SLSLogSE', locals() )
-  @ClientFastDec
+  
+  
   def insertSLSStorage( self, site, token, timeStamp, availability,
                         refreshPeriod, validityDuration, totalSpace,
                         guaranteedSpace, freeSpace, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'SLSStorage', locals() )
   def updateSLSStorage( self, site, token, timeStamp, availability,
                         refreshPeriod, validityDuration, totalSpace,
                         guaranteedSpace, freeSpace, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'SLSStorage', locals() )
   def getSLSStorage( self, site = None, token = None, timeStamp = None,
                      availability = None, refreshPeriod = None,
                      validityDuration = None, totalSpace = None,
                      guaranteedSpace = None, freeSpace = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'SLSStorage', locals() )
   def deleteSLSStorage( self, site = None, token = None, timeStamp = None,
                         availability = None, refreshPeriod = None,
                         validityDuration = None, totalSpace = None,
                         guaranteedSpace = None, freeSpace = None, meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'SLSStorage', locals() )
   def addOrModifySLSStorage( self, site, token, timeStamp, availability,
                              refreshPeriod, validityDuration, totalSpace,
                              guaranteedSpace, freeSpace ):
     return self.__addOrModifyElement( 'SLSStorage', locals() )
-  @ClientFastDec
+  
+
   def insertSLSCondDB( self, site, timeStamp, availability, accessTime,
                        meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'insert', 'SLSCondDB', locals() )
   def updateSLSCondDB( self, site, timeStamp, availability, accessTime,
                        meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'update', 'SLSCondDB', locals() )
   def getSLSCondDB( self, site = None, timeStamp = None, availability = None,
                     accessTime = None, meta = {} ):
-    return locals()
-  @ClientFastDec
+    return self.__query( 'get', 'SLSCondDB', locals() )
   def deleteSLSCondDB( self, site = None, timeStamp = None, availability = None,
                        accessTime = None, meta = {} ):
-    return locals()
+    return self.__query( 'delete', 'SLSCondDB', locals() )
   def addOrModifySLSCondDB( self, site, timeStamp, availability, accessTime ):
     return self.__addOrModifyElement( 'SLSCondDB', locals() )
 
