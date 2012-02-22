@@ -69,7 +69,7 @@ class SAMResults_Command( Command ):
             return siteName
           siteName = siteName['Value']
       else:
-        raise InvalidRes( '%s is not a valid granularity' % self.args[ 0 ] ) 
+        return S_ERROR( '%s is not a valid granularity' % self.args[ 0 ] ) 
     
       if len( self.args ) > 3:
         tests = self.args[ 3 ]

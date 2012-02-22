@@ -123,7 +123,6 @@ class DT_Policy_Failure(PoliciesTestCase):
       self.failUnlessRaises(Exception, self.DT_P.evaluate)
 
   def test_badArgs(self):
-    self.failUnlessRaises(InvalidRes, self.DT_P.setArgs, ('sites', ''))
     self.failUnlessRaises(TypeError, self.DT_P.setArgs, None)
 
 
@@ -252,8 +251,6 @@ class PilotsEfficiency_Policy_Failure( PoliciesTestCase ):
         self.failUnlessRaises( Exception, self.PE_P.evaluate, ( granularity, 'XX', status ), self.mock_command )
 
   def test_badArgs( self ):
-    for status in ValidStatus:
-      self.failUnlessRaises( InvalidRes, self.PE_P.evaluate, ( 'sites', '', status ) )
     self.failUnlessRaises( TypeError, self.PE_P.evaluate, None )
 
 #############################################################################
@@ -311,7 +308,6 @@ class PilotsEfficiency_Simple_Policy_Failure( PoliciesTestCase ):
 
   def test_badArgs( self ):
     PES_P = PilotsEfficiency_Simple_Policy()
-    self.failUnlessRaises( InvalidRes, PES_P.setArgs, ( 'sites', '') )
     self.failUnlessRaises( TypeError, PES_P.setArgs, None )
 
 
@@ -403,8 +399,6 @@ class JobsEfficiency_Policy_Failure( PoliciesTestCase ):
         self.failUnlessRaises( Exception, self.JE_P.evaluate, ( granularity, 'XX', status ), self.mock_command )
 
   def test_badArgs( self ):
-    for status in ValidStatus:
-      self.failUnlessRaises( InvalidRes, self.JE_P.evaluate, ( 'sites', '', status ) )
     self.failUnlessRaises( TypeError, self.JE_P.evaluate, None )
 
 
@@ -463,7 +457,6 @@ class JobsEfficiency_Simple_Policy_Failure( PoliciesTestCase ):
 
   def test_badArgs( self ):
     JES_P = JobsEfficiency_Simple_Policy()
-    self.failUnlessRaises( InvalidRes, JES_P.setArgs, ( 'sites', '' ) )
     self.failUnlessRaises( TypeError, JES_P.setArgs, None )
 
 
