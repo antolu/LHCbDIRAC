@@ -49,7 +49,6 @@ class NagiosProbes_Command( Command ):
       if not res['OK']:
       #  msg = "Error getting NagiosProbes for serviceURI '%s'\n %s" % ( name, res['Message'])
       #  gLogger.error( msg )
-      #  raise RSSException, msg
         return res
     
       res = S_OK( dict( [ ( r[0], r[1:] ) for r in res[ 'Value' ] ] ) )
