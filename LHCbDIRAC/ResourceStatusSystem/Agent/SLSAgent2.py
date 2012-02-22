@@ -80,7 +80,7 @@ class SLSAgent2( AgentModule ):
         continue
       testConfig = testConfig[ 'Value' ]
       
-      TIMEOUT = testConfig.get( 'timeout', 120 )
+      timeout = testConfig.get( 'timeout', 120 )
       
       gLogger.info( '%s: Getting test probes' % tName )        
       mTest           = tModule[ 'mod' ]
