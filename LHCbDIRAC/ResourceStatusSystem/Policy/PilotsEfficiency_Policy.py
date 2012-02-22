@@ -35,7 +35,7 @@ class PilotsEfficiency_Policy( PolicyBase ):
       raise TypeError, where( self, self.evaluate )
 
     if args[0] not in ValidRes:
-      raise InvalidRes, where( self, self.evaluate )
+      return { 'SAT' : None }
 
     if args[2] not in ValidStatus:
       return { 'SAT' : None }

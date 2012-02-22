@@ -34,7 +34,7 @@ class JobsEfficiency_Policy( PolicyBase ):
       raise TypeError, where( self, self.evaluate )
 
     if args[0] not in ValidRes:
-      raise InvalidRes, where( self, self.evaluate )
+      return {'SAT':None}
 
     if knownInfo is not None:
       if 'JobsEff' in knownInfo.keys():
