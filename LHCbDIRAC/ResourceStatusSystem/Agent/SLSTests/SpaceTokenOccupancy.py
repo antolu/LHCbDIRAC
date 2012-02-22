@@ -25,7 +25,7 @@ def getProbeElements():
   
   except Exception, e:
     _msg = 'Exception gettingProbeElements'
-    gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+    gLogger.debug( 'SpaceTokenOccupancy: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
 
 ################################################################################
@@ -64,8 +64,9 @@ def runProbe( probeInfo, testConfig ):
     
   else:
     _msg = 'StorageTokenOccupancy: problem with lcg_util.lcg_stmd( "%s","%s",True,0 ) = (%d, %s)'
-    gLogger.info(  _msg % ( spaceToken, url, answer[0], answer[1] ) )
-    gLogger.info( str( answer ) )
+    _msg =  _msg % ( spaceToken, url, answer[0], answer[1] )
+    gLogger.info( 'SpaceTokenOccupancy: %s' % _msg )
+    gLogger.info( 'SpaceTokenOccupancy: %s' % str( answer ) )
     availabilityinfo = answer[ 2 ]
   
   ## XML generation ############################################################

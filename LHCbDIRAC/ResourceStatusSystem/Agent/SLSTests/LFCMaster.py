@@ -42,19 +42,19 @@ def runProbe( probeInfo, testConfig ):
       
     lfc2.lfc_mkdir( gridDir , 0777 )
     _create  = True
-    gLogger.info( 'created %s' % gridDir )
+    gLogger.info( 'LFCMaster: created %s' % gridDir )
     lfc2.lfc_rmdir( gridDir )
     _remove  = True
-    gLogger.info( 'removed %s' % gridDir )
+    gLogger.info( 'LFCMaster: removed %s' % gridDir )
   
     availabilityinfo = 'Mkdir test %s, rmDir test %s' % ( _create, _remove )
       
   except ValueError:
     _lfcMsg = 'Error manipulating directory %s' % gridDir
-    gLogger.error( _lfcMsg )
+    gLogger.error( 'LFCMaster: %s' % _lfcMsg )
     availabilityinfo = _lfcMsg
   except Exception, e:
-    gLogger.error( e )
+    gLogger.error( 'LFCMaster: %s' % e )
     availabilityinfo = 'Exception running test'
     
   availability = (( _create and 50 ) or 0 ) + (( _remove and 50 ) or 0 )

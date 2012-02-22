@@ -23,7 +23,7 @@ def getProbeElements():
   
   except Exception, e:
     _msg = 'Exception gettingProbeElements'
-    gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+    gLogger.debug( 'VOBOX: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def setupProbes( testConfig ):
@@ -62,7 +62,7 @@ def runProbe( probeInfo, testConfig ):
     availability     = 100
     suptime          = res.get( 'service uptime', 0 )
     muptime          = res.get( 'host uptime', 0 )
-    availavilityinfo = 'Service %s is up and running' % url
+    availabilityinfo = 'Service %s is up and running' % url
     
   else:
       

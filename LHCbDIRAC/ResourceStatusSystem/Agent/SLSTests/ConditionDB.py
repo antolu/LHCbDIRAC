@@ -34,7 +34,7 @@ def getProbeElements():
     
   except Exception, e:
     _msg = '%s: Exception gettingProbeElements'
-    gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 ################################################################################
@@ -55,7 +55,7 @@ def setupProbes( testConfig ):
     
   except Exception, e:  
     _msg = '%s: Exception settingProbe'
-    gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
     
 ################################################################################
@@ -73,8 +73,8 @@ def runProbe( probeInfo, testConfig ):
   filename               = 'LHCb_%s_%s' % ( testConfig[ 'testName' ], condDB )
   
   if not config[ 'OK' ]:
-    _msg = 'ConditionDB: not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] )
-    gLogger.error( _msg )  
+    _msg = 'not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] )
+    gLogger.error( 'ConditionDB: %s' % _msg )  
     availavilityinfo = _msg   
   
   else:  

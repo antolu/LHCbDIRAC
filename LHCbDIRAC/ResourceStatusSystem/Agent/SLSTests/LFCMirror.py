@@ -3,6 +3,8 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
+from DIRAC                                                 import gLogger       
+
 from DIRAC.Interfaces.API.Dirac                            import Dirac
 from DIRAC.ResourceStausSystem.Client.ResourceStatusClient import ResourceStatusClient
 
@@ -12,7 +14,7 @@ def getProbeElements():
   
   try:
   
-    rsc = ResourceStatusClient()
+    rsc   = ResourceStatusClient()
     lfc_l = rsc.getResource( resourceType = 'LFC_L' )
     lfc_c = rsc.getResource( resourceType = 'LFC_C' )
 
@@ -32,7 +34,7 @@ def getProbeElements():
 
   except Exception, e:
     _msg = 'Exception gettingProbeElements'
-    gLogger.debug( '%s: \n %s' % ( _msg, e ) )
+    gLogger.debug( 'LFCMirror: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 
@@ -58,7 +60,6 @@ def runProbe( probeInfo, testConfig ):
 
   path = '%s/%s' % ( workdir, testName )
 
-  
   lfnPath  = '/lhcb/test/lfc-replication/%s/' % master
   fileName = 'testFile.%s' % time.time()
    
@@ -66,27 +67,27 @@ def runProbe( probeInfo, testConfig ):
   fullPath = path + '/' + fileName
   diracSE  = 'CERN-USER'
 
-  gLogger.info( 'Getting time till file %s exists' % lfn )
+  gLogger.info( 'LFCMirror: Getting time till file %s exists' % lfn )
      
   f = open( fullPath, 'w' )
   f.write( 'SLSAgent at %s' % mirror )
   f.write( str( time.time() ) )
   f.close()
 
-  gLogger.info( 'Registering file %s at %s' % ( lfn, diracSE ) )
+  gLogger.info( 'LFCMirror: Registering file %s at %s' % ( lfn, diracSE ) )
   
   diracAPI = Dirac() 
   res      = diracAPI.addFile( lfn, fullPath, diracSE )
   
   if not res[ 'OK' ]:
-    gLogger.error( res[ 'Message' ] )
+    gLogger.error( 'LFCMirror: %s' % res[ 'Message' ] )
     availabilityinfo = res[ 'Message' ]
     res = False
   else:
     if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
       res = True
     else:
-      gLogger.warn( res[ 'Value' ] )
+      gLogger.warn( 'LFCMirror: %s' % res[ 'Value' ] )
       availabilityinfo = res[ 'Value' ]
       res = False   
 
@@ -110,14 +111,14 @@ def runProbe( probeInfo, testConfig ):
 
   res = diracAPI.removeFile( lfn )
   if not res[ 'OK' ]:
-    gLogger.error( res[ 'Message' ] )
+    gLogger.error( 'LFCMirror: %s' % res[ 'Message' ] )
     availabilityinfo = res[ 'Message' ]
     res = False
   else:
     if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
       res = True
     else:
-      gLogger.warn( res[ 'Value' ] )
+      gLogger.warn( 'LFCMirror: %s' % res[ 'Value' ] )
       availabilityinfo = res[ 'Value' ]
       res = False  
 
