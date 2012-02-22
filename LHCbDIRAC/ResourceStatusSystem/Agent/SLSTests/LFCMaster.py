@@ -30,7 +30,7 @@ def setupProbes( testConfig ):
 
 def runProbe( probeInfo, testConfig ):
   
-  master                   = probeInfo[ 0 ]
+  master                   = probeInfo
   os.environ[ 'LFC_HOST' ] = master
     
   lfnDir  = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
@@ -55,7 +55,7 @@ def runProbe( probeInfo, testConfig ):
     availabilityinfo = _lfcMsg
   except Exception, e:
     gLogger.error( 'LFCMaster: %s' % e )
-    availabilityinfo = 'Exception running test'
+    availabilityinfo = 'Exception running test %s' % e
     
   availability = (( _create and 50 ) or 0 ) + (( _remove and 50 ) or 0 )
   

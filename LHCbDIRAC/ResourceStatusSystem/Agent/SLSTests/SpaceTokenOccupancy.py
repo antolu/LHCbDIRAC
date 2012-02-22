@@ -65,8 +65,8 @@ def runProbe( probeInfo, testConfig ):
   else:
     _msg = 'StorageTokenOccupancy: problem with lcg_util.lcg_stmd( "%s","%s",True,0 ) = (%d, %s)'
     _msg =  _msg % ( spaceToken, url, answer[0], answer[1] )
-    gLogger.info( 'SpaceTokenOccupancy: %s' % _msg )
-    gLogger.info( 'SpaceTokenOccupancy: %s' % str( answer ) )
+    gLogger.error( 'SpaceTokenOccupancy: %s' % _msg )
+    gLogger.error( 'SpaceTokenOccupancy: %s' % str( answer ) )
     availabilityinfo = answer[ 2 ]
   
   ## XML generation ############################################################

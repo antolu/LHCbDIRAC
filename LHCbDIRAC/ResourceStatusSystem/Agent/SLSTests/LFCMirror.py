@@ -66,9 +66,7 @@ def runProbe( probeInfo, testConfig ):
   lfn      = lfnPath + fileName
   fullPath = path + '/' + fileName
   diracSE  = 'CERN-USER'
-
-  gLogger.info( 'LFCMirror: Getting time till file %s exists' % lfn )
-     
+    
   f = open( fullPath, 'w' )
   f.write( 'SLSAgent at %s' % mirror )
   f.write( str( time.time() ) )
