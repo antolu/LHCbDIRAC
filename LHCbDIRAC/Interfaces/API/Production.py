@@ -717,10 +717,6 @@ class Production():
 
     gaudiStepInstance.setValue( 'listoutput', ( outputList ) )
 
-    #Ensure the global input data type is null
-    description = 'Default input data type field'
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'InputDataType', 'JDL', '', description )
-
     # now we have to tell DIRAC to install the necessary software
     self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
     dddbOpt = "@{DDDBTag}"

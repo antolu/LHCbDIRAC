@@ -67,12 +67,6 @@ class JobPathResolution:
         self.log.error( result )
         return S_ERROR( 'Could not reset input data to null' )
 
-#    inputDataType = classadJob.get_expression('InputDataType').replace('"','').replace('Unknown','')
-#    if inputDataType=='ETC':
-#      self.log.info('Job %s has ETC requirement' % (job))
-#      eventTagCollection = gConfig.getValue(section+'/ETC','ETC')
-#      lhcbPath += eventTagCollection+','
-
     if classadJob.lookupAttribute( 'CondDBTags' ):
       condDB = gConfig.getValue( section + '/CondDB', 'CondDB' )
       lhcbPath += condDB + ','

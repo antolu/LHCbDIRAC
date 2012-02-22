@@ -149,7 +149,8 @@ class LHCbJob( Job ):
        Example usage:
 
        >>> job = LHCbJob()
-       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
+       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',
+       inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
 
        @param appName: Application name
        @type appName: string
@@ -166,7 +167,8 @@ class LHCbJob( Job ):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles, 'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles,
+              'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
@@ -344,7 +346,8 @@ class LHCbJob( Job ):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments, 'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments,
+              'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
@@ -787,37 +790,6 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, 'AncestorDepth', 'JDL', depth, description )
     else:
       return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
-    return S_OK()
-
-  #############################################################################
-
-  def setInputDataType( self, inputDataType ):
-    """Helper function.
-
-       Explicitly set the input data type to be conveyed to Gaudi Applications.
-
-       Default is DATA, e.g. for DST / RDST files.  Other options include:
-        - MDF, for .raw files
-        - ETC, for running on a public or private Event Tag Collections.
-
-       Example usage:
-
-       >>> job = LHCbJob()
-       >>> job.setInputDataType('ETC')
-
-       @param inputDataType: Input Data Type
-       @type inputDataType: String
-
-    """
-    description = 'User specified input data type'
-    if not type( inputDataType ) == type( " " ):
-      try:
-        inputDataType = str( inputDataType )
-      except Exception, x:
-        return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
-
-    self.inputDataType = inputDataType
-    self._addParameter( self.workflow, 'InputDataType', 'JDL', inputDataType, description )
     return S_OK()
 
   #############################################################################
