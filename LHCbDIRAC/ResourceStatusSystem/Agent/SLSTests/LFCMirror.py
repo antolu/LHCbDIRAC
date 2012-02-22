@@ -3,12 +3,12 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC                                                 import gLogger       
+from DIRAC                                                  import gLogger, S_OK, S_ERROR       
 
-from DIRAC.Interfaces.API.Dirac                            import Dirac
-from DIRAC.ResourceStausSystem.Client.ResourceStatusClient import ResourceStatusClient
+from DIRAC.Interfaces.API.Dirac                             import Dirac
+from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
-import time
+import time, os
 
 def getProbeElements():
   
