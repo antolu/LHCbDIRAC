@@ -23,12 +23,21 @@ def initializeDataUsageHandler( serviceInfo ):
 
 class DataUsageHandler( RequestHandler ):
   types_sendDataUsageReport = [ ( StringType, DictType, StringType ) ]
-  def export_sendDataUsageReport( self, se , directoryDict, status ='New' ):
-    return storageUsageDB.sendDataUsageReport( se, directoryDict, status )
+  def export_sendDataUsageReport( self, site , directoryDict, status ='New' ):
+    return storageUsageDB.sendDataUsageReport( site, directoryDict, status )
 
   types_getDataUsageSummary = [ ( StringType, StringType, StringType ) ]
   def export_getDataUsageSummary( self, startTime, endTime, status = 'New' ):
     return storageUsageDB.getDataUsageSummary( startTime, endTime, status )
+
+  types_getDataUsageSummary_2 = [ ( StringType, StringType, StringType ) ]
+  def export_getDataUsageSummary_2( self, startTime, endTime, status = 'New' ):
+    return storageUsageDB.getDataUsageSummary_2( startTime, endTime, status )
+
+  types_updatePopEntryStatus = [ ( ListType, StringType ) ]
+  def export_updatePopEntryStatus( self, IdList, newStatus ):
+    return storageUsageDB.updatePopEntryStatus( IdList, newStatus )
+
 
   types_insertToDirMetadata = [ ( DictType ) ]
   def export_insertToDirMetadata( self, directoryDict ):
