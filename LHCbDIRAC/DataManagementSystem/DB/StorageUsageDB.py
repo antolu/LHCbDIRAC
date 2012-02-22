@@ -79,12 +79,14 @@ class StorageUsageDB( DB ):
                                                    },
                                         'PrimaryKey' : [ 'DID'],
                                         }
-    self.__tablesDesc[ 'Popularity' ] = { 'Fields' : { 'Path' : 'VARCHAR(255) NOT NULL',
-                                                       'SEName' : 'VARCHAR(32) NOT NULL',
+    self.__tablesDesc[ 'Popularity' ] = { 'Fields' : { 'ID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
+                                                       'Path' : 'VARCHAR(255) NOT NULL',
+                                                       'Site' : 'VARCHAR(32) NOT NULL',
                                                        'Count' : 'INTEGER UNSIGNED NOT NULL',
                                                        'InsertTime' : 'DATETIME NOT NULL',
                                                        'Status' : 'VARCHAR(32) NOT NULL'
                                                   },
+                                        'PrimaryKey' : [ 'ID'],
                                      } 
     self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
                                                        'ConfigName' : 'VARCHAR(64) NOT NULL',
@@ -831,12 +833,12 @@ class StorageUsageDB( DB ):
   ######
   
 
-  def sendDataUsageReport( self, se, directoryDict, status = 'New' ):
+  def sendDataUsageReport( self, site, directoryDict, status = 'New' ):
     """ Add a new trace in the Popularity table  """
-    self.log.info( "in addPopCount: dirDict: %s se: %s" % ( directoryDict, se ) )
+    self.log.info( "in addPopCount: dirDict: %s site: %s" % ( directoryDict, site ) )
     if not directoryDict:
       return S_OK()
-    sqlSe = self._escapeString( se )[ 'Value' ]
+    sqlSite = self._escapeString( site )[ 'Value' ]
     insertedEntries = 0
     for d in directoryDict.keys():
       if d[-1] != "/":
@@ -845,9 +847,9 @@ class StorageUsageDB( DB ):
       sqlStatus = self._escapeString( status )[ 'Value' ]
       count = directoryDict[ d ]
       if type( count ) != IntType:
-        self.log.warn("in sendDataUsageReport: type is not correct %s" % cound )
+        self.log.warn("in sendDataUsageReport: type is not correct %s" % count )
         continue
-      sqlCmd = "INSERT INTO `Popularity` ( Path, SEName, Count, Status, InsertTime) VALUES ( %s, %s, %d, %s, UTC_TIMESTAMP() )" % ( sqlPath, sqlSe, count, sqlStatus )
+      sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES ( %s, %s, %d, %s, UTC_TIMESTAMP() )" % ( sqlPath, sqlSite, count, sqlStatus )
       self.log.info("sqlCmd = %s " % sqlCmd )
       result = self._update( sqlCmd )
       if not result[ 'OK' ]:
@@ -858,7 +860,7 @@ class StorageUsageDB( DB ):
 
 
   def getDataUsageSummary( self, startTime, endTime, status ='New' ):
-    """ returns a summary of the counts for each tuple (SE,Path) in the given time interval
+    """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
     """ 
     if startTime > endTime:
       return S_OK()
@@ -868,7 +870,7 @@ class StorageUsageDB( DB ):
     sqlStartTime = self._escapeString( startTime )[ 'Value' ]
     sqlEndTime = self._escapeString( endTime )[ 'Value' ]
     sqlStatus = self._escapeString( status )[ 'Value' ]
-    sqlCmd = "SELECT Path, SEName, SUM(Count) from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s GROUP BY Path,SEName " %( sqlStatus, sqlStartTime, sqlEndTime )
+    sqlCmd = "SELECT Path, Site, SUM(Count) from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s GROUP BY Path,Site " %( sqlStatus, sqlStartTime, sqlEndTime )
     self.log.info("sqlCmd = %s " % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
@@ -876,18 +878,53 @@ class StorageUsageDB( DB ):
     Data = {}
     for row in result[ 'Value' ]:
       path = row[ 0 ]
-      seName = row[ 1 ]
+      site = row[ 1 ]
       usage = int( row[ 2 ] )
       if path not in Data.keys():
         Data[ path ] = {}
-      if seName not in Data[ path ].keys():
-        Data[ path ][ seName] = {}
-      Data[ path ][ seName]['Count'] = usage
+      if site not in Data[ path ].keys():
+        Data[ path ][ site ] = {}
+      Data[ path ][ site ]['Count'] = usage
     self.log.info("return dict is: %s " % Data )
     return S_OK( Data )
 
 
+  def getDataUsageSummary_2( self, startTime, endTime, status ='New' ):
+    """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
+    """ 
+    if startTime > endTime:
+      return S_OK()
+    if ( type( startTime ) != StringType or type( endTime ) != StringType ):
+      return S_ERROR('wrong arguments format')
+          
+    sqlStartTime = self._escapeString( startTime )[ 'Value' ]
+    sqlEndTime = self._escapeString( endTime )[ 'Value' ]
+    sqlStatus = self._escapeString( status )[ 'Value' ]
+    sqlCmd = "SELECT ID, Path, Site, Count from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s " %( sqlStatus, sqlStartTime, sqlEndTime )
+    self.log.info("sqlCmd = %s " % sqlCmd )
+    result = self._query( sqlCmd )
+    if not result[ 'OK' ]:
+      return S_ERROR( result['Message'])
+    return result
 
+
+  def updatePopEntryStatus( self, IdList, newStatus ):
+    """ Update the status of the entry identified by the IDList, to the status specified by Newstatus.
+    """
+    if not IdList:
+      self.log.info("updatePopEntryStatus: no entry to be updated")
+      return S_OK()
+
+    sqlStatus = self._escapeString( newStatus )['Value'] 
+    strIdList = [ str( id ) for id in IdList ]
+    sqlIdList = ", ".join( strIdList )
+    self.log.info("updatePopEntryStatus: sqlIdList %s " % sqlIdList )
+    sqlCmd = "UPDATE `Popularity` SET Status=%s WHERE ID IN ( %s )" % ( sqlStatus, sqlIdList )
+    result = self._update( sqlCmd )
+    if not result[ 'OK' ]:
+      return result
+    return result
+   
   def insertToDirMetadata( self, directoryDict ):
     """ Inserts a new entry into the DirMetadata table. The input dictionary should contain, for each
         lfn directory, a dictionary with all the necessary metadata provided by the bookkeeping """
