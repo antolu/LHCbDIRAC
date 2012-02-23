@@ -8,7 +8,7 @@ __RCSID__ = "$Id$"
 # ...
 
 # Second, DIRAC stuff
-from DIRAC                                          import gLogger, S_OK, S_ERROR
+from DIRAC                                          import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                    import AgentModule
 from DIRAC.Interfaces.API.DiracAdmin                import DiracAdmin
 from DIRAC.ResourceStatusSystem.Utilities.CS        import getSetup
@@ -22,7 +22,7 @@ from LHCbDIRAC.ResourceStatusSystem.Agent.HCModes           import HCMasterMode,
 
 AGENT_NAME = 'ResourceStatus/HCAgent'
 
-class HCAgent(AgentModule):
+class HCAgent( AgentModule ):
   ''' 
   Class HCAgent. This agent is in charge of submitting HammerCloud tests when
   needed. It shows a different behavior depending on the setup, being
@@ -85,15 +85,15 @@ class HCAgent(AgentModule):
                              testDuration = self.TEST_DURATION, 
                              pollingTime = self.POLLING_TIME )  
         
-      gLogger.info( "TEST_DURATION: %s minutes"   % self.TEST_DURATION )  
-      gLogger.info( "MAX_COUNTER_ALARM: %s jumps" % self.MAX_COUNTER_ALARM )
+      self.log.info( "TEST_DURATION: %s minutes"   % self.TEST_DURATION )  
+      self.log.info( "MAX_COUNTER_ALARM: %s jumps" % self.MAX_COUNTER_ALARM )
         
       return S_OK()
 
     except Exception, x:
-      gLogger.error( "HCAgent initialization crash" )
+      self.log.error( "HCAgent initialization crash" )
       errorStr = where( self, self.initialize )
-      gLogger.exception( errorStr, lException = x )
+      self.log.exception( errorStr, lException = x )
       return S_ERROR( errorStr )
     
 ################################################################################
@@ -119,11 +119,10 @@ class HCAgent(AgentModule):
       return self.mode.run()
                 
     except Exception, x:
-      gLogger.error( "HCAgent execution crash" )
+      self.log.error( "HCAgent execution crash" )
       errorStr = where( self, self.execute )
-      gLogger.exception( errorStr, lException = x )
+      self.log.exception( errorStr, lException = x )
       return S_ERROR()
  
 ################################################################################
-
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

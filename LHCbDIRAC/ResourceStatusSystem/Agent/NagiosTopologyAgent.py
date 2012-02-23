@@ -1,10 +1,11 @@
 __RCSID__ = "$Id: $"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
-from DIRAC import gLogger, gConfig, S_OK, rootPath
+from DIRAC                                import gConfig, S_OK, rootPath
 
 from DIRAC.ResourceStatusSystem.Utilities import Utils
-from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.Base.AgentModule          import AgentModule
+
 import time, xml.dom.minidom, os
 
 #
@@ -105,7 +106,7 @@ class NagiosTopologyAgent(AgentModule):
           pass
 
       else :
-        gLogger.warn("Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" % ( site, site_name ))
+        self.log.warn("Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" % ( site, site_name ))
         xml_root.removeChild(xml_site)
 
     # produce the xml
@@ -116,3 +117,6 @@ class NagiosTopologyAgent(AgentModule):
       xmlf.close()
 
     return S_OK()
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

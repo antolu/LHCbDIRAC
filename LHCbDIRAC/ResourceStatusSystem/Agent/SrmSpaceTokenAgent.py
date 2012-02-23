@@ -7,11 +7,12 @@ __RCSID__ = "$Id$"
 """ Queries BDII to pick out information about SRM2.2 space token descriptions.
 """
 
-from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Base.AgentModule                              import AgentModule
+from DIRAC import S_OK, S_ERROR, gConfig
+
 from DIRAC.AccountingSystem.Client.Types.SRMSpaceTokenDeployment import SRMSpaceTokenDeployment
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Base.AgentModule    import AgentModule
+from DIRAC.Core.Utilities           import Time
 
 import sys, os
 import re
@@ -38,14 +39,14 @@ class SrmSpaceTokenAgent(AgentModule):
   def execute( self ):
     who = ''
     cred = ''
-    gLogger.info( "Connecting to BDII server at %s:%s" % ( self.bdiiServerHostname,
+    self.log.info( "Connecting to BDII server at %s:%s" % ( self.bdiiServerHostname,
                                                            self.bdiiServerPort ) )
     try:
       l = ldap.open( self.bdiiServerHostname, self.bdiiServerPort )
       l.simple_bind_s( who, cred)
-      gLogger.info( 'Successfully bound to server\nSearching...' )
+      self.log.info( 'Successfully bound to server\nSearching...' )
     except ldap.LDAPError, error_message:
-      gLogger.error( 'Could not connect', ' to %s:%s : %s' % ( self.bdiiServerHostname,
+      self.log.error( 'Could not connect', ' to %s:%s : %s' % ( self.bdiiServerHostname,
                                                                self.bdiiServerPort,
                                                                str( error_message ) ) )
       return S_ERROR
@@ -63,7 +64,7 @@ class SrmSpaceTokenAgent(AgentModule):
       ses = self.get_SEs( l, name)
       for se in ses:
         host = se[0][1]['GlueSEUniqueID'][0]
-        gLogger.verbose( " Host: %s" % host )
+        self.log.verbose( " Host: %s" % host )
         sas = self.get_SAs( l, host)
         tokens = self.get_VOInfo( l, host)
         for sa in sas:
@@ -176,6 +177,8 @@ class SrmSpaceTokenAgent(AgentModule):
                 if result_type == ldap.RES_SEARCH_ENTRY:
                     result_set.append(result_data)
     except ldap.LDAPError, error_message:
-        gLogger.warn( "Can't search for", "%s %s %s %s" % ( base, scope, filter, str( error_message ) ) )
+        self.log.warn( "Can't search for", "%s %s %s %s" % ( base, scope, filter, str( error_message ) ) )
     return result_set
 
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

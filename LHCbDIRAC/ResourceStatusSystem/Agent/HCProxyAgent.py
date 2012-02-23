@@ -8,7 +8,7 @@ __RCSID__ = "$Id$"
 import os
 
 # Second, DIRAC stuff
-from DIRAC                                      import gLogger, S_OK, S_ERROR
+from DIRAC                                      import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities.Utils import where
 
@@ -49,7 +49,7 @@ class HCProxyAgent( AgentModule ):
 
     except Exception:
       errorStr = "HCAgent initialization"
-      gLogger.exception( errorStr )
+      self.log.exception( errorStr )
       return S_ERROR( errorStr )
 
 ################################################################################
@@ -66,16 +66,15 @@ class HCProxyAgent( AgentModule ):
     
     try:
 
-      gLogger.info('Loop')
-      gLogger.info(os.environ['X509_USER_PROXY'])
+      self.log.info('Loop')
+      self.log.info(os.environ['X509_USER_PROXY'])
       return S_OK()
     
     except Exception, x:
       errorStr = where(self, self.execute)
-      gLogger.exception(errorStr, lException = x)
+      self.log.exception(errorStr, lException = x)
       return S_ERROR(errorStr)
   
   
 ################################################################################
-
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

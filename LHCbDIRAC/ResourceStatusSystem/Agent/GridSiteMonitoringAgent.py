@@ -8,7 +8,7 @@ __version__ = 0.1
 Queries BDII to pick out information about SRM2.2 space token descriptions.
 '''
 
-from DIRAC                                            import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                                            import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule                      import AgentModule
 from DIRAC.AccountingSystem.Client.ReportsClient      import ReportsClient
 from DIRAC.Core.Utilities                             import Time, List, DEncode
@@ -55,12 +55,12 @@ class GridSiteMonitoringAgent( AgentModule ):
     os.write( fd, fileData )
     os.close( fd )
     rm = ReplicaManager()
-    gLogger.info( "Uploading %s" % remoteFileName )
+    self.log.info( "Uploading %s" % remoteFileName )
     result = rm.put( "/lhcb/monitoring/%s" % remoteFileName, fName, 'LogSE' )
     try:
       os.unlink( fName )
     except Exception, e:
-      gLogger.error( "Can't unlink temporal file", "%s: %s" % ( fName, str(e) ) )
+      self.log.error( "Can't unlink temporal file", "%s: %s" % ( fName, str(e) ) )
     return result
 
 
@@ -89,7 +89,7 @@ class GridSiteMonitoringAgent( AgentModule ):
     return addedData, extraData
 
   def _retrieveDataContents(self):
-    gLogger.info( "[DATA] Retrieving info...")
+    self.log.info( "[DATA] Retrieving info...")
     finalData = []
     endT = Time.dateTime()
     startT = endT - datetime.timedelta( seconds = self.am_getOption( "Timespan", 3600 ) )
@@ -177,7 +177,7 @@ class GridSiteMonitoringAgent( AgentModule ):
         continue
       self._appendToFinalData( finalData, channel, subMetricName, 0.0, 0.0,
                                startEpoch, endEpoch, extraURL, groupBy  )
-    gLogger.info( "[DATA]%s data" % subMetricName, "%s records" % len( finalData ) )
+    self.log.info( "[DATA]%s data" % subMetricName, "%s records" % len( finalData ) )
 
   def _appendToFinalData( self, finalData, sites, fullMetricName, value, expected, start, end, URL, groupBy ):
     if groupBy == "Channel":
@@ -204,7 +204,7 @@ class GridSiteMonitoringAgent( AgentModule ):
     for channel in throughtputData:
       self._appendToFinalData( finalData, channel, metricName, throughtputData[channel], -1,
                                startEpoch, endEpoch, extraURL, groupBy  )
-    gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
+    self.log.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
     return S_OK( finalData )
 
   def _dateGetTransferedBytes( self, startT, endT, reportCond, metricName, rC, groupBy = 'Channel' ):
@@ -221,7 +221,7 @@ class GridSiteMonitoringAgent( AgentModule ):
     for channel in transferedData:
       self._appendToFinalData( finalData, channel, metricName, transferedData[channel], -1,
                                startEpoch, endEpoch, extraURL, groupBy  )
-    gLogger.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
+    self.log.info( "[DATA]%s data" % metricName, "%s records" % len( finalData ) )
     return S_OK( finalData )
 
   def _generateDataExtraURL( self, reportName, reportCond, groupBy = 'Channel' ):

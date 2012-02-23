@@ -8,7 +8,7 @@ __RCSID__ = "$Id$"
     and publishes it to the web
 """
 
-from DIRAC                                            import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                                            import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule                      import AgentModule
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.WorkloadManagementSystem.DB.JobDB          import JobDB
@@ -210,10 +210,10 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     self._lastUpdateTime = time.time()
     result = self._commitFileContents( fileContents )
     if result['OK']:
-      gLogger.info('Successfully sent monitoring data')
-      gLogger.verbose(fileContents)
+      self.log.info('Successfully sent monitoring data')
+      self.log.verbose(fileContents)
     else:
-      gLogger.error('Failed to send SiteMap monitoring data')
+      self.log.error('Failed to send SiteMap monitoring data')
 
     return result
 
@@ -226,7 +226,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     try:
       os.unlink( fName )
     except Exception, e:
-      gLogger.error( "Can't unlink temporal file", "%s: %s" % ( fName, str(e) ) )
+      self.log.error( "Can't unlink temporal file", "%s: %s" % ( fName, str(e) ) )
     return result
 
   def _getSiteGOCNameMapping(self):

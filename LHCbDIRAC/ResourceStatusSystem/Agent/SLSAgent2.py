@@ -4,7 +4,7 @@
 __RCSID__  = "$Id:  $"
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
 
-from DIRAC                                import S_OK, S_ERROR, gConfig, gLogger, rootPath
+from DIRAC                                import S_OK, S_ERROR, gConfig, rootPath
 from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
@@ -53,10 +53,10 @@ class SLSAgent2( AgentModule ):
           
         self.tModules[ tName ] = { 'mod' : testMod, 'path' : '%s/%s' % ( testPath, tName ) }
           
-        gLogger.info( '-> Loaded test module %s' % tName )
+        self.log.info( '-> Loaded test module %s' % tName )
           
       except ImportError:
-        gLogger.warn( 'Error loading test module %s' % tName )          
+        self.log.warn( 'Error loading test module %s' % tName )          
    
     return S_OK()
   
@@ -72,35 +72,35 @@ class SLSAgent2( AgentModule ):
         
     for tName, tModule in self.tModules.items():
       
-      gLogger.info( '%s: Getting test configuration' % tName )
+      self.log.info( '%s: Getting test configuration' % tName )
       testPath = tModule[ 'path' ]
       
       testConfig = self.getTestConfig( tName, testPath )
       if not testConfig[ 'OK' ]:
-        gLogger.error( testConfig[ 'Message' ] )
-        gLogger.info( '%s: Skipping... after getTestConfig' % tName )
+        self.log.error( testConfig[ 'Message' ] )
+        self.log.info( '%s: Skipping... after getTestConfig' % tName )
         continue
       testConfig = testConfig[ 'Value' ]
       
       timeout = testConfig.get( 'timeout', 120 )
       
-      gLogger.info( '%s: Getting test probes' % tName )        
+      self.log.info( '%s: Getting test probes' % tName )        
       mTest           = tModule[ 'mod' ]
 
       elementsToCheck = mTest.getProbeElements()
       if not elementsToCheck[ 'OK' ]:
-        gLogger.error( elementsToCheck[ 'Message' ] )
-        gLogger.info( '%s: Skipping... after getProbeElements' % tName )
+        self.log.error( elementsToCheck[ 'Message' ] )
+        self.log.info( '%s: Skipping... after getProbeElements' % tName )
         continue
       elementsToCheck = elementsToCheck[ 'Value' ]
 
       setupProbe = mTest.setupProbes( testConfig )
       if not setupProbe[ 'OK' ]:
-        gLogger.error( setupProbe[ 'Message' ] )
-        gLogger.info( '%s: Skipping... after setupProbes' % tName )
+        self.log.error( setupProbe[ 'Message' ] )
+        self.log.info( '%s: Skipping... after setupProbes' % tName )
         continue
 
-      gLogger.info( '%s: Launching test probes' % tName )
+      self.log.info( '%s: Launching test probes' % tName )
       for elementToCheck in elementsToCheck:
         
         res = self.processPool.createAndQueueTask( mTest.runProbe,
@@ -110,7 +110,7 @@ class SLSAgent2( AgentModule ):
                                                    timeOut           = timeout )
         
         if not res[ 'OK' ]:
-          gLogger.error( 'Error queuing task %s' % res[ 'Message' ] )
+          self.log.error( 'Error queuing task %s' % res[ 'Message' ] )
         
     self.processPool.processAllResults() 
     self.processPool.finalize()           
@@ -161,7 +161,7 @@ class SLSAgent2( AgentModule ):
     '''
     To be done, but it sould kill all running processes.
     '''
-    gLogger.info( 'Terminating all threads' )
+    self.log.info( 'Terminating all threads' )
         
     return S_OK()      
   

@@ -7,7 +7,7 @@ __RCSID__ = "$Id$"
 """ Queries BDII to pick out information about RANK.
 """
 
-from DIRAC                       import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC                       import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.Grid   import ldapCEState
 from DIRAC                       import gMonitor
@@ -21,7 +21,7 @@ class RankMonitorAgent( AgentModule ):
   def initialize( self ):
 
     self.pollingTime = self.am_getOption('PollingTime',60*10) # Every 10 minuts
-    gLogger.info("PollingTime %d minutes" %(int(self.pollingTime)/60))
+    self.log.info("PollingTime %d minutes" %(int(self.pollingTime)/60))
 
     self.useProxies = self.am_getOption('UseProxies','True').lower() in ( "y", "yes", "true" )
     self.proxyLocation = self.am_getOption('ProxyLocation', '' )
@@ -39,7 +39,7 @@ class RankMonitorAgent( AgentModule ):
         queuename = "%s:2119/%s"%(ce,queue)
         rankname = "RANK-%s"%ce
 #        rankname = "RANK"
-        gLogger.info( queuename, rankname )
+        self.log.info( queuename, rankname )
         gMonitor.registerActivity(queuename,queuename,rankname,"",gMonitor.OP_MEAN,60*10)
       
     return S_OK()
@@ -48,7 +48,7 @@ class RankMonitorAgent( AgentModule ):
 
     cestates = ldapCEState("")
     if not cestates['OK']:
-      gLogger.warn("cestate",cestates['Message'])
+      self.log.warn("cestate",cestates['Message'])
       return S_ERROR(cestates['Message'])
     cestates = cestates['Value']
     cestatedict = {}
@@ -65,11 +65,11 @@ class RankMonitorAgent( AgentModule ):
         queuename = "%s:2119/%s"%(ce,queue)
 #        cestate = ldapCEState(queuename)
 #        if not cestate['OK']:
-#          gLogger.warn("cestate",cestate['Message'])
+#          self.log.warn("cestate",cestate['Message'])
 #          continue
 #        cestate = cestate['Value']
 #        if len(cestate) != 1:
-#          gLogger.warn("cestate",cestate)
+#          self.log.warn("cestate",cestate)
 #          continue
 #        cestate = cestate[0]
         
@@ -78,27 +78,27 @@ class RankMonitorAgent( AgentModule ):
         except:
           continue
 
-        gLogger.debug(queuename,cestate)
+        self.log.debug(queuename,cestate)
         try:
           waitingJobs = int(cestate['GlueCEStateWaitingJobs'])
           runningJobs = int(cestate['GlueCEStateRunningJobs'])
-          gLogger.debug('(waitingJobs,runningJobs)',queuename+str((waitingJobs,runningJobs)))
+          self.log.debug('(waitingJobs,runningJobs)',queuename+str((waitingJobs,runningJobs)))
           if waitingJobs == 0:
             totalCPUs = int(cestate['GlueCEInfoTotalCPUs'])
             freeCPUs = int(cestate['GlueCEStateFreeCPUs'])
-            gLogger.debug('(totalCPUs,freeCPUs)',queuename+str((totalCPUs,freeCPUs)))
+            self.log.debug('(totalCPUs,freeCPUs)',queuename+str((totalCPUs,freeCPUs)))
             rank = freeCPUs * 10 / totalCPUs 
           else:  
             rank = -waitingJobs * 10 / ( runningJobs + 1 ) - 1
         except Exception,x:
-          gLogger.warn(queuename,x)
+          self.log.warn(queuename,x)
           continue
         if rank>100:
           rank = 100
         if rank<-100:
           rank = -100
           
-        gLogger.info(queuename,rank)
+        self.log.info(queuename,rank)
         gMonitor.addMark(queuename,rank)
            
     return S_OK()
@@ -115,7 +115,7 @@ class RankMonitorAgent( AgentModule ):
     for site in sites:
 #      if site[-2:]!='uk':
 #        continue        
-      gLogger.debug("Site",site)
+      self.log.debug("Site",site)
       ces = gConfig.getSections('/Resources/Sites/LCG/%s/CEs'%site)
       if not ces['OK']:
         continue

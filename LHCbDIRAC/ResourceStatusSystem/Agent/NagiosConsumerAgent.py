@@ -12,7 +12,7 @@ import Queue
 from datetime import datetime
 
 # Second, DIRAC stuff
-from DIRAC                                      import gLogger, S_OK, S_ERROR
+from DIRAC                                      import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities.Utils import where
 
@@ -111,7 +111,7 @@ class NagiosConsumerAgent( AgentModule ):
     populating the queue msgQueue with the incoming messages.
     '''
 
-    gLogger.info( 'NagiosConsumerAgent' )
+    self.log.info( 'NagiosConsumerAgent' )
 
     try:
 
@@ -124,20 +124,20 @@ class NagiosConsumerAgent( AgentModule ):
       self.sSELC = self.am_getOption( 'STOMP/SELC', self.__STOMP__[ 'SELC' ] )
 
       host_and_ports = [( self.sHOST, self.sPORT )]
-      gLogger.info( 'Connecting to %s:%d' % ( self.sHOST, self.sPORT ) )
+      self.log.info( 'Connecting to %s:%d' % ( self.sHOST, self.sPORT ) )
 
       self.sConn = stomp.Connection( host_and_ports, prefer_localhost = False )
 
       # We connect to the virtual destination, and the listener, on a separate
       # thread will push into the queue
       self.sConn.set_listener('', CustomStompListener())
-      gLogger.info( 'Added CustomStompListener' )
+      self.log.info( 'Added CustomStompListener' )
 
       self.sConn.start()
-      gLogger.info( 'STOMP connection started' )
+      self.log.info( 'STOMP connection started' )
 
       self.sConn.connect()
-      gLogger.info( 'STOMP connection ready' )
+      self.log.info( 'STOMP connection ready' )
 
       self.sConn.subscribe( destination = self.sDEST,
                             ack         = 'auto',
@@ -148,11 +148,11 @@ class NagiosConsumerAgent( AgentModule ):
 
     except Exception:
       errorStr = "NagiosConsumerAgent initialization"
-      gLogger.exception( errorStr )
+      self.log.exception( errorStr )
       try:
         # Tries to kill the process with the listener
         self.sConn.stop()
-        gLogger.info( 'STOMP has been successfully disconnected' )
+        self.log.info( 'STOMP has been successfully disconnected' )
       except:
         pass
       return S_ERROR( errorStr )
@@ -174,7 +174,7 @@ class NagiosConsumerAgent( AgentModule ):
       # This value is not accurate, but it is close enough.
       msgs = msgQueue.qsize()
 
-      gLogger.info( '%d message(s) to be processed' % msgs )
+      self.log.info( '%d message(s) to be processed' % msgs )
 
       # Let's try without threads, and see the polling time.
       for _m in xrange(msgs):
@@ -186,13 +186,13 @@ class NagiosConsumerAgent( AgentModule ):
         if params:
           res = self.rmClient.addOrModifyMonitoringTest( **params )
           if not res[ 'OK' ]:
-            gLogger.error( 'Error adding %s' % str( params ) )  
+            self.log.error( 'Error adding %s' % str( params ) )  
 
       return S_OK()
 
     except Exception, e:
       errorStr = where( self, self.execute )
-      gLogger.exception( errorStr,lException = e )
+      self.log.exception( errorStr,lException = e )
       return S_ERROR( errorStr )
 
 ################################################################################
@@ -206,10 +206,10 @@ class NagiosConsumerAgent( AgentModule ):
 
     try:
 
-      gLogger.info( "Agent is finalizing it's last cycle, disconnecting STOMP" )
+      self.log.info( "Agent is finalizing it's last cycle, disconnecting STOMP" )
       # Disconnect and waits for the receiver thread to exit
       self.sConn.stop()
-      gLogger.info( "Done" )
+      self.log.info( "Done" )
 
       # We may have messages on the queue, so we try to empty it, once we know
       # the connection is closed.
@@ -217,7 +217,7 @@ class NagiosConsumerAgent( AgentModule ):
 
     except Exception, e:
       #It may fail because it crashed on initialization
-      gLogger.error( "Failed %s" % e )
+      self.log.error( "Failed %s" % e )
       return S_OK()
 
 ################################################################################
@@ -242,8 +242,8 @@ class NagiosConsumerAgent( AgentModule ):
 
     for param in __PARAMS__:
       if not msg.has_key( param ):
-        gLogger.error( 'Ugly message, parameter %s missing' % param )
-        gLogger.error( msg )
+        self.log.error( 'Ugly message, parameter %s missing' % param )
+        self.log.error( msg )
         params = {}
         break
       else:
@@ -261,7 +261,4 @@ class NagiosConsumerAgent( AgentModule ):
     print 42
 
 ################################################################################
-# END OF AUXILIAR FUNCTIONS
-################################################################################
-
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
