@@ -1,15 +1,15 @@
-########################################################################
-# $HeadURL:
-########################################################################
-
-""" The SEOccupancy_Policy class is a policy class satisfied when a SE has a high occupancy
-"""
-
-__RCSID__ = "$Id: "
+# $HeadURL$
+'''
+  The SEOccupancy_Policy class is a policy class satisfied when a SE has a 
+  high occupancy.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class SEOccupancy_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class SEOccupancy_Policy( PolicyBase ):
 
   def evaluate(self):
     """

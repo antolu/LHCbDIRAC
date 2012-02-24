@@ -1,15 +1,13 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' Configurations
 
-""" LHCbDIRAC.ResourceStatusSystem.Policy.Configurations Module
-
-    collects everything needed to configure policies
-"""
-
-__RCSID__ = "$Id: "
+  Collects everything needed to configure policies.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.Utilities import CS
+
+__RCSID__ = '$Id$'
 
 pp = CS.getTypedDictRootedAt("PolicyParameters")
 

@@ -1,18 +1,19 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' JobsEfficiency_Policy
 
-""" The JobsEfficiency_Policy class is a policy class
-    that checks the efficiency of the jobs
-"""
+  The JobsEfficiency_Policy class is a policy class
+  that checks the efficiency of the jobs.
+  
+'''
 
-__RCSID__ = "$Id: "
-
-from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 from DIRAC.ResourceStatusSystem.Command.ClientsInvoker  import ClientsInvoker
+from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 from DIRAC.ResourceStatusSystem.Utilities.Exceptions    import *
 from DIRAC.ResourceStatusSystem.Utilities.Utils         import *
+
 from LHCbDIRAC.ResourceStatusSystem.Policy              import Configurations
+
+__RCSID__ = '$Id$'
 
 class JobsEfficiency_Policy( PolicyBase ):
 

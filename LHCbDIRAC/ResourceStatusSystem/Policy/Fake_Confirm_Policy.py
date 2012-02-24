@@ -1,12 +1,15 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' Fake_Confirm_Policy
 
-__RCSID__ = "$Id: "
+  Module used for testing purposes.
+
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class Fake_Confirm_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class Fake_Confirm_Policy( PolicyBase ):
 
   def evaluate(self):
     """

@@ -1,14 +1,16 @@
-########################################################################
-# $HeadURL:
-########################################################################
-
-""" The DataQuality_Policy class is a policy class to check the data quality.
-"""
-
-__RCSID__ = "$Id: "
+# $HeadURL$
+''' TransferQuality_Policy
+ 
+  The TransferQuality_Policy class is a policy class to check the transfer
+  quality.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
+
 from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
+
+__RCSID__ = '$Id$'
 
 class TransferQuality_Policy( PolicyBase ):
 

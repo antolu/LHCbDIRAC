@@ -1,15 +1,15 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' AlwaysFalse_Policy
 
-""" The AlwaysFalse_Policy class is a policy class that... checks nothing!
-"""
-
-__RCSID__ = "$Id: "
+  Class is a policy class that... checks nothing!
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class AlwaysFalse_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class AlwaysFalse_Policy( PolicyBase ):
 
   def evaluate(self):
     """

@@ -1,16 +1,16 @@
-########################################################################
-# $HeadURL:
-########################################################################
-
-""" The GGUSTickets_Policy class is a policy class that evaluates on
-    how many tickets are open atm.
-"""
-
-__RCSID__ = "$Id"
+# $HeadURL$
+''' GGUSTickets_Policy 
+  
+  The GGUSTickets_Policy class is a policy class that evaluates on
+  how many tickets are open atm.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class GGUSTickets_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class GGUSTickets_Policy( PolicyBase ):
 
   def evaluate(self):
     """

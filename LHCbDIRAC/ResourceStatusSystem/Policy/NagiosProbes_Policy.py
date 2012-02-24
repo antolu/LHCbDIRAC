@@ -1,15 +1,15 @@
-################################################################################
-# $HeadURL:
-################################################################################
-
-""" The NagiosProbes_Policy checks the nagios probes
-"""
-
-__RCSID__ = "$Id: "
+# $HeadURL: $
+''' NagiosProbes_Policy
+  
+  The NagiosProbes_Policy checks the nagios probes.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class NagiosProbes_Policy(PolicyBase):
+__RCSID__ = '$Id: $'
+
+class NagiosProbes_Policy( PolicyBase ):
   
   def evaluate(self):
     '''

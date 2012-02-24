@@ -1,18 +1,19 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' PilotsEfficiency_Policy
+ 
+  The PilotsEfficiency_Policy class is a policy class 
+  that checks the efficiency of the pilots.
+  
+'''
 
-""" The PilotsEfficiency_Policy class is a policy class 
-    that checks the efficiency of the pilots
-"""
-
-__RCSID__ = "$Id: "
-
+from DIRAC.ResourceStatusSystem.Command.ClientsInvoker  import ClientsInvoker
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
-from DIRAC.ResourceStatusSystem.Command.ClientsInvoker import ClientsInvoker
-from DIRAC.ResourceStatusSystem.Utilities.Exceptions import *
-from DIRAC.ResourceStatusSystem.Utilities.Utils import *
+from DIRAC.ResourceStatusSystem.Utilities.Exceptions    import *
+from DIRAC.ResourceStatusSystem.Utilities.Utils         import *
+
 from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
+
+__RCSID__ = '$Id$'
 
 class PilotsEfficiency_Policy( PolicyBase ):
 

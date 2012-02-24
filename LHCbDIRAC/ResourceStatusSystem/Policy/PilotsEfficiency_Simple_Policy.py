@@ -1,16 +1,16 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' PilotsEfficiency_Simple_Policy
 
-""" The PilotsEfficiency_Simple_Policy class is a policy class
-    that checks the efficiency of the pilots
-"""
-
-__RCSID__ = "$Id: "
+  The PilotsEfficiency_Simple_Policy class is a policy class
+  that checks the efficiency of the pilots.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class PilotsEfficiency_Simple_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class PilotsEfficiency_Simple_Policy( PolicyBase ):
 
   def evaluate(self):
     """

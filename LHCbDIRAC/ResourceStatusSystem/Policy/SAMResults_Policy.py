@@ -1,16 +1,16 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' SAMResults_Policy
 
-""" The SAMself.results_Policy class is a policy class that checks
-    the SAM job self.results
-"""
-
-__RCSID__ = "$Id: "
+  The SAMResults_Policy class is a policy class that checks
+  the SAM job self.results.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class SAMResults_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class SAMResults_Policy( PolicyBase ):
 
   def evaluate(self):
     """

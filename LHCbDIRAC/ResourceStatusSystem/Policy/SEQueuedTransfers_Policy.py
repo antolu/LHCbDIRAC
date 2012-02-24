@@ -1,16 +1,16 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' SEQueuedTransfers_Policy
 
-""" The SEQueuedTransfers_Policy class is a policy class satisfied when a SE has a high number of
-    queued transfers.
-"""
-
-__RCSID__ = "$Id: "
+  The SEQueuedTransfers_Policy class is a policy class satisfied when a SE has 
+  a high number of queued transfers.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class SEQueuedTransfers_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class SEQueuedTransfers_Policy( PolicyBase ):
 
   def evaluate(self):
     """

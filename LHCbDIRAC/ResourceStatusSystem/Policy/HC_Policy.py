@@ -1,14 +1,14 @@
-########################################################################
-# $HeadURL:
-########################################################################
-
-""" The HC_Policy class is a policy class satisfied when ...
-    TO BE DECIDED
-"""
-
-__RCSID__ = "$Id: "
+# $HeadURL$
+''' HC_Policy
+ 
+  The HC_Policy class is a policy class satisfied when ...
+  TO BE DECIDED.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
+
+__RCSID__ = '$Id$'
 
 class HC_Policy( PolicyBase ):
 

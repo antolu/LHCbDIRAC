@@ -1,5 +1,5 @@
-"""
-LHCbDIRAC/ResourceStatusSystem/Agent/__init__.py
-"""
+# $HeadURL$
+''' LHCbDIRAC.ResourceStatusSystem.Agent package
+'''
 
-__RCSID__ = "$Id$"
+__RCSID__ = '$Id$'

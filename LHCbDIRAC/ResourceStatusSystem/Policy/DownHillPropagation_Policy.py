@@ -1,16 +1,17 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' DownHillPropagation_Policy
 
-""" The DownHillPropagation_Policy module is a policy module used to update the status of
-    an element, based on how its element in the upper part of the hierarchy is behaving in the RSS
-"""
-
-__RCSID__ = "$Id: "
+  The DownHillPropagation_Policy module is a policy module used to update the 
+  status of an element, based on how its element in the upper part of the 
+  hierarchy is behaving in the RSS.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class DownHillPropagation_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class DownHillPropagation_Policy( PolicyBase ):
 
   def evaluate(self):
     """

@@ -1,19 +1,19 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' Propagation_Policy
 
-""" The Propagation_Policy module is a policy module used to update the status of
-    a validRes, based on statistics of its services (for the site),
-    of its nodes (for the services), or of its SE (for the Storage services).
-"""
-
-__RCSID__ = "$Id: "
+  The Propagation_Policy module is a policy module used to update the status of
+  a validRes, based on statistics of its services (for the site),
+  of its nodes (for the services), or of its SE (for the Storage services).
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class Propagation_Policy(PolicyBase):
+__RCSID__ = '$Id$'
 
-  def evaluate(self):
+class Propagation_Policy( PolicyBase ):
+
+  def evaluate( self ):
     """
     Propagation policy on Site or Service, using args (tuple).
     It will get Services or nodes or SE stats.

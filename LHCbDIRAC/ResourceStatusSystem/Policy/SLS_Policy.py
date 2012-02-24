@@ -1,15 +1,16 @@
-########################################################################
-# $HeadURL:
-########################################################################
+# $HeadURL$
+''' SLS_Policy
 
-""" The SLS_Policy class is a policy class satisfied when a SLS sensors report problems
-"""
-
-__RCSID__ = "$Id: "
+  The SLS_Policy class is a policy class satisfied when a SLS sensors 
+  report problems.
+  
+'''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-class SLS_Policy(PolicyBase):
+__RCSID__ = '$Id$'
+
+class SLS_Policy( PolicyBase ):
 
   def evaluate(self):
     """
