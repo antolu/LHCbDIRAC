@@ -1,14 +1,11 @@
-################################################################################
-# $HeadURL $
-################################################################################
-__RCSID__ = "$Id:  $"
+''' SAMResults_Command
+  
+  The Command is a command class to know about present SAM status.
+  
+'''
 
-""" 
-  The SAMResults_Command class is a command class to know about 
-  present SAM status
-"""
-
-import urllib2, httplib
+import httplib
+import urllib2
 
 from DIRAC                                           import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping     import getGOCSiteName
@@ -17,8 +14,8 @@ from DIRAC.ResourceStatusSystem.Command.Command      import *
 from DIRAC.ResourceStatusSystem.Command.knownAPIs    import initAPIs
 from DIRAC.ResourceStatusSystem.Utilities.Utils      import where 
 
-################################################################################
-################################################################################
+# $HeadURL $
+__RCSID__ = '$Id: $'
 
 class SAMResults_Command( Command ):
   

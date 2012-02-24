@@ -1,14 +1,22 @@
-from DIRAC.ConfigurationSystem.Client.Config import gConfig
-from DIRAC.ResourceStatusSystem.Command.Command import *
+''' HC_Command
 
-from LHCbDIRAC.ResourceStatusSystem.Client.HCClient import HCClient
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+  Command to interact with the XMLRPC server of HammerCloud.
 
-from DIRAC import gLogger
+'''
 
 from datetime import datetime,timedelta
 
-class HC_Command(Command):
+from DIRAC                                      import gLogger
+from DIRAC.ConfigurationSystem.Client.Config    import gConfig
+from DIRAC.ResourceStatusSystem.Command.Command import *
+
+from LHCbDIRAC.ResourceStatusSystem.Client.HCClient                 import HCClient
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+# $HeadURL $
+__RCSID__ = '$Id$'
+
+class HC_Command( Command ):
   
   def doCommand(self, site = None):
     """ 

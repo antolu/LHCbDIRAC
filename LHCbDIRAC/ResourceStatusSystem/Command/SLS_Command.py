@@ -1,15 +1,20 @@
-"""
-  The SLS_Command class is a command class to properly interrogate the SLS
-"""
+''' SLS_Command
+  
+  The Command class is a command class to properly interrogate the SLS.
+  
+'''
 
 __RCSID__ = "$Id:  $"
 
 import re
 
 from DIRAC                                           import gLogger, S_OK, S_ERROR
+from DIRAC.Core.LCG                                  import SLSClient
 from DIRAC.ResourceStatusSystem.Command.Command      import Command
 from DIRAC.ResourceStatusSystem.Utilities            import CS
-from DIRAC.Core.LCG                                  import SLSClient
+
+# $HeadURL $
+__RCSID__ = '$Id: $'
 
 def slsid_of_service(granularity, name, type_ = None):
   """Return the SLS id of various services."""

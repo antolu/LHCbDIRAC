@@ -1,19 +1,16 @@
-################################################################################
-# $HeadURL $
-################################################################################
-__RCSID__ = "$Id:  $"
-
-""" 
-  The NagiosProbes_Command gets information from the MonitoringTest cache.
-"""
+''' NagiosProbes_Command
+  
+  The Command gets information from the MonitoringTest cache.
+  
+'''
 
 from DIRAC                                            import gLogger, S_OK, S_ERROR
-
 from DIRAC.ResourceStatusSystem.Command.Command       import *
+
 from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
 
-################################################################################
-################################################################################
+# $HeadURL $
+__RCSID__ = '$Id: $'
 
 class NagiosProbes_Command( Command ):
   

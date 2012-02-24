@@ -1,14 +1,17 @@
-################################################################################
-# $HeadURL $
-################################################################################
-__RCSID__ = "$Id$"
+''' ResourceManagementClient
+
+  Extension for the DIRAC version of the ResourceManagementClient.
+  
+'''
+
+from datetime import datetime
 
 from DIRAC import S_ERROR, gLogger
-
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
      ResourceManagementClient as DIRACResourceManagementClient
 
-from datetime import datetime
+# $HeadURL $
+__RCSID__ = '$Id$'
 
 class ResourceManagementClient( DIRACResourceManagementClient ):
 
