@@ -4,8 +4,6 @@
   
 '''
 
-__RCSID__ = "$Id:  $"
-
 import re
 
 from DIRAC                                           import gLogger, S_OK, S_ERROR
