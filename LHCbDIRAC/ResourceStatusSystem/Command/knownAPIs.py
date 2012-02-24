@@ -1,3 +1,4 @@
+# $HeadURL: $
 ''' knownAPIs
 
   Here are all known and relevant APIs for the ResourceStatusSystem Commands
@@ -7,7 +8,6 @@
 
 import DIRAC.ResourceStatusSystem.Command.knownAPIs as DIRACknownAPIs
 
-# $HeadURL $
 __RCSID__ = '$Id: $'
 
 __APIs__ = {         

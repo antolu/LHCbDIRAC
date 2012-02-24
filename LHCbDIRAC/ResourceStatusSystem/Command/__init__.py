@@ -1,3 +1,5 @@
-"""
-   LHCbDIRAC.ResourceStatusSystem.Command package
-"""
+# $HeadURL$
+''' LHCbDIRAC.ResourceStatusSystem.Command package
+'''
+
+__RCSID__ = '$Id$'

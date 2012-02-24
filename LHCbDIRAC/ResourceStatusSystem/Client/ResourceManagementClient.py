@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' ResourceManagementClient
 
   Extension for the DIRAC version of the ResourceManagementClient.
@@ -10,7 +11,6 @@ from DIRAC import S_ERROR, gLogger
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
      ResourceManagementClient as DIRACResourceManagementClient
 
-# $HeadURL $
 __RCSID__ = '$Id$'
 
 class ResourceManagementClient( DIRACResourceManagementClient ):

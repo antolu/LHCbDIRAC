@@ -1,3 +1,4 @@
+# $HeadURL: $
 ''' SLSAgent2
 
   This agent is a replacement for the current SLSAgent, which is sequential and
@@ -14,7 +15,6 @@ from DIRAC.ResourceStatusSystem.Utilities import Utils
 
 from LHCbDIRAC.ResourceStatusSystem.Utilities import SLSXML
 
-# $HeadURL $
 __RCSID__  = '$Id:  $'
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
 

@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' HC_Command
 
   Command to interact with the XMLRPC server of HammerCloud.
@@ -13,7 +14,6 @@ from DIRAC.ResourceStatusSystem.Command.Command import *
 from LHCbDIRAC.ResourceStatusSystem.Client.HCClient                 import HCClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-# $HeadURL $
 __RCSID__ = '$Id$'
 
 class HC_Command( Command ):

@@ -1,22 +1,15 @@
-"""
-LHCbDIRAC/ResourceStatusSystem/Client/HCClient.py
-"""
+# $HeadURL$
+''' HCClient 
 
-__RCSID__ = "$Id$"
+  Client to connect and interact with HammerCloud.
 
-# First, pythonic stuff
+'''
+
 import xmlrpclib
+
 from datetime import datetime
 
-# Second, DIRAC stuff
-# ...
-
-# Third, LHCbDIRAC stuff
-# ...
-
-################################################################################
-# TYPE checkers
-################################################################################
+__RCSID__ = '$Id$'
 
 def checkInt( name, value ):
   '''

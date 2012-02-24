@@ -1,3 +1,4 @@
+# $HeadURL: $
 ''' NagiosProbes_Command
   
   The Command gets information from the MonitoringTest cache.
@@ -9,7 +10,6 @@ from DIRAC.ResourceStatusSystem.Command.Command       import *
 
 from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
 
-# $HeadURL $
 __RCSID__ = '$Id: $'
 
 class NagiosProbes_Command( Command ):

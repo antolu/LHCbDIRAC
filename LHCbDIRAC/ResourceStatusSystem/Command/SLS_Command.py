@@ -1,3 +1,4 @@
+# $HeadURL: $
 ''' SLS_Command
   
   The Command class is a command class to properly interrogate the SLS.
@@ -11,7 +12,6 @@ from DIRAC.Core.LCG                                  import SLSClient
 from DIRAC.ResourceStatusSystem.Command.Command      import Command
 from DIRAC.ResourceStatusSystem.Utilities            import CS
 
-# $HeadURL $
 __RCSID__ = '$Id: $'
 
 def slsid_of_service(granularity, name, type_ = None):

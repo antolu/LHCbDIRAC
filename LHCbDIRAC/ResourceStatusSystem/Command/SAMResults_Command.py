@@ -1,3 +1,4 @@
+# $HeadURL: $
 ''' SAMResults_Command
   
   The Command is a command class to know about present SAM status.
@@ -14,7 +15,6 @@ from DIRAC.ResourceStatusSystem.Command.Command      import *
 from DIRAC.ResourceStatusSystem.Command.knownAPIs    import initAPIs
 from DIRAC.ResourceStatusSystem.Utilities.Utils      import where 
 
-# $HeadURL $
 __RCSID__ = '$Id: $'
 
 class SAMResults_Command( Command ):
