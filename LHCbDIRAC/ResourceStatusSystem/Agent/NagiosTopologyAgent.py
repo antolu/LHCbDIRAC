@@ -1,23 +1,23 @@
-__RCSID__ = "$Id: $"
-AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
+''' NagiosTopologyAgent:  
+
+  This agent loops over the Dirac CS and extracts the necessary
+  information to create a "topology map" which is used by the IT
+  provided Nagios system to test Grid sites. The topology information
+  defines the services to be tested.
+     
+'''
+
+import os
+import time
+import xml.dom.minidom
 
 from DIRAC                                import gConfig, S_OK, rootPath
-
-from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Base.AgentModule          import AgentModule
+from DIRAC.ResourceStatusSystem.Utilities import Utils
 
-import time, xml.dom.minidom, os
-
-#
-# This agent loops over the Dirac CS and extracts the necessary
-# information to create a "topology map" which is used by the IT
-# provided Nagios system to test Grid sites. The topology information
-# defines the services to be tested.
-#
-# 2010-XX-YY : Roberto Santinelli : first version
-# 2011-07-21 : Stefan Roiser      : skeleton re-used, introducing xml writer, generalizing CE handling
-# 2011-08-11 : Vincent Bernardoff : Transformed the script into a Dirac agent.
-#
+# $HeadURL $
+__RCSID__  = '$Id: $'
+AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 class NagiosTopologyAgent(AgentModule):
   def initialize(self):

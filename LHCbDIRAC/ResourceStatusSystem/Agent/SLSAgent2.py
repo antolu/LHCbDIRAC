@@ -1,17 +1,22 @@
-################################################################################
-# $HeadURL $
-################################################################################
-__RCSID__  = "$Id:  $"
-AGENT_NAME = 'ResourceStatus/SLSAgent2'
+''' SLSAgent2
+
+  This agent is a replacement for the current SLSAgent, which is sequential and
+  not handling properly timeouts and unexpected exceptions. In contrast, this
+  agent sets by default a timeout of 120 secs on the processes running the 
+  tests. Tests are defined in the CS, on the agent directory.   
+    
+'''
 
 from DIRAC                                import S_OK, S_ERROR, gConfig, rootPath
 from DIRAC.Core.Base.AgentModule          import AgentModule
-from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
+from DIRAC.ResourceStatusSystem.Utilities import Utils
 
 from LHCbDIRAC.ResourceStatusSystem.Utilities import SLSXML
 
-import signal
+# $HeadURL $
+__RCSID__  = "$Id:  $"
+AGENT_NAME = 'ResourceStatus/SLSAgent2'
 
 class SLSAgent2( AgentModule ):
   '''
