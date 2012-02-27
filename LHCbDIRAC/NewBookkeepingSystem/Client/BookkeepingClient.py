@@ -716,3 +716,13 @@ class BookkeepingClient:
   def getAvailableTcks(self, dict):
     server = self.__getServer()
     return server.getAvailableTcks(dict)
+
+  #############################################################################
+  def getStepsMetadata(self, dict):
+    server = self.__getServer()
+    return server.getStepsMetadata(dict)
+
+  #############################################################################
+  def getDirectoryMetadata(self, lfn):
+    server = self.__getServer()
+    return server.getDirectoryMetadata(lfn)

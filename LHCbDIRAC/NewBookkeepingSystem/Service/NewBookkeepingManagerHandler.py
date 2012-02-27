@@ -86,20 +86,24 @@ class NewBookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getAvailableSteps = [DictType]
-  def export_getAvailableSteps( self, dict = {} ):
-    retVal = dataMGMT_.getAvailableSteps( dict )
+  def export_getAvailableSteps(self, dict={}):
+    result = S_ERROR()
+    retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
-      parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'ProcessingPass', 'Usable', 'RuntimeProjects']
+      parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'RuntimeProjects', 'DQTag', 'OptionsFormat']
+      rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat']
       records = []
       for record in retVal['Value']:
-        retVal = dataMGMT_.getRuntimeProjects({'StepId':record[0]})
-        if not retVal['OK']:
-          return retVal
-        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8], record[9], record[10], retVal['Value']]
-        records += [value]
-      return S_OK({'ParameterNames':parameters,'Records':records,'TotalRecords':len(records)})
+        step = list(record[0:13])
+        runtimeProject = []
+        runtimeProject = [ rec for rec in list(record[13:]) if rec != None]
+        if len(runtimeProject) > 0: runtimeProject = [runtimeProject]
+        step += [{'ParameterNames':rParameters, 'Records':runtimeProject, 'TotalRecords':len(runtimeProject) + 1}]
+        records += [step]
+      result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
     else:
-      return S_ERROR( retVal['Message'] )
+      result = S_ERROR(retVal['Message'])
+    return result
 
   #############################################################################
   types_getRuntimeProjects = [DictType]
@@ -108,16 +112,18 @@ class NewBookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getStepInputFiles = [IntType]
-  def export_getStepInputFiles( self, StepId ):
-    retVal = dataMGMT_.getStepInputFiles( StepId )
+  def export_getStepInputFiles(self, StepId):
+    result = S_ERROR()
+    retVal = dataMGMT_.getStepInputFiles(StepId)
     if retVal['OK']:
       records = []
       parameters = ['FileType', 'Visible']
       for record in retVal['Value']:
-        records += [[record[0], record[1]]]
-      return S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
+        records += [list(record)]
+      result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
     else:
-      return retVal
+      result = retVal
+    return result
 
   #############################################################################
   types_setStepInputFiles = [IntType, ListType]
@@ -131,16 +137,18 @@ class NewBookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getStepOutputFiles = [IntType]
-  def export_getStepOutputFiles( self, StepId ):
-    retVal = dataMGMT_.getStepOutputFiles( StepId )
+  def export_getStepOutputFiles(self, StepId):
+    result = S_ERROR()
+    retVal = dataMGMT_.getStepOutputFiles(StepId)
     if retVal['OK']:
       records = []
       parameters = ['FileType', 'Visible']
       for record in retVal['Value']:
-        records += [[record[0], record[1]]]
-      return S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
+        records += [list(record)]
+      result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
     else:
-      return retVal
+      result = retVal
+    return result
 
   #############################################################################
   types_getAvailableFileTypes = []
@@ -175,8 +183,8 @@ class NewBookkeepingManagerHandler( RequestHandler ):
       records = []
       parameters = ['Configuration Name']
       for record in retVal['Value']:
-        records += [[record[0]]]
-      return S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
+        records += [list(record)]
+      return S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
     else:
       return retVal
 

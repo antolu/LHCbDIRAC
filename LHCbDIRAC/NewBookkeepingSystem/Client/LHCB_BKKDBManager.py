@@ -1305,7 +1305,7 @@ class LHCB_BKKDBManager( BaseESManager ):
       return self._getLimitedFilesRuns( SelectionDict, SortDict, StartItem, Maxitems )
 
   #############################################################################
-  def _getLimitedFilesConfigParams( self, SelectionDict, SortDict, StartItem, Maxitems ):
+  def _getDataSetTree1(self, SelectionDict): # it is the configname configversion(default) query.The input parameter is a path and it constructs the dictionary.
     path = SelectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath( path )
     r = procpass.split( '/' )[1:]
@@ -1318,13 +1318,16 @@ class LHCB_BKKDBManager( BaseESManager ):
       dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'ConditionDescription': processedPath[2], 'EventTypeId': processedPath[3], 'FileType':processedPath[4]}
     dict['ProcessingPass'] = procpass
     dict['fullpath'] = path
-
-    return self.__getFiles( dict, SortDict, StartItem, Maxitems )
-
+    return dict
 
 
   #############################################################################
-  def _getLimitedFilesEventTypeParams( self, SelectionDict, SortDict, StartItem, Maxitems ):
+  def _getLimitedFilesConfigParams( self, SelectionDict, SortDict, StartItem, Maxitems ):
+    selection = self._getDataSetTree1(SelectionDict)
+    return self.__getFiles( selection, SortDict, StartItem, Maxitems )
+
+  #############################################################################
+  def _getDataSetTree2( self, SelectionDict ): #it is the event type based query
     path = SelectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath( path )
     r = procpass.split( '/' )[1:]
@@ -1337,20 +1340,29 @@ class LHCB_BKKDBManager( BaseESManager ):
       dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'EventTypeId': processedPath[2], 'ConditionDescription': processedPath[3], 'FileType':processedPath[4]}
     dict['ProcessingPass'] = procpass
     dict['fullpath'] = path
+    return dict
 
-    return self.__getFiles( dict, SortDict, StartItem, Maxitems )
+  #############################################################################
+  def _getLimitedFilesEventTypeParams( self, SelectionDict, SortDict, StartItem, Maxitems):
+    selection = self._getDataSetTree2(SelectionDict)
+    return self.__getFiles( selection, SortDict, StartItem, Maxitems )
 
-  def _getLimitedFilesProductions( self, SelectionDict, SortDict, StartItem, Maxitems ):
+  #############################################################################
+  def _getDataSetTree3( self, SelectionDict): #production based query
     path = SelectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath( path )
 
     dict = { 'Production': processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
     dict['fullpath'] = path
-
-    return self.__getFiles( dict, SortDict, StartItem, Maxitems )
+    return dict
 
   #############################################################################
-  def _getLimitedFilesRuns( self, SelectionDict, SortDict, StartItem, Maxitems ):
+  def _getLimitedFilesProductions( self, SelectionDict, SortDict, StartItem, Maxitems ):
+    selection = self._getDataSetTree3(SelectionDict)
+    return self.__getFiles( selection, SortDict, StartItem, Maxitems )
+
+  #############################################################################
+  def _getDataSetTree4( self, SelectionDict ): #run based query
     path = SelectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath( path )
     r = procpass.split( '/' )[1:]
@@ -1359,8 +1371,12 @@ class LHCB_BKKDBManager( BaseESManager ):
 
     dict = {'RunNumber':processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2], 'ProcessingPass':procpass}
     dict['fullpath'] = path
+    return dict
 
-    return self.__getFiles( dict, SortDict, StartItem, Maxitems )
+  #############################################################################
+  def _getLimitedFilesRuns( self, SelectionDict, SortDict, StartItem, Maxitems ):
+    selection = self._getDataSetTree4(SelectionDict)
+    return self.__getFiles( selection, SortDict, StartItem, Maxitems )
 
 
   #############################################################################
@@ -1411,14 +1427,19 @@ class LHCB_BKKDBManager( BaseESManager ):
   #############################################################################
   def writePythonOrJobOptions( self, StartItem, Maxitems, path, savetype ):
     result = None
+    dataset = None
     if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
       result = self._getLimitedFilesConfigParams( {'fullpath':path}, {}, StartItem, Maxitems )
+      dataset = self._getDataSetTree1({'fullpath':path})
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
       result = self._getLimitedFilesEventTypeParams( {'fullpath':path}, {}, StartItem, Maxitems )
+      dataset = self._getDataSetTree2({'fullpath':path})
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
       result = self._getLimitedFilesProductions( {'fullpath':path}, {}, StartItem, Maxitems )
+      dataset = self._getDataSetTree3({'fullpath':path})
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
       result = self._getLimitedFilesRuns( {'fullpath':path}, {}, StartItem, Maxitems )
+      dataset = self._getDataSetTree4({'fullpath':path})
 
     if result.has_key( 'TotalRecords' ) and result['TotalRecords'] > 0:
       values = result['Records']
@@ -1428,7 +1449,7 @@ class LHCB_BKKDBManager( BaseESManager ):
       for i in values:
         files[i[0]] = {'FileName':i[params.index( 'Name' )], 'EventStat':i[params.index( 'EventStat' )],
                        'FileSize':i[params.index( 'FileSize' )], 'FileType':i[params.index( 'FileType' )], 'EventTypeId':i[params.index( 'EventTypeId' )]}
-      return self.writeJobOptions( files, optionsFile = '', savedType = savetype, catalog = None, savePfn = None )
+      return self.writeJobOptions( files, optionsFile = '', savedType = savetype, catalog = None, savePfn = None, dataset=dataset )
     else:
       return S_ERROR( "Error discoverd during the option file creation!" )
 
@@ -1460,7 +1481,7 @@ class LHCB_BKKDBManager( BaseESManager ):
       return S_ERROR( "Error discoverd during the option file creation!" )
 
   #############################################################################
-  def writeJobOptions( self, files, optionsFile = '', savedType = None, catalog = None, savePfn = None ):
+  def writeJobOptions( self, files, optionsFile = '', savedType = None, catalog = None, savePfn = None, dataset = None ):
 
     fd = ''
     if optionsFile == '':
@@ -1518,6 +1539,15 @@ class LHCB_BKKDBManager( BaseESManager ):
     types.sort()
     for type in types:
         s += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % ( type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2] )
+
+    if dataset:
+      s += "\n\n%s Extra information about the data processing phases:\n" % (comment)
+      retVal = self.db_.getStepsMetadata(dataset)
+      if retVal['OK']:
+        for record in retVal['Value']['Records']:
+          s += "\n\n%s Processing Pass %s \n\n" % (comment, record)
+          for i in retVal['Value']['Records'][record]:
+            s += "%s %s : %s \n" % (comment, i[0],i[1])
 
     rootFormat = True
     if savePfn: # we have to decide the file type version. This variable contains the file type version, if it is empty I check in the bkk

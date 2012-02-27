@@ -80,125 +80,139 @@ class OracleBookkeepingDB(IBookkeepingDB):
     paging = False
 
     condition = ''
-    tables = 'steps s'
+    tables = 'steps s, steps r, runtimeprojects rr '
+    resut = S_ERROR()
     if len(dict) > 0:
-      if dict.has_key('StartDate'):
-        condition += ' s.inserttimestamps >= TO_TIMESTAMP (\'' + dict['StartDate'] + '\',\'YYYY-MM-DD HH24:MI:SS\')'
-      if dict.has_key('StepId'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += ' s.stepid=' + str(dict['StepId'])
-      if dict.has_key('StepName'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.stepname='%s'" % (dict['StepName'])
-
-      if dict.has_key('InputFileTypes'):
-        flist = dict['InputFileTypes']
-        flist.sort()
-        if self.__isSpecialFileType(flist):
-          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForIfiles', [], True, flist)
+      infiletypes = dict.get('InputFileTypes', default)
+      outfiletypes = dict.get('OutputFileTypes', default)
+      if infiletypes != default:
+        infiletypes.sort()
+        if self.__isSpecialFileType(infiletypes):
+          result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForIfiles', [], True, infiletypes)
         else:
-          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificIfiles', [], True, flist)
+          result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificIfiles', [], True, infiletypes)
 
-      if dict.has_key('OutputFileTypes'):
-        flist = dict['OutputFileTypes']
-        flist.sort()
-        if self.__isSpecialFileType(flist):
-          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForOfiles', [], True, flist)
+      elif outfiletypes != default:
+        outfiletypes.sort()
+        if self.__isSpecialFileType(outfiletypes):
+          result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForOfiles', [], True, outfiletypes)
         else:
-          return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificOfiles', [], True, flist)
-      if dict.has_key('ApplicationName'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.applicationName='%s'" % (dict['ApplicationName'])
+          result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForSpecificOfiles', [], True, outfiletypes)
 
-      if dict.has_key('ApplicationVersion'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.applicationversion='%s'" % (dict['ApplicationVersion'])
-
-      if dict.has_key('OptionFiles'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.optionfiles='%s'" % (dict['OptionFiles'])
-
-      if dict.has_key('DDDB'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.dddb='%s'" % (dict['DDDB'])
-
-      if dict.has_key('CONDDB'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.conddb='%s'" % (dict['CONDDB'])
-
-      if dict.has_key('ExtraPackages'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.extrapackages='%s'" % (dict['ExtraPackages'])
-
-      if dict.has_key('Visible'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.visible='%s'" % (dict['Visible'])
-
-      if dict.has_key('ProcessingPass'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.processingpass='%s'" % (dict['ProcessingPass'])
-
-      if dict.has_key('Usable'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.usable='%s'" % (dict['Usable'])
-
-      if dict.has_key('RuntimeProjects'):
-        if len(condition) > 0:
-          condition += ' and '
-        condition += " s.runtimeProject=%d" % (dict['RuntimeProjects'])
-
-
-      if dict.has_key('StartItem') and dict.has_key('MaxItem'):
-        start = dict['StartItem']
-        max = dict['MaxItem']
-        paging = True
-
-      if paging:
-        if len(condition) > 0:
-          condition = " where " + condition
-        command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable from \
-  ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable from \
-    ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
-    s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible , s.ProcessingPass sprocessingpass, s.Usable susable from %s  %s order by inserttimestamps desc \
-     ) where rownum <=%d ) where r >%d"%(tables, condition, max, start)
       else:
-        command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable from %s where %s order by inserttimestamps desc' %(tables, condition)
-      return self.dbR_._query(command)
+        startDate = dict.get('StartDate', default)
+        if startDate != default:
+          condition += " and s.inserttimestamps >= TO_TIMESTAMP (' %s ' ,'YYYY-MM-DD HH24:MI:SS')" % (startDate)
+
+        stepId = dict.get('StepId', default)
+        if stepId != default:
+          condition += ' and s.stepid= %s' % (str(stepId))
+
+        stepName = dict.get('StepName', default)
+        if stepName != default:
+          condition += " and s.stepname='%s'" % (stepName)
+
+        appName = dict.get('ApplicationName', default)
+        if appName != default:
+          condition += " and s.applicationName='%s'" % (appName)
+
+        appVersion = dict.get('ApplicationVersion', default)
+        if appVersion != default:
+          condition += " and s.applicationversion='%s'" % (appVersion)
+
+        optFile = dict.get('OptionFiles', default)
+        if optFile != default:
+          condition += " and s.optionfiles='%s'" % (optFile)
+
+        dddb = dict.get('DDDB', default)
+        if dddb != default:
+          condition += " and s.dddb='%s'" % (dddb)
+
+        conddb = dict.get('CONDDB', default)
+        if conddb != default:
+          condition += " and s.conddb='%s'" % (conddb)
+
+        extraP = dict.get('ExtraPackages', default)
+        if extraP != default:
+          condition += " and s.extrapackages='%s'" % (extraP)
+
+        visible = dict.get('Visible', default)
+        if visible != default:
+          condition += " and s.visible='%s'" % (visible)
+
+        procPass = dict.get('ProcessingPass', default)
+        if procPass != default:
+          condition += " and s.processingpass='%s'" % (procPass)
+
+        usable = dict.get('Usable', default)
+        if usable != default:
+          condition += " and s.usable='%s'" % (usable)
+
+        runtimeProject = dict.get('RuntimeProjects', default)
+        if runtimeProject != default:
+          condition += " and s.runtimeProject=%d" % (runtimeProject)
+
+        dqtag = dict.get('DQTag', default)
+        if dqtag != default:
+          condition += " and s.dqtag='%s'"%(dqtag)
+
+        optsf = dict.get('OptionsFormat', default)
+        if optsf != default:
+          condition += " and s.optionsFormat='%s'"%()
+
+        start = dict.get('StartItem', default)
+        max = dict.get('MaxItem', default)
+
+        if start != default and max != default:
+          paging = True
+
+        if paging:
+          command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf \
+           rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable, rdqtag, roptsf from \
+    ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, \
+       rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable , rdqtag, roptsf from \
+      ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
+      s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible , s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf, \
+      r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname, r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
+      r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass, r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf \
+      from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s order by s.inserttimestamps desc \
+       ) where rownum <=%d ) where r >%d" % (tables, condition, max, start)
+        else:
+          command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, \
+          r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat \
+          from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s order by s.inserttimestamps desc' % (tables, condition)
+        result = self.dbR_._query(command)
     else:
-      command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable from %s order by inserttimestamps desc' %(tables)
-      return self.dbR_._query(command)
+        command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat,\
+        r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat \
+        from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid order by s.inserttimestamps desc' % (tables)
+        result = self.dbR_._query(command)
+    return result
+
 
   #############################################################################
   def getRuntimeProjects(self, dict):
+    result = S_ERROR()
     condition = ''
     selection = 's.stepid,stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable'
     tables = 'steps s, runtimeprojects rp'
-    if len(dict)>0:
-        if dict.has_key('StepId'):
-          condition += " rp.stepid=%d"%(dict['StepId'])
-    command = " select %s from %s where s.stepid=rp.runtimeprojectid and %s"%(selection,tables, condition)
-    retVal = self.dbR_._query(command)
-    if retVal['OK']:
-      parameters = ['StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible', 'ProcessingPass', 'Usable']
-      records = []
-      for record in retVal['Value']:
-        value = [record[0],record[1],record[2],record[3],record[4],record[5],record[6],record[7],record[8], record[9], record[10]]
-        records += [value]
-      return  S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
+    stepId = dict.get('StepId', default)
+    if stepId != default:
+      condition += " rp.stepid=%d" % (stepId)
+      command = " select %s from %s where s.stepid=rp.runtimeprojectid and %s" % (selection, tables, condition)
+      retVal = self.dbR_._query(command)
+      if retVal['OK']:
+        parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat']
+        records = []
+        for record in retVal['Value']:
+          records += [list(record)]
+        result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
+      else:
+        result = retVal
     else:
-      return retVal
-    return S_ERROR('getRuntimeProjects problem!!!')
+      result = S_ERROR('You must provide a StepId!')
+    return result
+
 
   #############################################################################
   def getStepInputFiles(self, StepId):
@@ -213,11 +227,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       values = 'filetypesARRAY('
       for i in files:
-        if i.has_key('FileType') and i.has_key('Visible'):
-          values += 'ftype(\'' + i['FileType'] + '\',\'' + i['Visible'] + '\'),'
+        f = i.get('FileType', default)
+        v = i.get('Visible', default)
+        if f != default and v != default:
+          values += "ftype('%s','%s')," % (f, v)
       values = values[:-1]
       values += ')'
-    command = 'update steps set inputfiletypes=' + values + ' where stepid=' + str(stepid)
+    command = "update steps set inputfiletypes=%s where stepid=%s" % (values, str(stepid))
     return self.dbW_._query(command)
 
   #############################################################################
@@ -228,11 +244,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
     else:
       values = 'filetypesARRAY('
       for i in files:
-        if i.has_key('FileType') and i.has_key('Visible'):
-          values += 'ftype(\'' + i['FileType'] + '\',\'' + i['Visible'] + '\'),'
+        f = i.get('FileType', default)
+        v = i.get('Visible', default)
+        if f != default and v != default:
+          values += "ftype('%s','%s')," % (f, v)
       values = values[:-1]
       values += ')'
-    command = 'update steps set Outputfiletypes=' + values + ' where stepid=' + str(stepid)
+    command = "update steps set Outputfiletypes=%s  where stepid=%s" % (values, str(stepid))
     return self.dbW_._query(command)
 
   #############################################################################
@@ -264,112 +282,84 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def insertStep(self, dict):
     ### Dictionary format: {'Step': {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '', 'ApplicationVersion': 'v29r1', 'ext-comp-1273': 'CHARM.MDST (Charm micro dst)', 'ExtraPackages': '', 'StepName': 'davinci prb2', 'ProcessingPass': 'WG-Coool', 'ext-comp-1264': 'CHARM.DST (Charm stream)', 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': ''}, 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}],'RuntimeProjects':[{StepId:13878}]}
+    result = S_ERROR()
     values = ''
     command = "SELECT applications_index_seq.nextval from dual"
     sid = 0
     retVal = self.dbR_._query(command)
     if not retVal['OK']:
-      return retVal
+      result = retVal
     else:
       sid = retVal['Value'][0][0]
-    selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible, processingpass, usable '
-    if dict.has_key('InputFileTypes'):
-      inputf = dict['InputFileTypes']
-      inputf = sorted(inputf, key=lambda k: k['FileType'])
+
+    selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible, processingpass, usable, DQTag, optionsformat '
+    inFileTypes = dict.get('InputFileTypes', default)
+    if inFileTypes != default:
+      inFileTypes = sorted(inFileTypes, key=lambda k: k['FileType'])
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
-      for i in inputf:
-        if i.has_key('FileType') and i.has_key('Visible'):
-          values += 'ftype(\'' + i['FileType'] + '\',\'' + i['Visible'] + '\'),'
+      for i in inFileTypes:
+        values += "ftype(' %s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
       values = values[:-1]
       values += ')'
-    if dict.has_key('OutputFileTypes'):
-      outputf = dict['OutputFileTypes']
-      outputf = sorted(outputf, key=lambda k: k['FileType'])
+
+    outFileTypes = dict.get('OutputFileTypes', default)
+    if outFileTypes != default:
+      outFileTypes = sorted(outFileTypes, key=lambda k: k['FileType'])
       values += ' , filetypesARRAY('
       selection += ',OutputFileTypes'
-      for i in outputf:
-        if i.has_key('FileType') and i.has_key('Visible'):
-          values += 'ftype(\'' + i['FileType'] + '\',\'' + i['Visible'] + '\'),'
+      for i in outFileTypes:
+        values += "ftype(' %s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
       values = values[:-1]
       values += ')'
 
-    if dict.has_key('Step'):
-      step = dict['Step']
+    step = dict.get('Step', default)
+    if step != default:
       command = selection + ")values(%d" % (sid)
-      if step.has_key('StepName'):
-        command += ",'%s'" % (step['StepName'])
-      else:
-        command += ',NULL'
-      if step.has_key('ApplicationName'):
-        command += ",'%s'" % (step['ApplicationName'])
-      else:
-        command += ',NULL'
-      if step.has_key('ApplicationVersion'):
-        command += ",'%s'" % (step['ApplicationVersion'])
-      else:
-        command += ',NULL'
-      if step.has_key('OptionFiles'):
-        command += ",'%s'" % (step['OptionFiles'])
-      else:
-        command += ',NULL'
-      if step.has_key('DDDB'):
-        command += ",'%s'" % (step['DDDB'])
-      else:
-        command += ',NULL'
-      if step.has_key('CONDDB'):
-        command += ",'%s'" % (step['CONDDB'])
-      else:
-        command += ',NULL'
-      if step.has_key('ExtraPackages'):
-        command += ",'%s'" % (step['ExtraPackages'])
-      else:
-        command += ',NULL'
-      if step.has_key('Visible'):
-        command += ",'%s'" % (step['Visible'])
-      else:
-        command += ',NULL'
-
-      if step.has_key('ProcessingPass'):
-        command += ",'%s'" % (step['ProcessingPass'])
-      else:
-        command += ',NULL'
-
-      if step.has_key('Usable'):
-        command += ",'%s'" % (step['Usable'])
-      else:
-        command += ",'Not ready'"
-
+      command += ",'%s'" % (step.get('StepName', 'NULL'))
+      command += ",'%s'" % (step.get('ApplicationName', 'NULL'))
+      command += ",'%s'" % (step.get('ApplicationVersion', 'NULL'))
+      command += ",'%s'" % (step.get('OptionFiles', 'NULL'))
+      command += ",'%s'" % (step.get('DDDB', 'NULL'))
+      command += ",'%s'" % (step.get('CONDDB', 'NULL'))
+      command += ",'%s'" % (step.get('ExtraPackages', 'NULL'))
+      command += ",'%s'" % (step.get('Visible', 'NULL'))
+      command += ",'%s'" % (step.get('ProcessingPass', 'NULL'))
+      command += ",'%s'" % (step.get('Usable', 'Not ready'))
+      command += ",'%s'" % (step.get('DQTag', ''))
+      command += ",'%s'" % (step.get('OptionsFormat', ''))
       command += values + ")"
       retVal = self.dbW_._query(command)
       if retVal['OK']:
-        r_project = None
-        if dict.has_key('RuntimeProjects'):
-          r_project = dict['RuntimeProjects']
-        elif step.has_key('RuntimeProjects'):
-          r_project = step['RuntimeProjects']
-
-        if r_project != None:
+        r_project = dict.get('RuntimeProjects', step.get('RuntimeProjects', default))
+        if r_project != default:
           for i in r_project:
             rid = i['StepId']
             retVal = self.insertRuntimeProject(sid, rid)
             if not retVal['OK']:
-              return retVal
-        return S_OK(sid)
+              result = retVal
+            else:
+              result = S_OK(sid)
+        else:
+          result = S_OK(sid)
       else:
-        return retVal
-
-    return S_ERROR('The Filetypes and Step are missing!')
+        result = retVal
+    else:
+      result = S_ERROR('The Step is not provided!')
+    return result
 
   #############################################################################
   def deleteStep(self, stepid):
+    result = S_ERROR()
     command = " delete runtimeprojects where stepid=%d" % (stepid)
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
-      return retVal
-    # now we can delete the step
-    command = "delete steps where stepid=%d" % (stepid)
-    return self.dbW_._query(command)
+      result = retVal
+    else:
+      # now we can delete the step
+      command = "delete steps where stepid=%d" % (stepid)
+      result = self.dbW_._query(command)
+    return result
 
   #############################################################################
   def deleteSetpContiner(self, prod):
@@ -384,50 +374,60 @@ class OracleBookkeepingDB(IBookkeepingDB):
   #############################################################################
   def updateStep(self, dict):
     #input data {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '13860', 'ApplicationVersion': 'v29r1', 'ExtraPackages': '', 'StepName': 'davinci prb3', 'ProcessingPass': 'WG-Coool-new', 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}], 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': '', 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'RuntimeProjects':[{'StepId':13879}]}
-
-    if dict.has_key('RuntimeProjects'):
-      if len(dict['RuntimeProjects']) >0:
+    result = S_ERROR()
+    ok = True
+    rProjects = dict.get('RuntimeProjects', default)
+    if rProjects != default:
+      if len(rProjects) > 0:
         for i in dict['RuntimeProjects']:
           if not dict.has_key('StepId'):
-            return S_ERROR('The runtime project can not changed, because the StepId is missing!')
-          retVal = self.updateRuntimeProject(dict['StepId'],i['StepId'])
-          if not retVal['OK']:
-            return retVal
+            result = S_ERROR('The runtime project can not changed, because the StepId is missing!')
+            ok = False
           else:
-            dict.pop('RuntimeProjects')
+            retVal = self.updateRuntimeProject(dict['StepId'], i['StepId'])
+            if not retVal['OK']:
+              result = retVal
+              ok = False
+            else:
+              dict.pop('RuntimeProjects')
       else:
         retVal = self.removeRuntimeProject(dict['StepId'])
         if not retVal['OK']:
-          return retVal
-        dict.pop('RuntimeProjects')
-
-    if dict.has_key('StepId'):
-      stepid = dict.pop('StepId')
-      condition = ' where stepid=' + str(stepid)
-      command = 'update steps set '
-      for i in dict:
-        if type(dict[i]) == types.StringType:
-          command += i + '=\'' + str(dict[i]) + '\','
+          result = retVal
+          ok = False
         else:
-          if len(dict[i]) > 0:
-            values = 'filetypesARRAY('
-            ftypes = dict[i]
-            ftypes = sorted(ftypes, key=lambda k: k['FileType'])
-            for j in ftypes:
-              if j.has_key('FileType') and j.has_key('Visible'):
-                values += 'ftype(\'' + j['FileType'] + '\',\'' + j['Visible'] + '\'),'
-            values = values[:-1]
-            values += ')'
-            command += i + '=' + values + ','
-          else:
-            command += i + '=null,'
-      command = command[:-1]
-      command += condition
-      return self.dbW_._query(command)
+          dict.pop('RuntimeProjects')
 
-    else:
-      return S_ERROR('Please give a StepId!')
-    return S_ERROR()
+    if ok:
+      stepid = dict.get('StepId', default)
+      if stepid != default:
+        condition = " where stepid=%s" % (str(stepid))
+        command = 'update steps set '
+        for i in dict:
+          if type(dict[i]) == types.StringType:
+            command += " %s='%s'," % (i, str(dict[i]))
+          else:
+            if len(dict[i]) > 0:
+              values = 'filetypesARRAY('
+              ftypes = dict[i]
+              ftypes = sorted(ftypes, key=lambda k: k['FileType'])
+              for j in ftypes:
+                f = j.get('FileType', default)
+                v = j.get('Visible', default)
+                if f != default and v != default:
+                  values += "ftype('%s','%s')," % (f, v)
+              values = values[:-1]
+              values += ')'
+              command += i + '=' + values + ','
+            else:
+              command += i + '=null,'
+        command = command[:-1]
+        command += condition
+        result = self.dbW_._query(command)
+      else:
+        result = S_ERROR('Please provide a StepId!')
+
+    return result
 
   #############################################################################
   def getAvailableConfigNames(self):

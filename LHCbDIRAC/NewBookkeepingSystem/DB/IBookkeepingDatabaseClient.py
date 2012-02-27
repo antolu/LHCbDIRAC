@@ -514,3 +514,11 @@ class IBookkeepingDatabaseClient( object ):
   #############################################################################
   def getAvailableTcks(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
     return self.getManager().getAvailableTcks(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
+
+  #############################################################################
+  def getStepsMetadata(self, configName, configVersion, cond, procpass, evt, production, filetype, runnb):
+    return self.getManager().getStepsMetadata(configName, configVersion, cond, procpass, evt, production, filetype, runnb)
+
+  #############################################################################
+  def getDirectoryMetadata(self, lfn):
+    return self.getManager().getDirectoryMetadata(lfn)

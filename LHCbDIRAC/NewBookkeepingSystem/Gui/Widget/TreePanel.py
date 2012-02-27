@@ -9,6 +9,11 @@ from LHCbDIRAC.NewBookkeepingSystem.Gui.Basic.Item              import Item
 from LHCbDIRAC.NewBookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 import LHCbDIRAC, types, os
 
+try:
+    _fromUtf8 = QString.fromUtf8
+except AttributeError:
+    _fromUtf8 = lambda s: s
+
 __RCSID__ = "$Id$"
 
 #############################################################################
@@ -44,10 +49,12 @@ class TreePanel(QTreeWidget):
     self.__controler = None
     self.setSelectionBehavior(QAbstractItemView.SelectRows)
     self.__currentItem = None
-    picturesPath = os.path.dirname(os.path.realpath(LHCbDIRAC.__path__[0]))+'/LHCbDIRAC/NewBookkeepingSystem/Gui/qt_resources'
-    self.infoIcon_ = QIcon(picturesPath+"/images/info1.png")
 
-    self.filesIcon_ = QIcon(picturesPath+"/images/files1.png")
+    self.infoIcon_ = QIcon()
+    self.infoIcon_.addPixmap(QPixmap(_fromUtf8(":/icons/images/info1.png")), QIcon.Normal, QIcon.Off)
+
+    self.filesIcon_ = QIcon()
+    self.filesIcon_.addPixmap(QPixmap(_fromUtf8(":/icons/images/files1.png")), QIcon.Normal, QIcon.Off)
 
 
 

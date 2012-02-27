@@ -48,8 +48,8 @@ class LHCB_BKKDBClient(BaseESClient):
     return self.getManager().getNumberOfEvents(files)
 
   #############################################################################
-  def writeJobOptions(self, files, optionsFile = "jobOptions.opts", savedType = None, catalog = None, savePfn = None):
-    return self.getManager().writeJobOptions(files, optionsFile, savedType, catalog, savePfn)
+  def writeJobOptions(self, files, optionsFile = "jobOptions.opts", savedType = None, catalog = None, savePfn = None, dataset = None):
+    return self.getManager().writeJobOptions(files, optionsFile, savedType, catalog, savePfn, dataset)
 
   #############################################################################
   def getJobInfo(self, lfn):

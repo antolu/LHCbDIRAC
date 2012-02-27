@@ -511,3 +511,13 @@ class IBookkeepingDB( object ):
   #############################################################################
   def getAvailableTcks(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
     gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getStepsMetadata(self, configName, configVersion, cond, procpass, evt, production, filetype, runnb):
+    gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getDirectoryMetadata(self, lfn):
+    gLogger.error('This method is not implemented!')
+
+
