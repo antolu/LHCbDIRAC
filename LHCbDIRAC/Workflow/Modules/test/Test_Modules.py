@@ -172,6 +172,9 @@ class ModulesTestCase( unittest.TestCase ):
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
     self.ulf = UploadLogFile()
 
+    from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
+    self.fu = FileUsage()
+
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst',
                      'ccc.charm.mdst', 'prova.txt', 'foo.txt', 'BAR.txt', 'FooBAR.ext.txt',
@@ -300,7 +303,7 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 
   #################################################
 
-#  def test_execute( self ): 
+#  def test_execute( self ):
 #FIXME: difficult to mock
 #
 #    #no errors, no input data
@@ -766,7 +769,41 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
     #TODO: make others cases tests!
 
 #############################################################################
-# Test Suite run 
+# AnalyseLogFile.py
+#############################################################################
+
+class FileUsageSuccess( ModulesTestCase ):
+
+  #################################################
+
+  def test_execute( self ):
+
+    #no errors, no input files to report
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, self.step_commons,
+                                          self.step_number, self.step_id )['OK'] )
+
+    #no errors, input files specified without full path, no dataset info can be extracted
+    wf_commons['InputData'] = ['test1', 'test2']
+    self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                         self.workflowStatus, self.stepStatus,
+                                         wf_commons, self.step_commons,
+                                         self.step_number, self.step_id )['OK'] )
+
+
+   #no errors, input files specified correctly (with/without LFN prefix)
+    wf_commons['InputData'] = ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst']
+    self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                         self.workflowStatus, self.stepStatus,
+                                         wf_commons, self.step_commons,
+                                         self.step_number, self.step_id )['OK'] )
+
+
+
+#############################################################################
+# Test Suite run
 #############################################################################
 
 if __name__ == '__main__':
@@ -789,6 +826,8 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadOutputDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobFinalizationSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FileUsageSuccess ) )
+
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
