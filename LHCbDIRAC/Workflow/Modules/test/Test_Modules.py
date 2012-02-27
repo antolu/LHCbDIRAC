@@ -793,9 +793,15 @@ class FileUsageSuccess( ModulesTestCase ):
                                          self.step_number, self.step_id )['OK'] )
 
 
-   #no errors, input files specified correctly (with/without LFN prefix)
+    #no errors, input files specified correctly (with/without LFN prefix)
     wf_commons['InputData'] = ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst']
     self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                         self.workflowStatus, self.stepStatus,
+                                         wf_commons, self.step_commons,
+                                         self.step_number, self.step_id )['OK'] )
+    #workflow status not ok
+    self.workflowStatus = {'OK':False, 'Message':'Mess'}
+    self.assertFalse( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, self.step_commons,
                                          self.step_number, self.step_id )['OK'] )
