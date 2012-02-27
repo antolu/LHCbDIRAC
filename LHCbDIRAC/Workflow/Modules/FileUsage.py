@@ -48,7 +48,7 @@ class FileUsage( ModuleBase ):
     super( FileUsage, self )._resolveInputVariables()
     self.log.info( self.workflow_commons )
     #self.log.verbose( self.step_commons )
-
+    self.dirDict = {}
     if self.workflow_commons.has_key( 'InputData' ):
       self.inputData = self.workflow_commons['InputData']
       if self.inputData:
