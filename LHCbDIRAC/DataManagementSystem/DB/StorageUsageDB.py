@@ -859,37 +859,8 @@ class StorageUsageDB( DB ):
     return S_OK( insertedEntries )
 
 
+
   def getDataUsageSummary( self, startTime, endTime, status ='New' ):
-    """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
-    """ 
-    if startTime > endTime:
-      return S_OK()
-    if ( type( startTime ) != StringType or type( endTime ) != StringType ):
-      return S_ERROR('wrong arguments format')
-          
-    sqlStartTime = self._escapeString( startTime )[ 'Value' ]
-    sqlEndTime = self._escapeString( endTime )[ 'Value' ]
-    sqlStatus = self._escapeString( status )[ 'Value' ]
-    sqlCmd = "SELECT Path, Site, SUM(Count) from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s GROUP BY Path,Site " %( sqlStatus, sqlStartTime, sqlEndTime )
-    self.log.info("sqlCmd = %s " % sqlCmd )
-    result = self._query( sqlCmd )
-    if not result[ 'OK' ]:
-      return S_ERROR( result['Message'])
-    Data = {}
-    for row in result[ 'Value' ]:
-      path = row[ 0 ]
-      site = row[ 1 ]
-      usage = int( row[ 2 ] )
-      if path not in Data.keys():
-        Data[ path ] = {}
-      if site not in Data[ path ].keys():
-        Data[ path ][ site ] = {}
-      Data[ path ][ site ]['Count'] = usage
-    self.log.info("return dict is: %s " % Data )
-    return S_OK( Data )
-
-
-  def getDataUsageSummary_2( self, startTime, endTime, status ='New' ):
     """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
     """ 
     if startTime > endTime:
