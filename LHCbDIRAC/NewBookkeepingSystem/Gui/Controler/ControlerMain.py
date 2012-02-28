@@ -116,13 +116,14 @@ class ControlerMain(ControlerAbstract):
         ctProd.messageFromParent(message)
 
       elif message.action()=='SaveAs':
+        dataset = message['dataset']
         if self.__fileName <> '':
           fileName = self.__fileName
         else:
           fileName = message['fileName']
 
         lfns = message['lfns']
-        self.__bkClient.writeJobOptions(lfns, str(fileName))
+        self.__bkClient.writeJobOptions(lfns, str(fileName), savedType = None, catalog = None, savePfn = None, dataset = dataset )
         return True
       elif message.action()=='SaveToTxt':
         if self.__fileName <> '':
@@ -236,6 +237,7 @@ class ControlerMain(ControlerAbstract):
           f.close()
           sys.exit(0)
         else:
+          dataset = message['dataset']
           site = message['selection']['Site']
           filename = message['fileName']
           lfnList = message['lfns'].keys()
@@ -251,12 +253,13 @@ class ControlerMain(ControlerAbstract):
             nboffaild = len(faild)
             exist = {}
             lfns = message['lfns']
+
             for i in slist.keys():
               exist[i] = lfns[i]
             if message['selection']['pfn']:
-              self.__bkClient.writeJobOptions(exist, filename, savedType = None, catalog= catalog, savePfn=slist)
+              self.__bkClient.writeJobOptions(exist, filename, savedType = None, catalog= catalog, savePfn=slist, dataset = dataset)
             else:
-              self.__bkClient.writeJobOptions(exist, filename, catalog= catalog)
+              self.__bkClient.writeJobOptions(exist, filename, catalog= catalog, dataset = dataset)
             m = 'Total files:'+str(totalFiles)+'\n'
             if site != None:
               m += str(nbofsuccsessful)+' found '+str(site.split('.')[1])+'\n'

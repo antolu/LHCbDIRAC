@@ -22,6 +22,7 @@ class ControlerFileDialog(ControlerAbstract):
   def __init__(self, widget, parent):
     super(ControlerFileDialog, self).__init__(widget, parent)
     self.__selectedFiles = []
+    self.__dataSet = {}
 
   #############################################################################
   def messageFromParent(self, message):
@@ -43,6 +44,7 @@ class ControlerFileDialog(ControlerAbstract):
     keys = items.keys()
     if len(keys) > 0:
       value = items[keys[0]]
+      self.setDataSet(value['selection'])
       self.getWidget().showSelection(value['selection'])
       if res:
 
@@ -101,7 +103,7 @@ class ControlerFileDialog(ControlerAbstract):
         for file in files:
           lfns[file] = model[file]
 
-      message = Message({'action':'createCatalog','fileName':fileName,'lfns':lfns,'selection':sel})
+      message = Message({'action':'createCatalog','fileName':fileName,'lfns':lfns,'selection':sel,'dataset':self.getDataSet()})
       feedback = self.getParent().messageFromChild(self, message)
     elif message.action() == 'applyFilter':
       values = message['items']
@@ -166,7 +168,7 @@ class ControlerFileDialog(ControlerAbstract):
       if '.opts' in ext:
         if fileName.find('.opts') < 0:
           fileName += '.opts'
-        message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
+        message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns,'dataset':self.getDataSet()})
         feedback = self.getParent().messageFromChild(self, message)
         if feedback:
           QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
@@ -180,7 +182,7 @@ class ControlerFileDialog(ControlerAbstract):
       elif '.py' in ext:
         if fileName.find('.py') < 0:
           fileName += '.py'
-        message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns})
+        message = Message({'action':'SaveAs','fileName':fileName,'lfns':lfns, 'dataset':self.getDataSet()})
         feedback = self.getParent().messageFromChild(self, message)
         if feedback:
           QMessageBox.information(self.getWidget(), "Save As...", "This file has been saved!",QMessageBox.Ok)
@@ -399,4 +401,13 @@ class ControlerFileDialog(ControlerAbstract):
       for file in files:
         text += i+"\n"
     clipboard.setText(text)
+
+  #############################################################################
+  def setDataSet(self, dict):
+    self.__dataSet = dict
+
+  #############################################################################
+  def getDataSet(self):
+    return self.__dataSet
+
 
