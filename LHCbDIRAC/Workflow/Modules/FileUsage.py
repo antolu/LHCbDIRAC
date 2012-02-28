@@ -181,7 +181,11 @@ class FileUsage( ModuleBase ):
 
     usageStatus = self.dataUsageClient.sendDataUsageReport( localSE, dirDict )
     if not usageStatus['OK']:
-      self.log.warn( usageStatus['Message'] )
+      self.log.error( 'Could not send data usage report, preparing a DISET failover request object' )
+      self.log.verbose( usageStatus['rpcStub'] )
+      self.request.setDISETRequest( usageStatus['rpcStub'] )
+      self.workflow_commons['Request'] = self.request
+      #self.log.warn( usageStatus['Message'] )
 
     return usageStatus
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
