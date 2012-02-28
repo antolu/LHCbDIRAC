@@ -24,8 +24,7 @@ GetRuns retrieve the list of files that correspond to the query bkDict. After th
 The output is a dictionary such as for example:
 
 results_ord = {'BRUNELHIST':{1234:
-                                  {'DataQuality' : 'OK',
-                                   'LFNs'        :['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
+                                  {'LFNs'        :['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
                                                    '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
                                                    '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
                                                    '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
@@ -34,8 +33,7 @@ results_ord = {'BRUNELHIST':{1234:
                                                    ]
                                   }
                             1234:
-                                  {'DataQuality' : 'OK',
-                                   'LFNs'        :['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
+                                  {'LFNs'        :['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
                                                    '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
                                                    '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
                                                    '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
@@ -59,17 +57,12 @@ def GetRuns(bkDict,bkClient):
     if not results['OK']:
       gLogger.debug("Failed to retrieve dataset. Result is %s"%str(results))
       return results_ord 
-    ID = bkClient.getProcessingPassId(bkDict[ 'ProcessingPass' ])
     for l in  results['Value']['LFNs']:
       r = results['Value']['LFNs'][l]['Runnumber']
       if not results_ord.has_key(r):
           results_ord[r]={}
           results_ord[r]['LFNs']=[]
-          results_ord[r]['DataQuality']='None'
-          q = bkClient.getRunFlag( r, ID['Value'] )
-          if q['OK']:
-              results_ord[r]['DataQuality']=q['Value']
-              results_ord[r]['LFNs'].append(l)
+          results_ord[r]['LFNs'].append(l)
       else:
           results_ord[r]['LFNs'].append(l)
     return results_ord
@@ -221,7 +214,6 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   logger.info(str(rawBkDict))
   logger.info("====================================")
 
-  gLogger.setLevel('debug')
   res = bkClient.getFilesWithGivenDataSets( rawBkDict )
 
   if ( not res['OK'] ) or ( not len( res['Value'] ) ):
@@ -793,7 +785,8 @@ def generateOutputFiles( jobNode , Output , outputlfn , logFilelfn , outputDataT
       oFile = addChildNode( oFile, "Parameter", 0, *( "FileSize", Output[output]['FileSize'] ) )  
     else:
       logurl = 'http://lhcb-logs.cern.ch/storage/lhcb'
-      url = logurl + '/' + configName + '/' + configVersion + '/' + 'LOG' + '/' + Output[output]['Filename'][len(homeDir):]
+      s = Output[output]['Filename'].split('/')
+      url = logurl + '/' + configName + '/' + configVersion + '/LOG/MERGEDDQ/'+ str(run) + '/' + s[len(s)-1]
       #Log file replica information
       oFile = addChildNode( oFile, "Replica", 0, url )
     oFile = addChildNode( oFile, "Parameter", 0, *( "MD5Sum", Output[output]['MD5Sum'] ) )
