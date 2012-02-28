@@ -952,14 +952,14 @@ class StorageUsageDB( DB ):
       try:
         sqlConfigname = self._escapeString( directoryDict[d]['ConfigName'] )[ 'Value' ]
         sqlConfigversion = self._escapeString( directoryDict[d]['ConfigVersion'] )[ 'Value' ]
-        sqlConditions = self._escapeString( directoryDict[d]['Conditions'] )[ 'Value' ]
+        sqlConditions = self._escapeString( directoryDict[d]['ConditionDescription'] )[ 'Value' ]
         sqlProcpass = self._escapeString( directoryDict[d]['ProcessingPass'] )[ 'Value' ]
         sqlEvttype = self._escapeString( directoryDict[d]['EventType'] )[ 'Value' ]
         sqlFiletype = self._escapeString( directoryDict[d]['FileType'] )[ 'Value' ]
         sqlProd = self._escapeString( directoryDict[d]['Production'] )[ 'Value' ]
       except KeyError:
         self.log.error("in insertToDirMetadata: the input dictionary was not correctly formatted: %s " % directoryDict )
-        continue
+        return S_ERROR( "Key error in input dictionary %s " % directoryDict )
       sqlCmd = "INSERT INTO `DirMetadata` ( DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, EventType, FileType, Production ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s )" % ( id, sqlConfigname, sqlConfigversion, sqlConditions, sqlProcpass, sqlEvttype, sqlFiletype, sqlProd )
       self.log.info("sqlCmd = %s " % sqlCmd )
       result = self._update( sqlCmd )
