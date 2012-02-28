@@ -1,7 +1,6 @@
 """ Class that contains client access to the StorageUsageDB handler. """
 ########################################################################
-# $Id: StorageManagerClient.py 36989 2011-03-29 17:06:04Z sposs $
-# $HeadURL: http://svn.cern.ch/guest/dirac/DIRAC/tags/DIRAC/v5r13p43/StorageManagementSystem/Client/StorageManagerClient.py $
+# $Id: DataUsageClient.py 36989 2011-03-29 17:06:04Z sposs $
 ########################################################################
 __RCSID__ = "$Id: DataUsageClient.py 36989 2011-03-29 17:06:04Z dremensk $"
 
