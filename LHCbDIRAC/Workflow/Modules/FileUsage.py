@@ -16,7 +16,7 @@ from DIRAC.Core.Utilities                                  import List
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.Resources.Catalog.PoolXMLCatalog import PoolXMLCatalog
-
+from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
 #from LHCbDIRAC.Core.Utilities.ProductionData               import constructUserLFNs
 #from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
 
@@ -33,21 +33,25 @@ class FileUsage( ModuleBase ):
     """
     self.log = gLogger.getSubLogger( "FileUsage" )
     super( FileUsage, self ).__init__( self.log )
-
     self.version = __RCSID__
     self.debug = True
     self.enable = True
     self.lastStep = False
+    #Resolved to be the input data of the current step
+    #self.stepInputData = []
+    #Dict of input data for the job and status
+    #self.jobInputData = {}
+    #Always allow any files specified by users
     self.inputData = [] # to be resolved
     self.dirDict = {}
-
+    self.dataUsageClient = DataUsageClient()
   #############################################################################
   def _resolveInputVariables( self ):
-    """ Resolve all input variables for the module here.
+    """ By convention the module parameters are resolved here.
     """
-    super( FileUsage, self )._resolveInputVariables()
-    self.log.info( self.workflow_commons )
+    self.log.verbose( self.workflow_commons )
     #self.log.verbose( self.step_commons )
+    super( FileUsage, self )._resolveInputVariables()
     self.dirDict = {}
     if self.workflow_commons.has_key( 'InputData' ):
       self.inputData = self.workflow_commons['InputData']
@@ -57,7 +61,7 @@ class FileUsage( ModuleBase ):
       else:
         self.inputData = []
 
-    #inputData: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', '/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
+    #InputData: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', '/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
     #build the dictionary of dataset usage
     #strip the 'LFN:' part if present
 
@@ -66,14 +70,14 @@ class FileUsage( ModuleBase ):
         baseName = os.path.basename( inputFile )
         strippedDir = inputFile[0:inputFile.find( baseName )].strip( 'LFN:' )
         if not strippedDir:
-          self.log.error('Dataset unknown for file %s, probably file specified without path!' %(inputFile))
+          self.log.error( 'Dataset unknown for file %s, probably file specified without path! ' % ( inputFile ) )
         else:
           if strippedDir in self.dirDict:
             self.dirDict[strippedDir] += 1
           else:
             self.dirDict[strippedDir] = 1
     else:
-      self.log.info("No input data specified for this job")
+      self.log.info( 'No input data specified for this job' )
 
     self.log.info( 'dirDict = ', self.dirDict )
     #NOTE: Enable before commit?
@@ -112,10 +116,11 @@ class FileUsage( ModuleBase ):
       #Have to work out if the module is part of the last step i.e.
       #user jobs can have any number of steps and we only want
       #to run the finalization once.
-      """ #the UserJobFinalization is actually the last step
-
+      """#the UserJobFinalization is actually the last step, so this is not needed
       currentStep = int( self.step_commons['STEP_NUMBER'] )
       totalSteps = int( self.workflow_commons['TotalSteps'] )
+      #poolXMLCatalog = PoolXMLCatalog( self.poolXMLCatName )
+      #poolXMLCatalog.dump()
 
       if currentStep == totalSteps:
         self.lastStep = True
@@ -130,7 +135,6 @@ class FileUsage( ModuleBase ):
         self.log.info( 'Module is disabled by control flag, would have attempted to report the following dataset usage %s' % self.dirDict )
         return S_OK( 'Module is disabled by control flag' )
       """
-
       if self.dirDict:
         result = self._reportFileUsage( self.dirDict )
         if not result['OK']:
@@ -141,12 +145,11 @@ class FileUsage( ModuleBase ):
         self.log.info( "No input data usage to report!" )
 
       if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-        self.log.info( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
+        self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
         self.log.error( 'Workflow status is not ok, will not overwrite application status.' )
         return S_ERROR( 'Workflow failed, FileUsage module completed' )
 
-      return S_OK('File Usage reported successfully')
-
+      return S_OK( 'File Usage reported successfully' )
     except Exception, e:
       self.log.exception( e )
       return S_ERROR( e )
@@ -158,25 +161,25 @@ class FileUsage( ModuleBase ):
     """Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
     example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1, '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
     """
-    self.log.info( 'FileUsage._reportFileUsage' )
-    self.log.info( 'Reporting input file usage:' )
+    self.log.verbose( 'FileUsage._reportFileUsage' )
+    self.log.verbose( 'Reporting input file usage:' )
     for entry in dirDict:
-      self.log.info( '%s:%s' % ( entry, dirDict[entry] ) )
-    dataUsageClient = RPCClient( 'DataManagement/DataUsage', timeout = 120 )
+      self.log.verbose( '%s:%s' % ( entry, dirDict[entry] ) )
+    #dataUsageClient = RPCClient( 'DataManagement/DataUsage', timeout = 120 )
     localSEList = gConfig.getValue( '/LocalSite/LocalSE', '' )
     if not localSEList:
       self.log.error( 'FileUsage._reportFileUsage: Could not get value from DIRAC Configuration Service for option /LocalSite/LocalSE' )
       localSEList = "UNKNOWN"
-    self.log.info( "Using /LocalSite/LocalSE: %s" % ( localSEList ) )
+    self.log.verbose( 'Using /LocalSite/LocalSE: %s' % ( localSEList ) )
     # example LocalSEList = 'SARA-RAW, SARA-RDST, SARA-ARCHIVE, SARA-DST, SARA_M-DST, SARA-USER'
 
-    # we only care about the site, so strip the SE list up to the site name
+    # we only care about the site, so strip the SE list
     localSE = localSEList
     cutoff = min( localSEList.find( '_' ), localSEList.find( '-' ) )
     if cutoff != -1:
       localSE = localSE[0:cutoff]
 
-    usageStatus = dataUsageClient.sendDataUsageReport( localSE, dirDict )
+    usageStatus = self.dataUsageClient.sendDataUsageReport( localSE, dirDict )
     if not usageStatus['OK']:
       self.log.warn( usageStatus['Message'] )
 
