@@ -841,11 +841,11 @@ class StorageUsageDB( DB ):
     sqlSite = self._escapeString( site )[ 'Value' ]
     insertedEntries = 0
     for d in directoryDict.keys():
+      count = directoryDict[ d ]
       if d[-1] != "/":
         d = "%s/" % d
       sqlPath = self._escapeString( d )[ 'Value' ]
       sqlStatus = self._escapeString( status )[ 'Value' ]
-      count = directoryDict[ d ]
       if type( count ) != IntType:
         self.log.warn("in sendDataUsageReport: type is not correct %s" % count )
         continue
