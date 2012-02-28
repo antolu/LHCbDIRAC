@@ -51,9 +51,6 @@ from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 
 from  xml.dom import minidom
 
-__RCSID__ = "$Id:"
-
-
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
 
 class MergingForDQAgent( AgentModule ):
@@ -294,7 +291,7 @@ class MergingForDQAgent( AgentModule ):
 
                 #Retrieve the of file and order them per run
                 res_1 = GetRuns(bkDict_davinci,self.bkClient)
-                gLogger.info("Numer of Runs found %s"%len(res_1.keys()))
+                gLogger.info("Number of Runs found %s"%len(res_1.keys()))
 
                 #If the number of BrunelHist and DaVinciHist is not equal it skips the run
                 if len(res_0.keys())==0 or len(res_1.keys())==0:
@@ -305,7 +302,11 @@ class MergingForDQAgent( AgentModule ):
                     self.exitStatus = 0 
                     
                     for run in res_0.keys():
-                     
+                      ID = self.bkClient.getProcessingPassId(bkDict_brunel[ 'ProcessingPass' ])
+                      q = self.bkClient.getRunFlag( run, ID['Value'] )
+                      if q['OK']:
+                        gLogger.info("Run %s has already been flagged skipping")
+                        continue
                       lfns=BuildLFNs(bkDict_brunel,run)
                       #If the LFN is already in the BK it will be skipped
                       res = self.bkClient.getFileMetadata([lfns['DATA']])
@@ -324,7 +325,10 @@ class MergingForDQAgent( AgentModule ):
                       self.logFile = open( self.logFileName, 'w+' ) 
 
                       gLogger.info('Starting Merging Process for run %s'%run)
-                      
+                      gLogger.info ('Runs to be skipped %s'%Runs)
+                      if str(run) in Runs:
+                        continue
+
                       #Starting the three step Merging process
                       res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , self.testMode, self.specialMode , 
                                       self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command,self.mergeStep3Command,
@@ -335,6 +339,8 @@ class MergingForDQAgent( AgentModule ):
                         '''
                         Finalization Step:
                         '''
+                        #gLogger.info("Finalization")
+                        #continue
                         res = Finalization(self.homeDir,logDir,lfns,res['OutputFile'],('Brunel_DaVinci_%s.log'%run),inputData,run,bkDict_brunel,rootVersion)
                         if res['OK']:
                           '''
@@ -343,7 +349,7 @@ class MergingForDQAgent( AgentModule ):
                           outMess = "**********************************************************************************************************************************\n"
                           outMess = outMess + "\nThis is an automatic message:\n"
                           outMess = outMess +"\n**********************************************************************************************************************************\n"
-                          outMess = outMess +'\nRun %s Processing Pass %s Stream %s DataTaking Conditions %s Merged \n' %(str(run), p, evtTypeRef[e], d)
+                          outMess = outMess +'\nRun: %s\n Processing Pass: %s\n Stream: %s\n DataTaking Conditions: %s\n\n' %(str(run), p, evtTypeRef[e], d)
                           xmldoc = minidom.parse(res['XML'])
                           node = xmldoc.getElementsByTagName('Replica')[0]
                           web = node.attributes['Name'].nodeValue
@@ -351,7 +357,7 @@ class MergingForDQAgent( AgentModule ):
                           outMess = outMess + '\nLocation of logfile %s\n'%str(web)
                           outMess = outMess +"\n**********************************************************************************************************************************"
                           notifyClient = NotificationClient()
-                          subject      = 'New %s merged stream ROOT file for run %s ready' %(evtTypeRef[e], str(run))
+                          subject      = 'New %s merged ROOT file for run %s ready' %(evtTypeRef[e], str(run))
                           
                           res = notifyClient.sendMail(self.mailAddress, subject, outMess,self.senderAddress, localAttempt=False)
                           
