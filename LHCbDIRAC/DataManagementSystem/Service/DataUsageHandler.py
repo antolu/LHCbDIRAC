@@ -30,10 +30,6 @@ class DataUsageHandler( RequestHandler ):
   def export_getDataUsageSummary( self, startTime, endTime, status = 'New' ):
     return storageUsageDB.getDataUsageSummary( startTime, endTime, status )
 
-  types_getDataUsageSummary_2 = [ ( StringType, StringType, StringType ) ]
-  def export_getDataUsageSummary_2( self, startTime, endTime, status = 'New' ):
-    return storageUsageDB.getDataUsageSummary_2( startTime, endTime, status )
-
   types_updatePopEntryStatus = [ ( ListType, StringType ) ]
   def export_updatePopEntryStatus( self, IdList, newStatus ):
     return storageUsageDB.updatePopEntryStatus( IdList, newStatus )
