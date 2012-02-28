@@ -1,6 +1,6 @@
 """ Class that contains client access to the StorageUsageDB handler. """
 ########################################################################
-# $Id: DataUsageClient.py 36989 2011-03-29 17:06:04Z sposs $
+# $Id: DataUsageClient.py 35442 2012-02-28 11:00:54Z dremensk $
 ########################################################################
 __RCSID__ = "$Id: DataUsageClient.py 36989 2011-03-29 17:06:04Z dremensk $"
 
