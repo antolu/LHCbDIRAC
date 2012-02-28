@@ -3374,3 +3374,81 @@ and files.qualityid= dataquality.qualityid'
     j.configurationid=c.configurationid %s" % (tables, condition)
     return self.dbR_._query(command)
 
+
+  #############################################################################
+  def getStepsMetadata(self, configName, configVersion, cond=default, procpass=default, evt=default, production=default, filetype=default, runnb=default):
+    processing = {}
+    condition = ''
+    tables = 'steps s, productionscontainer prod, stepscontainer cont, prodview bview'
+    if configName != default:
+      condition += " and bview.configname='%s' " % (configName)
+
+    if configVersion != default:
+      condition += " and bview.configversion='%s' " % (configVersion)
+
+    if procpass != default:
+      condition += " and prod.processingid in ( \
+                    select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                        FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                        CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
+                       )" % (procpass.split('/')[1], procpass)
+
+    if cond != default:
+      retVal = self._getConditionString(cond, 'prod')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+
+    if evt != default:
+      condition += '  and bview.eventtypeid=%s ' % (str(evt))
+
+    if production != default:
+      condition += ' and bview.production=' + str(production)
+
+    if runnb != default:
+      tables += ' ,prodrunview rview'
+      condition += ' and rview.production=bview.production and rview.runnumber=%d and bview.production<0' % (runnb)
+
+    if filetype != default:
+      tables += ', filetypes ftypes'
+      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (filetype)
+
+    command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion, s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step \
+                from  %s \
+               where \
+              cont.stepid=s.stepid and \
+              prod.production=bview.production and \
+              prod.production=cont.production %s order by cont.step" % (tables, condition)
+
+    retVal = self.dbR_._query(command)
+    records = []
+    #parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
+    parametersNames = ['id', 'name']
+    if retVal['OK']:
+      nb = 0
+      for i in retVal['Value']:
+        #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+        records = [ ['StepId', i[0]], ['StepName', i[1]], ['ApplicationName', i[2]], ['ApplicationVersion', i[3]], ['OptionFiles', i[4]], ['DDDB', i[5]], ['CONDDB', i[6]], ['ExtraPackages', i[7]], ['Visible', i[8]]]
+        step = 'Step-%s' % (i[0])
+        processing[step] = records
+        nb += 1
+    else:
+      return retVal
+
+    return S_OK({'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb})
+
+  #############################################################################
+  def getDirectoryMetadata(self, lfn):
+    result = S_ERROR()
+    lfn += '%'
+    retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getDirectoryMetadata', [lfn])
+    records = []
+    if retVal['OK']:
+      for i in retVal['Value']:
+        records += [dict(zip(('Production', 'ConfigName','ConfigVersion','EventType','FileType','ProcessingPass','ConditionDescription'), i))]
+      result = S_OK(records)
+    else:
+      result = retVal
+    return result
+

@@ -1480,3 +1480,28 @@ class NewBookkeepingManagerHandler( RequestHandler ):
     else:
       return retVal
     return S_OK(records)
+
+  #############################################################################
+  types_getStepsMetadata = [DictType]
+  def export_getStepsMetadata(self, dict):
+    configName = dict.get('ConfigName', default)
+    configVersion = dict.get('ConfigVersion', default)
+    cond = dict.get('ConditionDescription', default)
+    procpass = dict.get('ProcessingPass', default)
+    evt = dict.get('EventType', dict.get('EventTypeId', default))
+    production = dict.get('Production', default)
+    filetype = dict.get('FileType', default)
+    runnb = dict.get('RunNumber', default)
+
+    if dict.has_key('EventTypeId'):
+      gLogger.warn('The EventTypeId has to be replaced by EventType!')
+
+    if dict.has_key('Quality'):
+      gLogger.warn('The Quality has to be replaced by DataQuality!')
+
+    return dataMGMT_.getStepsMetadata(configName, configVersion, cond, procpass, evt, production, filetype, runnb)
+
+  #############################################################################
+  types_getDirectoryMetadata = [StringType]
+  def export_getDirectoryMetadata(self, lfn):
+    return dataMGMT_.getDirectoryMetadata(lfn)
