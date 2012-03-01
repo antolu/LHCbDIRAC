@@ -8,40 +8,55 @@ from DIRAC.Core.Base import Script
 from DIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 
 import re, time, types, string, signal, sys, os, cmd
-Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                     'Usage:',
-                                     '  %s [option|cfgfile] <TransID> <Status>' % Script.scriptName, ] ) )
-Script.parseCommandLine()
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
-args = Script.getPositionalArgs()
+if __name__ == "__main__":
 
-if not len( args ) == 2:
-  Script.showUsage()
+  dmScript = DMScript()
+  dmScript.registerFileSwitches()
+  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                       'Usage:',
+                                       '  %s [option|cfgfile] <TransID> <Status>' % Script.scriptName, ] ) )
+  Script.parseCommandLine()
+
+  args = Script.getPositionalArgs()
+
+  if len( args ) < 1:
+    Script.showHelp()
+    DIRAC.exit( 0 )
+
+  transID = args[0]
+  if len(args) == 2:
+    status = args[1]
+  else:
+    status = 'Unknown'
+  lfns = dmScript.getOption('LFNs')
+
+  transClient = TransformationClient()
+
+  if not lfns:
+    res = transClient.getTransformation( transID )
+    if not res['OK']:
+      print "Failed to get transformation information: %s" % res['Message']
+      DIRAC.exit( 2 )
+
+    selectDict = {'TransformationID':res['Value']['TransformationID'], 'Status':status}
+    res = transClient.getTransformationFiles( condDict = selectDict )
+    if not res['OK']:
+      print "Failed to get files: %s" % res['Message']
+      DIRAC.exit( 2 )
+
+    lfns = [d['LFN'] for d in res['Value']]
+    if not lfns:
+      print "No files found in transformation %s, status %s" %(transID, status)
+
+  if not lfns:
+    print "No files to be reset in transformation", transID
+  else:
+    res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force = ( status == 'MaxReset' ) )
+    if res['OK']:
+      print "%d files were reset Unused in transformation %s" % ( len( lfns ), transID )
+    else:
+      print "Failed to reset %d files to Unused in transformation %s" % ( len( lfns ), transID )
+      DIRAC.exit( 2 )
   DIRAC.exit( 0 )
-
-transID = args[0]
-status = args[1]
-
-transClient = TransformationClient()
-
-res = transClient.getTransformation( transID )
-if not res['OK']:
-  print "Failed to get transformation information: %s" % res['Message']
-  DIRAC.exit( 2 )
-
-selectDict = {'TransformationID':res['Value']['TransformationID'], 'Status':status}
-res = transClient.getTransformationFiles( condDict = selectDict )
-if not res['OK']:
-  print "Failed to get files: %s" % res['Message']
-  DIRAC.exit( 2 )
-
-lfns = [d['LFN'] for d in res['Value']]
-
-res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force = ( status == 'MaxReset' ) )
-
-if res['OK']:
-  print "%d files were reset Unused in transformation %s" % ( len( lfns ), transID )
-  DIRAC.exit( 0 )
-else:
-  print "Failed to reser %d files to Unused in transformation %s" % ( len( lfns ), transID )
-  DIRAC.exit( 2 )
