@@ -268,7 +268,7 @@ for id in idList:
                 taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
                 if byFiles and not taskList:
                     print "LFN:", fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
-                if fileDict['RunNumber'] == 0:
+                if fileDict['RunNumber'] == 0 and fileDict['LFN'].find('/MC') < 0:
                   filesToBeFixed.append( fileDict['LFN'] )
             if filesToBeFixed:
               if not fixIt:
