@@ -215,6 +215,10 @@ if __name__ == "__main__":
         pluginParams[key] = pluginScript.getOption( key )
   nbCopies = pluginScript.getOption( 'Replicas' )
   groupSize = pluginScript.getOption( 'GroupSize', 5 )
+  if float(int(groupSize)) == float(groupSize):
+    groupSize = int(groupSize)
+  else:
+    groupSize = float(groupSize)
   #print pluginParams
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
