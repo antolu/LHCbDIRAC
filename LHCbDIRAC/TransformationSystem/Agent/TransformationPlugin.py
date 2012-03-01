@@ -5,7 +5,6 @@ __RCSID__ = "$Id$"
 
 
 from DIRAC                                                             import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
@@ -588,7 +587,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_ERROR( "TransformationPlugin._BySize: The 'BySize' plug-in requires parameters." )
     status = self.params['Status']
     requestedSize = float( self.params['GroupSize'] ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
-    maxFiles = self.params.get( 'MaxFiles', 100 )
+    maxFiles = self.__getPluginParam( 'MaxFiles', 100 )
     # Group files by SE
     fileGroups = self._getFileGroups( self.data )
     # Get the file sizes
@@ -823,6 +822,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False ):
     # Select active SEs
+    nbArchive1 = min(1, len(archive1SEs))
+    nbArchive2 = min(1, len(archive2SEs))
     archive1ActiveSEs = self.__getActiveSEs( archive1SEs )
     if not archive1ActiveSEs:
       archive1ActiveSEs = archive1SEs
@@ -833,21 +834,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     targetSites = []
     targetSEs = []
-    self.__logVerbose( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, existingSEs ) )
+    self.__logVerbose( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1ActiveSEs, archive2ActiveSEs, mandatorySEs, secondaryActiveSEs, numberOfCopies, existingSEs ) )
     # Ensure that we have a archive1 copy
     archive1Existing = [se for se in archive1SEs if se in existingSEs]
-    ( ses, targetSites ) = self.__selectSEs( archive1Existing + randomize( archive1ActiveSEs ), 1, targetSites )
+    ( ses, targetSites ) = self.__selectSEs( archive1Existing + randomize( archive1ActiveSEs ), nbArchive1, targetSites )
     self.__logVerbose( "Archive1SEs: %s" % ses )
-    if len( ses ) < 1 :
+    if len( ses ) < nbArchive1 :
       self.__logError( 'Cannot select archive1SE in active SEs' )
       return None
     targetSEs += ses
 
     # ... and an Archive2 copy
     archive2Existing = [se for se in archive2SEs if se in existingSEs]
-    ( ses, targetSites ) = self.__selectSEs( archive2Existing + randomize( archive2ActiveSEs ), 1, targetSites )
+    ( ses, targetSites ) = self.__selectSEs( archive2Existing + randomize( archive2ActiveSEs ), nbArchive2, targetSites )
     self.__logVerbose( "Archive2SEs: %s" % ses )
-    if len( ses ) < 1 :
+    if len( ses ) < nbArchive2 :
       self.__logError( 'Cannot select archive2SE in active SEs' )
       return None
     targetSEs += ses
@@ -889,30 +890,54 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         fileTargetSEs[lfn] = stringTargetSEs
     return ( fileTargetSEs, alreadyCompleted )
 
+  def __getPluginParam(self, name, default):
+    # get the value of a parameter looking 1st in the CS
+    if default:
+      valueType = type(default)
+    else:
+      valueType = None
+    # First look at a generic value...
+    from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+    optionPath = "TransformationPlugins/%s" %( name)
+    value = Operations().getValue( optionPath, None)
+    self.__logVerbose("Default plugin param %s: '%s'" %(optionPath, value))
+    # Then look at a plugin-specific value
+    optionPath = "TransformationPlugins/%s/%s" %(self.plugin, name)
+    value = Operations().getValue( optionPath, value)
+    self.__logVerbose("Speficic plugin param %s: '%s'" %(optionPath, value))
+    if value != None:
+      default = value
+    # Finally look at a transformation-specific parameter
+    value = self.params.get( name, default)
+    self.__logVerbose("Transformation plugin param %s: '%s'" %(name, value))
+    if valueType and type(value) != valueType:
+      if valueType == type([]):
+        value = self.__getListFromString(value)
+      if valueType == type(0):
+        value = int(value)
+    self.__logVerbose("Final plugin param %s: '%s'" %(name, value))
+    return value
+
   def _LHCbDSTBroadcast( self ):
-    archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN-DST'] )
-    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST', 'PIC-DST', 'RAL-DST'] )
-    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 4 ) )
+    archive1SEs = self.__getPluginParam( 'Archive1SEs', ['CERN-ARCHIVE'] )
+    archive2SEs = self.__getPluginParam( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    mandatorySEs = self.__getPluginParam( 'MandatorySEs', ['CERN-DST'] )
+    secondarySEs = self.__getPluginParam( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST', 'PIC-DST', 'RAL-DST'] )
+    numberOfCopies = self.__getPluginParam( 'NumberOfReplicas', 4 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
   def _LHCbMCDSTBroadcast( self ):
-    archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC-DST'] )
-    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
-    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
+    archive1SEs = self.__getPluginParam( 'Archive1SEs', ['CERN-ARCHIVE'] )
+    archive2SEs = self.__getPluginParam( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    mandatorySEs = self.__getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST'] )
+    secondarySEs = self.__getPluginParam( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    numberOfCopies = self.__getPluginParam( 'NumberOfReplicas', 3 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
   def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies ):
     """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs"""
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
-    archive1SEs = self.__getListFromString( archive1SEs )
-    archive2SEs = self.__getListFromString( archive2SEs )
-    mandatorySEs = self.__getListFromString( mandatorySEs )
-    secondarySEs = self.__getListFromString( secondarySEs )
 
     # We need at least all mandatory copies
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
@@ -998,16 +1023,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
-    archive1SEs = self.params.get( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST'] )
-    secondarySEs = self.params.get( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
-    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 3 ) )
-
-    archive1SEs = self.__getListFromString( archive1SEs )
-    archive2SEs = self.__getListFromString( archive2SEs )
-    mandatorySEs = self.__getListFromString( mandatorySEs )
-    secondarySEs = self.__getListFromString( secondarySEs )
+    archive1SEs = self.__getPluginParam( 'Archive1SEs', ['CERN-ARCHIVE'] )
+    archive2SEs = self.__getPluginParam( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    mandatorySEs = self.__getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST'] )
+    secondarySEs = self.__getPluginParam( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST', 'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    numberOfCopies = self.__getPluginParam( 'NumberOfReplicas', 3 )
 
     # We need at least all mandatory copies
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
@@ -1028,19 +1048,25 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __getActiveSEs( self, selist ):
     activeSE = []
-   
-    res = ResourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
-    if res[ 'OK' ]:
-      for k,v in res[ 'Value' ].items():
-        if v.has_key( 'Write' ) and v[ 'Write' ] in [ 'Active', 'Bad' ]:
-          activeSE.append( k )
-     
+    try:
+      from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
+      res = ResourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
+      if res[ 'OK' ]:
+        for k,v in res[ 'Value' ].items():
+          if v.has_key( 'Write' ) and v[ 'Write' ] in [ 'Active', 'Bad' ]:
+            activeSE.append( k )
+    except:
+      # To be removed when using Dirac v6r2
+      for se in selist:
+        res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
+        if res['OK'] and res['Value'] == 'Active':
+          activeSE.append( se )
     return activeSE
 
   def __getListFromString( self, s ):
     # Avoid using eval()... painful
     if type( s ) == types.StringType:
-      if s == "[]":
+      if s == "[]" or s == '':
         return []
       if s[0] == '[' and s[-1] == ']':
         s = s[1:-1]
@@ -1074,19 +1100,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return targetSEs + sameSEs
 
   def _ReplicateDataset( self ):
-    destSEs = self.__getListFromString( self.params.get( 'DestinationSEs', [] ) )
+    destSEs = self.__getPluginParam( 'DestinationSEs', [] )
     if not destSEs:
-      destSEs = self.__getListFromString( self.params.get( 'MandatorySEs', [] ) )
-    secondarySEs = self.__getListFromString( self.params.get( 'SecondarySEs', [] ) )
-    numberOfCopies = int( self.params.get( 'NumberOfReplicas', 0 ) )
+      destSEs = self.__getPluginParam( 'MandatorySEs', [] )
+    secondarySEs = self.__getPluginParam( 'SecondarySEs', [] )
+    numberOfCopies = self.__getPluginParam( 'NumberOfReplicas', 0 )
     return self.__simpleReplication( destSEs, secondarySEs, numberOfCopies )
 
   def _ArchiveDataset( self ):
-    archive1SEs = self.params.get( 'Archive1SEs', [] )
-    archive2SEs = self.params.get( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    archive1SEs = self.__getListFromString( archive1SEs )
-    archive2SEs = self.__getListFromString( archive2SEs )
+    archive1SEs = self.__getPluginParam( 'Archive1SEs', ['CERN-ARCHIVE'] )
+    archive2SEs = self.__getPluginParam( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     archive1ActiveSEs = self.__getActiveSEs( archive1SEs )
+    numberOfCopies = self.__getPluginParam( 'NumberOfReplicas', 2 )
     if not archive1ActiveSEs:
       archive1ActiveSEs = archive1SEs
     archive2ActiveSEs = self.__getActiveSEs( archive2SEs )
@@ -1096,12 +1121,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive1SE = [randomize( archive1ActiveSEs )[0]]
     else:
       archive1SE = []
-    return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = 2 )
+    return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
   def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
-    secondarySEs = self.__getListFromString( secondarySEs )
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
       activeSecondarySEs = secondarySEs
@@ -1187,25 +1211,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__removeReplicas( keepSEs = [], minKeep = 0 )
 
   def _DeleteDataset( self ):
-    keepSEs = self.params.get( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    keepSEs = self.__getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     return self.__removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
-    listSEs = self.params.get( 'FromSEs', None )
-    keepSEs = self.params.get( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    keepSEs = self.__getListFromString( keepSEs )
-    mandatorySEs = self.params.get( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
-    mandatorySEs = self.__getListFromString( mandatorySEs )
+    listSEs = self.__getPluginParam( 'FromSEs', None )
+    keepSEs = self.__getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+    mandatorySEs = self.__getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
-    minKeep = int( self.params.get( 'NumberOfReplicas', 1 ) )
+    minKeep = self.__getPluginParam( 'NumberOfReplicas', 1 )
 
     return self.__removeReplicas( listSEs = listSEs, keepSEs = keepSEs + mandatorySEs, minKeep = minKeep )
 
   def __removeReplicas( self, listSEs = [], keepSEs = [], minKeep = 999 ):
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
-    listSEs = self.__getListFromString( listSEs )
-    keepSEs = self.__getListFromString( keepSEs )
     nKeep = min( 2, len( keepSEs ) )
     #print nKeep, listSEs, keepSEs
 
