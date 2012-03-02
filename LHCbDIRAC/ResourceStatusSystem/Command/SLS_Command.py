@@ -15,15 +15,22 @@ from DIRAC.ResourceStatusSystem.Utilities            import CS
 __RCSID__ = '$Id: $'
 
 def slsid_of_service(granularity, name, type_ = None):
-  """Return the SLS id of various services."""
-  if type_ == "CondDB"   : return name.split('@')[1] + "_CondDB"
-  if type_ == 'VO-BOX'   : return name.split('.')[1] + "_VOBOX"
-  elif type_ == 'VOMS'   : return 'VOMS'
-  elif (granularity, type_) == ("StorageElement", None) : return re.split("[-_]", name)[0] + "_" + CS.getSEToken(name)
-  elif type_ == "CASTOR" :
-    try               : return "CASTORLHCB_LHCB" + re.split("[-_]", CS.getSEToken(name))[1].upper()
-    except IndexError : return ""
-  else                : return ""
+  '''Return the SLS id of various services.'''
+  if type_ == 'CondDB': 
+    return name.split( '@' )[ 1 ] + '_CondDB'
+  if type_ == 'VO-BOX': 
+    return name.split( '.' )[ 1 ] + '_VOBOX'
+  elif type_ == 'VOMS': 
+    return 'VOMS'
+  elif ( granularity, type_ ) == ( 'StorageElement', None ): 
+    return re.split( '[-_]', name )[ 0 ] + '_' + CS.getSEToken( name )
+  elif type_ == 'CASTOR':
+    try: 
+      return 'CASTORLHCB_LHCB' + re.split( '[-_]', CS.getSEToken( name ))[1].upper()
+    except IndexError: 
+      return ''
+  else: 
+    return ''
 
 class SLSStatus_Command(Command):
   def doCommand(self):
