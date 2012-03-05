@@ -39,49 +39,50 @@ if __name__ == "__main__":
     pass
 
   bkQuery = dmScript.getBKQuery()
-  prod = bkQuery.getQueryDict().get('ProductionID')
-  if type(prod) == type([]):
-    bkQuery.setOption('Production', prod[0])
-    bkQuery.setOption('ProductionID', None)
+  prodList = bkQuery.getQueryDict().get('ProductionID', [None])
+  bkQuery.setOption('ProductionID', None)
+
   from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
-  print "For BK query:", bkQuery
-  res = bk.getFilesSumary( bkQuery.getQueryDict() )
-  if not res['OK']:
-    print "Error getting statistics from BK"
-    DIRAC.exit( 0 )
-  nbRecords = res['Value']['TotalRecords']
-  paramNames = res['Value']['ParameterNames']
-  tab = 15
-  sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
-  lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
-  for record in range( nbRecords ):
-    paramValues = res['Value']['Records'][record]
-    for i in range( len( paramNames ) ):
-      if paramNames[i] == 'NbofFiles':
-        print '%s:%s' % ( 'Nb of Files'.ljust( tab ), intWithQuotes( paramValues[i] ) )
-      elif paramNames[i] == 'NumberOfEvents':
-        print '%s:%s' % ( 'Nb of Events'.ljust( tab ), intWithQuotes( paramValues[i] ) )
-      elif paramNames[i] == 'FileSize':
-        size = paramValues[i]
-        if size:
-          for unit in sizeUnits:
-            if size < 1000.:
-              break
-            size /= 1000.
-        else:
-          size = 0
-          unit = ''
-        print '%s:%.3f %s' % ( 'Total size'.ljust( tab ), size, unit )
-      elif paramNames[i] == 'Luminosity':
-        lumi = paramValues[i]
-        if lumi:
-          for unit in lumiUnits:
-            if lumi < 1000.:
-              break
-            lumi /= 1000.
-        else:
-          lumi = 0
-          unit = ''
-        print '%s:%.3f %s' % ( 'Luminosity'.ljust( tab ), lumi, unit )
+  for prod in prodList:
+    bkQuery.setOption('Production', prod)
+    print "For BK query:", bkQuery
+    res = bk.getFilesSumary( bkQuery.getQueryDict() )
+    if not res['OK']:
+      print "Error getting statistics from BK"
+      DIRAC.exit( 0 )
+    nbRecords = res['Value']['TotalRecords']
+    paramNames = res['Value']['ParameterNames']
+    tab = 15
+    sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
+    lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
+    for record in range( nbRecords ):
+      paramValues = res['Value']['Records'][record]
+      for i in range( len( paramNames ) ):
+        if paramNames[i] == 'NbofFiles':
+          print '%s:%s' % ( 'Nb of Files'.ljust( tab ), intWithQuotes( paramValues[i] ) )
+        elif paramNames[i] == 'NumberOfEvents':
+          print '%s:%s' % ( 'Nb of Events'.ljust( tab ), intWithQuotes( paramValues[i] ) )
+        elif paramNames[i] == 'FileSize':
+          size = paramValues[i]
+          if size:
+            for unit in sizeUnits:
+              if size < 1000.:
+                break
+              size /= 1000.
+          else:
+            size = 0
+            unit = ''
+          print '%s:%.3f %s' % ( 'Total size'.ljust( tab ), size, unit )
+        elif paramNames[i] == 'Luminosity':
+          lumi = paramValues[i]
+          if lumi:
+            for unit in lumiUnits:
+              if lumi < 1000.:
+                break
+              lumi /= 1000.
+          else:
+            lumi = 0
+            unit = ''
+          print '%s:%.3f %s' % ( 'Luminosity'.ljust( tab ), lumi, unit )
