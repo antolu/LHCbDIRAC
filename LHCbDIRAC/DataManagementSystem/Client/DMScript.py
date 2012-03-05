@@ -682,6 +682,9 @@ class DMScript():
     Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery )
     Script.registerSwitch( "r:", "Runs=", "   Run or range of runs (r1:r2)", self.setRuns )
     Script.registerSwitch( '', "DQFlags=", "   DQ flag used in query", self.setDQFlags )
+    Script.registerSwitch( '', "StartDate=", "   Start date for the BK query", self.setStartDate)
+    Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate)
+
 
   def registerNamespaceSwitches( self ):
     # namespace switches
@@ -715,6 +718,14 @@ class DMScript():
       gLogger.error( "Invalid production switch value: %s" % arg )
       self.options['Productions'] = ['Invalid']
       return DIRAC.S_ERROR()
+    return DIRAC.S_OK()
+
+  def setStartDate(self, arg):
+    self.options['StartDate'] = arg
+    return DIRAC.S_OK()
+
+  def setEndDate(self, arg):
+    self.options['EndDate'] = arg
     return DIRAC.S_OK()
 
   def setFileType( self, arg ):
@@ -774,7 +785,9 @@ class DMScript():
   def setLFNsFromFile( self, arg ):
     try:
       f = open( arg, 'r' )
-      self.options['LFNs'] = f.read().splitlines()
+      lines = f.read().splitlines()
+      lfns = [l.split('LFN:')[-1].strip().split()[0] for l in lines]
+      self.options['LFNs'] = lfns
       f.close()
     except:
       pass
@@ -800,6 +813,10 @@ class DMScript():
     self.bkQuery.setExceptFileTypes( self.exceptFileTypes )
     if 'DQFlags' in self.options:
       self.bkQuery.setDQFlag( self.options['DQFlags'] )
+    if 'StartDate' in self.options:
+      self.bkQuery.setOption('StartDate', self.options['StartDate'])
+    if 'EndDate' in self.options:
+      self.bkQuery.setOption('EndDate', self.options['EndDate'])
     return self.bkQuery
 
   def getRequestID( self, prod = None ):
