@@ -56,7 +56,6 @@ if __name__ == "__main__":
   tab = 15
   sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
   lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
-  print res
   for record in range( nbRecords ):
     paramValues = res['Value']['Records'][record]
     for i in range( len( paramNames ) ):
