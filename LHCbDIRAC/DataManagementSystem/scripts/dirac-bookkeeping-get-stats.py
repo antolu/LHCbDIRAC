@@ -14,7 +14,10 @@ def intWithQuotes( val, quote = "'" ):
   if not val:
     return 'None'
   while val:
-    chunks.append( str( val % 1000 ) )
+    if val >= 1000:
+      chunks.append( "%03d" % ( val % 1000 ) )
+    else:
+      chunks.append( "%d" % ( val % 1000 ) )
     val /= 1000
   chunks.reverse()
   return quote.join( chunks )
@@ -36,11 +39,15 @@ if __name__ == "__main__":
     pass
 
   bkQuery = dmScript.getBKQuery()
+  prod = bkQuery.getQueryDict().get('ProductionID')
+  if type(prod) == type([]):
+    bkQuery.setOption('Production', prod[0])
+    bkQuery.setOption('ProductionID', None)
   from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
   print "For BK query:", bkQuery
-  res = bk.getFilesSumary( bkQuery.bkQueryDict )
+  res = bk.getFilesSumary( bkQuery.getQueryDict() )
   if not res['OK']:
     print "Error getting statistics from BK"
     DIRAC.exit( 0 )
@@ -49,6 +56,7 @@ if __name__ == "__main__":
   tab = 15
   sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
   lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
+  print res
   for record in range( nbRecords ):
     paramValues = res['Value']['Records'][record]
     for i in range( len( paramNames ) ):
@@ -60,7 +68,7 @@ if __name__ == "__main__":
         size = paramValues[i]
         if size:
           for unit in sizeUnits:
-            if size / 1000. < 1.:
+            if size < 1000.:
               break
             size /= 1000.
         else:
@@ -71,7 +79,7 @@ if __name__ == "__main__":
         lumi = paramValues[i]
         if lumi:
           for unit in lumiUnits:
-            if lumi / 1000. < 1.:
+            if lumi < 1000.:
               break
             lumi /= 1000.
         else:
