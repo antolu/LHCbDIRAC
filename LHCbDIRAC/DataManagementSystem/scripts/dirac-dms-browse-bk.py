@@ -4,7 +4,8 @@
 ########################################################################
 
 """
-   Get statistics on number of replicas for a given directory or production
+   Browse a BK path. It also allows to get from a file the datasets that should be kept (with a date)
+   and in this case creates a list of datasets to be deleted and datasets to be kept
 """
 
 __RCSID__ = "$Id: dirac-dms-browse-bk.py 42387 2011-09-07 13:53:37Z phicharp $"
