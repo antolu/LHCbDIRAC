@@ -127,11 +127,13 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   def updateSLSTest( self, testName, target, availability, metric, description, 
                      timestamp, meta = {} ):
     return self.__query( 'update', 'SLSTest', locals() )
-  def getSLSTest( self, testName, target, availability = None, metric = None, 
-                  description = None, timestamp = None, meta = {} ):
+  def getSLSTest( self, testName = None, target = None, availability = None, 
+                  metric = None, description = None, timestamp = None, 
+                  meta = {} ):
     return self.__query( 'get', 'SLSTest', locals() )
-  def deleteSLSTest( self, testName, target, availability = None, metric = None, 
-                     description = None, timestamp = None, meta = {} ):
+  def deleteSLSTest( self, testName = None, target = None, availability = None, 
+                     metric = None, description = None, timestamp = None, 
+                     meta = {} ):
     return self.__query( 'delete', 'SLSTest', locals() )
   def addOrModifySLSTest( self, testName, target, availability, metric, 
                           description, timestamp ):
