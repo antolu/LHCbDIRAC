@@ -117,7 +117,7 @@ def runProbe( probeInfo, testConfig ):
   xmlDict[ 'id' ]               = 'LHCb_ConditionDB_%s' % condDB
   xmlDict[ 'target' ]           = condDB
   xmlDict[ 'availability']      = availability
-  xmlDict[ 'metric']            = ( 1 and availability ) or -1
+  xmlDict[ 'metric']            = ( availability and 1 ) or -1
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
   xmlDict[ 'data' ]             = [ #node name, name attr, desc attr, node value
                                  ( 'numericvalue', 'Time to access ConditionDB', None, loadTime ),

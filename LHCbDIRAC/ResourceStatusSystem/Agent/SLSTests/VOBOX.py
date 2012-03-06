@@ -74,7 +74,7 @@ def runProbe( probeInfo, testConfig ):
   xmlDict[ 'id' ]               = 'LHCb_VOBOX_%s' % target
   xmlDict[ 'target' ]           = target
   xmlDict[ 'availability' ]     = availability
-  xmlDict[ 'metric' ]           = ( 100 and res[ 'OK' ] ) or -1
+  xmlDict[ 'metric' ]           = ( res[ 'OK' ] and 100 ) or -1
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
   
   xmlDict[ 'data' ] = [ #node name, name attr, desc attr, node value

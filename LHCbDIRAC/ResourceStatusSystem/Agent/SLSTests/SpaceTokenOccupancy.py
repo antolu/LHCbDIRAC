@@ -81,7 +81,7 @@ def runProbe( probeInfo, testConfig ):
   xmlDict[ 'id' ]               = 'LHCb_%s' % target 
   xmlDict[ 'target' ]           = target
   xmlDict[ 'availability' ]     = availability
-  xmlDict[ 'metric' ]           = ( free and answer[ 0 ] == 0 ) or -1
+  xmlDict[ 'metric' ]           = ( ( answer[ 0 ] == 0 ) and free ) or -1
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
   
   if answer[ 0 ] == 0:
