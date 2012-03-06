@@ -75,21 +75,26 @@ def runProbe( probeInfo, testConfig ):
   
   ## XML generation ############################################################
 
+  target = '%s_%s_%s' % ( testConfig[ 'testName' ], site, spaceToken )
+
   xmlDict = {}
-  xmlDict[ 'id' ] = 'LHCb_%s_%s_%s' % ( testConfig[ 'testName' ], site, spaceToken ) 
-  
+  xmlDict[ 'id' ]               = 'LHCb_%s' % target 
+  xmlDict[ 'target' ]           = target
   xmlDict[ 'availability' ]     = availability
+  xmlDict[ 'metric' ]           = ( free and answer[ 0 ] == 0 ) or -1
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
   
-  xmlDict[ 'data' ] = [ { 'Space occupancy': [
+  if answer[ 0 ] == 0:
+    # We only add this if it makes sense.
+    xmlDict[ 'data' ] = [ { 'Space occupancy': [
                              ( 'numericvalue', 'Consumed', None, total - free ),
                              ( 'numericvalue', 'Capacity', None, total )
                                              ] },
-                        ( 'numericvalue', 'Free space', None, free ),
-                        ( 'numericvalue', 'Occupied space', None, total - free ),
-                        ( 'numericvalue', 'Total space', None, total ),
-                        ( 'textvalue', None, None, 'Storage space for the specific space token' )
-                       ]
+                          ( 'numericvalue', 'Free space', None, free ),
+                          ( 'numericvalue', 'Occupied space', None, total - free ),
+                          ( 'numericvalue', 'Total space', None, total ),
+                          ( 'textvalue', None, None, 'Storage space for the specific space token' )
+                         ]
      
   return { 'xmlDict' : xmlDict, 'config' : testConfig }     
      

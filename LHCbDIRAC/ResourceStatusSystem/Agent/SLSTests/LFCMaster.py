@@ -63,7 +63,9 @@ def runProbe( probeInfo, testConfig ):
 
   xmlDict = {}
   xmlDict[ 'id' ]               = 'LHCb_LFC_Master_%s' % master
-  xmlDict[ 'availability' ]     = availability 
+  xmlDict[ 'target' ]           = master
+  xmlDict[ 'availability' ]     = availability
+  xmlDict[ 'metric' ]           = -1  
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
   
   return { 'xmlDict' : xmlDict, 'config' : testConfig } 

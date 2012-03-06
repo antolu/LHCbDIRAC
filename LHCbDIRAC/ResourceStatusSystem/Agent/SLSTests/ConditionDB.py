@@ -103,7 +103,7 @@ def runProbe( probeInfo, testConfig ):
       
         loadTime     = float( reRes.group( 6 ) )
         availability = 100   
-        availabilityinfo = 'Everything all right'
+        availabilityinfo = 'Run gaudirun.py without problems.'
   
     else:  
       availabilityinfo = 'Error running gaudirun.py'
@@ -114,13 +114,15 @@ def runProbe( probeInfo, testConfig ):
   ## XML generation
   
   xmlDict = {}
-  xmlDict[ 'id' ]          = 'LHCb_ConditionDB_%s' % condDB
-  xmlDict[ 'availability'] = availability
+  xmlDict[ 'id' ]               = 'LHCb_ConditionDB_%s' % condDB
+  xmlDict[ 'target' ]           = condDB
+  xmlDict[ 'availability']      = availability
+  xmlDict[ 'metric']            = ( 1 and availability ) or -1
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
-  xmlDict[ 'data' ]        = [ #node name, name attr, desc attr, node value
-                               ( 'numericvalue', 'Time to access ConditionDB', None, loadTime ),
-                               ( 'textvalue'   , None, None, 'ConditionDB access time' )
-                              ] 
+  xmlDict[ 'data' ]             = [ #node name, name attr, desc attr, node value
+                                 ( 'numericvalue', 'Time to access ConditionDB', None, loadTime ),
+                                 ( 'textvalue'   , None, None, 'ConditionDB access time' )
+                                ] 
     
   return { 'xmlDict' : xmlDict, 'config' : testConfig }         
        
@@ -171,7 +173,7 @@ def writeAuthentication( testConfig, condDBConfig ):
 def writeOptionsFile( workdir ):
     
   options_file = """from Gaudi.Configuration import *
-from GaudiConf.Configuration import *
+from Configurables import LHCbApp
 
 from Configurables import LoadDDDB
 from Configurables import CondDB

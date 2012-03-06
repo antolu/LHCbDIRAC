@@ -89,8 +89,10 @@ def runProbe( probeInfo, testConfig ):
       availabilityinfo = res[ 'Value' ]
       res = False   
 
-  counter = 0
+  counter = -1
   while res:
+
+    counter += 0.5
 
     fullLfn = '%s%s' % ( '/grid', lfn )
     value   = lfc2.lfc_access( fullLfn, 0 )
@@ -101,8 +103,7 @@ def runProbe( probeInfo, testConfig ):
     elif counter == 120:
       availabilityinfo = 'Timeout after %s seconds' % counter
       break
-
-    counter += 0.5
+   
     time.sleep( 0.5 )
     
   availability = ( ( counter > -1 and counter < 120 ) and 100 ) or 0
@@ -121,13 +122,15 @@ def runProbe( probeInfo, testConfig ):
       res = False  
 
   availability = ( res and availability ) and 0
+  counter      = ( res and counter ) or -1
 
   ## XML generation ############################################################
 
   xmlDict = {}
-  xmlDict[ 'id' ] = 'LHCb_LFC_Mirror_%s' % mirror
-  
+  xmlDict[ 'id' ]               = 'LHCb_LFC_Mirror_%s' % mirror
+  xmlDict[ 'target' ]           = mirror
   xmlDict[ 'availability' ]     = availability
+  xmlDict[ 'metric' ]           = counter
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
 
   return { 'xmlDict' : xmlDict, 'config' : testConfig } 
