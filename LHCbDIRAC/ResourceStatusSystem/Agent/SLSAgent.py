@@ -524,7 +524,7 @@ class CondDBTest(TestBase):
 
     # Generate options file
     options = """from Gaudi.Configuration import *
-from GaudiConf.Configuration import *
+from Configurables import LHCbApp
 
 from Configurables import LoadDDDB
 from Configurables import CondDB
