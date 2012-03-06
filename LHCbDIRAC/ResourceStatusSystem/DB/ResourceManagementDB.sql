@@ -44,7 +44,7 @@ CREATE TABLE SLSTest(
   Availability INT UNSIGNED NOT NULL,
   Result INT NOT NULL,
   Description VARCHAR(511) NOT NULL,
-  Timestamp DATETIME NOT NULL,
+  DateEffective DATETIME NOT NULL,
   PRIMARY KEY  (`TestName`,`Target`)
 ) Engine=InnoDB;
   

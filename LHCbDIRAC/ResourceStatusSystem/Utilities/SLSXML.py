@@ -6,6 +6,7 @@ __RCSID__  = "$Id:  $"
 import time
 
 from xml.dom.minidom import Document
+from datetime        import datetime 
 
 from DIRAC           import gLogger
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -46,7 +47,9 @@ def writeSLSXml( task, taskResult ):
     # This 2 keys must exist
     xmlDict  = taskResult.get( 'xmlDict' )
     config   = taskResult.get( 'config' )
+    
     filename = '%s.xml' % xmlDict[ 'id' ]
+    target   = xmlDict[ 'target' ]
    
     workdir  = config.get( 'workdir' )
     testName = config.get( 'testName' )
@@ -115,6 +118,14 @@ def writeSLSXml( task, taskResult ):
                           ],
                 'nodes' : xmlList }
                 ]
+    
+    
+    
+    res = rmc.addOrModifySLSTest( testName, target, xmlDict[ 'availability' ], 
+                                  xmlDict[ 'metric' ], xmlDict[ 'availabilityinfo' ], 
+                                  datetime.utcnow() )
+    if not res[ 'OK' ]:
+      gLogger.exception( res[ 'Message' ] )
     
   except Exception, e:
     gLogger.exception( e )
