@@ -121,7 +121,22 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
                                   formerAgentStatus, counter ):
     return self.__addOrModifyElement( 'HammerCloudTest', locals() )
   
-  
+  def insertSLSTest( self, testName, target, availability, metric, description, 
+                     timestamp, meta = {} ):
+    return self.__query( 'insert', 'SLSTest', locals() )
+  def updateSLSTest( self, testName, target, availability, metric, description, 
+                     timestamp, meta = {} ):
+    return self.__query( 'update', 'SLSTest', locals() )
+  def getSLSTest( self, testName, target, availability = None, metric = None, 
+                  description = None, timestamp = None, meta = {} ):
+    return self.__query( 'get', 'SLSTest', locals() )
+  def deleteSLSTest( self, testName, target, availability = None, metric = None, 
+                     description = None, timestamp = None, meta = {} ):
+    return self.__query( 'delete', 'SLSTest', locals() )
+  def addOrModifySLSTest( self, testName, target, availability, metric, 
+                          description, timestamp ):
+    return self.__addOrModifyElement( 'SLSTest', locals() )
+
   def insertSLSService( self, system, service, timeStamp, availability,
                         serviceUptime, hostUptime, instantLoad, message, meta = {} ):
     return self.__query( 'insert', 'SLSService', locals() )

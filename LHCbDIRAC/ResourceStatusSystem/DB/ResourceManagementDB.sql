@@ -37,6 +37,16 @@ CREATE TABLE HammerCloudTest(
   PRIMARY KEY(SubmissionTime)
 ) Engine=InnoDB;
 
+DROP TABLE IF EXISTS SLSTest;
+CREATE TABLE SLSTest(
+  TestName VARCHAR(64) NOT NULL,
+  Target VARCHAR(255) NOT NULL,
+  Availability INT UNSIGNED NOT NULL,
+  Result INT NOT NULL,
+  Description VARCHAR(511) NOT NULL,
+  Timestamp DATETIME NOT NULL
+) Engine=InnoDB;
+  
 DROP TABLE IF EXISTS SLSService;
 CREATE TABLE SLSService (
   System VARCHAR(64) NOT NULL,

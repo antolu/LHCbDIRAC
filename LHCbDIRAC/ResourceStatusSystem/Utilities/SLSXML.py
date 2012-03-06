@@ -3,10 +3,15 @@
 ################################################################################
 __RCSID__  = "$Id:  $"
 
-from DIRAC           import gLogger
+import time
 
 from xml.dom.minidom import Document
-import time 
+
+from DIRAC           import gLogger
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+# Not best solution, but avoids a big number of connections to the DB oppened.
+rmc = ResourceManagementClient()
 
 def writeXml( task, taskResult ):  
 
