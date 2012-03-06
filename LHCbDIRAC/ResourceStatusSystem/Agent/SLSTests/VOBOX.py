@@ -56,12 +56,10 @@ def runProbe( probeInfo, testConfig ):
   res    = pinger.ping()  
 
   if res[ 'OK' ]:
-      
-    res = res[ 'Value' ]
        
     availability     = 100
-    suptime          = res.get( 'service uptime', 0 )
-    muptime          = res.get( 'host uptime', 0 )
+    suptime          = res[ 'Value' ].get( 'service uptime', 0 )
+    muptime          = res[ 'Value' ].get( 'host uptime', 0 )
     availabilityinfo = 'Service %s is up and running' % url
     
   else:
