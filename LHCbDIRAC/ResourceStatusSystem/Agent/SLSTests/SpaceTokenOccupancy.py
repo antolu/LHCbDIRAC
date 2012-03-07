@@ -75,10 +75,10 @@ def runProbe( probeInfo, testConfig ):
   
   ## XML generation ############################################################
 
-  target = '%s_%s_%s' % ( testConfig[ 'testName' ], site, spaceToken )
+  target = '%s_%s' % ( site, spaceToken )
 
   xmlDict = {}
-  xmlDict[ 'id' ]               = 'LHCb_%s' % target 
+  xmlDict[ 'id' ]               = 'LHCb_%s_%s' % ( testConfig[ 'testName' ], target ) 
   xmlDict[ 'target' ]           = target
   xmlDict[ 'availability' ]     = availability
   xmlDict[ 'metric' ]           = ( ( answer[ 0 ] == 0 ) and free ) or -1
