@@ -45,7 +45,7 @@ CREATE TABLE SLSTest(
   Result INT NOT NULL,
   Description VARCHAR(511) NOT NULL,
   DateEffective DATETIME NOT NULL,
-  PRIMARY KEY  (`TestName`,`Target`)
+  PRIMARY KEY  ( TestName, Target )
 ) Engine=InnoDB;
   
 DROP TABLE IF EXISTS SLSService;
