@@ -121,7 +121,7 @@ def runProbe( probeInfo, testConfig ):
       availabilityinfo = res[ 'Value' ]
       res = False  
 
-  availability = ( res and availability ) and 0
+  availability = ( res and availability ) or 0
   counter      = ( res and counter ) or -1
 
   ## XML generation ############################################################
