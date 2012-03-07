@@ -261,7 +261,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       if kwargs.has_key( 'lastCheckTime' ):
         kwargs[ 'lastCheckTime' ] = datetime.utcnow().replace( microsecond = 0 )
       if kwargs.has_key( 'dateEffective' ):
-        kwargs[ 'lastCheckTime' ] = datetime.utcnow().replace( microsecond = 0 )
+        kwargs[ 'dateEffective' ] = datetime.utcnow().replace( microsecond = 0 )
 
       return self._insertElement( element, kwargs )
 
