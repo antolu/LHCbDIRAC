@@ -247,23 +247,23 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     del kwargs[ 'self' ]
 
     kwargs[ 'meta' ] = { 'onlyUniqueKeys' : True }
-    sqlQuery = self._getElement( element, **kwargs )
+    sqlQuery = self._getElement( element, kwargs )
 
-    if "Value" not in sqlQuery.keys():
-      print (element, kwargs)
+#    if "Value" not in sqlQuery.keys():
+#      print (element, kwargs)
 
     if sqlQuery[ 'Value' ]:
       if kwargs.has_key( 'lastCheckTime' ):
         kwargs[ 'lastCheckTime' ] = datetime.utcnow().replace( microsecond = 0 )
 
-      return self._updateElement( element, **kwargs )
+      return self._updateElement( element, kwargs )
     else:
       if kwargs.has_key( 'lastCheckTime' ):
         kwargs[ 'lastCheckTime' ] = datetime.utcnow().replace( microsecond = 0 )
       if kwargs.has_key( 'dateEffective' ):
         kwargs[ 'lastCheckTime' ] = datetime.utcnow().replace( microsecond = 0 )
 
-      return self._insertElement( element, **kwargs )
+      return self._insertElement( element, kwargs )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
