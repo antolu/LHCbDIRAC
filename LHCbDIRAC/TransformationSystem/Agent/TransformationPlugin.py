@@ -1255,10 +1255,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             nLeft = len( [se for se in existingSEs if not se in listSEs] )
             if nLeft >= minKeep:
               # we can delete all replicas in listSEs
-              targetSEs = [se for se in listSEs]
+              targetSEs = [se for se in listSEs if se in existingSEs]
             else:
               # we should keep some in listSEs, too bad
-              targetSEs = randomize( listSEs )[0:minKeep - nLeft]
+              targetSEs = randomize( [se for se in listSEs if se in existingSEs] )[0:minKeep - nLeft]
               self.__logInfo( "Found %d files that could only be deleted in %s of the requested SEs" % ( len( lfns ), minKeep - nLeft ) )
           else:
             # remove all replicas and keep only minKeep
