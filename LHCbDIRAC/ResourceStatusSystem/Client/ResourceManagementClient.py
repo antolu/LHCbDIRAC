@@ -249,8 +249,8 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     kwargs[ 'meta' ] = { 'onlyUniqueKeys' : True }
     sqlQuery = self._getElement( element, kwargs )
 
-#    if "Value" not in sqlQuery.keys():
-#      print (element, kwargs)
+    if not sqlQuery[ 'OK' ]:
+      return sqlQuery
 
     if sqlQuery[ 'Value' ]:
       if kwargs.has_key( 'lastCheckTime' ):
