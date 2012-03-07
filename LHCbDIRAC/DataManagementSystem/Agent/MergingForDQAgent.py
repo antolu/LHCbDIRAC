@@ -297,89 +297,87 @@ class MergingForDQAgent( AgentModule ):
                 if len(res_0.keys())==0 or len(res_1.keys())==0:
                   gLogger.error( 'No BRUNELHIST or DAVINCIHIST present for this bkQuery. ' )
                 else:
-                  #Check that number of DAVINCIHIST and BRUNELHIST is the same
-                  if len(res_0.keys())==len(res_1.keys()):
-                    self.exitStatus = 0 
+                  for run in res_0.keys():
+                    ID = self.bkClient.getProcessingPassId(bkDict_brunel[ 'ProcessingPass' ])
+                    q = self.bkClient.getRunFlag( run, ID['Value'] )
+                    if q['OK']:
+                      gLogger.info("Run %s has already been flagged skipping")
+                      continue
+                    lfns=BuildLFNs(bkDict_brunel,run)
+                    #If the LFN is already in the BK it will be skipped
+                    res = self.bkClient.getFileMetadata([lfns['DATA']])
+                    if res['Value']:
+                      gLogger.info("%s already in the bookkeeping. Continue with the other runs."%str(lfns['DATA']))
+                      continue
+                    #log directory that will be uploaded 
+                    logDir = self.homeDir + 'MERGEFORDQ_RUN_'+str(run)
+                    if not os.path.exists(logDir):
+                      os.makedirs(logDir)
+                      
+                    self.logFileName = '%s/Brunel_DaVinci_%s.log' % (logDir , run )
                     
-                    for run in res_0.keys():
-                      ID = self.bkClient.getProcessingPassId(bkDict_brunel[ 'ProcessingPass' ])
-                      q = self.bkClient.getRunFlag( run, ID['Value'] )
-                      if q['OK']:
-                        gLogger.info("Run %s has already been flagged skipping")
-                        continue
-                      lfns=BuildLFNs(bkDict_brunel,run)
-                      #If the LFN is already in the BK it will be skipped
-                      res = self.bkClient.getFileMetadata([lfns['DATA']])
-                      if res['Value']:
-                        gLogger.info("%s already in the bookkeeping. Continue with the other runs."%str(lfns['DATA']))
-                        continue
-                      #log directory that will be uploaded 
-                      logDir = self.homeDir + 'MERGEFORDQ_RUN_'+str(run)
-                      if not os.path.exists(logDir):
-                        os.makedirs(logDir)
+                    gLogger.info('Log file path for application execution %s'%self.logFileName)
                       
-                      self.logFileName = '%s/Brunel_DaVinci_%s.log' % (logDir , run )
-                      
-                      gLogger.info('Log file path for application execution %s'%self.logFileName)
-                      
-                      self.logFile = open( self.logFileName, 'w+' ) 
+                    self.logFile = open( self.logFileName, 'w+' ) 
 
-                      gLogger.info('Starting Merging Process for run %s'%run)
-                      gLogger.info ('Runs to be skipped %s'%Runs)
-                      if str(run) in Runs:
-                        continue
-
-                      #Starting the three step Merging process
-                      res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , self.testMode, self.specialMode , 
-                                      self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command,self.mergeStep3Command,
-                                      self.brunelCount ,self.daVinciCount , self.logFile , self.logFileName,self.environment)
-                      #if the Merging process went fine the Finalization method is called
-                      if res['Merged']:
-                        inputData = res_0[run]['LFNs'] + res_1[run]['LFNs']
+                    gLogger.info('Starting Merging Process for run %s'%run)
+                    gLogger.info ('Runs to be skipped %s'%self.specialRuns)
+                    if str(run) in self.specialRuns:
+                      continue
+                    if not (len(res_0[run]['LFNs']) == len(res_1[run]['LFNs'])):
+                      gLogger.error("Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s"%run)
+                      continue
+                    #Starting the three step Merging process
+                    res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , self.testMode, self.specialMode , 
+                                    self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command,self.mergeStep3Command,
+                                    self.brunelCount ,self.daVinciCount , self.logFile , self.logFileName,self.environment)
+                    #if the Merging process went fine the Finalization method is called
+                    if res['Merged']:
+                      inputData = res_0[run]['LFNs'] + res_1[run]['LFNs']
+                      '''
+                      Finalization Step:
+                      '''
+                      #gLogger.info("Finalization")
+                      #continue
+                      res = Finalization(self.homeDir,logDir,lfns,res['OutputFile'],('Brunel_DaVinci_%s.log'%run),inputData,run,bkDict_brunel,rootVersion)
+                      if res['OK']:
                         '''
-                        Finalization Step:
+                        If the finalization went fine an automated message is sent to the revelant mailing list specified in the cfg.
                         '''
-                        #gLogger.info("Finalization")
-                        #continue
-                        res = Finalization(self.homeDir,logDir,lfns,res['OutputFile'],('Brunel_DaVinci_%s.log'%run),inputData,run,bkDict_brunel,rootVersion)
-                        if res['OK']:
-                          '''
-                          If the finalization went an automated message is sent to the revelant mailing list specified in the cfg.
-                          '''
-                          outMess = "**********************************************************************************************************************************\n"
-                          outMess = outMess + "\nThis is an automatic message:\n"
-                          outMess = outMess +"\n**********************************************************************************************************************************\n"
-                          outMess = outMess +'\nRun: %s\n Processing Pass: %s\n Stream: %s\n DataTaking Conditions: %s\n\n' %(str(run), p, evtTypeRef[e], d)
-                          xmldoc = minidom.parse(res['XML'])
-                          node = xmldoc.getElementsByTagName('Replica')[0]
-                          web = node.attributes['Name'].nodeValue
-                          outMess = outMess + '\nROOT file LFN: %s' %(lfns['DATA'])+'\n'
-                          outMess = outMess + '\nLocation of logfile %s\n'%str(web)
-                          outMess = outMess +"\n**********************************************************************************************************************************"
-                          notifyClient = NotificationClient()
-                          subject      = 'New %s merged ROOT file for run %s ready' %(evtTypeRef[e], str(run))
+                        outMess = "**********************************************************************************************************************************\n"
+                        outMess = outMess + "\nThis is an automatic message:\n"
+                        outMess = outMess +"\n**********************************************************************************************************************************\n"
+                        outMess = outMess +'\nRun: %s\n Processing Pass: %s\n Stream: %s\n DataTaking Conditions: %s\n\n' %(str(run), p, evtTypeRef[e], d)
+                        xmldoc = minidom.parse(res['XML'])
+                        node = xmldoc.getElementsByTagName('Replica')[0]
+                        web = node.attributes['Name'].nodeValue
+                        outMess = outMess + '\nROOT file LFN: %s' %(lfns['DATA'])+'\n'
+                        outMess = outMess + '\nLocation of logfile %s\n'%str(web)
+                        outMess = outMess +"\n**********************************************************************************************************************************"
+                        notifyClient = NotificationClient()
+                        subject      = 'New %s merged ROOT file for run %s ready' %(evtTypeRef[e], str(run))
                           
-                          res = notifyClient.sendMail(self.mailAddress, subject, outMess,self.senderAddress, localAttempt=False)
+                        res = notifyClient.sendMail(self.mailAddress, subject, outMess,self.senderAddress, localAttempt=False)
                           
-                          res = notifyClient.sendMail('falabella@fe.infn.it', subject, outMess,self.senderAddress, localAttempt=False)
+                        res = notifyClient.sendMail('falabella@fe.infn.it', subject, outMess,self.senderAddress, localAttempt=False)
 
-                          #Cleaning of all the local files and directories.
-                          removal = self.homeDir+'*'
-                          r = glob.glob(removal)
-                          for i in r:
-                            if os.path.isdir(i) == True:
-                              shutil.rmtree(i)
-                            else:
-                              os.remove(i)
+                        #Cleaning of all the local files and directories.
+                        removal = self.homeDir+'*'
+                        r = glob.glob(removal)
+                        for i in r:
+                          if os.path.isdir(i) == True:
+                            shutil.rmtree(i)
+                          else:
+                            os.remove(i)
                       else:
-                          removal = self.homeDir+'*'
-                          r = glob.glob(removal)
-                          for i in r:
-                            if os.path.isdir(i) == True:
-                              shutil.rmtree(i)
-                            else:
-                              os.remove(i)
-                          DIRAC.exit(2)
+                        removal = self.homeDir+'*'
+                        r = glob.glob(removal)
+                        for i in r:
+                          if os.path.isdir(i) == True:
+                            shutil.rmtree(i)
+                          else:
+                            os.remove(i)
+                        DIRAC.exit(2)
                       
                   else: gLogger.error( 'The number of runs selected by the bkQuery for %s in diffent from the one selected by the bkQuery for %s'%(self.histTypeList[0],self.histTypeList[1]) )
                         
