@@ -128,6 +128,8 @@ class BKQuery():
           #print b
           for et in b.split( ',' ):
             eventTypes.append( et.split( ' ' )[0] )
+          if type(eventTypes) == type([]) and len(eventTypes) == 1:
+            eventTypes = eventTypes[0]
           b = eventTypes
           #print eventTypes
         # Set the BK dictionary item
@@ -330,9 +332,10 @@ class BKQuery():
     else:
       fileTypes = fileType.split( ',' )
     allRequested = False
-    if fileTypes[0].upper() == "ALL":
+    if fileTypes[0].lower() == "all":
       allRequested = True
       bkTypes = self.getBKFileTypes()
+      #print 'bkTypes:',bkTypes
       if bkTypes:
         fileTypes = [t for t in bkTypes if t not in self.exceptFileTypes]
       else:
@@ -576,16 +579,25 @@ class BKQuery():
     eventTypes = sortList( [f[ind] for f in res['Records']] )
     return eventTypes
 
-  def getBKFileTypes( self ):
+  def getBKFileTypes( self, bkDict = None ):
     fileTypes = self.getFileTypeList()
     #print "Call getBKFileTypes:", self, fileTypes
+    if not bkDict:
+      bkDict = self.bkQueryDict.copy()
     if not fileTypes:
-      res = self.bk.getFileTypes( self.bkQueryDict )
-      #print res
-      if res['OK']:
-        res = res['Value']
-        ind = res['ParameterNames'].index( 'FileTypes' )
-        fileTypes = [f[ind] for f in res['Records'] if f[ind] not in self.exceptFileTypes]
+      fileTypes = []
+      eventTypes = bkDict.get('EventType', bkDict.get('EventTypeId'))
+      if type(eventTypes) == type([]):
+        for et in eventTypes:
+          bkDict['EventTypeId'] = et
+          fileTypes += self.getBKFileTypes( bkDict )
+      else:
+        res = self.bk.getFileTypes( bkDict )
+        #print res
+        if res['OK']:
+          res = res['Value']
+          ind = res['ParameterNames'].index( 'FileTypes' )
+          fileTypes = [f[ind] for f in res['Records'] if f[ind] not in self.exceptFileTypes]
     return self.__fileType( fileTypes, returnList = True )
 
   def getBKProcessingPasses( self, queryDict = None ):
