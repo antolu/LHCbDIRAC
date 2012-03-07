@@ -53,7 +53,7 @@ def runProbe( probeInfo, testConfig ):
 
   # Hardcoded, ugly ugly ugly !
   master = 'lfc-lhcb.cern.ch'
-  mirror = probeInfo[ 0 ] 
+  mirror = probeInfo 
   
   workdir  = testConfig.get( 'workdir' )
   testName = testConfig.get( 'testName' )
