@@ -713,7 +713,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           taskLfns += task[1]
           res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
           if not res['OK']:
-            self.__logError( "Failed to set target site to run %s as %s" % ( str( runID ), targetSite ) )
+            self.__logError( "Failed to set target SE for run %s as %s: %s" % ( str( runID ), targetSite, res['Message'] ) )
         self.cachedRunLfns[runID][paramValue] = [lfn for lfn in runParamLfns if lfn not in taskLfns]
     self.data = inputData
     self.__writeCacheFile()
@@ -890,9 +890,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         fileTargetSEs[lfn] = stringTargetSEs
     return ( fileTargetSEs, alreadyCompleted )
 
-  def __getPluginParam(self, name, default):
+  def __getPluginParam(self, name, default=None):
     # get the value of a parameter looking 1st in the CS
-    if default:
+    if default != None:
       valueType = type(default)
     else:
       valueType = None
@@ -913,8 +913,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if valueType and type(value) != valueType:
       if valueType == type([]):
         value = self.__getListFromString(value)
-      if valueType == type(0):
+      elif valueType == type(0):
         value = int(value)
+      elif valueType != type(''):
+        self.__logWarning("Unknown parameter value type %s, passed as string" %str(valueType))
     self.__logVerbose("Final plugin param %s: '%s'" %(name, value))
     return value
 
