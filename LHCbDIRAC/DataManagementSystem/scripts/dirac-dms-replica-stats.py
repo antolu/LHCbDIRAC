@@ -36,7 +36,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'Invisible', '   Show invisible files also [No]' )
   Script.registerSwitch( '', 'PrintNoReplicas', '   Print list of files without a replica [No]' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
 
   getSize = False
   visible = True
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         continue
       lfnReplicas.update( res['Value'] )
   else:
-    bkQuery = dmScript.getBKQuery( visible = visible )
+    bkQuery = dmScript.getBKQuery( visible=visible )
     print "Executing BK query:", bkQuery
     lfns = bkQuery.getLFNs()
     if lfns:
@@ -126,7 +126,7 @@ if __name__ == "__main__":
       repStats[nrep] = 0
     repStats[nrep] += 1
     if nrep == 0:
-      noReplicas[lfn] = -narchive-1
+      noReplicas[lfn] = -narchive - 1
     # narchive is negative ;-)
     if narchive not in repStats:
       repStats[narchive] = 0
@@ -153,29 +153,25 @@ if __name__ == "__main__":
   else:
     print "%d files found%s" % ( nfiles, dirStr )
   print "\nReplica statistics:"
-  if repStats.has_key( -100 ):
+  if -100 in repStats:
     print "Failover replicas:", repStats[-100], "files"
   if maxArch:
     for nrep in range( 1, maxArch + 1 ):
-      if not repStats.has_key( -nrep ):
-        repStats[-nrep] = 0
-      print nrep - 1, "archives:", repStats[-nrep], "files"
+      print nrep - 1, "archives:", repStats.setdefault( -nrep, 0 ), "files"
   for nrep in range( maxRep + 1 ):
-    if not repStats.has_key( nrep ):
-      repStats[nrep] = 0
-    print nrep, "replicas:", repStats[nrep], "files"
+    print nrep, "replicas:", repStats.setdefault( nrep, 0 ), "files"
 
   print "\nSE statistics:"
   for se in orderSEs( repSEs.keys() ):
     if se.endswith( "-FAILOVER" ): continue
     if not se.endswith( "-ARCHIVE" ):
-      res = getSitesForSE( se, gridName = 'LCG' )
+      res = getSitesForSE( se, gridName='LCG' )
       if res['OK']:
         try:
           site = res['Value'][0]
         except:
           continue
-        if not repSites.has_key( site ):
+        if site not in repSites:
           repSites[site] = [0, 0]
         repSites[site][0] += repSEs[se][0]
         repSites[site][1] += repSEs[se][1]
@@ -194,5 +190,5 @@ if __name__ == "__main__":
     reps = noReplicas.keys()
     reps.sort()
     for rep in reps:
-      print rep, "(%d archives)" %noReplicas[rep]
+      print rep, "(%d archives)" % noReplicas[rep]
 
