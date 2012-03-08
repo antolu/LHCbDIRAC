@@ -31,7 +31,7 @@ class BKInputDataAgent( OptimizerModule ):
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
-    self.bkClient = RPCClient( 'Bookkeeping/NewBookkeepingManager' )
+    self.bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
     return S_OK()
 
   #############################################################################
