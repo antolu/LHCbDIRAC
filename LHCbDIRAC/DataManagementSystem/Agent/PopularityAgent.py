@@ -11,7 +11,7 @@ from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.List                           import sortList, intListToString
 from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-#from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
+#from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
 import os, sys, time
 from datetime import datetime, timedelta
 from DIRAC  import S_OK, S_ERROR, gLogger
@@ -32,7 +32,7 @@ class PopularityAgent( AgentModule ):
       self.__stDB = RPCClient( 'DataManagement/DataUsage' )
       #self.bkClient = BookkeepingClient()
       timeout = 600
-      self.__bkClient = RPCClient('Bookkeeping/NewBookkeepingManager', timeout=timeout)
+      self.__bkClient = RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
 
     self.__workDirectory =  self.am_getOption( "WorkDirectory" )
     if not os.path.isdir( self.__workDirectory ):

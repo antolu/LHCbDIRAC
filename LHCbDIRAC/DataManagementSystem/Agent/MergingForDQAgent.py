@@ -42,7 +42,7 @@ from DIRAC                                                     import S_OK, S_ER
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ       import *
 from DIRAC.Core.Base                                           import Script
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from   DIRAC.FrameworkSystem.Client.NotificationClient       import NotificationClient
 from DIRAC import gConfig
 import re,os,string,glob,shutil

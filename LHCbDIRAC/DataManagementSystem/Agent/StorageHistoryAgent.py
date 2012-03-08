@@ -20,7 +20,7 @@ from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage import UserStorage
 from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
 import os, sys, re
 import pprint, time
 

@@ -15,7 +15,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.AgentModule                                        import AgentModule
 from DIRAC.Core.Utilities.List                                          import sortList, intListToString
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 
 from DIRAC  import S_OK

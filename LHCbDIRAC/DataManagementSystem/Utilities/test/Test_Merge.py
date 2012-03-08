@@ -10,7 +10,7 @@ from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getScriptsLocation
 from LHCbDIRAC.Workflow.Modules.RootApplication import RootApplication
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from DIRAC.Core.Base.Script import parseCommandLine
 from DIRAC.Interfaces.API.Dirac import Dirac
 import subprocess

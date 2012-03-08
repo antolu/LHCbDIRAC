@@ -30,7 +30,7 @@ if __name__ == "__main__":
       visibilityFlag = False
 
   bkQuery = dmScript.getBKQuery( visible = not visibilityFlag )
-  from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
   print "BQ query:", bkQuery

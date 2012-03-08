@@ -77,7 +77,7 @@ if __name__ == "__main__":
   directories = dmScript.getOption( "Directory", [] )
   lfns = dmScript.getOption( "LFNs", [] )
 
-  from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
   rm = ReplicaManager()

@@ -42,7 +42,7 @@ if __name__ == "__main__":
   prodList = bkQuery.getQueryDict().get('ProductionID', [None])
   bkQuery.setOption('ProductionID', None)
 
-  from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
   for prod in prodList:

@@ -28,7 +28,7 @@ Script.parseCommandLine( ignoreErrors = False )
 from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
 from DIRAC.Core.DISET.RPCClient import RPCClient
 #from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
-bkClient = RPCClient( 'Bookkeeping/NewBookkeepingManager' )
+bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
 #bkClient = BookkeepingClient()
 
 outputFileName = 'dirac-dms-chec-dir-cont.out'

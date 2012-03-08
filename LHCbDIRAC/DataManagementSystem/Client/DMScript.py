@@ -46,7 +46,7 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = "DMS s
 class BKQuery():
 
   def __init__( self, bkQuery = None, prods = [], runs = [], fileTypes = [], visible = True ):
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     self.extraBKitems = ( "StartRun", "EndRun", "ProductionID", "RunNumbers" )
     self.bk = BookkeepingClient()
     bkPath = ''
@@ -669,7 +669,7 @@ class BKQuery():
 class DMScript():
 
   def __init__( self ):
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     self.bkFields = [ "ConfigName", "ConfigVersion", "ConditionDescription", "ProcessingPass", "EventType", "FileType" ]
     self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
     self.bk = BookkeepingClient()

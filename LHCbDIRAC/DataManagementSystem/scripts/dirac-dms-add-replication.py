@@ -191,7 +191,7 @@ if __name__ == "__main__":
 
   # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
   if transType == 'Removal':
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
     from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     rm = ReplicaManager()
@@ -216,7 +216,7 @@ if __name__ == "__main__":
   # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
   setInvisiblePlugins = ( "DeleteDataset" )
   if invisible or plugin in setInvisiblePlugins:
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     res = BookkeepingClient().setFilesInvisible( lfns )
     if res['OK']:
       print "%d files were successfully set invisible in the BK" % len( lfns )
