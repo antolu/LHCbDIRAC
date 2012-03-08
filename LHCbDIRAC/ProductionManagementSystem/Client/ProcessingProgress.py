@@ -11,7 +11,7 @@ __RCSID__ = "$Id:  $"
 
 import os, sys, pickle, datetime, time
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.HTML import *
