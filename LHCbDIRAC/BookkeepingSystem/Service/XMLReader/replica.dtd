@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT Replicas (Replica*)>
+<!ELEMENT Replica EMPTY>
+
+<!ATTLIST Replica
+  File     CDATA #REQUIRED
+  Name     CDATA #REQUIRED
+  Location CDATA #REQUIRED
+  SE       CDATA "CERN"
+  Action   (Add | Delete) "Add">
