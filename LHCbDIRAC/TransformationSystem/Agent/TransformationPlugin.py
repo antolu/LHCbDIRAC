@@ -8,7 +8,7 @@ from DIRAC                                                             import gC
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
 from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 import time, types
 

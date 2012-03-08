@@ -7,7 +7,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                                                import S_OK, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import sortList, breakListIntoChunks
 import os, time, datetime, pickle, Queue

@@ -108,7 +108,7 @@ for switch in switches:
         justStats = True
     elif opt == 'fixit':
       fixIt = True
-      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
       bkClient = BookkeepingClient()
 
 if lfnList:

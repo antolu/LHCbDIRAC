@@ -12,7 +12,7 @@ from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent   import Trans
 from DIRAC.WorkloadManagementSystem.Client.WMSClient                import WMSClient
 from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 from datetime                                                       import datetime, timedelta
 import re, os
 

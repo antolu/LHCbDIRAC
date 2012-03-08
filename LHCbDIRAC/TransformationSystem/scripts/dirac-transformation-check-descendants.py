@@ -44,7 +44,7 @@ else:
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript                       import BKQuery
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks, sortList
 from DIRAC.DataManagementSystem.Client.ReplicaManager                     import ReplicaManager
 import time

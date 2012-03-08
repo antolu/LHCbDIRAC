@@ -125,7 +125,7 @@ class fakeClient:
 
   def prepareForPlugin( self, lfns ):
     import time
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     bk = BookkeepingClient()
     type = self.trans.getType()['Value']
     if not lfns:

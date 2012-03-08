@@ -33,7 +33,7 @@ from DIRAC.Core.Utilities.List                                   import uniqueEl
 from DIRAC.Core.Utilities.Time                                   import timeInterval, dateTime
 from DIRAC.Core.DISET.RPCClient                                  import RPCClient
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
 import string, re, datetime
