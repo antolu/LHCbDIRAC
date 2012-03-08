@@ -479,16 +479,96 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
                                  serviceFlavour, metricStatus, summaryData,
                                  timestamp, lastCheckTime ):
+    '''
+    Using `metricName` and `serviceURI` to query the database, decides whether 
+    to insert or update the table.
+    
+    :Parameters:
+      **metricName** - `string`
+        name of the metric 
+      **serviceURI** - `string`
+        URI of the service
+      **siteName** - `string`
+        name of the site
+      **serviceFlavour** - `string`
+        type of service
+      **metricStatus** - `string`
+        metric's status
+      **summaryData** - `string`
+        result of the monitoring test
+      **timestamp** - `datetime`
+        timestamp of the test
+      **lastCheckTime** - `datetime`
+        last time it was cheched    
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613        
     return self.__addOrModifyElement( 'MonitoringTest', locals() )
 
   def addOrModifyHammerCloudTest( self, testID, siteName, resourceName,
                                   testStatus, submissionTime, startTime,
                                   endTime, counterTime, agentStatus,
                                   formerAgentStatus, counter ):
+    '''
+    Using `submissionTime` to query the database, decides whether 
+    to insert or update the table.
+    
+    :Parameters:
+      **testID** - `integer`
+        ID given to the test by HammerCloud 
+      **siteName** - `string`
+        name of the site
+      **resourceName** - `string`
+        name of the resource
+      **testStatus** - `string`
+        status of the test
+      **submissionTime** - `datetime`
+        test submission time
+      **startTime** - `datetime`
+        test start time
+      **endTime** - `datetime`
+        test end time
+      **counterTime** - `datetime`
+        timestamp associated to the counter
+      **agentStatus** - `string`
+        status associated to the agent      
+      **formerAgentStatus** - `string`
+        previous status associated to the agent      
+      **counter** - `integer`
+        counter assigned by the agent                   
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613      
     return self.__addOrModifyElement( 'HammerCloudTest', locals() )
 
   def addOrModifySLSTest( self, testName, target, availability, result,
                           description, dateEffective ):
+    '''
+    Using `testName` and `target` to query the database, decides whether 
+    to insert or update the table.
+    
+    :Parameters:
+      **testName** - `string`
+        test name ( type of test ) 
+      **target** - `string`
+        name, URI, id.. of the target
+      **availability** - `integer`
+        computed availability
+      **result** - `integer`
+        result of the test, used to compute availability
+      **description** - `string`
+        verbose result
+      **dateEffective** - `datetime`
+        test timestamp                
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613          
     return self.__addOrModifyElement( 'SLSTest', locals() )
 
 ################################################################################
