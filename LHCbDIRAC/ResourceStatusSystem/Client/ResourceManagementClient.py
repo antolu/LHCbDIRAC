@@ -1,4 +1,4 @@
-# $HeadURL$
+# $HeadURL $
 ''' ResourceManagementClient
 
   Extension for the DIRAC version of the ResourceManagementClient.
@@ -14,7 +14,6 @@ from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
 __RCSID__ = '$Id$'
 
 class ResourceManagementClient( DIRACResourceManagementClient ):
-
   """
   The :class:`ResourceManagementClient` class extends the client on DIRAC.
 
@@ -65,32 +64,145 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
         
     meta[ 'table' ] = tableName
     
-    gLogger.info( 'Calling %s, with \n params %s \n meta %s' % ( queryType, params, meta ) )  
+    gLogger.debug( 'Calling %s, with \n params %s \n meta %s' % ( queryType, params, meta ) )  
     return gateFunction( params, meta )
 
-  def insertMonitoringTest( self, metricName, serviceURI, siteName,
-                            serviceFlavour, metricStatus, summaryData,
-                            timestamp, lastCheckTime, meta = None ):
+################################################################################
+# MONITORING TEST METHODS
+
+  def insertMonitoringTest( self, metricName, serviceURI, siteName, 
+                            serviceFlavour, metricStatus, summaryData, timestamp, 
+                            lastCheckTime, meta = None ):
+    '''
+    Inserts on MonitoringTest a new row with the arguments given.
+    
+    :Parameters:
+      **metricName** - `string`
+        name of the metric 
+      **serviceURI** - `string`
+        URI of the service
+      **siteName** - `string`
+        name of the site
+      **serviceFlavour** - `string`
+        type of service
+      **metricStatus** - `string`
+        metric's status
+      **summaryData** - `string`
+        result of the monitoring test
+      **timestamp** - `datetime`
+        timestamp of the test
+      **lastCheckTime** - `datetime`
+        last time it was cheched      
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613    
     return self.__query( 'insert', 'MonitoringTest', locals() )
   def updateMonitoringTest( self, metricName, serviceURI, siteName,
-                            serviceFlavour, metricStatus, summaryData,
-                            timestamp, lastCheckTime, meta = None ):
+                            serviceFlavour, metricStatus, summaryData, timestamp, 
+                            lastCheckTime, meta = None ):
+    '''
+    Updates on MonitoringTest a new row with the arguments given.
+    
+    :Parameters:
+      **metricName** - `string`
+        name of the metric 
+      **serviceURI** - `string`
+        URI of the service
+      **siteName** - `string`
+        name of the site
+      **serviceFlavour** - `string`
+        type of service
+      **metricStatus** - `string`
+        metric's status
+      **summaryData** - `string`
+        result of the monitoring test
+      **timestamp** - `datetime`
+        timestamp of the test
+      **lastCheckTime** - `datetime`
+        last time it was cheched      
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613       
     return self.__query( 'update', 'MonitoringTest', locals() )
-  def getMonitoringTest( self, metricName = None, serviceURI = None,
+  def getMonitoringTest( self, metricName = None, serviceURI = None, 
                          siteName = None, serviceFlavour = None,
                          metricStatus = None, summaryData = None,
                          timestamp = None, lastCheckTime = None, meta = None ):
+    '''
+    Gets from MonitoringTest all rows that match the parameters given.
+    
+    :Parameters:
+      **metricName** - `[, string, list]`
+        name of the metric 
+      **serviceURI** - `[, string, list]`
+        URI of the service
+      **siteName** - `[, string, list]`
+        name of the site
+      **serviceFlavour** - `[, string, list]`
+        type of service
+      **metricStatus** - `[, string, list]`
+        metric's status
+      **summaryData** - `[, string, list]`
+        result of the monitoring test
+      **timestamp** - `[, datetime, list]`
+        timestamp of the test
+      **lastCheckTime** - `[, datetime, list]`
+        last time it was cheched      
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613       
     return self.__query( 'get', 'MonitoringTest', locals() )
   def deleteMonitoringTest( self, metricName = None, serviceURI = None,
                             siteName = None, serviceFlavour = None,
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = None ):
-    return self.__query( 'delete', 'MonitoringTest', locals() )
-  def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
-                                 serviceFlavour, metricStatus, summaryData,
-                                 timestamp, lastCheckTime ):
-    return self.__addOrModifyElement( 'MonitoringTest', locals() )
+    '''
+    Deletes from MonitoringTest all rows that match the parameters given.
+    
+    :Parameters:
+      **metricName** - `[, string, list]`
+        name of the metric 
+      **serviceURI** - `[, string, list]`
+        URI of the service
+      **siteName** - `[, string, list]`
+        name of the site
+      **serviceFlavour** - `[, string, list]`
+        type of service
+      **metricStatus** - `[, string, list]`
+        metric's status
+      **summaryData** - `[, string, list]`
+        result of the monitoring test
+      **timestamp** - `[, datetime, list]`
+        timestamp of the test
+      **lastCheckTime** - `[, datetime, list]`
+        last time it was cheched      
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
 
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613       
+    return self.__query( 'delete', 'MonitoringTest', locals() )
+
+################################################################################
+# HAMMERCLOUD TEST METHODS
 
   def insertHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
@@ -116,11 +228,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
                              agentStatus = None, formerAgentStatus = None,
                              counter = None, meta = None ):
     return self.__query( 'delete', 'HammerCloudTest', locals() )
-  def addOrModifyHammerCloudTest( self, testID, siteName, resourceName,
-                                  testStatus, submissionTime, startTime,
-                                  endTime, counterTime, agentStatus,
-                                  formerAgentStatus, counter ):
-    return self.__addOrModifyElement( 'HammerCloudTest', locals() )
+
+################################################################################
+# SLS TEST METHODS
   
   def insertSLSTest( self, testName, target, availability, result, description, 
                      dateEffective, meta = None ):
@@ -136,9 +246,27 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
                      result = None, description = None, dateEffective = None, 
                      meta = None ):
     return self.__query( 'delete', 'SLSTest', locals() )
+
+################################################################################
+# EXTENDED BASE API METHODS
+
+  def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
+                                 serviceFlavour, metricStatus, summaryData,
+                                 timestamp, lastCheckTime ):
+    return self.__addOrModifyElement( 'MonitoringTest', locals() )
+
+  def addOrModifyHammerCloudTest( self, testID, siteName, resourceName,
+                                  testStatus, submissionTime, startTime,
+                                  endTime, counterTime, agentStatus,
+                                  formerAgentStatus, counter ):
+    return self.__addOrModifyElement( 'HammerCloudTest', locals() )
+
   def addOrModifySLSTest( self, testName, target, availability, result,
                           description, dateEffective ):
     return self.__addOrModifyElement( 'SLSTest', locals() )
+
+################################################################################
+# To be deleted...
 
   def insertSLSService( self, system, service, timeStamp, availability,
                         serviceUptime, hostUptime, instantLoad, message, meta = None ):
@@ -237,19 +365,20 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   def addOrModifySLSCondDB( self, site, timeStamp, availability, accessTime ):
     return self.__addOrModifyElement( 'SLSCondDB', locals() )
 
-  '''
-  ##############################################################################
-  # addOrModify PRIVATE FUNCTIONS
-  ##############################################################################
-  '''
+################################################################################
+# addOrModify PRIVATE FUNCTIONS
 
   def __addOrModifyElement( self, element, kwargs ):
-
+    '''
+      Method that executes update if the item is not new, otherwise inserts it
+      on the element table.
+    '''
+    
     del kwargs[ 'self' ]
 
     kwargs[ 'meta' ] = { 'onlyUniqueKeys' : True }
-    sqlQuery = self._getElement( element, kwargs )
 
+    sqlQuery = self._getElement( element, kwargs )
     if not sqlQuery[ 'OK' ]:
       return sqlQuery
 
