@@ -34,16 +34,20 @@ if __name__ == "__main__":
 
   Script.registerSwitch( "S:", "Size", "   Get the LFN size [No]" )
   Script.registerSwitch( '', 'Invisible', '   Show invisible files also [No]' )
+  Script.registerSwitch( '', 'PrintNoReplicas', '   Print list of files without a replica [No]' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
   Script.parseCommandLine( ignoreErrors = False )
 
   getSize = False
   visible = True
+  prNoReplicas = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
-    if switch[0] == 'Invisible':
+    elif switch[0] == 'Invisible':
       visible = False
+    elif switch[0] == 'PrintNoReplicas':
+      prNoReplicas = True
 
   import DIRAC
   from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
@@ -103,6 +107,7 @@ if __name__ == "__main__":
         lfnSize.update( r['Value']['Successful'] )
     for lfn, size in lfnSize.items():
       totSize += size
+  noReplicas = {}
   for lfn, replicas in lfnReplicas.items():
     SEs = replicas.keys()
     nrep = len( replicas )
@@ -110,22 +115,24 @@ if __name__ == "__main__":
     for se in list( SEs ):
       if se.endswith( "-FAILOVER" ):
         nrep -= 1
-        if not repStats.has_key( -100 ):
+        if -100 not in repStats:
           repStats[-100] = 0
         repStats[-100] += 1
         SEs.remove( se )
       if se.endswith( "-ARCHIVE" ):
         nrep -= 1
         narchive -= 1
-    if not repStats.has_key( nrep ):
+    if nrep not in repStats:
       repStats[nrep] = 0
     repStats[nrep] += 1
+    if nrep == 0:
+      noReplicas[lfn] = -narchive-1
     # narchive is negative ;-)
-    if not repStats.has_key( narchive ):
+    if narchive not in repStats:
       repStats[narchive] = 0
     repStats[narchive] += 1
-    for se in replicas.keys():
-      if not repSEs.has_key( se ):
+    for se in replicas:
+      if se not in repSEs:
         repSEs[se] = [0, 0]
       repSEs[se][0] += 1
       if getSize:
@@ -182,4 +189,10 @@ if __name__ == "__main__":
     if getSize: string += " - %.3f TB" % ( repSites[site][1] / TB )
     print string
 
+  if prNoReplicas:
+    print "\nFiles without a replica:"
+    reps = noReplicas.keys()
+    reps.sort()
+    for rep in reps:
+      print rep, "(%d archives)" %noReplicas[rep]
 
