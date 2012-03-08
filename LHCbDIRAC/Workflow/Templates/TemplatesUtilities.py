@@ -20,7 +20,7 @@ def resolveSteps( stepsList, BKKClientIn = None ):
   """
 
   if BKKClientIn is None:
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     BKKClient = BookkeepingClient()
   else:
     BKKClient = BKKClientIn

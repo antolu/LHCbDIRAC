@@ -64,7 +64,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.bkc_mock = Mock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
     self.bkc_mock.getFileTypes.return_value = {'OK': True,
-                                               'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+                                               'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                             {'skipCACheck': False, 'delegatedGroup': 'diracAdmin',
                                                             'timeout': 3600} ), 'getFileTypes', ( {}, ) ),
                                                'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],

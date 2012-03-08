@@ -112,7 +112,7 @@ class UploadOutputData( ModuleBase ):
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
       if not bk:
-        from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkClient = BookkeepingClient()
       else:
         bkClient = bk

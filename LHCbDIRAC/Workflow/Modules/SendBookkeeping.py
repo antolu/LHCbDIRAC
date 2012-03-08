@@ -52,7 +52,7 @@ class SendBookkeeping( ModuleBase ):
         return S_OK()
 
       if not bk:
-        from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bk = BookkeepingClient()
 
       self._resolveInputVariables()

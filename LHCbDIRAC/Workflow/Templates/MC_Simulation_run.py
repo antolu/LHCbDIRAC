@@ -32,7 +32,7 @@ gLogger = gLogger.getSubLogger( 'MC_Simulation_run.py' )
 #################################################################################
 from LHCbDIRAC.Interfaces.API.Production import Production
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
 ###########################################

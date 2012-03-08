@@ -42,7 +42,7 @@ args = Script.getPositionalArgs()
 
 import DIRAC
 
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 from DIRAC import gConfig, gLogger
 gLogger = gLogger.getSubLogger( 'Certification_Testing' )

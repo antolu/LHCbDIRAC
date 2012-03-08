@@ -18,7 +18,7 @@ args = Script.getPositionalArgs()
 import DIRAC
 
 from DIRAC import gLogger
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 gLogger = gLogger.getSubLogger( 'WG_productions_run.py' )
 BKClient = BookkeepingClient()

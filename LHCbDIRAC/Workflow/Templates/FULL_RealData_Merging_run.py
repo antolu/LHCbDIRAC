@@ -28,7 +28,7 @@ args = Script.getPositionalArgs()
 import DIRAC
 
 from DIRAC import gConfig, gLogger
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 gLogger = gLogger.getSubLogger( 'FULL_RealData_Merging_run.py' )
 BKClient = BookkeepingClient()
