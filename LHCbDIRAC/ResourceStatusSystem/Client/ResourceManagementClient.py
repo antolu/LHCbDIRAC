@@ -58,7 +58,8 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     
     gateFunction = getattr( self.gate, queryType )
     
-    meta   = kwargs.pop( 'meta' )
+    # If meta is None, we set it to {}
+    meta   = ( kwargs.pop( 'meta' ) and True ) or {}
     params = kwargs
     del params[ 'self' ]     
         
@@ -69,21 +70,21 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
   def insertMonitoringTest( self, metricName, serviceURI, siteName,
                             serviceFlavour, metricStatus, summaryData,
-                            timestamp, lastCheckTime, meta = {} ):
+                            timestamp, lastCheckTime, meta = None ):
     return self.__query( 'insert', 'MonitoringTest', locals() )
   def updateMonitoringTest( self, metricName, serviceURI, siteName,
                             serviceFlavour, metricStatus, summaryData,
-                            timestamp, lastCheckTime, meta = {} ):
+                            timestamp, lastCheckTime, meta = None ):
     return self.__query( 'update', 'MonitoringTest', locals() )
   def getMonitoringTest( self, metricName = None, serviceURI = None,
                          siteName = None, serviceFlavour = None,
                          metricStatus = None, summaryData = None,
-                         timestamp = None, lastCheckTime = None, meta = {} ):
+                         timestamp = None, lastCheckTime = None, meta = None ):
     return self.__query( 'get', 'MonitoringTest', locals() )
   def deleteMonitoringTest( self, metricName = None, serviceURI = None,
                             siteName = None, serviceFlavour = None,
                             metricStatus = None, summaryData = None,
-                            timestamp = None, lastCheckTime = None, meta = {} ):
+                            timestamp = None, lastCheckTime = None, meta = None ):
     return self.__query( 'delete', 'MonitoringTest', locals() )
   def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
                                  serviceFlavour, metricStatus, summaryData,
@@ -94,26 +95,26 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   def insertHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
                              agentStatus, formerAgentStatus, counter,
-                             meta = {} ):
+                             meta = None ):
     return self.__query( 'insert', 'HammerCloudTest', locals() )
   def updateHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
                              agentStatus, formerAgentStatus, counter,
-                             meta = {} ):
+                             meta = None ):
     return self.__query( 'update', 'HammerCloudTest', locals() )
   def getHammerCloudTest( self, testID = None, siteName = None,
                           resourceName = None, testStatus = None,
                           submissionTime = None, startTime = None,
                           endTime = None, counterTime = None,
                           agentStatus = None, formerAgentStatus = None,
-                          counter = None, meta = {} ):
+                          counter = None, meta = None ):
     return self.__query( 'get', 'HammerCloudTest', locals() )
   def deleteHammerCloudTest( self, testID = None, siteName = None,
                              resourceName = None, testStatus = None,
                              submissionTime = None, startTime = None,
                              endTime = None, counterTime = None,
                              agentStatus = None, formerAgentStatus = None,
-                             counter = None, meta = {} ):
+                             counter = None, meta = None ):
     return self.__query( 'delete', 'HammerCloudTest', locals() )
   def addOrModifyHammerCloudTest( self, testID, siteName, resourceName,
                                   testStatus, submissionTime, startTime,
@@ -122,36 +123,36 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     return self.__addOrModifyElement( 'HammerCloudTest', locals() )
   
   def insertSLSTest( self, testName, target, availability, result, description, 
-                     dateEffective, meta = {} ):
+                     dateEffective, meta = None ):
     return self.__query( 'insert', 'SLSTest', locals() )
   def updateSLSTest( self, testName, target, availability, result, description, 
-                     dateEffective, meta = {} ):
+                     dateEffective, meta = None ):
     return self.__query( 'update', 'SLSTest', locals() )
   def getSLSTest( self, testName = None, target = None, availability = None, 
                   result = None, description = None, dateEffective = None, 
-                  meta = {} ):
+                  meta = None ):
     return self.__query( 'get', 'SLSTest', locals() )
   def deleteSLSTest( self, testName = None, target = None, availability = None, 
                      result = None, description = None, dateEffective = None, 
-                     meta = {} ):
+                     meta = None ):
     return self.__query( 'delete', 'SLSTest', locals() )
   def addOrModifySLSTest( self, testName, target, availability, result,
                           description, dateEffective ):
     return self.__addOrModifyElement( 'SLSTest', locals() )
 
   def insertSLSService( self, system, service, timeStamp, availability,
-                        serviceUptime, hostUptime, instantLoad, message, meta = {} ):
+                        serviceUptime, hostUptime, instantLoad, message, meta = None ):
     return self.__query( 'insert', 'SLSService', locals() )
   def updateSLSService( self, system, service, timeStamp, availability,
-                        serviceUptime, hostUptime, instantLoad, message, meta = {} ):
+                        serviceUptime, hostUptime, instantLoad, message, meta = None ):
     return self.__query( 'update', 'SLSService', locals() )
   def getSLSService( self, system = None, service = None, timeStamp = None,
                      availability = None, serviceUptime = None,
-                     hostUptime = None, instantLoad = None, message = None, meta = {} ):
+                     hostUptime = None, instantLoad = None, message = None, meta = None ):
     return self.__query( 'get', 'SLSService', locals() )
   def deleteSLSService( self, system = None, service = None, timeStamp = None,
                         availability = None, serviceUptime = None,
-                        hostUptime = None, instantLoad = None, message = None, meta = {} ):
+                        hostUptime = None, instantLoad = None, message = None, meta = None ):
     return self.__query( 'delete', 'SLSService', locals() )
   def addOrModifySLSService( self, system, service, timeStamp, availability,
                              serviceUptime, hostUptime, instantLoad, message):
@@ -159,18 +160,18 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   
   
   def insertSLST1Service( self, site, service, timeStamp, availability,
-                          serviceUptime, hostUptime, message, meta = {} ):
+                          serviceUptime, hostUptime, message, meta = None ):
     return self.__query( 'insert', 'SLST1Service', locals() )
   def updateSLST1Service( self, site, service, timeStamp, availability,
-                          serviceUptime, hostUptime, message, meta = {} ):
+                          serviceUptime, hostUptime, message, meta = None ):
     return self.__query( 'update', 'SLST1Service', locals() )
   def getSLST1Service( self, site = None, service = None, timeStamp = None,
                        availability = None, serviceUptime = None,
-                       hostUptime = None, message = None, meta = {} ):
+                       hostUptime = None, message = None, meta = None ):
     return self.__query( 'get', 'SLST1Service', locals() )
   def deleteSLST1Service( self, site = None, service = None, timeStamp = None,
                           availability = None, serviceUptime = None,
-                          hostUptime = None, message = None, meta = {} ):
+                          hostUptime = None, message = None, meta = None ):
     return self.__query( 'delete', 'SLST1Service', locals() )
   def addOrModifySLST1Service( self, site, service, timeStamp, availability,
                                serviceUptime, hostUptime, message ):
@@ -178,19 +179,19 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   
   
   def insertSLSLogSE( self, name, timeStamp, validityDuration, availability,
-                     dataPartitionUsed, dataPartitionTotal, meta = {}):
+                     dataPartitionUsed, dataPartitionTotal, meta = None ):
     return self.__query( 'insert', 'SLSLogSE', locals() )
   def updateSLSLogSE( self, name, timeStamp, validityDuration, availability,
-                      dataPartitionUsed, dataPartitionTotal, meta = {} ):
+                      dataPartitionUsed, dataPartitionTotal, meta = None ):
     return self.__query( 'update', 'SLSLogSE', locals() )
   def getSLSLogSE( self, name = None, timeStamp = None, validityDuration = None,
                    availability = None, dataPartitionUsed = None,
-                   dataPartitionTotal = None, meta = {} ):
+                   dataPartitionTotal = None, meta = None ):
     return self.__query( 'get', 'SLSLogSE', locals() )
   def deleteSLSLogSE( self, name = None, timeStamp = None,
                       validityDuration = None, availability = None,
                       dataPartitionUsed = None, dataPartitionTotal = None,
-                      meta = {} ):
+                      meta = None ):
     return self.__query( 'delete', 'SLSLogSE', locals() )
   def addOrModifySLSLogSE( self, name, timeStamp, validityDuration, availability,
                            dataPartitionUsed, dataPartitionTotal ):
@@ -199,21 +200,21 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   
   def insertSLSStorage( self, site, token, timeStamp, availability,
                         refreshPeriod, validityDuration, totalSpace,
-                        guaranteedSpace, freeSpace, meta = {} ):
+                        guaranteedSpace, freeSpace, meta = None ):
     return self.__query( 'insert', 'SLSStorage', locals() )
   def updateSLSStorage( self, site, token, timeStamp, availability,
                         refreshPeriod, validityDuration, totalSpace,
-                        guaranteedSpace, freeSpace, meta = {} ):
+                        guaranteedSpace, freeSpace, meta = None ):
     return self.__query( 'update', 'SLSStorage', locals() )
   def getSLSStorage( self, site = None, token = None, timeStamp = None,
                      availability = None, refreshPeriod = None,
                      validityDuration = None, totalSpace = None,
-                     guaranteedSpace = None, freeSpace = None, meta = {} ):
+                     guaranteedSpace = None, freeSpace = None, meta = None ):
     return self.__query( 'get', 'SLSStorage', locals() )
   def deleteSLSStorage( self, site = None, token = None, timeStamp = None,
                         availability = None, refreshPeriod = None,
                         validityDuration = None, totalSpace = None,
-                        guaranteedSpace = None, freeSpace = None, meta = {} ):
+                        guaranteedSpace = None, freeSpace = None, meta = None ):
     return self.__query( 'delete', 'SLSStorage', locals() )
   def addOrModifySLSStorage( self, site, token, timeStamp, availability,
                              refreshPeriod, validityDuration, totalSpace,
@@ -222,16 +223,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   
 
   def insertSLSCondDB( self, site, timeStamp, availability, accessTime,
-                       meta = {} ):
+                       meta = None ):
     return self.__query( 'insert', 'SLSCondDB', locals() )
   def updateSLSCondDB( self, site, timeStamp, availability, accessTime,
-                       meta = {} ):
+                       meta = None ):
     return self.__query( 'update', 'SLSCondDB', locals() )
   def getSLSCondDB( self, site = None, timeStamp = None, availability = None,
-                    accessTime = None, meta = {} ):
+                    accessTime = None, meta = None ):
     return self.__query( 'get', 'SLSCondDB', locals() )
   def deleteSLSCondDB( self, site = None, timeStamp = None, availability = None,
-                       accessTime = None, meta = {} ):
+                       accessTime = None, meta = None ):
     return self.__query( 'delete', 'SLSCondDB', locals() )
   def addOrModifySLSCondDB( self, site, timeStamp, availability, accessTime ):
     return self.__addOrModifyElement( 'SLSCondDB', locals() )
