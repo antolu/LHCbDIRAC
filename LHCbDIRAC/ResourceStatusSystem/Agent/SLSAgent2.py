@@ -27,6 +27,9 @@ class SLSAgent2( AgentModule ):
   In case some process gets stuck, it applies a timeout by default of 5 minutes,
   which can be overwritten on the test configuration.
   '''
+
+  # Too many public methods
+  # pylint: disable-msg=R0904
   
   def initialize( self ):
     '''
@@ -36,6 +39,9 @@ class SLSAgent2( AgentModule ):
     Note: if a new test is added in the CS, the agent will need to be restarted
     to pick it up.
     '''
+
+    # Attribute defined outside __init__  
+    # pylint: disable-msg=W0201
 
     webRoot = self.am_getOption( 'webRoot', 'webRoot/www/sls2/')
 
@@ -128,39 +134,33 @@ class SLSAgent2( AgentModule ):
     It also adds the agent working dir to the configuration ( used to write 
     scripts, temp files, etc... )
     '''
-    
-    try:
-      
-      modConfig = gConfig.getOptionsDict( testPath )
-      if not modConfig[ 'OK' ]:
-         return S_ERROR( 'Error loading "%s".\n %s' % ( testPath, modConfig[ 'Message' ] ) )
+        
+    modConfig = gConfig.getOptionsDict( testPath )
+    if not modConfig[ 'OK' ]:
+      return S_ERROR( 'Error loading "%s".\n %s' % ( testPath, modConfig[ 'Message' ] ) )
        
-      modConfig = modConfig[ 'Value' ]
-      sections  = gConfig.getSections( testPath ) 
+    modConfig = modConfig[ 'Value' ]
+    sections  = gConfig.getSections( testPath ) 
       
-      if not sections[ 'OK' ]:
-         return S_ERROR( 'Error loading "%s".\n %s' % ( testPath, sections[ 'Message' ] ) )
-      sections = sections[ 'Value' ]
+    if not sections[ 'OK' ]:
+      return S_ERROR( 'Error loading "%s".\n %s' % ( testPath, sections[ 'Message' ] ) )
+    sections = sections[ 'Value' ]
       
-      for section in sections:
+    for section in sections:
         
-        sectionPath   = '%s/%s' % ( testPath, section )
-        sectionConfig = gConfig.getOptionsDict( sectionPath )
+      sectionPath   = '%s/%s' % ( testPath, section )
+      sectionConfig = gConfig.getOptionsDict( sectionPath )
         
-        if not sectionConfig[ 'OK' ]:
-          return S_ERROR( 'Error loading "%s".\n %s' % ( sectionPath, sectionConfig[ 'Message' ] ) )
+      if not sectionConfig[ 'OK' ]:
+        return S_ERROR( 'Error loading "%s".\n %s' % ( sectionPath, sectionConfig[ 'Message' ] ) )
         
-        sectionConfig        = sectionConfig[ 'Value' ]  
-        modConfig[ section ] = sectionConfig
+      sectionConfig        = sectionConfig[ 'Value' ]  
+      modConfig[ section ] = sectionConfig
       
-      modConfig[ 'workdir'  ] = self.workdir
-      modConfig[ 'testName' ] = testName
+    modConfig[ 'workdir'  ] = self.workdir
+    modConfig[ 'testName' ] = testName
         
-      return S_OK( modConfig )  
-          
-    except Exception, e:
-      
-      return S_ERROR( 'Exception loading configuration.\n %s' % e )
+    return S_OK( modConfig )  
   
   def finalize( self ):
     '''
