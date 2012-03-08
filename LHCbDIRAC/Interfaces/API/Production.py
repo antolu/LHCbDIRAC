@@ -40,7 +40,7 @@ class Production():
     if BKKClientIn is not None:
       self.BKKClient = BKKClientIn
     else:
-      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       self.BKKClient = BookkeepingClient()
 
     if transClientIn is not None:
@@ -1307,7 +1307,7 @@ class Production():
       fopen = open( bkName, 'w' )
       bkLines = ['# Bookkeeping publishing script created on %s by' % ( time.asctime() )]
       bkLines.append( '# by %s' % self.prodVersion )
-      bkLines.append( 'from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient' )
+      bkLines.append( 'from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient' )
       bkLines.append( 'bkClient = BookkeepingClient()' )
       bkLines.append( 'bkDict = %s' % bkDict )
       bkLines.append( 'print bkClient.addProduction(bkDict)' )

@@ -20,8 +20,8 @@ from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 from DIRAC.ResourceStatusSystem.Client import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
-from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles import getAncestorFiles
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import  DMScript
 
 import os, glob, fnmatch, string, time, re

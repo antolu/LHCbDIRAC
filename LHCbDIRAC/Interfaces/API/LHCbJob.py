@@ -1141,7 +1141,7 @@ class LHCbJob( Job ):
     if BKKClientIn is not None:
       bkClient = BKKClientIn
     else:
-      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bkClient = BookkeepingClient()
 
     Job.setInputData( self, lfns )
@@ -1186,7 +1186,7 @@ class LHCbJob( Job ):
       if BKKClientIn is not None:
         bkClient = BKKClientIn
       else:
-        from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkClient = BookkeepingClient()
 
       lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
