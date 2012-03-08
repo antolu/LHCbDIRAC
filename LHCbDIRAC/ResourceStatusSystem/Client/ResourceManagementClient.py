@@ -70,9 +70,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 ################################################################################
 # MONITORING TEST METHODS
 
-  def insertMonitoringTest( self, metricName, serviceURI, siteName, 
-                            serviceFlavour, metricStatus, summaryData, timestamp, 
-                            lastCheckTime, meta = None ):
+  def insertMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour, 
+                            metricStatus, summaryData, timestamp, lastCheckTime, 
+                            meta = None ):
     '''
     Inserts on MonitoringTest a new row with the arguments given.
     
@@ -102,9 +102,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     # Unused argument
     # pylint: disable-msg=W0613    
     return self.__query( 'insert', 'MonitoringTest', locals() )
-  def updateMonitoringTest( self, metricName, serviceURI, siteName,
-                            serviceFlavour, metricStatus, summaryData, timestamp, 
-                            lastCheckTime, meta = None ):
+  def updateMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour, 
+                            metricStatus, summaryData, timestamp, lastCheckTime, 
+                            meta = None ):
     '''
     Updates on MonitoringTest a new row with the arguments given.
     
@@ -168,7 +168,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     # pylint: disable-msg=W0613       
     return self.__query( 'get', 'MonitoringTest', locals() )
   def deleteMonitoringTest( self, metricName = None, serviceURI = None,
-                            siteName = None, serviceFlavour = None,
+                            siteName = None, serviceFlavour = None, 
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = None ):
     '''
@@ -206,27 +206,157 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
   def insertHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
-                             agentStatus, formerAgentStatus, counter,
-                             meta = None ):
+                             agentStatus, formerAgentStatus, counter, meta = None ):
+    '''
+    Inserts on HammerCloud a new row with the arguments given.
+    
+    :Parameters:
+      **testID** - `integer`
+        ID given to the test by HammerCloud 
+      **siteName** - `string`
+        name of the site
+      **resourceName** - `string`
+        name of the resource
+      **testStatus** - `string`
+        status of the test
+      **submissionTime** - `datetime`
+        test submission time
+      **startTime** - `datetime`
+        test start time
+      **endTime** - `datetime`
+        test end time
+      **counterTime** - `datetime`
+        timestamp associated to the counter
+      **agentStatus** - `string`
+        status associated to the agent      
+      **formerAgentStatus** - `string`
+        previous status associated to the agent      
+      **counter** - `integer`
+        counter assigned by the agent                   
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613      
     return self.__query( 'insert', 'HammerCloudTest', locals() )
   def updateHammerCloudTest( self, testID, siteName, resourceName, testStatus,
                              submissionTime, startTime, endTime, counterTime,
-                             agentStatus, formerAgentStatus, counter,
-                             meta = None ):
+                             agentStatus, formerAgentStatus, counter, meta = None ):
+    '''
+    Updates on HammerCloud a new row with the arguments given.
+    
+    :Parameters:
+      **testID** - `integer`
+        ID given to the test by HammerCloud 
+      **siteName** - `string`
+        name of the site
+      **resourceName** - `string`
+        name of the resource
+      **testStatus** - `string`
+        status of the test
+      **submissionTime** - `datetime`
+        test submission time
+      **startTime** - `datetime`
+        test start time
+      **endTime** - `datetime`
+        test end time
+      **counterTime** - `datetime`
+        timestamp associated to the counter
+      **agentStatus** - `string`
+        status associated to the agent      
+      **formerAgentStatus** - `string`
+        previous status associated to the agent      
+      **counter** - `integer`
+        counter assigned by the agent                   
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613    
     return self.__query( 'update', 'HammerCloudTest', locals() )
-  def getHammerCloudTest( self, testID = None, siteName = None,
-                          resourceName = None, testStatus = None,
-                          submissionTime = None, startTime = None,
-                          endTime = None, counterTime = None,
-                          agentStatus = None, formerAgentStatus = None,
-                          counter = None, meta = None ):
+  def getHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
+                          testStatus = None, submissionTime = None, startTime = None,
+                          endTime = None, counterTime = None, agentStatus = None, 
+                          formerAgentStatus = None, counter = None, meta = None ):
+    '''
+    Gets from HammerCloud all rows that match the parameters given.
+    
+    :Parameters:
+      **testID** - `[, integer, list]`
+        ID given to the test by HammerCloud 
+      **siteName** - `[, string, list]`
+        name of the site
+      **resourceName** - `[, string, list]`
+        name of the resource
+      **testStatus** - `[, string, list]`
+        status of the test
+      **submissionTime** - `[, datetime, list]`
+        test submission time
+      **startTime** - `[, datetime, list]`
+        test start time
+      **endTime** - `[, datetime, list]`
+        test end time
+      **counterTime** - `[, datetime, list]`
+        timestamp associated to the counter
+      **agentStatus** - `[, string, list]`
+        status associated to the agent      
+      **formerAgentStatus** - `[, string, list]`
+        previous status associated to the agent      
+      **counter** - `[, integer, list]`
+        counter assigned by the agent                   
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613        
     return self.__query( 'get', 'HammerCloudTest', locals() )
-  def deleteHammerCloudTest( self, testID = None, siteName = None,
-                             resourceName = None, testStatus = None,
-                             submissionTime = None, startTime = None,
-                             endTime = None, counterTime = None,
-                             agentStatus = None, formerAgentStatus = None,
-                             counter = None, meta = None ):
+  def deleteHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
+                             testStatus = None, submissionTime = None, startTime = None,
+                             endTime = None, counterTime = None, agentStatus = None, 
+                             formerAgentStatus = None, counter = None, meta = None ):
+    '''
+    Deletes from HammerCloud all rows that match the parameters given.
+    
+    :Parameters:
+      **testID** - `[, integer, list]`
+        ID given to the test by HammerCloud 
+      **siteName** - `[, string, list]`
+        name of the site
+      **resourceName** - `[, string, list]`
+        name of the resource
+      **testStatus** - `[, string, list]`
+        status of the test
+      **submissionTime** - `[, datetime, list]`
+        test submission time
+      **startTime** - `[, datetime, list]`
+        test start time
+      **endTime** - `[, datetime, list]`
+        test end time
+      **counterTime** - `[, datetime, list]`
+        timestamp associated to the counter
+      **agentStatus** - `[, string, list]`
+        status associated to the agent      
+      **formerAgentStatus** - `[, string, list]`
+        previous status associated to the agent      
+      **counter** - `[, integer, list]`
+        counter assigned by the agent                   
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613     
     return self.__query( 'delete', 'HammerCloudTest', locals() )
 
 ################################################################################
@@ -234,17 +364,113 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   
   def insertSLSTest( self, testName, target, availability, result, description, 
                      dateEffective, meta = None ):
+    '''
+    Inserts on SLSTest a new row with the arguments given.
+    
+    :Parameters:
+      **testName** - `string`
+        test name ( type of test ) 
+      **target** - `string`
+        name, URI, id.. of the target
+      **availability** - `integer`
+        computed availability
+      **result** - `integer`
+        result of the test, used to compute availability
+      **description** - `string`
+        verbose result
+      **dateEffective** - `datetime`
+        test timestamp
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613      
     return self.__query( 'insert', 'SLSTest', locals() )
   def updateSLSTest( self, testName, target, availability, result, description, 
                      dateEffective, meta = None ):
+    '''
+    Updates on SLSTest a new row with the arguments given.
+    
+    :Parameters:
+      **testName** - `string`
+        test name ( type of test ) 
+      **target** - `string`
+        name, URI, id.. of the target
+      **availability** - `integer`
+        computed availability
+      **result** - `integer`
+        result of the test, used to compute availability
+      **description** - `string`
+        verbose result
+      **dateEffective** - `datetime`
+        test timestamp
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613     
     return self.__query( 'update', 'SLSTest', locals() )
   def getSLSTest( self, testName = None, target = None, availability = None, 
                   result = None, description = None, dateEffective = None, 
                   meta = None ):
+    '''
+    Gets from SLSTest all rows that match the parameters given.
+    
+    :Parameters:
+      **testName** - `[, string, list]`
+        test name ( type of test ) 
+      **target** - `[, string, list]`
+        name, URI, id.. of the target
+      **availability** - `[, integer, list]`
+        computed availability
+      **result** - `[, integer, list]`
+        result of the test, used to compute availability
+      **description** - `[, string, list]`
+        verbose result
+      **dateEffective** - `[, datetime, list]`
+        test timestamp
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613     
     return self.__query( 'get', 'SLSTest', locals() )
   def deleteSLSTest( self, testName = None, target = None, availability = None, 
                      result = None, description = None, dateEffective = None, 
                      meta = None ):
+    '''
+    Deletes from SLSTest all rows that match the parameters given.
+    
+    :Parameters:
+      **testName** - `[, string, list]`
+        test name ( type of test ) 
+      **target** - `[, string, list]`
+        name, URI, id.. of the target
+      **availability** - `[, integer, list]`
+        computed availability
+      **result** - `[, integer, list]`
+        result of the test, used to compute availability
+      **description** - `[, string, list]`
+        verbose result
+      **dateEffective** - `[, datetime, list]`
+        test timestamp
+      **meta** - `[, dict]`
+        meta-data for the MySQL query. It will be filled automatically with the\
+       `table` key and the proper table name.
+
+    :return: S_OK() || S_ERROR()
+    '''
+    # Unused argument
+    # pylint: disable-msg=W0613        
     return self.__query( 'delete', 'SLSTest', locals() )
 
 ################################################################################
