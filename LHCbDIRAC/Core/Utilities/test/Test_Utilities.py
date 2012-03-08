@@ -13,13 +13,13 @@ class UtilitiesTestCase( unittest.TestCase ):
   def setUp( self ):
 
     self.bkClientMock = Mock()
-    self.bkClientMock.getFileTypes.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+    self.bkClientMock.getFileTypes.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                             {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
                                                                            'getFileTypes', ( {'': ''}, ) ),
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                              'Records': [['SDST'], ['PID.MDST'], ['GEN'],
                                                                          ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
-    self.bkClientMock.getTypeVersion.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+    self.bkClientMock.getTypeVersion.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                             {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
                                                                            'getFileTypes', ( {'': ''}, ) ),
                                                      'Value': {'lfn1':'ROOT', 'lfn2':'MDF'}}
@@ -220,7 +220,7 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
     self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} } )
 
     self.bkClientMock.getTypeVersion.return_value = {'OK': True,
-                                                     'rpcStub': ( ( 'Bookkeeping/NewBookkeepingManager',
+                                                     'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                   {'skipCACheck': False} ),
                                                                  'getTypeVersion', ( ['/lhcb/user/g/gligorov/2011_12/27896/27896178/SwimBs2KK.dst'], ) ),
                                                      'Value': {}}

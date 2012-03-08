@@ -24,7 +24,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac                              import Dirac
-from LHCbDIRAC.NewBookkeepingSystem.Client.AncestorFiles        import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles        import getAncestorFiles
 
 args = Script.getPositionalArgs()
 

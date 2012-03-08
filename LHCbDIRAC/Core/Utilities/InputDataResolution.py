@@ -37,7 +37,7 @@ class InputDataResolution:
     self.log = gLogger.getSubLogger( self.name )
 
     if not bkkClient:
-      from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       self.bkkClient = BookkeepingClient()
     else:
       self.bkkClient = bkkClient

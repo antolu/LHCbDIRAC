@@ -299,7 +299,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None ):
   eg : /lhcb/MC/<year>/  = getLFNRoot(None)
   """
   if not bkClient:
-    from LHCbDIRAC.NewBookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     bkClient = BookkeepingClient()
 
   dataTypes = bkClient.getFileTypes( {} )
