@@ -23,7 +23,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     self.valid = True
     try:
       if not url:
-        self.url = PathFinder.getServiceURL( 'Bookkeeping/NewBookkeepingManager' )
+        self.url = PathFinder.getServiceURL( 'Bookkeeping/BookkeepingManager' )
       else:
         self.url = url
     except Exception, exceptionMessage:
