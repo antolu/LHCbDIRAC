@@ -10,7 +10,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.List                                         import sortList
 
-def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory" ):
+def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory" ):
   """ Dictionary pretty printing """
   key_max = 0
   value_max = 0
@@ -29,15 +29,15 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
     if type( value ) == type( {} ):
       if value != {}:
         print key.rjust( center ), ' : '
-        __printDictionary( value, offset = offset, shift = shift, empty = empty )
+        __printDictionary( value, offset=offset, shift=shift, empty=empty )
       elif key not in ( 'Failed', 'Successful' ):
         print key.rjust( center ), ' : ', empty
     else:
       print key.rjust( center ), ' : ', str( value ).ljust( value_max )
 
-def printDMResult( result, shift = 4, empty = "Empty directory", script = "DMS script" ):
+def printDMResult( result, shift=4, empty="Empty directory", script="DMS script" ):
   if result['OK']:
-    __printDictionary( result['Value'], shift = shift, empty = empty )
+    __printDictionary( result['Value'], shift=shift, empty=empty )
     return 0
   else:
     print "Error in", script, ":", result['Message']
@@ -45,7 +45,7 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = "DMS s
 
 class BKQuery():
 
-  def __init__( self, bkQuery = None, prods = [], runs = [], fileTypes = [], visible = True ):
+  def __init__( self, bkQuery=None, prods=[], runs=[], fileTypes=[], visible=True ):
     from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     self.extraBKitems = ( "StartRun", "EndRun", "ProductionID", "RunNumbers" )
     self.bk = BookkeepingClient()
@@ -59,7 +59,7 @@ class BKQuery():
       bkQueryDict = bkQuery.copy()
     elif type( bkQuery ) == type( '' ):
       bkPath = bkQuery
-    bkQueryDict = self.buildBKQuery( bkPath, bkQueryDict = bkQueryDict, prods = prods, runs = runs, fileTypes = fileTypes, visible = visible )
+    bkQueryDict = self.buildBKQuery( bkPath, bkQueryDict=bkQueryDict, prods=prods, runs=runs, fileTypes=fileTypes, visible=visible )
     self.bkPath = bkPath
     self.bkQueryDict = bkQueryDict
     if not bkQueryDict.get( 'Visible' ):
@@ -68,7 +68,7 @@ class BKQuery():
   def __str__( self ):
     return str( self.bkQueryDict )
 
-  def buildBKQuery( self, bkPath = '', bkQueryDict = {}, prods = [], runs = [], fileTypes = [], visible = True ):
+  def buildBKQuery( self, bkPath='', bkQueryDict={}, prods=[], runs=[], fileTypes=[], visible=True ):
     self.bkQueryDict = {}
     if not bkPath and not prods and not runs and not bkQueryDict:
       return {}
@@ -128,7 +128,7 @@ class BKQuery():
           #print b
           for et in b.split( ',' ):
             eventTypes.append( et.split( ' ' )[0] )
-          if type(eventTypes) == type([]) and len(eventTypes) == 1:
+          if type( eventTypes ) == type( [] ) and len( eventTypes ) == 1:
             eventTypes = eventTypes[0]
           b = eventTypes
           #print eventTypes
@@ -228,7 +228,7 @@ class BKQuery():
       self.bkQueryDict.pop( key )
     return self.bkQueryDict
 
-  def setConditions( self, cond = None ):
+  def setConditions( self, cond=None ):
     """ Set the dictionary items for a given condition, or remove it (cond=None) """
     if 'ConfigName' not in self.bkQueryDict and cond:
       gLogger.warn( "Impossible to set Conditions to a BK Query without Configuration" )
@@ -242,10 +242,10 @@ class BKQuery():
     self.setOption( 'ConditionDescription', cond )
     return self.setOption( conditionsKey, cond )
 
-  def setFileType( self, fileTypes = None ):
+  def setFileType( self, fileTypes=None ):
     return self.setOption( 'FileType', self.__fileType( fileTypes ) )
 
-  def setDQFlag( self, dqFlag = 'OK' ):
+  def setDQFlag( self, dqFlag='OK' ):
     if type( dqFlag ) == type( '' ):
       dqFlag = dqFlag.upper()
     elif type( dqFlag ) == type( [] ):
@@ -262,12 +262,12 @@ class BKQuery():
   def setProcessingPass( self, processingPass ):
     return self.setOption( 'ProcessingPass', processingPass )
 
-  def setEventType( self, eventTypes = None ):
+  def setEventType( self, eventTypes=None ):
     if eventTypes:
       if type( eventTypes ) == type( '' ):
         eventTypes = eventTypes.split( ',' )
       try:
-        eventTypes = [str(int( et )) for et in eventTypes]
+        eventTypes = [str( int( et ) ) for et in eventTypes]
       except:
         print eventTypes, 'invalid as list of event types'
         return {}
@@ -276,7 +276,7 @@ class BKQuery():
     self.setOption( 'EventType', eventTypes )
     return self.setOption( 'EventTypeId', eventTypes )
 
-  def setVisible( self, visible = True ):
+  def setVisible( self, visible=True ):
     if visible:
       visible = 'Yes'
     return self.setOption( 'Visible', visible )
@@ -322,7 +322,7 @@ class BKQuery():
   def isVisible( self ):
     return self.bkQueryDict.get( 'Visible', 'No' ) == 'Yes'
 
-  def __fileType( self, fileType = None, returnList = False ):
+  def __fileType( self, fileType=None, returnList=False ):
     #print "Call __fileType:", self, fileType
     if not fileType:
         return []
@@ -400,21 +400,21 @@ class BKQuery():
       lfnSize /= 1000000000000.
     return { 'LFNs' : lfns, 'LFNSize' : lfnSize }
 
-  def getLFNSize( self, visible = None ):
+  def getLFNSize( self, visible=None ):
     if visible == None:
       visible = self.isVisible()
-    res = self.bk.getFilesWithGivenDataSets( BKQuery( self.bkQueryDict, visible = visible ).setOptions( 'FileSize', True ) )
+    res = self.bk.getFilesWithGivenDataSets( BKQuery( self.bkQueryDict, visible=visible ).setOptions( 'FileSize', True ) )
     if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
       lfnSize = res['Value'][0]
     else:
       lfnSize = 0
     return lfnSize
 
-  def getNumberOfLFNs( self, visible = None ):
+  def getNumberOfLFNs( self, visible=None ):
     if visible == None:
       visible = self.isVisible()
     if  self.isVisible() != visible:
-      query = BKQuery( self.bkQueryDict, visible = visible )
+      query = BKQuery( self.bkQueryDict, visible=visible )
     else:
       query = self
     fileTypes = query.getFileTypeList()
@@ -434,13 +434,13 @@ class BKQuery():
             #print 'Visible',query.isVisible(),fileType, 'Files:', res['Records'][0][ind], 'Size:', res['Records'][0][ind1]
     return { 'NumberOfLFNs' : nbFiles, 'LFNSize': size }
 
-  def getLFNs( self, printSEUsage = False, printOutput = True, visible = None ):
+  def getLFNs( self, printSEUsage=False, printOutput=True, visible=None ):
     if visible == None:
       visible = self.isVisible()
     from DIRAC.Core.DISET.RPCClient                                  import RPCClient
     prods = self.bkQueryDict.get( 'ProductionID' )
     if self.isVisible() != visible:
-      query = BKQuery( self.bkQueryDict, visible = visible )
+      query = BKQuery( self.bkQueryDict, visible=visible )
     else:
       query = self
     if prods and type( prods ) == type( [] ):
@@ -448,7 +448,7 @@ class BKQuery():
       lfns = []
       lfnSize = 0
       if query == self:
-        query = BKQuery( self.bkQueryDict, visible = visible )
+        query = BKQuery( self.bkQueryDict, visible=visible )
       for prod in prods:
         query.setOption( 'ProductionID', prod )
         lfnsAndSize = query.getLFNsAndSize()
@@ -494,10 +494,10 @@ class BKQuery():
           print "%s %s" % ( se.ljust( 20 ), ( '%.1f' % ( totalUsage[se] / 1000000000000. ) ) )
     return lfns
 
-  def getDirs( self, printOutput = False, visible = None ):
+  def getDirs( self, printOutput=False, visible=None ):
     if visible == None:
       visible = self.isVisible()
-    lfns = self.getLFNs( printSEUsage = True, printOutput = printOutput, visible = visible )
+    lfns = self.getLFNs( printSEUsage=True, printOutput=printOutput, visible=visible )
     dirs = []
     for lfn in lfns:
       dir = os.path.dirname( lfn )
@@ -508,7 +508,7 @@ class BKQuery():
 
   def __getProdStatus( self, prod ):
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-    res = TransformationClient().getTransformation( prod, extraParams = False )
+    res = TransformationClient().getTransformation( prod, extraParams=False )
     if not res['OK']:
       gLogger.error( "Couldn't get information on production %d" % prod )
       return None
@@ -518,7 +518,7 @@ class BKQuery():
     if self.getProcessingPass().replace( '/', '' ) == 'Real Data':
       return self.getBKProductions()
 
-  def getBKProductions( self, visible = None ):
+  def getBKProductions( self, visible=None ):
     if visible == None:
       visible = self.isVisible()
     prodList = self.bkQueryDict.get( 'ProductionID' )
@@ -579,15 +579,15 @@ class BKQuery():
     eventTypes = sortList( [f[ind] for f in res['Records']] )
     return eventTypes
 
-  def getBKFileTypes( self, bkDict = None ):
+  def getBKFileTypes( self, bkDict=None ):
     fileTypes = self.getFileTypeList()
     #print "Call getBKFileTypes:", self, fileTypes
     if not bkDict:
       bkDict = self.bkQueryDict.copy()
     if not fileTypes:
       fileTypes = []
-      eventTypes = bkDict.get('EventType', bkDict.get('EventTypeId'))
-      if type(eventTypes) == type([]):
+      eventTypes = bkDict.get( 'EventType', bkDict.get( 'EventTypeId' ) )
+      if type( eventTypes ) == type( [] ):
         for et in eventTypes:
           bkDict['EventTypeId'] = et
           fileTypes += self.getBKFileTypes( bkDict )
@@ -598,9 +598,9 @@ class BKQuery():
           res = res['Value']
           ind = res['ParameterNames'].index( 'FileTypes' )
           fileTypes = [f[ind] for f in res['Records'] if f[ind] not in self.exceptFileTypes]
-    return self.__fileType( fileTypes, returnList = True )
+    return self.__fileType( fileTypes, returnList=True )
 
-  def getBKProcessingPasses( self, queryDict = None ):
+  def getBKProcessingPasses( self, queryDict=None ):
     processingPasses = {}
     if not queryDict:
       queryDict = self.bkQueryDict.copy()
@@ -694,8 +694,8 @@ class DMScript():
     Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery )
     Script.registerSwitch( "r:", "Runs=", "   Run or range of runs (r1:r2)", self.setRuns )
     Script.registerSwitch( '', "DQFlags=", "   DQ flag used in query", self.setDQFlags )
-    Script.registerSwitch( '', "StartDate=", "   Start date for the BK query", self.setStartDate)
-    Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate)
+    Script.registerSwitch( '', "StartDate=", "   Start date for the BK query", self.setStartDate )
+    Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate )
 
 
   def registerNamespaceSwitches( self ):
@@ -732,11 +732,11 @@ class DMScript():
       return DIRAC.S_ERROR()
     return DIRAC.S_OK()
 
-  def setStartDate(self, arg):
+  def setStartDate( self, arg ):
     self.options['StartDate'] = arg
     return DIRAC.S_OK()
 
-  def setEndDate(self, arg):
+  def setEndDate( self, arg ):
     self.options['EndDate'] = arg
     return DIRAC.S_OK()
 
@@ -798,7 +798,7 @@ class DMScript():
     try:
       f = open( arg, 'r' )
       lines = f.read().splitlines()
-      lfns = [l.split('LFN:')[-1].strip().split()[0] for l in lines]
+      lfns = [l.split( 'LFN:' )[-1].strip().split()[0] for l in lines]
       self.options['LFNs'] = lfns
       f.close()
     except:
@@ -808,10 +808,10 @@ class DMScript():
   def getOptions( self ):
     return self.options
 
-  def getOption( self, switch, default = None ):
+  def getOption( self, switch, default=None ):
     return self.options.get( switch, default )
 
-  def getBKQuery( self, visible = True ):
+  def getBKQuery( self, visible=True ):
     if self.bkQuery:
       return self.bkQuery
     if self.bkQueryDict:
@@ -826,12 +826,12 @@ class DMScript():
     if 'DQFlags' in self.options:
       self.bkQuery.setDQFlag( self.options['DQFlags'] )
     if 'StartDate' in self.options:
-      self.bkQuery.setOption('StartDate', self.options['StartDate'])
+      self.bkQuery.setOption( 'StartDate', self.options['StartDate'] )
     if 'EndDate' in self.options:
-      self.bkQuery.setOption('EndDate', self.options['EndDate'])
+      self.bkQuery.setOption( 'EndDate', self.options['EndDate'] )
     return self.bkQuery
 
-  def getRequestID( self, prod = None ):
+  def getRequestID( self, prod=None ):
     """ Get the request ID for a single production """
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     if not prod:
