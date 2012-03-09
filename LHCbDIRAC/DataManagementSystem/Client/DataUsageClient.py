@@ -25,17 +25,11 @@ class DataUsageClient( Client ):
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
     return rpcClient.sendDataUsageReport( site, directoryDict )
 
-  def getDataUsageSummary( self, startTime, endTime, rpc = '', url = '', timeout = 120 ):
-    if ( type( startTime ) != StringType or type( endTime ) != StringType ):
+  def getDataUsageSummary( self, startTime, endTime, status, rpc = '', url = '', timeout = 120 ):
+    if ( type( startTime ) != StringType or type( endTime ) != StringType or type( status) != StringType ):
       return S_ERROR( 'Supplied arguments not in correct format!' )
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
-    return rpcClient.getDataUsageSummary( startTime, endTime )
-
-  def getDataUsageSummary_2( self, startTime, endTime, rpc = '', url = '', timeout = 120 ):
-    if ( type( startTime ) != StringType or type( endTime ) != StringType ):
-      return S_ERROR( 'Supplied arguments not in correct format!' )
-    rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
-    return rpcClient.getDataUsageSummary_2( startTime, endTime )
+    return rpcClient.getDataUsageSummary( startTime, endTime, status )
 
   def insertToDirMetadata( self, directoryDict, url = '', timeout = 120 ):
     if type( directoryDict ) != types.DictType:
