@@ -36,8 +36,7 @@ class AlwaysFalse_Success( AlwaysFalseTestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    #self.assertEqual( AlwaysFalse_Policy, p.__class__ )
-    self.assertEqual( 1, 1 )
+    self.assertEqual( 'AlwaysFalse_Policy', p.__class__.__name__ )
   
   def test_evaluate( self ):
     ''' tests that we can evaluate the policy
