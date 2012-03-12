@@ -12,7 +12,7 @@ __RCSID__ = '$Id$'
 
 class PilotsEfficiency_Simple_Policy( PolicyBase ):
 
-  def evaluate(self):
+  def evaluate( self ):
     """
     Evaluate policy on pilots stats, using args (tuple).
 
@@ -23,8 +23,13 @@ class PilotsEfficiency_Simple_Policy( PolicyBase ):
         }
     """
 
-    status = super(PilotsEfficiency_Simple_Policy, self).evaluate()
+    status = super( PilotsEfficiency_Simple_Policy, self ).evaluate()
     result = {}
+
+    if status is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
 
     if not status[ 'OK' ]:
       result[ 'Status' ] = 'Error'
@@ -32,9 +37,6 @@ class PilotsEfficiency_Simple_Policy( PolicyBase ):
       return result
 
     status = status[ 'Value' ]
-
-#    elif status == 'Unknown':
-#      return { 'Status' : 'Unknown' }
 
     if status == 'Good':
       result[ 'Status' ] = 'Active'
@@ -56,3 +58,6 @@ class PilotsEfficiency_Simple_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
