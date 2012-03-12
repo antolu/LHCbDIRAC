@@ -13,6 +13,7 @@ __RCSID__ = '$Id: $'
 class PolicyBase( object ):
   
   def __init__( self ):
+    self.args       = None
     self.commandRes = None
     
   def evaluate( self ):
