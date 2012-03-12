@@ -55,9 +55,12 @@ class FakePolicy_Success( FakePolicy_TestCase ):
     p.commandRes = { 'OK' : True, 'Value' : None }
     res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Unknown' )
-    p.commandRes = { 'OK' : True, 'Value' : 'Active' }
+    p.commandRes = { 'OK' : True, 'Value' : 0 }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Unknown' )
+    self.assertEqual( res[ 'Status' ], 'Active' )
+    p.commandRes = { 'OK' : True, 'Value' : 1 }
+    res = p.evaluate()
+    self.assertEqual( res[ 'Status' ], 'Probing' )
         
   def test_evaluate_nok( self ):
     ''' tests that we can evaluate the policy when S_ERROR is returned

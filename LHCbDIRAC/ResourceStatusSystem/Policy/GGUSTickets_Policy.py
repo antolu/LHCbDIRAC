@@ -38,7 +38,11 @@ class GGUSTickets_Policy( PolicyBase ):
 
     GGUS_N = GGUS_N[ 'Value' ]
 
-    if GGUS_N == 0:
+    if GGUS_N is None:
+      result[ 'Status' ] = 'Unknown'
+      result[ 'Reason' ] = 'No values to take a decission'
+      return result
+    elif GGUS_N == 0:
       result[ 'Status' ] = 'Active'
       result[ 'Reason' ] = 'NO GGUSTickets unsolved'
     else:

@@ -25,3 +25,6 @@ class AlwaysFalse_Policy( PolicyBase ):
     return { 'Status' : 'Active', 'Reason' : 'This is the AlwasyFalse policy' }
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################  
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

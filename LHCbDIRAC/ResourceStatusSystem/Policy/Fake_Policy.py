@@ -20,3 +20,6 @@ class Fake_Policy( PolicyBase ):
     return { 'Status' : 'Unknown' }
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

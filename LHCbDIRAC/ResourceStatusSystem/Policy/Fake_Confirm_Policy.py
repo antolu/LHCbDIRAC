@@ -20,3 +20,6 @@ class Fake_Confirm_Policy( PolicyBase ):
     return { 'Status' : 'Active', 'Reason' : 'fake' }
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################ 
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
