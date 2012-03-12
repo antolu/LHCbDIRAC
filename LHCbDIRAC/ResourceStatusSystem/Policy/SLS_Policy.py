@@ -27,6 +27,11 @@ class SLS_Policy( PolicyBase ):
     status = super(SLS_Policy, self).evaluate()
     result = {}
 
+    if status is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
+    
     if not status[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = status[ 'Message' ]
@@ -48,3 +53,6 @@ class SLS_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
