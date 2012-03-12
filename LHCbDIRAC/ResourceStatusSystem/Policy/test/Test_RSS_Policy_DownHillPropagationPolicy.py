@@ -54,7 +54,7 @@ class DownHillPropagationPolicy_Success( DownHillPropagationPolicy_TestCase ):
     p   = self.policy()
     p.commandRes = { 'OK' : True, 'Value' : None }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Unkown' )
+    self.assertEqual( res[ 'Status' ], 'Unknown' )
     p.commandRes = { 'OK' : True, 'Value' : 'Active' }
     res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Active' )
