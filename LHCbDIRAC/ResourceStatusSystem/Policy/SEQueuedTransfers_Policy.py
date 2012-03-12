@@ -28,15 +28,19 @@ class SEQueuedTransfers_Policy( PolicyBase ):
     status = super(SEQueuedTransfers_Policy, self).evaluate()
     result = {}
 
+    if status is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
+
     if not status[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = status[ 'Message' ]
       return result
     
-#    elif status == 'Unknown':
-#      return { 'Status' : 'Unknown' }
     status = status[ 'Value' ]
-    status = int( status[ 'Queued transfers' ] ) # type float, but represent an int, no need to round.
+    # type float, but represent an int, no need to round.
+    status = int( status[ 'Queued transfers' ] ) 
 
     if status < 70: 
       result['Status'] = 'Active'
@@ -52,3 +56,6 @@ class SEQueuedTransfers_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
