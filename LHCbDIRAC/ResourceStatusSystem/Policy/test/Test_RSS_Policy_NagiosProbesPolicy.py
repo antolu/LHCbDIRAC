@@ -27,7 +27,7 @@ class NagiosProbesPolicy_TestCase( unittest.TestCase ):
     moduleTested.PolicyBase = PolicyBase   
     moduleTested.NagiosProbes_Policy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.NagiosProbes_Simple_Policy
+    self.policy = moduleTested.NagiosProbes_Policy
 
   def tearDown( self ):
     
