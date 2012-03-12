@@ -1,22 +1,31 @@
-################################################################################
 # $HeadURL:  $
-################################################################################
-__RCSID__  = "$Id:  $"
+''' SpaceTokenOccupancy
+
+  Module that runs the tests for the SpaceTokenOccupancy SLS sensors.
+  
+'''
+
+import lcg_util
+import os
 
 from DIRAC                                import gLogger, S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Utilities import CS
 
-import lcg_util, time, os
+__RCSID__  = '$Id:  $'
     
 def getProbeElements():
+  '''
+  Gets the elements that are going to be evaluated by the probes. In this case,
+  all space tokens for all space token endpoints.
+  '''
   
   try:
 
     elementsToCheck = []      
-    SEs             = CS.getSpaceTokenEndpoints()
+    spaceEndpoints  = CS.getSpaceTokenEndpoints()
     spaceTokens     = CS.getSpaceTokens() 
 
-    for site in SEs.items():
+    for site in spaceEndpoints.items():
       for spaceToken in spaceTokens:
 
         elementsToCheck.append( ( site, spaceToken ) )
@@ -28,9 +37,11 @@ def getProbeElements():
     gLogger.debug( 'SpaceTokenOccupancy: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
 
-################################################################################
-
 def setupProbes( testConfig ):
+  '''
+  Sets up the environment to run the probes. In this case, it ensures the 
+  directory where temp files are going to be written exists.
+  '''  
   
   path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
   
@@ -41,12 +52,13 @@ def setupProbes( testConfig ):
   
   return S_OK()
 
-################################################################################
-
 def runProbe( probeInfo, testConfig ):  
+  '''
+  Runs the probe and formats the results for the XML generation. The probe is a 
+  lcg_util check.
+  '''
       
-  total, guaranteed, free, availability = 0, 0, 0, 0
-  
+  total, free, availability  = 0, 0, 0
   siteTuple, spaceToken      = probeInfo
   site, siteDict             = siteTuple
   url                        = siteDict[ 'Endpoint' ]
@@ -61,7 +73,6 @@ def runProbe( probeInfo, testConfig ):
     
     output       = answer[1][0]
     total        = float( output[ 'totalsize' ] ) / 1e12 # Bytes to Terabytes
-    guaranteed   = float( output[ 'guaranteedsize' ] ) / 1e12
     free         = float( output[ 'unusedsize' ] ) / 1e12
     availability = 100 if free > testThreshold else ( free * 100 / total if total != 0 else 0 )
     availabilityinfo = 'Total = %s (TB), free = %s(TB), threshold = %s(TB)' % ( total, free, testThreshold )

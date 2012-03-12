@@ -1,16 +1,25 @@
-################################################################################
 # $HeadURL:  $
-################################################################################
-__RCSID__  = "$Id:  $"
+''' VOBOX
 
-from DIRAC                        import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC                        import gConfig 
-from DIRAC.Core.DISET.RPCClient   import RPCClient
+  Module that runs the tests for the VOBOX SLS sensors.
 
-import sys, time, urlparse, os
+'''
+
+import urlparse
+import os
+
+from DIRAC                      import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient import RPCClient
+
+__RCSID__  = '$Id: $'
 
 def getProbeElements():
-  
+  '''
+  Gets the elements that are going to be evaluated by the probes. In this case,
+  three DIRAC services: RequestManagement, ConfigurationService and 
+  SystemAdministrator.
+  '''
+
   try:
   
     request_management_urls = gConfig.getValue( '/Systems/RequestManagement/Development/URLs/allURLS', [] )
@@ -27,7 +36,11 @@ def getProbeElements():
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def setupProbes( testConfig ):
-  
+  '''
+  Sets up the environment to run the probes. In this case, it ensures the 
+  directory where temp files are going to be written exists.
+  '''
+
   path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
   
   try:
@@ -38,6 +51,10 @@ def setupProbes( testConfig ):
   return S_OK()
 
 def runProbe( probeInfo, testConfig ):
+  '''
+  Runs the probe and formats the results for the XML generation. The probe is a 
+  DIRAC.ping()  
+  '''
 
   shortNames = { 
                  'RequestManagement' : 'ReqMgmt',
@@ -90,14 +107,14 @@ def runProbe( probeInfo, testConfig ):
     
       res = res[ 'Value' ]
     
-      for k,v in res.items():
+      for key, value in res.items():
         
-        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Assigned' % k,
-                                    'Number of Assigned %s requests' % k, v[ 'Assigned' ] ) )
-        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Waiting' % k,
-                                    'Number of Waiting %s requests' % k, v[ 'Waiting' ] ) )
-        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Done' % k,
-                                    'Number of Done %s requests' % k, v[ 'Done' ] ) )
+        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Assigned' % key,
+                                    'Number of Assigned %s requests' % key, value[ 'Assigned' ] ) )
+        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Waiting' % key,
+                                    'Number of Waiting %s requests' % key, value[ 'Waiting' ] ) )
+        xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Done' % key,
+                                    'Number of Done %s requests' % key, value[ 'Done' ] ) )
             
   return { 'xmlDict' : xmlDict, 'config' : testConfig }   
     

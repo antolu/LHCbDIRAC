@@ -1,7 +1,14 @@
-################################################################################
 # $HeadURL:  $
-################################################################################
-__RCSID__  = "$Id:  $"
+'''  ConditionDB
+
+  Module that runs the tests for the CondDB SLS sensors.
+
+'''
+
+import os
+import pwd
+import re
+import subprocess
 
 from DIRAC                                                  import gLogger, gConfig, S_ERROR, S_OK
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
@@ -9,9 +16,13 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatu
 from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
 from LHCbDIRAC.ResourceStatusSystem.Utilities               import SLSXML
 
-import os, pwd, re, time, subprocess
+__RCSID__  = '$Id: $'
    
 def getProbeElements():  
+  '''
+  Gets the elements that are going to be evaluated by the probes. In this case,
+  all ConditionDBs defined in the RSS.
+  '''
   
   try:
   
@@ -37,9 +48,12 @@ def getProbeElements():
     gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
-################################################################################
-
 def setupProbes( testConfig ):
+  '''
+  Sets up the environment to run the probes. In this case, it ensures the 
+  directory where temp files are going to be written exists, and writes the
+  gaudi options file.
+  '''  
 
   path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
 
@@ -57,10 +71,12 @@ def setupProbes( testConfig ):
     _msg = '%s: Exception settingProbe'
     gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
-    
-################################################################################
 
 def runProbe( probeInfo, testConfig ):
+  '''
+  Runs the probe and formats the results for the XML generation. The probe is a 
+  simple gaudirun.  
+  '''
 
   workdir = testConfig[ 'workdir' ]
   condDB  = probeInfo[ 0 ]
@@ -69,8 +85,6 @@ def runProbe( probeInfo, testConfig ):
   config     = gConfig.getOptionsDict( condDBPath )
   
   loadTime, availability = 0, 0
-  
-  filename               = 'LHCb_%s_%s' % ( testConfig[ 'testName' ], condDB )
   
   if not config[ 'OK' ]:
     _msg = 'not found config for %s.\n %s' % ( condDBPath, config[ 'Message' ] )
@@ -141,7 +155,7 @@ def writeDBlookup( testConfig, condDBConfig ):
   xmlDict = { 'xmlList' : xmlList, 'filename' : 'dblookup.xml', 
               'useStub' : False, 'config' : testConfig }
     
-  writeXml( 0, xmlDict )
+  SLSXML.writeXml( 0, xmlDict )
     
 def writeAuthentication( testConfig, condDBConfig ):
     
@@ -167,12 +181,12 @@ def writeAuthentication( testConfig, condDBConfig ):
   xmlDict = { 'xmlList' : xmlList, 'filename' : 'authentication.xml', 
               'useStub' : False , 'config' : testConfig }  
     
-  writeXml( 0, xmlDict )
+  SLSXML.writeXml( 0, xmlDict )
     
       
 def writeOptionsFile( workdir ):
     
-  options_file = """from Gaudi.Configuration import *
+  options_text = """from Gaudi.Configuration import *
 from Configurables import LHCbApp
 
 from Configurables import LoadDDDB
@@ -200,11 +214,11 @@ GaudiSequencer().MeasureTime = True
 LoadDDDB(Node = '/dd/Structure/LHCb')
 """   
   
-  file = open( '%s/options.py' % workdir, 'w' )
+  options_file = open( '%s/options.py' % workdir, 'w' )
   try:
-    file.write( options_file )
+    options_file.write( options_text )
   finally:
-    file.close()
+    options_file.close()
        
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

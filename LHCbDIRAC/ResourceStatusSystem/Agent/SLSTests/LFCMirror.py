@@ -1,17 +1,19 @@
-################################################################################
 # $HeadURL:  $
-################################################################################
-__RCSID__  = "$Id:  $"
-
-from DIRAC                                                  import gLogger, S_OK, S_ERROR       
-
-from DIRAC.Interfaces.API.Dirac                             import Dirac
-from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
 import time, os
 
+from DIRAC                                                  import gLogger, S_OK, S_ERROR       
+from DIRAC.Interfaces.API.Dirac                             import Dirac
+from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
+
+__RCSID__  = "$Id:  $"
+
 def getProbeElements():
-  
+  '''
+  Gets the elements that are going to be evaluated by the probes. In this case,
+  LFC mirrors registered in the RSS.
+  '''  
+    
   try:
   
     rsc   = ResourceStatusClient()
@@ -37,9 +39,12 @@ def getProbeElements():
     gLogger.debug( 'LFCMirror: %s: \n %s' % ( _msg, e ) )
     return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
-
 def setupProbes( testConfig ):
-
+  '''
+  Sets up the environment to run the probes. In this case, it ensures the 
+  directory where temp files are going to be written exists.
+  '''  
+  
   path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
   
   try:
@@ -50,6 +55,11 @@ def setupProbes( testConfig ):
   return S_OK()
 
 def runProbe( probeInfo, testConfig ):
+  '''
+  Runs the probe and formats the results for the XML generation. The probe is the
+  measurement between a file registration in the master and the replication in the
+  slave.
+  '''  
 
   # Hardcoded, ugly ugly ugly !
   master = 'lfc-lhcb.cern.ch'
@@ -67,10 +77,10 @@ def runProbe( probeInfo, testConfig ):
   fullPath = path + '/' + fileName
   diracSE  = 'CERN-USER'
     
-  f = open( fullPath, 'w' )
-  f.write( 'SLSAgent at %s' % mirror )
-  f.write( str( time.time() ) )
-  f.close()
+  test_file = open( fullPath, 'w' )
+  test_file.write( 'SLSAgent at %s' % mirror )
+  test_file.write( str( time.time() ) )
+  test_file.close()
 
   gLogger.info( 'LFCMirror: Registering file %s at %s' % ( lfn, diracSE ) )
   

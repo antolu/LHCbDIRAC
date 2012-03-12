@@ -1,14 +1,22 @@
-################################################################################
 # $HeadURL:  $
-################################################################################
-__RCSID__  = "$Id:  $"
+''' LFCMaster
+
+  Module that runs the tests for the LFCMaster SLS sensors.
+
+'''
+
+import os
+import lfc2
 
 from DIRAC import S_OK, gLogger
 
-import os, time
-import lfc2
+__RCSID__  = '$Id:  $'
 
 def getProbeElements():
+  '''
+  Gets the elements that are going to be evaluated by the probes. In this case,
+  the master LFC server.
+  '''  
   
   # Hardcoded, to be fixed
   master = 'lfc-lhcb.cern.ch'
@@ -17,7 +25,11 @@ def getProbeElements():
   
 
 def setupProbes( testConfig ):
-  
+  '''
+  Sets up the environment to run the probes. In this case, it ensures the 
+  directory where temp files are going to be written exists.
+  '''  
+    
   path = '%s/%s' % ( testConfig[ 'workdir' ], testConfig[ 'testName' ] )
   
   try:
@@ -26,9 +38,12 @@ def setupProbes( testConfig ):
     pass # The dir exist already, or cannot be created: do nothin
   
   return S_OK()
-  
 
 def runProbe( probeInfo, testConfig ):
+  '''
+  Runs the probe and formats the results for the XML generation. The probe is a 
+  mkdir and rmdir on the LFC master.
+  '''
   
   master                   = probeInfo
   os.environ[ 'LFC_HOST' ] = master
