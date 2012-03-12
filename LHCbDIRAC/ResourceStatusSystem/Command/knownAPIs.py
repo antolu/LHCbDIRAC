@@ -17,6 +17,10 @@ __APIs__ = {
 DIRACknownAPIs.__APIs__.update( __APIs__ )
 
 def initAPIs( desiredAPIs, knownAPIs, force = False ):
+  '''
+  Executes the function of DIRAC, with the only difference that __APIs__ has 
+  been updated to use LHCbDIRAC clients instead of DIRAC ones.
+  '''
   return DIRACknownAPIs.initAPIs( desiredAPIs, knownAPIs, force )
 
 ################################################################################
