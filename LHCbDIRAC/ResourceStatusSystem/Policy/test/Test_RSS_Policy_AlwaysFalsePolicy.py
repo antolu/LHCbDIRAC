@@ -12,8 +12,11 @@ __RCSID__ = '$Id: $'
 
 class PolicyBase( object ):
   
-  def evaluate( self, result = None ):
-    return result
+  def __init__( self ):
+    self.commandRes = None
+    
+  def evaluate( self ):
+    return self.commandRes
 
 class AlwaysFalsePolicy_TestCase( unittest.TestCase ):
   

@@ -12,8 +12,11 @@ __RCSID__ = '$Id: $'
 
 class PolicyBase( object ):
   
-  def evaluate( self, result = None ):
-    return result
+  def __init__( self ):
+    self.commandRes = None
+    
+  def evaluate( self ):
+    return self.commandRes
 
 class DownHillPropagationPolicy_TestCase( unittest.TestCase ):
   
@@ -49,16 +52,19 @@ class DownHillPropagationPolicy_Success( DownHillPropagationPolicy_TestCase ):
     ''' tests that we can evaluate the policy when S_OK is returned
     '''
     p   = self.policy()
-    res = p.evaluate( result = { 'OK' : True, 'Value' : None } )
+    p.commandRes = { 'OK' : True, 'Value' : None }
+    res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Unkown' )
-    res = p.evaluate( result = { 'OK' : True, 'Value' : 'Active' } )
+    p.commandRes = { 'OK' : True, 'Value' : 'Active' }
+    res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Active' )
         
   def test_evaluate_nok( self ):
     ''' tests that we can evaluate the policy when S_ERROR is returned
     '''
     p   = self.policy()
-    res = p.evaluate( result = { 'OK' : False, 'Message' : 'Error Message' } )
+    p.commandRes = { 'OK' : False, 'Message' : 'Error Message' }
+    res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Error' )      
         
 ################################################################################
