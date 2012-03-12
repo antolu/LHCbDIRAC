@@ -46,7 +46,7 @@ class GGUSTicketsPolicy_Success( GGUSTicketsPolicy_TestCase ):
     '''
     p   = self.policy()
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Unknown' )
+    self.assertEqual( res[ 'Status' ], 'Error' )
         
   def test_evaluate_ok( self ):
     ''' tests that we can evaluate the policy when S_OK is returned
