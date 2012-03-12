@@ -1,4 +1,8 @@
-"""
-DIRAC.ResourceStatusSystem.Utilities package
+# $HeadURL $
+'''  LHCbDIRAC.ResourceStatusSystem.Utilities package
+'''
 
-"""
+__RCSID__  = '$Id: $'
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

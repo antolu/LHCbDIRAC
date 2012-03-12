@@ -26,6 +26,11 @@ class SAMResults_Policy( PolicyBase ):
     SAMstatus = super(SAMResults_Policy, self).evaluate()
     result = {}
 
+    if SAMstatus is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
+
     if not SAMstatus[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = SAMstatus[ 'Message' ]
@@ -77,3 +82,6 @@ class SAMResults_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

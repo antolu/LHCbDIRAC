@@ -1,11 +1,8 @@
-############################################################
-# $HeadURL$
-############################################################
+# $HeadURL $
+'''  LHCbDIRAC.ResourceStatusSystem.Sensors package
+'''
 
-"""
-   LHCbDIRAC.Core.Sensors package
+__RCSID__  = '$Id$'
 
-   This contains the LHCb testing suite.
-"""
-
-__RCSID__ = "$Id$"
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

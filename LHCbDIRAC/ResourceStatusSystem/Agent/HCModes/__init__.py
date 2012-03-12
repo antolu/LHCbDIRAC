@@ -1,5 +1,8 @@
-"""
-LHCbDIRAC/ResourceStatusSystem/Agent/HCModes/__init__.py
-"""
+# $HeadURL $
+''' LHCbDIRAC.ResourceStatusSystem.Agent.HCModes package
+'''
 
-__RCSID__ = "$Id:$"
+__RCSID__  = '$Id: $'
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF 
