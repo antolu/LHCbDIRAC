@@ -8,7 +8,7 @@
 
 import unittest
 
-class PolicyBase:
+class PolicyBase( object ):
   
   def evaluate( self ):
     pass
