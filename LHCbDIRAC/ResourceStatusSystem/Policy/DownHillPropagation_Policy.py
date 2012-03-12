@@ -25,8 +25,13 @@ class DownHillPropagation_Policy( PolicyBase ):
         }
     """
 
-    resourceStatus = super(DownHillPropagation_Policy, self).evaluate()
+    resourceStatus = super( DownHillPropagation_Policy, self ).evaluate()
     result = {}
+
+    if resourceStatus is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
 
     if not resourceStatus[ 'OK' ]:
       result[ 'Status' ] = 'Error'
