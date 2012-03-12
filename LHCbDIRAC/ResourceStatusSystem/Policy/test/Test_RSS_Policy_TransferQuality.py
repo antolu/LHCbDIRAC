@@ -19,6 +19,12 @@ class PolicyBase( object ):
   def evaluate( self ):
     return self.commandRes
 
+class Configurations:
+  
+  def __init__( self ):
+    self.pp = { 'Transfer_QUALITY_LOW'  : 5,
+                'Transfer_QUALITY_HIGH' : 100 }
+
 class TransferQualityPolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
@@ -27,8 +33,7 @@ class TransferQualityPolicy_TestCase( unittest.TestCase ):
     import LHCbDIRAC.ResourceStatusSystem.Policy.TransferQuality_Policy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
     moduleTested.TransferQuality_Policy.__bases__ = ( PolicyBase, ) 
-    moduleTested.Configurations.pp = { 'Transfer_QUALITY_LOW'  : 5,
-                                       'Transfer_QUALITY_HIGH' : 100 }
+    moduleTested.Configurations = Configurations()
 
     self.policy = moduleTested.TransferQuality_Policy
 
