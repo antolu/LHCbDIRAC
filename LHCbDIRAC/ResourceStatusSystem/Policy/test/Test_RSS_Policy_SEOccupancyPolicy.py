@@ -19,7 +19,7 @@ class PolicyBase( object ):
   def evaluate( self ):
     return self.commandRes
 
-class SEOccupancy_TestCase( unittest.TestCase ):
+class SEOccupancyPolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     
