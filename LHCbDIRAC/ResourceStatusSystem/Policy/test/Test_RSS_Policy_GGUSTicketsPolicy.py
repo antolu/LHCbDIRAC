@@ -18,28 +18,28 @@ class PolicyBase( object ):
   def evaluate( self ):
     return self.commandRes
 
-class GGUSTicketsPolicy_TestCase( unittest.TestCase ):
+class FakePolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.GGUSTickets_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.Fake_Policy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
-    moduleTested.GGUSTickets_Policy.__bases__ = ( PolicyBase, ) 
+    moduleTested.Fake_Policy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.GGUSTickets_Policy
+    self.policy = moduleTested.Fake_Policy
 
   def tearDown( self ):
     
     del self.policy
 
-class GGUSTicketsPolicy_Success( GGUSTicketsPolicy_TestCase ):
+class FakePolicy_Success( FakePolicy_TestCase ):
   
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    self.assertEqual( 'GGUSTickets_Policy', p.__class__.__name__ )
+    self.assertEqual( 'Fake_Policy', p.__class__.__name__ )
   
   def test_evaluate_none( self ):
     ''' tests that we can evaluate the policy when none is returned
@@ -54,13 +54,10 @@ class GGUSTicketsPolicy_Success( GGUSTicketsPolicy_TestCase ):
     p   = self.policy()
     p.commandRes = { 'OK' : True, 'Value' : None }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Probing' )
-    p.commandRes = { 'OK' : True, 'Value' : 0 }
+    self.assertEqual( res[ 'Status' ], 'Unknown' )
+    p.commandRes = { 'OK' : True, 'Value' : 'Active' }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Active' )
-    p.commandRes = { 'OK' : True, 'Value' : 1 }
-    res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Probing' )
+    self.assertEqual( res[ 'Status' ], 'Unknown' )
         
   def test_evaluate_nok( self ):
     ''' tests that we can evaluate the policy when S_ERROR is returned
@@ -68,7 +65,7 @@ class GGUSTicketsPolicy_Success( GGUSTicketsPolicy_TestCase ):
     p   = self.policy()
     p.commandRes = { 'OK' : False, 'Message' : 'Error Message' }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Unknown' )      
+    self.assertEqual( res[ 'Status' ], 'Error' )      
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
