@@ -183,7 +183,7 @@ class NagiosConsumerAgent( AgentModule ):
       # Let's try without threads, and see the polling time.
       for _m in xrange(msgs):
         
-        _head,msg = msgQueue.get()              
+        _head, msg = msgQueue.get()              
 
         params = self.__checkParams( msg )
 
@@ -196,7 +196,7 @@ class NagiosConsumerAgent( AgentModule ):
 
     except Exception, e:
       errorStr = where( self, self.execute )
-      self.log.exception( errorStr,lException = e )
+      self.log.exception( errorStr, lException = e )
       return S_ERROR( errorStr )
 
 ################################################################################
@@ -257,12 +257,6 @@ class NagiosConsumerAgent( AgentModule ):
         params[ param ] = msg[ param ]
 
     return params
-
-  def __restartUniverse( self ):
-    '''
-    Do not use, thanks.
-    '''
-    print 42
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
