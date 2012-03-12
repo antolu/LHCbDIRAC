@@ -1,5 +1,5 @@
 # $HeadURL: $
-''' TestAlwaysFalsePolicy
+''' Test_RSS_Policy_AlwaysFalsePolicy
 
   Simplest test case for the RSS policies. Can be taken as example for other
   tests.
@@ -8,14 +8,14 @@
 
 import unittest
 
-class PolicyBase( object ):
-  
-  def evaluate( self ):
-    pass
-
 __RCSID__ = '$Id: $'
 
-class AlwaysFalseTestCase( unittest.TestCase ):
+class PolicyBase( object ):
+  
+  def evaluate( self, result = None ):
+    return result
+
+class AlwaysFalsePolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     
@@ -30,7 +30,7 @@ class AlwaysFalseTestCase( unittest.TestCase ):
     
     del self.policy
 
-class AlwaysFalse_Success( AlwaysFalseTestCase ):
+class AlwaysFalsePolicy_Success( AlwaysFalsePolicy_TestCase ):
   
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
@@ -38,7 +38,7 @@ class AlwaysFalse_Success( AlwaysFalseTestCase ):
     p = self.policy()
     self.assertEqual( 'AlwaysFalse_Policy', p.__class__.__name__ )
   
-  def test_evaluate( self ):
+  def test_evaluate_none( self ):
     ''' tests that we can evaluate the policy
     '''
     p   = self.policy()
