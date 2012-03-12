@@ -23,7 +23,7 @@ class SAMResults_Policy( PolicyBase ):
         }
     """
 
-    SAMstatus = super(SAMResults_Policy, self).evaluate()
+    SAMstatus = super( SAMResults_Policy, self ).evaluate()
     result = {}
 
     if SAMstatus is None:
@@ -36,23 +36,27 @@ class SAMResults_Policy( PolicyBase ):
       result[ 'Reason' ] = SAMstatus[ 'Message' ]
       return result
 
-#    elif SAMstatus == 'Unknown':
-#      return { 'Status' : 'Unknown' }
     SAMstatus = SAMstatus[ 'Value' ]
-    status    = 'ok'
+    
+    result[ 'Status' ] = 'Active'
+    status             = 'ok'
 
     for s in SAMstatus.values():
       if s == 'error':
         status = 'down'
+        result[ 'Status' ] = 'Bad'
         break
       elif s == 'down':
         status = 'down'
+        result[ 'Status' ] = 'Bad'
         break
       elif s == 'warn':
         status = 'degraded'
+        result[ 'Status' ] = 'Probing'
         break
       elif s == 'maint':
         status = 'maint'
+        result[ 'Status' ] = 'Bad'
         break
 
     if status == 'ok':
@@ -61,19 +65,10 @@ class SAMResults_Policy( PolicyBase ):
         if s != 'na':
           na = False
           break
+
       if na == True:
         status = 'na'
-
-    if status == 'ok':
-      result[ 'Status' ] = 'Active'
-    elif status == 'down':
-      result[ 'Status' ] = 'Bad'
-    elif status == 'na':
-      result[ 'Status' ] = 'Unknown'
-    elif status == 'degraded':
-      result[ 'Status' ] = 'Probing'
-    elif status == 'maint':
-      result[ 'Status' ] = 'Bad'
+        result[ 'Status' ] = 'Unknown'
 
     result[ 'Reason' ] = 'SAM status: '
     if status != 'na':

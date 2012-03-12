@@ -23,8 +23,13 @@ class SEOccupancy_Policy( PolicyBase ):
     """
 
     # This call SLS_Command/SLSStatus_Command (see Configurations.py)
-    status = super(SEOccupancy_Policy, self).evaluate()
+    status = super( SEOccupancy_Policy, self ).evaluate()
     result = {}
+
+    if status is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
 
     if not status[ 'OK' ]:
       result[ 'Status' ] = 'Error'
@@ -34,8 +39,6 @@ class SEOccupancy_Policy( PolicyBase ):
     # SLSStatus_Command returns None if something goes wrong,
     # otherwise returns an integer (the SLS availability)
 
-    #elif status == 'Unknown':
-    #  return { 'Status' : 'Unknown' }
     status = status[ 'Value' ]
     # FIXME: Use threshold from SLS, put more meaningful comments.
     if status == 0: 
@@ -52,3 +55,6 @@ class SEOccupancy_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
