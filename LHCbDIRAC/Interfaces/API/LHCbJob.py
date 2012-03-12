@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r3_branch/Interfaces/API/LHCbJob.py $
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -96,7 +96,7 @@
 
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: LHCbJob.py 48529 2012-03-12 16:15:43Z fstagni $"
 
 import string
 
@@ -121,6 +121,7 @@ class LHCbJob( Job ):
     """
     Job.__init__( self, script, stdout, stderr )
     self.gaudiStepCount = 0
+    self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
     self.scratchDir = gConfig.getValue( self.section + '/LocalSite/ScratchDir', '/tmp' )
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
@@ -148,8 +149,7 @@ class LHCbJob( Job ):
        Example usage:
 
        >>> job = LHCbJob()
-       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',
-       inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
+       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
 
        @param appName: Application name
        @type appName: string
@@ -166,8 +166,7 @@ class LHCbJob( Job ):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles,
-              'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles, 'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
@@ -234,6 +233,8 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( logName )
 
     self.workflow.addStep( step )
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -283,21 +284,11 @@ class LHCbJob( Job ):
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     userData.setBody( body )
 
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
-
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    step.addModule( fileUsage )
     step.addModule( userData )
-
     step.createModuleInstance( 'GaudiApplication', name )
-    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
 
     # Define step parameters
@@ -353,8 +344,7 @@ class LHCbJob( Job ):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments,
-              'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments, 'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
@@ -406,6 +396,8 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( logName )
 
     self.workflow.addStep( step )
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -456,22 +448,12 @@ class LHCbJob( Job ):
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     userData.setBody( body )
 
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    step.addModule( fileUsage )
     step.addModule( userData )
-
     step.createModuleInstance( 'GaudiApplicationScript', name )
-    step.createModuleInstance( 'FileUsage')
     step.createModuleInstance( 'UserJobFinalization', name )
-
 
     # Define step parameters
     step.addParameter( Parameter( "applicationName", "", "string", "", "", False, False, "Application Name" ) )
@@ -676,6 +658,8 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( logName )
 
     self.workflow.addStep( step )
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -722,20 +706,11 @@ class LHCbJob( Job ):
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     userData.setBody( body )
 
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    step.addModule( fileUsage )
     step.addModule( userData )
-
     step.createModuleInstance( 'RootApplication', name )
-    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
     # Define step parameters
     step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, "Root version." ) )
@@ -812,6 +787,37 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, 'AncestorDepth', 'JDL', depth, description )
     else:
       return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
+    return S_OK()
+
+  #############################################################################
+
+  def setInputDataType( self, inputDataType ):
+    """Helper function.
+
+       Explicitly set the input data type to be conveyed to Gaudi Applications.
+
+       Default is DATA, e.g. for DST / RDST files.  Other options include:
+        - MDF, for .raw files
+        - ETC, for running on a public or private Event Tag Collections.
+
+       Example usage:
+
+       >>> job = LHCbJob()
+       >>> job.setInputDataType('ETC')
+
+       @param inputDataType: Input Data Type
+       @type inputDataType: String
+
+    """
+    description = 'User specified input data type'
+    if not type( inputDataType ) == type( " " ):
+      try:
+        inputDataType = str( inputDataType )
+      except Exception, x:
+        return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
+
+    self.inputDataType = inputDataType
+    self._addParameter( self.workflow, 'InputDataType', 'JDL', inputDataType, description )
     return S_OK()
 
   #############################################################################
@@ -979,13 +985,6 @@ class LHCbJob( Job ):
     module.setDescription( 'A  script module that can execute any provided script.' )
     body = 'from DIRAC.Core.Workflow.Modules.Script import Script\n'
     module.setBody( body )
-
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
     #Add user job finalization module
     moduleName = 'UserJobFinalization'
     userData = ModuleDefinition( moduleName )
@@ -995,13 +994,9 @@ class LHCbJob( Job ):
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    step.addModule( fileUsage )
     step.addModule( userData )
-
     step.createModuleInstance( 'Script', name )
-    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
-
     # Define step parameters
     step.addParameter( Parameter( "name", "", "string", "", "", False, False, 'Name of executable' ) )
     step.addParameter( Parameter( "executable", "", "string", "", "", False, False, 'Executable Script' ) )
@@ -1081,6 +1076,8 @@ class LHCbJob( Job ):
     stepName = 'RunProtocolTestStep%s' % ( stepNumber )
 
     self.workflow.addStep( step )
+    stepPrefix = '%s_' % stepName
+    self.currentStepPrefix = stepPrefix
 
     # Define Step and its variables
     stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
@@ -1134,38 +1131,39 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setInputData( self, lfns, BKKClientIn = None ):
+  def setInputData( self, lfns, BKKClientIn = None, runNumber = None ):
     """ Add the input data and the run number, if available
     """
 
-    if BKKClientIn is not None:
-      bkClient = BKKClientIn
-    else:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-      bkClient = BookkeepingClient()
-
     Job.setInputData( self, lfns )
 
-    res = bkClient.getFileMetadata( lfns )
-    if not res['OK']:
-      return res
+    if not runNumber:
+      if BKKClientIn is not None:
+        bkClient = BKKClientIn
+      else:
+        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        bkClient = BookkeepingClient()
 
-    runNumbers = []
-    for fileMeta in res['Value'].values():
-      try:
-        if fileMeta['RunNumber'] not in runNumbers and fileMeta['RunNumber'] != None:
-          runNumbers.append( fileMeta['RunNumber'] )
-      except:
-        continue
+      res = bkClient.getFileMetadata( lfns )
+      if not res['OK']:
+        return res
 
-    if len( runNumbers ) > 1:
-      runNumber = 'Multiple'
-    elif len( runNumbers ) == 1:
-      runNumber = str( runNumbers[0] )
-    else:
-      runNumber = 'Unknown'
+      runNumbers = []
+      for fileMeta in res['Value'].values():
+        try:
+          if fileMeta['RunNumber'] not in runNumbers and fileMeta['RunNumber'] != None:
+            runNumbers.append( fileMeta['RunNumber'] )
+        except:
+          continue
 
-    self._addParameter( self.workflow, 'runNumber', 'String', runNumber, 'Input run rumber' )
+      if len( runNumbers ) > 1:
+        runNumber = 'Multiple'
+      elif len( runNumbers ) == 1:
+        runNumber = str( runNumbers[0] )
+      else:
+        runNumber = 'Unknown'
+
+    self._addParameter( self.workflow, 'runNumber', 'JDL', runNumber, 'Input run rumber' )
 
   #############################################################################
 
