@@ -18,7 +18,7 @@ class PolicyBase( object ):
   def evaluate( self ):
     return self.commandRes
 
-class JobsEfficiencySimple_TestCase( unittest.TestCase ):
+class JobsEfficiencySimplePolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     
