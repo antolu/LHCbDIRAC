@@ -1,5 +1,5 @@
 # $HeadURL: $
-''' Test_RSS_Policy_AlwaysFalsePolicy
+''' Test_RSS_Policy_FakeConfirmPolicy
 
   Simplest test case for the RSS policies. Can be taken as example for other
   tests.
@@ -18,36 +18,36 @@ class PolicyBase( object ):
   def evaluate( self ):
     return self.commandRes
 
-class AlwaysFalsePolicy_TestCase( unittest.TestCase ):
+class FakeConfirmPolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.AlwaysFalse_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.Fake_Confirm_Policy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
-    moduleTested.AlwaysFalse_Policy.__bases__ = ( PolicyBase, ) 
+    moduleTested.Fake_Confirm_Policy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.AlwaysFalse_Policy
+    self.policy = moduleTested.Fake_Confirm_Policy
 
   def tearDown( self ):
     
     del self.policy
 
-class AlwaysFalsePolicy_Success( AlwaysFalsePolicy_TestCase ):
+class FakeConfirmPolicy_Success( FakeConfirmPolicy_TestCase ):
   
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    self.assertEqual( 'AlwaysFalse_Policy', p.__class__.__name__ )
+    self.assertEqual( 'Fake_Confirm_Policy', p.__class__.__name__ )
   
   def test_evaluate_none( self ):
-    ''' tests that we can evaluate the policy
+    ''' tests that we can evaluate the policy when none is returned
     '''
     p   = self.policy()
     res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Active' )
-
+        
   def test_evaluate_ok( self ):
     ''' tests that we can evaluate the policy when S_OK is returned
     '''
@@ -65,7 +65,7 @@ class AlwaysFalsePolicy_Success( AlwaysFalsePolicy_TestCase ):
     p   = self.policy()
     p.commandRes = { 'OK' : False, 'Message' : 'Error Message' }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Active' )   
+    self.assertEqual( res[ 'Status' ], 'Active' )      
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
