@@ -91,7 +91,8 @@ class NagiosConsumerAgent( AgentModule ):
   - __checkParams
   '''
 
-################################################################################
+  # Too many public methods
+  # pylint: disable-msg=R0904
 
   # Default Stomp values to connect to ActiveMQ ( development )
   __STOMP__ = {
@@ -110,6 +111,9 @@ class NagiosConsumerAgent( AgentModule ):
     the listener - CustomStompListener -, that will run on a separate process
     populating the queue msgQueue with the incoming messages.
     '''
+
+    # Attribute defined outside __init__  
+    # pylint: disable-msg=W0201
 
     self.log.info( 'NagiosConsumerAgent' )
 
