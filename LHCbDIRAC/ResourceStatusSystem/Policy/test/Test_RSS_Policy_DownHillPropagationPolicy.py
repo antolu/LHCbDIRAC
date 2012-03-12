@@ -24,7 +24,7 @@ class DownHillPropagationPolicy_TestCase( unittest.TestCase ):
     moduleTested.PolicyBase = PolicyBase   
     moduleTested.DownHillPropagation_Policy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.AlwaysFalse_Policy
+    self.policy = moduleTested.DownHillPropagation_Policy
 
   def tearDown( self ):
     
