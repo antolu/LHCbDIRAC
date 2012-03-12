@@ -25,6 +25,11 @@ class NagiosProbes_Policy( PolicyBase ):
     result[ 'Status' ] = 'Unknown'
     result[ 'Reason' ] = 'No values to take a decision'
 
+    if status is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
+
     if not probes[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = probes[ 'Message' ]
@@ -43,7 +48,7 @@ class NagiosProbes_Policy( PolicyBase ):
       result[ 'Reason' ] = '%d CRITICAL Nagios probes' % probes[ 'CRITICAL' ][ 1 ]
     
     #Only if there is all Ok we return Active
-    elif probes.keys() == ['OK']:
+    elif probes.keys() == [ 'OK' ]:
       result[ 'Status' ] = 'Active'
       result[ 'Reason' ] = 'All OK Nagios probes'
     
