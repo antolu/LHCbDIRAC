@@ -19,7 +19,7 @@ class PolicyBase( object ):
   def evaluate( self ):
     return self.commandRes
 
-class SEQueuedTransfers_TestCase( unittest.TestCase ):
+class SEQueuedTransfersPolicy_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     
