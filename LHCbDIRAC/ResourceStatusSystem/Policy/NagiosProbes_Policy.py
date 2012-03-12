@@ -25,7 +25,7 @@ class NagiosProbes_Policy( PolicyBase ):
     result[ 'Status' ] = 'Unknown'
     result[ 'Reason' ] = 'No values to take a decision'
 
-    if status is None:
+    if probes is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
