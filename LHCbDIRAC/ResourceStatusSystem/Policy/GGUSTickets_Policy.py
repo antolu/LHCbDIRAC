@@ -12,7 +12,7 @@ __RCSID__ = '$Id$'
 
 class GGUSTickets_Policy( PolicyBase ):
 
-  def evaluate(self):
+  def evaluate( self ):
     """
     Evaluate policy on opened tickets, using args (tuple).
 
@@ -23,8 +23,13 @@ class GGUSTickets_Policy( PolicyBase ):
         }
     """
 
-    GGUS_N = super(GGUSTickets_Policy, self).evaluate()
+    GGUS_N = super( GGUSTickets_Policy, self ).evaluate()
     result = {}
+
+    if resourceStatus is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
 
     if not GGUS_N[ 'OK' ]:
       result[ 'Status' ] = 'Error'
@@ -32,9 +37,6 @@ class GGUSTickets_Policy( PolicyBase ):
       return result
 
     GGUS_N = GGUS_N[ 'Value' ]
-
-#    elif GGUS_N == 'Unknown':
-#      return { 'Status' : 'Unknown' }
 
     if GGUS_N == 0:
       result[ 'Status' ] = 'Active'
@@ -46,3 +48,6 @@ class GGUSTickets_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
