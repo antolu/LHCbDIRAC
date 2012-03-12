@@ -214,3 +214,6 @@ class JobsEfficiency_Policy( PolicyBase ):
     SystemCharge = clientsInvoker.doCommand( args )
 
     return SystemCharge
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

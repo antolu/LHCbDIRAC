@@ -23,8 +23,13 @@ class JobsEfficiency_Simple_Policy( PolicyBase ):
       }
   """
 
-    status = super(JobsEfficiency_Simple_Policy, self).evaluate()
+    status = super( JobsEfficiency_Simple_Policy, self ).evaluate()
     result = {}
+
+    if status is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
 
     if not status[ 'OK' ]:
       result[ 'Status' ] = 'Error'
@@ -32,9 +37,6 @@ class JobsEfficiency_Simple_Policy( PolicyBase ):
       return result
 
     status = status[ 'Value' ]
-
-#    elif status == 'Unknown':
-#      return { 'Status' : 'Unknown' }
       
     if status == 'Good':
       result[ 'Status' ] = 'Active'
@@ -56,3 +58,6 @@ class JobsEfficiency_Simple_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

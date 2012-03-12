@@ -12,7 +12,7 @@ __RCSID__ = '$Id$'
 
 class HC_Policy( PolicyBase ):
 
-  def evaluate( self ):
+  def evaluate( self ): 
     """ 
     Evaluate policy on possible ongoing or scheduled downtimes. 
         
@@ -51,10 +51,6 @@ class HC_Policy( PolicyBase ):
     """
 
     status = super( HC_Policy, self ).evaluate()
- 
-    #print 'HC_Policy' 
-
-    #print status
 
     result = { 'SAT':False, 
                'Status':self.args[2], 
@@ -94,16 +90,10 @@ class HC_Policy( PolicyBase ):
           result['SAT']    = True
           result['Status'] = 'Active'
           result['Reason'] = 'Efficiency of %s' % efficiency
-        
-      #elif completed + failed == 0 and total > 0:
-      #  result['reason'] = 'No job finished'   
-      # 
-      #elif total == 0:
-      #  result['reason'] = 'No jobs at all'
-
-    #print result 
 
     return result
-#    return {'SAT':False,'Status':'Active','Reason':'Testing'}
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+  
+################################################################################  
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
