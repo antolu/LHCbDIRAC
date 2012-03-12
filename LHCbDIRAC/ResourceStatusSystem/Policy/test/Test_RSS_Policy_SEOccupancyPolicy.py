@@ -24,7 +24,7 @@ class SEOccupancyPolicy_TestCase( unittest.TestCase ):
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.SEOccupancys_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.SEOccupancy_Policy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
     moduleTested.SEOccupancy_Policy.__bases__ = ( PolicyBase, ) 
 
