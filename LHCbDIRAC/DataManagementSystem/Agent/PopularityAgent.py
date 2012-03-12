@@ -12,6 +12,7 @@ from DIRAC.Core.Utilities.List                           import sortList, intLis
 from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 #from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient            import DataUsageClient
 import os, sys, time
 from datetime import datetime, timedelta
 from DIRAC  import S_OK, S_ERROR, gLogger
@@ -27,13 +28,13 @@ class PopularityAgent( AgentModule ):
     if self.am_getOption( 'DirectDB', False ):
       from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
       self.__stDB = StorageUsageDB()
+      #self.bkClient = BookkeepingClient()#the necessary method is still not available in Bookk. client
     else:
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.__stDB = RPCClient( 'DataManagement/DataUsage' )
-      #self.bkClient = BookkeepingClient()
       timeout = 600
       self.__bkClient = RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
-
+    self.__dataUsageClient = DataUsageClient()
     self.__workDirectory =  self.am_getOption( "WorkDirectory" )
     if not os.path.isdir( self.__workDirectory ):
       os.makedirs( self.__workDirectory )
@@ -53,8 +54,7 @@ class PopularityAgent( AgentModule ):
     # the condition to get th etraces is the AND of the time range and the status new 
     gLogger.info("Querying Pop db to retrieve entries in time range %s - %s " %(  startTimeQuery, endTimeQuery) )
     status = 'New'
-    res = self.__stDB.getDataUsageSummary( startTimeQuery, endTimeQuery, status )
-    #res = self.__stDB.getDataUsageSummary_2( startTimeQuery, endTimeQuery, status )
+    res = self.__dataUsageClient.getDataUsageSummary( startTimeQuery, endTimeQuery, status )
     if not res['OK']:
       gLogger.error("Error querying Popularity table.. %s" % res['Message'] )
       return S_ERROR( res['Message'] )
@@ -76,14 +76,14 @@ class PopularityAgent( AgentModule ):
       if site not in traceDict[ dirLfn ].keys():
         traceDict[ dirLfn ][ site ] = 0
       traceDict[ dirLfn ][ site ] += count
-    gLogger.info( "Report from Pop table: " )
     now = Time.dateTime()
     self.numPopRows = 0 # keep a counter of the records to send to accounting data-store
     for dirLfn in traceDict.keys():
       #did, configName, configVersion, conditions, processingPass, eventType, fileType, production = ('na', 'na', 'na', 'na', 'na', 'na', 'na', 'na' )
       # retrieve the directory meta-data from the DirMetadata table
+      gLogger.info( "Processing dir %s " % dirLfn )
       dirList = [ dirLfn ]
-      res = self.__stDB.getDirMetadata( dirList ) # this could be done in a bulk query for a list of directories... TBF
+      res = self.__dataUsageClient.getDirMetadata( dirList ) # this could be done in a bulk query for a list of directories... TBF
       if not res[ 'OK' ]:
         gLogger.error("Error retrieving directory meta-data %s " % res['Message'] )
         continue
@@ -111,7 +111,7 @@ class PopularityAgent( AgentModule ):
           gLogger.info( "Cache this entry in DirMetadata table.." )
           dirMetadataDict = {}
           dirMetadataDict[ dirLfn ] = metadata
-          res = self.__stDB.insertToDirMetadata( dirMetadataDict )
+          res = self.__dataUsageClient.insertToDirMetadata( dirMetadataDict )
           if not res[ 'OK' ]:
             gLogger.error( "Failed to insert metadata in DirMetadata table! %s " % res[ 'Message' ] )
           else:
@@ -157,7 +157,7 @@ class PopularityAgent( AgentModule ):
       gLogger.info( "%s records for Popularity type successfully committed" %self.numPopRows )
       # then set the status to Used
       gLogger.info("Set the status to Used for %d entries" % len( IdList ) )
-      res = self.__stDB.updatePopEntryStatus( IdList, 'Used' )
+      res = self.__dataUsageClient.updatePopEntryStatus( IdList, 'Used' )
 
       if not res['OK']:
         gLogger.error("Error to update status in  Popularity table.. %s" % res['Message'] )
