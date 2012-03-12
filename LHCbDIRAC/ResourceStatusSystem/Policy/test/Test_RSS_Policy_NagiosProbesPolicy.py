@@ -58,7 +58,7 @@ class NagiosProbesPolicy_Success( NagiosProbesPolicy_TestCase ):
     p.commandRes = { 'OK' : True, 'Value' : { 'A' : 1, 'OK' : 2 } }
     res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Error' )    
-    p.commandRes = { 'OK' : True, 'Value' : { 'CRITICAL' : 1 } }
+    p.commandRes = { 'OK' : True, 'Value' : { 'CRITICAL' : [ 1, 1 ] } }
     res = p.evaluate()
     self.assertEqual( res[ 'Status' ], 'Banned' )
     p.commandRes = { 'OK' : True, 'Value' : { 'CRITICAL' : [ 1, 1 ], 'OK' : 2 } }
