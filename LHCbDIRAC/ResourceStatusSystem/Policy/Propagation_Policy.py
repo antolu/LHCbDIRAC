@@ -25,8 +25,13 @@ class Propagation_Policy( PolicyBase ):
       }
     """
 
-    stats = super(Propagation_Policy, self).evaluate()
+    stats = super( Propagation_Policy, self ).evaluate()
     result = {}
+
+    if stats is None:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Command evaluation returned None'
+      return result
 
     if not stats[ 'OK' ]:
       result[ 'Status' ] = 'Error'
@@ -34,9 +39,6 @@ class Propagation_Policy( PolicyBase ):
       return result
 
     stats = stats[ 'Value' ]
-
-#    if stats == 'Unknown':
-#      return { 'Status' : 'Unknown', 'Reason': 'No info available from service' }
 
     if stats['Active'] > 0 and stats['Probing'] == 0 and stats['Bad'] == 0 and stats['Banned'] == 0:
       status = 'Active'
@@ -59,3 +61,6 @@ class Propagation_Policy( PolicyBase ):
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
