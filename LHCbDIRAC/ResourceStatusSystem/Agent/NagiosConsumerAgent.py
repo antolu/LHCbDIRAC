@@ -23,7 +23,7 @@ AGENT_NAME = "ResourceStatusSystem/NagiosConsumerAgent"
 
 # We need this global variable to communicate between threads.
 # It is dirty... Future me, forgive me for this.
-_msgQueue = Queue.Queue()
+MsgQueue = Queue.Queue()
 
 ################################################################################
 # CUSTOM STOMP LISTENER
@@ -62,10 +62,10 @@ class CustomStompListener( stomp.listener.ConnectionListener ):
         key, value = m.split( ':', 1 )
         #Remove initial space if any
         if value[ 0 ] == ' ':
-          vvalue = vavlue[ 1: ]
+          value = vavlue[ 1: ]
         messageDict[ key ] = value
 
-    _msgQueue.put( [ headers, messageDict ] )
+    MsgQueue.put( [ headers, messageDict ] )
 
 ################################################################################
 # END OF CUSTOM STOMP LISTENER
@@ -109,7 +109,7 @@ class NagiosConsumerAgent( AgentModule ):
     Method executed when the agent is launched.
     It connects to ActiveMQ using the given or by default parameters, and starts
     the listener - CustomStompListener -, that will run on a separate process
-    populating the queue _msgQueue with the incoming messages.
+    populating the queue MsgQueue with the incoming messages.
     '''
 
     # Attribute defined outside __init__  
@@ -176,14 +176,14 @@ class NagiosConsumerAgent( AgentModule ):
     try:
 
       # This value is not accurate, but it is close enough.
-      msgs = _msgQueue.qsize()
+      msgs = MsgQueue.qsize()
 
       self.log.info( '%d message(s) to be processed' % msgs )
 
       # Let's try without threads, and see the polling time.
       for _m in xrange(msgs):
         
-        _head, msg = _msgQueue.get()              
+        _head, msg = MsgQueue.get()              
 
         params = self.__checkParams( msg )
 
