@@ -26,7 +26,7 @@ class GGUSTickets_Policy( PolicyBase ):
     GGUS_N = super( GGUSTickets_Policy, self ).evaluate()
     result = {}
 
-    if resourceStatus is None:
+    if GGUS_N is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
