@@ -19,23 +19,23 @@ def getProbeElements():
   all space tokens for all space token endpoints.
   '''
   
-  try:
+#  try:
 
-    elementsToCheck = []      
-    spaceEndpoints  = CS.getSpaceTokenEndpoints()
-    spaceTokens     = CS.getSpaceTokens() 
+  elementsToCheck = []      
+  spaceEndpoints  = CS.getSpaceTokenEndpoints()
+  spaceTokens     = CS.getSpaceTokens() 
 
-    for site in spaceEndpoints.items():
-      for spaceToken in spaceTokens:
+  for site in spaceEndpoints.items():
+    for spaceToken in spaceTokens:
 
-        elementsToCheck.append( ( site, spaceToken ) )
+      elementsToCheck.append( ( site, spaceToken ) )
         
-    return S_OK( elementsToCheck )    
+  return S_OK( elementsToCheck )    
   
-  except Exception, e:
-    _msg = 'Exception gettingProbeElements'
-    gLogger.debug( 'SpaceTokenOccupancy: %s: \n %s' % ( _msg, e ) )
-    return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
+#  except Exception, e:
+#    _msg = 'Exception gettingProbeElements'
+#    gLogger.debug( 'SpaceTokenOccupancy: %s: \n %s' % ( _msg, e ) )
+#    return S_ERROR( '%s: \n %s' % ( _msg, e ) )   
 
 def setupProbes( testConfig ):
   '''

@@ -20,20 +20,20 @@ def getProbeElements():
   SystemAdministrator.
   '''
 
-  try:
+#  try:
   
-    request_management_urls = gConfig.getValue( '/Systems/RequestManagement/Development/URLs/allURLS', [] )
-    configuration_urls      = gConfig.getServersList()
-    framework_urls          = gConfig.getValue( '/DIRAC/Framework/SystemAdministrator', [] )
+  request_management_urls = gConfig.getValue( '/Systems/RequestManagement/Development/URLs/allURLS', [] )
+  configuration_urls      = gConfig.getServersList()
+  framework_urls          = gConfig.getValue( '/DIRAC/Framework/SystemAdministrator', [] )
     
-    elementsToCheck = request_management_urls + configuration_urls + framework_urls 
+  elementsToCheck = request_management_urls + configuration_urls + framework_urls 
   
-    return S_OK( elementsToCheck )    
+  return S_OK( elementsToCheck )    
   
-  except Exception, e:
-    _msg = 'Exception gettingProbeElements'
-    gLogger.debug( 'VOBOX: %s: \n %s' % ( _msg, e ) )
-    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
+#  except Exception, e:
+#    _msg = 'Exception gettingProbeElements'
+#    gLogger.debug( 'VOBOX: %s: \n %s' % ( _msg, e ) )
+#    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def setupProbes( testConfig ):
   '''

@@ -14,30 +14,30 @@ def getProbeElements():
   LFC mirrors registered in the RSS.
   '''  
     
-  try:
+#  try:
   
-    rsc   = ResourceStatusClient()
-    lfc_l = rsc.getResource( resourceType = 'LFC_L' )
-    lfc_c = rsc.getResource( resourceType = 'LFC_C' )
+  rsc   = ResourceStatusClient()
+  lfc_l = rsc.getResource( resourceType = 'LFC_L' )
+  lfc_c = rsc.getResource( resourceType = 'LFC_C' )
 
-    if lfc_l[ 'OK' ]:
-      lfc_l = [ lfcl[0] for lfcl in lfc_l[ 'Value' ] ]
-    else:
-      lfc_l = []
+  if lfc_l[ 'OK' ]:
+    lfc_l = [ lfcl[0] for lfcl in lfc_l[ 'Value' ] ]
+  else:
+    lfc_l = []
     
-    if lfc_c[ 'OK' ]:
-      lfc_c = [ lfcc[0] for lfcc in lfc_c[ 'Value' ] ]
-    else:
-      lfc_c = []
+  if lfc_c[ 'OK' ]:
+    lfc_c = [ lfcc[0] for lfcc in lfc_c[ 'Value' ] ]
+  else:
+    lfc_c = []
 
-    elementsToCheck = lfc_l + lfc_c
+  elementsToCheck = lfc_l + lfc_c
 
-    return S_OK( elementsToCheck )
+  return S_OK( elementsToCheck )
 
-  except Exception, e:
-    _msg = 'Exception gettingProbeElements'
-    gLogger.debug( 'LFCMirror: %s: \n %s' % ( _msg, e ) )
-    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
+#  except Exception, e:
+#    _msg = 'Exception gettingProbeElements'
+#    gLogger.debug( 'LFCMirror: %s: \n %s' % ( _msg, e ) )
+#    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def setupProbes( testConfig ):
   '''

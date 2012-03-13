@@ -24,29 +24,29 @@ def getProbeElements():
   all ConditionDBs defined in the RSS.
   '''
   
-  try:
+#  try:
   
-    rsc     = ResourceStatusClient()
-    condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
+  rsc     = ResourceStatusClient()
+  condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
     
-    if not condDBs[ 'OK' ]:
-      return S_ERROR( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
+  if not condDBs[ 'OK' ]:
+    return S_ERROR( 'No CondDBs found on the RSS: %s' % condDBs[ 'Message' ] )
     
-    if not os.environ.has_key( 'USER' ):
-      # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
-      os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
+  if not os.environ.has_key( 'USER' ):
+    # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
+    os.environ[ 'USER' ] = pwd.getpwuid( os.getuid() )[0]
     
-    env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
-    if not env[ 'OK' ]:
-      return env
-    env = env[ 'Value' ]
+  env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', 'LHCb' )
+  if not env[ 'OK' ]:
+    return env
+  env = env[ 'Value' ]
     
-    return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
+  return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
     
-  except Exception, e:
-    _msg = '%s: Exception gettingProbeElements'
-    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
-    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
+#  except Exception, e:
+#    _msg = '%s: Exception gettingProbeElements'
+#    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
+#    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def setupProbes( testConfig ):
   '''
@@ -62,15 +62,15 @@ def setupProbes( testConfig ):
   except OSError:
     pass # The dir exist already, or cannot be created: do nothing
 
-  try:
+#  try:
     
-    writeOptionsFile( path  )
-    return S_OK()
+  writeOptionsFile( path  )
+  return S_OK()
     
-  except Exception, e:  
-    _msg = '%s: Exception settingProbe'
-    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
-    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
+#  except Exception, e:  
+#    _msg = '%s: Exception settingProbe'
+#    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
+#    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
 def runProbe( probeInfo, testConfig ):
   '''

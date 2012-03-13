@@ -68,9 +68,9 @@ def runProbe( probeInfo, testConfig ):
     _lfcMsg = 'Error manipulating directory %s' % gridDir
     gLogger.error( 'LFCMaster: %s' % _lfcMsg )
     availabilityinfo = _lfcMsg
-  except Exception, e:
-    gLogger.error( 'LFCMaster: %s' % e )
-    availabilityinfo = 'Exception running test %s' % e
+#  except Exception, e:
+#    gLogger.error( 'LFCMaster: %s' % e )
+#    availabilityinfo = 'Exception running test %s' % e
     
   availability = (( _create and 50 ) or 0 ) + (( _remove and 50 ) or 0 )
   
