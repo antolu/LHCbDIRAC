@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r3_branch/Interfaces/API/LHCbJob.py $
+# $HeadURL$
 # File :   LHCbJob.py
 # Author : Stuart Paterson
 ########################################################################
@@ -96,7 +96,7 @@
 
 """
 
-__RCSID__ = "$Id: LHCbJob.py 48529 2012-03-12 16:15:43Z fstagni $"
+__RCSID__ = "$Id$"
 
 import string
 
@@ -1190,12 +1190,12 @@ class LHCbJob( Job ):
       lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
       lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
       ancestorsDepth = self.workflow.parameters.find( 'AncestorDepth' ).getValue()
-      ancestors = bkClient.getAncestors( lfns, int( ancestorsDepth ) )
+      ancestors = bkClient.getFileAncestors( lfns, int( ancestorsDepth ) )
       if not ancestors['OK']:
         return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
       ancestorsLFNs = []
       for ancestorsLFN in ancestors['Value']['Successful'].values():
-        ancestorsLFNs = ancestorsLFNs + ancestorsLFN
+        ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
 
       ancestorsLFNsString = ""
       for ancestorsLFN in ancestorsLFNs:

@@ -111,7 +111,7 @@ class InputDataResolution:
       tmpDict[lfn] = mdata
 
     lfnList = resolvedData.keys()
-    typeVersions = self.bkkClient.getTypeVersion( lfnList )
+    typeVersions = self.bkkClient.getFileTypeVersion ( lfnList )
     if not typeVersions['OK']:
       return typeVersions
 

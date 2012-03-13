@@ -167,9 +167,9 @@ class UploadOutputData( ModuleBase ):
 
       #Prior to uploading any files must check (for productions with input data) that no descendent files
       #already exist with replica flag in the BK.  The result structure is:
-      #{'OK': True, 
+      #{'OK': True,
       # 'Value': {
-      #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']}, 
+      #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
       #'Failed': [], 'NotProcessed': []}}
 
       result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
@@ -253,7 +253,7 @@ class UploadOutputData( ModuleBase ):
         self.workflow_commons['Request'] = self.request
         return S_ERROR( 'Failed to upload output data' )
 
-      #Now double-check prior to final BK replica flag setting that the input files are still not processed 
+      #Now double-check prior to final BK replica flag setting that the input files are still not processed
       result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
       if not result['OK']:
         lfns = []
@@ -334,8 +334,8 @@ class UploadOutputData( ModuleBase ):
 
   def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient ):
     """ Checks that the input files for the job were not already processed by
-        another job i.e. that there are no other descendent files for the 
-        current productionID having a BK replica flag.  
+        another job i.e. that there are no other descendent files for the
+        current productionID having a BK replica flag.
     """
     if not inputData:
       self.log.verbose( 'This job has no input data to check for descendents in the BK' )
@@ -345,14 +345,14 @@ class UploadOutputData( ModuleBase ):
     prodID = prodID.lstrip( '0' )
     self.log.info( 'Will check BK descendents for input data of job prior to uploading outputs' )
     start = time.time()
-    result = bkClient.getAllDescendents( inputData, depth = 9, production = int( prodID ), checkreplica = True )
+    result = bkClient.getFileDescendents( inputData, depth = 9, production = int( prodID ), checkreplica = True )
     timing = time.time() - start
     self.log.info( 'BK Descendents Lookup Time: %.2f seconds ' % ( timing ) )
     if not result['OK']:
       self.log.error( 'Would have uploaded output data for job but could not check for descendents of input data from BK with result:\n%s' % ( result ) )
       return S_ERROR( 'Could Not Contact BK To Check Descendents' )
     if result['Value']['Failed']:
-      self.log.error( 'BK getAllDescendents returned an error for some files:\n%s\nwill exit to avoid uploading outputs that have already been processed' % ( result['Value']['Failed'] ) )
+      self.log.error( 'BK getFileDescendents returned an error for some files:\n%s\nwill exit to avoid uploading outputs that have already been processed' % ( result['Value']['Failed'] ) )
       return S_ERROR( 'BK Descendents Check Was Not Complete' )
 
     inputDataDescDict = result['Value']['Successful']
@@ -371,7 +371,7 @@ class UploadOutputData( ModuleBase ):
 
   def setBKRegistrationRequest( self, lfn, error = '' ):
     """ Set a BK registration request for changing the replica flag.  Uses the
-        global request object.  
+        global request object.
     """
     if error:
       self.log.info( 'BK registration for %s failed with message: "%s" setting failover request' % ( lfn, error ) )

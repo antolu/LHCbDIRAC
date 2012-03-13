@@ -96,7 +96,7 @@ class StorageSummaryAgent( AgentModule ):
           #if not res['OK']:
           #  print 'ERROR',prodID, res['Message']
           #  continue
-          res = bkClient.getNumberOfEvents( prodID )
+          res = bkClient.getProductionNbOfEvents( prodID )
           if not res['OK']:
             self.log.error( prodID, res['Message'] )
             continue

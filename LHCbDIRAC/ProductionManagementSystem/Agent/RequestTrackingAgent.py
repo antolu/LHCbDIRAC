@@ -18,7 +18,7 @@ import os, time, string
 
 def bkProductionProgress(id,setup):
   RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
-  return RPC.getProcessedEvents(int(id))
+  return RPC.getProductionProcessedEvents(int(id))
 
 def bkInputNumberOfEvents(r,setup):
   """ Extrim dirty way... But I DO NOT KNOW OTHER !!! """

@@ -310,7 +310,7 @@ class DiracLHCb( Dirac ):
 
     start = time.time()
     bk = BookkeepingClient()
-    result = bk.getRunsWithAGivenDates( {'StartDate':startDate, 'EndDate':endDate} )
+    result = bk.getRunsForAGivenPeriod( {'StartDate':startDate, 'EndDate':endDate} )
     rtime = time.time() - start
     self.log.info( 'BK query time: %.2f sec' % rtime )
     if not result['OK']:
@@ -644,7 +644,7 @@ class DiracLHCb( Dirac ):
 
     start = time.time()
     bk = BookkeepingClient()
-    result = bk.getFilesWithGivenDataSetsForUsers( bkQueryDict )
+    result = bk.getVisibleFilesWithMetadata( bkQueryDict )
 #    result = bk.getFilesWithGivenDataSets(bkQueryDict)
     rtime = time.time() - start
     self.log.info( 'BK query time: %.2f sec' % rtime )
@@ -925,7 +925,7 @@ class DiracLHCb( Dirac ):
     """
     storageCFGBase = '/Resources/StorageElements'
     res = gConfig.getSections( storageCFGBase, True )
-   
+
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
 
@@ -933,22 +933,22 @@ class DiracLHCb( Dirac ):
       print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
 
     result = {}
-   
+
     seList = sortList( res['Value'] )
     res    = ResourceStatus.getStorageElementStatus( seList )
     if not res[ 'OK' ]:
       gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
-   
+
     for k,v in res[ 'Value' ].items():
-   
+
       readState, writeState = 'Active', 'Active'
- 
+
       if v.has_key( 'Read' ):
-        readState = v[ 'Read' ]  
- 
+        readState = v[ 'Read' ]
+
       if v.has_key( 'Write' ):
         writeState = v[ 'Write']
-       
+
       result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
       if printOutput:
         print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
