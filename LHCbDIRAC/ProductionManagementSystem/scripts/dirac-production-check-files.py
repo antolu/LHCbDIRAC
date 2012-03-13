@@ -21,7 +21,7 @@ Script.registerSwitch( "", "Owner=", "Owner (DIRAC nickname)" )
 Script.registerSwitch( "", "ProductionID=", "Select jobs for specified job group" )
 Script.registerSwitch( "", "Date=", "Date in YYYY-MM-DD format, if not specified default is today" )
 Script.registerSwitch( "", "Verbose=", "For more detailed information about file and job states. Default False." )
-#ÊScript.addDefaultOptionValue( "LogLevel", "ALWAYS" )
+#Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
