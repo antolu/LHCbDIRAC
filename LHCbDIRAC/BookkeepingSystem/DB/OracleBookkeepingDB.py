@@ -2653,19 +2653,19 @@ and files.qualityid= dataquality.qualityid'
       condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (evt)
 
     if production != default:
-      condition += ' and j.production=' + str(production)
+      condition += ' and j.production=%d' % (production)
 
     if runnb != default:
-      condition += ' and j.runnumber=' + str(runnb)
+      condition += ' and j.runnumber=%d' % (runnb)
 
     if filetype != default:
-      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (str(filetype))
+      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (filetype)
 
     if quality != 'ALL':
       tables += ' ,dataquality d '
       condition += 'and d.qualityid=f.qualityid '
       if type(quality) == types.StringType:
-        command = "select QualityId from dataquality where dataqualityflag='" + str(i) + "'"
+        command = "select QualityId from dataquality where dataqualityflag='%s'" % (quality)
         res = self.dbR_._query(command)
         if not res['OK']:
           gLogger.error('Data quality problem:', res['Message'])
@@ -2679,7 +2679,7 @@ and files.qualityid= dataquality.qualityid'
           conds = ' ('
           for i in quality:
             quality = None
-            command = "select QualityId from dataquality where dataqualityflag='" + str(i) + "'"
+            command = "select QualityId from dataquality where dataqualityflag='%s'" % (i)
             res = self.dbR_._query(command)
             if not res['OK']:
               gLogger.error('Data quality problem:', res['Message'])
@@ -2900,7 +2900,7 @@ and files.qualityid= dataquality.qualityid'
           procs = self.__getprocessingid(i)
           if len(procs) > 0:
             if self.__checkprocessingpass(path, procs):
-              return S_OK(ppp[len(ppp) - 1][4])
+              return S_OK()
         newpath = list(path)
         self.__insertprocessing(newpath, None, stepids)
         return S_OK(stepids[-1:])
