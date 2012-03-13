@@ -75,7 +75,7 @@ except Exception, ex:
 
 for line in events:
   res = process_event( line )
-  result = bk.addEventType( res['EVTTYPEID'], res['DESCRIPTION'], res['PRIMARY'] )
+  result = bk.insertEventType( res['EVTTYPEID'], res['DESCRIPTION'], res['PRIMARY'] )
   if result["OK"]:
     print result['Value']
   else:

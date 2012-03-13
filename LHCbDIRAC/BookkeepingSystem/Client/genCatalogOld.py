@@ -771,7 +771,7 @@ def getAncestors( LFNs, depth = 1 ):
   try:
     obj = Bookkeeping( _url_ )
     result = S_OK()
-    result['PFNs'] = obj.getAncestors( LFNs, depth )
+    result['PFNs'] = obj.getFileAncestors( LFNs, depth )
     return result
   except Exception,x:
     sf=StringFile()
@@ -787,7 +787,7 @@ def genCatalog( LFNs, outputFilename, depth = 1, site = None, protocol = None ):
     obj = Bookkeeping( _url_ )
     ancestorsLFNs = LFNs
     if depth > 1:
-      res = obj.getAncestors( LFNs, depth )
+      res = obj.getFileAncestors( LFNs, depth )
       if res['Status'] == 'OK':
         ancestorsLFNs = res['PFNs']
       else:

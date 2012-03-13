@@ -56,7 +56,7 @@ class XMLFilesReaderManager:
     return type, doc, filename
 
   #############################################################################
-  def readXMLfromString( self, name, xmlString ):
+  def readXMLfromString( self, xmlString ):
 
     try:
       doc = parseString( xmlString )
@@ -232,7 +232,7 @@ class XMLFilesReaderManager:
             if retVal['OK']:
               proc = retVal['Value']
 
-              retVal = dataManager_.getRunFlag(runnumber, proc)
+              retVal = dataManager_.getRunAndProcessingPassDataQuality(runnumber, proc)
               if retVal['OK']:
                 dqvalue = retVal['Value']
               else:
@@ -323,7 +323,7 @@ class XMLFilesReaderManager:
 
     outputFiles = job.getJobOutputFiles()
     prod = job.getParam( 'Production' ).getValue()
-    retVal = dataManager_.getProductionOutputFiles( prod )
+    retVal = dataManager_.getProductionOutputFileTypes( prod )
     if not retVal['OK']:
       return retVal
     outputFileTypes = retVal['Value']

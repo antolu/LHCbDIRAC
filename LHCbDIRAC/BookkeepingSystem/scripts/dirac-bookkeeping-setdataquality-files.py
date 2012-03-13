@@ -47,7 +47,7 @@ try:
 except Exception, ex:
   lfns = [file]
 
-result = bk.setQuality( lfns, flag )
+result = bk.setFileDataQuality( lfns, flag )
 
 if not result['OK']:
   print 'ERROR: %s' % ( result['Message'] )

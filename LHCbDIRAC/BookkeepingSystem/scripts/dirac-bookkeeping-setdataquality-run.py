@@ -38,7 +38,7 @@ if len( args ) < 2:
 exitCode = 0
 rnb = int( args[0] )
 flag = args[1]
-result = bk.setQualityRun( rnb, flag )
+result = bk.setRunDataQuality( rnb, flag )
 
 if not result['OK']:
   print 'ERROR: %s' % ( result['Message'] )

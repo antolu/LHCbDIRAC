@@ -39,7 +39,7 @@ exitCode = 0
 rnb = int( args[0] )
 proc = args[1]
 flag = args[2]
-result = bk.setRunQualityWithProcessing( rnb, proc, flag )
+result = bk.setRunAndProcessingPassDataQuality( rnb, proc, flag )
 
 if not result['OK']:
   print 'ERROR: %s' % ( result['Message'] )

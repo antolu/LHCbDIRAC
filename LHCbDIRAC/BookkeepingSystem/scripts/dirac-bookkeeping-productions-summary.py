@@ -54,7 +54,7 @@ evttype = raw_input( "Event type(ALL is the default value):" )
 if evttype == '':
   evttype = 'ALL'
 
-dict = {'ConfigurationName':cName, 'ConfigurationVersion':cVersion, 'Production':production, 'SimulationDescription':simdesc, 'ProcessingPassGroup':pgroup, 'FileType':ftype, 'EventType':evttype}
+dict = {'ConfigName':cName, 'ConfigVersion':cVersion, 'Production':production, 'ConditionDescription':simdesc, 'ProcessingPass':pgroup, 'FileType':ftype, 'EventType':evttype}
 res = bk.getProductionSummary( dict )
 
 if not res["OK"]:

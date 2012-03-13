@@ -65,7 +65,7 @@ def getHistoAncestors( histograms ):
 
       returns a dictionary of format: {'rawFile':['decendant1','decendant2']}
   """
-  res = bkClient.getAncestors( histograms, 3 )
+  res = bkClient.getFileAncestors( histograms, 3 )
   raw2Histos = {}
   if not res['OK']:
     gLogger.error( "Failed to get ancestors for files.", res['Message'] )
@@ -90,7 +90,7 @@ def getRAWDescendants( rawLfns ):
   """
   # Get the files with the RAW files as input
   depth = 2 # This is because RAW->RDST,BRUNELHIST->DAVINCIHIST
-  res = bkClient.getDescendents( rawLfns, depth )
+  res = bkClient.getFileDescendents( rawLfns, depth, 0, True )
   if not res['OK']:
     gLogger.error( res['Message'] )
     DIRAC.exit( 2 )
@@ -131,7 +131,7 @@ def getInfo( lfn, info ):
   get info from file
   """
   l = [ lfn ]
-  res = bkClient.getFilesInformations( l )
+  res = bkClient.getFileMetadata( l )
   if ( res.has_key( 'Value' ) ):
     res2 = res['Value']
     if ( res2.has_key( lfn ) ):

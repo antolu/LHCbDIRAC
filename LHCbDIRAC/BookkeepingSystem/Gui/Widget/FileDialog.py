@@ -244,7 +244,7 @@ class FileDialog(QDialog, Ui_FileDialog):
     # enable sorting
     # this doesn't work
     #tv.setSortingEnabled(True)
-  
+
   #############################################################################
   def saveAs(self, filename = ''):
 

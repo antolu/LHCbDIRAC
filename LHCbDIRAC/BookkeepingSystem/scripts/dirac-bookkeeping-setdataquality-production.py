@@ -38,7 +38,7 @@ if len( args ) < 2:
 exitCode = 0
 prod = int( args[0] )
 flag = args[1]
-result = bk.setQualityProduction( prod, flag )
+result = bk.setProductionDataQuality( prod, flag )
 
 if not result['OK']:
   print 'ERROR: %s' % ( result['Message'] )
