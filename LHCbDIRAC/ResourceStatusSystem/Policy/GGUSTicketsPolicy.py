@@ -1,7 +1,7 @@
 # $HeadURL$
-''' GGUSTickets_Policy 
+''' GGUSTicketsPolicy 
   
-  The GGUSTickets_Policy class is a policy class that evaluates on
+  The GGUSTicketsPolicy class is a policy class that evaluates on
   how many tickets are open atm.
   
 '''
@@ -10,7 +10,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class GGUSTickets_Policy( PolicyBase ):
+class GGUSTicketsPolicy( PolicyBase ):
 
   def evaluate( self ):
     """
@@ -23,7 +23,7 @@ class GGUSTickets_Policy( PolicyBase ):
         }
     """
 
-    GGUS_N = super( GGUSTickets_Policy, self ).evaluate()
+    GGUS_N = super( GGUSTicketsPolicy, self ).evaluate()
     result = {}
 
     if GGUS_N is None:
@@ -40,7 +40,7 @@ class GGUSTickets_Policy( PolicyBase ):
 
     if GGUS_N is None:
       result[ 'Status' ] = 'Unknown'
-      result[ 'Reason' ] = 'No values to take a decission'
+      result[ 'Reason' ] = 'No values to take a decision'
       return result
     elif GGUS_N == 0:
       result[ 'Status' ] = 'Active'

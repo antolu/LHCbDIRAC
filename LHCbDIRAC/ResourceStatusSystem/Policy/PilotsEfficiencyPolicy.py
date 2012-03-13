@@ -1,7 +1,7 @@
 # $HeadURL$
-''' PilotsEfficiency_Policy
+''' PilotsEfficiencyPolicy
  
-  The PilotsEfficiency_Policy class is a policy class 
+  The PilotsEfficiencyPolicy class is a policy class 
   that checks the efficiency of the pilots.
   
 '''
@@ -15,7 +15,7 @@ from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 
 __RCSID__ = '$Id$'
 
-class PilotsEfficiency_Policy( PolicyBase ):
+class PilotsEfficiencyPolicy( PolicyBase ):
 
   def evaluate( self, args, knownInfo = None, commandPeriods = None, commandStats = None,
                commandEff = None ):

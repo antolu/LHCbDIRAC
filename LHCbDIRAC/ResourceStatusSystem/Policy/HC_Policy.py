@@ -1,7 +1,7 @@
 # $HeadURL$
-''' HC_Policy
+''' HCPolicy
  
-  The HC_Policy class is a policy class satisfied when ...
+  The HCPolicy class is a policy class satisfied when ...
   TO BE DECIDED.
   
 '''
@@ -10,7 +10,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class HC_Policy( PolicyBase ):
+class HCPolicy( PolicyBase ):
 
   def evaluate( self ): 
     """ 
@@ -50,7 +50,7 @@ class HC_Policy( PolicyBase ):
         
     """
 
-    status = super( HC_Policy, self ).evaluate()
+    status = super( HCPolicy, self ).evaluate()
 
     result = { 'SAT':False, 
                'Status':self.args[2], 

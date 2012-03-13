@@ -1,7 +1,7 @@
 # $HeadURL$
-''' SAMResults_Policy
+''' SAMResultsPolicy
 
-  The SAMResults_Policy class is a policy class that checks
+  The SAMResultsPolicy class is a policy class that checks
   the SAM job self.results.
   
 '''
@@ -10,7 +10,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class SAMResults_Policy( PolicyBase ):
+class SAMResultsPolicy( PolicyBase ):
 
   def evaluate(self):
     """
@@ -23,7 +23,7 @@ class SAMResults_Policy( PolicyBase ):
         }
     """
 
-    SAMstatus = super( SAMResults_Policy, self ).evaluate()
+    SAMstatus = super( SAMResultsPolicy, self ).evaluate()
     result = {}
 
     if SAMstatus is None:

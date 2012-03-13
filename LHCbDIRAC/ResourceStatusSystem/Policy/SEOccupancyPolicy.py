@@ -1,6 +1,7 @@
 # $HeadURL$
-'''
-  The SEOccupancy_Policy class is a policy class satisfied when a SE has a 
+''' SEOccupancyPolicy
+
+  The SEOccupancyPolicy class is a policy class satisfied when a SE has a 
   high occupancy.
   
 '''
@@ -9,7 +10,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class SEOccupancy_Policy( PolicyBase ):
+class SEOccupancyPolicy( PolicyBase ):
 
   def evaluate(self):
     """
@@ -23,7 +24,7 @@ class SEOccupancy_Policy( PolicyBase ):
     """
 
     # This call SLS_Command/SLSStatus_Command (see Configurations.py)
-    status = super( SEOccupancy_Policy, self ).evaluate()
+    status = super( SEOccupancyPolicy, self ).evaluate()
     result = {}
 
     if status is None:

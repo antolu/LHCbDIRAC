@@ -30,12 +30,12 @@ class TransferQualityPolicy_TestCase( unittest.TestCase ):
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.TransferQuality_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.TransferQualityPolicy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
-    moduleTested.TransferQuality_Policy.__bases__ = ( PolicyBase, ) 
+    moduleTested.TransferQualityPolicy.__bases__ = ( PolicyBase, ) 
     moduleTested.Configurations = Configurations()
 
-    self.policy = moduleTested.TransferQuality_Policy
+    self.policy = moduleTested.TransferQualityPolicy
 
   def tearDown( self ):
     
@@ -47,7 +47,7 @@ class TransferQualityPolicy_Success( TransferQualityPolicy_TestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    self.assertEqual( 'TransferQuality_Policy', p.__class__.__name__ )
+    self.assertEqual( 'TransferQualityPolicy', p.__class__.__name__ )
   
   def test_evaluate_none( self ):
     ''' tests that we can evaluate the policy when none is returned

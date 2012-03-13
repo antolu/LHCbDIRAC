@@ -1,7 +1,7 @@
 # $HeadURL$
-''' JobsEfficiency_Policy
+''' JobsEfficiencyPolicy
 
-  The JobsEfficiency_Policy class is a policy class
+  The JobsEfficiencyPolicy class is a policy class
   that checks the efficiency of the jobs.
   
 '''
@@ -15,7 +15,7 @@ from LHCbDIRAC.ResourceStatusSystem.Policy              import Configurations
 
 __RCSID__ = '$Id$'
 
-class JobsEfficiency_Policy( PolicyBase ):
+class JobsEfficiencyPolicy( PolicyBase ):
 
   def evaluate( self, args, knownInfo = None, commandPeriods = None, commandStats = None,
                commandEff = None, commandCharge = None ):

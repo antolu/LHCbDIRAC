@@ -24,11 +24,11 @@ class JobsEfficiencySimplePolicy_TestCase( unittest.TestCase ):
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.JobsEfficiency_Simple_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.JobsEfficiencySimplePolicy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
-    moduleTested.JobsEfficiency_Simple_Policy.__bases__ = ( PolicyBase, ) 
+    moduleTested.JobsEfficiencySimplePolicy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.JobsEfficiency_Simple_Policy
+    self.policy = moduleTested.JobsEfficiencySimplePolicy
 
   def tearDown( self ):
     
@@ -40,7 +40,7 @@ class JobsEfficiencySimplePolicy_Success( JobsEfficiencySimplePolicy_TestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    self.assertEqual( 'JobsEfficiency_Simple_Policy', p.__class__.__name__ )
+    self.assertEqual( 'JobsEfficiencySimplePolicy', p.__class__.__name__ )
   
   def test_evaluate_none( self ):
     ''' tests that we can evaluate the policy when none is returned

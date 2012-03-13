@@ -1,7 +1,7 @@
 # $HeadURL$
-''' PilotsEfficiency_Simple_Policy
+''' PilotsEfficiencySimplePolicy
 
-  The PilotsEfficiency_Simple_Policy class is a policy class
+  The PilotsEfficiencySimplePolicy class is a policy class
   that checks the efficiency of the pilots.
   
 '''
@@ -10,7 +10,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class PilotsEfficiency_Simple_Policy( PolicyBase ):
+class PilotsEfficiencySimplePolicy( PolicyBase ):
 
   def evaluate( self ):
     """
@@ -23,7 +23,7 @@ class PilotsEfficiency_Simple_Policy( PolicyBase ):
         }
     """
 
-    status = super( PilotsEfficiency_Simple_Policy, self ).evaluate()
+    status = super( PilotsEfficiencySimplePolicy, self ).evaluate()
     result = {}
 
     if status is None:

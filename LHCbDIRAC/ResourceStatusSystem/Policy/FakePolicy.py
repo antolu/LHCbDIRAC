@@ -1,5 +1,5 @@
 # $HeadURL$
-''' Fake_Confirm_Policy
+''' FakePolicy
 
   Module used for testing purposes.
 
@@ -9,17 +9,17 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class Fake_Confirm_Policy( PolicyBase ):
+class FakePolicy( PolicyBase ):
 
-  def evaluate(self):
+  def evaluate( self ):
     """
     """
 
-    Fake_R = super(Fake_Confirm_Policy, self).evaluate()
+    Fake_R = super( FakePolicy, self ).evaluate()
 
-    return { 'Status' : 'Active', 'Reason' : 'fake' }
+    return { 'Status' : 'Unknown' }
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
   
-################################################################################ 
+################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

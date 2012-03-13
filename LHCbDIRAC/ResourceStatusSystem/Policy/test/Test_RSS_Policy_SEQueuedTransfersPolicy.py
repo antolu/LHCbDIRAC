@@ -24,11 +24,11 @@ class SEQueuedTransfersPolicy_TestCase( unittest.TestCase ):
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.SEQueuedTransfers_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.SEQueuedTransfersPolicy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
-    moduleTested.SEQueuedTransfers_Policy.__bases__ = ( PolicyBase, ) 
+    moduleTested.SEQueuedTransfersPolicy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.SEQueuedTransfers_Policy
+    self.policy = moduleTested.SEQueuedTransfersPolicy
 
   def tearDown( self ):
     
@@ -40,7 +40,7 @@ class SEQueuedTransfersPolicy_Success( SEQueuedTransfersPolicy_TestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    self.assertEqual( 'SEQueuedTransfers_Policy', p.__class__.__name__ )
+    self.assertEqual( 'SEQueuedTransfersPolicy', p.__class__.__name__ )
   
   def test_evaluate_none( self ):
     ''' tests that we can evaluate the policy when none is returned

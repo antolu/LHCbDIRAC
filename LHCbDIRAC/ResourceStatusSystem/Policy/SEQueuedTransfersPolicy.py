@@ -1,7 +1,7 @@
 # $HeadURL$
-''' SEQueuedTransfers_Policy
+''' SEQueuedTransfersPolicy
 
-  The SEQueuedTransfers_Policy class is a policy class satisfied when a SE has 
+  The SEQueuedTransfersPolicy class is a policy class satisfied when a SE has 
   a high number of queued transfers.
   
 '''
@@ -10,7 +10,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class SEQueuedTransfers_Policy( PolicyBase ):
+class SEQueuedTransfersPolicy( PolicyBase ):
 
   def evaluate(self):
     """
@@ -25,7 +25,7 @@ class SEQueuedTransfers_Policy( PolicyBase ):
         }
     """
 
-    status = super(SEQueuedTransfers_Policy, self).evaluate()
+    status = super( SEQueuedTransfersPolicy, self ).evaluate()
     result = {}
 
     if status is None:

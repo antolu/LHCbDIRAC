@@ -24,11 +24,11 @@ class PropagationPolicy_TestCase( unittest.TestCase ):
   def setUp( self ):
     
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.Propagation_Policy as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Policy.PropagationPolicy as moduleTested
     moduleTested.PolicyBase = PolicyBase   
-    moduleTested.Propagation_Policy.__bases__ = ( PolicyBase, ) 
+    moduleTested.PropagationPolicy.__bases__ = ( PolicyBase, ) 
 
-    self.policy = moduleTested.Propagation_Policy
+    self.policy = moduleTested.PropagationPolicy
 
   def tearDown( self ):
     
@@ -40,7 +40,7 @@ class PropagationPolicy_Success( PropagationPolicy_TestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     p = self.policy()
-    self.assertEqual( 'Propagation_Policy', p.__class__.__name__ )
+    self.assertEqual( 'PropagationPolicy', p.__class__.__name__ )
   
   def test_evaluate_none( self ):
     ''' tests that we can evaluate the policy when none is returned

@@ -1,7 +1,7 @@
 # $HeadURL$
-''' SLS_Policy
+''' SLSPolicy
 
-  The SLS_Policy class is a policy class satisfied when a SLS sensors 
+  The SLSPolicy class is a policy class satisfied when a SLS sensors 
   report problems.
   
 '''
@@ -10,9 +10,9 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
-class SLS_Policy( PolicyBase ):
+class SLSPolicy( PolicyBase ):
 
-  def evaluate(self):
+  def evaluate( self ):
     """
     Evaluate policy on SLS availability. Use SLS_Command/SLSStatus_Command.
 
@@ -24,7 +24,7 @@ class SLS_Policy( PolicyBase ):
     """
 
     # Execute the command and returns a value as a string.
-    status = super(SLS_Policy, self).evaluate()
+    status = super( SLSPolicy, self ).evaluate()
     result = {}
 
     if status is None:

@@ -1,7 +1,7 @@
 # $HeadURL$
-''' TransferQuality_Policy
+''' TransferQualityPolicy
  
-  The TransferQuality_Policy class is a policy class to check the transfer
+  The TransferQualityPolicy class is a policy class to check the transfer
   quality.
   
 '''
@@ -12,9 +12,9 @@ from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 
 __RCSID__ = '$Id$'
 
-class TransferQuality_Policy( PolicyBase ):
+class TransferQualityPolicy( PolicyBase ):
 
-  def evaluate(self):
+  def evaluate( self ):
     """
     Evaluate policy on Data quality.
 
@@ -25,7 +25,7 @@ class TransferQuality_Policy( PolicyBase ):
         }
     """
 
-    quality = super(TransferQuality_Policy, self).evaluate()
+    quality = super( TransferQuality_Policy, self ).evaluate()
     result  = {}
 
     if quality is None:

@@ -1,7 +1,7 @@
 # $HeadURL: $
-''' NagiosProbes_Policy
+''' NagiosProbesPolicy
   
-  The NagiosProbes_Policy checks the nagios probes.
+  The NagiosProbesPolicy checks the nagios probes.
   
 '''
 
@@ -9,7 +9,7 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id: $'
 
-class NagiosProbes_Policy( PolicyBase ):
+class NagiosProbesPolicy( PolicyBase ):
   
   def evaluate(self):
     '''
@@ -20,7 +20,7 @@ class NagiosProbes_Policy( PolicyBase ):
   
     _KNOWN_METRIC_STATUS = [ 'OK', 'WARNING', 'CRITICAL', 'UNKNOWN' ]
                     
-    probes   = super( NagiosProbes_Policy, self ).evaluate()  
+    probes   = super( NagiosProbesPolicy, self ).evaluate()  
     result = {}
     result[ 'Status' ] = 'Unknown'
     result[ 'Reason' ] = 'No values to take a decision'
