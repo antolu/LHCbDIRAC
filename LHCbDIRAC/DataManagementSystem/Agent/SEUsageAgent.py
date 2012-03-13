@@ -806,7 +806,7 @@ class SEUsageAgent( AgentModule ):
       if replicaType not in problematicDirectories.keys():
         problematicDirectories[ replicaType ] = []
       if pathWithSuffix not in problematicDirectories[ replicaType ]:
-	problematicDirectories[ replicaType ].append( pathWithSuffix )
+	problematicDirectories[ replicaType ].append( pathWithSuffix ) #fix 13.03.2012
       else:
         gLogger.error("ERROR: the directory should be listed only once for a given site and type of replica! site=%s, path= %s, type of replica =%s  " %(site, LFCPath, replicaType))  
         continue
