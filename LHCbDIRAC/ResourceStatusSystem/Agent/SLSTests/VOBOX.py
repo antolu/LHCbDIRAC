@@ -8,7 +8,7 @@
 import urlparse
 import os
 
-from DIRAC                      import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC                      import gConfig, gLogger, S_OK
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 __RCSID__  = '$Id: $'

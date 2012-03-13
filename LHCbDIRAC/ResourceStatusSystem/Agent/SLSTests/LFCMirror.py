@@ -1,8 +1,13 @@
 # $HeadURL:  $
+''' LFCMirror
+
+  Module that runs the tests for the LFCMirror SLS sensors
+
+'''
 
 import time, os
 
-from DIRAC                                                  import gLogger, S_OK, S_ERROR       
+from DIRAC                                                  import gLogger, S_OK     
 from DIRAC.Interfaces.API.Dirac                             import Dirac
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 

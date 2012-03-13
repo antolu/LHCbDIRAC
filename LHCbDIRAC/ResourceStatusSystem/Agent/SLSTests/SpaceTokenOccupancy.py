@@ -8,7 +8,7 @@
 import lcg_util
 import os
 
-from DIRAC                                import gLogger, S_OK, S_ERROR
+from DIRAC                                import gLogger, S_OK
 from DIRAC.ResourceStatusSystem.Utilities import CS
 
 __RCSID__  = '$Id:  $'
