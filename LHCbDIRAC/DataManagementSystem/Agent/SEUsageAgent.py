@@ -38,9 +38,9 @@ class SEUsageAgent( AgentModule ):
     self.am_setOption( 'shifterProxy', 'DataManager' )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( rootPath, AGENT_NAME ) )
     self.activeSites = self.am_getOption( 'ActiveSites' )
-    # maximum delay after storage dump creation  
-    self.maximumDelaySinceSD = self.am_getOption( 'MaximumDelaySinceStorageDump' , 43200 )  
-    self.__workDirectory =  self.am_getOption( "WorkDirectory" )
+    # maximum delay after storage dump creation
+    self.maximumDelaySinceSD = self.am_getOption( 'MaximumDelaySinceStorageDump' , 43200 )
+    self.__workDirectory = self.am_getOption( "WorkDirectory" )
     if not os.path.isdir( self.__workDirectory ):
       os.makedirs( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )
@@ -64,31 +64,31 @@ class SEUsageAgent( AgentModule ):
     its usage are stored in the replica table (the se_Usage table) together with the insertion time, otherwise it is added to the problematic data table (problematicDirs) """
     gLogger.info( "SEUsageAgent: start the execute method\n" )
     gLogger.info( "Sites active for checks: %s " % self.activeSites )
-    siteList = self.activeSites.split(',')
+    siteList = self.activeSites.split( ',' )
     timingPerSite = {}
     self.spaceTokens = {}
     self.siteConfig = {}
     self.specialReplicas = ['archive', 'freezer', 'failover']
     siteList.sort()
     for LcgSite in siteList:
-      site = LcgSite.split('.')[1]
+      site = LcgSite.split( '.' )[1]
       timingPerSite[ site ] = {}
       start = time.time()
-      res = self.setupSiteConfig( LcgSite )  
+      res = self.setupSiteConfig( LcgSite )
       if not res[ 'OK' ]:
-        gLogger.warn("Error during site configuration %s " %res['Message'])
-        continue  
+        gLogger.warn( "Error during site configuration %s " % res['Message'] )
+        continue
 
-      gLogger.info("Parse and read input files for site: %s" % site )       
+      gLogger.info( "Parse and read input files for site: %s" % site )
       res = self.readInputFile( site )
       if not res['OK']:
-        gLogger.error("Failed to read input files for site %s " % site )
+        gLogger.error( "Failed to read input files for site %s " % site )
         continue
       if res['Value'] < 0:
-        gLogger.warn("Input files successfully, but not valid for checks (probably too old ). Skip site %s " % site )
+        gLogger.warn( "Input files successfully, but not valid for checks (probably too old ). Skip site %s " % site )
         continue
 
-      # ONLY FOR DEBUGGING 
+      # ONLY FOR DEBUGGING
       DEBUG = False
       if DEBUG: # get the problematic summary at the beginning (to debug this part without waiting until the end)
         res = self.getProblematicDirsSummary( site )
@@ -96,13 +96,13 @@ class SEUsageAgent( AgentModule ):
           return S_ERROR( res['Message'] )
       else: # follow the usual work flow
       # Flush the problematicDirs table
-        gLogger.info("Flushing the problematic directories table for site %s..." % site)
+        gLogger.info( "Flushing the problematic directories table for site %s..." % site )
         res = self.__storageUsage.removeAllFromProblematicDirs( site )
         if not res['OK']:
-          gLogger.error("Error for site %s: Could not remove old entries from the problematicDirs table! %s " %( site, res['Message']))
+          gLogger.error( "Error for site %s: Could not remove old entries from the problematicDirs table! %s " % ( site, res['Message'] ) )
           continue
-        gLogger.info("Removed %d entries from the problematic directories table for site %s" %( res['Value'], site ))
- 
+        gLogger.info( "Removed %d entries from the problematic directories table for site %s" % ( res['Value'], site ) )
+
      # END OF DEBUGGING MODIFICATION ###########
 
 
@@ -267,21 +267,21 @@ class SEUsageAgent( AgentModule ):
       if not res[ 'OK' ]:
         return S_ERROR( res['Message'] )
         continue
-      
+
       end = time.time()
       timingPerSite[ site ]['timePerCycle'] = end - start
 
-    gLogger.info("--------- End of cycle ------------------")
-    gLogger.info("checked sites:")
+    gLogger.info( "--------- End of cycle ------------------" )
+    gLogger.info( "checked sites:" )
     for site in timingPerSite.keys():
-      gLogger.info("Site: %s -  total time %s" %(site, timingPerSite[ site ]))
+      gLogger.info( "Site: %s -  total time %s" % ( site, timingPerSite[ site ] ) )
     return S_OK()
 
 
   def setupSiteConfig( self, LcgSite ):
     """ Setup the configuration for the site
     """
-    site = LcgSite.split('.')[1]
+    site = LcgSite.split( '.' )[1]
     self.spaceTokens[ site ] = { 'LHCb-Tape' : {'year' : '2011', 'DiracSEs':[ site + '-RAW', site + '-RDST', site + '-ARCHIVE']},
                                  'LHCb-Disk' : {'year': '2011', 'DiracSEs':[ site + '-DST', site + '_M-DST', site + '_MC_M-DST', site + '_MC-DST', site + '-FAILOVER']},
                                  'LHCb_USER' : {'year': '2011', 'DiracSEs':[ site + '-USER']},
@@ -303,9 +303,9 @@ class SEUsageAgent( AgentModule ):
 
 
     rootConfigPath = '/Operations/DataConsistency'
-    res = gConfig.getOptionsDict( "%s/%s" % (rootConfigPath,site)) 
+    res = gConfig.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
     if not res[ 'OK' ]:
-      gLogger.error( "could not get configuration for site %s : %s " %( site, res['Message']) )
+      gLogger.error( "could not get configuration for site %s : %s " % ( site, res['Message'] ) )
       return S_ERROR( res['Message'] )
     StorageDumpFileName = res[ 'Value' ]['StorageDumpFileName']
     StorageDumpURL = res[ 'Value' ]['StorageDumpURL']
@@ -321,17 +321,17 @@ class SEUsageAgent( AgentModule ):
     SeName = site + '-RAW'
     res = gConfig.getOption( '/Resources/StorageElements/%s/AccessProtocol.1/Path' % ( SeName ) )
     if not res[ 'OK' ]:
-      gLogger.error( "could not get configuration for SE %s " %res['Message'] )
+      gLogger.error( "could not get configuration for SE %s " % res['Message'] )
       return S_ERROR( res['Message'] )
     SAPath = res['Value']
- 
+
     self.siteConfig[ site ] = { 'originFileName': StorageDumpFileName,
                                 'pathInsideTar': pathInsideTar,
-                                'originURL': StorageDumpURL,  
+                                'originURL': StorageDumpURL,
                                 'targetPath': os.path.join( self.__InputFilesLocation, 'downloadedFiles', site ),
                                 'pathToInputFiles': os.path.join( self.__InputFilesLocation, 'goodFormat', site ),
                                 'DiracName': LcgSite,
-                                'FileNameType': fileType, 
+                                'FileNameType': fileType,
                                 'SEs' : SEs,
                                 'SAPath' : SAPath
                                }
@@ -373,7 +373,7 @@ class SEUsageAgent( AgentModule ):
     previousFiles = []
     try:
       previousFiles = os.listdir( targetPathForDownload )
-      gLogger.info( "In %s found these files: %s" % (targetPathForDownload,  previousFiles) )
+      gLogger.info( "In %s found these files: %s" % ( targetPathForDownload, previousFiles ) )
     except:
       gLogger.info( "no leftover to remove from %s. Proceed downloading input files..." % targetPathForDownload )
     if previousFiles:
@@ -391,24 +391,24 @@ class SEUsageAgent( AgentModule ):
     defaultDate = 'na'
     defaultSize = 0
 
-    gLogger.info("Check storage dump creation time..")
+    gLogger.info( "Check storage dump creation time.." )
     res = self.checkCreationDate( targetPathForDownload )
     if not res[ 'OK' ]:
-      gLogger.error("Failed to check storage dump date for site %s " % site )
+      gLogger.error( "Failed to check storage dump date for site %s " % site )
       return S_ERROR( res )
     if res['Value'] != 0:
-      gLogger.warn("Stale storage dump for site %s " % site )
+      gLogger.warn( "Stale storage dump for site %s " % site )
       retCode = -1
       return S_OK( retCode )
-    gLogger.info("Creation date check is fine!")
-  
+    gLogger.info( "Creation date check is fine!" )
+
     InputFilesListP1 = os.listdir( targetPathForDownload )
-    gLogger.info( "List of raw input files in %s: %s " % ( targetPathForDownload, InputFilesListP1 ))
+    gLogger.info( "List of raw input files in %s: %s " % ( targetPathForDownload, InputFilesListP1 ) )
 
     # delete all leftovers of previous runs from the pathToInputFiles
     try:
       previousParsedFiles = os.listdir( pathToInputFiles )
-      gLogger.info( "In %s found these files: %s" % ( pathToInputFiles, previousParsedFiles) )
+      gLogger.info( "In %s found these files: %s" % ( pathToInputFiles, previousParsedFiles ) )
     except:
       gLogger.info( "no leftover to remove from %s . Proceed to parse the input files..." % pathToInputFiles )
     if previousParsedFiles:
@@ -418,19 +418,19 @@ class SEUsageAgent( AgentModule ):
         gLogger.info( "removing %s" % fullPath )
         os.remove( fullPath )
 
-    # if necessary, call the special Castor pre-parser which analyse the name server dump and creates one file per space token. 
+    # if necessary, call the special Castor pre-parser which analyse the name server dump and creates one file per space token.
     # the space token attribution is totally fake! it's based on the namespace. For Castor, no other way to do it
     if site in ['RAL']:
-      gLogger.info("Calling special parser for Castor")
+      gLogger.info( "Calling special parser for Castor" )
       res = self.castorPreParser( site, targetPathForDownload )
       if not res['OK']:
         gLogger.error( "Error parsing storage dump" )
       else:
         # recompute the list of input files
         InputFilesListP1 = os.listdir( targetPathForDownload )
-        gLogger.info( "List of raw input files in %s: %s " % ( targetPathForDownload, InputFilesListP1 ))
-        
-    
+        gLogger.info( "List of raw input files in %s: %s " % ( targetPathForDownload, InputFilesListP1 ) )
+
+
     # if necessary, merge the files in order to have one file per space token: LHCb-Tape, LHCb-Disk, LHCb_USER
     # this is necessary in the transition phase while there are still some data on the old space tokens of 2010
     gLogger.info( "Merge the input files to have one file per space token" )
@@ -480,7 +480,7 @@ class SEUsageAgent( AgentModule ):
       splitFile = inputFileP1.split( '.' )
       st = splitFile[ 0 ]
       if st not in self.spaceTokens[ site ].keys():
-        gLogger.warn("Not a  valid space token in the file name: %s " % inputFileP1 )
+        gLogger.warn( "Not a  valid space token in the file name: %s " % inputFileP1 )
         continue
 
       completeSTId = st
@@ -490,7 +490,7 @@ class SEUsageAgent( AgentModule ):
       fullPathFileP1 = os.path.join( targetPathForDownload, inputFileP1 )
       if not os.path.getsize( fullPathFileP1 ):
         gLogger.info( "%s file has zero size, will be skipped " % inputFileP1 )
-        continue 
+        continue
       if 'INACTIVE' in inputFileP1:
         gLogger.info( "WARNING: File %s will be analysed, even if space token is inactive" % inputFileP1 )
       gLogger.info( "processing input file for space token: %s " % st )
@@ -501,13 +501,13 @@ class SEUsageAgent( AgentModule ):
       processedLines = 0 # counts all processed lines
       dirac_dir_lines = 0
       totalSize = 0
-      totalFiles = 0  
+      totalFiles = 0
       for line in open( fullPathFileP1, "r" ).readlines():
         totalLines += 1
         try:
           splitLine = line.split( '|' )
         except:
-          gLogger.error( "Error: impossible to split line : %s" % line)
+          gLogger.error( "Error: impossible to split line : %s" % line )
           continue
 
         providedFilePath = splitLine[0].rstrip()
@@ -524,12 +524,12 @@ class SEUsageAgent( AgentModule ):
             gLogger.error( "ERROR getLFNPath returned: %s " % res )
             continue
           filePath = res[ 'Value' ]
-        gLogger.debug("filePath: %s" %filePath)
+        gLogger.debug( "filePath: %s" % filePath )
         if not filePath:
           gLogger.info( "SEUsageAgent: it was not possible to get the LFN for PFN=%s, skip this line" % PFNfilePath )
           continue
 
-        gLogger.debug("splitLine: %s " % splitLine )
+        gLogger.debug( "splitLine: %s " % splitLine )
         size = splitLine[1].lstrip()
         totalSize += int( size )
         totalFiles += 1
@@ -544,14 +544,14 @@ class SEUsageAgent( AgentModule ):
 #          continue
       fP2.flush()
 
-      gLogger.info("Cleaning the STSummary table entries for site %s and space token %s ..." % (site, completeSTId))
+      gLogger.info( "Cleaning the STSummary table entries for site %s and space token %s ..." % ( site, completeSTId ) )
       res = self.__storageUsage.removeSTSummary( site, completeSTId )
       if not res['OK']:
-        gLogger.error("Error for site %s: Could not remove old entries from the STSummary table! %s " %( site, res['Message']))
+        gLogger.error( "Error for site %s: Could not remove old entries from the STSummary table! %s " % ( site, res['Message'] ) )
         continue
-      gLogger.info("Removed %d entries from the STSummary table for site %s" %( res['Value'], site ))
+      gLogger.info( "Removed %d entries from the STSummary table for site %s" % ( res['Value'], site ) )
 
-      gLogger.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % (site, completeSTId, totalSize, totalFiles))
+      gLogger.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % ( site, completeSTId, totalSize, totalFiles ) )
       res = self.__storageUsage.publishTose_STSummary( site, completeSTId, totalSize, totalFiles )
       if not res['OK']:
         gLogger.info( "ERROR: failed to publish %s - %s summary " % ( site, st ) )
@@ -633,7 +633,7 @@ class SEUsageAgent( AgentModule ):
         even if LHCb register those replicas in the LFC with the LFN: <LFN>, stripping the initial '/lhcb/archive'
         this is taken into account by the main method of the agent when it queries for replicas in the LFC
           """
-    
+
     outputFile = os.path.join( self.__workDirectory, site + ".UnresolvedPFNs.txt" )
     # this should be done with the replicaManager, but it does not work for archive files . tbu why
     #SeName = site + '-RAW'
@@ -645,9 +645,9 @@ class SEUsageAgent( AgentModule ):
     except:
       gLogger.error( "ERROR retrieving LFN from PFN = %s, SEPath = %s " % ( PFNfilePath, SEPath ) )
       if not os.path.exists( outputFile ):
-        of = open( outputFile , "w")
+        of = open( outputFile , "w" )
       else:
-        of = open( outputFile , "a")
+        of = open( outputFile , "a" )
       of.write( "%s\n" % PFNfilePath )
       of.close()
       return S_ERROR( "Could not retrieve LFN" )
@@ -655,9 +655,9 @@ class SEUsageAgent( AgentModule ):
     if not LFN.startswith( '/lhcb' ):
       gLogger.info( "SEUsageAgent: ERROR! LFN should start with /lhcb: PFN=%s LFN=%s. Skip this file." % ( PFNfilePath, LFN ) )
       if not os.listdir( outputFile ):
-        of = open( outputFile , "w")
+        of = open( outputFile , "w" )
       else:
-        of = open( outputFile , "a")
+        of = open( outputFile , "a" )
       os.write( "%s\n" % PFNfilePath )
       os.close()
       return S_ERROR( "Anomalous LFN does not start with '/lhcb' string" )
@@ -721,14 +721,14 @@ class SEUsageAgent( AgentModule ):
     try:
       if not self.urlretrieveTimeout( "%s/%s" % ( originURL, tarName ), tarPath, 300 ):
         gLogger.error( "Cannot download %s" % tarName )
-        return S_ERROR("Cannot download file")
+        return S_ERROR( "Cannot download file" )
     except Exception, e:
       gLogger.error( "Cannot download %s: %s" % ( tarName, str( e ) ) )
-      return S_ERROR("Cannot download file")
+      return S_ERROR( "Cannot download file" )
     # check if the file has to be uncompressed
-    gLogger.info("The downloaded file is: %s " % tarPath )
-    if tarPath[-3:] not in ['bz2','tgz','tar']:
-      gLogger.info( "File ready to be read (no need to uncompress) ")
+    gLogger.info( "The downloaded file is: %s " % tarPath )
+    if tarPath[-3:] not in ['bz2', 'tgz', 'tar']:
+      gLogger.info( "File ready to be read (no need to uncompress) " )
       return S_OK()
     #Extract
     cwd = os.getcwd()
@@ -764,15 +764,15 @@ class SEUsageAgent( AgentModule ):
     """
     LFCDirName = dirName
     for specialReplica in self.specialReplicas:
-      prefix = '/lhcb/'+ specialReplica
+      prefix = '/lhcb/' + specialReplica
       if prefix in dirName:
         LFCDirName = dirName.split( prefix )[1]
-        gLogger.verbose("special replica! dirname = %s -- LFCDirName = %s" %(dirName, LFCDirName))
+        gLogger.verbose( "special replica! dirname = %s -- LFCDirName = %s" % ( dirName, LFCDirName ) )
         return LFCDirName
     return LFCDirName
 
   def PathWithSuffix( self, dirName, replicaType ):
-    """ Takes in input the path as registered in LFC and 
+    """ Takes in input the path as registered in LFC and
         returns the path with the initial suffix for the special replicas
     """
     pathWithSuffix = dirName
@@ -782,14 +782,14 @@ class SEUsageAgent( AgentModule ):
 
 
   def getProblematicDirsSummary( self, site ):
-    """ Produce a list of files that are not registered in the File Catalog. 
+    """ Produce a list of files that are not registered in the File Catalog.
         1- queries the problematicDirs table to get all directories for a given site that have more data on SE than in LFC
         for each replica type: (normal, archive, failover, freezer )
         2- scan the input files (from the sites storage dumps) to get all the files belonging to the problematic directories
         3- lookup in in FC file by file to check if they have a replica registered at the site
         4- the files that are found not to have a replica registered for the site, are written down to a file
     """
-    gLogger.info("*** Execute getProblematicDirsSummary method for site: %s " % site )
+    gLogger.info( "*** Execute getProblematicDirsSummary method for site: %s " % site )
     problem = 'NotRegisteredInFC'
     res = self.__storageUsage.getProblematicDirsSummary( site, problem )
     if not res['OK']:
@@ -797,36 +797,36 @@ class SEUsageAgent( AgentModule ):
       return S_ERROR( res )
     val = res[ 'Value' ]
     problematicDirectories = {} # store a list of directories for each replica type
-    gLogger.verbose("List of problematic directories: " )
+    gLogger.verbose( "List of problematic directories: " )
     for row in val:
       #('SARA', 'LHCb-Disk', 0L, 43L, '/lhcb/MC/2010/DST/00007332/0000/', 'NotRegisteredInFC','failover')
       site, spaceToken, LFCFiles, SDFiles, LFCPath, problem, replicaType = row
-      pathWithSuffix =  self.PathWithSuffix( LFCPath, replicaType )
-      gLogger.info("%s %s - %s" % (LFCPath, replicaType, pathWithSuffix) )
+      pathWithSuffix = self.PathWithSuffix( LFCPath, replicaType )
+      gLogger.info( "%s %s - %s" % ( LFCPath, replicaType, pathWithSuffix ) )
       if replicaType not in problematicDirectories.keys():
         problematicDirectories[ replicaType ] = []
       if pathWithSuffix not in problematicDirectories[ replicaType ]:
-	problematicDirectories[ replicaType ].append( pathWithSuffix ) #fix 13.03.2012
+        problematicDirectories[ replicaType ].append( pathWithSuffix ) #fix 13.03.2012
       else:
-        gLogger.error("ERROR: the directory should be listed only once for a given site and type of replica! site=%s, path= %s, type of replica =%s  " %(site, LFCPath, replicaType))  
+        gLogger.error( "ERROR: the directory should be listed only once for a given site and type of replica! site=%s, path= %s, type of replica =%s  " % ( site, LFCPath, replicaType ) )
         continue
-    gLogger.info("Found the following problematic directories:")
+    gLogger.info( "Found the following problematic directories:" )
     for replicaType in problematicDirectories.keys():
-      gLogger.info("replica type: %s , directories: %s " %(replicaType, problematicDirectories[replicaType]))
+      gLogger.info( "replica type: %s , directories: %s " % ( replicaType, problematicDirectories[replicaType] ) )
     # retrieve the list of files belonging to problematic directories from the merged files:
     filesInProblematicDirs = {}
     # read the files from the Merged files
     pathToMergedFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
-    if pathToMergedFiles[:-1]!='/':
-      pathToMergedFiles = pathToMergedFiles +'/'
+    if pathToMergedFiles[:-1] != '/':
+      pathToMergedFiles = pathToMergedFiles + '/'
     for mergedFile in os.listdir( pathToMergedFiles ):
       if 'Merge' not in mergedFile:
         continue
       fullFilePath = os.path.join( pathToMergedFiles, mergedFile )
-      gLogger.info("Scanning file: %s ... " % fullFilePath )
-      for line in open( fullFilePath, "r").readlines():
+      gLogger.info( "Scanning file: %s ... " % fullFilePath )
+      for line in open( fullFilePath, "r" ).readlines():
         lfn, size, creationdate = line.split() # this LFN includes the initial suffix (e.g./lhcb/archive/)
-        directories = lfn.split('/')
+        directories = lfn.split( '/' )
         basePath = ''
         for segment in directories[0:-1]:
           basePath = basePath + segment + '/' # basepath is the directory including the initial suffix
@@ -837,21 +837,21 @@ class SEUsageAgent( AgentModule ):
             if lfn not in filesInProblematicDirs[ replicaType ]: # lfn including suffix
               filesInProblematicDirs[ replicaType ].append( lfn )
 
-    gLogger.info("Files in problematic directories:")
+    gLogger.info( "Files in problematic directories:" )
     for replicaType in filesInProblematicDirs.keys():
-      gLogger.info("replica type: %s files: %d " %(replicaType, len(filesInProblematicDirs[replicaType])))  
+      gLogger.info( "replica type: %s files: %d " % ( replicaType, len( filesInProblematicDirs[replicaType] ) ) )
       for fil in filesInProblematicDirs[ replicaType ]:
-        gLogger.verbose("file in probl Dir %s %s" %(fil, replicaType)) 
-   
+        gLogger.verbose( "file in probl Dir %s %s" % ( fil, replicaType ) )
+
     for replicaType in filesInProblematicDirs.keys():
       res = self.checkReplicasInFC( replicaType, filesInProblematicDirs[ replicaType ] , site )
     return S_OK()
 
 #...............................................................................................................
-  def checkReplicasInFC(self, replicaType, filesToBeChecked, site ):
+  def checkReplicasInFC( self, replicaType, filesToBeChecked, site ):
     """ Check the existance of the replicas for the given site and replica type in the FC
     """
-    gLogger.info("*** Execute checkReplicasInFC for replicaType=%s, site=%s " %(replicaType, site))
+    gLogger.info( "*** Execute checkReplicasInFC for replicaType=%s, site=%s " % ( replicaType, site ) )
     filesMissingFromFC = []
     replicasMissingFromSite = []
     #totalSizeMissingFromFC = 0
@@ -861,7 +861,7 @@ class SEUsageAgent( AgentModule ):
     for sr in self.specialReplicas:
       se = site + '-' + sr.upper()
       specialReplicasSEs.append( se )
-    gLogger.verbose("SEs for special replicas: %s " % specialReplicasSEs )
+    gLogger.verbose( "SEs for special replicas: %s " % specialReplicasSEs )
 
     filesInProblematicDirs = []
     if replicaType in self.specialReplicas:
@@ -870,84 +870,84 @@ class SEUsageAgent( AgentModule ):
     else:
       filesInProblematicDirs = filesToBeChecked
 
-    active = False # then this should be moved to a config parameter 
+    active = False # then this should be moved to a config parameter
     start = time.time()
     if not filesInProblematicDirs:
-      gLogger.info("No file to be checked in the FC for site %s " % site )
+      gLogger.info( "No file to be checked in the FC for site %s " % site )
       return S_OK()
     if active:
       repsResult = self.__replicaManager.getActiveReplicas( filesInProblematicDirs )
     else:
       repsResult = self.__replicaManager.getReplicas( filesInProblematicDirs )
     timing = time.time() - start
-    gLogger.info( ' %d replicas Lookup Time: %.2f s -> %.2f s/replica ' % (  len( filesInProblematicDirs ), timing, timing*1./len( filesInProblematicDirs ) ) )
+    gLogger.info( ' %d replicas Lookup Time: %.2f s -> %.2f s/replica ' % ( len( filesInProblematicDirs ), timing, timing * 1. / len( filesInProblematicDirs ) ) )
     if not repsResult['OK']:
       return S_ERROR( repsResult['Message'] )
     goodFiles = repsResult['Value']['Successful']
     badFiles = repsResult['Value']['Failed']
     for lfn in badFiles.keys():
       if "No such file or directory" in badFiles[ lfn ]:
-        gLogger.info("missing from FC %s %s" % (lfn, replicaType) )
+        gLogger.info( "missing from FC %s %s" % ( lfn, replicaType ) )
         # check if the storage files have been removed in the meanwhile after the storage dump creation and the check
         # to be done
         storageFileStatus = self.storageFileExists( lfn, replicaType, site )
         if storageFileStatus == 1:
-          gLogger.info("Inconsistent file! %s " % lfn )
+          gLogger.info( "Inconsistent file! %s " % lfn )
           filesMissingFromFC.append( lfn )
         elif storageFileStatus == 0:
-          gLogger.info("storage file does not exist (temporary file) %s " % lfn )  
+          gLogger.info( "storage file does not exist (temporary file) %s " % lfn )
         else:
-          gLogger.warning("Failed request for storage file %s " % lfn )
+          gLogger.warning( "Failed request for storage file %s " % lfn )
       else:
-        gLogger.info("Unknown message from Fc: %s - %s "  %(lfn, badFiles[ lfn ])) 
+        gLogger.info( "Unknown message from Fc: %s - %s " % ( lfn, badFiles[ lfn ] ) )
     for lfn in goodFiles.keys():
       #check if the replica exists at the given site:
       replicaAtSite = False
       if replicaType in self.specialReplicas:
-        specialReplicaSE = site + '-' + replicaType.upper()        
+        specialReplicaSE = site + '-' + replicaType.upper()
         for se in goodFiles[lfn].keys():
           if se == specialReplicaSE:
-            gLogger.verbose("matching se: %s " % se )
+            gLogger.verbose( "matching se: %s " % se )
             replicaAtSite = True
             break
       else:
         for se in goodFiles[lfn].keys():
           if se in specialReplicasSEs:
-            gLogger.info("Replica type is %s, skip this SE: %s " % (replicaType, se ) )
+            gLogger.info( "Replica type is %s, skip this SE: %s " % ( replicaType, se ) )
             continue
           if site in se:
-            gLogger.verbose("matching se: %s " % se )
+            gLogger.verbose( "matching se: %s " % se )
             replicaAtSite = True
             break
       if not replicaAtSite:
         replicasMissingFromSite.append( lfn )
-   
-     
+
+
     # write results of checks to files:
     fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".replicasMissingFromSite.txt" )
-    gLogger.info("Writing list of replicas missing from site to file %s " % fileName )
+    gLogger.info( "Writing list of replicas missing from site to file %s " % fileName )
     fp = open( fileName , "w" )
     for lfn in replicasMissingFromSite:
-      fp.write("%s\n" % lfn )
+      fp.write( "%s\n" % lfn )
     fp.close()
     fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".filesMissingFromFC.txt" )
-    gLogger.info("Writing list of files missing from FC to file %s " % fileName )
+    gLogger.info( "Writing list of files missing from FC to file %s " % fileName )
     fp = open( fileName , "w" )
     for lfn in filesMissingFromFC:
-      fp.write("%s\n" % lfn )
+      fp.write( "%s\n" % lfn )
     fp.close()
     fileName = os.path.join( self.__workDirectory, site + '.' + replicaType + ".consistencyChecksSummary.txt" )
-    gLogger.info("Writing consistency checsk summary to file %s " % fileName )
+    gLogger.info( "Writing consistency checsk summary to file %s " % fileName )
     date = time.asctime()
     line = "Site: " + site + "  Date: " + date
     fp = open( fileName , "w" )
-    fp.write( "%s\n" % line)
+    fp.write( "%s\n" % line )
     totalSizeMissingFromFC = 0 # to be implemented!!!
     totalSizeReplicasMissingFromSite = 0 # to be implemented!!!
-    fp.write( "Total number of LFN at site not registered in the FC: %d , total size: %.2f GB \n" % (len(filesMissingFromFC), totalSizeMissingFromFC/1.0e9 ))
-    fp.write( "Total number of replicas  at site not registered in the FC: %d , total size: %.2f GB \n" % (len(replicasMissingFromSite), totalSizeReplicasMissingFromSite/1.0e9 ))
+    fp.write( "Total number of LFN at site not registered in the FC: %d , total size: %.2f GB \n" % ( len( filesMissingFromFC ), totalSizeMissingFromFC / 1.0e9 ) )
+    fp.write( "Total number of replicas  at site not registered in the FC: %d , total size: %.2f GB \n" % ( len( replicasMissingFromSite ), totalSizeReplicasMissingFromSite / 1.0e9 ) )
     fp.close()
-    
+
     return S_OK()
 
 
@@ -963,7 +963,7 @@ class SEUsageAgent( AgentModule ):
     # get the PFN
     seList = []
     if replicaType in self.specialReplicas:
-      seName = site + '-' + replicaType.upper()  
+      seName = site + '-' + replicaType.upper()
       seList.append( seName )
     else:
       specialReplicasSEs = []
@@ -975,69 +975,69 @@ class SEUsageAgent( AgentModule ):
       allSEs = self.siteConfig[ site ]['SEs']
       for se in allSEs:
         if se not in specialReplicasSEs:
-          seList.append( se )  
-    gLogger.verbose("list of SEs : %s" % seList )
+          seList.append( se )
+    gLogger.verbose( "list of SEs : %s" % seList )
 
     for seName in seList:
       storageElement = StorageElement( seName )
-      res = storageElement.getPfnForLfn( lfn )  
+      res = storageElement.getPfnForLfn( lfn )
       if not res['OK']:
-        gLogger.error("Could not create storage element object %s " % res['Message'])
+        gLogger.error( "Could not create storage element object %s " % res['Message'] )
         continue
       surl = res[ 'Value']
-      gLogger.verbose("checking existance for %s - %s" % (surl, seName) )
+      gLogger.verbose( "checking existance for %s - %s" % ( surl, seName ) )
       res = self.__replicaManager.getStorageFileExists( surl, seName )
-      gLogger.verbose("result of getStorageFileExists: %s " % res )
+      gLogger.verbose( "result of getStorageFileExists: %s " % res )
       if not res['OK']:
-        gLogger.error("error executing replicaManager.getStorageFileExists %s " % res['Message'] )
+        gLogger.error( "error executing replicaManager.getStorageFileExists %s " % res['Message'] )
         storageFileExist = -1
         continue
       if res['Value']['Failed']:
-        gLogger.error("error executing replicaManager.getStorageFileExists %s " % res )
+        gLogger.error( "error executing replicaManager.getStorageFileExists %s " % res )
         storageFileExist = -1
         continue
       elif res['Value']['Successful']:
         if res['Value']['Successful'][ surl ]:
-          gLogger.info("storage file exists: %s " % res['Value'] )
+          gLogger.info( "storage file exists: %s " % res['Value'] )
           storageFileExist = 1
-          return storageFileExist  
+          return storageFileExist
         else:
-          gLogger.verbose("storage file NOT found: %s " % res['Value'] )
+          gLogger.verbose( "storage file NOT found: %s " % res['Value'] )
           storageFileExist = 0
-            
+
     return storageFileExist
-      
+
   def castorPreParser( self, site, inputFilesDir ):
     """ Preliminary parsing for Castor nameserver dump
         Separates the files in 3 space tokens relying on the namespace
     """
-   
+
     if inputFilesDir[-1:] != '/':
       inputFilesDir = inputFilesDir + '/'
     inputFile = os.listdir( inputFilesDir )
     if len( inputFile ) > 1:
-      gLogger.error("For this parser, there should be only one file. Found these files: %s " % inputFile )
+      gLogger.error( "For this parser, there should be only one file. Found these files: %s " % inputFile )
       return S_ERROR()
 
 
     p1FilesDict = { 'LHCb_USER': {'fileName': inputFilesDir + 'LHCb_USER.txt'},
                     'LHCb-Disk': {'fileName': inputFilesDir + 'LHCb-Disk.txt'},
                     'LHCb-Tape': {'fileName': inputFilesDir + 'LHCb-Tape.txt'}
-                  } 
+                  }
     for st in p1FilesDict.keys():
       fp = open( p1FilesDict[ st ]['fileName'], "w" )
       p1FilesDict[ st ][ 'filePointer' ] = fp
 
     fullPath = os.path.join( inputFilesDir, inputFile[ 0 ] )
-    for line in open( fullPath, "r").readlines():
+    for line in open( fullPath, "r" ).readlines():
       splitLine = line.split()
       if len( splitLine ) < 2:
-        gLogger.debug("Empty directory. Skip line! %s " % line )
+        gLogger.debug( "Empty directory. Skip line! %s " % line )
         continue
       size = splitLine[ 4 ]
       pfn = splitLine[ 10 ]
       #updated = should be reconstructed on the basis of the ascii date
-      update = 'na' 
+      update = 'na'
       res = self.getLFNPath( site, pfn )
       if not res[ 'OK' ]:
         return S_ERROR()
@@ -1046,11 +1046,11 @@ class SEUsageAgent( AgentModule ):
       probableSpaceToken = ''
       if lfn[:11] == '/lhcb/user/':
         probableSpaceToken = 'LHCb_USER'
-      elif ( lfn[-3:] == 'raw' or lfn[-4:] == 'sdst' or lfn[:19] == '/lhcb/archive/lhcb/') and ( lfn[:20] != '/lhcb/failover/lhcb/' ):
+      elif ( lfn[-3:] == 'raw' or lfn[-4:] == 'sdst' or lfn[:19] == '/lhcb/archive/lhcb/' ) and ( lfn[:20] != '/lhcb/failover/lhcb/' ):
         probableSpaceToken = 'LHCb-Tape'
       else:
         probableSpaceToken = 'LHCb-Disk'
-      newLine = pfn + ' |  ' + size +  ' |  ' + update
+      newLine = pfn + ' |  ' + size + ' |  ' + update
       fp = p1FilesDict[ probableSpaceToken ][ 'filePointer']
       fp.write( "%s\n" % newLine )
 
@@ -1060,19 +1060,19 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
 
-  def checkCreationDate( self, directory):
+  def checkCreationDate( self, directory ):
     """ Check the storage dump creation date . Returns 0 if the creation date is more recent than a given time interval (set as
        configuration parameter), otherwise returns -1 """
     retCode = 0
     for file in os.listdir( directory ):
       fullPath = os.path.join( directory , file )
-      (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat( fullPath )
+      ( mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime ) = os.stat( fullPath )
       now = time.time()
       elapsedTime = now - mtime
-      gLogger.info("Creation time: %s,  elapsed time: %d h (maximum delay allowed : %d h ) " %(time.ctime( mtime ), elapsedTime/3600, self.maximumDelaySinceSD/3600))
+      gLogger.info( "Creation time: %s,  elapsed time: %d h (maximum delay allowed : %d h ) " % ( time.ctime( mtime ), elapsedTime / 3600, self.maximumDelaySinceSD / 3600 ) )
 
       if elapsedTime > self.maximumDelaySinceSD:
-        gLogger.warn("WARNING: storage dump creation date is older than maximum limit! %s s ( %d h )  - %s " % ( self.maximumDelaySinceSD, self.maximumDelaySinceSD/3600, fullPath ) ) 
+        gLogger.warn( "WARNING: storage dump creation date is older than maximum limit! %s s ( %d h )  - %s " % ( self.maximumDelaySinceSD, self.maximumDelaySinceSD / 3600, fullPath ) )
         retCode = -1
         return S_OK( retCode )
     return S_OK( retCode )
