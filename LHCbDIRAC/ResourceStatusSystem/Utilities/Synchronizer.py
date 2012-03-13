@@ -1,4 +1,4 @@
-# $HeadURL:  $
+# $HeadURL: $
 ''' Synchronizer
 
   Extension for LHCb of the RSS Synchronizer
