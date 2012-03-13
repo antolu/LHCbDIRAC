@@ -411,7 +411,9 @@ if swimmEnabled:
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass )
 
 
-  production.addFinalizationStep()
+  production.addFinalizationStep( 'UploadOutputData',
+                                 'FailoverRequest',
+                                 'UploadLogFile' )
   production.setProdGroup( prodGroup )
   production.setProdPriority( swimm_priority )
   production.setJobFileGroupSize( swimmFilesPerJob )
@@ -526,7 +528,9 @@ if swimmEnabled:
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass )
 
 
-    DVProduction.addFinalizationStep()
+    DVProduction.addFinalizationStep( 'UploadOutputData',
+                                     'FailoverRequest',
+                                     'UploadLogFile' )
     DVProduction.setProdGroup( prodGroup )
     DVProduction.setProdPriority( swimm_priority )
     DVProduction.setJobFileGroupSize( swimmFilesPerJob_DV )
@@ -688,7 +692,15 @@ if mergingEnabled:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
       DIRAC.exit( 2 )
 
-    mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+    if mergeRemoveInputsFlag:
+      mergeProd.addFinalizationStep( 'UploadOutputData',
+                                     'FailoverRequest',
+                                     'RemoveInputData',
+                                     'UploadLogFile' )
+    else:
+       mergeProd.addFinalizationStep( 'UploadOutputData',
+                                     'FailoverRequest',
+                                     'UploadLogFile' )
     mergeProd.setInputBKSelection( mergeBKQuery )
     try:
       mergeProd.setInputDataPolicy( mergeIDPolicy )
