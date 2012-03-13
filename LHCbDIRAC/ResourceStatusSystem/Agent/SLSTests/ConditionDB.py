@@ -1,4 +1,4 @@
-# $HeadURL:  $
+# $HeadURL: $
 '''  ConditionDB
 
   Module that runs the tests for the CondDB SLS sensors.

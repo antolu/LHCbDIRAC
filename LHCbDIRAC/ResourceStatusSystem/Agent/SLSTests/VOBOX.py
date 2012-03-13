@@ -1,4 +1,4 @@
-# $HeadURL:  $
+# $HeadURL: $
 ''' VOBOX
 
   Module that runs the tests for the VOBOX SLS sensors.

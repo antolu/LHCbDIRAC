@@ -1,4 +1,4 @@
-# $HeadURL:  $
+# $HeadURL: $
 ''' LFCMaster
 
   Module that runs the tests for the LFCMaster SLS sensors.
