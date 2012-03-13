@@ -1,7 +1,6 @@
 ################################################################################
 # $HeadURL $
 ################################################################################
-__RCSID__  = "$Id:  $"
 
 import time
 
@@ -10,6 +9,8 @@ from datetime        import datetime
 
 from DIRAC           import gLogger
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+__RCSID__  = '$Id: $'
 
 # Not best solution, but avoids a big number of connections to the DB oppened.
 rmc = ResourceManagementClient()
