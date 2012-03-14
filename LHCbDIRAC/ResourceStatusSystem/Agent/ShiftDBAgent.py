@@ -51,7 +51,6 @@ class ShiftDBAgent( AgentModule ):
      Execution
     '''  
     
-    lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
     email = self.__getRoleEmail()
     if not email[ 'OK' ]:
       self.log.error( email[ 'Message' ] )
@@ -73,22 +72,24 @@ class ShiftDBAgent( AgentModule ):
     Get role email from shiftDB
     '''
  
-    role = 'Production'   
-    web  = urllib2.urlopen( self.lbshiftdburl )
+    role = 'Production'
+    lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
+       
+    web  = urllib2.urlopen( lbshiftdburl )
 
-    for l in web.readlines():
+    for line in web.readlines():
       
-      if l.find( role ) != -1:
-        foundRole = 1
-        ll = l.split( '|' )
+      if line.find( role ) != -1:
         
-        if ll[ 4 ].find( ':' ) != -1 :
-          email = ll[ 4 ].split( ':' )[ 1 ]
+        linesplitted = line.split( '|' )
+        
+        if linesplitted[ 4 ].find( ':' ) != -1 :
+          email = linesplitted[ 4 ].split( ':' )[ 1 ]
           
           if email.find( '@' ) != -1:
             return S_OK( email )
           else:
-            return S_ERROR( '%s in %s should be an email but seems not' % ( email, ll[ 4 ] ) ) 
+            return S_ERROR( '%s in %s should be an email but seems not' % ( email, linesplitted[ 4 ] ) ) 
 
     return S_ERROR( 'Email not found' )  
 
