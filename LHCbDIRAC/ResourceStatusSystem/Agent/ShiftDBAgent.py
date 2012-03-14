@@ -37,7 +37,7 @@ class ShiftDBAgent( AgentModule ):
     self.user     = 'lbdirac'
     
     # Future me, forgive me for this
-    self.passfile = os.path.join( self.am_getWorkDirectory(), '.passwd' )
+    self.pwfile = os.path.join( self.am_getWorkDirectory(), '.passwd' )
     
     passwd = self.__getPass()
     if not passwd[ 'OK' ]:
@@ -99,10 +99,10 @@ class ShiftDBAgent( AgentModule ):
     '''
     
     wsdl   = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService?WSDL'
-    client = suds.client.Client( wdsl )
+    client = suds.client.Client( wsdl )
     eGroup = 'lhcb-current-shifter'
 
-    wgroup = client.service.findEgroupByName( self.user, self.passwd, egroup )
+    wgroup = client.service.findEgroupByName( self.user, self.passwd, eGgroup )
 
     members = wgroup.Members[0]
 
