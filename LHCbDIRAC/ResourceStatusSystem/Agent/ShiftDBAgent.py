@@ -102,14 +102,14 @@ class ShiftDBAgent( AgentModule ):
     client = suds.client.Client( wsdl )
     eGroup = 'lhcb-current-shifter'
 
-    wgroup = client.service.findEgroupByName( self.user, self.passwd, eGgroup )
+    wgroup = client.service.findEgroupByName( self.user, self.passwd, eGroup )
 
     members = wgroup.Members[0]
 
     if len( members ) > 1 :
       self.log.error( 'The eGroup has more than one member, deleting ...' )  
 
-      for i in range( len( members ) ):
+      for _i in range( len( members ) ):
         self.log.error( 'Deleting member %s' % members[ 0 ].Email )
         del members[ 0 ]
       
