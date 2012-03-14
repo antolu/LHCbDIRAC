@@ -21,10 +21,16 @@ class ShiftDBAgent( AgentModule ):
     ShiftDBAgent 
   '''
 
+  # Too many public methods
+  # pylint: disable-msg=R0904
+
   def initialize( self ):
     '''
      Initialize
     '''
+
+    # Attribute defined outside __init__  
+    # pylint: disable-msg=W0201
     
     # To be extended
     
@@ -53,7 +59,7 @@ class ShiftDBAgent( AgentModule ):
     
     email = email[ 'Value' ]
     
-    setEmail = self.__setEmail( email )
+    setEmail = self.__setRoleEmail( email )
     if not setEmail[ 'OK' ]:
       self.log.error( setEmail[ 'Message' ] )
       return setEmail
