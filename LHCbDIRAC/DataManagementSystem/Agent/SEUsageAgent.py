@@ -897,7 +897,7 @@ class SEUsageAgent( AgentModule ):
         elif storageFileStatus == 0:
           gLogger.info( "storage file does not exist (temporary file) %s " % lfn )
         else:
-          gLogger.warning( "Failed request for storage file %s " % lfn )
+          gLogger.warn( "Failed request for storage file %s " % lfn )
       else:
         gLogger.info( "Unknown message from Fc: %s - %s " % ( lfn, badFiles[ lfn ] ) )
     for lfn in goodFiles.keys():
