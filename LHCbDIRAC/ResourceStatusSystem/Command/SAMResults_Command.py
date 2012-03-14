@@ -5,9 +5,6 @@
   
 '''
 
-import httplib
-import urllib2
-
 from DIRAC                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping  import getGOCSiteName
 

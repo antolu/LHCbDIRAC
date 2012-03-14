@@ -127,11 +127,11 @@ class SLSServiceInfo_Command( Command ):
 #    try:
     
     if self.args[ 0 ] == 'StorageElement':
-      SLSName = slsid_of_service( self.args[ 0 ], self.args[ 1 ], 'CASTOR' )
+      slsName = slsid_of_service( self.args[ 0 ], self.args[ 1 ], 'CASTOR' )
     else:
-      SLSName = slsid_of_service( *self.args )
+      slsName = slsid_of_service( *self.args )
 
-    res = SLSClient.getServiceInfo( SLSName )
+    res = SLSClient.getServiceInfo( slsName )
       #if not res[ 'OK' ]:
       #  gLogger.error("No SLS sensors for " + self.args[0] + " " + self.args[1] )
       #  return { 'Result' : None }
