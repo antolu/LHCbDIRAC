@@ -34,8 +34,8 @@ class ShiftDBAgent( AgentModule ):
     
     # To be extended
     
-    self.user     = 'lbdirac'
-    
+    self.user         = 'lbdirac'
+    self.lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
     # Future me, forgive me for this
     self.pwfile = os.path.join( self.am_getWorkDirectory(), '.passwd' )
     
@@ -73,9 +73,8 @@ class ShiftDBAgent( AgentModule ):
     '''
  
     role = 'Production'
-    lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
        
-    web  = urllib2.urlopen( lbshiftdburl )
+    web  = urllib2.urlopen( self.lbshiftdburl )
 
     for line in web.readlines():
       
