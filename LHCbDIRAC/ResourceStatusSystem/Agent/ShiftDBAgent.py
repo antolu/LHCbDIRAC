@@ -110,8 +110,8 @@ class ShiftDBAgent( AgentModule ):
       self.log.error( 'The eGroup has more than one member, deleting ...' )  
 
       for i in range( len( members ) ):
-        self.log.error( 'Deleting member %s' % members[ i ].Email )
-        del members[ i ]
+        self.log.error( 'Deleting member %s' % members[ 0 ].Email )
+        del members[ 0 ]
       
     elif len( members ) == 0:
       self.log.info( 'eGroup is empty, adding member')     
