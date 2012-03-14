@@ -5,7 +5,7 @@
   
 '''
 
-from DIRAC                                            import gLogger, S_OK, S_ERROR
+from DIRAC                                            import gLogger, S_OK
 from DIRAC.ResourceStatusSystem.Command.Command       import *
 
 from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
@@ -21,7 +21,7 @@ class NagiosProbes_Command( Command ):
     
     '''
     super( NagiosProbes_Command, self ).doCommand()
-    self._APIs = initAPIs( self.__APIs__, self._APIs, force = True )  
+    apis = initAPIs( self.__APIs__, self._APIs, force = True )  
     
 #    try:
    
@@ -41,7 +41,7 @@ class NagiosProbes_Command( Command ):
                }
           }
     
-    res = self._APIs[ 'ResourceManagementClient'].getMonitoringTest( **query )
+    res = apis[ 'ResourceManagementClient'].getMonitoringTest( **query )
       
     if not res['OK']:
     #  msg = "Error getting NagiosProbes for serviceURI '%s'\n %s" % ( name, res['Message'])
