@@ -21,7 +21,7 @@ class NagiosProbesCommand( Command ):
     
     '''
     super( NagiosProbesCommand, self ).doCommand()
-    apis = initAPIs( self.__APIs__, self._APIs, force = True )  
+    apis = initAPIs( self.__APIs__, self.APIs, force = True )  
     
     #granularity = self.args[0]
     name    = self.args[ 1 ]
