@@ -9,17 +9,19 @@ __RCSID__ = '$Id: $'
 
 ################################################################################
 
+result = None
+
 def nagiosProbesCommandFunc( *args, **kwargs ):
-  return kwargs.pop( 'result' )
+  return result#kwargs.pop( 'result' )
+
+class Dummy():
+    
+  def __getattr__( self, name ):
+    return dummyFunc  
+     
+  dummyFunc = nagiosProbesCommandFunc
 
 def initAPIS( desiredAPIs, knownAPIs, force = False ):
-  
-  class Dummy():
-    
-    def __getattr__( self, name ):
-      return dummyFunc  
-    
-    dummyFunc = nagiosProbesCommandFunc
   
   return { 'ResourceManagementClient' : Dummy() }
 
@@ -60,7 +62,13 @@ class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
     '''  
     c = self.command( None )
     self.assertEqual( 'NagiosProbesCommand', c.__class__.__name__ )    
+  
+  def test_doCommand_nok( self ):
     
+    result = { 'OK' : False }
+    c = self.command( None )
+    res = c.doCommand()
+    self.assertEqual( { 'Result' : res }, result )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
