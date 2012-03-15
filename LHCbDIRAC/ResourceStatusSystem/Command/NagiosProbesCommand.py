@@ -6,7 +6,7 @@
 '''
 
 from DIRAC                                            import S_OK
-from DIRAC.ResourceStatusSystem.Command               import Command
+from DIRAC.ResourceStatusSystem.Command.Command       import Command
 
 from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
 
@@ -48,7 +48,7 @@ class NagiosProbesCommand( Command ):
 
     return { 'Result' : res }    
 
-  doCommand.__doc__ = Command.doCommand.__doc__ + doCommand.__doc__
+#  doCommand.__doc__ = .doCommand.__doc__ + doCommand.__doc__
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
