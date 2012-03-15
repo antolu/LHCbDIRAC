@@ -59,13 +59,13 @@ class ShiftDBAgent( AgentModule ):
     
     email = email[ 'Value' ]
     
-#    self.log.info( 'Setting role email' )
-#    setEmail = self.__setRoleEmail( email )
-#    if not setEmail[ 'OK' ]:
-#      self.log.error( setEmail[ 'Message' ] )
-#      return setEmail
+    self.log.info( 'Setting role email' )
+    setEmail = self.__setRoleEmail( email )
+    if not setEmail[ 'OK' ]:
+      self.log.error( setEmail[ 'Message' ] )
+      return setEmail
     
-#    self.log.info( '%s added successfully to the eGroup' % email )    
+    self.log.info( '%s added successfully to the eGroup' % email )    
     
     return S_OK()
     
