@@ -239,6 +239,22 @@ class OracleDB:
         elif type(array[0]) == types.LongType or type(array[0]) == types.IntType:
           result = cursor.arrayvar(cx_Oracle.NUMBER, array)
           parameters += [result]
+        elif type(array[0]) == types.ListType:
+          for i in array:
+            if type(i) == types.BooleanType or type(i) == types.StringType or type(i) == types.IntType or type(i) == types.LongType:
+              parameters += [i]
+            elif len(i) > 0:
+              if type(i[0]) == types.StringType:
+                result = cursor.arrayvar( cx_Oracle.STRING, i )
+                parameters += [result]
+              elif type(i[0]) == types.LongType or type(i[0]) == types.IntType:
+                result = cursor.arrayvar( cx_Oracle.NUMBER, i )
+                parameters += [result]
+              else:
+                return S_ERROR('The array type is not supported!!!')
+            else:
+              result = cursor.arrayvar( cx_Oracle.STRING, [], 0)
+              parameters += [result]
         else:
           return S_ERROR('The array type is not supported!!!')
       if output == True:
