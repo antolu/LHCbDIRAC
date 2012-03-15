@@ -51,7 +51,5 @@ class NagiosProbesCommand( Command ):
 
     return { 'Result' : res }    
 
-#  doCommand.__doc__ = .doCommand.__doc__ + doCommand.__doc__
-
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  

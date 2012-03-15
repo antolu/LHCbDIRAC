@@ -58,7 +58,7 @@ class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
     '''  
-    c = self.command()
+    c = self.command( None )
     self.assertEqual( 'NagiosProbesCommand', c.__class__.__name__ )    
     
 
