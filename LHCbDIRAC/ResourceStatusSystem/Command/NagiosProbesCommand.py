@@ -13,6 +13,9 @@ from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
 __RCSID__ = '$Id: $'
 
 class NagiosProbesCommand( Command ):
+  '''
+  
+  ''' 
   
   __APIs__ = [ 'ResourceManagementClient' ]
   

@@ -44,10 +44,8 @@ class NagiosProbesCommand_TestCase( unittest.TestCase ):
     import LHCbDIRAC.ResourceStatusSystem.Command.NagiosProbesCommand as moduleTested
     moduleTested.Command = Command   
     moduleTested.NagiosProbesCommand.__bases__ = ( Command, ) 
-
-    self.policy = moduleTested.AlwaysFalsePolicy
     
-    self.command = None
+    self.command = moduleTested.NagiosProbesCommand
     
   def tearDown( self ):
     '''
