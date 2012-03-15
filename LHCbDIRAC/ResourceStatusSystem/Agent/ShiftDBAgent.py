@@ -77,7 +77,7 @@ class ShiftDBAgent( AgentModule ):
     role = 'Production'
        
     try:   
-      web = urllib2.urlopen( self.lbshiftdburl )
+      web = urllib2.urlopen( self.lbshiftdburl, 60 )
     except urllib2.URLError, e:  
       return S_ERROR( 'Cannot open URL: %s, erorr %s' % ( self.lbshiftdburl, e ) )
 
