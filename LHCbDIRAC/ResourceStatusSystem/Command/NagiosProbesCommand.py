@@ -5,8 +5,8 @@
   
 '''
 
-from DIRAC                                            import gLogger, S_OK
-from DIRAC.ResourceStatusSystem.Command.Command       import *
+from DIRAC                                            import S_OK
+from DIRAC.ResourceStatusSystem.Command               import Command
 
 from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
 
