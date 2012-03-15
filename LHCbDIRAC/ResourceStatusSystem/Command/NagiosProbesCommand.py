@@ -1,5 +1,5 @@
 # $HeadURL: $
-''' NagiosProbes_Command
+''' NagiosProbesCommand
   
   The Command gets information from the MonitoringTest cache.
   
@@ -12,7 +12,7 @@ from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
 
 __RCSID__ = '$Id: $'
 
-class NagiosProbes_Command( Command ):
+class NagiosProbesCommand( Command ):
   
   __APIs__ = [ 'ResourceManagementClient' ]
   
@@ -20,14 +20,12 @@ class NagiosProbes_Command( Command ):
     '''
     
     '''
-    super( NagiosProbes_Command, self ).doCommand()
+    super( NagiosProbesCommand, self ).doCommand()
     apis = initAPIs( self.__APIs__, self._APIs, force = True )  
     
-#    try:
-   
-      #granularity = self.args[0]
-    name    = self.args[1]
-    flavour = self.args[2]
+    #granularity = self.args[0]
+    name    = self.args[ 1 ]
+    flavour = self.args[ 2 ]
     
     #ServiceURI is a quite misleading name.. it is a Resource in the RSS DB in fact.
     query = { 
@@ -35,25 +33,18 @@ class NagiosProbes_Command( Command ):
             'serviceFlavour' : flavour,
             'meta'           :
               {
-                'columns' : ['MetricStatus','SummaryData'],
+                'columns' : [ 'MetricStatus','SummaryData' ],
                 'count'   : True,
                 'group'   : 'MetricStatus' 
                }
           }
     
-    res = apis[ 'ResourceManagementClient'].getMonitoringTest( **query )
+    res = apis[ 'ResourceManagementClient' ].getMonitoringTest( **query )
       
-    if not res['OK']:
-    #  msg = "Error getting NagiosProbes for serviceURI '%s'\n %s" % ( name, res['Message'])
-    #  gLogger.error( msg )
+    if not res[ 'OK' ]:
       return { 'Result' : res }
     
-    res = S_OK( dict( [ ( r[0], r[1:] ) for r in res[ 'Value' ] ] ) )
-
-#    except Exception, e:
-#      _msg = '%s (%s): %s' % ( self.__class__.__name__, self.args, e )
-#      gLogger.exception( _msg )
-#      return { 'Result' : S_ERROR( _msg ) }
+    res = S_OK( dict( [ ( r[ 0 ], r[ 1: ] ) for r in res[ 'Value' ] ] ) )
 
     return { 'Result' : res }    
 

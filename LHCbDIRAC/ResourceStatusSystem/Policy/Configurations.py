@@ -401,28 +401,28 @@ Policies = {
     {
       'Description' : 'Checks probes with ServiceFlavour CE for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'CE', )
     },
     'Nagios_CREAMCE' :
     {
       'Description' : 'Checks probes with ServiceFlavour CREAM-CE for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'CREAM-CE', )
     },
     'Nagios_SE' :
     {
       'Description' : 'Checks probes with ServiceFlavour SRMv2 for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'SRMv2', )
     },
     'Nagios_LFC' :
     {
       'Description' : 'Checks probes with ServiceFlavour LFC for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbes_Command', 'NagiosProbes_Command' ),
+      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'LFC', )
     }
 }
