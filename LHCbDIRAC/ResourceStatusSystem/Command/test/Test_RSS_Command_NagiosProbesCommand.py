@@ -94,16 +94,26 @@ class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
     forcedResult = { 'OK' : True, 'Value' : [ [1,2,3] ] }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
-    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { '1' : [ 2,3 ]} } } )
+    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { 1 : [ 2,3 ]} } } )
     
     global forcedResult
     forcedResult = { 'OK' : True, 'Value' : [ [1,2,3], [4,5,6] ] }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { 
-                                                                  '1' : [ 2,3 ],
-                                                                  '4' : [ 5,6 ],
+                                                                  1 : [ 2,3 ],
+                                                                  4 : [ 5,6 ],
                                                                   } } } )
+
+    global forcedResult
+    forcedResult = { 'OK' : True, 'Value' : [ [1,2,3], ['a','b','c'] ] }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { 
+                                                                  1   : [ 2,3 ],
+                                                                  'a' : [ 'b','c' ],
+                                                                  } } } )
+
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
