@@ -226,7 +226,7 @@ class SLSServiceInfoCommand_Success( SLSServiceInfoCommand_TestCase ):
 
     global slsResult
     slsResult = { 'OK' : True, 'Value' : { 1 : 1 } }
-    c = self.command( [ 'StorageElement', 2, 3 ] ) 
+    c = self.command( [ 'StorageElement', '2', 3 ] ) 
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : slsResult } )  
     
