@@ -21,7 +21,7 @@ class Dummy():
      
   dummyFunc = nagiosProbesCommandFunc
 
-def initAPIS( desiredAPIs, knownAPIs, force = False ):
+def initAPIs( desiredAPIs, knownAPIs, force = False ):
   
   return { 'ResourceManagementClient' : Dummy() }
 
