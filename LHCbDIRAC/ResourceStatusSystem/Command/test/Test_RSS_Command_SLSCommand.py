@@ -9,10 +9,10 @@ __RCSID__ = '$Id: $'
 
 ################################################################################
 
-forcedResult = None
+slsResult = None
 
 def slsCommandFunc( *args, **kwargs ):
-  return forcedResult
+  return slsResult
 
 class Dummy():
   
@@ -116,51 +116,33 @@ class SLSStatusCommand_Success( SLSStatusCommand_TestCase ):
     ''' tests that check execution when S_ERROR is returned by backend
     '''
     
-    global forcedResult
-    forcedResult = { 'OK' : False }
+    global slsResult
+    slsResult = { 'OK' : False }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
-    self.assertEqual( res, { 'Result' : forcedResult  } )
+    self.assertEqual( res[ 'Result' ][ 'OK' ], False )
 
-    global forcedResult
-    forcedResult = { 'OK' : False, 'Message' : 'TestMessage' }
+    global slsResult
+    slsResult = { 'OK' : False, 'Message' : 'TestMessage' }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
-    self.assertEqual( res, { 'Result' : forcedResult  } )
+    self.assertEqual( res[ 'Result' ][ 'OK' ], False )
 
-#  def test_doCommand_ok( self ):
-#    ''' tests that check execution when S_OK is returned by backend
-#    '''
-#
-#    global forcedResult
-#    forcedResult = { 'OK' : True, 'Value' : [] }
-#    c = self.command( [ 1, 2, 3 ] ) 
-#    res    = c.doCommand()
-#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : {} } } )
-#    
-#    global forcedResult
-#    forcedResult = { 'OK' : True, 'Value' : [ [1,2,3] ] }
-#    c = self.command( [ 1, 2, 3 ] ) 
-#    res    = c.doCommand()
-#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { 1 : [ 2,3 ]} } } )
-#    
-#    global forcedResult
-#    forcedResult = { 'OK' : True, 'Value' : [ [1,2,3], [4,5,6] ] }
-#    c = self.command( [ 1, 2, 3 ] ) 
-#    res    = c.doCommand()
-#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { 
-#                                                                  1 : [ 2,3 ],
-#                                                                  4 : [ 5,6 ],
-#                                                                  } } } )
-#
-#    global forcedResult
-#    forcedResult = { 'OK' : True, 'Value' : [ [1,2,3], ['a','b','c'] ] }
-#    c = self.command( [ 1, 2, 3 ] ) 
-#    res    = c.doCommand()
-#    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : { 
-#                                                                  1   : [ 2,3 ],
-#                                                                  'a' : [ 'b','c' ],
-#                                                                  } } } )
+  def test_doCommand_ok( self ):
+    ''' tests that check execution when S_OK is returned by backend
+    '''
 
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : { 'Availability' : 1 } }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
+    
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : { 'Availability' : 'A', 2 : 3 } }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 'A' } } )
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
