@@ -45,7 +45,8 @@ class NagiosProbesCommand_TestCase( unittest.TestCase ):
 
     # We need the proper software, and then we overwrite it.
     import LHCbDIRAC.ResourceStatusSystem.Command.NagiosProbesCommand as moduleTested
-    moduleTested.Command = Command   
+    moduleTested.Command  = Command
+    moduleTested.initAPIs = initAPIs      
     moduleTested.NagiosProbesCommand.__bases__ = ( Command, ) 
     
     self.command = moduleTested.NagiosProbesCommand
