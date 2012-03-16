@@ -55,14 +55,14 @@ Policies = {
     { 
       'Description' : 'Latest SAM results on the LCG Computing Element',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResults_Command', 'SAMResults_Command' ),
+      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install', 
                                 'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel', 
                                 'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss', 
                                 'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues', 'bi', 
                                 'csh', 'js', 'gfal', 'swdir', 'voms'] ),
 
-      'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResults_Command', 'SAMResults_Command' ),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
                                     'args': ( None, ['LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install',
                                                      'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel',
                                                      'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss',
@@ -75,11 +75,11 @@ Policies = {
     { 
       'Description' : 'Latest SAM results on the CREAM Computing Element',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResults_Command', 'SAMResults_Command' ),
+      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] ),
 
       'Resource_Panel' : [ { 'SAM': 
-                             { 'CommandIn' : ( 'SAMResults_Command', 'SAMResults_Command' ),
+                             { 'CommandIn' : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
                                'args'      : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] ) 
                                }
                             },
@@ -89,10 +89,10 @@ Policies = {
     { 
       'Description' : 'Latest SAM results on the SRM nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResults_Command', 'SAMResults_Command' ),
+      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'DiracTestUSER', 'FileAccessV2', 'LHCb-cr' ] ),
 
-      'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResults_Command', 'SAMResults_Command' ),
+      'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
                                     'args': ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ) }},
                          ]
      },
@@ -100,11 +100,11 @@ Policies = {
     { 
       'Description' : 'Latest SAM results on the central LFC nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResults_Command', 'SAMResults_Command' ),
+      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] ),
       
       'Resource_Panel' : [ { 'SAM': 
-                            { 'CommandIn' : ( 'SAMResults_Command', 'SAMResults_Command' ),
+                            { 'CommandIn' : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
                               'args'      : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] ) 
                               }
                             },
@@ -114,11 +114,11 @@ Policies = {
     { 
       'Description' : 'Latest SAM results on the slave LFC nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResults_Command', 'SAMResults_Command' ),
+      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] ),
       
       'Resource_Panel' : [ { 'SAM': 
-                            { 'CommandIn':( 'SAMResults_Command', 'SAMResults_Command' ),
+                            { 'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
                               'args'     : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] ) 
                             }
                            },
@@ -128,10 +128,10 @@ Policies = {
     { 
       'Description' : 'Latest SAM results on the FTS nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResults_Command', 'SAMResults_Command' ),
+      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'ftschn', 'ftsinfo' ] ),
      
-      'Resource_Panel' : [ { 'SAM': {'CommandIn':( 'SAMResults_Command', 'SAMResults_Command' ),
+      'Resource_Panel' : [ { 'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
                                     'args': ( None, ['ftschn', 'ftsinfo'] ) }},
                           ]
      },
