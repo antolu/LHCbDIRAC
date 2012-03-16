@@ -139,13 +139,13 @@ class ClassFunctions_Success( ClassFunctions_TestCase ):
   def test_vobox( self ):
     
     res = self.func( 1, '1.1', 'VO-BOX' )
-    self.assertEquals( res, '1_VO-BOX' )
+    self.assertEquals( res, '1_VOBOX' )
     
     res = self.func( 1, 'a.b', 'VO-BOX' )
-    self.assertEquals( res, 'b_VO-BOX' )
+    self.assertEquals( res, 'b_VOBOX' )
 
     res = self.func( '1', 'a.b', 'VO-BOX' )
-    self.assertEquals( res, 'b_VO-BOX' )
+    self.assertEquals( res, 'b_VOBOX' )
 
   def test_voms( self ):
     
