@@ -12,7 +12,7 @@ __RCSID__ = '$Id: $'
 result = None
 
 def nagiosProbesCommandFunc( *args, **kwargs ):
-  return result#kwargs.pop( 'result' )
+  return result
 
 class Dummy():
     
@@ -65,9 +65,11 @@ class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
   
   def test_doCommand_nok( self ):
     
+    global result
     result = { 'OK' : False }
-    c = self.command( [ 1, 2, 3 ] )
-    res = c.doCommand()
+    
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
     self.assertEqual( { 'Result' : res }, result )
 
 ################################################################################
