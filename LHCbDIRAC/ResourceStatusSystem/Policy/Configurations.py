@@ -289,12 +289,12 @@ Policies = {
     { 
       'Description' : 'How the VO-Box is behaving in the SLS',
       'module'      : 'SLSPolicy',
-      'commandIn'   : ( 'SLS_Command', 'SLSStatus_Command' ),
+      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VO-BOX', ),
       
       'Service_VO-BOX_Panel' : [ {
                                    'WebLink' : {
-                                                 'CommandIn' : ( 'SLS_Command', 'SLSLink_Command' ),
+                                                 'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                                                  'args'      : ( 'VO-BOX', )
                                                  }
                                   },
@@ -304,12 +304,12 @@ Policies = {
     { 
       'Description' : 'How the VOMS service is behaving in the SLS',
       'module'      : 'SLSPolicy',
-      'commandIn'   : ( 'SLS_Command', 'SLSStatus_Command' ),
+      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VOMS', ),
       
       'Service_VOMS_Panel' : [ {
                                  'WebLink': { 
-                                              'CommandIn' : ( 'SLS_Command', 'SLSLink_Command' ),
+                                              'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                                               'args'   : ( 'VOMS', )
                                              }
                                 },
@@ -319,7 +319,7 @@ Policies = {
     { 
       'Description' : 'How the CondDB service is behaving in the SLS',
       'module'      : 'SLSPolicy',
-      'commandIn'   : ( 'SLS_Command', 'SLSStatus_Command' ),
+      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'CondDB', )
       },
   'OnStorageElementPropagation' :
@@ -365,12 +365,12 @@ Policies = {
     { 
       'Description' : 'SE occupancy',
       'module'      : 'SEOccupancyPolicy',
-      'commandIn'   : ( 'SLS_Command', 'SLSStatus_Command' ),
+      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : None,
 
       'SE_Panel' : [ {
                       'WebLink': {
-                        'CommandIn' : ( 'SLS_Command', 'SLSLink_Command' ),
+                        'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                         'args'      : None
                                   }
                       }, 
@@ -380,12 +380,12 @@ Policies = {
     { 
       'Description' : 'Queued transfers on the SE',
       'module'      : 'SEQueuedTransfersPolicy',
-      'commandIn'   : ( 'SLS_Command', 'SLSServiceInfo_Command' ),
+      'commandIn'   : ( 'SLSCommand', 'SLSServiceInfoCommand' ),
       'args'        : None,
       
       'SE_Panel' : [ { 
                        'WebLink' : {
-                          'CommandIn' : ( 'SLS_Command', 'SLSLink_Command' ),
+                          'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                           'args'      : None
                                    }
                       },
