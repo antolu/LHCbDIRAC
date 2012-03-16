@@ -45,9 +45,9 @@ class SLSStatusCommand_TestCase( unittest.TestCase ):
 
     # We need the proper software, and then we overwrite it.
     import LHCbDIRAC.ResourceStatusSystem.Command.SLSCommand as moduleTested
-    moduleTested.Command  = Command  
-    moduleTested.CS       = CS() 
-    moduleTested.LCG      = Dummy()
+    moduleTested.Command   = Command  
+    moduleTested.CS        = CS() 
+    moduleTested.SLSClient = Dummy()
     moduleTested.SLSStatusCommand.__bases__ = ( Command, ) 
     
     self.command = moduleTested.SLSStatusCommand
@@ -67,9 +67,9 @@ class SLSLinkCommand_TestCase( unittest.TestCase ):
 
     # We need the proper software, and then we overwrite it.
     import LHCbDIRAC.ResourceStatusSystem.Command.SLSCommand as moduleTested
-    moduleTested.Command  = Command 
-    moduleTested.CS       = CS()
-    moduleTested.LCG      = Dummy()
+    moduleTested.Command   = Command 
+    moduleTested.CS        = CS()
+    moduleTested.SLSClient = Dummy()
     moduleTested.SLSLinkCommand.__bases__ = ( Command, ) 
     
     self.command = moduleTested.SLSLinkCommand
@@ -89,9 +89,9 @@ class SLSServiceInfoCommand_TestCase( unittest.TestCase ):
 
     # We need the proper software, and then we overwrite it.
     import LHCbDIRAC.ResourceStatusSystem.Command.SLSCommand as moduleTested
-    moduleTested.Command  = Command    
-    moduleTested.CS       = CS()
-    moduleTested.LCG      = Dummy()
+    moduleTested.Command   = Command    
+    moduleTested.CS        = CS()
+    moduleTested.SLSClient = Dummy()
     moduleTested.SLSServiceInfoCommand.__bases__ = ( Command, ) 
     
     self.command = moduleTested.SLSServiceInfoCommand
