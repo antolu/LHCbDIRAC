@@ -17,9 +17,7 @@ def nagiosProbesCommandFunc( *args, **kwargs ):
 class Dummy():
     
   def __getattr__( self, name ):
-    return dummyFunc  
-     
-  dummyFunc = nagiosProbesCommandFunc
+    return nagiosProbesCommandFunc  
 
 def initAPIs( desiredAPIs, knownAPIs, force = False ):
   
