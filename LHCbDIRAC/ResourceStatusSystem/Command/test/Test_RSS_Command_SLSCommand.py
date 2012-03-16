@@ -144,5 +144,91 @@ class SLSStatusCommand_Success( SLSStatusCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 'A' } } )
     
+class SLSLinkCommand_Success( SLSLinkCommand_TestCase ):
+  
+  def test_instantiate( self ):
+    ''' tests that we can instantiate one object of the tested class
+    '''  
+    c = self.command( None )
+    self.assertEqual( 'SLSLinkCommand', c.__class__.__name__ )    
+  
+  def test_doCommand_nok( self ):
+    ''' tests that check execution when S_ERROR is returned by backend
+    '''
+    
+    global slsResult
+    slsResult = { 'OK' : False }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res[ 'Result' ][ 'OK' ], False )
+
+    global slsResult
+    slsResult = { 'OK' : False, 'Message' : 'TestMessage' }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res[ 'Result' ][ 'OK' ], False )
+
+  def test_doCommand_ok( self ):
+    ''' tests that check execution when S_OK is returned by backend
+    '''
+
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : { 'Weblink' : 1 } }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
+    
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : { 'Weblink' : 'A', 2 : 3 } }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 'A' } } )    
+
+class SLSServiceInfoCommand_Success( SLSServiceInfoCommand_TestCase ):
+  
+  def test_instantiate( self ):
+    ''' tests that we can instantiate one object of the tested class
+    '''  
+    c = self.command( None )
+    self.assertEqual( 'SLSServiceInfoCommand', c.__class__.__name__ )    
+  
+  def test_doCommand_nok( self ):
+    ''' tests that check execution when S_ERROR is returned by backend
+    '''
+    
+    global slsResult
+    slsResult = { 'OK' : False }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res[ 'Result' ][ 'OK' ], False )
+
+    global slsResult
+    slsResult = { 'OK' : False, 'Message' : 'TestMessage' }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res[ 'Result' ][ 'OK' ], False )
+
+  def test_doCommand_ok( self ):
+    ''' tests that check execution when S_OK is returned by backend
+    '''
+
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : None }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : slsResult } )
+    
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : 1 }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : slsResult } )  
+
+    global slsResult
+    slsResult = { 'OK' : True, 'Value' : { 1 : 1 } }
+    c = self.command( [ 'StorageElement', 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : slsResult } )  
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
