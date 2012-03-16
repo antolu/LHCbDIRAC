@@ -1,5 +1,5 @@
 # $HeadURL: $
-''' Test_RSS_Command_NagiosProbesCommand
+''' Test_RSS_Command_SAMResultsCommand
 
 '''
 
@@ -9,19 +9,30 @@ __RCSID__ = '$Id: $'
 
 ################################################################################
 
-forcedResult = None
+rssResult = None
+samResult = None
 
-def nagiosProbesCommandFunc( *args, **kwargs ):
-  return forcedResult
+def rssCommandFunc( *args, **kwargs ):
+  return rssResult
+
+def samCommandFunc( *args, **kwargs ):
+  return samResult
 
 class Dummy():
     
+  def __init__( self, name ):  
+    self.name = name
+    
   def __getattr__( self, name ):
-    return nagiosProbesCommandFunc  
+    
+    return globals()[ '%sCommandFunc' % self.name ]   
 
 def initAPIs( desiredAPIs, knownAPIs, force = False ):
   
-  return { 'ResourceManagementClient' : Dummy() }
+  return { 
+           'ResourceStatusClient' : Dummy( 'rss' ),
+           'SAMResultsClient'     : Dummy( 'sam' )
+           }
 
 class Command( object ):
   
@@ -34,7 +45,7 @@ class Command( object ):
 
 ################################################################################
 
-class NagiosProbesCommand_TestCase( unittest.TestCase ):
+class SAMResultsCommand_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     '''
@@ -42,12 +53,12 @@ class NagiosProbesCommand_TestCase( unittest.TestCase ):
     '''
 
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Command.NagiosProbesCommand as moduleTested
+    import LHCbDIRAC.ResourceStatusSystem.Command.SAMResultsCommand as moduleTested
     moduleTested.Command  = Command
     moduleTested.initAPIs = initAPIs      
-    moduleTested.NagiosProbesCommand.__bases__ = ( Command, ) 
+    moduleTested.SAMResultsCommand.__bases__ = ( Command, ) 
     
-    self.command = moduleTested.NagiosProbesCommand
+    self.command = moduleTested.SAMResultsCommand
     
   def tearDown( self ):
     '''
@@ -55,13 +66,13 @@ class NagiosProbesCommand_TestCase( unittest.TestCase ):
     '''
     del self.command  
 
-class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
+class SAMResultsCommand_Success( SAMResultsCommand_TestCase ):
   
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     c = self.command( None )
-    self.assertEqual( 'NagiosProbesCommand', c.__class__.__name__ )    
+    self.assertEqual( 'SAMResultsCommand', c.__class__.__name__ )    
   
   def test_doCommand_nok( self ):
     ''' tests that check execution when S_ERROR is returned by backend
