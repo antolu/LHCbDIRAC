@@ -146,7 +146,8 @@ class UsersAndGroups( AgentModule ):
     if action == "change":
       subject = 'New LFC Users found but BANNED'
       self.log.info( subject, ", ".join( registerUsers ) )
-      body = 'Command to change the entries into LFC: \n'
+      bodytitle = 'Command to change the entries into LFC: \n'
+      body = bodytitle
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
@@ -166,13 +167,19 @@ class UsersAndGroups( AgentModule ):
             retlfc = Subprocess.systemCall( 0, cmd_exe, env = self.cmdEnv )
             if not retlfc['OK']:
               self.log.error( retlfc['Message'] )
+            else:
+              body += 'User Ban ' + lfc_dn
           except:
             return S_ERROR( 'can not execute command' )
+
+      if body != bodytitle:
+        NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
 
     if action == "ban":
       subject = 'Ban LFC Users'
       self.log.info( subject, ", ".join( registerUsers ) )
-      body = 'Command to change the entries into LFC: \n'
+      bodytitle = 'Command to change the entries into LFC: \n'
+      body = bodytitle
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
@@ -192,10 +199,13 @@ class UsersAndGroups( AgentModule ):
             retlfc = Subprocess.systemCall( 0, cmd_exe, env = self.cmdEnv )
             if not retlfc['OK']:
               self.log.error( retlfc['Message'] )
+            else:
+              body += 'User Ban ' + lfc_dn
           except:
             return S_ERROR( 'can not execute command' )
 
-      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+      if body != bodytitle:
+        NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
 
     return S_OK()
 
