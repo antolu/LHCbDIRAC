@@ -36,6 +36,25 @@ class CS( object ):
 
 ################################################################################
 
+class ClassFunctions_TestCase( unittest.TestCase ):
+  
+  def setUp( self ):
+    '''
+    Setup
+    '''
+
+    # We need the proper software, and then we overwrite it.
+    import LHCbDIRAC.ResourceStatusSystem.Command.SLSCommand as moduleTested   
+    moduleTested.CS = CS()
+      
+    self.func = moduleTested.slsid_of_service
+    
+  def tearDown( self ):
+    '''
+    TearDown
+    '''
+    del self.func  
+
 class SLSStatusCommand_TestCase( unittest.TestCase ):
   
   def setUp( self ):
@@ -103,6 +122,84 @@ class SLSServiceInfoCommand_TestCase( unittest.TestCase ):
     del self.command  
 
 ################################################################################
+
+class ClassFunctions_Success( ClassFunctions_TestCase ):
+ 
+  def test_condDB( self ):
+    
+    res = self.func( 1, '1@1', 'CondDB' )
+    self.assertEquals( res, '1_CondDB' )
+    
+    res = self.func( 1, 'a@b', 'CondDB' )
+    self.assertEquals( res, 'b_CondDB' )
+
+    res = self.func( '1', 'a@b', 'CondDB' )
+    self.assertEquals( res, 'b_CondDB' )
+
+  def test_vobox( self ):
+    
+    res = self.func( 1, '1.1', 'VO-BOX' )
+    self.assertEquals( res, '1_VO-BOX' )
+    
+    res = self.func( 1, 'a.b', 'VO-BOX' )
+    self.assertEquals( res, 'b_VO-BOX' )
+
+    res = self.func( '1', 'a.b', 'VO-BOX' )
+    self.assertEquals( res, 'b_VO-BOX' )
+
+  def test_voms( self ):
+    
+    res = self.func( 1, '1.1', 'VOMS' )
+    self.assertEquals( res, 'VOMS' )
+    
+    res = self.func( 1, 'a@b', 'VOMS' )
+    self.assertEquals( res, 'VOMS' )
+
+    res = self.func( '1', '', 'VOMS' )
+    self.assertEquals( res, 'VOMS' )
+
+  def test_none( self ):
+    
+    res = self.func( 'StorageElement', '1.1', None )
+    self.assertEquals( res, '1.1_1.1' )
+    
+    res = self.func( 'StorageElement', 'a@b', None )
+    self.assertEquals( res, 'a@b_a@b' )
+
+    res = self.func( 'StorageElement', '', None )
+    self.assertEquals( res, '_' )
+
+  def test_castor( self ):
+    
+    res = self.func( 1, '1-1', 'CASTOR' )
+    self.assertEquals( res, 'CASTORLHCB_LHCB1' )
+    
+    res = self.func( 1, 'A-B', 'CASTOR' )
+    self.assertEquals( res, 'CASTORLHCB_LHCBB' )
+    
+    res = self.func( 1, 'a-b', 'CASTOR' )
+    self.assertEquals( res, 'CASTORLHCB_LHCBB' )
+
+    res = self.func( 1, '1_1', 'CASTOR' )
+    self.assertEquals( res, 'CASTORLHCB_LHCB1' )
+    
+    res = self.func( 1, 'A_B', 'CASTOR' )
+    self.assertEquals( res, 'CASTORLHCB_LHCBB' )
+    
+    res = self.func( 1, 'a_b', 'CASTOR' )
+    self.assertEquals( res, 'CASTORLHCB_LHCBB' )
+
+  def test_else( self ):
+    
+    res = self.func( 1, '1.1', 'else' )
+    self.assertEquals( res, '' )
+
+    res = self.func( 1, '1@1', 'else' )
+    self.assertEquals( res, '' )
+
+    res = self.func( 1, '', 'else' )
+    self.assertEquals( res, '' )
+
 
 class SLSStatusCommand_Success( SLSStatusCommand_TestCase ):
   
