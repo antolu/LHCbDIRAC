@@ -112,23 +112,22 @@ class SLSStatusCommand_Success( SLSStatusCommand_TestCase ):
     c = self.command( None )
     self.assertEqual( 'SLSStatusCommand', c.__class__.__name__ )    
   
-#  def test_doCommand_nok( self ):
-#    ''' tests that check execution when S_ERROR is returned by backend
-#    '''
-#    
-#    global forcedResult
-#    forcedResult = { 'OK' : False }
-#    c = self.command( [ 1, 2, 3 ] ) 
-#    res    = c.doCommand()
-#    self.assertEqual( res, { 'Result' : forcedResult  } )
-#
-#    global forcedResult
-#    forcedResult = { 'OK' : False, 'Message' : 'TestMessage' }
-#    c = self.command( [ 1, 2, 3 ] ) 
-#    res    = c.doCommand()
-#    self.assertEqual( res, { 'Result' : forcedResult  } )
-#
-#
+  def test_doCommand_nok( self ):
+    ''' tests that check execution when S_ERROR is returned by backend
+    '''
+    
+    global forcedResult
+    forcedResult = { 'OK' : False }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : forcedResult  } )
+
+    global forcedResult
+    forcedResult = { 'OK' : False, 'Message' : 'TestMessage' }
+    c = self.command( [ 1, 2, 3 ] ) 
+    res    = c.doCommand()
+    self.assertEqual( res, { 'Result' : forcedResult  } )
+
 #  def test_doCommand_ok( self ):
 #    ''' tests that check execution when S_OK is returned by backend
 #    '''
