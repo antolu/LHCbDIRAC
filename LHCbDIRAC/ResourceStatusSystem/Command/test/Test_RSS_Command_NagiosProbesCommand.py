@@ -9,10 +9,10 @@ __RCSID__ = '$Id: $'
 
 ################################################################################
 
-result = None
+forcedResult = None
 
 def nagiosProbesCommandFunc( *args, **kwargs ):
-  return result
+  return forcedResult
 
 class Dummy():
     
@@ -65,12 +65,12 @@ class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
   
   def test_doCommand_nok( self ):
     
-    global result
-    result = { 'OK' : False }
+    global forcedResult
+    forcedResult = { 'OK' : False }
     
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
-    self.assertEqual( { 'Result' : res }, result )
+    self.assertEqual( res, { 'Result' : forcedResult  } )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
