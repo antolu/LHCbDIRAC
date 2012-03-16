@@ -7,7 +7,7 @@
 
 import re
 
-from DIRAC                                      import gLogger, S_OK, S_ERROR
+from DIRAC                                      import S_OK
 from DIRAC.Core.LCG                             import SLSClient
 from DIRAC.ResourceStatusSystem.Command.Command import Command
 from DIRAC.ResourceStatusSystem.Utilities       import CS
