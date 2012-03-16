@@ -67,7 +67,7 @@ class NagiosProbesCommand_Success( NagiosProbesCommand_TestCase ):
   def test_doCommand_nok( self ):
     
     result = { 'OK' : False }
-    c = self.command( None )
+    c = self.command( [ 1, 2, 3 ] )
     res = c.doCommand()
     self.assertEqual( { 'Result' : res }, result )
 
