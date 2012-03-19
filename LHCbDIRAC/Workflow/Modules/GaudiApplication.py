@@ -192,7 +192,10 @@ class GaudiApplication( ModuleBase ):
       gaudiRunFlags = gConfig.getValue( '/Operations/GaudiExecution/%s/gaudirunFlags' % ( setup ), 'gaudirun.py' )
 #      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
       if self.optionsLine:
-        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile, self.optionsLine )
+        fopen = open( 'gaudi_extra_options.py', 'w' )
+        fopen.write( self.optionsLine )
+        fopen.close()
+        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile, 'gaudi_extra_options.py' )
       else:
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile )
       print 'Command = %s' % ( command )  #Really print here as this is useful to see
