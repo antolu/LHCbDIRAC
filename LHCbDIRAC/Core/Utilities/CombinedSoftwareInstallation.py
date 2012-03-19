@@ -34,6 +34,8 @@ InstallProjectURL = gConfig.getValue( '/Operations/GaudiExecution/%s/install_pro
                                       'http://lhcbproject.web.cern.ch/lhcbproject/dist/' )
 natOS = NativeMachine()
 
+#############################################################################
+
 class CombinedSoftwareInstallation:
 
   def __init__( self, argumentsDict ):
@@ -122,10 +124,10 @@ class CombinedSoftwareInstallation:
       return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
     for app in self.apps:
-      DIRAC.gLogger.info( 'Checking %s_%s for %s with site root %s' % ( app[0], app[1], self.jobConfig, self.mySiteRoot ) )
+      DIRAC.gLogger.info( 'Checking %s for %s with site root %s' % ( app, self.jobConfig, self.mySiteRoot ) )
       result = CheckApplication( app, self.jobConfig, self.mySiteRoot )
       if not result:
-        DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area', '%s_%s' % ( app ) )
+        DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area', '%s' % ( app ) )
         if re.search( ':', self.mySiteRoot ):
           result = InstallApplication( app, self.jobConfig, self.mySiteRoot )
           if not result:
@@ -141,8 +143,12 @@ class CombinedSoftwareInstallation:
 
     return DIRAC.S_OK()
 
+#############################################################################
+
 def log( n, line ):
   DIRAC.gLogger.verbose( line )
+
+#############################################################################
 
 def MySiteRoot():
   """Returns the MySiteRoot for the current local and / or shared areas.
@@ -159,6 +165,8 @@ def MySiteRoot():
   mySiteRoot = '%s:%s' % ( localArea, sharedArea )
   return mySiteRoot
 
+#############################################################################
+
 def CheckApplication( app, config, area ):
   """Will perform a local + shared area installation using install project
      to check where components should be installed.  In this case the 'area'
@@ -168,13 +176,9 @@ def CheckApplication( app, config, area ):
   if not area:
     return False
 
-  localArea = area
-  if re.search( ':', area ):
-    localArea = string.split( area, ':' )[0]
-    sharedArea = string.split( area, ':' )[1]
+  localArea, sharedArea = _getAreas( area )
 
-  appName = app[0]
-  appVersion = app[1]
+  appName, appVersion = _getApp( app )
 
   curDir = os.getcwd()
 
@@ -208,19 +212,22 @@ def CheckApplication( app, config, area ):
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
-  cmdTuple += [ appVersion ]
+  if appVersion:
+    cmdTuple += [ appVersion ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join( cmdTuple ) )
   ret = DIRAC.systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
   os.chdir( curDir )
   if not ret['OK']:
-    DIRAC.gLogger.error( 'Software installation failed', '%s %s' % ( appName, appVersion ) )
+    DIRAC.gLogger.error( 'Software checking failed', '%s %s' % ( appName, appVersion ) )
     return False
   if ret['Value'][0]: # != 0
-    DIRAC.gLogger.error( 'Software installation failed with non-zero status', '%s %s' % ( appName, appVersion ) )
+    DIRAC.gLogger.error( 'Software checking failed with non-zero status', '%s %s' % ( appName, appVersion ) )
     return False
 
   return True
+
+#############################################################################
 
 def InstallApplication( app, config, area ):
   """
@@ -242,14 +249,9 @@ def InstallApplication( app, config, area ):
   if not area:
     return False
 
-  localArea = area
-  sharedArea = ''
-  if re.search( ':', area ):
-    localArea = string.split( area, ':' )[0]
-    sharedArea = string.split( area, ':' )[1]
+  localArea, sharedArea = _getAreas( area )
 
-  appName = app[0]
-  appVersion = app[1]
+  appName, appVersion = _getApp( app )
   # make a copy of the environment dictionary
   cmtEnv = dict( os.environ )
 
@@ -280,13 +282,13 @@ def InstallApplication( app, config, area ):
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
-  cmdTuple += [ appVersion ]
+  if appVersion:
+    cmdTuple += [ appVersion ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join( cmdTuple ) )
   DIRAC.gLogger.info( ' at %s' % os.getcwd() )
 
-  #Temporarily increasing timeout to 3hrs to debug installation failures for SAM suite
-  ret = DIRAC.systemCall( 10800, cmdTuple, env = cmtEnv, callbackFunction = log )
+  ret = DIRAC.systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
   os.chdir( curDir )
   if not ret['OK']:
     DIRAC.gLogger.warn( 'Failed to install software:', '_'.join( app ) )
@@ -297,6 +299,90 @@ def InstallApplication( app, config, area ):
     return False
 
   return True
+
+#############################################################################
+
+def RemoveApplication( app, config, area ):
+  """
+   Install given application at given area, at some point (when supported)
+   it will check already installed packages in shared area and install locally
+   only missing parts
+  """
+  if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
+    try:
+      localname, headers = urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
+    except:
+      DIRAC.gLogger.exception()
+      return False
+    if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
+      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
+      return False
+
+  if not area:
+    return False
+
+  appName, appVersion = _getApp( app )
+  # make a copy of the environment dictionary
+  cmtEnv = dict( os.environ )
+  cmtEnv['MYSITEROOT'] = area
+  cmtEnv['CMTCONFIG'] = config
+
+  installProject = os.path.join( area, InstallProject )
+  if not os.path.exists( installProject ):
+    try:
+      shutil.copy( InstallProject, area )
+    except:
+      DIRAC.gLogger.warn( 'Failed to create:', installProject )
+      return False
+
+  curDir = os.getcwd()
+
+  # Move to requested are and run the installation
+  os.chdir( area )
+  cmdTuple = [sys.executable]
+  cmdTuple += [InstallProject]
+  #removal options
+  cmds = gConfig.getValue( '/Operations/GaudiExecution/%s/removalProjectOptions' % ( setup ), '-r' )
+  for cmdTupleC in cmds.split( ' ' ):
+    cmdTuple += [cmdTupleC]
+  cmdTuple += [ appName ]
+  if appVersion:
+    cmdTuple += [ appVersion ]
+
+  ret = DIRAC.systemCall( 3600, cmdTuple, env = cmtEnv, callbackFunction = log )
+  os.chdir( curDir )
+  if not ret['OK']:
+    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join( app ) )
+    DIRAC.gLogger.warn( ret['Message'] )
+    return False
+  if ret['Value'][0]: # != 0
+    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join( app ) )
+    return False
+
+  return True
+
+#############################################################################
+
+def _getAreas( area ):
+  localArea = area
+  sharedArea = ''
+  if re.search( ':', area ):
+    localArea = string.split( area, ':' )[0]
+    sharedArea = string.split( area, ':' )[1]
+  return ( localArea, sharedArea )
+
+def _getApp( app ):
+  """ app is a tuple ('appName', 'appVersion')
+  """
+  appName = app[0]
+  try:
+    appVersion = app[1]
+  except IndexError:
+    appVersion = ''
+
+  return appName, appVersion
+
+#############################################################################
 
 def SharedArea():
   """
@@ -321,6 +407,8 @@ def SharedArea():
       sharedArea = ''
 
   return sharedArea
+
+#############################################################################
 
 def CreateSharedArea():
   """
@@ -354,6 +442,8 @@ def CreateSharedArea():
     DIRAC.gLogger.error( 'Problem trying to create shared area', str( x ) )
     return False
 
+#############################################################################
+
 def LocalArea():
   """
    Discover Location of Local SW Area.
@@ -382,63 +472,7 @@ def LocalArea():
         localArea = ''
   return localArea
 
-def RemoveApplication( app, config, area ):
-  """
-   Install given application at given area, at some point (when supported)
-   it will check already installed packages in shared area and install locally
-   only missing parts
-  """
-  if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
-    try:
-      localname, headers = urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
-    except:
-      DIRAC.gLogger.exception()
-      return False
-    if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
-      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
-      return False
-
-  if not area:
-    return False
-  appName = app[0]
-  appVersion = app[1]
-  # make a copy of the environment dictionary
-  cmtEnv = dict( os.environ )
-  cmtEnv['MYSITEROOT'] = area
-  cmtEnv['CMTCONFIG'] = config
-
-  installProject = os.path.join( area, InstallProject )
-  if not os.path.exists( installProject ):
-    try:
-      shutil.copy( InstallProject, area )
-    except:
-      DIRAC.gLogger.warn( 'Failed to create:', installProject )
-      return False
-
-  curDir = os.getcwd()
-
-  # Move to requested are and run the installation
-  os.chdir( area )
-  cmdTuple = [sys.executable]
-  cmdTuple += [InstallProject]
-  #removal options
-  cmdTuple += [ '-r', '-d' ]
-#  cmdTuple += [ '-p', appName ]
-#  cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ appName ]
-  cmdTuple += [ appVersion ]
-
-  ret = DIRAC.systemCall( 3600, cmdTuple, env = cmtEnv, callbackFunction = log )
-  os.chdir( curDir )
-  if not ret['OK']:
-    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join( app ) )
-    DIRAC.gLogger.warn( ret['Message'] )
-    return False
-  if ret['Value'][0]: # != 0
-    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join( app ) )
-    return False
-
-  return True
+#############################################################################
 
 class DummyRPC:
   def globalStatus( self ):
@@ -448,6 +482,8 @@ class DummyRPC:
     '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.3 }
     }
     }
+
+#############################################################################
 
 def compareConfigs( self , config1 , config2 ):
   if len( config1.keys() ) != len( config2.keys() ):
@@ -463,3 +499,4 @@ def compareConfigs( self , config1 , config2 ):
         return False
   return True
 
+#############################################################################

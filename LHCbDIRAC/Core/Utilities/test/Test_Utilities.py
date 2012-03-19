@@ -8,6 +8,7 @@ from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _ma
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import _getAreas, _getApp
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
@@ -383,6 +384,23 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
     self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} } )
 
+class CombinedSoftwareInstallationSuccess( UtilitiesTestCase ):
+
+  def test__getAreas( self ):
+
+    l, s = _getAreas( 'local:shared' )
+    self.assertEqual( l, 'local' )
+    self.assertEqual( s, 'shared' )
+
+  def test__getApp( self ):
+
+    n, v = _getApp( ( 'name', ) )
+    self.assertEqual( '', v )
+    self.assertEqual( 'name', n )
+    n, v = _getApp( ( 'name', 'version' ) )
+    self.assertEqual( 'version', v )
+    self.assertEqual( 'name', n )
+
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -393,6 +411,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProdConfSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionEnvironmentSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( CombinedSoftwareInstallationSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
