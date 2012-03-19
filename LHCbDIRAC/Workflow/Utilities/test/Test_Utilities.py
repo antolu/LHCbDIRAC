@@ -39,7 +39,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     genBKReport.setDescription( 'Bookkeeping Report class' )
     body = string.replace( importLine, '<MODULE>', 'BookkeepingReport' )
     genBKReport.setBody( body )
-    genBKReport.addParameter( Parameter( "STEP_ID", "", "string", "self", "STEP_ID", True, False, "StepID" ) )
 
     #step
     gaudiAppDefn = StepDefinition( 'Gaudi_App_Step' )
@@ -51,7 +50,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     gaudiAppDefn.addParameterLinked( gaudiApp.parameters )
 
     stepDef = getStepDefinition( 'Gaudi_App_Step', ['GaudiApplication', 'BookkeepingReport'] )
-
     self.assert_( str( gaudiAppDefn ) == str( stepDef ) )
 
 

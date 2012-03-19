@@ -27,6 +27,9 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                                            'getFileTypes', ( {'': ''}, ) ),
                                                      'Value': {'lfn1':'ROOT', 'lfn2':'MDF'}}
 
+    self.bkClientMock.getFileTypeVersion.return_value = {'OK':True, 'Value':{ 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
+                                                                             'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'}}
+
     self.IDR = InputDataResolution( {}, self.bkClientMock )
 
     self.pc = ProdConf()
