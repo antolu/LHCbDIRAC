@@ -134,7 +134,7 @@ class GaudiApplication( ModuleBase ):
 #        os.remove( generatedOpts )
 
       runNumberGauss = 0
-      firstEventNumberGauss = 1
+      firstEventNumberGauss = 0
       if self.applicationName.lower() == "gauss" and self.production_id and self.prod_job_id:
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
@@ -151,7 +151,7 @@ class GaudiApplication( ModuleBase ):
       if self.optionsFormat:
         optionsDict['OptionFormat'] = self.optionsFormat
       if self.stepInputData:
-        optionsDict['InputFiles'] = ['LFN:' + x for x in self.stepInputData.split( ',' )]
+        optionsDict['InputFiles'] = ['LFN:' + x for x in self.stepInputData]
       optionsDict['OutputFilePrefix'] = self.outputFilePrefix
       optionsDict['OutputFileTypes'] = self.stepOutputsType
       optionsDict['XMLSummaryFile'] = self.XMLSummary

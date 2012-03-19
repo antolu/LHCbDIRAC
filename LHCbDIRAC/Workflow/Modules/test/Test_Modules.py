@@ -118,7 +118,7 @@ class ModulesTestCase( unittest.TestCase ):
                        ]
     self.step_commons = {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
-                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123',
+                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
                                        'outputDataType':'bbb'}]}
     self.step_number = '321'
