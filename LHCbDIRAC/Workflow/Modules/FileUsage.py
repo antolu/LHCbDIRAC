@@ -111,7 +111,7 @@ class FileUsage( ModuleBase ):
       result = self._resolveInputVariables()
       if not result['OK']:
         self.log.error( result['Message'] )
-        return result
+        return S_OK()
       self.log.info( 'Initializing %s' % self.version )
       #Have to work out if the module is part of the last step i.e.
       #user jobs can have any number of steps and we only want
@@ -139,7 +139,7 @@ class FileUsage( ModuleBase ):
         result = self._reportFileUsage( self.dirDict )
         if not result['OK']:
           self.log.error( result['Message'] )
-          return result
+          return S_OK()
         self.log.info( "Reporting input file usage successful!" )
       else:
         self.log.info( "No input data usage to report!" )
