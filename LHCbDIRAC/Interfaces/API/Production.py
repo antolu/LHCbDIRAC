@@ -596,10 +596,10 @@ class Production():
       if type( extraPackages ) == type( [] ):
         extraPackages = string.join( extraPackages, ';' )
       if 'ProdConf' not in extraPackages:
-        extraPackages = extraPackages + ';ProdConf.v1r0'
+        extraPackages = extraPackages + ';ProdConf'
       extraPackages = extraPackages.replace( ' ', '' )
     else:
-      extraPackages = 'ProdConf.v1r0'
+      extraPackages = 'ProdConf'
     valuesToSet.append( [ 'extraPackages', extraPackages ] )
     self.__addSoftwarePackages( extraPackages )
 
@@ -893,7 +893,7 @@ class Production():
     if parameters['BKInputQuery']:
       info.append( '\nBK Input Data Query:' )
       for n, v in parameters['BKInputQuery'].items():
-        info.append('%s= %s' % ( n, v ) )
+        info.append( '%s= %s' % ( n, v ) )
 
     #BK output directories (very useful)
     bkPaths = []

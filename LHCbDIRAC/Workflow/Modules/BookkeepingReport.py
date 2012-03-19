@@ -38,7 +38,6 @@ class BookkeepingReport( ModuleBase ):
     self.eventType = ''
     self.poolXMLCatName = ''
     self.stepInputData = ''
-    self.stepInputData = ''
     self.applicationName = ''
     self.applicationLog = ''
     self.firstStepInput = ''
