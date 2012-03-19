@@ -121,7 +121,7 @@ class CombinedSoftwareInstallation:
       DIRAC.gLogger.info( 'Checking %s for %s with site root %s' % ( app, self.jobConfig, self.mySiteRoot ) )
       result = CheckApplication( app, self.jobConfig, self.mySiteRoot )
       if not result:
-        DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area', '%s' % ( app ) )
+        DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area: %s' % app )
         if re.search( ':', self.mySiteRoot ):
           result = InstallApplication( app, self.jobConfig, self.mySiteRoot )
           if not result:
