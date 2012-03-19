@@ -139,10 +139,11 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      p = ProdConf( 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
-                                                  self.production_id,
-                                                  self.prod_job_id,
-                                                  self.step_number ) )
+      prodConfFile = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
+                                                   self.production_id,
+                                                   self.prod_job_id,
+                                                   self.step_number )
+      p = ProdConf( prodConfFile )
 
       optionsDict = {}
       optionsDict['Application'] = self.applicationName
@@ -171,13 +172,6 @@ class GaudiApplication( ModuleBase ):
 
       p.putOptionsIn( optionsDict )
 
-#      projectOpts = getModuleOptions( self.applicationName, self.numberOfEvents, inputDataOpts, self.optionsLine, runNumberGauss, firstEventNumberGauss, self.jobType )['Value'] #always OK
-#      self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
-#      print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
-#      options = open( generatedOpts, 'w' )
-#      options.write( projectOpts )
-#      options.close()
-
       if not projectEnvironment:
         #Now obtain the project environment for execution
         result = getProjectEnvironment( systemConfiguration = self.systemConfig,
@@ -195,12 +189,12 @@ class GaudiApplication( ModuleBase ):
         projectEnvironment = result['Value']
 
       setup = gConfig.getValue( '/DIRAC/Setup', '' )
-      gaudiRunFlags = gConfig.getValue( '/Operations/GaudiExecution/%s/gaudirunFlags' % ( setup ), '' )
+      gaudiRunFlags = gConfig.getValue( '/Operations/GaudiExecution/%s/gaudirunFlags' % ( setup ), 'gaudirun.py' )
 #      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
       if self.optionsLine:
-        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'prodConf.py', self.optionsLine )
+        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile, self.optionsLine )
       else:
-        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'prodConf.py' )
+        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile )
       print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
       #Set some parameter names

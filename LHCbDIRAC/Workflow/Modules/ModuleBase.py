@@ -268,7 +268,6 @@ class ModuleBase( object ):
       if not self.extraPackages == '':
         if type( self.extraPackages ) != type( [] ):
           self.extraPackages = self.extraPackages.split( ';' )
-      self.extraPackages.append( 'ProdConf' )
 
     if self.step_commons.has_key( 'inputData' ):
       if self.step_commons['inputData']:

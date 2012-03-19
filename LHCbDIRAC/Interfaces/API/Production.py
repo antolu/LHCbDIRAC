@@ -595,10 +595,13 @@ class Production():
     if extraPackages:
       if type( extraPackages ) == type( [] ):
         extraPackages = string.join( extraPackages, ';' )
-
+      if 'ProdConf' not in extraPackages:
+        extraPackages = extraPackages + ';ProdConf.v1r0'
       extraPackages = extraPackages.replace( ' ', '' )
-      valuesToSet.append( [ 'extraPackages', extraPackages ] )
-      self.__addSoftwarePackages( extraPackages )
+    else:
+      extraPackages = 'ProdConf.v1r0'
+    valuesToSet.append( [ 'extraPackages', extraPackages ] )
+    self.__addSoftwarePackages( extraPackages )
 
     if firstEventNumber:
       valuesToSet.append( [ 'firstEventNumber', firstEventNumber ] )
@@ -874,7 +877,7 @@ class Production():
     info.append( 'CondDB Tag: %s' % ( parameters['CondDBTag'] ) )
     info.append( 'DDDB Tag: %s\n' % ( parameters['DDDBTag'] ) )
     info.append( 'DQ Tag: %s\n' % ( parameters['DQTag'] ) )
-    #info.append('Number of events: %s' %(parameters['numberOfEvents']))
+    #info.append('Number of events: % s' %(parameters['numberOfEvents']))
     #Now for the steps of the workflow
     stepKeys = bkPassInfo.keys()
     stepKeys.sort()
@@ -882,15 +885,15 @@ class Production():
       info.append( '====> %s %s %s' % ( bkPassInfo[step]['ApplicationName'],
                                         bkPassInfo[step]['ApplicationVersion'],
                                         step ) )
-      info.append( '  %s Option Files:' % ( bkPassInfo[step]['ApplicationName'] ) )
+      info.append( '%s Option Files:' % ( bkPassInfo[step]['ApplicationName'] ) )
       for opts in bkPassInfo[step]['OptionFiles'].split( ';' ):
-        info.append( '    %s' % opts )
-      info.append( '  ExtraPackages: %s' % ( bkPassInfo[step]['ExtraPackages'] ) )
+        info.append( '%s' % opts )
+      info.append( 'ExtraPackages: %s' % ( bkPassInfo[step]['ExtraPackages'] ) )
 
     if parameters['BKInputQuery']:
       info.append( '\nBK Input Data Query:' )
       for n, v in parameters['BKInputQuery'].items():
-        info.append( '    %s = %s' % ( n, v ) )
+        info.append('%s= %s' % ( n, v ) )
 
     #BK output directories (very useful)
     bkPaths = []

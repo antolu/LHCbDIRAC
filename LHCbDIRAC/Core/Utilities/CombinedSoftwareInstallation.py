@@ -28,8 +28,10 @@ import DIRAC
 from DIRAC import gConfig
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
+setup = gConfig.getValue( '/DIRAC/Setup', '' )
 InstallProject = 'install_project.py'
-InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
+InstallProjectURL = gConfig.getValue( '/Operations/GaudiExecution/%s/install_project_location' % ( setup ),
+                                      'http://lhcbproject.web.cern.ch/lhcbproject/dist/' )
 natOS = NativeMachine()
 
 class CombinedSoftwareInstallation:
@@ -206,17 +208,11 @@ def CheckApplication( app, config, area ):
   cmtEnv['CMTCONFIG'] = config
   DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
-  setup = gConfig.getValue( '/DIRAC/Setup', '' )
-
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-#  cmdTuple += [gConfig.getValue( '/Operations/GaudiExecution/%s/installProjectOptions' % ( setup ), '-d -b --check' )]
-  cmdTuple += ['-d']
-  cmdTuple += ['-b']
-  cmdTuple += [ '--check' ]
-  cmdTuple += ['--dev-install']
-#  cmdTuple += [ '-p', appName ]
-#  cmdTuple += [ '-v', appVersion ]
+  cmds = gConfig.getValue( '/Operations/GaudiExecution/%s/checkProjectOptions' % ( setup ), '-b --check' )
+  for cmdTupleC in cmds.split( ' ' ):
+    cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
   cmdTuple += [ appVersion ]
 
@@ -286,8 +282,9 @@ def InstallApplication( app, config, area ):
 
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmdTuple += ['-d']
-  cmdTuple += ['-b']
+  cmds = gConfig.getValue( '/Operations/GaudiExecution/%s/installProjectOptions' % ( setup ), '-b' )
+  for cmdTupleC in cmds.split( ' ' ):
+    cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
   cmdTuple += [ appVersion ]
 
