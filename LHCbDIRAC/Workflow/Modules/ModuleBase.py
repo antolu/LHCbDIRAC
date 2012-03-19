@@ -204,6 +204,13 @@ class ModuleBase( object ):
       if self.workflow_commons['InputData']:
         self.InputData = self.workflow_commons['InputData']
 
+    if self.workflow_commons.has_key( 'ParametricInputData' ):
+      self.InputData += ';' + self.workflow_commons['ParametricInputData']
+
+    self.InputData = self.InputData.rstrip( ';' )
+    if self.InputData == ';':
+      self.InputData = ''
+
     #only required until the stripping is the same for MC / data
     if self.workflow_commons.has_key( 'configName' ):
       self.bkConfigName = self.workflow_commons['configName']
