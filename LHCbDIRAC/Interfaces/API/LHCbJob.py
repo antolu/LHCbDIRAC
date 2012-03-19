@@ -284,11 +284,20 @@ class LHCbJob( Job ):
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     userData.setBody( body )
 
+    moduleName = 'FileUsage'
+    fileUsage = ModuleDefinition( moduleName )
+    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    fileUsage.setBody( body )
+
+
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    step.addModule( fileUsage )
     step.addModule( userData )
     step.createModuleInstance( 'GaudiApplication', name )
+    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
 
     # Define step parameters
@@ -448,11 +457,19 @@ class LHCbJob( Job ):
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     userData.setBody( body )
 
+    moduleName = 'FileUsage'
+    fileUsage = ModuleDefinition( moduleName )
+    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    fileUsage.setBody( body )
+
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    step.addModule( fileUsage )
     step.addModule( userData )
     step.createModuleInstance( 'GaudiApplicationScript', name )
+    step.createModuleInstance( 'FileUsage')
     step.createModuleInstance( 'UserJobFinalization', name )
 
     # Define step parameters
@@ -706,11 +723,20 @@ class LHCbJob( Job ):
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     userData.setBody( body )
 
+    moduleName = 'FileUsage'
+    fileUsage = ModuleDefinition( moduleName )
+    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    fileUsage.setBody( body )
+
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    step.addModule( fileUsage )
     step.addModule( userData )
+
     step.createModuleInstance( 'RootApplication', name )
+    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
     # Define step parameters
     step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, "Root version." ) )
@@ -985,6 +1011,13 @@ class LHCbJob( Job ):
     module.setDescription( 'A  script module that can execute any provided script.' )
     body = 'from DIRAC.Core.Workflow.Modules.Script import Script\n'
     module.setBody( body )
+
+    moduleName = 'FileUsage'
+    fileUsage = ModuleDefinition( moduleName )
+    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
+    fileUsage.setBody( body )
+
     #Add user job finalization module
     moduleName = 'UserJobFinalization'
     userData = ModuleDefinition( moduleName )
@@ -994,8 +1027,11 @@ class LHCbJob( Job ):
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
+    step.addModule( fileUsage )
     step.addModule( userData )
+
     step.createModuleInstance( 'Script', name )
+    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
     # Define step parameters
     step.addParameter( Parameter( "name", "", "string", "", "", False, False, 'Name of executable' ) )
