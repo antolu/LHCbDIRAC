@@ -18,3 +18,9 @@ class ClientTestCase( unittest.TestCase ):
 class TaskManagerSuccess( ClientTestCase ):
   def test_prepareTransformationTasks( self ):
     pass
+
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( ClientTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TaskManagerSuccess ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
