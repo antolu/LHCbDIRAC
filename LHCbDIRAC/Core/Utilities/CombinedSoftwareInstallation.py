@@ -92,12 +92,6 @@ class CombinedSoftwareInstallation:
       DIRAC.gLogger.warn( 'No architecture requested' )
       return DIRAC.S_ERROR( 'No architecture requested' )
 
-    if self.ce.has_key( 'Site' ) and self.ce['Site'] == 'DIRAC.ONLINE-FARM.ch':
-      return DIRAC.S_OK()
-      print dir( self )
-      print self.job
-      return onlineExecute( self.job['SoftwarePackages'] )
-
     # The below only applies to local running since job agent will set to /LocalSite/Architecture
     # in case of 'ANY' in the job description.
     if self.jobConfig.lower() == 'any':
@@ -445,37 +439,6 @@ def RemoveApplication( app, config, area ):
     return False
 
   return True
-
-def onlineExecute( softwarePackages ):
-  """Alternative CombinedSoftwareInstallation for the Online Farm."""
-  # First: Get the full requirements for the job.
-  bkProcessingPass = dict( workflow_commons[ 'BKProcessingPass' ] )
-  for step in bkProcessingPass:
-    bkProcessingPass[ step ][ 'ExtraPackages' ] = DIRAC.List.fromChar( BKProcessingPass[ step ][ 'ExtraPackages' ] , ';' )
-    bkProcessingPass[ step ][ 'OptionFiles' ] = DIRAC.List.fromChar( BKProcessingPass[ step ][ 'OptionFiles' ] , ';' )
-  # Second: Get slice information from the Online Farm
-  recoManager = DummyRPC()
-  connectionError = "Cannot connect to Reconstruction Manager"
-  try:
-    result = recoManager.globalStatus()
-  except Exception:
-    DIRAC.gLogger.exception()
-    return DIRAC.S_ERROR( connectionError )
-  if not result[ 'OK' ]:
-    DIRAC.gLogger.error( result[ 'Message' ] )
-    return DIRAC.S_ERROR( connectionError )
-  # Third: Match configs (each step must have at least one match in the OnlineFarm)
-  matcherror = "Cannot match job"
-  for step in bkProcessingPass:
-    valid = False
-    for sliceNumber in result[ 'Value' ]:
-      sliceConfig = result[ 'Value' ][ sliceNumber ][ 'config' ]
-      if compareConfigs( bkProcessingPass[ step ] , sliceConfig ):
-        valid = True
-        break
-    if not valid:
-      return DIRAC.S_ERROR( matcherror )
-  return DIRAC.S_OK()
 
 class DummyRPC:
   def globalStatus( self ):
