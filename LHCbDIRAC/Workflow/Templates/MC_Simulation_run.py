@@ -615,7 +615,7 @@ if merging:
     mergingVersion = '{{p6Ver}}'
     mergingEP = '{{p6EP}}'
     mergingPP = '{{p6Pass}}'
-    mergingOC = ''
+    mergingOF = ''
 
   elif ( MC4 and not selection ) or ( MC3 and selection ):
     mergingApp = '{{p5App}}'
@@ -628,7 +628,7 @@ if merging:
     mergingVersion = '{{p5Ver}}'
     mergingEP = '{{p5EP}}'
     mergingPP = '{{p5Pass}}'
-    mergingOC = ''
+    mergingOF = ''
 
   elif ( MC3 and not selection ) or ( MC2 and selection ):
     mergingApp = '{{p4App}}'
@@ -641,7 +641,7 @@ if merging:
     mergingVersion = '{{p4Ver}}'
     mergingEP = '{{p4EP}}'
     mergingPP = '{{p4Pass}}'
-    mergingOC = ''
+    mergingOF = ''
 
   elif ( MC2 and not selection ) or ( MC1 and selection ):
     mergingApp = '{{p3App}}'
@@ -654,7 +654,7 @@ if merging:
     mergingVersion = '{{p3Ver}}'
     mergingEP = '{{p3EP}}'
     mergingPP = '{{p3Pass}}'
-    mergingOC = ''
+    mergingOF = ''
 
   elif MC1 and not selection:
     mergingApp = '{{p2App}}'
@@ -667,7 +667,7 @@ if merging:
     mergingVersion = '{{p2Ver}}'
     mergingEP = '{{p2EP}}'
     mergingPP = '{{p2Pass}}'
-    mergingOC = ''
+    mergingOF = ''
 
   else:
     gLogger.error( 'There\'s something wrong...' )
@@ -921,10 +921,6 @@ else:
     gLogger.info( 'Selection production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
-
-
-
-
 #################################################################################
 # This is the start of the merging production definition (if requested)
 #################################################################################
@@ -932,6 +928,9 @@ else:
 if not merging:
   gLogger.info( 'No merging requested' )
 else:
+
+  if not mergingOF:
+    mergingOF = 'merge'
 
   inputBKQuery = {
                   'FileType'                 : mergingInputType.upper(),
@@ -954,13 +953,13 @@ else:
                               inputDataType = mergingInputType, inputData = '',
                               condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
-                              stepPass = mergingPP, optionsFormat = mergingOC )
+                              stepPass = mergingPP, optionsFormat = mergingOF )
   elif mergingApp == 'DaVinci':
     mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
                                 inputDataType = mergingInputType, inputData = '',
                                 condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                                 stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
-                                stepPass = mergingPP, optionsFormat = mergingOC )
+                                stepPass = mergingPP, optionsFormat = mergingOF )
   else:
     gLogger.error( "No LHCb nor DaVinci in MC Merging...?" )
     DIRAC.exit( 2 )

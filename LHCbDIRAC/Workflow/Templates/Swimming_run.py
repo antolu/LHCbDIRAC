@@ -80,6 +80,8 @@ mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
 mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
 mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
+mergeEOpts = '{{mergeEO#PROD-Merging: extra options#}}'
+
 
 ###########################################
 # Fixed and implied parameters 
@@ -281,6 +283,9 @@ if validationFlag:
 
 if swimmEnabled:
 
+  if not swimmOF:
+    swimmOF = 'swimming'
+
   #################################################################################
   # swimming BK Query
   #################################################################################
@@ -460,6 +465,9 @@ if swimmEnabled:
 
   if not unifyMooreAndDV:
 
+    if not swimmDVOF:
+      swimmDVOF = 'swimming'
+
     #################################################################################
     # swimming-DV BK Query
     #################################################################################
@@ -602,6 +610,9 @@ if mergingEnabled:
 
     mergeStream = mergeStream.upper()
 
+    if not mergeOF:
+      mergeOF = 'merge'
+
     #################################################################################
     # Merging BK Query
     #################################################################################
@@ -616,10 +627,10 @@ if mergingEnabled:
                     'FileType'                 : mergeStream
                     }
       #below should be integrated in the ProductionOptions utility
-    if mergeApp.lower() == 'davinci':
-      dvExtraOptions = "from Configurables import RecordStream;"
-      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
-      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
+#    if mergeApp.lower() == 'davinci':
+#      dvExtraOptions = "from Configurables import RecordStream;"
+#      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
+#      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
     ###########################################
     # Create the merging production
@@ -641,13 +652,13 @@ if mergingEnabled:
 
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions,
+                                inputDataType = mergeStream.lower(), extraOpts = mergeEOpts,
                                 inputProduction = swimmProdID, inputData = [], outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                                 optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, swimmProdID, eventType, mergeEP, inputData = [],
-                              inputDataType = mergeStream.lower(), outputSE = mergedStreamSE,
+                              inputDataType = mergeStream.lower(), outputSE = mergedStreamSE, extraOpts = mergeEOpts,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                               optionsFormat = mergeOF )

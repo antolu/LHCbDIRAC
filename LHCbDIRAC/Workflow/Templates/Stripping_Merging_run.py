@@ -446,6 +446,9 @@ if mergingEnabled:
 #      mergeSE = 'CERN_M-DST'
     mergeStream = mergeStream.upper()
 
+    if not mergeOF:
+      mergeOF = 'merge'
+
     #################################################################################
     # Merging BK Query
     #################################################################################
