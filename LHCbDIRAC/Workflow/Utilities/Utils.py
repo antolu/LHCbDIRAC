@@ -29,10 +29,10 @@ def getStepDefinition( stepName, modulesNameList = [], importLine = """""", para
 
 
     #FIXME: really necessary?
-    if moduleName in ( 'GaudiApplication', 'AnalyseLogFile' ):
-      stepDef.addParameterLinked( moduleDef.parameters )
-    if moduleName in ( 'BookkeepingReport' ):
-      moduleDef.addParameter( Parameter( "STEP_ID", "", "string", "self", "STEP_ID", True, False, "StepID" ) )
+#    if moduleName in ( 'GaudiApplication', 'AnalyseLogFile' ):
+#      stepDef.addParameterLinked( moduleDef.parameters )
+#    if moduleName in ( 'BookkeepingReport' ):
+#      moduleDef.addParameter( Parameter( "STEP_ID", "", "string", "self", "STEP_ID", True, False, "StepID" ) )
 
     #add the module to the step, and instance it
     stepDef.addModule( moduleDef )

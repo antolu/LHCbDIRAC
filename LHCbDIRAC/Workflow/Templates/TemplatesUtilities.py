@@ -38,7 +38,7 @@ def resolveSteps( stepsList, BKKClientIn = None ):
 
     stepsListDictItem = {}
     for ( parameter, value ) in itertools.izip( stepDict['ParameterNames'],
-                                              stepDict['Records'][0] ):
+                                                stepDict['Records'][0] ):
       stepsListDictItem[parameter] = value
 
     s_in = BKKClient.getStepInputFiles( stepID )

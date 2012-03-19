@@ -307,10 +307,15 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
 
     gLogger.verbose( 'Requested extra package versions: %s' % ( string.join( extraPackages, ', ' ) ) )
     for package in extraPackages:
-      if not re.search( '.', package ):
-        gLogger.error( 'Not sure what to do with "%s", expected "<Application>.<Version>", will be left out' )
-      else:
+#      if not re.search( '.', package ):
+##        gLogger.error( 'Not sure what to do with "%s", expected "<Application>.<Version>", will be left out' )
+#        gLogger.warn( 'Package %s: expected "<Application>.<Version>", will try anyway' % package )
+#        cmd.append( '--use="%s" ' % package )
+#      else:
+      try:
         cmd.append( '--use="%s %s" ' % ( package.split( '.' )[0], package.split( '.' )[1] ) )
+      except IndexError:
+        cmd.append( '--use="%s" ' % package )
 
   if os.path.exists( os.path.join( directory, 'lib', 'requirements' ) ):
     gLogger.info( 'Adding tag for user shipped requirements file --use="cmttemp v1"' )

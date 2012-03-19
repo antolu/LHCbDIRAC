@@ -48,10 +48,12 @@ class GaudiApplication( ModuleBase ):
     self.extraPackages = ''
     self.applicationType = ''
     self.stepOutputsType = []
+    self.optionsFormat = ''
     self.histoName = ''
     self.jobType = ''
     self.stdError = ''
     self.DDDBTag = ''
+    self.CondDBTag = ''
     self.DQTag = ''
 
   #############################################################################
@@ -137,7 +139,11 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      p = ProdConf( 'prodConf%s.py', self.step_id )
+      p = ProdConf( 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
+                                                  self.production_id,
+                                                  self.prod_job_id,
+                                                  self.step_number ) )
+
       optionsDict = {}
       optionsDict['Application'] = self.applicationName
       optionsDict['AppVersion'] = self.applicationVersion
@@ -145,7 +151,7 @@ class GaudiApplication( ModuleBase ):
         optionsDict['OptionFormat'] = self.optionsFormat
       if self.stepInputData:
         optionsDict['InputFiles'] = ['LFN:' + x for x in self.stepInputData.split( ',' )]
-      optionsDict['OutputFilePrefix'] = self.step_id
+      optionsDict['OutputFilePrefix'] = self.outputFilePrefix
       optionsDict['OutputFileTypes'] = self.stepOutputsType
       optionsDict['XMLSummaryFile'] = self.XMLSummary
       optionsDict['XMLFileCatalog'] = self.poolXMLCatName
@@ -157,13 +163,13 @@ class GaudiApplication( ModuleBase ):
         optionsDict['CondDBTag'] = self.CondDBTag
       if self.DQTag:
         optionsDict['DQTag'] = self.DQTag
-      optionsDict['NoOfEvents'] = int( self.numberOfEvents )
+      optionsDict['NOfEvents'] = int( self.numberOfEvents )
       if runNumberGauss:
         optionsDict['RunNumber'] = runNumberGauss
       if firstEventNumberGauss:
         optionsDict['FirstEventNumber'] = firstEventNumberGauss
 
-      p.putOptionsIn( optionsDict, freshStart = True )
+      p.putOptionsIn( optionsDict )
 
 #      projectOpts = getModuleOptions( self.applicationName, self.numberOfEvents, inputDataOpts, self.optionsLine, runNumberGauss, firstEventNumberGauss, self.jobType )['Value'] #always OK
 #      self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )

@@ -28,7 +28,7 @@ class ProdConf:
                         'DDDBTag': 'string',
                         'CondDBTag': 'string',
                         'DQTag':'string',
-                        'NoOfEvents':'integer',
+                        'NOfEvents':'integer',
                         'RunNumber':'integer',
                         'FirstEventNumber':'integer',
                         }

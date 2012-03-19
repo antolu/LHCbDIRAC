@@ -188,7 +188,11 @@ class ModuleBase( object ):
     """
 
     self.systemConfig = self.workflow_commons['SystemConfig']
-    self.runNumber = self.workflow_commons['runNumber']
+
+    if self.workflow_commons.has_key( 'runNumber' ):
+      self.runNumber = self.workflow_commons['runNumber']
+    else:
+      self.runNumber = 'Unknown'
 
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
@@ -211,7 +215,7 @@ class ModuleBase( object ):
       self.DDDBTag = self.workflow_commons['DDDBTag']
 
     if self.workflow_commons.has_key( 'CondDBTag' ):
-      self.DDDBTag = self.workflow_commons['CondDBTag']
+      self.CondDBTag = self.workflow_commons['CondDBTag']
 
     if self.workflow_commons.has_key( 'DQTag' ):
       self.DQTag = self.workflow_commons['DQTag']
@@ -229,6 +233,7 @@ class ModuleBase( object ):
     self.numberOfEvents = self.step_commons['numberOfEvents']
     self.BKstepID = self.step_commons['BKStepID']
     self.stepProcPass = self.step_commons['StepProcPass']
+    self.outputFilePrefix = self.step_commons['outputFilePrefix']
 
     if self.step_commons.has_key( 'eventType' ):
       self.eventType = self.step_commons['eventType']
@@ -237,7 +242,7 @@ class ModuleBase( object ):
       self.inputDataType = self.step_commons['inputDataType']
 
     if self.step_commons.has_key( 'HistogramName' ):
-      self.histoName = self.step_commons.has_key( 'HistogramName' )
+      self.histoName = self.step_commons[ 'HistogramName' ]
 
     if self.step_commons.has_key( 'applicationType' ):
       self.applicationType = self.step_commons['applicationType']
@@ -263,8 +268,6 @@ class ModuleBase( object ):
       if not self.extraPackages == '':
         if type( self.extraPackages ) != type( [] ):
           self.extraPackages = self.extraPackages.split( ';' )
-      else:
-        self.extraPackages = [self.extraPackages]
       self.extraPackages.append( 'ProdConf' )
 
     if self.step_commons.has_key( 'inputData' ):
@@ -274,9 +277,6 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'listoutput' ):
       self.stepOutputs = self.step_commons['listoutput']
       self.stepOutputsType = [x['outputDataType'] for x in self.stepOutputs]
-
-    if self.step_commons.has_key( 'extraPackages' ):
-      self.extraPackages = self.step_commons['extraPackages']
 
     if self.step_commons.has_key( 'OptionsConf' ):
       self.optionsConf = self.step_commons['OptionsConf']

@@ -7,6 +7,7 @@ from mock import Mock
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask, getLogPath
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
@@ -35,6 +36,23 @@ class UtilitiesTestCase( unittest.TestCase ):
         os.remove( fileProd )
       except OSError:
         continue
+
+
+#################################################
+
+class ProductionEnvironmentSuccess( UtilitiesTestCase ):
+
+  def test_getProjectCommand( self ):
+    expected = [
+                [ ['AppConfig.v110'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --tag_add=Pythia Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+                [ ['AppConfig.v110', 'pippo.v1'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --tag_add=Pythia Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+                [ ['AppConfig.v110', 'pippo.v1', 'ProdConf'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --use="ProdConf"  --tag_add=Pythia Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+                ]
+
+    for ep in expected:
+      ret = getProjectCommand( '/buf/setupProject.sh', 'Gauss', 'v40r0', ep[0],
+                              'Pythia', 'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
+      self.assertEqual( ret['Value'], ep[1] )
 
 
 #################################################
@@ -373,6 +391,7 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProdConfSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionEnvironmentSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 

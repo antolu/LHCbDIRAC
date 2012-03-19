@@ -899,7 +899,7 @@ else:
     selectionProd.addFinalizationStep( removeInputData = True )
     selectionProd.setInputDataPolicy( 'protocol' )
 
-  selectionProd.setJobFileGroupSize( mergingGroupSize )
+  selectionProd.setJobFileGroupSize( selectionGroupSize )
   selectionProd.setProdGroup( '{{pDsc}}' )
   selectionProd.setProdPriority( selectionPriority )
 

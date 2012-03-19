@@ -532,6 +532,7 @@ class Production():
                         ['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
                         ['eventType', 'string', '', 'EventType'],
+                        ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
                         ['outputData', 'string', '', 'OutputData'],
                         ['generatorName', 'string', '', 'GeneratorName'],
                         ['applicationName', 'string', '', 'ApplicationName'],
@@ -581,9 +582,7 @@ class Production():
                    ['optionsLinePrev', 'None'],
                    ['numberOfEvents', numberOfEvents],
                    ['eventType', eventType],
-#                  Failed attempt to standarise output names
-#                   ['applicationLog', '@{STEP_ID}_@{applicationName}_Logs.log'],
-#                   ['outputData', '@{STEP_ID}_@{applicationName}_Data.@{applicationType}'],
+                   ['outputFilePrefix', '@{STEP_ID}'],
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
                    ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
@@ -1436,12 +1435,12 @@ class Production():
 
   #############################################################################
 
-  def setDBTags( self, conditions = 'sim-20090112', detector = 'head-20090112', dqTag = 'head-20090112' ):
+  def setDBTags( self, conditions = '', detector = '', dqTag = '' ):
     """ Sets DB tags
     """
     self._setParameter( 'CondDBTag', 'string', conditions.replace( ' ', '' ), 'CondDBTag' )
     self._setParameter( 'DDDBTag', 'string', detector.replace( ' ', '' ), 'DetDescTag' )
-    self._setParameter( 'DQTag', 'string', detector.replace( ' ', '' ), 'DQTag' )
+    self._setParameter( 'DQTag', 'string', dqTag.replace( ' ', '' ), 'DQTag' )
 
   #############################################################################
 

@@ -55,12 +55,13 @@ class ErrorLogging( ModuleBase ):
     super( ErrorLogging, self )._resolveInputVariables()
     super( ErrorLogging, self )._resolveInputStep()
 
-    if not self.extraPackages == '':
-      if type( self.extraPackages ) != type( [] ):
-        self.extraPackages = self.extraPackages.split( ';' )
-
-    self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
-    self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.step_number )
+    self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName,
+                                                     self.applicationVersion,
+                                                     self.step_number )
+    self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID,
+                                                      self.applicationName,
+                                                      self.applicationVersion,
+                                                      self.step_number )
 
   #############################################################################
 
@@ -86,32 +87,47 @@ class ErrorLogging( ModuleBase ):
         self.log.info( 'Not Gauss nor Boole, exiting' )
         return S_OK()
 
-      self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
+      self.log.info( 'Executing ErrorLogging module for: %s %s %s' % ( self.applicationName,
+                                                                       self.applicationVersion,
+                                                                       self.applicationLog ) )
       if not os.path.exists( self.applicationLog ):
         self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
         return S_OK()
 
       #Now obtain the project environment for execution
-      result = getProjectEnvironment( self.systemConfig, self.applicationName, applicationVersion = self.applicationVersion, extraPackages = self.extraPackages )
+      result = getProjectEnvironment( self.systemConfig,
+                                      self.applicationName,
+                                      applicationVersion = self.applicationVersion,
+                                      extraPackages = self.extraPackages )
       if not result['OK']:
         self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
         return S_OK()
 
       projectEnvironment = result['Value']
-      command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog, self.applicationName, self.applicationVersion )
+      command = 'python $APPCONFIGROOT/scripts/LogErr.py %s %s %s' % ( self.applicationLog,
+                                                                       self.applicationName,
+                                                                       self.applicationVersion )
 
       #Set some parameter names
-      scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
+      scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName,
+                                                   self.applicationVersion,
+                                                   self.step_number )
       dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.step_number )
   #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
   #    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
       coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
 
       #Wrap final execution command with defaults
-      finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
+      finalCommand = addCommandDefaults( command,
+                                         envDump = dumpEnvName,
+                                         coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
 
       #Create debug shell script to reproduce the application execution
-      debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
+      debugResult = createDebugScript( scriptName,
+                                       command,
+                                       env = projectEnvironment,
+                                       envLogFile = dumpEnvName,
+                                       coreDumpLog = coreDumpName ) #will add command defaults internally
       if debugResult['OK']:
         self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
@@ -123,7 +139,9 @@ class ErrorLogging( ModuleBase ):
       self.log.info( "Status after the ErrorLogging execution is %s (if non-zero this is ignored)" % ( status ) )
 
       if status:
-        self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
+        self.log.info( "Error logging for %s %s step %s completed with errors:" % ( self.applicationName,
+                                                                                    self.applicationVersion,
+                                                                                    self.step_number ) )
         self.log.info( "==================================\n StdError:\n" )
         self.log.info( self.stdError )
         self.log.info( 'Exiting without affecting workflow status' )
@@ -133,7 +151,9 @@ class ErrorLogging( ModuleBase ):
         self.log.info( '%s not found locally, exiting without affecting workflow status' % self.defaultName )
         return S_OK()
 
-      self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName, self.applicationVersion, self.step_number ) )
+      self.log.info( "Error logging for %s %s step %s completed succesfully:" % ( self.applicationName,
+                                                                                  self.applicationVersion,
+                                                                                  self.step_number ) )
       shutil.copy( self.defaultName, self.errorLogName )
 
       #TODO - report to error logging service when suitable method is available
