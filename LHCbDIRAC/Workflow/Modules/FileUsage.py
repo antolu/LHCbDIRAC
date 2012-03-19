@@ -187,5 +187,5 @@ class FileUsage( ModuleBase ):
       self.workflow_commons['Request'] = self.request
       #self.log.warn( usageStatus['Message'] )
 
-    return usageStatus
+    return S_OK()
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
