@@ -1,9 +1,3 @@
-########################################################################
-# $Id$
-# File :   CombinedSoftwareInstallation.py
-# Author : Ricardo Graciani
-########################################################################
-
 """ The LHCb Local Software Install class is used by the DIRAC Job Agent
     to install necessary software via the ModuleFactory.  This relies on
     two JDL parameters in LHCb workflows:
