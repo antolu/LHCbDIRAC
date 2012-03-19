@@ -482,8 +482,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
     self.__logVerbose( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
     if not res['OK']:
-      self.__logError( "Cannot get files for run %s" % str( runID ) )
-      return []
+      self.__logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
+      return 0
     ancestors = 0
     lfns = [f['LFN'] for f in res['Value']]
     cachedLFNs = self.cachedLFNAncestors.get( runID )
@@ -495,14 +495,19 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if param:
       res = self.__getBookkeepingMetadata( lfns )
       if not res['OK']:
-        return []
+        self.__logError( "Error getting BK metadata: %s" % res['Message'] )
+        return 0
       metadata = res['Value']
       lfns = [f for f in metadata if metadata[f][param] == paramValue]
     if lfns:
       startTime = time.time()
       res = self.bk.getAllAncestorsWithFileMetaData( lfns, depth=10 )
       self.__logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ), time.time() - startTime ) )
-      ancestorDict = res['Value']['Successful']
+      if res['OK']:
+        ancestorDict = res['Value']['Successful']
+      else:
+        self.__logError( "Error getting ancestors: %s" % res['Message'] )
+        ancestorDict = {}
       for lfn in ancestorDict:
         n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
         self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
@@ -629,15 +634,20 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ByRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
+    allTasks = []
     self.__removeProcessedFiles()
+    if not self.data:
+      self.__logVerbose( "No data to be processed by plugin" )
+      return S_OK( allTasks )
     res = self.__groupByRunAndParam( self.data, param=param )
     if not res['OK']:
+      self.__logError( "Error when grouping %d files by run for param %s" % ( len( self.data ), param ) )
       return res
     runDict = res['Value']
     transStatus = self.params['Status']
-    allTasks = []
     res = self.transClient.getTransformationRuns( {'TransformationID':transID, 'RunNumber':runDict.keys()} )
     if not res['OK']:
+      self.__logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
     # Loop on all runs that have new files
     inputData = self.data.copy()
@@ -649,6 +659,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if transStatus == 'Flush':
         runStatus = 'Flush'
       paramDict = runDict.get( runID, {} )
+      targetSites = [se for se in paramDict.get( 'SelectedSite', '' ).split( ',' ) if se]
       runRAWFiles = {}
       for paramValue in sortList( paramDict.keys() ):
         if paramValue:
@@ -662,8 +673,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if len( newLfns ) == 0 and transID > 0 and runStatus != 'Flush':
           self.__logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
-        else:
-          self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
+        self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
         runFlush = requireFlush
         if runFlush:
           if paramValue not in runEvtType:
@@ -708,12 +718,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         allTasks.extend( res['Value'] )
         # Cache the left-over LFNs
         taskLfns = []
+        newSites = []
         for task in res['Value']:
-          targetSite = task[0]
+          newSites += [se for se in task[0].split( ',' ) if se not in targetSites and se not in newSites ]
           taskLfns += task[1]
-          res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
+        if newSites:
+          targetSites += newSites
+          self.__logVerbose( "Set site for run %s as %s" % ( str( runID ), str( targetSites ) ) )
+          res = self.transClient.setTransformationRunsSite( transID, runID, ','.join( targetSites ) )
           if not res['OK']:
-            self.__logError( "Failed to set target SE for run %s as %s: %s" % ( str( runID ), targetSite, res['Message'] ) )
+            self.__logError( "Failed to set target site to run %s as %s" % ( str( runID ), str( targetSites ) ) )
         self.cachedRunLfns[runID][paramValue] = [lfn for lfn in runParamLfns if lfn not in taskLfns]
     self.data = inputData
     self.__writeCacheFile()
@@ -786,7 +800,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if lfn in lfnSEs:
         existingSEs = lfnSEs[lfn]
         archiveSEs += [se for se in existingSEs if self.__isArchive( se ) and se not in archiveSEs]
-        for se in [se for se in existingSEs if not self.__isFailover( se ) and not self.__isArchive( se )]:
+        for se in [se for se in existingSEs if not self.__isFailover( se ) and se not in archiveSEs]:
           SEFrequency[se] = SEFrequency.setdefault( se, 0 ) + 1
     sortedSEs = SEFrequency.keys()
     # sort SEs in reverse order of frequency
@@ -794,12 +808,32 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # add the archive SEs at the end
     return sortedSEs + archiveSEs
 
+  def __rankSEs( self, candSEs ):
+    if len( candSEs ) <= 1:
+      return candSEs
+    import random
+    # Weights should be obtained from the RSS or CS
+    weightForSEs = dict.fromkeys( candSEs, 1. )
+    rankedSEs = []
+    while weightForSEs:
+      weights = weightForSEs.copy()
+      total = 0.
+      orderedSEs = []
+      for se, w in weights.items():
+        total += w
+        weights[se] = total
+        orderedSEs.append( se )
+      rand = random.uniform( 0., total )
+      for se in orderedSEs:
+        if rand <= weights[se]:
+          break
+      rankedSEs.append( se )
+      weightForSEs.pop( se )
+    return rankedSEs
+
   def __selectSEs( self, candSEs, needToCopy, existingSites ):
     targetSites = existingSites
     targetSEs = []
-    if needToCopy < len( candSEs ):
-      # Use a weight for each SE
-      pass
     for se in candSEs:
       if needToCopy <= 0: break
       site = True
@@ -837,7 +871,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.__logVerbose( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1ActiveSEs, archive2ActiveSEs, mandatorySEs, secondaryActiveSEs, numberOfCopies, existingSEs ) )
     # Ensure that we have a archive1 copy
     archive1Existing = [se for se in archive1SEs if se in existingSEs]
-    ( ses, targetSites ) = self.__selectSEs( archive1Existing + randomize( archive1ActiveSEs ), nbArchive1, targetSites )
+    ( ses, targetSites ) = self.__selectSEs( archive1Existing + self.__rankSEs( archive1ActiveSEs ), nbArchive1, targetSites )
     self.__logVerbose( "Archive1SEs: %s" % ses )
     if len( ses ) < nbArchive1 :
       self.__logError( 'Cannot select archive1SE in active SEs' )
@@ -846,7 +880,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # ... and an Archive2 copy
     archive2Existing = [se for se in archive2SEs if se in existingSEs]
-    ( ses, targetSites ) = self.__selectSEs( archive2Existing + randomize( archive2ActiveSEs ), nbArchive2, targetSites )
+    ( ses, targetSites ) = self.__selectSEs( archive2Existing + self.__rankSEs( archive2ActiveSEs ), nbArchive2, targetSites )
     self.__logVerbose( "Archive2SEs: %s" % ses )
     if len( ses ) < nbArchive2 :
       self.__logError( 'Cannot select archive2SE in active SEs' )
@@ -859,7 +893,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     #candidateSEs += [se for se in existingSEs if se not in candidateSEs]
     candidateSEs = [se for se in existingSEs if se not in targetSEs + archive1SEs + archive2SEs]
     candidateSEs += [se for se in mandatorySEs if se not in candidateSEs]
-    candidateSEs += [se for se in randomize( secondaryActiveSEs ) if se not in candidateSEs]
+    candidateSEs += [se for se in self.__rankSEs( secondaryActiveSEs ) if se not in candidateSEs]
     ( ses, targetSites ) = self.__selectSEs( candidateSEs, numberOfCopies, targetSites )
     self.__logVerbose( "SecondarySEs: %s" % ses )
     if len( ses ) < numberOfCopies:
