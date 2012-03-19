@@ -561,7 +561,7 @@ if strippEnabled:
     production.setSystemConfig( sysConfig )
 
   production.setCPUTime( strippCPU )
-  production.setProdType( 'DataStripping' )
+  production.setProdType( 'WGProduction' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
   production.setWorkflowName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
   production.setWorkflowDescription( "%s real data stripping production." % ( prodGroup ) )

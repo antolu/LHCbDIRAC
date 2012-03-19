@@ -373,7 +373,7 @@ if swimmEnabled:
     production.setJobParameters( { 'SystemConfig': sysConfig } )
 
   production.setJobParameters( { 'CPUTime': swimmCPU } )
-  production.setProdType( 'DataStripping' )
+  production.setProdType( 'DataSwimming' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
   production.setWorkflowName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
   production.setWorkflowDescription( "%s real data swimming production." % ( prodGroup ) )
