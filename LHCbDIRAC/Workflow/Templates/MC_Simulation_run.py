@@ -226,6 +226,7 @@ if MC5 or MC4 or MC3 or MC2 or MC1:
   gaussVersion = '{{p1Ver}}'
   gaussEP = '{{p1EP}}'
   gaussPP = '{{p1Pass}}'
+  gaussOC = ''
 
   gaussOutput = BKClient.getStepOutputFiles( gaussStep )
   if not gaussOutput:
@@ -258,6 +259,7 @@ if MC5 or MC4 or MC3 or MC2:
   booleVersion = '{{p2Ver}}'
   booleEP = '{{p2EP}}'
   boolePP = '{{p2Pass}}'
+  booleOC = ''
 
   booleInput = BKClient.getStepInputFiles( booleStep )
   if not booleInput:
@@ -298,6 +300,7 @@ if MC5 or MC4 or MC3:
     mooreVersion = '{{p3Ver}}'
     mooreEP = '{{p3EP}}'
     moorePP = '{{p3Pass}}'
+    mooreOC = ''
 
     mooreInput = BKClient.getStepInputFiles( mooreStep )
     if not mooreInput:
@@ -336,6 +339,7 @@ if MC5 or MC4 or MC3:
     brunelVersion = '{{p3Ver}}'
     brunelEP = '{{p3EP}}'
     brunelPP = '{{p3Pass}}'
+    brunelOC = ''
 
     brunelInput = BKClient.getStepInputFiles( brunelStep )
     if not brunelInput:
@@ -380,6 +384,7 @@ if MC5 or MC4:
     brunelVersion = '{{p4Ver}}'
     brunelEP = '{{p4EP}}'
     brunelPP = '{{p4Pass}}'
+    brunelOC = ''
 
     brunelInput = BKClient.getStepInputFiles( brunelStep )
     if not brunelInput:
@@ -418,6 +423,7 @@ if MC5 or MC4:
     davinciVersion = '{{p4Ver}}'
     davinciEP = '{{p4EP}}'
     davinciPP = '{{p4Pass}}'
+    davinciOC = ''
 
     davinciInput = BKClient.getStepInputFiles( davinciStep )
     if not davinciInput:
@@ -461,6 +467,7 @@ if MC5:
   davinciVersion = '{{p5Ver}}'
   davinciEP = '{{p5EP}}'
   davinciPP = '{{p5Pass}}'
+  davinciOC = ''
 
   davinciInput = BKClient.getStepInputFiles( davinciStep )
   if not davinciInput:
@@ -502,6 +509,7 @@ if selection:
     selectionVersion = '{{p6Ver}}'
     selectionEP = '{{p6EP}}'
     selectionPP = '{{p6Pass}}'
+    selectionOC = ''
 
   if MC4:
     selectionStep = int( '{{p5Step}}' )
@@ -513,6 +521,7 @@ if selection:
     selectionVersion = '{{p5Ver}}'
     selectionEP = '{{p5EP}}'
     selectionPP = '{{p5Pass}}'
+    selectionOC = ''
 
   if MC3:
     selectionStep = int( '{{p4Step}}' )
@@ -524,6 +533,7 @@ if selection:
     selectionVersion = '{{p4Ver}}'
     selectionEP = '{{p4EP}}'
     selectionPP = '{{p4Pass}}'
+    selectionOC = ''
 
   if MC2:
     selectionStep = int( '{{p3Step}}' )
@@ -535,6 +545,7 @@ if selection:
     selectionVersion = '{{p3Ver}}'
     selectionEP = '{{p3EP}}'
     selectionPP = '{{p3Pass}}'
+    selectionOC = ''
 
   if MC1:
     selectionStep = int( '{{p2Step}}' )
@@ -546,6 +557,7 @@ if selection:
     selectionVersion = '{{p2Ver}}'
     selectionEP = '{{p2EP}}'
     selectionPP = '{{p2Pass}}'
+    selectionOC = ''
 
   selectionInput = BKClient.getStepInputFiles( selectionStep )
   if not selectionInput:
@@ -603,6 +615,7 @@ if merging:
     mergingVersion = '{{p6Ver}}'
     mergingEP = '{{p6EP}}'
     mergingPP = '{{p6Pass}}'
+    mergingOC = ''
 
   elif ( MC4 and not selection ) or ( MC3 and selection ):
     mergingApp = '{{p5App}}'
@@ -615,6 +628,7 @@ if merging:
     mergingVersion = '{{p5Ver}}'
     mergingEP = '{{p5EP}}'
     mergingPP = '{{p5Pass}}'
+    mergingOC = ''
 
   elif ( MC3 and not selection ) or ( MC2 and selection ):
     mergingApp = '{{p4App}}'
@@ -627,6 +641,7 @@ if merging:
     mergingVersion = '{{p4Ver}}'
     mergingEP = '{{p4EP}}'
     mergingPP = '{{p4Pass}}'
+    mergingOC = ''
 
   elif ( MC2 and not selection ) or ( MC1 and selection ):
     mergingApp = '{{p3App}}'
@@ -639,6 +654,7 @@ if merging:
     mergingVersion = '{{p3Ver}}'
     mergingEP = '{{p3EP}}'
     mergingPP = '{{p3Pass}}'
+    mergingOC = ''
 
   elif MC1 and not selection:
     mergingApp = '{{p2App}}'
@@ -651,6 +667,7 @@ if merging:
     mergingVersion = '{{p2Ver}}'
     mergingEP = '{{p2EP}}'
     mergingPP = '{{p2Pass}}'
+    mergingOC = ''
 
   else:
     gLogger.error( 'There\'s something wrong...' )
@@ -718,14 +735,14 @@ else:
                          extraPackages = gaussEP, condDBTag = gaussCDb, ddDBTag = gaussDDDb,
                          outputSE = defaultOutputSE, appType = gaussType, extraOpts = gaussExtraOptions,
                          stepID = gaussStep, stepName = gaussName, stepVisible = gaussVisibility,
-                         stepPass = gaussPP )
+                         stepPass = gaussPP, optionsConf = gaussOC )
 
   if MC5 or MC4 or MC3 or MC2:
 
     MCProd.addBooleStep( booleVersion, booleType, booleOptions, extraPackages = booleEP,
                          condDBTag = booleCDb, ddDBTag = booleDDDb, outputSE = defaultOutputSE,
                          stepID = booleStep, stepName = booleName, stepVisible = booleVisibility,
-                         stepPass = boolePP )
+                         stepPass = boolePP, optionsConf = booleOC )
 
   if MC5 or MC4 or MC3:
 
@@ -733,13 +750,13 @@ else:
       MCProd.addMooreStep( mooreVersion, mooreType, mooreOptions, extraPackages = mooreEP, inputDataType = mooreInputType,
                            condDBTag = mooreCDb, ddDBTag = mooreDDDb, outputSE = defaultOutputSE,
                            stepID = mooreStep, stepName = mooreName, stepVisible = mooreVisibility,
-                           stepPass = moorePP )
+                           stepPass = moorePP, optionsConf = mooreOC )
 
     elif threeSteps == 'Brunel':
       MCProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
                              outputSE = brunelDataSE, condDBTag = brunelCDb, ddDBTag = brunelDDDb, extraOpts = brunelExtraOptions,
                              stepID = brunelStep, stepName = brunelName, stepVisible = brunelVisibility,
-                             stepPass = brunelPP )
+                             stepPass = brunelPP, optionsConf = brunelOC )
 
   if MC5 or MC4:
 
@@ -747,20 +764,20 @@ else:
       MCProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
                             outputSE = brunelDataSE, condDBTag = brunelCDb, ddDBTag = brunelDDDb, extraOpts = brunelExtraOptions,
                             stepID = brunelStep, stepName = brunelName, stepVisible = brunelVisibility,
-                            stepPass = brunelPP )
+                            stepPass = brunelPP, optionsConf = brunelOC )
     if fourSteps == 'DaVinci':
       MCProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
                              dataType = 'MC', extraOpts = daVinciExtraOptions,
                              outputSE = daVinciDataSE, condDBTag = davinciCDb, ddDBTag = davinciDDDb,
                              stepID = davinciStep, stepName = davinciName, stepVisible = davinciVisibility,
-                             stepPass = davinciPP )
+                             stepPass = davinciPP, optionsConf = davinciOC )
 
   if MC5:
     MCProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
                            dataType = 'MC', extraOpts = daVinciExtraOptions,
                            outputSE = daVinciDataSE, condDBTag = davinciCDb, ddDBTag = davinciDDDb,
                            stepID = davinciStep, stepName = davinciName, stepVisible = davinciVisibility,
-                           stepPass = davinciPP )
+                           stepPass = davinciPP, optionsConf = davinciOC )
 
   gLogger.info( prodDescription )
   MCProd.setWorkflowDescription( prodDescription )
@@ -868,7 +885,7 @@ else:
                                 inputDataType = selectionInputType, dataType = 'MC', extraOpts = selectionExtraOptions,
                                 outputSE = daVinciDataSE, condDBTag = selectionCDb, ddDBTag = selectionDDDb,
                                 stepID = selectionStep, stepName = selectionName, stepVisible = selectionVisibility,
-                                stepPass = selectionPP )
+                                stepPass = selectionPP, optionsConf = selectionOC )
 
 
   selectionProd.setInputBKSelection( inputBKQuery )
@@ -953,13 +970,13 @@ else:
                               inputDataType = mergingInputType, inputData = '',
                               condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
-                              stepPass = mergingPP )
+                              stepPass = mergingPP, optionsConf = mergingOC )
   elif mergingApp == 'DaVinci':
     mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
                                 inputDataType = mergingInputType, inputData = '',
                                 condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                                 stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
-                                stepPass = mergingPP )
+                                stepPass = mergingPP, optionsConf = mergingOC )
   else:
     gLogger.error( "No LHCb nor DaVinci in MC Merging...?" )
     DIRAC.exit( 2 )

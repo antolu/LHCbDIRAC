@@ -100,7 +100,9 @@ class GaudiApplication( ModuleBase ):
       self._resolveInputVariables()
 
       self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
-      self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName, self.applicationVersion, self.systemConfig ) )
+      self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
+                                                                                   self.applicationVersion,
+                                                                                   self.systemConfig ) )
       self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
 
       if self.jobType.lower() == 'merge':
@@ -135,7 +137,7 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      p = ProdConf()
+      p = ProdConf( 'prodConf%s.py', self.step_id )
       optionsDict = {}
       optionsDict['Application'] = self.applicationName
       optionsDict['AppVersion'] = self.applicationVersion

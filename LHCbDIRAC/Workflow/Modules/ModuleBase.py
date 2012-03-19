@@ -278,6 +278,9 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'extraPackages' ):
       self.extraPackages = self.step_commons['extraPackages']
 
+    if self.step_commons.has_key( 'OptionsConf' ):
+      self.optionsConf = self.step_commons['OptionsConf']
+
   #############################################################################
 
   def _getJobReporter( self ):

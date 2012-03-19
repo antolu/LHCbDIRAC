@@ -25,6 +25,7 @@ __RCSID__ = "$Id$"
 
 import os, shutil, sys, urllib, re, string
 import DIRAC
+from DIRAC import gConfig
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 InstallProject = 'install_project.py'
@@ -205,11 +206,14 @@ def CheckApplication( app, config, area ):
   cmtEnv['CMTCONFIG'] = config
   DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
+  setup = gConfig.getValue( '/DIRAC/Setup', '' )
+
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmdTuple += ['-d']
-  cmdTuple += ['-b']
-  cmdTuple += [ '--check' ]
+  cmdTuple += [gConfig.getValue( '/Operations/GaudiExecution/%s/installProjectOptions' % ( setup ), '-d -b --check' )]
+#  cmdTuple += ['-d']
+#  cmdTuple += ['-b']
+#  cmdTuple += [ '--check' ]
 #  cmdTuple += [ '-p', appName ]
 #  cmdTuple += [ '-v', appVersion ]
   cmdTuple += [ appName ]

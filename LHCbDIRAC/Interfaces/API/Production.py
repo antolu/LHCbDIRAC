@@ -203,7 +203,7 @@ class Production():
   #############################################################################
 
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
-                   extraPackages = '', outputSE = None, histograms = False, extraOpts = '',
+                   extraPackages = '', outputSE = None, histograms = False, extraOpts = '', optionsFormat = '',
                    appType = 'sim', condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
@@ -226,14 +226,14 @@ class Production():
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
                                    histograms, firstEventNumber, {}, condDBTag, ddDBTag, DQTag, '',
-                                   stepID, stepName, stepVisible, stepPass )
+                                   stepID, stepName, stepVisible, stepPass, optionsFormat )
     gaussStep.setValue( 'numberOfEventsInput', 0 )
     gaussStep.setValue( 'generatorName', generatorName )
 
   #############################################################################
 
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                   outputSE = None, histograms = False, inputData = 'previousStep',
+                   outputSE = None, histograms = False, inputData = 'previousStep', optionsFormat = '',
                    extraOpts = '', extraOutputFile = [],
                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
@@ -266,13 +266,13 @@ class Production():
                        condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
                        outputAppendName = '',
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-                       stepPass = stepPass )
+                       stepPass = stepPass, optionsFormat = optionsFormat )
 
   #############################################################################
 
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                     inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
-                    extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
+                    extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                     stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
@@ -316,13 +316,13 @@ class Production():
                        condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
                        outputAppendName = '',
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-                       stepPass = stepPass )
+                       stepPass = stepPass, optionsFormat = optionsFormat )
 
   #############################################################################
 
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
-                     extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
+                     extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
                      condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                      extraOutput = [],
                      stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
@@ -375,13 +375,13 @@ class Production():
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                        extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
-                       stepID, stepName, stepVisible, stepPass )
+                       stepID, stepName, stepVisible, stepPass, optionsFormat )
 
   #############################################################################
 
   def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
-                   extraOpts = '', numberOfEvents = '-1',
+                   extraOpts = '', numberOfEvents = '-1', optionsFormat = '',
                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    outputAppendName = '',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
@@ -410,14 +410,14 @@ class Production():
                        condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
                        outputAppendName = outputAppendName,
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-                       stepPass = stepPass )
+                       stepPass = stepPass, optionsFormat = optionsFormat )
 
   #############################################################################
 
   def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts',
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
                    inputDataType = 'dst', outputSE = None, extraOpts = '', numberOfEvents = '-1',
-                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
+                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global', optionsFormat = '',
                    dataType = 'MC', extraOutput = [],
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
@@ -442,7 +442,7 @@ class Production():
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
-                       stepID, stepName, stepVisible, stepPass )
+                       stepID, stepName, stepVisible, stepPass, optionsFormat )
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
@@ -508,7 +508,7 @@ class Production():
                      histograms = False, firstEventNumber = 0, extraOutput = [],
                      condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                      outputAppendName = '',
-                     stepID = 0, stepName = '', stepVisible = '', stepPass = '' ):
+                     stepID = 0, stepName = '', stepVisible = '', stepPass = '', optionsFormat = '' ):
     """Helper function.
     """
     if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
@@ -552,6 +552,7 @@ class Production():
                         ['BKStepID', 'string', '', 'BKKStepID'],
                         ['StepProcPass', 'string', '', 'StepProcessingPass'],
                         ['HistogramName', 'string', '', 'NameOfHistogram'],
+                        ['optionsFormat', 'string', '', 'ProdConf configuration'],
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -589,6 +590,7 @@ class Production():
                    ['BKStepID', str( stepID )],
                    ['StepProcPass', stepPass],
                    ['HistogramName', self.histogramName],
+                   ['optionsFormat', optionsFormat]
                    ]
 
     if extraPackages:
