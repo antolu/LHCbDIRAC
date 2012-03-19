@@ -141,6 +141,7 @@ elif threeSteps:
         swimmOptions = swimmOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmVersion = '{{p1Ver}}'
     swimmEP = '{{p1EP}}'
+    swimmOF = ''
 
     swimmDVStep = int( '{{p2Step}}' )
     swimmDVName = '{{p2Name}}'
@@ -149,6 +150,7 @@ elif threeSteps:
     swimmDVDDDb = '{{p2DDDb}}'
     swimmDVOptions = '{{p2Opt}}'
     swimmDVPass = '{{p2Pass}}'
+    swimmDVOF = ''
     if useOracle:
       if not 'useoracle.py' in swimmDVOptions.lower():
         swimmDVOptions = swimmDVOptions + ';$APPCONFIGOPTS/UseOracle.py'
@@ -166,6 +168,7 @@ elif threeSteps:
     mergeDDDb = '{{p3DDDb}}'
     mergeOptions = '{{p3Opt}}'
     mergePass = '{{p3Pass}}'
+    mergeOF = ''
     if mergeApp.lower() == 'davinci':
       if useOracle:
         if not 'useoracle.py' in mergeOptions.lower():
@@ -197,6 +200,7 @@ elif twoSteps:
         swimmOptions = swimmOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmVersion = '{{p1Ver}}'
     swimmEP = '{{p1EP}}'
+    swimmOF = ''
 
     swimmDVStep = int( '{{p2Step}}' )
     swimmDVName = '{{p2Name}}'
@@ -210,6 +214,7 @@ elif twoSteps:
         swimmDVOptions = swimmDVOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmDVVersion = '{{p2Ver}}'
     swimmDVEP = '{{p2EP}}'
+    swimmDVOF = ''
 
     swimmFileType = '{{inFileType}}'
 
@@ -391,24 +396,28 @@ if swimmEnabled:
     production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
                            inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
                            dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts,
-                           stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility, stepPass = swimmPass )
+                           stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility, stepPass = swimmPass,
+                           optionsFormat = swimmOF )
   except:
     production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
                            inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
                            outputSE = unmergedStreamSE, extraOpts = swimmEOpts,
-                           stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility, stepPass = swimmPass )
+                           stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility, stepPass = swimmPass,
+                           optionsFormat = swimmOF )
 
   if unifyMooreAndDV:
     try:
       production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
                                dataType = 'Data', outputSE = unmergedStreamSE_DV, extraOpts = swimmEOpts_DV,
-                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass )
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
+                               optionsFormat = swimmDVOF )
     except:
       production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
                                outputSE = unmergedStreamSE_DV, extraOpts = swimmEOpts_DV,
-                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass )
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
+                               optionsFormat = swimmDVOF )
 
 
   production.addFinalizationStep( 'UploadOutputData',
@@ -520,12 +529,14 @@ if swimmEnabled:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
                                dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
-                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass )
+                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
+                               optionsFormat = swimmDVOF )
     except:
       DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
-                               outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
-                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass )
+                                   inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
+                                   outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
+                                   stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
+                                   optionsFormat = swimmDVOF )
 
 
     DVProduction.addFinalizationStep( 'UploadOutputData',
@@ -682,12 +693,14 @@ if mergingEnabled:
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
                                 inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions,
                                 inputProduction = swimmProdID, inputData = [], outputSE = mergedStreamSE,
-                                stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass )
+                                stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
+                                optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, swimmProdID, eventType, mergeEP, inputData = [],
                               inputDataType = mergeStream.lower(), outputSE = mergedStreamSE,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
-                              stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass )
+                              stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
+                              optionsFormat = mergeOF )
     else:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
       DIRAC.exit( 2 )
