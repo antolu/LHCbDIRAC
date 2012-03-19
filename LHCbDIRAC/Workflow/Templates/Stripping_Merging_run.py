@@ -322,10 +322,7 @@ if strippEnabled:
     production.setTargetSite( destination )
 
   if sysConfig:
-    try:
-      production.setSystemConfig( sysConfig )
-    except:
-      production.setJobParameters( { 'SystemConfig': sysConfig } )
+    production.setJobParameters( { 'SystemConfig': sysConfig } )
 
   production.setJobParameters( { 'CPUTime': strippCPU } )
   production.setProdType( 'DataStripping' )
@@ -339,10 +336,7 @@ if strippEnabled:
   production.setProdPlugin( strippPlugin )
 
   if strippInput.lower() == 'sdst':
-    try:
-      production.setAncestorDepth( 2 )
-    except:
-      production.LHCbJob.setAncestorDepth( 2 )
+    production.LHCbJob.setAncestorDepth( 2 )
 
   production.addDaVinciStep( strippVersion, strippType, strippOptions, eventType = eventType, extraPackages = strippEP,
                              inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob,
@@ -466,10 +460,7 @@ if mergingEnabled:
       dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
     mergeProd = Production( BKKClientIn = BKClient )
-    try:
-      mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
-    except:
-      mergeProd.setCPUTime( mergeCPU )
+    mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
     mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream, wkfName, appendName ) )
@@ -482,18 +473,11 @@ if mergingEnabled:
     mergeProd.setDBTags( mergeCDb, mergeDDDb )
 
     if mergeApp.lower() == 'davinci':
-      try:
-        mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                  inputDataType = mergeStream,
-                                  extraOpts = dvExtraOptions, inputProduction = strippProdID, inputData = [], outputSE = mergedStreamSE,
-                                  stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
-                                  optionsFormat = mergeOF )
-      except:
-        mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                  inputDataType = mergeStream,
-                                  extraOpts = dvExtraOptions, inputData = [], outputSE = mergedStreamSE,
-                                  stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
-                                  optionsFormat = mergeOF )
+      mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
+                                inputDataType = mergeStream,
+                                extraOpts = dvExtraOptions, inputData = [], outputSE = mergedStreamSE,
+                                stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
+                                optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
                               outputSE = mergedStreamSE, inputDataType = mergeStream,
@@ -504,20 +488,16 @@ if mergingEnabled:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
       DIRAC.exit( 2 )
 
-    try:
-      mergeProd.setInputDataPolicy( mergeIDPolicy )
-      mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
-    except:
-      mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
-      if mergeRemoveInputsFlag:
-        mergeProd.addFinalizationStep( ['UploadOutputData',
-                                        'FailoverRequest',
-                                        'RemoveInputData',
-                                        'UploadLogFile'] )
-      else:
-        mergeProd.addFinalizationStep( ['UploadOutputData',
-                                        'FailoverRequest',
-                                        'UploadLogFile'] )
+    mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
+    if mergeRemoveInputsFlag:
+      mergeProd.addFinalizationStep( ['UploadOutputData',
+                                      'FailoverRequest',
+                                      'RemoveInputData',
+                                      'UploadLogFile'] )
+    else:
+      mergeProd.addFinalizationStep( ['UploadOutputData',
+                                      'FailoverRequest',
+                                      'UploadLogFile'] )
 
     mergeProd.setInputBKSelection( mergeBKQuery )
     mergeProd.setProdGroup( prodGroup )

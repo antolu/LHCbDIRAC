@@ -69,7 +69,7 @@ brunelExtraOptions = '{{brunelExtraOptions#PROD-MC: Brunel extra options (leave 
 daVinciExtraOptions = '{{daVinciExtraOptions#PROD-MC: DaVinci extra options (leave blank for default)#}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-Selection: plugin e.g. Standard, BySize#BySize}}'
-selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#20}}'
+selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#5}}'
 selectionPriority = '{{selectionPriority#PROD-Selection: Job Priority e.g. 8 by default#6}}'
 selectionExtraOptions = '{{selectionExtraOptions#PROD-Selection: selection extra options (leave blank for default)#}}'
 
@@ -511,7 +511,7 @@ if selection:
     selectionPP = '{{p6Pass}}'
     selectionOC = ''
 
-  if MC4:
+  elif MC4:
     selectionStep = int( '{{p5Step}}' )
     selectionName = '{{p5Name}}'
     selectionVisibility = '{{p5Vis}}'
@@ -523,7 +523,7 @@ if selection:
     selectionPP = '{{p5Pass}}'
     selectionOC = ''
 
-  if MC3:
+  elif MC3:
     selectionStep = int( '{{p4Step}}' )
     selectionName = '{{p4Name}}'
     selectionVisibility = '{{p4Vis}}'
@@ -535,7 +535,7 @@ if selection:
     selectionPP = '{{p4Pass}}'
     selectionOC = ''
 
-  if MC2:
+  elif MC2:
     selectionStep = int( '{{p3Step}}' )
     selectionName = '{{p3Name}}'
     selectionVisibility = '{{p3Vis}}'
@@ -547,7 +547,7 @@ if selection:
     selectionPP = '{{p3Pass}}'
     selectionOC = ''
 
-  if MC1:
+  elif MC1:
     selectionStep = int( '{{p2Step}}' )
     selectionName = '{{p2Name}}'
     selectionVisibility = '{{p2Vis}}'
@@ -716,10 +716,7 @@ else:
   MCProd = Production()
 
   if sysConfig:
-    try:
-      MCProd.setJobParameters( { 'SystemConfig': sysConfig } )
-    except:
-      MCProd.setSystemConfig( sysConfig )
+    MCProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
   MCProd.setProdType( 'MCSimulation' )
   wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
@@ -781,14 +778,10 @@ else:
 
   gLogger.info( prodDescription )
   MCProd.setWorkflowDescription( prodDescription )
-  try:
-    MCProd.addFinalizationStep( ['UploadOutputData',
-                                 'FailoverRequest',
-                                 'UploadLogFile'] )
-    MCProd.setJobParameters( { 'CPUTime': cpu } )
-  except:
-    MCProd.addFinalizationStep()
-    MCProd.setCPUTime( cpu )
+  MCProd.addFinalizationStep( ['UploadOutputData',
+                               'FailoverRequest',
+                               'UploadLogFile'] )
+  MCProd.setJobParameters( { 'CPUTime': cpu } )
 
   MCProd.setProdGroup( '{{pDsc}}' )
   MCProd.setProdPriority( priority )
@@ -869,13 +862,10 @@ else:
 
   selectionProd = Production()
   if sysConfig:
-    try:
-      selectionProd.setJobParameters( {"SystemConfig": sysConfig } )
-    except:
-      selectionProd.setSystemConfig( sysConfig )
+    selectionProd.setJobParameters( {"SystemConfig": sysConfig } )
 
   selectionProd.setProdType( 'DataStripping' )
-  selectionName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( selectionInputType, evtType, prodID, mergingGroupSize )
+  selectionName = 'Request_{{ID}}_%sSelection_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( selectionInputType, evtType, prodID, mergingGroupSize )
   selectionProd.setWorkflowName( '%s_%s' % ( selectionName, appendName ) )
   selectionProd.setWorkflowDescription( 'MC workflow selection from a previous production.' )
   selectionProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
@@ -883,21 +873,18 @@ else:
 
   selectionProd.addDaVinciStep( selectionVersion, selectionOutputType, selectionOptions, extraPackages = selectionEP,
                                 inputDataType = selectionInputType, dataType = 'MC', extraOpts = selectionExtraOptions,
+                                eventType = '{{eventType}}',
                                 outputSE = daVinciDataSE, condDBTag = selectionCDb, ddDBTag = selectionDDDb,
                                 stepID = selectionStep, stepName = selectionName, stepVisible = selectionVisibility,
                                 stepPass = selectionPP, optionsFormat = selectionOC )
 
 
   selectionProd.setInputBKSelection( inputBKQuery )
-  try:
-    selectionProd.addFinalizationStep( ['UploadOutputData',
-                                        'FailoverRequest',
-                                        'RemoveInputData',
-                                        'UploadLogFile'] )
-    selectionProd.setJobParameters( {"InputDataPolicy": 'protocol' } )
-  except:
-    selectionProd.addFinalizationStep( removeInputData = True )
-    selectionProd.setInputDataPolicy( 'protocol' )
+  selectionProd.addFinalizationStep( ['UploadOutputData',
+                                      'FailoverRequest',
+                                      'RemoveInputData',
+                                      'UploadLogFile'] )
+  selectionProd.setJobParameters( {"InputDataPolicy": 'protocol' } )
 
   selectionProd.setJobFileGroupSize( selectionGroupSize )
   selectionProd.setProdGroup( '{{pDsc}}' )
@@ -910,7 +897,7 @@ else:
                                 publish = publishFlag,
                                 bkScript = BKscriptFlag,
                                 requestID = int( requestID ),
-                                reqUsed = mergingTracking,
+                                reqUsed = selectionTracking,
                                 transformation = False,
                                 parentRequestID = int( parentReq ),
                               )
@@ -954,10 +941,7 @@ else:
 
   mergingProd = Production()
   if sysConfig:
-    try:
-      mergingProd.setJobParameters( {"SystemConfig": sysConfig } )
-    except:
-      mergingProd.setSystemConfig( sysConfig )
+    mergingProd.setJobParameters( {"SystemConfig": sysConfig } )
 
   mergingProd.setProdType( 'Merge' )
   mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( mergingInputType, evtType, prodID, mergingGroupSize )
@@ -982,15 +966,11 @@ else:
     DIRAC.exit( 2 )
 
   mergingProd.setInputBKSelection( inputBKQuery )
-  try:
-    mergingProd.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
-                                      'RemoveInputData',
-                                      'UploadLogFile'] )
-    mergingProd.setJobParameters( {"InputDataPolicy": 'download' } )
-  except:
-    mergingProd.addFinalizationStep( removeInputData = True )
-    mergingProd.setInputDataPolicy( 'download' )
+  mergingProd.addFinalizationStep( ['UploadOutputData',
+                                    'FailoverRequest',
+                                    'RemoveInputData',
+                                    'UploadLogFile'] )
+  mergingProd.setJobParameters( {"InputDataPolicy": 'download' } )
 
   mergingProd.setJobFileGroupSize( mergingGroupSize )
   mergingProd.setProdGroup( '{{pDsc}}' )

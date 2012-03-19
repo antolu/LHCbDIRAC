@@ -572,10 +572,7 @@ if strippEnabled:
   production.setProdPlugin( strippPlugin )
 
   if strippInput.lower() == 'sdst':
-    try:
-      production.setAncestorDepth( 2 )
-    except:
-      production.LHCbJob.setAncestorDepth( 2 )
+    production.LHCbJob.setAncestorDepth( 2 )
 
   production.addDaVinciStep( strippVersion, strippType, strippOptions, eventType = eventType, extraPackages = strippEP,
                              inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob,

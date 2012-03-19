@@ -370,15 +370,9 @@ if swimmEnabled:
     production.setTargetSite( destination )
 
   if sysConfig:
-    try:
-      production.setSystemConfig( sysConfig )
-    except:
-      production.setJobParameters( { 'SystemConfig': sysConfig } )
+    production.setJobParameters( { 'SystemConfig': sysConfig } )
 
-  try:
-    production.setCPUTime( swimmCPU )
-  except:
-    production.setJobParameters( { 'CPUTime': swimmCPU } )
+  production.setJobParameters( { 'CPUTime': swimmCPU } )
   production.setProdType( 'DataStripping' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
   production.setWorkflowName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
@@ -386,34 +380,17 @@ if swimmEnabled:
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( swimmInputBKQuery )
   production.setDBTags( swimmCDb, swimmDDDb )
-  try:
-    production.setInputDataPolicy( swimmIDPolicy )
-  except:
-    production.setJobParameters( { 'InputDataPolicy': swimmIDPolicy } )
+  production.setJobParameters( { 'InputDataPolicy': swimmIDPolicy } )
   production.setProdPlugin( swimmPlugin )
 
-  try:
-    production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
-                           inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
-                           dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts,
-                           stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility, stepPass = swimmPass,
-                           optionsFormat = swimmOF )
-  except:
-    production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
+  production.addMooreStep( swimmVersion, swimmType, swimmOptions, eventType = eventType, extraPackages = swimmEP,
                            inputDataType = swimmInput.lower(), inputData = swimmInputDataList, numberOfEvents = evtsPerJob,
                            outputSE = unmergedStreamSE, extraOpts = swimmEOpts,
                            stepID = swimmStep, stepName = swimmName, stepVisible = swimmVisibility, stepPass = swimmPass,
                            optionsFormat = swimmOF )
 
   if unifyMooreAndDV:
-    try:
-      production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
-                               dataType = 'Data', outputSE = unmergedStreamSE_DV, extraOpts = swimmEOpts_DV,
-                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
-                               optionsFormat = swimmDVOF )
-    except:
-      production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+    production.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob,
                                outputSE = unmergedStreamSE_DV, extraOpts = swimmEOpts_DV,
                                stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
@@ -503,15 +480,9 @@ if swimmEnabled:
       DVProduction.setTargetSite( destination )
 
     if sysConfig:
-      try:
-        DVProduction.setSystemConfig( sysConfig )
-      except:
-        DVProduction.setJobParameters( { 'SystemConfig': sysConfig } )
+      DVProduction.setJobParameters( { 'SystemConfig': sysConfig } )
 
-    try:
-      DVProduction.setCPUTime( swimmCPU_DV )
-    except:
-      DVProduction.setJobParameters( { 'CPUTime': swimmCPU_DV } )
+    DVProduction.setJobParameters( { 'CPUTime': swimmCPU_DV } )
     DVProduction.setProdType( 'DataStripping' )
     wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
     DVProduction.setWorkflowName( 'SWIMMING_DV_%s_%s' % ( wkfName, appendName ) )
@@ -519,20 +490,10 @@ if swimmEnabled:
     DVProduction.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
     DVProduction.setInputBKSelection( swimmDVInputBKQuery )
     DVProduction.setDBTags( swimmDVCDb, swimmDVDDDb )
-    try:
-      DVProduction.setInputDataPolicy( swimmIDPolicy_DV )
-    except:
-      DVProduction.setJobParameters( { 'InputDataPolicy': swimmIDPolicy_DV } )
+    DVProduction.setJobParameters( { 'InputDataPolicy': swimmIDPolicy_DV } )
     DVProduction.setProdPlugin( swimmPlugin_DV )
 
-    try:
-      DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
-                               inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
-                               dataType = 'Data', outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
-                               stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
-                               optionsFormat = swimmDVOF )
-    except:
-      DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
+    DVProduction.addDaVinciStep( swimmDVVersion, swimmDVType, swimmDVOptions, eventType = eventType, extraPackages = swimmDVEP,
                                    inputDataType = swimmDVInput.lower(), numberOfEvents = evtsPerJob, inputData = [],
                                    outputSE = unmergedStreamSE, extraOpts = swimmEOpts_DV,
                                    stepID = swimmDVStep, stepName = swimmDVName, stepVisible = swimmDVVisibility, stepPass = swimmDVPass,
@@ -540,8 +501,8 @@ if swimmEnabled:
 
 
     DVProduction.addFinalizationStep( 'UploadOutputData',
-                                     'FailoverRequest',
-                                     'UploadLogFile' )
+                                      'FailoverRequest',
+                                      'UploadLogFile' )
     DVProduction.setProdGroup( prodGroup )
     DVProduction.setProdPriority( swimm_priority )
     DVProduction.setJobFileGroupSize( swimmFilesPerJob_DV )
@@ -625,14 +586,9 @@ if mergingEnabled:
 
 
   if swimmEnabled:
-    if unifyMooreAndDV:
-      if mergeInputList != swimmOutputList:
-        gLogger.error( 'MergeInput %s != swimmOutput %s' % ( mergeInputList, swimmOutputList ) )
-        DIRAC.exit( 2 )
-    else:
-      if mergeInputList != swimmDVOutputList:
-        gLogger.error( 'MergeInput %s != swimmDVOutput %s' % ( mergeInputList, swimmDVOutputList ) )
-        DIRAC.exit( 2 )
+    if mergeInputList != swimmDVOutputList:
+      gLogger.error( 'MergeInput %s != swimmDVOutput %s' % ( mergeInputList, swimmDVOutputList ) )
+      DIRAC.exit( 2 )
 
   if mergeInputList != mergeOutputList:
     gLogger.error( 'MergeInput %s != mergeOutput %s' % ( mergeInputList, mergeOutputList ) )
@@ -671,19 +627,13 @@ if mergingEnabled:
 
 
     mergeProd = Production()
-    try:
-      mergeProd.setCPUTime( mergeCPU )
-    except:
-      mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
+    mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
     mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
-      try:
-        mergeProd.setSystemConfig( sysConfig )
-      except:
-        mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
+      mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
     mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, swimmProdID ) )
     mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
@@ -711,14 +661,11 @@ if mergingEnabled:
                                      'RemoveInputData',
                                      'UploadLogFile' )
     else:
-       mergeProd.addFinalizationStep( 'UploadOutputData',
+      mergeProd.addFinalizationStep( 'UploadOutputData',
                                      'FailoverRequest',
                                      'UploadLogFile' )
     mergeProd.setInputBKSelection( mergeBKQuery )
-    try:
-      mergeProd.setInputDataPolicy( mergeIDPolicy )
-    except:
-      mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
+    mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     mergeProd.setProdGroup( prodGroup )
     mergeProd.setProdPriority( mergePriority )
     mergeProd.setJobFileGroupSize( mergeFileSize )

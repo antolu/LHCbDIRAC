@@ -32,7 +32,7 @@ import DIRAC
 from DIRAC import gLogger
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
-gLogger = gLogger.getSubLogger( 'EXPRESS_RealData_Merging_run.py' )
+gLogger = gLogger.getSubLogger( 'RealData_Merging_run.py' )
 BKClient = BookkeepingClient()
 
 #################################################################################
