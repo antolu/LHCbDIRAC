@@ -665,6 +665,7 @@ class Production():
     self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
     dddbOpt = "@{DDDBTag}"
     conddbOpt = "@{CondDBTag}"
+    DQOpt = "@{DQTag}"
     if not condDBTag.lower() == 'global':
       self.LHCbJob.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, condDBTag ) )
       conddbOpt = condDBTag.replace( ' ', '' )
