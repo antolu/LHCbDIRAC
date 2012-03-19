@@ -65,61 +65,6 @@ class JobStepPlotter(BaseReporter):
     return self._generateQualityPlot(filename, plotInfo[ 'data' ], metadata)
 
   #############################################################################
-  _reportInputPerOutputEventsName = "Input/Output Events"
-  def _reportInputPerOutputEvents(self, reportRequest):
-    selectFields = (self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ]) + ", %s, %s, SUM(%s), SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'InputEvents', 'OutputEvents'
-                                   ]
-                   )
-
-    retVal = self._getTimedData(reportRequest[ 'startTime' ],
-                                reportRequest[ 'endTime' ],
-                                selectFields,
-                                reportRequest[ 'condDict' ],
-                                reportRequest[ 'groupingFields' ],
-                                { 'checkNone' : True,
-                                  'convertToGranularity' : 'sum',
-                                  'calculateProportionalGauges' : False,
-                                  'consolidationFunction' : self._efficiencyConsolidation })
-    if not retVal[ 'OK' ]:
-      return retVal
-    dataDict, granularity = retVal[ 'Value' ]
-    self.stripDataField(dataDict, 0)
-    if len(dataDict) > 1:
-      #Get the total for the plot
-      selectFields = ("'Total', %s, %s, SUM(%s),SUM(%s)",
-                        [ 'startTime', 'bucketLength',
-                          'InputEvents', 'OutputEvents'
-                        ]
-                     )
-
-      retVal = self._getTimedData(reportRequest[ 'startTime' ],
-                                  reportRequest[ 'endTime' ],
-                                  selectFields,
-                                  reportRequest[ 'condDict' ],
-                                  reportRequest[ 'groupingFields' ],
-                                  { 'scheckNone' : True,
-                                  'convertToGranularity' : 'sum',
-                                  'calculateProportionalGauges' : False,
-                                  'consolidationFunction' : self._efficiencyConsolidation  })
-      if not retVal[ 'OK' ]:
-        return retVal
-      totalDict = retVal[ 'Value' ][0]
-      self.stripDataField(totalDict, 0)
-      for key in totalDict:
-        dataDict[ key ] = totalDict[ key ]
-    return S_OK({ 'data' : dataDict, 'granularity' : granularity })
-
-  #############################################################################
-  def _plotInputPerOutputEvents(self, reportRequest, plotInfo, filename):
-    metadata = { 'title' : 'Input/Output events by %s' % reportRequest[ 'grouping' ],
-                 'starttime' : reportRequest[ 'startTime' ],
-                 'endtime' : reportRequest[ 'endTime' ],
-                 'span' : plotInfo[ 'granularity' ] }
-    return self._generateQualityPlot(filename, plotInfo[ 'data' ], metadata)
-
-  #############################################################################
   _reportCPUUsageName = "CPU time"
   def _reportCPUUsage(self, reportRequest):
     return self.__reportNormPlot(reportRequest, 'CPUTime', 'time')
@@ -179,57 +124,57 @@ class JobStepPlotter(BaseReporter):
 
   _reportInputDataName = "Input Data"
   def _reportInputData(self, reportRequest):
-    return self.__reportNormPlot(reportRequest, 'InputData', 'files') #self.__reportNumberOfField(reportRequest, 'InputData')
+    return self.__reportNormPlot(reportRequest, 'InputData', 'files')
 
   #############################################################################
   def _plotInputData(self, reportRequest, plotInfo, filename):
-    return self.__plotNormPlot(reportRequest, plotInfo, filename, 'Input data') #return self.__plotNumberOfField(reportRequest, plotInfo, filename, 'Input data', 'Input files')
+    return self.__plotNormPlot(reportRequest, plotInfo, filename, 'Input data')
 
   #############################################################################
   _reportCumulativeInputDataName = "Cumulative Input Data"
   def _reportCumulativeInputData(self, reportRequest):
-    return self.__reportCumulativeNumberOfField(reportRequest, 'InputData')
+    return self.__reportCumulativePlot(reportRequest, 'InputData', 'files')
 
   #############################################################################
   def _plotCumulativeInputData(self, reportRequest, plotInfo, filename):
-    return self.__plotCumulativeNumberOfField(reportRequest, plotInfo, filename, 'Cumulative Input Data ', 'Input files')
+    return  self.__plotCumulative(reportRequest, plotInfo, filename, 'Cumulative Input Data ')
 
   #############################################################################
-  _reportAverageInputDataName = 'Average Input Data'
-  def _reportAverageInputData(self, reportRequest):
-    return self.__reportAverageNumberOfField(reportRequest, 'InputData')
+  _reportPieInputDataName = 'Pie plot of Input Data'
+  def _reportPieInputData(self, reportRequest):
+    return self.__reportPiePlot(reportRequest, 'InputData')
 
   #############################################################################
-  def _plotAverageInputData(self, reportRequest, plotInfo, filename):
-    return self.__plotAverageNumberOfField(reportRequest, plotInfo, filename, 'Average Input data', 'InputData')
+  def _plotPieInputData(self, reportRequest, plotInfo, filename):
+    return self.__plotPie(reportRequest, plotInfo, filename, 'Pie plot of Input data', 'InputData')
 
   #####OutputData
   #############################################################################
   _reportOutputDataName = "Output Data"
   def _reportOutputData(self, reportRequest):
-    return self.__reportNumberOfField(reportRequest, 'OutputData')
+    return self.__reportNormPlot(reportRequest, 'OutputData', 'files')
 
   #############################################################################
   def _plotOutputData(self, reportRequest, plotInfo, filename):
-    return self.__plotNumberOfField(reportRequest, plotInfo, filename, 'Output data', 'Output files')
+    return self.__plotNormPlot(reportRequest, plotInfo, filename, 'Output data')
 
   #############################################################################
   _reportCumulativeOutputDataName = "Cumulative OutputData"
   def _reportCumulativeOutputData(self, reportRequest):
-    return self.__reportCumulativeNumberOfField(reportRequest, 'OutputData')
+    return self.__reportCumulativePlot(reportRequest, 'OutputData', 'files')
 
   #############################################################################
   def _plotCumulativeOutputData(self, reportRequest, plotInfo, filename):
-    return self.__plotCumulativeNumberOfField(reportRequest, plotInfo, filename, 'Cumulative Output Data ', 'Output files')
+    return self.__plotCumulative(reportRequest, plotInfo, filename, 'Cumulative Output Data ')
 
   #############################################################################
-  _reportAverageOutputDataName = 'Average Output Data'
-  def _reportAverageOutputData(self, reportRequest):
-    return self.__reportAverageNumberOfField(reportRequest, 'OutputData')
+  _reportPieOutputDataName = 'Pie plot of Output Data'
+  def _reportPieOutputData(self, reportRequest):
+    return self.__reportPiePlot(reportRequest, 'OutputData')
 
   #############################################################################
-  def _plotAverageOutputData(self, reportRequest, plotInfo, filename):
-    return self.__plotAverageNumberOfField(reportRequest, plotInfo, filename, 'Average Output data', 'OutputData')
+  def _plotPieOutputData(self, reportRequest, plotInfo, filename):
+    return self.__plotPie(reportRequest, plotInfo, filename, 'Pie plot of  Output data', 'OutputData')
 
   #####InputEvents
   #############################################################################
@@ -251,13 +196,13 @@ class JobStepPlotter(BaseReporter):
     return self.__plotCumulativeNumberOfField(reportRequest, plotInfo, filename, 'Cumulative Input Events ', 'Input Events')
 
   #############################################################################
-  _reportAverageInputEventsName = 'Average Input Events'
-  def _reportAverageInputEvents(self, reportRequest):
-    return self.__reportAverageNumberOfField(reportRequest, 'InputEvents')
+  _reportPieInputEventsName = 'Pie plot of Input Events'
+  def _reportPieInputEvents(self, reportRequest):
+    return self.__reportPiePlot(reportRequest, 'InputEvents')
 
   #############################################################################
-  def _plotAverageInputEvents(self, reportRequest, plotInfo, filename):
-    return self.__plotAverageNumberOfField(reportRequest, plotInfo, filename, 'Average Input Events', 'InputEvents')
+  def _plotPieInputEvents(self, reportRequest, plotInfo, filename):
+    return self.__plotPie(reportRequest, plotInfo, filename, 'Pie plot of Input Events', 'InputEvents')
 
   #####OutputEvents
   #############################################################################
@@ -279,14 +224,40 @@ class JobStepPlotter(BaseReporter):
     return self.__plotCumulativeNumberOfField(reportRequest, plotInfo, filename, 'Cumulative Output Events ', 'Output Events')
 
   #############################################################################
-  _reportAverageOutputEventsName = 'Average Output Events'
-  def _reportAverageOutputEvents(self, reportRequest):
-    return self.__reportAverageNumberOfField(reportRequest, 'OutputEvents')
+  _reportPieOutputEventsName = 'Pie plot of Output Events'
+  def _reportPieOutputEvents(self, reportRequest):
+    return self.__reportPiePlot(reportRequest, 'OutputEvents')
 
   #############################################################################
-  def _plotAverageOutputEvents(self, reportRequest, plotInfo, filename):
-    return self.__plotAverageNumberOfField(reportRequest, plotInfo, filename, 'Average Output Events', 'OutputEvents')
+  def _plotPieOutputEvents(self, reportRequest, plotInfo, filename):
+    return self.__plotPie(reportRequest, plotInfo, filename, 'Pie plot of Output Events', 'OutputEvents')
 
+  #############################################################################
+  _reportInputEventsPerOutputEventsName = 'Input/Output Events'
+  def _reportInputEventsPerOutputEvents(self, reportRequest):
+    return self.__report2D(reportRequest, 'InputEvents', 'OutputEvents')
+
+  #############################################################################
+  def _plotInputEventsPerOutputEvents(self, reportRequest, plotInfo, filename):
+    return self.__plot2D(reportRequest, plotInfo, filename, "Input/Output Events")
+
+  #############################################################################
+  _reportCPUTimePerOutputEventsName = 'CPUTime/Output Events'
+  def _reportCPUTimePerOutputEvents(self, reportRequest):
+    return self.__report2D(reportRequest, 'CPUTime', 'OutputEvents')
+
+  #############################################################################
+  def _plotCPUTimePerOutputEvents(self, reportRequest, plotInfo, filename):
+    return self.__plot2D(reportRequest, plotInfo, filename, "CPUTime/Output Events")
+
+  #############################################################################
+  _reportCPUTimePerInputEventsName = 'CPUTime/Input Events'
+  def _reportCPUTimePerInputEvents(self, reportRequest):
+    return self.__report2D(reportRequest, 'CPUTime', 'InputEvents')
+
+  #############################################################################
+  def _plotCPUTimePerInputEvents(self, reportRequest, plotInfo, filename):
+    return self.__plot2D(reportRequest, plotInfo, filename, "CPUTime/Input Events")
 
   #############################################################################
   #HELPER methods
@@ -428,9 +399,9 @@ class JobStepPlotter(BaseReporter):
 
   #############################################################################
   def __reportCumulativeNumberOfField(self, reportRequest, Field):
-    selectFields = (self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ]) + ", %s, %s, SUM(%s/%s)",
+    selectFields = (self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ]) + ", %s, %s, SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    Field, 'entriesInBucket'
+                                    Field
                                    ]
                    )
     retVal = self._getTimedData(reportRequest[ 'startTime' ],
@@ -494,4 +465,33 @@ class JobStepPlotter(BaseReporter):
                 }
     return self._generatePiePlot(filename, plotInfo[ 'data'], metadata)
 
+  #############################################################################
+  def __report2D( self, reportRequest, field1, field2 ):
+    selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s), SUM(%s)",
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
+                                    field1, field2
+                                   ]
+                   )
+    retVal = self._getTimedData( reportRequest[ 'startTime' ],
+                                reportRequest[ 'endTime' ],
+                                selectFields,
+                                reportRequest[ 'condDict' ],
+                                reportRequest[ 'groupingFields' ],
+                                { 'checkNone' : True,
+                                  'convertToGranularity' : 'sum',
+                                  'calculateProportionalGauges' : True } )
+    if not retVal[ 'OK' ]:
+      return retVal
+    dataDict, granularity = retVal[ 'Value' ]
+    self.stripDataField( dataDict, 0 )
+    dataDict = self._fillWithZero( granularity, reportRequest[ 'startTime' ], reportRequest[ 'endTime' ], dataDict )
+    return S_OK( { 'data' : dataDict, 'granularity' : granularity } )
 
+  #############################################################################
+  def __plot2D( self, reportRequest, plotInfo, filename, label ):
+    metadata = { 'title' : 'Jobs per pilot by %s' % reportRequest[ 'grouping' ],
+                 'starttime' : reportRequest[ 'startTime' ],
+                 'endtime' : reportRequest[ 'endTime' ],
+                 'span' : plotInfo[ 'granularity' ],
+                 'ylabel' : label }
+    return self._generateTimedStackedBarPlot( filename, plotInfo[ 'data' ], metadata )

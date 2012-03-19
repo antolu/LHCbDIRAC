@@ -25,4 +25,13 @@ class JobStep( BaseAccountingType ):
                                         ( 'InputEvents', 'BIGINT UNSIGNED' ),
                                         ( 'OutputEvents', 'BIGINT UNSIGNED' )
                                       ]
+
+    self.bucketsLength = [ ( 86400 * 7, 3600 ), #<1w = 1h
+                           ( 86400 * 35, 3600 * 4 ), #<35d = 4h
+                           ( 86400 * 30 * 6, 86400 ), #<6m = 1d
+                           ( 86400 * 365, 86400 * 2 ), #<1y = 2d
+                           ( 86400 * 600, 604800 ), #>1y = 1w
+                         ]
+
     self.checkType()
+
