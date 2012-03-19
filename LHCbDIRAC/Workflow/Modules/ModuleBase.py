@@ -179,6 +179,105 @@ class ModuleBase( object ):
     self.jobReport = self._getJobReporter()
     self.request = self._getRequestContainer()
 
+    self.__resolveInputWorkflow()
+
+  #############################################################################
+
+  def __resolveInputWorkflow( self ):
+    """ Resolve the input variables that are in the workflow_commons
+    """
+
+    self.systemConfig = self.workflow_commons['SystemConfig']
+    self.runNumber = self.workflow_commons['runNumber']
+
+    if self.workflow_commons.has_key( 'JobType' ):
+      self.jobType = self.workflow_commons['JobType']
+
+    if self.workflow_commons.has_key( 'poolXMLCatName' ):
+      self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+
+    if self.workflow_commons.has_key( 'InputData' ):
+      if self.workflow_commons['InputData']:
+        self.InputData = self.workflow_commons['InputData']
+
+    #only required until the stripping is the same for MC / data
+    if self.workflow_commons.has_key( 'configName' ):
+      self.bkConfigName = self.workflow_commons['configName']
+
+    if self.workflow_commons.has_key( 'simDescription' ):
+      self.simDescription = self.workflow_commons['simDescription']
+
+    if self.workflow_commons.has_key( 'DDDBTag' ):
+      self.DDDBTag = self.workflow_commons['DDDBTag']
+
+    if self.workflow_commons.has_key( 'CondDBTag' ):
+      self.DDDBTag = self.workflow_commons['CondDBTag']
+
+    if self.workflow_commons.has_key( 'DQTag' ):
+      self.DQTag = self.workflow_commons['DQTag']
+
+  #############################################################################
+
+  def _resolveInputStep( self ):
+    """ Resolve the input variables for an application step
+    """
+
+    self.applicationName = self.step_commons['applicationName']
+    self.applicationVersion = self.step_commons['applicationVersion']
+    self.applicationLog = self.step_commons['applicationLog']
+    self.XMLSummary = self.step_commons['XMLSummary']
+    self.numberOfEvents = self.step_commons['numberOfEvents']
+    self.BKstepID = self.step_commons['BKStepID']
+    self.stepProcPass = self.step_commons['StepProcPass']
+
+    if self.step_commons.has_key( 'eventType' ):
+      self.eventType = self.step_commons['eventType']
+
+    if self.step_commons.has_key( 'inputDataType' ):
+      self.inputDataType = self.step_commons['inputDataType']
+
+    if self.step_commons.has_key( 'HistogramName' ):
+      self.histoName = self.step_commons.has_key( 'HistogramName' )
+
+    if self.step_commons.has_key( 'applicationType' ):
+      self.applicationType = self.step_commons['applicationType']
+
+    if self.step_commons.has_key( 'numberOfEvents' ):
+      self.numberOfEvents = self.step_commons['numberOfEvents']
+
+    if self.step_commons.has_key( 'optionsFile' ):
+      self.optionsFile = self.step_commons['optionsFile']
+
+    if self.step_commons.has_key( 'optionsLine' ):
+      self.optionsLine = self.step_commons['optionsLine']
+
+    if self.step_commons.has_key( 'generatorName' ):
+      self.generator_name = self.step_commons['generatorName']
+
+    if self.step_commons.has_key( 'runTimeProjectName' ):
+      self.runTimeProjectName = self.step_commons['runTimeProjectName']
+      self.runTimeProjectVersion = self.step_commons['runTimeProjectVersion']
+
+    if self.step_commons.has_key( 'extraPackages' ):
+      self.extraPackages = self.step_commons['extraPackages']
+      if not self.extraPackages == '':
+        if type( self.extraPackages ) != type( [] ):
+          self.extraPackages = self.extraPackages.split( ';' )
+      else:
+        self.extraPackages = [self.extraPackages]
+      self.extraPackages.append( 'ProdConf' )
+
+    if self.step_commons.has_key( 'inputData' ):
+      if self.step_commons['inputData']:
+        self.stepInputData = self.step_commons['inputData']
+
+    if self.step_commons.has_key( 'listoutput' ):
+      self.stepOutputs = self.step_commons['listoutput']
+      self.stepOutputsType = [x['outputDataType'] for x in self.stepOutputs]
+
+    if self.step_commons.has_key( 'extraPackages' ):
+      self.extraPackages = self.step_commons['extraPackages']
+
   #############################################################################
 
   def _getJobReporter( self ):

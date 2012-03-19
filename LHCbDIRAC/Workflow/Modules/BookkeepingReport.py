@@ -33,15 +33,12 @@ class BookkeepingReport( ModuleBase ):
 
     self.version = __RCSID__
 
-    self.firstEventNumber = 1
     self.eventsRequested = ''
     self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
-    self.inputData = ''
-    self.InputData = ''
-    self.sourceData = ''
-    self.inputData = ''
+    self.stepInputData = ''
+    self.stepInputData = ''
     self.applicationName = ''
     self.applicationLog = ''
     self.firstStepInput = ''
@@ -104,21 +101,9 @@ class BookkeepingReport( ModuleBase ):
   def _resolveInputVariables( self, bk = None, xf_o = None ):
 
     super( BookkeepingReport, self )._resolveInputVariables()
+    super( BookkeepingReport, self )._resolveInputStep()
 
     ## VARS FROM WORKFLOW_COMMONS ##
-
-    wf_vars = {
-               'FirstStepInputEvents' : 'firstStepInput',
-               'sourceData'           : 'sourceData'    ,
-               'simDescription'       : 'simDescription',
-               'poolXMLCatName'       : 'poolXMLCatName',
-               'InputData'            : 'InputData'     ,
-               'JobType'              : 'jobType'
-                }
-
-    for k, v in wf_vars.items():
-      if self.workflow_commons.has_key( k ):
-        setattr( self, v, self.workflow_commons[ k ] )
 
     if self.workflow_commons.has_key( 'outputList' ):
       for outputItem in self.listoutput:
@@ -149,25 +134,6 @@ class BookkeepingReport( ModuleBase ):
       self.bkLFNs = result['Value']['BookkeepingLFNs']
       self.logFilePath = result['Value']['LogFilePath'][0]
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
-
-    ## VARS FROM STEP_COMMONS ##
-
-    step_vars = {
-                 'eventType'            : 'eventType'           ,
-                 'numberOfEvents'       : 'numberOfEvents'      ,
-                 'numberOfEventsOutput' : 'numberOfEventsOutput',
-                 'inputData'            : 'inputData'           ,
-                 'listoutput'           : 'listoutput'
-                 }
-
-    for k, v in step_vars.items():
-      if self.step_commons.has_key( k ):
-        setattr( self, v, self.step_commons[ k ] )
-
-    if self.step_commons.has_key( 'applicationName' ):
-      self.applicationName = self.step_commons['applicationName']
-      self.applicationVersion = self.step_commons['applicationVersion']
-      self.applicationLog = self.step_commons['applicationLog']
 
     self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
@@ -362,10 +328,7 @@ class BookkeepingReport( ModuleBase ):
     tempVar = "v%dr%dp%d" % ( DIRAC.majorVersion, DIRAC.minorVersion, DIRAC.patchLevel )
     typedParams.append( ( "DiracVersion", tempVar ) )
 
-    if self.firstEventNumber != None and self.firstEventNumber != '':
-      typedParams.append( ( "FirstEventNumber", self.firstEventNumber ) )
-    else:
-      typedParams.append( ( "FirstEventNumber", 1 ) )
+    typedParams.append( ( "FirstEventNumber", 1 ) )
 
     typedParams.append( ( "StatisticsRequested", self.eventsRequested ) )
 
@@ -388,9 +351,9 @@ class BookkeepingReport( ModuleBase ):
         <InputFile Name=""/>
     '''
 
-    if self.inputData:
+    if self.stepInputData:
       intermediateInputs = False
-      for inputname in self.inputData.split( ';' ):
+      for inputname in self.stepInputData.split( ';' ):
         for bkLFN in self.bkLFNs:
           if os.path.basename( bkLFN ) == os.path.basename( inputname ):
             jobNode = self.__addChildNode( jobNode, "InputFile", 0, bkLFN )

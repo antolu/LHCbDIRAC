@@ -16,7 +16,7 @@ from DIRAC import gConfig
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
-from LHCbDIRAC.Core.Utilities.ProductionOptions import getOptions
+from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 
@@ -114,6 +114,7 @@ class Production():
     #Options related parameters
     self._setParameter( 'CondDBTag', 'string', 'sim-20090112', 'CondDBTag' )
     self._setParameter( 'DDDBTag', 'string', 'head-20090112', 'DetDescTag' )
+    self._setParameter( 'DQTag', 'string', 'head-20090112', 'DQTag' )
     self._setParameter( 'EventMaxDefault', 'string', '-1', 'DefaultNumberOfEvents' )
     #BK related parameters
     self._setParameter( 'configName', 'string', 'MC', 'ConfigName' )
@@ -202,8 +203,8 @@ class Production():
   #############################################################################
 
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
-                   extraPackages = '', outputSE = None, histograms = False, overrideOpts = '', extraOpts = '',
-                   appType = 'sim', condDBTag = 'global', ddDBTag = 'global',
+                   extraPackages = '', outputSE = None, histograms = False, extraOpts = '',
+                   appType = 'sim', condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType can be sim / gen 
@@ -212,18 +213,11 @@ class Production():
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 1
-    if not overrideOpts:
-      optionsLine = getOptions( 'Gauss', appType, extraOpts = None, histogram = self.histogramName,
-                               condDB = condDBTag, ddDB = ddDBTag )
-      self.LHCbJob.log.verbose( 'Default options for Gauss are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
 
+    optionsLine = ''
     if extraOpts:
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      extraOpts = string.join( extraOpts, ';' )
-      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
+      optionsLine = string.join( extraOpts, ';' )
 
     if not outputSE:
       outputSE = 'Tier1-RDST'
@@ -231,17 +225,17 @@ class Production():
 
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
-                                   histograms, firstEventNumber, {}, condDBTag, ddDBTag, '',
+                                   histograms, firstEventNumber, {}, condDBTag, ddDBTag, DQTag, '',
                                    stepID, stepName, stepVisible, stepPass )
     gaussStep.setValue( 'numberOfEventsInput', 0 )
-    gaussStep.setValue( 'numberOfEventsOutput', 0 )
     gaussStep.setValue( 'generatorName', generatorName )
 
   #############################################################################
 
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                   outputSE = None, histograms = False, inputData = 'previousStep', overrideOpts = '',
-                   extraOpts = '', extraOutputFile = [], condDBTag = 'global', ddDBTag = 'global',
+                   outputSE = None, histograms = False, inputData = 'previousStep',
+                   extraOpts = '', extraOutputFile = [],
+                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is mdf / digi / xdigi
@@ -254,18 +248,10 @@ class Production():
     inputDataType = 'sim'
     inputData = 'previousStep'
 
-    if not overrideOpts:
-      optionsLine = getOptions( 'Boole', appType, extraOpts = None, histogram = self.histogramName,
-                               condDB = condDBTag, ddDB = ddDBTag )
-      self.LHCbJob.log.verbose( 'Default options for Boole are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
-
+    optionsLine = ''
     if extraOpts:
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      extraOpts = string.join( extraOpts, ';' )
-      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
+      optionsLine = string.join( extraOpts, ';' )
 
     if not outputSE:
       outputSE = 'Tier1-RDST'
@@ -277,7 +263,7 @@ class Production():
     self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
                        firstEventNumber, extraOutput = extraOutputFile,
-                       condDBTag = condDBTag, ddDBTag = ddDBTag,
+                       condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
                        outputAppendName = '',
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
                        stepPass = stepPass )
@@ -286,8 +272,8 @@ class Production():
 
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                     inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
-                    overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
-                    condDBTag = 'global', ddDBTag = 'global',
+                    extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
+                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                     stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is rdst / dst / xdst / sdst
@@ -317,24 +303,17 @@ class Production():
             outputSE = 'Tier1-DST' #for real data master dst
             self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    if not overrideOpts:
-      optionsLine = getOptions( 'Brunel', appType, extraOpts = None, histogram = self.histogramName,
-                               condDB = condDBTag, ddDB = ddDBTag )
-      self.LHCbJob.log.verbose( 'Default options for Brunel are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
-
+    optionsLine = ''
     if extraOpts:
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      extraOpts = string.join( extraOpts, ';' )
-      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
+      optionsLine = string.join( extraOpts, ';' )
 
     firstEventNumber = 0
 
     self._addGaudiStep( 'Brunel', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
+                       firstEventNumber, extraOutput = [],
+                       condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
                        outputAppendName = '',
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
                        stepPass = stepPass )
@@ -343,8 +322,9 @@ class Production():
 
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                      inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
-                     overrideOpts = '', extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
-                     condDBTag = 'global', ddDBTag = 'global', extraOutput = [],
+                     extraOpts = '', numberOfEvents = '-1', dataType = 'DATA',
+                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
+                     extraOutput = [],
                      stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
         appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
@@ -381,19 +361,10 @@ class Production():
         outputSE = 'Tier1-DST'
         self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    if not overrideOpts:
-      optionsLine = getOptions( 'DaVinci', appType, extraOpts = None, inputType = inputDataType,
-                                histogram = self.histogramName, condDB = condDBTag, ddDB = ddDBTag )
-      self.LHCbJob.log.verbose( 'Default options for DaVinci are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
-
+    optionsLine = ''
     if extraOpts:
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      extraOpts = string.join( extraOpts, ';' )
-      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
-#      print optionsLine
+      optionsLine = string.join( extraOpts, ';' )
 
     if appType.lower() == 'davincihist':
       appType = 'dst'
@@ -403,15 +374,16 @@ class Production():
 
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                        extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
+                       firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
                        stepID, stepName, stepVisible, stepPass )
 
   #############################################################################
 
   def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
-                   overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
-                   condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
+                   extraOpts = '', numberOfEvents = '-1',
+                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
+                   outputAppendName = '',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
     """
@@ -427,34 +399,26 @@ class Production():
 
     self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    if not overrideOpts:
-      optionsLine = getOptions( 'Moore', appType, extraOpts = None, inputType = inputDataType,
-                               histogram = self.histogramName, condDB = condDBTag, ddDB = ddDBTag )
-      self.LHCbJob.log.verbose( 'Default options for Moore are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
-
+    optionsLine = ''
     if extraOpts:
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      extraOpts = string.join( extraOpts, ';' )
-      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
+      optionsLine = string.join( extraOpts, ';' )
 
     self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
+                       firstEventNumber, extraOutput = [],
+                       condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
                        outputAppendName = outputAppendName,
                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
                        stepPass = stepPass )
-
 
   #############################################################################
 
   def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts',
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
-                   inputDataType = 'dst', outputSE = None, overrideOpts = '', extraOpts = '', numberOfEvents = '-1',
-                   condDBTag = 'global', ddDBTag = 'global', dataType = 'MC',
-                   extraOutput = [],
+                   inputDataType = 'dst', outputSE = None, extraOpts = '', numberOfEvents = '-1',
+                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
+                   dataType = 'MC', extraOutput = [],
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
        any available LHCb project as the application.
@@ -470,28 +434,21 @@ class Production():
       outputSE = 'Tier1_MC-DST'
       self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
-    if not overrideOpts:
-      optionsLine = getOptions( 'Merge', appType, extraOpts = None, condDB = condDBTag, ddDB = ddDBTag )
-      self.LHCbJob.log.verbose( 'Default options for Merging are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
-
+    optionsLine = ''
     if extraOpts:
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      extraOpts = string.join( extraOpts, ';' )
-      optionsLine = "%s\n%s" % ( optionsLine, extraOpts )
+      optionsLine = string.join( extraOpts, ';' )
 
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput, condDBTag, ddDBTag, '',
+                       firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
                        stepID, stepName, stepVisible, stepPass )
     #if using LHCb to merge we won't want to abandon the output
 
   #############################################################################
 
   #NEW: try to put here common stuff of the addXXXXStep
-  def addApplicationStep( self, stepDict, outputSE, eventType, extraPackages, optionsFile, overrideOpts ):
+  def addApplicationStep( self, stepDict, outputSE, eventType, extraPackages, optionsFile ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1', 
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 
@@ -511,31 +468,14 @@ class Production():
 
     outputFilesDict = self._constructOutputFilesDict( stepDict['fileTypesOut'], outputSE )
 
-    #TODO: FS: horrible way of dealing with options. I should really eliminate this file and use something smarter. 
-    if not overrideOpts:
-
-      if len( stepDict['fileTypesIn'] ) > 1:
-        raise ValueError, "too many input file types"
-      inputDataType = stepDict['fileTypesIn'][0]
-
-      fileTypesOut = stepDict['fileTypesOut']
-      for ft in fileTypesOut:
-        if 'hist' in ft.lower():
-          fileTypesOut.remove( ft )
-
-      if len( fileTypesOut ) == 1:
-        outputFileType = fileTypesOut[0]
-      else:
-        outputFileType = 'stripping'
-
-      optionsLine = getOptions( stepDict['ApplicationName'], outputFileType, inputType = inputDataType,
-                                histogram = self.histogramName, condDB = stepDict['CONDDB'], ddDB = stepDict['DDDB'] )
-      self.LHCbJob.log.verbose( 'Default options for DaVinci are:\n%s' % ( string.join( optionsLine, '\n' ) ) )
-      optionsLine = string.join( optionsLine, ';' )
-    else:
-      optionsLine = overrideOpts
-
-
+    #questo l'ho preso come esempio da Brunel
+#    self._addGaudiStep( stepDict['ApplicationName'], stepDict['ApplicationVersion'], 
+#                        appType, numberOfEvents, optionsFile, optionsLine,
+#                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
+#                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
+#                        outputAppendName = '',
+#                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
+#                        stepPass = stepPass )
 
 
 
@@ -550,11 +490,11 @@ class Production():
     for fileType in filesList:
       fileDict = {}
       if 'hist' in fileType.lower():
-        fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
-        fileDict['outputDataSE'] = outputSE
-      else:
         fileDict['outputDataName'] = self.histogramName
         fileDict['outputDataSE'] = self.histogramSE
+      else:
+        fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
+        fileDict['outputDataSE'] = outputSE
       fileDict['outputDataType'] = fileType.lower()
 
       outputList.append( fileDict )
@@ -566,7 +506,8 @@ class Production():
   def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
                      extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
                      histograms = False, firstEventNumber = 0, extraOutput = [],
-                     condDBTag = 'global', ddDBTag = 'global', outputAppendName = '',
+                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
+                     outputAppendName = '',
                      stepID = 0, stepName = '', stepVisible = '', stepPass = '' ):
     """Helper function.
     """
@@ -605,12 +546,12 @@ class Production():
                         ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
                         ['numberOfEvents', 'string', '', 'NumberOfEvents'],
                         ['numberOfEventsInput', 'string', '', 'NumberOfEventsInput'],
-                        ['numberOfEventsOutput', 'string', '', 'NumberOfEventsOutput'],
                         ['listoutput', 'list', [], 'StepOutputList'],
                         ['extraPackages', 'string', '', 'ExtraPackages'],
                         ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
                         ['BKStepID', 'string', '', 'BKKStepID'],
                         ['StepProcPass', 'string', '', 'StepProcessingPass'],
+                        ['HistogramName', 'string', '', 'NameOfHistogram'],
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -647,6 +588,7 @@ class Production():
                    ['outputData', '@{STEP_ID}.@{applicationType}'],
                    ['BKStepID', str( stepID )],
                    ['StepProcPass', stepPass],
+                   ['HistogramName', self.histogramName],
                    ]
 
     if extraPackages:
@@ -727,6 +669,9 @@ class Production():
     if not ddDBTag.lower() == 'global':
       self.LHCbJob.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, ddDBTag ) )
       dddbOpt = ddDBTag.replace( ' ', '' )
+    if not DQTag.lower() == 'global':
+      self.LHCbJob.log.verbose( 'Specific DQTag setting found for %s step, setting to: %s' % ( appName, DQTag ) )
+      DQOpt = DQTag.replace( ' ', '' )
 
     #to construct the BK processing pass structure, starts from step '0'
     stepIDInternal = 'Step%s' % ( self.LHCbJob.gaudiStepCount - 1 )
@@ -739,6 +684,7 @@ class Production():
                   'OptionFiles':bkOptionsFile,
                   'DDDb':dddbOpt,
                   'CondDb':conddbOpt,
+                  'DQTag':DQOpt,
                   'ExtraPackages':extraPackages,
                   'BKStepID':stepID,
                   'StepName':stepName,
@@ -855,6 +801,7 @@ class Production():
     parameters['Priority'] = prodWorkflow.findParameter( 'Priority' ).getValue()
     parameters['CondDBTag'] = prodWorkflow.findParameter( 'CondDBTag' ).getValue()
     parameters['DDDBTag'] = prodWorkflow.findParameter( 'DDDBTag' ).getValue()
+    parameters['DQTag'] = prodWorkflow.findParameter( 'DQTag' ).getValue()
     parameters['configName'] = prodWorkflow.findParameter( 'configName' ).getValue()
     parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
     parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
@@ -924,6 +871,7 @@ class Production():
     info.append( 'BK Processing Pass Name: %s' % ( parameters['groupDescription'] ) )
     info.append( 'CondDB Tag: %s' % ( parameters['CondDBTag'] ) )
     info.append( 'DDDB Tag: %s\n' % ( parameters['DDDBTag'] ) )
+    info.append( 'DQ Tag: %s\n' % ( parameters['DQTag'] ) )
     #info.append('Number of events: %s' %(parameters['numberOfEvents']))
     #Now for the steps of the workflow
     stepKeys = bkPassInfo.keys()
@@ -1485,11 +1433,12 @@ class Production():
 
   #############################################################################
 
-  def setDBTags( self, conditions = 'sim-20090112', detector = 'head-20090112' ):
+  def setDBTags( self, conditions = 'sim-20090112', detector = 'head-20090112', dqTag = 'head-20090112' ):
     """ Sets DB tags
     """
     self._setParameter( 'CondDBTag', 'string', conditions.replace( ' ', '' ), 'CondDBTag' )
     self._setParameter( 'DDDBTag', 'string', detector.replace( ' ', '' ), 'DetDescTag' )
+    self._setParameter( 'DQTag', 'string', detector.replace( ' ', '' ), 'DQTag' )
 
   #############################################################################
 

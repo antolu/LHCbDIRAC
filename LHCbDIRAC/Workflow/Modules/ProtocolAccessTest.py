@@ -31,7 +31,7 @@ class ProtocolAccessTest( ModuleBase ):
     super( ProtocolAccessTest, self ).__init__( self.log )
 
     self.version = __RCSID__
-    self.inputData = ''
+    self.stepInputData = ''
     self.systemConfig = ''
     self.applicationLog = ''
     self.applicationVersion = ''
@@ -46,19 +46,12 @@ class ProtocolAccessTest( ModuleBase ):
     super( ProtocolAccessTest, self )._resolveInputVariables()
     result = S_OK()
 
-    if self.step_commons.has_key( 'inputData' ):
-      self.inputData = self.step_commons['inputData']
-    elif self.workflow_commons.has_key( 'InputData' ):
-      self.inputData = self.workflow_commons['InputData']
-    else:
+    if not self.stepInputData and not self.stepInputData:
       result = S_ERROR( 'No Input Data Defined' )
 
-    if type( self.inputData ) != type( [] ):
-      self.inputData = self.inputData.split( ';' )
-    self.inputData = [x.replace( 'LFN:', '' ) for x in self.inputData]
-
-    if self.step_commons.has_key( 'applicationLog' ):
-      self.applicationLog = self.step_commons['applicationLog']
+    if type( self.stepInputData ) != type( [] ):
+      self.stepInputData = self.stepInputData.split( ';' )
+    self.stepInputData = [x.replace( 'LFN:', '' ) for x in self.stepInputData]
 
     if not self.applicationLog:
       if self.step_commons.has_key( 'STEP_NUMBER' ):
@@ -71,14 +64,6 @@ class ProtocolAccessTest( ModuleBase ):
       self.protocolsList = [x.lower() for x in self.protocolsList]
     else:
       result = S_ERROR( 'No protocols list defined' )
-
-    if self.step_commons.has_key( 'applicationVersion' ):
-      self.applicationVersion = self.step_commons['applicationVersion']
-    else:
-      result = S_ERROR( 'No application version specified' )
-
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
 
     if self.step_commons.has_key( 'rootVersion' ):
       self.rootVersion = self.step_commons['rootVersion']
@@ -109,9 +94,9 @@ class ProtocolAccessTest( ModuleBase ):
         from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
         rm = ReplicaManager()
 
-      self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( string.join( self.inputData, '\n' ) ) )
+      self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( string.join( self.stepInputData, '\n' ) ) )
 
-      replicaRes = rm.getReplicas( self.inputData )
+      replicaRes = rm.getReplicas( self.stepInputData )
       if not replicaRes['OK']:
         self.log.error( replicaRes )
         return S_ERROR( 'Could not obtain replica information' )
@@ -119,7 +104,7 @@ class ProtocolAccessTest( ModuleBase ):
         self.log.error( replicaRes )
         return S_ERROR( 'Could not obtain replica information' )
 
-      metadataRes = rm.getCatalogFileMetadata( self.inputData )
+      metadataRes = rm.getCatalogFileMetadata( self.stepInputData )
       if not metadataRes['OK']:
         self.log.error( metadataRes )
         return S_ERROR( 'Could not obtain metadata information' )
@@ -137,7 +122,7 @@ class ProtocolAccessTest( ModuleBase ):
         return S_ERROR( 'Could not determine local SE list' )
 
       seConfig = {'LocalSEList':localSE, 'DiskSEList' :localSE, 'TapeSEList' :localSE}
-      argumentsDict = {'InputData':self.inputData, 'Configuration':seConfig, 'FileCatalog': catalogResult, 'Protocols' : self.protocolsList}
+      argumentsDict = {'InputData':self.stepInputData, 'Configuration':seConfig, 'FileCatalog': catalogResult, 'Protocols' : self.protocolsList}
 
       if self.systemConfig:
         self.log.info( 'Setting system configuration (CMTCONFIG) to %s' % self.systemConfig )

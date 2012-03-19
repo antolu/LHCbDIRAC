@@ -109,6 +109,7 @@ class StepAccounting( ModuleBase ):
     """
 
     super( StepAccounting, self )._resolveInputVariables()
+    super( StepAccounting, self )._resolveInputStep()
 
     if dsc is not None:
       self.dsc = dsc
@@ -119,17 +120,6 @@ class StepAccounting( ModuleBase ):
       self.stepStat = 'Done'
     else:
       self.stepStat = 'Failed'
-
-    self.BKstepID = self.step_commons['BKStepID']
-    self.stepProcPass = self.step_commons['StepProcPass']
-
-    self.runNumber = 'Unknown'
-    if self.workflow_commons.has_key( 'runNumber' ):
-      self.runNumber = self.workflow_commons['runNumber']
-
-    self.eventType = 'Unknown'
-    if self.step_commons.has_key( 'eventType' ):
-      self.eventType = self.step_commons['eventType']
 
     ########################################################################
     # Timing

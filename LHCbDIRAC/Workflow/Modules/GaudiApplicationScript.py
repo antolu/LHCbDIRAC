@@ -52,18 +52,7 @@ class GaudiApplicationScript( ModuleBase ):
     """
 
     super( GaudiApplicationScript, self )._resolveInputVariables()
-
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
-    else:
-      self.log.warn( 'No SystemConfig defined' )
-
-    if self.step_commons.has_key( 'applicationName' ):
-      self.applicationName = self.step_commons['applicationName']
-      self.applicationVersion = self.step_commons['applicationVersion']
-      self.applicationLog = self.step_commons['applicationLog']
-    else:
-      self.log.warn( 'No applicationName defined' )
+    super( GaudiApplicationScript, self )._resolveInputStep()
 
     if self.step_commons.has_key( 'script' ):
       self.script = self.step_commons['script']

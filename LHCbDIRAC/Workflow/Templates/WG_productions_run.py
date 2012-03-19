@@ -140,6 +140,7 @@ if fourSteps:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
+    strippDQ = '{{p1DQ}}'
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     if useOracle:
@@ -157,6 +158,7 @@ if fourSteps:
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
+    mergeDQ = '{{p2DQ}}'
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     if mergeApp.lower() == 'davinci':
@@ -173,6 +175,7 @@ if fourSteps:
     step3_Visibility = '{{p3Vis}}'
     step3_CDb = '{{p3CDb}}'
     step3_DDDb = '{{p3DDDb}}'
+    step3_DQ = '{{p3DQ}}'
     step3_Options = '{{p3Opt}}'
     step3_Pass = '{{p3Pass}}'
     if step3_App.lower() == 'davinci':
@@ -215,6 +218,7 @@ if fourSteps:
     step4_Visibility = '{{p3Vis}}'
     step4_CDb = '{{p3CDb}}'
     step4_DDDb = '{{p3DDDb}}'
+    step4_DQ = '{{p3DQ}}'
     step4_Options = '{{p3Opt}}'
     step4_Pass = '{{p4Pass}}'
     if step4_App.lower() == 'davinci':
@@ -266,6 +270,7 @@ elif threeSteps:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
+    strippDQ = '{{p1DQ}}'
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     if useOracle:
@@ -283,6 +288,7 @@ elif threeSteps:
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
+    mergeDQ = '{{p2DQ}}'
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     if mergeApp.lower() == 'davinci':
@@ -299,6 +305,7 @@ elif threeSteps:
     step3_Visibility = '{{p3Vis}}'
     step3_CDb = '{{p3CDb}}'
     step3_DDDb = '{{p3DDDb}}'
+    step3_DQ = '{{p3DQ}}'
     step3_Opts = '{{p3Opt}}'
     step3_Pass = '{{p3Pass}}'
     if step3_App.lower() == 'davinci':
@@ -348,6 +355,7 @@ elif twoSteps:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
+    strippDQ = '{{p1DQ}}'
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     if useOracle:
@@ -365,6 +373,7 @@ elif twoSteps:
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
+    mergeDQ = '{{p2DQ}}'
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     if mergeApp.lower() == 'davinci':
@@ -390,6 +399,7 @@ elif oneStep:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
+    strippDQ = '{{p1DQ}}'
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     if useOracle:
@@ -547,7 +557,7 @@ if strippEnabled:
   production.setWorkflowDescription( "%s real data stripping production." % ( prodGroup ) )
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( strippInputBKQuery )
-  production.setDBTags( strippCDb, strippDDDb )
+  production.setDBTags( strippCDb, strippDDDb, strippDQ )
   production.setInputDataPolicy( strippIDPolicy )
   production.setProdPlugin( strippPlugin )
 
@@ -695,7 +705,7 @@ if mergingEnabled:
 
     mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, strippProdID ) )
     mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
-    mergeProd.setDBTags( mergeCDb, mergeDDDb )
+    mergeProd.setDBTags( mergeCDb, mergeDDDb, mergeDQ )
 
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
@@ -705,7 +715,7 @@ if mergingEnabled:
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = mergeInputDataList,
                               inputDataType = mergeStream.lower(), outputSE = mergedStreamSE, numberOfEvents = evtsPerJob,
-                              condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
+                              condDBTag = mergeCDb, ddDBTag = mergeDDDb, DQTag = mergeDQ, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass )
     else:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % mergeApp )
@@ -843,7 +853,7 @@ if step4Enabled:
 
     step4_Prod.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( step4_Stream, strippProdID ) )
     step4_Prod.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
-    step4_Prod.setDBTags( step4_CDb, step4_DDDb )
+    step4_Prod.setDBTags( step4_CDb, step4_DDDb, step4_DQ )
 
     if step4_App.lower() == 'davinci':
       step4_Prod.addDaVinciStep( step4_Version, 'step4_', step4_Options, extraPackages = step4_EP, eventType = eventType,
@@ -853,7 +863,7 @@ if step4Enabled:
     elif step4_App.lower() == 'lhcb':
       step4_Prod.addMergeStep( step4_Version, step4_Options, strippProdID, eventType, step4_EP, inputData = step4_InputDataList,
                               inputDataType = step4_Stream.lower(), outputSE = step4_StreamSE, numberOfEvents = evtsPerJob,
-                              condDBTag = step4_CDb, ddDBTag = step4_DDDb, dataType = 'Data',
+                              condDBTag = step4_CDb, ddDBTag = step4_DDDb, DQTag = step4_DQ, dataType = 'Data',
                               stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility, stepPass = step4_Pass )
     else:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % step4_App )

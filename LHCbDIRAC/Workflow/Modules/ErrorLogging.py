@@ -53,30 +53,14 @@ class ErrorLogging( ModuleBase ):
     """ By convention the module input parameters are resolved here.
     """
     super( ErrorLogging, self )._resolveInputVariables()
+    super( ErrorLogging, self )._resolveInputStep()
 
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
-
-    #Must get all the necessary step parameters
-    if self.step_commons.has_key( 'applicationName' ):
-      self.applicationName = self.step_commons['applicationName']
-    if self.step_commons.has_key( 'applicationVersion' ):
-      self.applicationVersion = self.step_commons['applicationVersion']
-    if self.step_commons.has_key( 'applicationLog' ):
-      self.applicationLog = self.step_commons['applicationLog']
-
-    if not self.applicationName or not self.applicationVersion or not self.applicationLog:
-      return S_ERROR( 'One of application name, version or log file is null: %s %s %s' % ( self.applicationName, self.applicationVersion, self.applicationLog ) )
-
-    self.extraPackages = self.step_commons['extraPackages']
     if not self.extraPackages == '':
       if type( self.extraPackages ) != type( [] ):
         self.extraPackages = self.extraPackages.split( ';' )
 
     self.errorLogFile = 'Error_Log_%s_%s_%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
     self.errorLogName = '%s_Errors_%s_%s_%s.html' % ( self.jobID, self.applicationName, self.applicationVersion, self.step_number )
-
-    return S_OK( 'Parameters resolved' )
 
   #############################################################################
 
@@ -97,9 +81,6 @@ class ErrorLogging( ModuleBase ):
                                            wf_commons, step_commons, step_number, step_id )
 
       result = self._resolveInputVariables()
-      if not result['OK']:
-        self.log.info( result['Message'] )
-        return S_OK()
 
       if self.applicationName.lower() not in ( 'gauss', 'boole' ):
         self.log.info( 'Not Gauss nor Boole, exiting' )

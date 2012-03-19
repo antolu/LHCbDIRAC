@@ -11,7 +11,7 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
+from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 #from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
@@ -38,7 +38,7 @@ class GaudiApplication( ModuleBase ):
     self.runTimeProjectVersion = ''
     self.inputDataType = 'MDF'
     self.numberOfEvents = 0
-    self.inputData = '' # to be resolved
+    self.stepInputData = '' # to be resolved
     self.InputData = '' # from the (JDL WMS approach)
     self.outputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
@@ -47,8 +47,12 @@ class GaudiApplication( ModuleBase ):
     self.optionsLine = ''
     self.extraPackages = ''
     self.applicationType = ''
+    self.stepOutputsType = []
+    self.histoName = ''
     self.jobType = ''
     self.stdError = ''
+    self.DDDBTag = ''
+    self.DQTag = ''
 
   #############################################################################
 
@@ -57,77 +61,22 @@ class GaudiApplication( ModuleBase ):
     """
 
     super( GaudiApplication, self )._resolveInputVariables()
-
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
-
-    if self.step_commons.has_key( 'applicationName' ):
-      self.applicationName = self.step_commons['applicationName']
-      self.applicationVersion = self.step_commons['applicationVersion']
-      self.applicationLog = self.step_commons['applicationLog']
-
-    if self.step_commons.has_key( 'applicationType' ):
-      self.applicationType = self.step_commons['applicationType']
-
-    if self.step_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = self.step_commons['numberOfEvents']
-
-    if self.step_commons.has_key( 'optionsFile' ):
-      self.optionsFile = self.step_commons['optionsFile']
-
-    if self.step_commons.has_key( 'optionsLine' ):
-      self.optionsLine = self.step_commons['optionsLine']
-
-    if self.step_commons.has_key( 'generatorName' ):
-      self.generator_name = self.step_commons['generatorName']
-
-    if self.step_commons.has_key( 'runTimeProjectName' ):
-      self.runTimeProjectName = self.step_commons['runTimeProjectName']
-      self.runTimeProjectVersion = self.step_commons['runTimeProjectVersion']
-
-    if self.step_commons.has_key( 'extraPackages' ):
-      self.extraPackages = self.step_commons['extraPackages']
-      if not self.extraPackages == '':
-        if type( self.extraPackages ) != type( [] ):
-          self.extraPackages = self.extraPackages.split( ';' )
-
-    if self.workflow_commons.has_key( 'poolXMLCatName' ):
-      self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
-
-    if self.step_commons.has_key( 'inputDataType' ):
-      self.inputDataType = self.step_commons['inputDataType']
-
-    if self.workflow_commons.has_key( 'InputData' ):
-      self.InputData = self.workflow_commons['InputData']
-
-    if self.step_commons.has_key( 'inputData' ):
-      self.inputData = self.step_commons['inputData']
+    super( GaudiApplication, self )._resolveInputStep()
 
     #Input data resolution has two cases. Either there is explicitly defined
     #input data for the application step (a subset of total workflow input data reqt)
     #*or* this is defined at the job level and the job wrapper has created a
     #pool_xml_catalog.xml slice for all requested files.
-
-    if self.inputData:
+    if self.stepInputData:
       self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
-      if type( self.inputData ) != type( [] ):
-        self.inputData = self.inputData.split( ';' )
+      if type( self.stepInputData ) != type( [] ):
+        self.stepInputData = self.stepInputData.split( ';' )
     elif self.InputData:
       self.log.info( 'Input data defined taken from JDL parameter' )
       if type( self.InputData ) != type( [] ):
-        self.inputData = self.InputData.split( ';' )
+        self.InputData = self.InputData.split( ';' )
     else:
       self.log.verbose( 'Job has no input data requirement' )
-
-    if self.workflow_commons.has_key( 'JobType' ):
-      self.jobType = self.workflow_commons['JobType']
-
-    #only required until the stripping is the same for MC / data
-    if self.workflow_commons.has_key( 'configName' ):
-      self.bkConfigName = self.workflow_commons['configName']
-
-    if self.step_commons.has_key( 'listoutput' ):
-      self.stepOutputs = self.step_commons['listoutput']
 
   #############################################################################
 
@@ -149,16 +98,6 @@ class GaudiApplication( ModuleBase ):
         return S_OK()
 
       self._resolveInputVariables()
-
-      if not self.applicationName or not self.applicationVersion:
-        return S_ERROR( 'No Gaudi Application defined' )
-      elif not self.systemConfig:
-        return S_ERROR( 'No LHCb platform selected' )
-      elif not self.applicationLog:
-        return S_ERROR( 'No Log file provided' )
-
-      if not self.optionsFile and not self.optionsLine:
-        self.log.warn( 'No optionsFile or optionsLine specified in workflow' )
 
       self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName, self.applicationVersion, self.systemConfig ) )
@@ -185,24 +124,51 @@ class GaudiApplication( ModuleBase ):
 
       self.log.info( 'Final options files: %s' % ( self.optfile ) )
 
-      #Prepare standard project run time options
-      generatedOpts = 'gaudi_extra_options.py'
-      if os.path.exists( generatedOpts ):
-        os.remove( generatedOpts )
+#      #Prepare standard project run time options
+#      generatedOpts = 'gaudi_extra_options.py'
+#      if os.path.exists( generatedOpts ):
+#        os.remove( generatedOpts )
 
-      inputDataOpts = getDataOptions( self.applicationName, self.inputData, self.inputDataType, self.poolXMLCatName )['Value'] #always OK
       runNumberGauss = 0
       firstEventNumberGauss = 1
       if self.applicationName.lower() == "gauss" and self.production_id and self.prod_job_id:
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      projectOpts = getModuleOptions( self.applicationName, self.numberOfEvents, inputDataOpts, self.optionsLine, runNumberGauss, firstEventNumberGauss, self.jobType )['Value'] #always OK
-      self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
-      print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
-      options = open( generatedOpts, 'w' )
-      options.write( projectOpts )
-      options.close()
+      p = ProdConf()
+      optionsDict = {}
+      optionsDict['Application'] = self.applicationName
+      optionsDict['AppVersion'] = self.applicationVersion
+      if self.optionsFormat:
+        optionsDict['OptionFormat'] = self.optionsFormat
+      if self.stepInputData:
+        optionsDict['InputFiles'] = ['LFN:' + x for x in self.stepInputData.split( ',' )]
+      optionsDict['OutputFilePrefix'] = self.step_id
+      optionsDict['OutputFileTypes'] = self.stepOutputsType
+      optionsDict['XMLSummaryFile'] = self.XMLSummary
+      optionsDict['XMLFileCatalog'] = self.poolXMLCatName
+      if self.histoName:
+        optionsDict['HistogramFile'] = self.histoName
+      if self.DDDBTag:
+        optionsDict['DDDBTag'] = self.DDDBTag
+      if self.CondDBTag:
+        optionsDict['CondDBTag'] = self.CondDBTag
+      if self.DQTag:
+        optionsDict['DQTag'] = self.DQTag
+      optionsDict['NoOfEvents'] = int( self.numberOfEvents )
+      if runNumberGauss:
+        optionsDict['RunNumber'] = runNumberGauss
+      if firstEventNumberGauss:
+        optionsDict['FirstEventNumber'] = firstEventNumberGauss
+
+      p.putOptionsIn( optionsDict, freshStart = True )
+
+#      projectOpts = getModuleOptions( self.applicationName, self.numberOfEvents, inputDataOpts, self.optionsLine, runNumberGauss, firstEventNumberGauss, self.jobType )['Value'] #always OK
+#      self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
+#      print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
+#      options = open( generatedOpts, 'w' )
+#      options.write( projectOpts )
+#      options.close()
 
       if not projectEnvironment:
         #Now obtain the project environment for execution
@@ -222,21 +188,34 @@ class GaudiApplication( ModuleBase ):
 
       setup = gConfig.getValue( '/DIRAC/Setup', '' )
       gaudiRunFlags = gConfig.getValue( '/Operations/GaudiExecution/%s/gaudirunFlags' % ( setup ), '' )
-      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
+#      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
+      if self.optionsLine:
+        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'prodConf.py', self.optionsLine )
+      else:
+        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'prodConf.py' )
       print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
       #Set some parameter names
-      dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
-  #    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.production_id, self.prod_job_id, self.step_number, self.applicationName, self.applicationVersion )
-      scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
-  #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.production_id, self.prod_job_id, self.step_number, self.applicationName, self.applicationVersion )
-      coreDumpName = '%s_Step%s' % ( self.applicationName, self.step_number )
+      dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
+                                                            self.applicationVersion,
+                                                            self.step_number )
+      scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName,
+                                         self.applicationVersion,
+                                         self.step_number )
+      coreDumpName = '%s_Step%s' % ( self.applicationName,
+                                     self.step_number )
 
       #Wrap final execution command with defaults
-      finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
+      finalCommand = addCommandDefaults( command,
+                                         envDump = dumpEnvName,
+                                         coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
 
       #Create debug shell script to reproduce the application execution
-      debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
+      debugResult = createDebugScript( scriptName,
+                                       command,
+                                       env = projectEnvironment,
+                                       envLogFile = dumpEnvName,
+                                       coreDumpLog = coreDumpName ) #will add command defaults internally
       if debugResult['OK']:
         self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
@@ -245,7 +224,10 @@ class GaudiApplication( ModuleBase ):
       self.log.info( 'Running %s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
       self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
   #    result = {'OK':True,'Value':(0,'Disabled Execution','')}
-      result = shellCall( 0, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput, bufferLimit = 20971520 )
+      result = shellCall( 0, finalCommand,
+                          env = projectEnvironment,
+                          callbackFunction = self.redirectLogOutput,
+                          bufferLimit = 20971520 )
       if not result['OK']:
         return S_ERROR( 'Problem Executing Application' )
 

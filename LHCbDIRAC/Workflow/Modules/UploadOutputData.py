@@ -37,7 +37,7 @@ class UploadOutputData( ModuleBase ):
       self.existingCatalogs = result['Value']
 
     #List all parameters here
-    self.inputData = []
+    self.InputData = []
     self.outputDataFileMask = ''
     self.outputMode = 'Any' #or 'Local' for reco case
     self.outputList = []
@@ -79,12 +79,9 @@ class UploadOutputData( ModuleBase ):
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
-    if self.workflow_commons.has_key( 'InputData' ):
-      self.inputData = self.workflow_commons['InputData']
-
-    if self.inputData:
-      if type( self.inputData ) != type( [] ):
-        self.inputData = self.inputData.split( ';' )
+    if self.InputData:
+      if type( self.InputData ) != type( [] ):
+        self.InputData = self.InputData.split( ';' )
 
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
@@ -172,7 +169,7 @@ class UploadOutputData( ModuleBase ):
       #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
       #'Failed': [], 'NotProcessed': []}}
 
-      result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
+      result = self.checkInputsNotAlreadyProcessed( self.InputData, self.production_id, bkClient )
       if not result['OK']:
         return result
 
@@ -253,8 +250,8 @@ class UploadOutputData( ModuleBase ):
         self.workflow_commons['Request'] = self.request
         return S_ERROR( 'Failed to upload output data' )
 
-      #Now double-check prior to final BK replica flag setting that the input files are still not processed
-      result = self.checkInputsNotAlreadyProcessed( self.inputData, self.production_id, bkClient )
+      #Now double-check prior to final BK replica flag setting that the input files are still not processed 
+      result = self.checkInputsNotAlreadyProcessed( self.InputData, self.production_id, bkClient )
       if not result['OK']:
         lfns = []
         self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )

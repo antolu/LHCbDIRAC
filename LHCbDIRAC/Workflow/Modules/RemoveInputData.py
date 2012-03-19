@@ -25,7 +25,7 @@ class RemoveInputData( ModuleBase ):
 
     #List all parameters here
     self.request = None
-    self.inputData = []
+    self.stepInputData = []
 
   #############################################################################
 
@@ -34,17 +34,13 @@ class RemoveInputData( ModuleBase ):
     """
 
     super( RemoveInputData, self )._resolveInputVariables()
+    super( RemoveInputData, self )._resolveInputStep()
 
     #Get job input data files to be removed if previous modules were successful
-    if self.workflow_commons.has_key( 'InputData' ):
-      self.inputData = self.workflow_commons['InputData']
-      if type( self.inputData ) != type( [] ):
-        self.inputData = self.inputData.split( ';' )
-      self.inputData = [x.replace( 'LFN:', '' ) for x in self.inputData]
-    else:
-      return S_ERROR( 'No Input Data Defined' )
-
-    return S_OK( 'Parameters resolved' )
+    self.stepInputData = self.workflow_commons['InputData']
+    if type( self.stepInputData ) != type( [] ):
+      self.stepInputData = self.stepInputData.split( ';' )
+    self.stepInputData = [x.replace( 'LFN:', '' ) for x in self.stepInputData]
 
   #############################################################################
 
@@ -68,9 +64,6 @@ class RemoveInputData( ModuleBase ):
         return S_OK()
 
       result = self._resolveInputVariables()
-      if not result['OK']:
-        self.log.error( result['Message'] )
-        return result
 
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
@@ -78,15 +71,15 @@ class RemoveInputData( ModuleBase ):
 
       #Try to remove the file list with failover if necessary
       failover = []
-      self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputData ) )
+      self.log.info( 'Attempting rm.removeFile("%s")' % ( self.stepInputData ) )
       if not rm:
         from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
         rm = ReplicaManager()
-      result = rm.removeFile( self.inputData )
+      result = rm.removeFile( self.stepInputData )
       self.log.verbose( result )
       if not result['OK']:
         self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
-        failover = self.inputData
+        failover = self.stepInputData
       try:
         if result['Value']['Failed']:
           failureDict = result['Value']['Failed']
@@ -94,8 +87,8 @@ class RemoveInputData( ModuleBase ):
             self.log.info( 'Not all files were successfully removed, see "LFN : reason" below\n%s' % ( failureDict ) )
           failover = failureDict.keys()
       except KeyError:
-        self.log.error( 'Setting files for removal request to be the input data: %s' % self.inputData )
-        failover = self.inputData
+        self.log.error( 'Setting files for removal request to be the input data: %s' % self.stepInputData )
+        failover = self.stepInputData
 
       for lfn in failover:
         self.__setFileRemovalRequest( lfn )

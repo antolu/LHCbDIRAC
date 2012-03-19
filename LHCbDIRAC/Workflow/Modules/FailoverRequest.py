@@ -27,7 +27,7 @@ class FailoverRequest( ModuleBase ):
 
     self.version = __RCSID__
 
-    self.inputData = []
+    self.stepInputData = []
 
   #############################################################################
 
@@ -35,16 +35,14 @@ class FailoverRequest( ModuleBase ):
     """ By convention the module input parameters are resolved here.
     """
     super( FailoverRequest, self )._resolveInputVariables()
+    super( FailoverRequest, self )._resolveInputStep()
 
-    if self.workflow_commons.has_key( 'InputData' ):
-      self.inputData = self.workflow_commons['InputData']
-      if self.inputData:
-        if type( self.inputData ) != type( [] ):
-          self.inputData = self.inputData.split( ';' )
-      else:
-        self.inputData = []
-
-      self.inputData = [x.replace( 'LFN:', '' ) for x in self.inputData]
+    if self.stepInputData:
+      if type( self.stepInputData ) != type( [] ):
+        self.stepInputData = self.stepInputData.split( ';' )
+      self.stepInputData = [x.replace( 'LFN:', '' ) for x in self.stepInputData]
+    else:
+      self.stepInputData = []
 
   #############################################################################
 
@@ -72,9 +70,9 @@ class FailoverRequest( ModuleBase ):
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
       #report on the status of the input data
-      if self.inputData:
+      if self.stepInputData:
         inputFiles = self.fileReport.getFiles()
-        for lfn in self.inputData:
+        for lfn in self.stepInputData:
           if not lfn in inputFiles:
             self.log.verbose( 'No status populated for input data %s, setting to "Unused"' % lfn )
             self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )

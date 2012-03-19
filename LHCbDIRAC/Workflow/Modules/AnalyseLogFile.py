@@ -40,7 +40,7 @@ class AnalyseLogFile( ModuleBase ):
     #Resolved to be the input data of the current step
     self.stepInputData = []
     #Dict of input data for the job and status
-    self.jobInputData = {}
+    self.InputData = {}
 
 ################################################################################
 
@@ -93,16 +93,16 @@ class AnalyseLogFile( ModuleBase ):
 #        if analyseLogResult.has_key( 'Data' ):
 #          fNameStatusDict = analyseLogResult['Data']
 #          fNameLFNs = {}
-#          for lfn in self.jobInputData.keys():
+#          for lfn in self.InputData.keys():
 #            for fName, status in fNameStatusDict.items():
 #              if os.path.basename( lfn ) == fName:
 #                fNameLFNs[lfn] = status
 #          for lfn, status in fNameLFNs.items():
-#            self.jobInputData[lfn] = status
+#            self.InputData[lfn] = status
 
         self._finalizeWithErrors( analyseLogResult['Message'], nc, rm, bk )
 
-        self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( self.InputData, "Unused", int( self.production_id ), rm, self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -111,7 +111,7 @@ class AnalyseLogFile( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( self.jobInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( self.InputData, "Unused", int( self.production_id ), rm, self.fileReport )
         return S_OK()
 
       else:
@@ -119,7 +119,7 @@ class AnalyseLogFile( ModuleBase ):
         self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( self.jobInputData, "Processed", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( self.InputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
         return S_OK()
 
@@ -140,36 +140,23 @@ class AnalyseLogFile( ModuleBase ):
     """
 
     super( AnalyseLogFile, self )._resolveInputVariables()
-
-    self.applicationName = self.step_commons['applicationName']
-    self.applicationVersion = self.step_commons['applicationVersion']
-
-    if self.workflow_commons.has_key( 'InputData' ):
-      if self.workflow_commons['InputData']:
-        self.jobInputData = self.workflow_commons['InputData']
-
-    if self.step_commons.has_key( 'inputData' ):
-      if self.step_commons['inputData']:
-        self.stepInputData = self.step_commons['inputData']
+    super( AnalyseLogFile, self )._resolveInputStep()
 
     if self.stepInputData:
       self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
       if type( self.stepInputData ) != type( [] ):
         self.stepInputData = self.stepInputData.split( ';' )
-
-    if self.jobInputData:
+    if self.InputData:
       self.log.info( 'All input data for workflow taken from JDL parameter' )
-      if type( self.jobInputData ) != type( [] ):
-        self.jobInputData = self.jobInputData.split( ';' )
+      if type( self.InputData ) != type( [] ):
+        self.InputData = self.InputData.split( ';' )
       jobStatusDict = {}
       #clumsy but now make this a dictionary with default "OK" status for all input data
-      for lfn in self.jobInputData:
+      for lfn in self.InputData:
         jobStatusDict[lfn.replace( 'LFN:', '' )] = 'OK'
-      self.jobInputData = jobStatusDict
+      self.InputData = jobStatusDict
     else:
       self.log.verbose( 'Job has no input data requirement' )
-
-    self.applicationLog = self.step_commons['applicationLog']
 
     #Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key( 'LogFilePath' ):

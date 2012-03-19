@@ -79,6 +79,19 @@ class ProdConfSuccess( UtilitiesTestCase ):
     except OSError:
       pass
     pc1 = ProdConf()
+    pc1.putOptionsIn( {'RunNumber':12345} )
+    self.assertEquals( pc1.whatsIn, {'RunNumber':12345} )
+    fopen = open( 'prodConf.py', 'r' )
+    fileString = fopen.read()
+    fopen.close()
+    string = "from ProdConf import ProdConf\n\nProdConf(\n  RunNumber=12345,\n)"
+    self.assertEquals( string, fileString )
+
+    try:
+      os.remove( 'prodConf.py' )
+    except OSError:
+      pass
+    pc1 = ProdConf()
     pc1.putOptionsIn( {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
     self.assertEquals( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
 
@@ -101,6 +114,8 @@ class ProdConfSuccess( UtilitiesTestCase ):
     self.assertEquals( pc1.whatsIn, {'Application':'DaVinci', 'InputFiles':['foo', 'bar']} )
     pc1.putOptionsIn( {'Application':'LHCb'} )
     self.assertEquals( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar']} )
+    pc1.putOptionsIn( {'RunNumber':12345} )
+    self.assertEquals( pc1.whatsIn, {'Application':'LHCb', 'InputFiles':['foo', 'bar'], 'RunNumber':12345} )
 
     try:
       os.remove( 'prodConf.py' )
@@ -140,12 +155,12 @@ class ProdConfSuccess( UtilitiesTestCase ):
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='LHCb',\n  InputFiles=[],\n  AppVersion='v30r0',\n)"
     self.assertEquals( string, fileString )
 
-    pc1.putOptionsIn( {'Application':''} )
-    self.assertEquals( pc1.whatsIn, {'Application': '', 'InputFiles': [], 'AppVersion': 'v30r0'} )
+    pc1.putOptionsIn( {'Application':'', 'RunNumber':12345} )
+    self.assertEquals( pc1.whatsIn, {'Application': '', 'InputFiles': [], 'AppVersion': 'v30r0', 'RunNumber':12345} )
     fopen = open( 'prodConf.py', 'r' )
     fileString = fopen.read()
     fopen.close()
-    string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='',\n  InputFiles=[],\n  AppVersion='v30r0',\n)"
+    string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='',\n  InputFiles=[],\n  AppVersion='v30r0',\n  RunNumber=12345,\n)"
     self.assertEquals( string, fileString )
 
 

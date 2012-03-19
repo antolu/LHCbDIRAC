@@ -18,13 +18,19 @@ class ProdConf:
 
     self.optionsDict = {'Application': 'string',
                         'AppVersion': 'string',
+                        'OptionFormat':'string',
                         'InputFiles': 'list',
                         'OutputFilePrefix': 'string',
                         'OutputFileTypes': 'list',
                         'XMLFileCatalog': 'string',
+                        'XMLSummaryFile':'string',
                         'HistogramFile': 'string',
                         'DDDBTag': 'string',
-                        'CondDBTag': 'string'
+                        'CondDBTag': 'string',
+                        'DQTag':'string',
+                        'NoOfEvents':'integer',
+                        'RunNumber':'integer',
+                        'FirstEventNumber':'integer',
                         }
 
     if not log:
@@ -62,7 +68,8 @@ class ProdConf:
             if optionValue:
               if type == 'list':
                 optionValueEls = optionValue.split( '[' )
-              elif type == 'string':
+#              elif type == 'string':
+              else:
                 optionValueEls = optionValue.split( ',' )
               for optionValueEl in optionValueEls:
                 if optionValueEl:
@@ -73,13 +80,22 @@ class ProdConf:
                     else:
                       value = [x.strip() for x in value.split( ',' )]
                       value.remove( '' )
+                  elif type == 'integer':
+                    value = int( value )
                   self.whatsIn[option] = value
 
 ################################################################################
 
-  def putOptionsIn( self, optionsDict ):
+  def putOptionsIn( self, optionsDict, freshStart = False ):
     """ Put options, specified in the optionsDict, in the options file 
     """
+
+    if freshStart:
+      try:
+        os.remove( self.fileName )
+        self._getWhatsIn()
+      except OSError:
+        pass
 
     optsThatWillGoIn = self._buildOptions( optionsDict )
     str = self._getOptionsString( optsThatWillGoIn )
@@ -113,10 +129,12 @@ class ProdConf:
     string = 'from ProdConf import ProdConf\n\n'
     string = string + 'ProdConf(\n'
     for opt, value in optsThatWillGoIn.items():
-      if self.optionsDict[opt] == 'string':
-        string = string + '  ' + opt + "='" + value + "'," + '\n'
-      elif self.optionsDict[opt] == 'list':
+      if self.optionsDict[opt] == 'list':
         string = string + '  ' + opt + '=' + str( value ) + ',' + '\n'
+      elif self.optionsDict[opt] == 'string':
+        string = string + '  ' + opt + "='" + value + "'," + '\n'
+      else:
+        string = string + '  ' + opt + "=" + str( value ) + "," + '\n'
     string = string + ')'
 
     return string
