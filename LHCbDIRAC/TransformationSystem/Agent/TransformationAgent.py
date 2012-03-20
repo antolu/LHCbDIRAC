@@ -87,10 +87,11 @@ class TransformationAgent( DIRACTransformationAgent ):
           self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID=transID )
         else:
           self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID=transID )
-      except:
-        self.__logError( "Exception when processing transformation", transID=transID )
+      except Exception, x:
+        gLogger.exception( '[%s] %s.execute %s' % ( str( transID ), AGENT_NAME, x ) )
       finally:
-        self.transInQueue.remove( transID )
+        if transID in self.transInQueue:
+          self.transInQueue.remove( transID )
     return S_OK()
 
   def __getDataReplicas( self, transID, lfns, active=True ):
