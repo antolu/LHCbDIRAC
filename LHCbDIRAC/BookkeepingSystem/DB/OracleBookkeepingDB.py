@@ -237,16 +237,20 @@ class OracleBookkeepingDB(IBookkeepingDB):
         if start != default and max != default:
           paging = True
 
-        sort = dict.get('SortItems', default)
+        sort = dict.get('Sort', default)
         if sort != default:
           condition += 'Order by '
-          if type(sort) == types.ListType:
+          order = sort.get('Order', 'Asc')
+          if order.upper() not in ['ASC', 'DESC']:
+            return S_ERROR("wrong sorting order!")
+          items = sort.get('Items', default)
+          if type(items) == types.ListType:
             ord = ''
-            for item in sort:
+            for item in items:
               ord += 's.%s,' % (item)
-            condition += ord[:-1]
-          elif type(sort) == types.StringType:
-            condition += ' s.%s' % sort
+            condition += ' %s %s' % (ord[:-1], order)
+          elif type(items) == types.StringType:
+            condition += ' s.%s %s' % (items, order)
           else:
             result = S_ERROR('SortItems is not properly defined!')
         else:
