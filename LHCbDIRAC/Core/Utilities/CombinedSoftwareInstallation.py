@@ -468,17 +468,6 @@ def LocalArea():
 
 #############################################################################
 
-class DummyRPC:
-  def globalStatus( self ):
-    return { 'OK' : True , 'Value' :
-    { '0' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 },
-    '1' : { 'config' : {'ApplicationName': 'Brunel', 'ApplicationVersion': 'v35r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/Brunel/FEST-200903.py', '$APPCONFIGOPTS/UseOracle.py'], 'CondDb': 'head-20090112'} , 'availability' : 0.3 } ,
-    '2' : { 'config' : {'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v23r0p1', 'ExtraPackages': ['AppConfig.v2r3p1'], 'DDDb': 'head-20090112', 'OptionFiles': ['$APPCONFIGOPTS/DaVinci/DVMonitorDst.py'], 'CondDb': 'head-20090112' } , 'availability' : 0.3 }
-    }
-    }
-
-#############################################################################
-
 def compareConfigs( self , config1 , config2 ):
   if len( config1.keys() ) != len( config2.keys() ):
     return False

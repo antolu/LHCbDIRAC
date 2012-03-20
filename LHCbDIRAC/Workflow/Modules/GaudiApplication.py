@@ -369,26 +369,4 @@ class GaudiApplication( ModuleBase ):
       if fd == 1:
         self.stdError += message
 
-  #############################################################################
-
-  def compareConfigs( self , config1 , config2 ): # FIXME
-    if len( config1.keys() ) != len( config2.keys() ):
-      return False
-    for key in config1:
-      if not key in config2:
-        return False
-      else:
-        if key == 'ExtraPackages':
-          if not sorted( config2[ 'ExtraPackages' ] ) == sorted( config1[ 'ExtraPackages' ] ):
-            return False
-        elif config1[ key ] != config2[ key ]:
-          return False
-    return True
-
-  # def writeLogFromList( self , loglines ):
-  #   log = open( self.step_commons[ 'applicationLog' ] , 'w' )
-  #   for line in loglines:
-  #     log.write( "%s\n" %line )
-  #   log.close()
-
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
