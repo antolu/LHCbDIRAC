@@ -7,18 +7,11 @@
 
 __RCSID__ = "$Id: FileUsage.py 35442 2012-01-16 11:00:54Z dremensk $"
 import os
-#from DIRAC.DataManagementSystem.Client.ReplicaManager      import ReplicaManager
-#from DIRAC.DataManagementSystem.Client.FailoverTransfer    import FailoverTransfer
-#from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-#from DIRAC.Core.Security.Misc                              import getProxyInfo
-#from DIRAC.Core.Utilities.File                             import getGlobbedFiles
 from DIRAC.Core.Utilities                                  import List
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from DIRAC.Resources.Catalog.PoolXMLCatalog import PoolXMLCatalog
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
-#from LHCbDIRAC.Core.Utilities.ProductionData               import constructUserLFNs
-#from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
 
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
@@ -28,6 +21,7 @@ import string, os, random, time, re
 class FileUsage( ModuleBase ):
 
   #############################################################################
+
   def __init__( self ):
     """Module initialization.
     """
@@ -42,31 +36,31 @@ class FileUsage( ModuleBase ):
     #Dict of input data for the job and status
     #self.jobInputData = {}
     #Always allow any files specified by users
-    self.inputData = [] # to be resolved
+    self.inputDataList = []
     self.dirDict = {}
     self.dataUsageClient = DataUsageClient()
+
   #############################################################################
+
   def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
     self.log.verbose( self.workflow_commons )
-    #self.log.verbose( self.step_commons )
+
     super( FileUsage, self )._resolveInputVariables()
-    self.dirDict = {}
-    if self.workflow_commons.has_key( 'InputData' ):
-      self.inputData = self.workflow_commons['InputData']
-      if self.inputData:
-        if type( self.inputData ) != type( [] ):
-          self.inputData = self.inputData.split( ';' )
-      else:
-        self.inputData = []
+
+    if self.InputData:
+      self.inputDataList = self.InputData
+      if type( self.inputDataList ) != type( [] ):
+        self.inputDataList = self.inputDataList.split( ';' )
+
 
     #InputData: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', '/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
     #build the dictionary of dataset usage
     #strip the 'LFN:' part if present
 
-    if self.inputData:
-      for inputFile in self.inputData:
+    if self.inputDataList:
+      for inputFile in self.inputDataList:
         baseName = os.path.basename( inputFile )
         strippedDir = inputFile[0:inputFile.find( baseName )].strip( 'LFN:' )
         if not strippedDir:
@@ -102,8 +96,8 @@ class FileUsage( ModuleBase ):
     try:
 
       super( FileUsage, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                            workflowStatus, stepStatus,
-                                            wf_commons, step_commons, step_number, step_id )
+                                        workflowStatus, stepStatus,
+                                        wf_commons, step_commons, step_number, step_id )
 
       if not self._enableModule():
         return S_OK()

@@ -201,13 +201,14 @@ class ModuleBase( object ):
       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
     self.InputData = ''
+    print self.InputData
     if self.workflow_commons.has_key( 'InputData' ):
       if self.workflow_commons['InputData']:
         self.InputData = self.workflow_commons['InputData']
 
     if self.workflow_commons.has_key( 'ParametricInputData' ):
       self.InputData += ';' + self.workflow_commons['ParametricInputData']
-
+      print self.InputData
       self.InputData = self.InputData.rstrip( ';' )
       if self.InputData == ';':
         self.InputData = ''
