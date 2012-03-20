@@ -16,7 +16,6 @@ from DIRAC import gConfig
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
-from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 

@@ -37,7 +37,7 @@ class AnalyseXMLSummary( ModuleBase ):
     #Resolved to be the input data of the current step
     self.stepInputData = []
     #Dict of input data for the job and status
-    self.InputData = {}
+    self.dictOfInputData = {}
 
 ################################################################################
 
@@ -85,7 +85,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.error( analyseXMLSummaryResult['Message'] )
         self._finalizeWithErrors( analyseXMLSummaryResult['Message'], nc, rm, bk )
 
-        self._updateFileStatus( self.InputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( self.dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -94,7 +94,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( self.InputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( self.dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         return S_OK()
 
       else:
@@ -102,7 +102,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.info( 'XML summary %s, %s' % ( self.XMLSummary, analyseXMLSummaryResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( self.InputData, "Processed", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( self.dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
         return S_OK()
 
@@ -129,15 +129,17 @@ class AnalyseXMLSummary( ModuleBase ):
       self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
       if type( self.stepInputData ) != type( [] ):
         self.stepInputData = self.stepInputData.split( ';' )
+
+    inputDataList = []
     if self.InputData:
       self.log.info( 'All input data for workflow taken from JDL parameter' )
       if type( self.InputData ) != type( [] ):
-        self.InputData = self.InputData.split( ';' )
+        inputDataList = self.InputData.split( ';' )
       jobStatusDict = {}
       #clumsy but now make this a dictionary with default "OK" status for all input data
-      for lfn in self.InputData:
+      for lfn in inputDataList:
         jobStatusDict[lfn.replace( 'LFN:', '' )] = 'OK'
-      self.InputData = jobStatusDict
+      self.dictOfInputData = jobStatusDict
     else:
       self.log.verbose( 'Job has no input data requirement' )
 

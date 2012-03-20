@@ -39,7 +39,6 @@ class GaudiApplication( ModuleBase ):
     self.inputDataType = 'MDF'
     self.numberOfEvents = 0
     self.stepInputData = '' # to be resolved
-    self.InputData = '' # from the (JDL WMS approach)
     self.outputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name = ''
@@ -75,8 +74,8 @@ class GaudiApplication( ModuleBase ):
         self.stepInputData = self.stepInputData.split( ';' )
     elif self.InputData:
       self.log.info( 'Input data defined taken from JDL parameter' )
-      if type( self.InputData ) != type( [] ):
-        self.InputData = self.InputData.split( ';' )
+#      if type( self.InputData ) != type( [] ):
+#        self.InputData = self.InputData.split( ';' )
     else:
       self.log.verbose( 'Job has no input data requirement' )
 

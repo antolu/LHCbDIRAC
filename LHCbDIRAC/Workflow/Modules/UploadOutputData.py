@@ -37,7 +37,6 @@ class UploadOutputData( ModuleBase ):
       self.existingCatalogs = result['Value']
 
     #List all parameters here
-    self.InputData = []
     self.outputDataFileMask = ''
     self.outputMode = 'Any' #or 'Local' for reco case
     self.outputList = []
@@ -81,7 +80,9 @@ class UploadOutputData( ModuleBase ):
 
     if self.InputData:
       if type( self.InputData ) != type( [] ):
-        self.InputData = self.InputData.split( ';' )
+        self.InputDataList = self.InputData.split( ';' )
+      else:
+        self.InputDataList = self.InputData
 
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
@@ -169,7 +170,7 @@ class UploadOutputData( ModuleBase ):
       #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
       #'Failed': [], 'NotProcessed': []}}
 
-      result = self.checkInputsNotAlreadyProcessed( self.InputData, self.production_id, bkClient )
+      result = self.checkInputsNotAlreadyProcessed( self.InputDataList, self.production_id, bkClient )
       if not result['OK']:
         return result
 
@@ -251,7 +252,7 @@ class UploadOutputData( ModuleBase ):
         return S_ERROR( 'Failed to upload output data' )
 
       #Now double-check prior to final BK replica flag setting that the input files are still not processed 
-      result = self.checkInputsNotAlreadyProcessed( self.InputData, self.production_id, bkClient )
+      result = self.checkInputsNotAlreadyProcessed( self.InputDataList, self.production_id, bkClient )
       if not result['OK']:
         lfns = []
         self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )

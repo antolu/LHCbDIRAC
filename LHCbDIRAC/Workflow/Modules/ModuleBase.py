@@ -200,6 +200,7 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'poolXMLCatName' ):
       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
+    self.InputData = ''
     if self.workflow_commons.has_key( 'InputData' ):
       if self.workflow_commons['InputData']:
         self.InputData = self.workflow_commons['InputData']
