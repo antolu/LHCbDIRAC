@@ -83,7 +83,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     result = S_ERROR()
     retVal = dataMGMT_.getAvailableSteps(dict)
     if retVal['OK']:
-      parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'RuntimeProjects', 'DQTag', 'OptionsFormat']
+      parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat', 'RuntimeProjects']
       rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat']
       records = []
       for record in retVal['Value']:

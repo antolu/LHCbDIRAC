@@ -97,7 +97,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [[], outfiletypes, matching])
       elif infiletypes != default:
         infiletypes.sort()
-        result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes,[], matching])
+        result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, [], matching])
       else:
         startDate = dict.get('StartDate', default)
         if startDate != default:
@@ -109,43 +109,103 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
         stepName = dict.get('StepName', default)
         if stepName != default:
-          condition += " and s.stepname='%s'" % (stepName)
+          if type(stepName) == types.StringType:
+            condition += " and s.stepname='%s'" % (stepName)
+          elif type(stepName) == types.ListType:
+            values = ' and ('
+            for i in stepName:
+              values += " s.stepname='%s' or " % (i)
+            condition += values[:-3] + ')'
 
         appName = dict.get('ApplicationName', default)
         if appName != default:
-          condition += " and s.applicationName='%s'" % (appName)
+          if type(appName) == types.StringType:
+            condition += " and s.applicationName='%s'" % (appName)
+          elif type(appName) == types.ListType:
+            values = ' and ('
+            for i in appName:
+              values += " s.applicationName='%s' or " % (i)
+            condition += values[:-3] + ')'
 
         appVersion = dict.get('ApplicationVersion', default)
         if appVersion != default:
-          condition += " and s.applicationversion='%s'" % (appVersion)
+          if type(appVersion) == types.StringType:
+            condition += " and s.applicationversion='%s'" % (appVersion)
+          elif type(appVersion) == types.ListType:
+            values = ' and ('
+            for i in appVersion:
+              values += " s.applicationversion='%s' or " % (i)
+            condition += values[:-3] + ')'
 
         optFile = dict.get('OptionFiles', default)
         if optFile != default:
-          condition += " and s.optionfiles='%s'" % (optFile)
+          if type(optFile) == types.StringType:
+            condition += " and s.optionfiles='%s'" % (optFile)
+          elif type(optFile) == types.ListType:
+            values = ' and ('
+            for i in optFile:
+              values += " s.optionfiles='%s' or " % (optFile)
+            condition += values[:-3] + ')'
 
         dddb = dict.get('DDDB', default)
         if dddb != default:
-          condition += " and s.dddb='%s'" % (dddb)
+          if type(dddb) == types.StringType:
+            condition += " and s.dddb='%s'" % (dddb)
+          elif type(dddb) == types.ListType:
+            values = ' and ('
+            for i in dddb:
+              values += " and s.dddb='%s' or " % (dddb)
+            condition += values[:-3] + ')'
 
         conddb = dict.get('CONDDB', default)
         if conddb != default:
-          condition += " and s.conddb='%s'" % (conddb)
+          if type(conddb) == types.StringType:
+            condition += " and s.conddb='%s'" % (conddb)
+          elif type(conddb) == types.ListType:
+            values = ' and ('
+            for i in conddb:
+              values += " and s.conddb='%s' or " % (conddb)
+            condition += values[:-3] + ')'
 
         extraP = dict.get('ExtraPackages', default)
         if extraP != default:
-          condition += " and s.extrapackages='%s'" % (extraP)
+          if type(extraP) == types.StringType:
+            condition += " and s.extrapackages='%s'" % (extraP)
+          elif type(extraP) == types.ListType:
+            values = ' and ('
+            for i in extraP:
+              values += " and s.extrapackages='%s' or " % (extraP)
+            condition += values + ')'
 
         visible = dict.get('Visible', default)
         if visible != default:
-          condition += " and s.visible='%s'" % (visible)
+          if type(visible) == types.StringType:
+            condition += " and s.visible='%s'" % (visible)
+          elif type(visible) == types.ListType:
+            values = ' and ('
+            for i in visible:
+              values += " and s.visible='%s' or " % (visible)
+            condition += values[:-3] + ')'
 
         procPass = dict.get('ProcessingPass', default)
         if procPass != default:
-          condition += " and s.processingpass='%s'" % (procPass)
+          if type(procPass) == types.StringType:
+            condition += " and s.processingpass='%s'" % (procPass)
+          elif type(procPass) == types.ListType:
+            values = ' and ('
+            for i in procPass:
+              values += " and s.processingpass='%s' or " % (procPass)
+            condition += values[:-3] + ')'
 
         usable = dict.get('Usable', default)
         if usable != default:
-          condition += " and s.usable='%s'" % (usable)
+          if type(usable) == types.StringType:
+            condition += " and s.usable='%s'" % (usable)
+          elif type(usable) == types.ListType:
+            values = ' and ('
+            for i in usable:
+              values += " and s.usable='%s'" % (usable)
+            condition += values[:-3] + ')'
 
         runtimeProject = dict.get('RuntimeProjects', default)
         if runtimeProject != default:
@@ -153,17 +213,44 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
         dqtag = dict.get('DQTag', default)
         if dqtag != default:
-          condition += " and s.dqtag='%s'"%(dqtag)
+          if type(dqtag) == types.StringType:
+            condition += " and s.dqtag='%s'" % (dqtag)
+          elif type(dqtag) == types.ListType:
+            values = ' and ('
+            for i in dqtag:
+              values += " and s.dqtag='%s' or " % (dqtag)
+            condition += values[:-3] + ')'
 
         optsf = dict.get('OptionsFormat', default)
         if optsf != default:
-          condition += " and s.optionsFormat='%s'"%()
+          if type(optsf) == types.StringType:
+            condition += " and s.optionsFormat='%s'" % (optsf)
+          elif type(optsf) == types.ListType:
+            values = ' and ('
+            for i in optsf:
+              values += " and s.optionsFormat='%s' or " % (optsf)
+            condition += values[:-3] + ')'
 
         start = dict.get('StartItem', default)
         max = dict.get('MaxItem', default)
 
         if start != default and max != default:
           paging = True
+
+        sort = dict.get('SortItems', default)
+        if sort != default:
+          condition += 'Order by '
+          if type(sort) == types.ListType:
+            ord = ''
+            for item in sort:
+              ord += 's.%s,' % (item)
+            condition += ord[:-1]
+          elif type(sort) == types.StringType:
+            condition += ' s.%s' % sort
+          else:
+            result = S_ERROR('SortItems is not properly defined!')
+        else:
+          condition += ' order by s.inserttimestamps desc'
 
         if paging:
           command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf \
@@ -174,20 +261,19 @@ class OracleBookkeepingDB(IBookkeepingDB):
       s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible , s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf, \
       r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname, r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
       r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass, r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf \
-      from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s order by s.inserttimestamps desc \
+      from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s \
        ) where rownum <=%d ) where r >%d" % (tables, condition, max, start)
         else:
           command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, \
           r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat \
-          from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s order by s.inserttimestamps desc' % (tables, condition)
+          from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s ' % (tables, condition)
         result = self.dbR_._query(command)
     else:
         command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat,\
         r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat \
-        from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid order by s.inserttimestamps desc' % (tables)
+        from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid ' % (tables)
         result = self.dbR_._query(command)
     return result
-
 
   #############################################################################
   def getRuntimeProjects(self, dict):
