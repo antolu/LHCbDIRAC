@@ -886,58 +886,58 @@ class BookkeepingClient:
 
   #############################################################################
   def getProductionInformation(self, prodid):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'getProductionInformation' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.getProductionInformation(long(prodid))
 
   #############################################################################
   def sendBookkeeping(self, name, xml):
-    self.__errorReport('This method is obsolete and it will be removed from the next LHCbDirac release. Please use the sendXMLBookkeepingReport!')
+    self.__errorReport("The 'sendBookkeeping' method is obsolete and it will be removed from the next LHCbDirac release. Please use the sendXMLBookkeepingReport!")
     return self.sendXMLBookkeepingReport(xml)
 
   #############################################################################
   def setQuality(self, lfns, flag):
-    self.__errorReport("This method is obsolete and it will be removed from the next LHCbDirac release. Please use the 'setFileDataQuality'!")
+    self.__errorReport("The 'setQuality' method is obsolete and it will be removed from the next LHCbDirac release. Please use the 'setFileDataQuality'!")
     return self.setFileDataQuality(lfns, flag)
 
   #############################################################################
   def getFilesSumary(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the getFilesSummary!")
+    self.__errorReport("The 'getFilesSumary' method is obsolete and it will be removed from the next release. Please use the getFilesSummary!")
     return self.getFilesSummary(dict)
 
   #############################################################################
   def getAvailableRunNumbers(self):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getAvailableRuns'!")
+    self.__errorReport("The 'getAvailableRunNumbers' method is obsolete and it will be removed from the next release. Please use the 'getAvailableRuns'!")
     return self.getAvailableRuns()
 
   #############################################################################
   def getInputAndOutputJobFiles(self, jobids):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getJobInputAndOutputJobFiles'!")
+    self.__errorReport("The 'getInputAndOutputJobFiles' method is obsolete and it will be removed from the next release. Please use the 'getJobInputAndOutputJobFiles'!")
     return self.getJobInputAndOutputJobFiles(jobids)
 
   #############################################################################
   def setRunQualityWithProcessing(self, runNB, procpass, flag):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'setRunAndProcessingPassDataQuality'!")
+    self.__errorReport("The 'setRunQualityWithProcessing' method is obsolete and it will be removed from the next release. Please use the 'setRunAndProcessingPassDataQuality'!")
     return self.setRunAndProcessingPassDataQuality(runNB, procpass, flag)
 
   #############################################################################
   def setQualityRun(self, runNb, flag):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'setRunDataQuality'!")
+    self.__errorReport("The 'setQualityRun' method is obsolete and it will be removed from the next release. Please use the 'setRunDataQuality'!")
     return self.setRunDataQuality(runNb, flag)
 
   #############################################################################
   def setQualityProduction(self, prod, flag):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'setProductionDataQuality'!")
+    self.__errorReport("The 'setQualityProduction' method is obsolete and it will be removed from the next release. Please use the 'setProductionDataQuality'!")
     return self.setProductionDataQuality(prod, flag)
 
   #############################################################################
   def getLFNsByProduction(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionFiles'!")
+    self.__errorReport("The 'getLFNsByProduction' method is obsolete and it will be removed from the next release. Please use the 'getProductionFiles'!")
     return self.getProductionFiles(prodid, 'ALL','ALL')
 
   #############################################################################
   def getAncestors(self, lfns, depth=1):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
+    self.__errorReport("The 'getAncestors' method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -956,7 +956,7 @@ class BookkeepingClient:
 
   #############################################################################
   def getAllAncestorsWithFileMetaData(self, lfns, depth=1):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
+    self.__errorReport("The 'getAllAncestorsWithFileMetaData' method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -967,7 +967,7 @@ class BookkeepingClient:
 
   #############################################################################
   def getAllAncestors(self, lfns, depth=1):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
+    self.__errorReport("The 'getAllAncestors' method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -986,7 +986,7 @@ class BookkeepingClient:
 
   #############################################################################
   def getDescendents(self, lfns, depth=0):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileDescendents'!")
+    self.__errorReport("The 'getDescendents' method is obsolete and it will be removed from the next release. Please use the 'getFileDescendents'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -997,7 +997,7 @@ class BookkeepingClient:
 
   #############################################################################
   def getAllDescendents(self, lfns, depth=0, production=0, checkreplica=False):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileDescendents'!")
+    self.__errorReport("The 'getAllDescendents' method is obsolete and it will be removed from the next release. Please use the 'getFileDescendents'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -1008,141 +1008,141 @@ class BookkeepingClient:
 
   #############################################################################
   def checkfile(self, fileName):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'checkfile' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     result = server.checkfile(fileName)
     return result
 
   #############################################################################
   def checkFileTypeAndVersion(self, type, version):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'checkFileTypeAndVersion' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     result = server.checkFileTypeAndVersion(type, version)
     return result
 
   #############################################################################
   def checkEventType(self, eventTypeId):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'checkEventType' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     result = server.checkEventType(long(eventTypeId))
     return result
 
   #############################################################################
   def removeReplica(self, fileName):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'removeReplica' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.removeReplica(fileName)
 
   #############################################################################
   def addReplica(self, fileName):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'addReplica' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.addReplica(fileName)
 
   #############################################################################
   def getFilesInformations(self, lfns):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileMetadata'!")
+    self.__errorReport("The 'getFilesInformations' method is obsolete and it will be removed from the next release. Please use the 'getFileMetadata'!")
     server = self.__getServer()
     return server.getFileMetadata(lfns)
 
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileMetaDataForWeb'!")
+    self.__errorReport("The 'getFileMetaDataForUsers' method is obsolete and it will be removed from the next release. Please use the 'getFileMetaDataForWeb'!")
     server = self.__getServer()
     result = server.getFileMetaDataForWeb(lfns)
     return result
 
   ############################################################################
   def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionFilesForWeb'!")
+    self.__errorReport("The 'getProductionFilesForUsers' method is obsolete and it will be removed from the next release. Please use the 'getProductionFilesForWeb'!")
     server = self.__getServer()
     result = server.getProductionFilesForWeb(int(prod), ftype, SortDict, long(StartItem), long(Maxitems))
     return result
 
   #############################################################################
   def getLogfile(self, lfn):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileCreationLog'!")
+    self.__errorReport("The 'getLogfile' method is obsolete and it will be removed from the next release. Please use the 'getFileCreationLog'!")
     server = self.__getServer()
     result = server.getFileCreationLog(lfn)
     return result
 
   #############################################################################
   def addEventType(self, evid, desc, primary):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'insertEventType'!")
+    self.__errorReport("The 'addEventType' method is obsolete and it will be removed from the next release. Please use the 'insertEventType'!")
     server = self.__getServer()
     return server.insertEventType(long(evid), desc, primary)
 
   #############################################################################
   def getProductionInformations_new(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionInformations'!")
+    self.__errorReport("The 'getProductionInformations_new' method is obsolete and it will be removed from the next release. Please use the 'getProductionInformations'!")
     server = self.__getServer()
     result = server.getProductionInformations(long(prodid))
     return result
 
   #############################################################################
   def getJobsNb(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionNbOfJobs'!")
+    self.__errorReport("The 'getJobsNb' method is obsolete and it will be removed from the next release. Please use the 'getProductionNbOfJobs'!")
     server = self.__getServer()
     return server.getProductionNbOfJobs(long(prodid))
 
   #############################################################################
   def getNumberOfEvents(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getNumberOfEvents'!")
+    self.__errorReport("The 'getNumberOfEvents' method is obsolete and it will be removed from the next release. Please use the 'getNumberOfEvents'!")
     server = self.__getServer()
     return server.getProductionNbOfEvents(long(prodid))
 
   #############################################################################
   def getSizeOfFiles(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionSizeOfFiles'!")
+    self.__errorReport("The 'getSizeOfFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionSizeOfFiles'!")
     server = self.__getServer()
     return server.getProductionSizeOfFiles(long(prodid))
 
   #############################################################################
   def getNbOfFiles(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionNbOfFiles'!")
+    self.__errorReport("The 'getNbOfFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionNbOfFiles'!")
     server = self.__getServer()
     return server.getProductionNbOfFiles(long(prodid))
 
   #############################################################################
   def getProcessedEvents(self, prodid):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionProcessedEvents'!")
+    self.__errorReport("The 'getProcessedEvents' method is obsolete and it will be removed from the next release. Please use the 'getProductionProcessedEvents'!")
     server = self.__getServer()
     return server.getProductionProcessedEvents(int(prodid))
 
   #############################################################################
   def getRunsWithAGivenDates(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getRunsForAGivenPeriod'!")
+    self.__errorReport("The 'getRunsWithAGivenDates' method is obsolete and it will be removed from the next release. Please use the 'getRunsForAGivenPeriod'!")
     server = self.__getServer()
     return server.getRunsForAGivenPeriod(dict)
 
   #############################################################################
   def getProductiosWithAGivenRunAndProcessing(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionsFromView'!")
+    self.__errorReport("The 'getProductiosWithAGivenRunAndProcessing' method is obsolete and it will be removed from the next release. Please use the 'getProductionsFromView'!")
     server = self.__getServer()
     return server.getProductionsFromView(dict)
 
   #############################################################################
   def getDataQualityForRuns(self, runs):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getRunFilesDataQuality'!")
+    self.__errorReport("The 'getDataQualityForRuns' method is obsolete and it will be removed from the next release. Please use the 'getRunFilesDataQuality'!")
     server = self.__getServer()
     return server.getRunFilesDataQuality(runs)
 
   #############################################################################
   def getRunFlag(self, runnb, processing):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPassDataQuality'!")
+    self.__errorReport("The 'getRunFlag' method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPassDataQuality'!")
     server = self.__getServer()
     result = server.getRunAndProcessingPassDataQuality(long(runnb), long(processing))
     return result
 
   #############################################################################
   def getProductionProcessingPassID(self, prodid):
-    self.__errorReport("This method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    self.__errorReport("The 'getProductionProcessingPassID' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.getProductionProcessingPassID(long(prodid))
 
   ############################################################################
   def getProductionStatus(self, productionid=None, lfns=[]):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionFilesStatus'!")
+    self.__errorReport("The 'getProductionStatus' method is obsolete and it will be removed from the next release. Please use the 'getProductionFilesStatus'!")
     server = self.__getServer()
     result = None
     if productionid != None:
@@ -1153,48 +1153,48 @@ class BookkeepingClient:
 
   #############################################################################
   def getFiles(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFilesWithMetadata'!")
+    self.__errorReport("The 'getFiles' method is obsolete and it will be removed from the next release. Please use the 'getFilesWithMetadata'!")
     return self.getFilesWithMetadata(dict)
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, values):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getVisibleFilesWithMetadata'!")
+    self.__errorReport("The 'getFilesWithGivenDataSetsForUsers' method is obsolete and it will be removed from the next release. Please use the 'getVisibleFilesWithMetadata'!")
     server = self.__getServer()
     return server.getVisibleFilesWithMetadata(values)
 
   #############################################################################
   def getStandardEventTypes(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getEventTypes'!")
+    self.__errorReport("The 'getStandardEventTypes' method is obsolete and it will be removed from the next release. Please use the 'getEventTypes'!")
     server = self.__getServer()
     return server.getEventTypes(dict)
 
    #############################################################################
   def getProductionOutputFiles(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getProductionOutputFileTypes'!")
+    self.__errorReport("The 'getProductionOutputFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionOutputFileTypes'!")
     server = self.__getServer()
     return server.getProductionOutputFileTypes(dict)
 
   #############################################################################
   def getRunQuality(self, procpass, flag='ALL'):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getRunWithProcessingPassAndDataQuality'!")
+    self.__errorReport("The 'getRunQuality' method is obsolete and it will be removed from the next release. Please use the 'getRunWithProcessingPassAndDataQuality'!")
     server = self.__getServer()
     return server.getRunWithProcessingPassAndDataQuality(procpass, flag)
 
   #############################################################################
   def getRunProcPass(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPass'!")
+    self.__errorReport("The 'getRunProcPass' method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPass'!")
     server = self.__getServer()
     return server.getRunAndProcessingPass(dict)
 
   #############################################################################
   def getRunNbFiles(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getNbOfRawFiles'!")
+    self.__errorReport("The 'getRunNbFiles' method is obsolete and it will be removed from the next release. Please use the 'getNbOfRawFiles'!")
     server = self.__getServer()
     return server.getNbOfRawFiles(dict)
 
   #############################################################################
   def getTypeVersion(self, lfn):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getFileTypeVersion'!")
+    self.__errorReport("The 'getTypeVersion' method is obsolete and it will be removed from the next release. Please use the 'getFileTypeVersion'!")
     server = self.__getServer()
     if type(lfn) == types.StringType:
       return server.getFileTypeVersion([lfn])
@@ -1203,6 +1203,6 @@ class BookkeepingClient:
 
    #############################################################################
   def getAvailableTcks(self, dict):
-    self.__errorReport("This method is obsolete and it will be removed from the next release. Please use the 'getTCKs'!")
+    self.__errorReport("The 'getAvailableTcks' method is obsolete and it will be removed from the next release. Please use the 'getTCKs'!")
     server = self.__getServer()
     return server.getTCKs(dict)

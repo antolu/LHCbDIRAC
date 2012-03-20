@@ -1149,8 +1149,9 @@ class BookkeepingManagerHandler( RequestHandler ):
     result = None
     simcond = infos.get('SimulationConditions', None)
     daqdesc = infos.get('DataTakingConditions', None)
+    production = None
 
-    if simcond == None or daqdesc == None:
+    if (simcond == None and daqdesc == None):
       result = S_ERROR('SimulationConditions or DataTakingConditins is missing!')
 
     if 'Steps' not in infos:
@@ -1163,7 +1164,8 @@ class BookkeepingManagerHandler( RequestHandler ):
       inputProdTotalProcessingPass = ''
       production = infos['Production']
       inputProdTotalProcessingPass = infos.get('InputProductionTotalProcessingPass', '')
-    return dataMGMT_.addProduction(production, simcond, daqdesc, steps, inputProdTotalProcessingPass)
+      result = dataMGMT_.addProduction(production, simcond, daqdesc, steps, inputProdTotalProcessingPass)
+    return result
 
   #############################################################################
   types_getEventTypes = [DictType]
