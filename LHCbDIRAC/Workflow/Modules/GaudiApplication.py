@@ -152,11 +152,15 @@ class GaudiApplication( ModuleBase ):
       if self.stepInputData:
         optionsDict['InputFiles'] = ['LFN:' + x for x in self.stepInputData]
       optionsDict['OutputFilePrefix'] = self.outputFilePrefix
-      optionsDict['OutputFileTypes'] = self.stepOutputsType
+      stepOutTypes = self.stepOutputsType
+      if 'HIST' in stepOutTypes:
+        stepOutTypes.remove( 'HIST' )
+      optionsDict['OutputFileTypes'] = stepOutTypes
       optionsDict['XMLSummaryFile'] = self.XMLSummary
       optionsDict['XMLFileCatalog'] = self.poolXMLCatName
       if self.histoName:
-        optionsDict['HistogramFile'] = self.histoName
+        if 'HIST' in self.stepOutputsType:
+          optionsDict['HistogramFile'] = self.histoName
       if self.DDDBTag:
         optionsDict['DDDBTag'] = self.DDDBTag
       if self.CondDBTag:
