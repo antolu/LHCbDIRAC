@@ -5,7 +5,7 @@
 
 __RCSID__ = "$Id$"
 
-import re, os, sys, time
+import re, os, sys, time, copy
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
@@ -150,9 +150,9 @@ class GaudiApplication( ModuleBase ):
       if self.optionsFormat:
         optionsDict['OptionFormat'] = self.optionsFormat
       if self.stepInputData:
-        optionsDict['InputFiles'] = ['LFN:' + x for x in self.stepInputData]
+        optionsDict['InputFiles'] = ['LFN:' + x.lstrip('LFN:') for x in self.stepInputData]
       optionsDict['OutputFilePrefix'] = self.outputFilePrefix
-      stepOutTypes = self.stepOutputsType
+      stepOutTypes = copy.deepcopy(self.stepOutputsType)
       if 'HIST' in stepOutTypes:
         stepOutTypes.remove( 'HIST' )
       optionsDict['OutputFileTypes'] = stepOutTypes
