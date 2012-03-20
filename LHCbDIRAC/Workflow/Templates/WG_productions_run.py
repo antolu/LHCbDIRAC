@@ -44,7 +44,6 @@ simulationFlag = '{{simulationFlag#GENERAL: Input Data is from simulation#False}
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
-useOracle = '{{useOracle#GENERAL: Use Oracle#False}}'
 
 # workflow params for all productions
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
@@ -103,7 +102,6 @@ mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
-useOracle = eval( useOracle )
 strippTransFlag = eval( strippTransFlag )
 
 strippEnabled = False
@@ -144,9 +142,6 @@ if fourSteps:
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     strippOF = ''
-    if useOracle:
-      if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -163,10 +158,6 @@ if fourSteps:
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     mergeOF = ''
-    if mergeApp.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -181,10 +172,6 @@ if fourSteps:
     step3_Options = '{{p3Opt}}'
     step3_Pass = '{{p3Pass}}'
     step3_OF = ''
-    if step3_App.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in step3_Options.lower():
-          step3_Options = step3_Options + ';$APPCONFIGOPTS/UseOracle.py'
     step3_Version = '{{p3Ver}}'
     step3_EP = '{{p3EP}}'
 
@@ -225,10 +212,6 @@ if fourSteps:
     step4_Options = '{{p3Opt}}'
     step4_Pass = '{{p4Pass}}'
     step4_OF = ''
-    if step4_App.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in step4_Options.lower():
-          step4_Options = step4_Options + ';$APPCONFIGOPTS/UseOracle.py'
     step4_Version = '{{p3Ver}}'
     step4_EP = '{{p3EP}}'
 
@@ -278,9 +261,6 @@ elif threeSteps:
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     strippOF = ''
-    if useOracle:
-      if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -297,10 +277,6 @@ elif threeSteps:
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     mergeOF = ''
-    if mergeApp.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -315,10 +291,6 @@ elif threeSteps:
     step3_Opts = '{{p3Opt}}'
     step3_Pass = '{{p3Pass}}'
     step3_OF = ''
-    if step3_App.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in step3_Options.lower():
-          step3_Options = step3_Options + ';$APPCONFIGOPTS/UseOracle.py'
     step3_Version = '{{p3Ver}}'
     step3_EP = '{{p3EP}}'
 
@@ -366,9 +338,6 @@ elif twoSteps:
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     strippOF = ''
-    if useOracle:
-      if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -385,10 +354,6 @@ elif twoSteps:
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     mergeOF = ''
-    if mergeApp.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -412,9 +377,6 @@ elif oneStep:
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
     strippOF = ''
-    if useOracle:
-      if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
     strippFileType = '{{inFileType}}'
@@ -425,8 +387,6 @@ elif oneStep:
 
 if error:
   DIRAC.exit( 2 )
-
-
 
 
 

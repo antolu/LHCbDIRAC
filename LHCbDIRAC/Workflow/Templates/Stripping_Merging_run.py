@@ -43,7 +43,6 @@ validationFlag = '{{validationFlag#GENERAL: Set True to create validation produc
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
-useOracle = '{{useOracle#GENERAL: Use Oracle#True}}'
 
 # workflow params for all productions
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
@@ -92,7 +91,6 @@ mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
-useOracle = eval( useOracle )
 strippTransFlag = eval( strippTransFlag )
 
 strippEnabled = False
@@ -124,9 +122,6 @@ elif twoSteps:
     strippOptions = '{{p1Opt}}'
     stripPass = '{{p1Pass}}'
     stripOF = ''
-    if useOracle:
-      if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py'
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -142,10 +137,6 @@ elif twoSteps:
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     mergeOF = ''
-    if mergeApp.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -168,9 +159,6 @@ elif oneStep:
     strippOptions = '{{p1Opt}}'
     stripPass = '{{p1Pass}}'
     stripOF = ''
-    if useOracle:
-      if not 'useoracle.py' in strippOptions.lower():
-        strippOptions = strippOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
     strippFileType = '{{inFileType}}'
@@ -186,10 +174,6 @@ elif oneStep:
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
     mergeOF = ''
-    if useOracle:
-      if mergeApp.lower() == 'davinci':
-        if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 

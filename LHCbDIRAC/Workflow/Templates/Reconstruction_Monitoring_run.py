@@ -53,7 +53,6 @@ validationFlag = '{{validationFlag#GENERAL: Set True to create validation produc
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
-useOracle = '{{useOracle#GENERAL: Use Oracle#True}}'
 express = '{{express#GENERAL: Set True for EXPRESS (Run at CERN, saving only HIST)#False}}'
 
 #reco params
@@ -85,7 +84,6 @@ recoTransFlag = eval( recoTransFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
-useOracle = eval( useOracle )
 express = eval( express )
 
 dataTakingCond = '{{simDesc}}'
@@ -116,9 +114,9 @@ if not publishFlag:
     recoTestData = 'LFN:/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/87667/087667_0000000017.raw'
   else:
     #this is 1380Gev MagUp
-    recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
+    #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
     #this is collision11
-    #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
+    recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
   BKscriptFlag = True
@@ -201,9 +199,6 @@ production.setInputBKSelection( recoInputBKQuery )
 production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
 brunelOptions = "{{p1Opt}}"
-if useOracle:
-  if not 'useoracle.py' in brunelOptions.lower():
-    brunelOptions = brunelOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
 
 brunelOutput = BKClient.getStepOutputFiles( int( '{{p1Step}}' ) )
 if not brunelOutput['OK']:
@@ -238,10 +233,6 @@ production.addBrunelStep( "{{p1Ver}}", brunelOutput.lower(), brunelOptions, extr
 if "{{p2Ver}}":
 
   daVinciOptions = "{{p2Opt}}"
-  if useOracle:
-    if not 'useoracle.py' in daVinciOptions.lower():
-      daVinciOptions = daVinciOptions + ';$APPCONFIGOPTS/UseOracle.py;$APPCONFIGOPTS/DisableLFC.py'
-
 
   daVinciInput = BKClient.getStepInputFiles( int( '{{p2Step}}' ) )
   if not daVinciInput['OK']:

@@ -45,7 +45,6 @@ unifyMooreAndDV = '{{productionsCreated#GENERAL: Moore and DaVinci within the sa
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
-useOracle = '{{useOracle#GENERAL: Use Oracle#False}}'
 
 # workflow params for all productions
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
@@ -105,7 +104,6 @@ mergeRemoveInputsFlag = eval( mergeRemoveInputsFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
-useOracle = eval( useOracle )
 unifyMooreAndDV = eval( unifyMooreAndDV )
 
 swimmEnabled = False
@@ -138,9 +136,6 @@ elif threeSteps:
     swimmDDDb = '{{p1DDDb}}'
     swimmOptions = '{{p1Opt}}'
     swimmPass = '{{p1Pass}}'
-    if useOracle:
-      if not 'useoracle.py' in swimmOptions.lower():
-        swimmOptions = swimmOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmVersion = '{{p1Ver}}'
     swimmEP = '{{p1EP}}'
     swimmOF = ''
@@ -153,9 +148,6 @@ elif threeSteps:
     swimmDVOptions = '{{p2Opt}}'
     swimmDVPass = '{{p2Pass}}'
     swimmDVOF = ''
-    if useOracle:
-      if not 'useoracle.py' in swimmDVOptions.lower():
-        swimmDVOptions = swimmDVOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmDVVersion = '{{p2Ver}}'
     swimmDVEP = '{{p2EP}}'
 
@@ -171,10 +163,6 @@ elif threeSteps:
     mergeOptions = '{{p3Opt}}'
     mergePass = '{{p3Pass}}'
     mergeOF = ''
-    if mergeApp.lower() == 'davinci':
-      if useOracle:
-        if not 'useoracle.py' in mergeOptions.lower():
-          mergeOptions = mergeOptions + ';$APPCONFIGOPTS/UseOracle.py'
     mergeVersion = '{{p3Ver}}'
     mergeEP = '{{p3EP}}'
 
@@ -197,9 +185,6 @@ elif twoSteps:
     swimmDDDb = '{{p1DDDb}}'
     swimmOptions = '{{p1Opt}}'
     swimmPass = '{{p1Pass}}'
-    if useOracle:
-      if not 'useoracle.py' in swimmOptions.lower():
-        swimmOptions = swimmOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmVersion = '{{p1Ver}}'
     swimmEP = '{{p1EP}}'
     swimmOF = ''
@@ -211,9 +196,6 @@ elif twoSteps:
     swimmDVDDDb = '{{p2DDDb}}'
     swimmDVOptions = '{{p2Opt}}'
     swimmDVPass = '{{p2Pass}}'
-    if useOracle:
-      if not 'useoracle.py' in swimmDVOptions.lower():
-        swimmDVOptions = swimmDVOptions + ';$APPCONFIGOPTS/UseOracle.py'
     swimmDVVersion = '{{p2Ver}}'
     swimmDVEP = '{{p2EP}}'
     swimmDVOF = ''
