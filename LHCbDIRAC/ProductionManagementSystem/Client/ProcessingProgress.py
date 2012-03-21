@@ -67,11 +67,15 @@ class HTMLProgressTable:
       rawInfo = prodStats[0]
       recoInfo = prodStats[1]
       recoInfo.setRawInfo( rawInfo )
-      mergingInfo = prodStats[-1]
+      strippingInfo = prodStats[2]
+      strippingInfo.setRawInfo( rawInfo )
+      mergingInfo = prodStats[3]
       mergingInfo.setRawInfo( rawInfo )
       row = self.__tableRow( rawInfo )
       self.table.rows.append( row )
       row = self.__tableRow( recoInfo )
+      self.table.rows.append( row )
+      row = self.__tableRow( strippingInfo )
       self.table.rows.append( row )
       row = self.__tableRow( mergingInfo )
       self.table.rows.append( row )
@@ -104,12 +108,12 @@ class HTMLProgressTable:
     diffStats = 4 * [None]
     for ind in range( 4 ):
       diffStats[ind] = prodStats[ind] - prevProdStats[ind]
-    row = self.__tableRow( diffStats[0] )
-    self.table.rows.append( row )
-    row = self.__tableRow( diffStats[1] )
-    self.table.rows.append( row )
-    row = self.__tableRow( diffStats[-1] )
-    self.table.rows.append( row )
+      row = self.__tableRow( diffStats[ind] )
+      self.table.rows.append( row )
+    #row = self.__tableRow( diffStats[1] )
+    #self.table.rows.append( row )
+    #row = self.__tableRow( diffStats[-1] )
+    #self.table.rows.append( row )
 
 class StatInfo:
   def __init__( self, name='', info={} ):
@@ -360,7 +364,8 @@ class ProcessingProgress:
       recoRunList += [run for run in fullRunList if run not in recoRunList and run >= recoRunRanges[prod][0] and run <= recoRunRanges[prod][1]]
     gLogger.verbose( "List of runs matching Reco: %s" % str( recoRunList ) )
 
-    if False and not open and stripList:
+    restrictToStripping = True
+    if restrictToStripping and not open and stripList:
       runList = []
       for prod in stripList:
         runList += [run for run in recoRunList if run not in runList and run >= stripRunRanges[prod][0] and run <= stripRunRanges[prod][1]]
