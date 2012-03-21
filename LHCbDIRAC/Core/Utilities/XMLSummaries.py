@@ -341,7 +341,7 @@ class XMLSummary:
         self.log.error( 'Output File %s is on unknown status: %s' % ( file, status ) )
         fileCounter[ 'other'] += 1
 
-    files = [ '%d input file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
+    files = [ '%d output file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
     filesMsg = ', '.join( files )
     self.log.info( filesMsg )
 

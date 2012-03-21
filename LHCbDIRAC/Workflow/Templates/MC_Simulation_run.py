@@ -145,6 +145,7 @@ certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
 
+mergingIDP = 'download'
 if certificationFlag or localTestFlag:
   testFlag = True
   replicationFlag = False
@@ -154,6 +155,7 @@ if certificationFlag or localTestFlag:
     publishFlag = False
     merging = False
     selection = False
+    mergingIDP = 'protocol'
 else:
   publishFlag = True
   testFlag = False
@@ -932,6 +934,9 @@ else:
   if not mergingOF:
     mergingOF = 'merge'
 
+  if not MCEnabled:
+    prodID = 1#putsomething here
+
   inputBKQuery = {
                   'FileType'                 : mergingInputType.upper(),
                   'EventType'                : evtType,
@@ -969,7 +974,7 @@ else:
                                     'FailoverRequest',
                                     'RemoveInputData',
                                     'UploadLogFile'] )
-  mergingProd.setJobParameters( {"InputDataPolicy": 'download' } )
+  mergingProd.setJobParameters( {"InputDataPolicy": mergingIDP } )
 
   mergingProd.setJobFileGroupSize( mergingGroupSize )
   mergingProd.setProdGroup( '{{pDsc}}' )
@@ -977,6 +982,20 @@ else:
 
   #mergingProd.setFileMask( finalAppType.lower() )
   mergingProd.setProdPlugin( mergingPlugin )
+
+  if publishFlag == False and testFlag:
+    gLogger.info( 'Merging test will be launched locally with number of events set to %s.' % ( events ) )
+    try:
+      result = mergingProd.runLocal()
+      if result['OK']:
+        gLogger.info( 'Template finished successfully' )
+        DIRAC.exit( 0 )
+      else:
+        gLogger.error( 'Something wrong with execution!' )
+        DIRAC.exit( 2 )
+    except Exception, x:
+      gLogger.error( 'mergingProd test failed with exception:\n%s' % ( x ) )
+      DIRAC.exit( 2 )
 
   result = mergingProd.create( 
                               publish = publishFlag,
