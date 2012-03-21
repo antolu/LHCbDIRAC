@@ -58,24 +58,35 @@ class XMLSummary:
 
 ################################################################################
 
-  def analyse( self ):
+  def analyse( self, inputsOnPartOK = False ):
     """ analyse the XML summary
     """
-    if self.success == 'True' and self.step == 'finalize' and self._inputsOK() and self._outputsOK():
+    if inputsOnPartOK:
+      self.log.warn( 'part status for input files is considered OK' )
+    if self.success == 'True' and self.step == 'finalize' \
+    and self._inputsOK( inputsOnPartOK ) and self._outputsOK():
       return S_OK( 'XML Summary OK' )
     else:
       return S_ERROR( 'XML Summary reports errors' )
 
 ################################################################################
 
-  def _inputsOK( self ):
+  def _inputsOK( self, inputsOnPartOK = False ):
     """ check self.inputFileStats
     """
 
-    if sum( self.inputFileStats.values() ) == self.inputFileStats['full']:
-      return True
+    if inputsOnPartOK:
+      if sum( self.inputFileStats.values() ) == self.inputFileStats['part'] or \
+      sum( self.inputFileStats.values() ) == self.inputFileStats['full']:
+        return True
+      else:
+        return False
+
     else:
-      return False
+      if sum( self.inputFileStats.values() ) == self.inputFileStats['full']:
+        return True
+      else:
+        return False
 
 ################################################################################
 
@@ -338,7 +349,7 @@ class XMLSummary:
 
 ################################################################################
 
-def analyseXMLSummary( xmlFileName = None, xf_o = None, log = None ):
+def analyseXMLSummary( xmlFileName = None, xf_o = None, log = None, inputsOnPartOK = False ):
   """ Analyse a XML summary file
   """
 
@@ -346,7 +357,7 @@ def analyseXMLSummary( xmlFileName = None, xf_o = None, log = None ):
 
     if not xf_o:
       xf_o = XMLSummary( xmlFileName, log = log )
-    return xf_o.analyse()
+    return xf_o.analyse( inputsOnPartOK )
 
   except XMLSummaryError, e:
     return S_ERROR ( str( e ) )

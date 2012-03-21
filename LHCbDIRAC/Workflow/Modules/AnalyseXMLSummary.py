@@ -77,9 +77,15 @@ class AnalyseXMLSummary( ModuleBase ):
       self.step_commons['XMLSummary_o'] = self.XMLSummary_o
 
       if not logAnalyser:
-        analyseXMLSummaryResult = analyseXMLSummary( xf_o = self.XMLSummary_o, log = self.log )
+        if self.numberOfEvents == '-1':
+          analyseXMLSummaryResult = analyseXMLSummary( xf_o = self.XMLSummary_o, log = self.log )
+        else:
+          analyseXMLSummaryResult = analyseXMLSummary( xf_o = self.XMLSummary_o, log = self.log, inputsOnPartOK = True )
       else:
-        analyseXMLSummaryResult = logAnalyser( xf_o = self.XMLSummary_o, log = self.log )
+        if self.numberOfEvents == '-1':
+          analyseXMLSummaryResult = logAnalyser( xf_o = self.XMLSummary_o, log = self.log )
+        else:
+          analyseXMLSummaryResult = logAnalyser( xf_o = self.XMLSummary_o, log = self.log, inputsOnPartOK = True )
 
       if not analyseXMLSummaryResult['OK']:
         self.log.error( analyseXMLSummaryResult['Message'] )

@@ -37,7 +37,6 @@ class GaudiApplication( ModuleBase ):
     self.runTimeProjectName = ''
     self.runTimeProjectVersion = ''
     self.inputDataType = 'MDF'
-    self.numberOfEvents = 0
     self.stepInputData = '' # to be resolved
     self.outputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
@@ -150,9 +149,9 @@ class GaudiApplication( ModuleBase ):
       if self.optionsFormat:
         optionsDict['OptionFormat'] = self.optionsFormat
       if self.stepInputData:
-        optionsDict['InputFiles'] = ['LFN:' + x.lstrip('LFN:') for x in self.stepInputData]
+        optionsDict['InputFiles'] = ['LFN:' + x.lstrip( 'LFN:' ) for x in self.stepInputData]
       optionsDict['OutputFilePrefix'] = self.outputFilePrefix
-      stepOutTypes = copy.deepcopy(self.stepOutputsType)
+      stepOutTypes = copy.deepcopy( self.stepOutputsType )
       if 'HIST' in stepOutTypes:
         stepOutTypes.remove( 'HIST' )
       optionsDict['OutputFileTypes'] = stepOutTypes
