@@ -8,9 +8,9 @@ extension = ''
 Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
 Script.registerSwitch( '', 'RunsFromProduction=', 'Productions number where to get the list of Active runs' )
 Script.registerSwitch( '', 'Extension=', 'Specify the descendants file extension [%s]' % extension )
-Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table')
+Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
 
-Script.parseCommandLine( ignoreErrors = True )
+Script.parseCommandLine( ignoreErrors=True )
 import DIRAC
 import sys, os
 
@@ -43,7 +43,7 @@ else:
             idList.append( int( r[0] ) )
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript                       import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                       import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks, sortList
 from DIRAC.DataManagementSystem.Client.ReplicaManager                     import ReplicaManager
@@ -63,7 +63,7 @@ if fromProd:
       if not res['OK']:
           print "Runs not found for transformation", prod
       else:
-          runList += [str(run['RunNumber']) for run in res['Value'] if run['Status'] in ('Active','Flush')]
+          runList += [str( run['RunNumber'] ) for run in res['Value'] if run['Status'] in ( 'Active', 'Flush' )]
   print "Active runs in productions %s:" % str( fromProd ), runList
 
 runList.sort()
@@ -77,11 +77,11 @@ for id in idList:
     print "Production BKQuery:", res['Value']
     if not extension:
       resetExtension = True
-      extension = res['Value'].get('FileType', '').lower()
-      print 'Extension set to',extension
+      extension = res['Value'].get( 'FileType', '' ).lower()
+      print 'Extension set to', extension
     if not extension:
       print "No extension provided, please use --Extension <ext>"
-      DIRAC.exit(0)
+      DIRAC.exit( 0 )
   else:
     print "No BKQuery for this transformation"
     DIRAC.exit( 0 )
@@ -92,13 +92,13 @@ for id in idList:
   for run in runList:
       if int( run ) >= startRun and int( run ) <= endRun:
           runs.append( run )
-  bkQuery = BKQuery( res['Value'], runs = runs, visible=False )
-  bkQuery.setOption( 'ReplicaFlag', 'All')
+  bkQuery = BKQuery( res['Value'], runs=runs, visible=False )
+  bkQuery.setOption( 'ReplicaFlag', 'All' )
   print "Executing BK query:"
   if runList:
     print bkQuery
   startTime = time.time()
-  lfns = bkQuery.getLFNs( printOutput = False )
+  lfns = bkQuery.getLFNs( printOutput=False )
   if runList:
       runStr = ', runs %s' % str( runs )
   else:
@@ -137,7 +137,7 @@ for id in idList:
     for lfn in descChunk:
       #print descChunk[lfn]
       #print ['.'.join(os.path.basename( d ).split('.')[1:]) for d in descChunk[lfn]], extension
-      descendants[lfn] = [d for d in descChunk[lfn] if '.'.join(os.path.basename( d ).split('.')[1:]).lower() == extension.lower()]
+      descendants[lfn] = [d for d in descChunk[lfn] if '.'.join( os.path.basename( d ).split( '.' )[1:] ).lower() == extension.lower()]
       #print descendants[lfn]
       files += descendants[lfn]
     res = bk.getFileMetadata( files )
@@ -197,30 +197,30 @@ for id in idList:
           status = status[0]
       else:
           status = 'Not in transformation files'
-          lfnsToAdd.append(lfn)
+          lfnsToAdd.append( lfn )
       print lfn, status
     if lfnsToAdd:
       if not fixIt:
         print "==> Files can be added with option --FixIt\n"
       else:
         nbFiles = 0
-        res = transClient.addFilesToTransformation( id, lfnsToAdd)
+        res = transClient.addFilesToTransformation( id, lfnsToAdd )
         addedLfns = []
         if res['OK']:
-          addedLfns = [lfn for (lfn,status) in res['Value']['Successful'].items() if status == 'Added']
+          addedLfns = [lfn for ( lfn, status ) in res['Value']['Successful'].items() if status == 'Added']
           if addedLfns:
-            res = bk.getFileMetadata(addedLfns)
+            res = bk.getFileMetadata( addedLfns )
             if res['OK']:
               runFiles = {}
               for lfn in res['Value']:
-                runID = res['Value'][lfn].get('RunNumber', None)
+                runID = res['Value'][lfn].get( 'RunNumber', None )
                 if runID:
-                  runFiles.setdefault(runID,[]).append(lfn)
+                  runFiles.setdefault( runID, [] ).append( lfn )
               for runID in runFiles:
-                res = transClient.addTransformationRunFiles( id, runID, runFiles[runID])
+                res = transClient.addTransformationRunFiles( id, runID, runFiles[runID] )
                 if res['OK']:
-                  nbFiles += len(runFiles[runID])
-        print "%d files successfully added to production %d" %(nbFiles, id)
+                  nbFiles += len( runFiles[runID] )
+        print "%d files successfully added to production %d" % ( nbFiles, id )
 
   else:
     print "All files have descendants in production %d" % id
@@ -242,7 +242,7 @@ for id in idList:
     if not fixIt:
       print "==> Files can be set Processed with option --FixIt\n"
     else:
-      res = transClient.setFileStatusForTransformation( id, 'Processed', lfnsNotProcessed)
+      res = transClient.setFileStatusForTransformation( id, 'Processed', lfnsNotProcessed )
       if res['OK']:
         prStr = 'Succeeded'
       else:
@@ -261,4 +261,4 @@ for id in idList:
   if nbNoAndReplicas:
       print "%2d files have descendants with and without replicas" % nbNoAndReplicas
 
-  print '='*50+'\n'
+  print '=' * 50 + '\n'
