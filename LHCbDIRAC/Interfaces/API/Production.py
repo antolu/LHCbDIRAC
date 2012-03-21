@@ -1109,7 +1109,7 @@ class Production():
 
     if publish:
       try:
-        paramsDict = self._getProductionParameters( prodID,
+        paramsDict = self._getProductionParameters( prodID = prodID,
                                                     prodXMLFile = fileName,
                                                     groupDescription = bkDict['GroupDescription'],
                                                     bkPassInfo = bkDict['Steps'],

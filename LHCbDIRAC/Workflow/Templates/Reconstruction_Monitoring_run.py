@@ -268,7 +268,7 @@ if "{{p2Ver}}":
   production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, daVinciOptions, extraPackages = '{{p2EP}}',
                             inputDataType = daVinciInput.lower(), histograms = histograms,
                             stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}',
-                            stepPass = '{{p2Pass}}', optionsFormat = '' )
+                            stepPass = '{{p2Pass}}', optionsFormat = 'DQ' )
 
 production.addFinalizationStep( ['UploadOutputData',
                                  'FailoverRequest',
