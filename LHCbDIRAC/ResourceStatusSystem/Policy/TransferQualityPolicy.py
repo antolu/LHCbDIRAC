@@ -25,7 +25,7 @@ class TransferQualityPolicy( PolicyBase ):
         }
     """
 
-    quality = super( TransferQuality_Policy, self ).evaluate()
+    quality = super( TransferQualityPolicy, self ).evaluate()
     result  = {}
 
     if quality is None:
