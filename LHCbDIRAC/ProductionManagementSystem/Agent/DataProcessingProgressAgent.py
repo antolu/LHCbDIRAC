@@ -20,7 +20,7 @@ class DataProcessingProgressAgent( AgentModule ):
   def initialize( self ):
     """Sets default values.
     """
-    from LHCbDIRAC.DataManagementSystem.Client.DMScript import BKQuery
+    from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
     self.pollingTime = self.am_getOption( 'PollingTime', 6 * 60 * 60 )
     self.printResult = self.am_getOption( 'Verbose', False )
@@ -61,7 +61,7 @@ class DataProcessingProgressAgent( AgentModule ):
       report['ClearCache'] = self.am_getOption( os.path.join( optionPath, 'ClearCache' ), [] )
       for processingPass in processingPasses:
         bkPath = os.path.join( bkConfig, '*/Real Data', processingPass, str( eventType ), fileType )
-        bkQuery = BKQuery( bkPath, visible = False )
+        bkQuery = BKQuery( bkPath, visible=False )
         if not bkQuery:
           self.log.error( "Cannot build bkQuery for %s" % bkPath )
         else:
@@ -106,7 +106,7 @@ class DataProcessingProgressAgent( AgentModule ):
             continue
           self.log.info( "\n=========================\nBookkeeping query %s\n=========================" % bkPath.replace( '*', cond ) )
           bkQuery.setConditions( cond )
-          stats = self.statCollector.getFullStats( bkQuery, printResult = self.printResult )
+          stats = self.statCollector.getFullStats( bkQuery, printResult=self.printResult )
           processingPass = bkQuery.getProcessingPass().split( '/' )
           for ind in range( len( prodStats ) ):
             if not prodStats[ind]:
