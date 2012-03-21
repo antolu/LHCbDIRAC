@@ -126,7 +126,7 @@ if testFlag:
   outBkConfigVersion = 'test'
   recoEvtsPerJob = '25'
   recoStartRun = '93718'
-  recoEndRun = '93730'
+  recoEndRun = '93720'
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagUp'
   processingPass = 'Real Data'
