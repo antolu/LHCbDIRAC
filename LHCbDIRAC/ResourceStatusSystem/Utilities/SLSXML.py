@@ -1,6 +1,9 @@
-################################################################################
-# $HeadURL $
-################################################################################
+# $HeadURL: $
+'''  SLSXML
+
+  Module that writes the SLS xml files. To be completely re-written.
+
+'''
 
 import time
 
@@ -15,7 +18,10 @@ __RCSID__  = '$Id: $'
 # Not best solution, but avoids a big number of connections to the DB oppened.
 rmc = ResourceManagementClient()
 
-def writeXml( task, taskResult ):  
+def writeXml( _task, taskResult ):  
+  '''
+  Writes the XML files needed for the tests. Not the test results themselves.
+  '''
 
   # This 3 keys must exist
   xmlList  = taskResult.get( 'xmlList' )
@@ -27,19 +33,32 @@ def writeXml( task, taskResult ):
 
   path = '%s/%s' % ( workdir, testName )
     
-  d = Document()
-  d = _writeXml( d, d, xmlList )
+  doc = Document()
+  doc = _writeXml( doc, doc, xmlList )
   
-  try:       
-    file = open( '%s/%s' % ( path, filename ), 'w' )
-    file.write( d.toxml() )
-    file.close()
-    gLogger.info( '%s: %s written' % ( config[ 'testName' ], filename ) )
-  except:
-    gLogger.error( '%s: %s NOT written' % ( config[ 'testName' ], filename ) )
-    return False     
+#  try:       
+  xmlFile = open( '%s/%s' % ( path, filename ), 'w' )
+  xmlFile.write( doc.toxml() )
+  xmlFile.close()
+  gLogger.info( '%s: %s written' % ( config[ 'testName' ], filename ) )
+#  except:
+#    gLogger.error( '%s: %s NOT written' % ( config[ 'testName' ], filename ) )
+#    return False     
     
   return d.toxml()
+
+def __processData( dItem ):
+  dataDict = { 'tag' : dItem[0] }
+  attrs = []
+  if dItem[1] is not None:
+    attrs.append( ( 'name', dItem[ 1 ] ) )
+  if dItem[2] is not None:
+    attrs.append( ( 'desc', dItem[ 2 ] ) )
+  if attrs:
+    dataDict[ 'attrs' ] = attrs  
+  dataDict[ 'nodes' ] = dItem[ 3 ]
+  
+  return dataDict
 
 def writeSLSXml( task, taskResult ):  
 
@@ -77,19 +96,6 @@ def writeSLSXml( task, taskResult ):
 #      xmlThresholds.append( { 'tag': 'threshold', 'attrs' : [ ( 'level', 'degraded' ) ],  'nodes' : thrh[ 'degraded' ] } )
 #      xmlList.append( { 'tag' : 'availabilitythresholds', 'nodes' : xmlThresholds })
   
-    def processData( dItem ):
-      dataDict = { 'tag' : dItem[0] }
-      attrs = []
-      if dItem[1] is not None:
-        attrs.append( ( 'name', dItem[ 1 ] ) )
-      if dItem[2] is not None:
-        attrs.append( ( 'desc', dItem[ 2 ] ) )
-      if attrs:
-        dataDict[ 'attrs' ] = attrs  
-      dataDict[ 'nodes' ] = dItem[ 3 ]
-  
-      return dataDict
-  
     if xmlDict.has_key( 'data' ):
     
       dataList = []
@@ -98,13 +104,13 @@ def writeSLSXml( task, taskResult ):
       for dItem in data:
     
         if not isinstance( dItem, dict ):
-          dataList.append( processData( dItem ) )
+          dataList.append( __processData( dItem ) )
         else:
           name = dItem.keys()[ 0 ]
           groupDict = { 'tag' : 'grp', 'attrs' : [ ( 'name', name ) ] }
           groupList = []
-          for v in dItem[ name ]:
-            groupList.append( processData( v ) )
+          for value in dItem[ name ]:
+            groupList.append( __processData( value ) )
           if groupList:
             groupDict[ 'nodes' ] = groupList               
           dataList.append( groupDict )
@@ -132,46 +138,46 @@ def writeSLSXml( task, taskResult ):
     gLogger.exception( e )
     return False  
     
-  d = Document()
-  d = _writeXml( d, d, XML_STUB )
+  doc = Document()
+  doc = _writeXml( doc, doc, XML_STUB )
   
-  try:       
-    file = open( '%s/%s' % ( path, filename ), 'w' )
-    file.write( d.toxml() )
-    file.close()
-    gLogger.info( '%s: %s written' % ( config[ 'testName' ], filename ) )
-  except:
-    gLogger.error( '%s: %s NOT written' % ( config[ 'testName' ], filename ) )
-    return False     
+#  try:       
+  xmlFile = open( '%s/%s' % ( path, filename ), 'w' )
+  xmlFile.write( doc.toxml() )
+  xmlFile.close()
+  gLogger.info( '%s: %s written' % ( config[ 'testName' ], filename ) )
+#  except:
+#    gLogger.error( '%s: %s NOT written' % ( config[ 'testName' ], filename ) )
+#    return False     
     
   return d.toxml()
 
 def _writeXml( doc, topElement, elementList ):
 
-  try:
+#  try:
 
-    if elementList is None:
-      return topElement
-    
-    elif not isinstance( elementList, list ):
-      tn = doc.createTextNode( str( elementList ) )
-      topElement.appendChild( tn )
-      return topElement
-
-    for d in elementList:
-      
-      el = doc.createElement( d[ 'tag' ] )
-      
-      for attr in d.get( 'attrs', [] ):
-        el.setAttribute( attr[0], attr[1] )
-        
-      el = _writeXml( doc, el, d.get( 'nodes', None ) )
-      topElement.appendChild( el )
-    
+  if elementList is None:
     return topElement
+    
+  elif not isinstance( elementList, list ):
+    tn = doc.createTextNode( str( elementList ) )
+    topElement.appendChild( tn )
+    return topElement
+
+  for element in elementList:
+      
+    el = doc.createElement( element[ 'tag' ] )
+      
+    for attr in element.get( 'attrs', [] ):
+      el.setAttribute( attr[0], attr[1] )
+        
+    el = _writeXml( doc, el, element.get( 'nodes', None ) )
+    topElement.appendChild( el )
+    
+  return topElement
   
-  except Exception, e:
-    gLogger.exception( e ) 
+#  except Exception, e:
+#    gLogger.exception( e ) 
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
