@@ -1090,6 +1090,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for k, v in res[ 'Value' ].items():
         if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
           activeSE.append( k )
+    else:
+      self.__logError( "Error getting active SEs from RSS for %s" % str( seList ), res['Message'] )
     return activeSE
 
   def __getListFromString( self, s ):
