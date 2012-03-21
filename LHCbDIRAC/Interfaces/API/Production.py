@@ -365,8 +365,8 @@ class Production():
       extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
       optionsLine = string.join( extraOpts, ';' )
 
-    if appType.lower() == 'davincihist':
-      appType = 'dst'
+#    if appType.lower() == 'davincihist':
+#      appType = 'dst'
 
     if  appType.lower() == 'merge':
       appType = inputDataType.lower()
@@ -643,6 +643,9 @@ class Production():
       extraOutput = [appType]
 
     for fileType in extraOutput:
+      if 'hist' in fileType.lower():
+        continue
+
       gaudiStepOutputItem = {}
 
       gaudiStepOutputItem['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
