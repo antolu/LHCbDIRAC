@@ -388,7 +388,7 @@ class BKQuery():
     size = 0
     for fileType in fileTypes:
       if fileType:
-        res = self.bk.getFilesSumary( query.setFileType( fileType ) )
+        res = self.bk.getFilesSummary( query.setFileType( fileType ) )
         #print query, res
         if res['OK']:
           res = res['Value']
