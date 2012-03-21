@@ -1088,7 +1088,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     res = ResourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
     if res[ 'OK' ]:
       for k, v in res[ 'Value' ].items():
-        if v.has_key( 'Write' ) and v[ 'Write' ] in [ 'Active', 'Bad' ]:
+        if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
           activeSE.append( k )
     return activeSE
 
