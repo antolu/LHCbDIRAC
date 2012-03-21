@@ -1084,19 +1084,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __getActiveSEs( self, selist ):
     activeSE = []
-    try:
-      from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
-      res = ResourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
-      if res[ 'OK' ]:
-        for k, v in res[ 'Value' ].items():
-          if v.has_key( 'Write' ) and v[ 'Write' ] in [ 'Active', 'Bad' ]:
-            activeSE.append( k )
-    except:
-      # To be removed when using Dirac v6r2
-      for se in selist:
-        res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
-        if res['OK'] and res['Value'] == 'Active':
-          activeSE.append( se )
+    from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
+    res = ResourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
+    if res[ 'OK' ]:
+      for k, v in res[ 'Value' ].items():
+        if v.has_key( 'Write' ) and v[ 'Write' ] in [ 'Active', 'Bad' ]:
+          activeSE.append( k )
     return activeSE
 
   def __getListFromString( self, s ):
