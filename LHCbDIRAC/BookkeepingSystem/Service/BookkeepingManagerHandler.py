@@ -80,23 +80,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getAvailableSteps = [DictType]
   def export_getAvailableSteps(self, dict={}):
-    result = S_ERROR()
-    retVal = dataMGMT_.getAvailableSteps(dict)
-    if retVal['OK']:
-      parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat', 'RuntimeProjects']
-      rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat']
-      records = []
-      for record in retVal['Value']:
-        step = list(record[0:13])
-        runtimeProject = []
-        runtimeProject = [ rec for rec in list(record[13:]) if rec != None]
-        if len(runtimeProject) > 0: runtimeProject = [runtimeProject]
-        step += [{'ParameterNames':rParameters, 'Records':runtimeProject, 'TotalRecords':len(runtimeProject) + 1}]
-        records += [step]
-      result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
-    else:
-      result = S_ERROR(retVal['Message'])
-    return result
+    return dataMGMT_.getAvailableSteps(dict)
 
   #############################################################################
   types_getRuntimeProjects = [DictType]

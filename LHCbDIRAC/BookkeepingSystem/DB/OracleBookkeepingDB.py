@@ -80,6 +80,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     start = 0
     max = 10
     paging = False
+    retVal = None
 
     condition = ''
     tables = 'steps s, steps r, runtimeprojects rr '
@@ -144,7 +145,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(optFile) == types.ListType:
             values = ' and ('
             for i in optFile:
-              values += " s.optionfiles='%s' or " % (optFile)
+              values += " s.optionfiles='%s' or " % (i)
             condition += values[:-3] + ')'
 
         dddb = dict.get('DDDB', default)
@@ -154,7 +155,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(dddb) == types.ListType:
             values = ' and ('
             for i in dddb:
-              values += " and s.dddb='%s' or " % (dddb)
+              values += " s.dddb='%s' or " % (i)
             condition += values[:-3] + ')'
 
         conddb = dict.get('CONDDB', default)
@@ -164,7 +165,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(conddb) == types.ListType:
             values = ' and ('
             for i in conddb:
-              values += " and s.conddb='%s' or " % (conddb)
+              values += " s.conddb='%s' or " % (i)
             condition += values[:-3] + ')'
 
         extraP = dict.get('ExtraPackages', default)
@@ -174,7 +175,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(extraP) == types.ListType:
             values = ' and ('
             for i in extraP:
-              values += " and s.extrapackages='%s' or " % (extraP)
+              values += " s.extrapackages='%s' or " % (i)
             condition += values + ')'
 
         visible = dict.get('Visible', default)
@@ -184,7 +185,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(visible) == types.ListType:
             values = ' and ('
             for i in visible:
-              values += " and s.visible='%s' or " % (visible)
+              values += " s.visible='%s' or " % (i)
             condition += values[:-3] + ')'
 
         procPass = dict.get('ProcessingPass', default)
@@ -194,7 +195,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(procPass) == types.ListType:
             values = ' and ('
             for i in procPass:
-              values += " and s.processingpass='%s' or " % (procPass)
+              values += " s.processingpass='%s' or " % (i)
             condition += values[:-3] + ')'
 
         usable = dict.get('Usable', default)
@@ -204,7 +205,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(usable) == types.ListType:
             values = ' and ('
             for i in usable:
-              values += " and s.usable='%s'" % (usable)
+              values += " s.usable='%s' or " % (i)
             condition += values[:-3] + ')'
 
         runtimeProject = dict.get('RuntimeProjects', default)
@@ -218,7 +219,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(dqtag) == types.ListType:
             values = ' and ('
             for i in dqtag:
-              values += " and s.dqtag='%s' or " % (dqtag)
+              values += "  s.dqtag='%s' or " % (i)
             condition += values[:-3] + ')'
 
         optsf = dict.get('OptionsFormat', default)
@@ -228,7 +229,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
           elif type(optsf) == types.ListType:
             values = ' and ('
             for i in optsf:
-              values += " and s.optionsFormat='%s' or " % (optsf)
+              values += " s.optionsFormat='%s' or " % (i)
             condition += values[:-3] + ')'
 
         start = dict.get('StartItem', default)
@@ -271,12 +272,36 @@ class OracleBookkeepingDB(IBookkeepingDB):
           command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, \
           r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat \
           from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s ' % (tables, condition)
-        result = self.dbR_._query(command)
+        retVal = self.dbR_._query(command)
     else:
         command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat,\
         r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat \
         from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid ' % (tables)
-        result = self.dbR_._query(command)
+        retVal = self.dbR_._query(command)
+
+    if retVal['OK']:
+      parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat', 'RuntimeProjects']
+      rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat']
+      records = []
+      for record in retVal['Value']:
+        step = list(record[0:13])
+        runtimeProject = []
+        runtimeProject = [ rec for rec in list(record[13:]) if rec != None]
+        if len(runtimeProject) > 0: runtimeProject = [runtimeProject]
+        step += [{'ParameterNames':rParameters, 'Records':runtimeProject, 'TotalRecords':len(runtimeProject) + 1}]
+        records += [step]
+      if paging:
+        command = "select count(*) from steps s where s.stepid>0 %s " % (condition)
+        retVal = self.dbR_._query(command)
+        if retVal['OK']:
+          totrec = retVal['Value'][0][0]
+          result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':totrec})
+        else:
+          result = retVal
+      else:
+        result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
+    else:
+      result = S_ERROR(retVal['Message'])
     return result
 
   #############################################################################
@@ -3031,8 +3056,8 @@ and files.qualityid= dataquality.qualityid'
         if not res['OK']:
           gLogger.error(res['Message'])
           return res
-        if len(res['Value']) > 0:
-          procpas = res['Value'][0][9]
+        if res['Value']['TotalRecords'] > 0:
+          procpas = res['Value']['Records'][0][9]
           path += [procpas]
         else:
           return S_ERROR('This step is missing')
