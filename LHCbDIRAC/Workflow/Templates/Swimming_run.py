@@ -138,7 +138,7 @@ elif threeSteps:
     swimmPass = '{{p1Pass}}'
     swimmVersion = '{{p1Ver}}'
     swimmEP = '{{p1EP}}'
-    swimmOF = ''
+    swimmOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
     swimmDVStep = int( '{{p2Step}}' )
     swimmDVName = '{{p2Name}}'
@@ -147,7 +147,7 @@ elif threeSteps:
     swimmDVDDDb = '{{p2DDDb}}'
     swimmDVOptions = '{{p2Opt}}'
     swimmDVPass = '{{p2Pass}}'
-    swimmDVOF = ''
+    swimmDVOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
     swimmDVVersion = '{{p2Ver}}'
     swimmDVEP = '{{p2EP}}'
 
@@ -162,7 +162,7 @@ elif threeSteps:
     mergeDDDb = '{{p3DDDb}}'
     mergeOptions = '{{p3Opt}}'
     mergePass = '{{p3Pass}}'
-    mergeOF = ''
+    mergeOF = BKClient.getAvailableSteps( {'StepId':int( '{{p3Step}}' )} )['Value']['Records'][0][12]
     mergeVersion = '{{p3Ver}}'
     mergeEP = '{{p3EP}}'
 
@@ -187,7 +187,7 @@ elif twoSteps:
     swimmPass = '{{p1Pass}}'
     swimmVersion = '{{p1Ver}}'
     swimmEP = '{{p1EP}}'
-    swimmOF = ''
+    swimmOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
     swimmDVStep = int( '{{p2Step}}' )
     swimmDVName = '{{p2Name}}'
@@ -198,7 +198,7 @@ elif twoSteps:
     swimmDVPass = '{{p2Pass}}'
     swimmDVVersion = '{{p2Ver}}'
     swimmDVEP = '{{p2EP}}'
-    swimmDVOF = ''
+    swimmDVOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
 
     swimmFileType = '{{inFileType}}'
 

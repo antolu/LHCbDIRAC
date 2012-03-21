@@ -59,6 +59,7 @@ strippTransFlag = '{{StrippTransformation#PROD-Stripping: distribute output data
 unmergedStreamSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-DST}}'
 strippAncestorProd = '{{StrippAncestorProd#PROD-Stripping: ancestor production if any#0}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#protocol}}'
+strippEOpts = '{{MergeStreamSE#PROD-Merging: extra options#}}'
 
 #merging params
 mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK#OK}}'
@@ -69,6 +70,7 @@ mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
 mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
 mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
+mergeEOpts = '{{MergeStreamSE#PROD-Merging: extra options#}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -121,7 +123,7 @@ elif twoSteps:
     strippDDDb = '{{p1DDDb}}'
     strippOptions = '{{p1Opt}}'
     stripPass = '{{p1Pass}}'
-    stripOF = ''
+    stripOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -136,7 +138,7 @@ elif twoSteps:
     mergeDDDb = '{{p2DDDb}}'
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
-    mergeOF = ''
+    mergeOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -158,24 +160,24 @@ elif oneStep:
     strippDDDb = '{{p1DDDb}}'
     strippOptions = '{{p1Opt}}'
     stripPass = '{{p1Pass}}'
-    stripOF = ''
+    stripOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
     strippFileType = '{{inFileType}}'
 
   elif oneStep.lower() == 'lhcb':
     mergingEnabled = True
-    mergeApp = '{{p2App}}'
-    mergeStep = int( '{{p2Step}}' )
-    mergeName = '{{p2Name}}'
-    mergeVisibility = '{{p2Vis}}'
-    mergeCDb = '{{p2CDb}}'
-    mergeDDDb = '{{p2DDDb}}'
-    mergeOptions = '{{p2Opt}}'
-    mergePass = '{{p2Pass}}'
-    mergeOF = ''
-    mergeVersion = '{{p2Ver}}'
-    mergeEP = '{{p2EP}}'
+    mergeApp = '{{p1App}}'
+    mergeStep = int( '{{p1Step}}' )
+    mergeName = '{{p1Name}}'
+    mergeVisibility = '{{p1Vis}}'
+    mergeCDb = '{{p1CDb}}'
+    mergeDDDb = '{{p1DDDb}}'
+    mergeOptions = '{{p1Opt}}'
+    mergePass = '{{p1Pass}}'
+    mergeOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
+    mergeVersion = '{{p1Ver}}'
+    mergeEP = '{{p1EP}}'
 
 
   else:
@@ -326,7 +328,7 @@ if strippEnabled:
                              inputDataType = strippInput.lower(), inputData = strippInputDataList, numberOfEvents = evtsPerJob,
                              dataType = 'Data',
                              outputSE = unmergedStreamSE,
-                             histograms = histFlag, extraOutput = strippEO,
+                             histograms = histFlag, extraOutput = strippEO, extraOpts = strippEOpts,
                              stepID = strippStep, stepName = strippName, stepVisible = strippVisibility, stepPass = stripPass,
                              optionsFormat = stripOF )
 
@@ -441,10 +443,10 @@ if mergingEnabled:
                      'DataQualityFlag'          : mergeDQFlag,
                      'FileType'                 : mergeStream
                     }
-    if mergeApp.lower() == 'davinci':
-      dvExtraOptions = "from Configurables import RecordStream;"
-      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
-      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
+#    if mergeApp.lower() == 'davinci':
+#      dvExtraOptions = "from Configurables import RecordStream;"
+#      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
+#      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
     mergeProd = Production( BKKClientIn = BKClient )
     mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
@@ -462,12 +464,12 @@ if mergingEnabled:
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
                                 inputDataType = mergeStream,
-                                extraOpts = dvExtraOptions, inputData = [], outputSE = mergedStreamSE,
+                                extraOpts = mergeEOpts, inputData = [], outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                                 optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
-                              outputSE = mergedStreamSE, inputDataType = mergeStream,
+                              outputSE = mergedStreamSE, inputDataType = mergeStream, extraOpts = mergeEOpts,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                               optionsFormat = mergeOF )

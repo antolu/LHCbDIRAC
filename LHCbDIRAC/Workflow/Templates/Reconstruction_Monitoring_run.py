@@ -205,6 +205,8 @@ if not brunelOutput['OK']:
   gLogger.error( 'Error getting res from BKK: %s', brunelOutput['Message'] )
   DIRAC.exit( 2 )
 
+brunelOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
+
 histograms = False
 brunelOutput = [x[0].lower() for x in brunelOutput['Value']['Records']]
 if 'brunelhist' in brunelOutput:
@@ -227,7 +229,7 @@ production.addBrunelStep( "{{p1Ver}}", brunelOutput.lower(), brunelOptions, extr
                          outputSE = recoDataSE,
                          dataType = 'Data', numberOfEvents = recoEvtsPerJob, histograms = histograms,
                          stepID = '{{p1Step}}', stepName = '{{p1Name}}', stepVisible = '{{p1Vis}}',
-                         stepPass = '{{p1Pass}}', optionsFormat = '' )
+                         stepPass = '{{p1Pass}}', optionsFormat = brunelOF )
 
 #Since this template is also used for "special" processings only add DaVinci step if defined
 if "{{p2Ver}}":
@@ -255,6 +257,10 @@ if "{{p2Ver}}":
   if 'davincihist' in daVinciOutput:
     histograms = True
 
+  davinciOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
+  if not davinciOF:
+    davinciOF = 'DQ'
+
   if len( daVinciOutput ) > 2:
     gLogger.error( 'Too many output file types in DaVinci step' )
     DIRAC.exit( 2 )
@@ -268,7 +274,7 @@ if "{{p2Ver}}":
   production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, daVinciOptions, extraPackages = '{{p2EP}}',
                             inputDataType = daVinciInput.lower(), histograms = histograms,
                             stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}',
-                            stepPass = '{{p2Pass}}', optionsFormat = 'DQ' )
+                            stepPass = '{{p2Pass}}', optionsFormat = davinciOF )
 
 production.addFinalizationStep( ['UploadOutputData',
                                  'FailoverRequest',

@@ -71,6 +71,7 @@ mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
 mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
 mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
+mergeEO = '{{MergeEO#PROD-Merging: extra options#}}'
 
 step3_ExtraOpts = '{{step3_ExtraOpts#STEP-3: extra options, if needed#}}'
 
@@ -138,10 +139,10 @@ if fourSteps:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
-    strippDQ = '{{p1DQ}}'
+    strippDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][11]
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
-    strippOF = ''
+    strippOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -154,10 +155,10 @@ if fourSteps:
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
-    mergeDQ = '{{p2DQ}}'
+    mergeDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][11]
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
-    mergeOF = ''
+    mergeOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -168,10 +169,10 @@ if fourSteps:
     step3_Visibility = '{{p3Vis}}'
     step3_CDb = '{{p3CDb}}'
     step3_DDDb = '{{p3DDDb}}'
-    step3_DQ = '{{p3DQ}}'
+    step3_DQ = BKClient.getAvailableSteps( {'StepId':int( '{{p3Step}}' )} )['Value']['Records'][0][11]
     step3_Options = '{{p3Opt}}'
     step3_Pass = '{{p3Pass}}'
-    step3_OF = ''
+    step3_OF = BKClient.getAvailableSteps( {'StepId':int( '{{p3Step}}' )} )['Value']['Records'][0][12]
     step3_Version = '{{p3Ver}}'
     step3_EP = '{{p3EP}}'
 
@@ -208,10 +209,10 @@ if fourSteps:
     step4_Visibility = '{{p3Vis}}'
     step4_CDb = '{{p3CDb}}'
     step4_DDDb = '{{p3DDDb}}'
-    step4_DQ = '{{p3DQ}}'
+    step4_DQ = BKClient.getAvailableSteps( {'StepId':int( '{{p4Step}}' )} )['Value']['Records'][0][11]
     step4_Options = '{{p3Opt}}'
     step4_Pass = '{{p4Pass}}'
-    step4_OF = ''
+    step4_OF = BKClient.getAvailableSteps( {'StepId':int( '{{p4Step}}' )} )['Value']['Records'][0][12]
     step4_Version = '{{p3Ver}}'
     step4_EP = '{{p3EP}}'
 
@@ -257,10 +258,10 @@ elif threeSteps:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
-    strippDQ = '{{p1DQ}}'
+    strippDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][11]
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
-    strippOF = ''
+    strippOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -273,10 +274,10 @@ elif threeSteps:
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
-    mergeDQ = '{{p2DQ}}'
+    mergeDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][11]
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
-    mergeOF = ''
+    mergeOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -287,10 +288,10 @@ elif threeSteps:
     step3_Visibility = '{{p3Vis}}'
     step3_CDb = '{{p3CDb}}'
     step3_DDDb = '{{p3DDDb}}'
-    step3_DQ = '{{p3DQ}}'
+    step3_DQ = BKClient.getAvailableSteps( {'StepId':int( '{{p3Step}}' )} )['Value']['Records'][0][11]
     step3_Opts = '{{p3Opt}}'
     step3_Pass = '{{p3Pass}}'
-    step3_OF = ''
+    step3_OF = BKClient.getAvailableSteps( {'StepId':int( '{{p3Step}}' )} )['Value']['Records'][0][12]
     step3_Version = '{{p3Ver}}'
     step3_EP = '{{p3EP}}'
 
@@ -334,10 +335,10 @@ elif twoSteps:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
-    strippDQ = '{{p1DQ}}'
+    strippDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][11]
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
-    strippOF = ''
+    strippOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
@@ -350,10 +351,10 @@ elif twoSteps:
     mergeVisibility = '{{p2Vis}}'
     mergeCDb = '{{p2CDb}}'
     mergeDDDb = '{{p2DDDb}}'
-    mergeDQ = '{{p2DQ}}'
+    mergeDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][11]
     mergeOptions = '{{p2Opt}}'
     mergePass = '{{p2Pass}}'
-    mergeOF = ''
+    mergeOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
     mergeVersion = '{{p2Ver}}'
     mergeEP = '{{p2EP}}'
 
@@ -373,10 +374,10 @@ elif oneStep:
     strippVisibility = '{{p1Vis}}'
     strippCDb = '{{p1CDb}}'
     strippDDDb = '{{p1DDDb}}'
-    strippDQ = '{{p1DQ}}'
+    strippDQ = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][11]
     strippOptions = '{{p1Opt}}'
     strippPass = '{{p1Pass}}'
-    strippOF = ''
+    strippOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
     strippVersion = '{{p1Ver}}'
     strippEP = '{{p1EP}}'
     strippFileType = '{{inFileType}}'
@@ -527,6 +528,8 @@ if strippEnabled:
   production.setWorkflowDescription( "%s real data stripping production." % ( prodGroup ) )
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( strippInputBKQuery )
+  if strippDQ is None:
+    strippDQ = ''
   production.setDBTags( strippCDb, strippDDDb, strippDQ )
   production.setInputDataPolicy( strippIDPolicy )
   production.setProdPlugin( strippPlugin )
@@ -652,10 +655,10 @@ if mergingEnabled:
                      'DataQualityFlag'          : mergeDQFlag,
                      'FileType'                 : mergeStream}
       #below should be integrated in the ProductionOptions utility
-    if mergeApp.lower() == 'davinci':
-      dvExtraOptions = "from Configurables import RecordStream;"
-      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
-      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
+#    if mergeApp.lower() == 'davinci':
+#      dvExtraOptions = "from Configurables import RecordStream;"
+#      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
+#      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
     ###########################################
     # Create the merging production
@@ -673,11 +676,13 @@ if mergingEnabled:
 
     mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, strippProdID ) )
     mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
+    if mergeDQ is None:
+      mergeDQ = ''
     mergeProd.setDBTags( mergeCDb, mergeDDDb, mergeDQ )
 
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                inputDataType = mergeStream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
+                                inputDataType = mergeStream.lower(), extraOpts = mergeEO, numberOfEvents = evtsPerJob,
                                 inputProduction = strippProdID, inputData = mergeInputDataList, outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                                 optionsFormat = mergeOF )
@@ -823,12 +828,15 @@ if step4Enabled:
 
     step4_Prod.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( step4_Stream, strippProdID ) )
     step4_Prod.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
+    if step4_DQ is None:
+      step4_DQ = ''
     step4_Prod.setDBTags( step4_CDb, step4_DDDb, step4_DQ )
 
     if step4_App.lower() == 'davinci':
       step4_Prod.addDaVinciStep( step4_Version, 'step4_', step4_Options, extraPackages = step4_EP, eventType = eventType,
                                  inputDataType = step4_Stream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
                                  inputProduction = strippProdID, inputData = step4_InputDataList, outputSE = step4_StreamSE,
+                                 condDBTag = step4_CDb, ddDBTag = step4_DDDb, DQTag = step4_DQ,
                                  stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility, stepPass = step4_Pass,
                                  optionsFormat = step4_OF )
     elif step4_App.lower() == 'lhcb':
