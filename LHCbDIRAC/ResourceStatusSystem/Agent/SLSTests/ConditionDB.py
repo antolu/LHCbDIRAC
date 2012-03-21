@@ -80,6 +80,7 @@ def runProbe( probeInfo, testConfig ):
 
   workdir = testConfig[ 'workdir' ]
   condDB  = probeInfo[ 0 ]
+  env     = probeInfo[ 1 ]
   
   condDBPath = '/Resources/CondDB/%s' % condDB  
   config     = gConfig.getOptionsDict( condDBPath )
