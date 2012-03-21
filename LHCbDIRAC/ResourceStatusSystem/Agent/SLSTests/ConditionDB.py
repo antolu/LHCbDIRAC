@@ -100,7 +100,8 @@ def runProbe( probeInfo, testConfig ):
     res_log = open( _resultPath, 'w' )
     
     try:
-      ret = subprocess.call( [ 'gaudirun.py', '%s/options.py' % workdir ], env = env, stdout = f, stderr=subprocess.STDOUT )
+      ret = subprocess.call( [ 'gaudirun.py', '%s/options.py' % workdir ], env = env, 
+                             stdout = res_log, stderr = subprocess.STDOUT )
     finally:
       res_log.close()       
     
