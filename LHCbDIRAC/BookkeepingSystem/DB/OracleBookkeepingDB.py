@@ -89,16 +89,23 @@ class OracleBookkeepingDB(IBookkeepingDB):
       infiletypes = dict.get('InputFileTypes', default)
       outfiletypes = dict.get('OutputFileTypes', default)
       matching = dict.get('Equal', True)
+
+      if not (type(matching) == types.BooleanType):
+        if matching.upper() == 'YES':
+          matching = True
+        elif matching.upper() == 'NO':
+          matching = False
+
       if infiletypes != default and outfiletypes != default:
         infiletypes.sort()
         outfiletypes.sort()
-        result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, outfiletypes, matching])
+        retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, outfiletypes, matching])
       elif outfiletypes != default:
         outfiletypes.sort()
-        result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [[], outfiletypes, matching])
+        retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [[], outfiletypes, matching])
       elif infiletypes != default:
         infiletypes.sort()
-        result = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, [], matching])
+        retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, [], matching])
       else:
         startDate = dict.get('StartDate', default)
         if startDate != default:
