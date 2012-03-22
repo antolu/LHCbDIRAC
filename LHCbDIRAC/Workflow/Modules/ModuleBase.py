@@ -236,11 +236,21 @@ class ModuleBase( object ):
     self.applicationName = self.step_commons['applicationName']
     self.applicationVersion = self.step_commons['applicationVersion']
     self.applicationLog = self.step_commons['applicationLog']
-    self.XMLSummary = self.step_commons['XMLSummary']
-    self.numberOfEvents = self.step_commons['numberOfEvents']
-    self.BKstepID = self.step_commons['BKStepID']
-    self.stepProcPass = self.step_commons['StepProcPass']
-    self.outputFilePrefix = self.step_commons['outputFilePrefix']
+
+    if self.step_commons.has_key( 'XMLSummary' ):
+      self.XMLSummary = self.step_commons['XMLSummary']
+
+    if self.step_commons.has_key( 'BKStepID' ):
+      self.BKstepID = self.step_commons['BKStepID']
+
+    if self.step_commons.has_key( 'StepProcPass' ):
+      self.stepProcPass = self.step_commons['StepProcPass']
+
+    if self.step_commons.has_key( 'outputFilePrefix' ):
+      self.outputFilePrefix = self.step_commons['outputFilePrefix']
+
+    if self.step_commons.has_key( 'numberOfEvents' ):
+      self.numberOfEvents = self.step_commons['numberOfEvents']
 
     if self.step_commons.has_key( 'eventType' ):
       self.eventType = self.step_commons['eventType']
