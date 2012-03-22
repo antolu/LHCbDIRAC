@@ -23,7 +23,7 @@ class Configurations:
   
   @staticmethod
   def getPolicyParameters():
-    self.pp = { 'Transfer_QUALITY_LOW'  : 5,
+    return { 'Transfer_QUALITY_LOW'  : 5,
                 'Transfer_QUALITY_HIGH' : 100 }
 
 class TransferQualityPolicy_TestCase( unittest.TestCase ):
