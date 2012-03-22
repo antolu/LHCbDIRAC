@@ -66,7 +66,7 @@ class TransferQualityPolicy_Success( TransferQualityPolicy_TestCase ):
     
     p.commandRes = { 'OK' : True, 'Value' : None }
     res = p.evaluate()
-    self.assertEqual( res[ 'Status' ], 'Banned' )
+    self.assertEqual( res[ 'Status' ], 'Unknown' )
  
     p.args       = [ '1', '2' ]
     p.commandRes = { 'OK' : True, 'Value' : 0 }
