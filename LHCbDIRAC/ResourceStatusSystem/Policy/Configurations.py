@@ -9,7 +9,10 @@ from DIRAC.ResourceStatusSystem.Utilities import CS
 
 __RCSID__ = '$Id$'
 
-pp = CS.getTypedDictRootedAt( 'PolicyParameters' )
+#pp = CS.getTypedDictRootedAt( 'PolicyParameters' )
+
+def getPolicyParameters():
+  return CS.getTypedDictRootedAt( 'PolicyParameters' )
 
 #############################################################################
 # policies evaluated
@@ -29,7 +32,7 @@ Policies = {
       'module'          : 'DT_Policy',
       'commandInNewRes' : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
       'commandIn'       : ( 'GOCDBStatus_Command', 'DTCached_Command' ),
-      'args'            : ( pp[ 'DTinHours' ], ),
+      'args'            : ( 12, ), # Fix to avoid querying the CS on load time, to be fixed
       
       'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatus_Command', 'DTInfo_Cached_Command' ),
                                     'args': None}},
