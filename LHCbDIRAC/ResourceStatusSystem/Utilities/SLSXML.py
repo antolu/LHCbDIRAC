@@ -64,9 +64,10 @@ def writeSLSXml( task, taskResult ):
 
   try:
 
-    # This 2 keys must exist
+    # This 3 keys must exist
     xmlDict  = taskResult.get( 'xmlDict' )
     config   = taskResult.get( 'config' )
+    rmc      = taskResult.get( 'rmc' )
     
     filename = '%s.xml' % xmlDict[ 'id' ]
     target   = xmlDict[ 'target' ]
