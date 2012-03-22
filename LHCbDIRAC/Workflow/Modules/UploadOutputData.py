@@ -7,14 +7,15 @@
 
 __RCSID__ = "$Id$"
 
+import string, os, random, time, glob, copy
+
+import DIRAC
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-import DIRAC
-
-import string, os, random, time, glob
 
 class UploadOutputData( ModuleBase ):
 
@@ -78,14 +79,17 @@ class UploadOutputData( ModuleBase ):
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
+    inputDataList = []
     if self.InputData:
       if type( self.InputData ) != type( [] ):
-        self.InputDataList = self.InputData.split( ';' )
+        inputDataList = self.InputData.split( ';' )
       else:
-        self.InputDataList = self.InputData
+        inputDataList = copy.deepcopy( self.InputData )
 
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
+
+    return inputDataList
 
   #############################################################################
 
@@ -103,7 +107,7 @@ class UploadOutputData( ModuleBase ):
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
 
-      self._resolveInputVariables()
+      inputDataList = self._resolveInputVariables()
 
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
@@ -170,9 +174,10 @@ class UploadOutputData( ModuleBase ):
       #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
       #'Failed': [], 'NotProcessed': []}}
 
-      result = self.checkInputsNotAlreadyProcessed( self.InputDataList, self.production_id, bkClient )
-      if not result['OK']:
-        return result
+      if inputDataList:
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
+        if not result['OK']:
+          return result
 
       #Disable the watchdog check in case the file uploading takes a long time
       self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload' )
@@ -252,16 +257,17 @@ class UploadOutputData( ModuleBase ):
         return S_ERROR( 'Failed to upload output data' )
 
       #Now double-check prior to final BK replica flag setting that the input files are still not processed 
-      result = self.checkInputsNotAlreadyProcessed( self.InputDataList, self.production_id, bkClient )
-      if not result['OK']:
-        lfns = []
-        self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )
-        for fileName, metadata in final.items():
-          lfns.append( metadata['lfn'] )
+      if inputDataList:
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
+        if not result['OK']:
+          lfns = []
+          self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )
+          for fileName, metadata in final.items():
+            lfns.append( metadata['lfn'] )
 
-        self.__cleanUp( lfns )
-        self.workflow_commons['Request'] = self.request
-        return result
+          self.__cleanUp( lfns )
+          self.workflow_commons['Request'] = self.request
+          return result
 
       #Finally can send the BK records for the steps of the job
       bkFileExtensions = ['bookkeeping*.xml']

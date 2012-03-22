@@ -187,7 +187,8 @@ class ModuleBase( object ):
     """ Resolve the input variables that are in the workflow_commons
     """
 
-    self.systemConfig = self.workflow_commons['SystemConfig']
+    if self.workflow_commons.has_key( 'SystemConfig' ):
+      self.systemConfig = self.workflow_commons['SystemConfig']
 
     if self.workflow_commons.has_key( 'runNumber' ):
       self.runNumber = self.workflow_commons['runNumber']
@@ -236,9 +237,14 @@ class ModuleBase( object ):
     """ Resolve the input variables for an application step
     """
 
-    self.applicationName = self.step_commons['applicationName']
-    self.applicationVersion = self.step_commons['applicationVersion']
-    self.applicationLog = self.step_commons['applicationLog']
+    if self.step_commons.has_key( 'applicationName' ):
+      self.applicationName = self.step_commons['applicationName']
+
+    if self.step_commons.has_key( 'applicationVersion' ):
+      self.applicationVersion = self.step_commons['applicationVersion']
+
+    if self.step_commons.has_key( 'applicationLog' ):
+      self.applicationLog = self.step_commons['applicationLog']
 
     if self.step_commons.has_key( 'XMLSummary' ):
       self.XMLSummary = self.step_commons['XMLSummary']
