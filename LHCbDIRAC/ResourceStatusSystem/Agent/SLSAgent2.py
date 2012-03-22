@@ -13,7 +13,7 @@ from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 
-from LHCbDIRAC.ResourceStatusSystem.Utilities import SLSXML
+from LHCbDIRAC.ResourceStatusSystem.Utilities                       import SLSXML
 
 __RCSID__  = '$Id:  $'
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
