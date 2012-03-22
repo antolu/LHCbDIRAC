@@ -286,7 +286,7 @@ class LHCbJob( Job ):
 
     moduleName = 'FileUsage'
     fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     fileUsage.setBody( body )
 
@@ -459,7 +459,7 @@ class LHCbJob( Job ):
 
     moduleName = 'FileUsage'
     fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     fileUsage.setBody( body )
 
@@ -469,7 +469,7 @@ class LHCbJob( Job ):
     step.addModule( fileUsage )
     step.addModule( userData )
     step.createModuleInstance( 'GaudiApplicationScript', name )
-    step.createModuleInstance( 'FileUsage')
+    step.createModuleInstance( 'FileUsage', name )
     step.createModuleInstance( 'UserJobFinalization', name )
 
     # Define step parameters
@@ -725,7 +725,7 @@ class LHCbJob( Job ):
 
     moduleName = 'FileUsage'
     fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     fileUsage.setBody( body )
 
@@ -1014,7 +1014,7 @@ class LHCbJob( Job ):
 
     moduleName = 'FileUsage'
     fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework")
+    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     fileUsage.setBody( body )
 
