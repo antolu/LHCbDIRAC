@@ -11,6 +11,9 @@ from DIRAC                                                  import gLogger, S_OK
 from DIRAC.Interfaces.API.Dirac                             import Dirac
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+
 __RCSID__  = "$Id:  $"
 
 def getProbeElements():
@@ -22,6 +25,7 @@ def getProbeElements():
 #  try:
   
   rsc   = ResourceStatusClient()
+  rmc   = ResourceManagementClient()
   lfc_l = rsc.getResource( resourceType = 'LFC_L' )
   lfc_c = rsc.getResource( resourceType = 'LFC_C' )
 
@@ -37,7 +41,7 @@ def getProbeElements():
 
   elementsToCheck = lfc_l + lfc_c
 
-  return S_OK( elementsToCheck )
+  return S_OK( [ ( el, rmc ) for el in elementsToCheck ] )
 
 #  except Exception, e:
 #    _msg = 'Exception gettingProbeElements'
@@ -59,7 +63,7 @@ def setupProbes( testConfig ):
   
   return S_OK()
 
-def runProbe( probeInfo, testConfig ):
+def runProbe( probeInfo, testConfig, rmc ):
   '''
   Runs the probe and formats the results for the XML generation. The probe is the
   measurement between a file registration in the master and the replication in the
@@ -68,7 +72,8 @@ def runProbe( probeInfo, testConfig ):
 
   # Hardcoded, ugly ugly ugly !
   master = 'lfc-lhcb.cern.ch'
-  mirror = probeInfo 
+  mirror = probeInfo[ 0 ] 
+  rmc    = probeInfo[ 1 ] 
   
   workdir  = testConfig.get( 'workdir' )
   testName = testConfig.get( 'testName' )
@@ -148,7 +153,7 @@ def runProbe( probeInfo, testConfig ):
   xmlDict[ 'metric' ]           = counter
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
 
-  return { 'xmlDict' : xmlDict, 'config' : testConfig } 
+  return { 'xmlDict' : xmlDict, 'config' : testConfig, 'rmc' : rmc } 
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -13,8 +13,9 @@ import subprocess
 from DIRAC                                                  import gLogger, gConfig, S_ERROR, S_OK
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
-from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
-from LHCbDIRAC.ResourceStatusSystem.Utilities               import SLSXML
+from LHCbDIRAC.Core.Utilities                                       import ProductionEnvironment
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from LHCbDIRAC.ResourceStatusSystem.Utilities                       import SLSXML
 
 __RCSID__  = '$Id: $'
    
@@ -27,6 +28,7 @@ def getProbeElements():
 #  try:
   
   rsc     = ResourceStatusClient()
+  rmc     = ResourceManagementClient() 
   condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
     
   if not condDBs[ 'OK' ]:
@@ -41,7 +43,7 @@ def getProbeElements():
     return env
   env = env[ 'Value' ]
     
-  return S_OK( [ ( condDB, env ) for condDB in condDBs[ 'Value' ] ] )
+  return S_OK( [ ( condDB, env, rmc ) for condDB in condDBs[ 'Value' ] ] )
     
 #  except Exception, e:
 #    _msg = '%s: Exception gettingProbeElements'
@@ -72,7 +74,7 @@ def setupProbes( testConfig ):
 #    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
 #    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
-def runProbe( probeInfo, testConfig ):
+def runProbe( probeInfo, testConfig, rmc ):
   '''
   Runs the probe and formats the results for the XML generation. The probe is a 
   simple gaudirun.  
@@ -81,6 +83,7 @@ def runProbe( probeInfo, testConfig ):
   workdir = testConfig[ 'workdir' ]
   condDB  = probeInfo[ 0 ]
   env     = probeInfo[ 1 ]
+  rmc     = probeInfo[ 2 ]
   
   condDBPath = '/Resources/CondDB/%s' % condDB  
   config     = gConfig.getOptionsDict( condDBPath )
@@ -140,7 +143,7 @@ def runProbe( probeInfo, testConfig ):
                                  ( 'textvalue'   , None, None, 'ConditionDB access time' )
                                 ] 
     
-  return { 'xmlDict' : xmlDict, 'config' : testConfig }         
+  return { 'xmlDict' : xmlDict, 'config' : testConfig, 'rmc' : rmc }         
        
 ################################################################################
       

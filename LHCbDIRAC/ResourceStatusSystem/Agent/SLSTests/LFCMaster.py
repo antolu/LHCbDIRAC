@@ -9,6 +9,7 @@ import os
 import lfc2
 
 from DIRAC import S_OK, gLogger
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 __RCSID__  = '$Id:  $'
 
@@ -20,8 +21,9 @@ def getProbeElements():
   
   # Hardcoded, to be fixed
   master = 'lfc-lhcb.cern.ch'
+  rmc    = ResourceManagementClient() 
   
-  return S_OK( [ master ] )
+  return S_OK( [ ( master, rmc ) ] )
   
 
 def setupProbes( testConfig ):
@@ -39,13 +41,14 @@ def setupProbes( testConfig ):
   
   return S_OK()
 
-def runProbe( probeInfo, testConfig ):
+def runProbe( probeInfo, testConfig, rmc ):
   '''
   Runs the probe and formats the results for the XML generation. The probe is a 
   mkdir and rmdir on the LFC master.
   '''
   
-  master                   = probeInfo
+  master                   = probeInfo[ 0 ]
+  rmc                      = probeInfo[ 1 ]
   os.environ[ 'LFC_HOST' ] = master
     
   lfnDir  = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
@@ -83,7 +86,7 @@ def runProbe( probeInfo, testConfig ):
   xmlDict[ 'metric' ]           = availability  
   xmlDict[ 'availabilityinfo' ] = availabilityinfo
   
-  return { 'xmlDict' : xmlDict, 'config' : testConfig } 
+  return { 'xmlDict' : xmlDict, 'config' : testConfig, 'rmc' : rmc } 
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
