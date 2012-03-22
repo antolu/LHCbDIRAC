@@ -21,7 +21,8 @@ class PolicyBase( object ):
 
 class Configurations:
   
-  def __init__( self ):
+  @staticmethod
+  def getPolicyParameters():
     self.pp = { 'Transfer_QUALITY_LOW'  : 5,
                 'Transfer_QUALITY_HIGH' : 100 }
 
