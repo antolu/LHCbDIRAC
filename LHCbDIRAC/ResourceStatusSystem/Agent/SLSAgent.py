@@ -2,7 +2,6 @@ __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR, rootPath
-from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from DIRAC.Core.Base.DB import DB
@@ -20,7 +19,6 @@ import lfc2, lcg_util
 
 impl = xml.dom.getDOMImplementation()
 rmDB = DB( "ResourceManagementDB", "ResourceStatus/ResourceManagementDB", 10 )
-dirac = Dirac() # For DIRAC ping
 
 # Generate MySQL INSERT queries
 def gen_mysql( n, d, keys ):
@@ -201,6 +199,8 @@ class DIRACTest( TestBase ):
     self.setup = gConfig.getValue( 'DIRAC/Setup', "" )
     self.setupDict = CS.getTypedDictRootedAt( root = "/DIRAC/Setups", relpath = self.setup )
     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
+    from DIRAC.Interfaces.API.Dirac import Dirac
+    self.dirac = Dirac()
 
     try:
       os.makedirs( self.xmlPath )
@@ -281,7 +281,7 @@ class DIRACTest( TestBase ):
       xmlfile.close()
 
   def xml_sensor( self, system, service ):
-    res = dirac.ping( system, service )
+    res = self.dirac.ping( system, service )
     doc = gen_xml_stub()
     xml_append( doc, "id", system + "_" + service )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
@@ -697,6 +697,7 @@ class LFCTest( TestBase ):
 
     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
 
+    from DIRAC.Interfaces.API.Dirac import Dirac
     self.diracAPI = Dirac()
     self.workdir = am.am_getWorkDirectory()
 
