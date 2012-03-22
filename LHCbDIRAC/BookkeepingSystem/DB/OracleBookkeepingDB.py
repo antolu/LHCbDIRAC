@@ -77,6 +77,9 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getAvailableSteps(self, dict={}):
+    """
+    I never implemented this kind of method in my life. I have to start some time!
+    """
     start = 0
     max = 10
     paging = False
@@ -88,24 +91,44 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if len(dict) > 0:
       infiletypes = dict.get('InputFileTypes', default)
       outfiletypes = dict.get('OutputFileTypes', default)
-      matching = dict.get('Equal', True)
+      matching = dict.get('Equal', 'YES')
 
-      if not (type(matching) == types.BooleanType):
-        if matching.upper() == 'YES':
-          matching = True
-        elif matching.upper() == 'NO':
-          matching = False
+      if (type(matching) == types.BooleanType):
+        if matching:
+          matching = "YES"
+        else:
+          matching = 'NO'
+      elif matching.upper() not in ['YES', 'NO']:
+        return S_ERROR ('Wrong Equal value!')
 
-      if infiletypes != default and outfiletypes != default:
+      if infiletypes != default or outfiletypes != default:
+        sort = dict.get('Sort', default)
+        if sort != default:
+          condition += 'Order by '
+          order = sort.get('Order', 'Asc')
+          if order.upper() not in ['ASC', 'DESC']:
+            return S_ERROR("wrong sorting order!")
+          items = sort.get('Items', default)
+          if type(items) == types.ListType:
+            ord = ''
+            for item in items:
+              ord += 's.%s,' % (item)
+            condition += ' %s %s' % (ord[:-1], order)
+          elif type(items) == types.StringType:
+            condition += ' s.%s %s' % (items, order)
+          else:
+            result = S_ERROR('SortItems is not properly defined!')
+
+        if type(infiletypes) == types.StringType:
+          infiletypes = []
+        if type(outfiletypes) == types.StringType:
+          outfiletypes = []
         infiletypes.sort()
         outfiletypes.sort()
-        retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, outfiletypes, matching])
-      elif outfiletypes != default:
-        outfiletypes.sort()
-        retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [[], outfiletypes, matching])
-      elif infiletypes != default:
-        infiletypes.sort()
-        retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getStepsForFileTypes', [], True, [infiletypes, [], matching])
+        inp = 'lists%s' % (str(tuple(infiletypes)))
+        out = 'lists%s' % (str(tuple(outfiletypes)))
+        command = "select * from table(BOOKKEEPINGORACLEDB.getStepsForFiletypes(%s, %s, '%s')) s %s" % (inp,out, matching.upper(), condition)
+        retVal = self.dbR_._query(command)
       else:
         startDate = dict.get('StartDate', default)
         if startDate != default:
