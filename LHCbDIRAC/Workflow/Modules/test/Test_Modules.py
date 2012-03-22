@@ -810,18 +810,39 @@ class FileUsageSuccess( ModulesTestCase ):
   def test_execute( self ):
 
     #no errors, no input files to report
-    for wf_commons in copy.deepcopy( self.wf_commons ):
+    wfC = copy.deepcopy( self.wf_commons )
+    for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
+      self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, self.step_commons,
+                                          self.step_number, self.step_id )['OK'] )
+    wfC = copy.deepcopy( self.wf_commons )
+    for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
+      wf_commons['ParametricInputData'] = ['LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000287_1.ew.dst',
+                                           'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000285_1.ew.dst',
+                                           'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000281_1.ew.dst']
+      self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, self.step_commons,
+                                          self.step_number, self.step_id )['OK'] )
+    wfC = copy.deepcopy( self.wf_commons )
+    for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
+      wf_commons['ParametricInputData'] = ['LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000287_1.ew.dst',
+                                           'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000285_1.ew.dst',
+                                           'LFN:/lhcb/data/2010/PIPPO/00008380/0000/00008380_00000281_1.pippo.dst']
       self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, self.step_commons,
                                           self.step_number, self.step_id )['OK'] )
 
     #workflow status not ok
-    self.workflowStatus = {'OK':False, 'Message':'Mess'}
-    self.assertFalse( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
-                                         self.step_number, self.step_id )['OK'] )
+    wfC = copy.deepcopy( self.wf_commons )
+    for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
+      self.workflowStatus = {'OK':False, 'Message':'Mess'}
+      self.assertFalse( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, self.step_commons,
+                                           self.step_number, self.step_id )['OK'] )
 
 
 #############################################################################

@@ -6,17 +6,11 @@
 """
 
 __RCSID__ = "$Id: FileUsage.py 35442 2012-01-16 11:00:54Z dremensk $"
-import os
-from DIRAC.Core.Utilities                                  import List
-from DIRAC.Core.DISET.RPCClient import RPCClient
+import os, copy
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-from DIRAC.Resources.Catalog.PoolXMLCatalog import PoolXMLCatalog
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
 
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
-
-import DIRAC
-import string, os, random, time, re
 
 class FileUsage( ModuleBase ):
 
@@ -28,16 +22,12 @@ class FileUsage( ModuleBase ):
     self.log = gLogger.getSubLogger( "FileUsage" )
     super( FileUsage, self ).__init__( self.log )
     self.version = __RCSID__
-    self.debug = True
-    self.enable = True
-    self.lastStep = False
     #Resolved to be the input data of the current step
     #self.stepInputData = []
     #Dict of input data for the job and status
     #self.jobInputData = {}
     #Always allow any files specified by users
-    self.inputDataList = []
-    self.dirDict = {}
+#    self.dirDict = {}
     self.dataUsageClient = DataUsageClient()
 
   #############################################################################
@@ -45,35 +35,35 @@ class FileUsage( ModuleBase ):
   def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
-    self.log.verbose( self.workflow_commons )
-
     super( FileUsage, self )._resolveInputVariables()
 
+    inputDataList = []
     if self.InputData:
-      self.inputDataList = self.InputData
-      if type( self.inputDataList ) != type( [] ):
-        self.inputDataList = self.inputDataList.split( ';' )
+      inputDataList = copy.deepcopy( self.InputData )
+      if type( inputDataList ) != type( [] ):
+        inputDataList = inputDataList.split( ';' )
 
-
-    #InputData: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', '/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
+    dirDict = {}
+    #InputDataList: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', '/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
     #build the dictionary of dataset usage
     #strip the 'LFN:' part if present
-
-    if self.inputDataList:
-      for inputFile in self.inputDataList:
-        baseName = os.path.basename( inputFile )
-        strippedDir = inputFile[0:inputFile.find( baseName )].strip( 'LFN:' )
-        if not strippedDir:
-          self.log.error( 'Dataset unknown for file %s, probably file specified without path! ' % ( inputFile ) )
-        else:
-          if strippedDir in self.dirDict:
-            self.dirDict[strippedDir] += 1
+    if inputDataList:
+      for inputFile in inputDataList:
+        if inputFile:
+          baseName = os.path.basename( inputFile )
+          in_f = copy.deepcopy( inputFile )
+          strippedDir = in_f[0:in_f.find( baseName )].strip( 'LFN:' )
+          if not strippedDir:
+            self.log.error( 'Dataset unknown for file %s, probably file specified without path! ' % ( in_f ) )
           else:
-            self.dirDict[strippedDir] = 1
+            if strippedDir in dirDict:
+              dirDict[strippedDir] += 1
+            else:
+              dirDict[strippedDir] = 1
     else:
       self.log.info( 'No input data specified for this job' )
 
-    self.log.info( 'dirDict = ', self.dirDict )
+    self.log.info( 'dirDict = ', dirDict )
     #NOTE: Enable before commit?
     #if os.environ.has_key( 'JOBID' ):
     #  self.jobID = os.environ['JOBID']
@@ -82,9 +72,10 @@ class FileUsage( ModuleBase ):
     #  self.log.info( 'No WMS JobID found, disabling module via control flag' )
     #  self.enable = False
 
-    return S_OK( 'Parameters resolved' )
+    return S_OK( dirDict )
 
   #############################################################################
+
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
@@ -99,14 +90,11 @@ class FileUsage( ModuleBase ):
                                         workflowStatus, stepStatus,
                                         wf_commons, step_commons, step_number, step_id )
 
-      if not self._enableModule():
-        return S_OK()
-
       result = self._resolveInputVariables()
       if not result['OK']:
         self.log.error( result['Message'] )
         return S_OK()
-      self.log.info( 'Initializing %s' % self.version )
+      dirDict = result['Value']
       #Have to work out if the module is part of the last step i.e.
       #user jobs can have any number of steps and we only want
       #to run the finalization once.
@@ -129,8 +117,8 @@ class FileUsage( ModuleBase ):
         self.log.info( 'Module is disabled by control flag, would have attempted to report the following dataset usage %s' % self.dirDict )
         return S_OK( 'Module is disabled by control flag' )
       """
-      if self.dirDict:
-        result = self._reportFileUsage( self.dirDict )
+      if dirDict:
+        result = self._reportFileUsage( dirDict )
         if not result['OK']:
           self.log.error( result['Message'] )
           return S_OK()
@@ -150,6 +138,8 @@ class FileUsage( ModuleBase ):
 
     finally:
       super( FileUsage, self ).finalize( self.version )
+
+  #############################################################################
 
   def _reportFileUsage( self, dirDict ):
     """Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
@@ -173,13 +163,17 @@ class FileUsage( ModuleBase ):
     if cutoff != -1:
       localSE = localSE[0:cutoff]
 
-    usageStatus = self.dataUsageClient.sendDataUsageReport( localSE, dirDict )
-    if not usageStatus['OK']:
-      self.log.error( 'Could not send data usage report, preparing a DISET failover request object' )
-      self.log.verbose( usageStatus['rpcStub'] )
-      self.request.setDISETRequest( usageStatus['rpcStub'] )
-      self.workflow_commons['Request'] = self.request
-      #self.log.warn( usageStatus['Message'] )
+    if self._enableModule():
+      usageStatus = self.dataUsageClient.sendDataUsageReport( localSE, dirDict )
+      if not usageStatus['OK']:
+        self.log.error( 'Could not send data usage report, preparing a DISET failover request object' )
+        self.log.verbose( usageStatus['rpcStub'] )
+        self.request.setDISETRequest( usageStatus['rpcStub'] )
+        self.workflow_commons['Request'] = self.request
+    else:
+      self.log.info( 'Would have attempted to report %s at %s' % ( dirDict, localSE ) )
+      return S_OK()
 
     return S_OK()
+
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
