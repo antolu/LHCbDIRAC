@@ -7,7 +7,6 @@
 
 from DIRAC                                import gLogger
 from DIRAC.ResourceStatusSystem.Utilities import Utils
-from DIRAC.ResourceStatusSystem.Utilities import CS
 from DIRAC.ResourceStatusSystem.Utilities import Synchronizer as BaseSync
 
 __RCSID__  = '$Id: $'
@@ -31,6 +30,9 @@ class Synchronizer( BaseSync.Synchronizer ):
     Sync DB content with VOBoxes
     '''
 
+    # Fix to avoid loading CS if not needed
+    from DIRAC.ResourceStatusSystem.Utilities import CS
+
     # services in the DB now
     voBoxInCS = set(CS.getT1s())
     voBOXInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
@@ -45,6 +47,9 @@ class Synchronizer( BaseSync.Synchronizer ):
     '''
     Sync DB content with CondDBs
     '''
+
+    # Fix to avoid loading CS if not needed
+    from DIRAC.ResourceStatusSystem.Utilities import CS
     
     condDBInCS = set(CS.getCondDBs())
     condDBInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
