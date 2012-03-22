@@ -16,7 +16,7 @@ from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import Resou
 __RCSID__  = '$Id: $'
 
 # Not best solution, but avoids a big number of connections to the DB oppened.
-rmc = ResourceManagementClient()
+#rmc = ResourceManagementClient()
 
 def writeXml( _task, taskResult ):  
   '''
