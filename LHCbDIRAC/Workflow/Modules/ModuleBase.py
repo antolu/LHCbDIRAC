@@ -79,7 +79,7 @@ class ModuleBase( object ):
     else:
       self.step_number = step_number
     if not step_id:
-      self.step_id = self.STEP_ID
+      self.step_id = '%s_%s_%d' % ( self.production_id, self.prod_job_id, self.step_number )
     else:
       self.step_id = step_id
 

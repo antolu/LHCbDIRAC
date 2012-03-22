@@ -78,14 +78,12 @@ class AnalyseLogFile( ModuleBase ):
                                            applicationName = self.applicationName,
                                            prod = self.production_id,
                                            job = self.prod_job_id,
-                                           stepName = self.step_id,
                                            log = self.log )
       else:
         analyseLogResult = logAnalyser( fileName = self.applicationLog,
                                         applicationName = self.applicationName,
                                         prod = self.production_id,
                                         job = self.prod_job_id,
-                                        stepName = self.step_id,
                                         log = self.log )
 
       if not analyseLogResult['OK']:
