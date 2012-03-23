@@ -42,7 +42,7 @@ class BookkeepingReport( ModuleBase ):
     self.applicationLog = ''
     self.firstStepInput = ''
     self.jobType = ''
-    self.listoutput = []
+    self.stepOutputs = []
 
     self.ldate = None
     self.ltime = None
@@ -104,12 +104,12 @@ class BookkeepingReport( ModuleBase ):
 
     ## VARS FROM WORKFLOW_COMMONS ##
 
-    if self.workflow_commons.has_key( 'outputList' ):
-      for outputItem in self.listoutput:
-        if outputItem not in self.workflow_commons['outputList']:
-          self.workflow_commons['outputList'].append( outputItem )
-    else:
-      self.workflow_commons['outputList'] = self.listoutput
+#    if self.workflow_commons.has_key( 'outputList' ):
+#      for outputItem in self.stepOutputs:
+#        if outputItem not in self.workflow_commons['outputList']:
+#          self.workflow_commons['outputList'].append( outputItem )
+#    else:
+#      self.workflow_commons['outputList'] = self.stepOutputs
 
     if self.workflow_commons.has_key( 'BookkeepingLFNs' ) and \
         self.workflow_commons.has_key( 'LogFilePath' )    and \
@@ -387,12 +387,12 @@ class BookkeepingReport( ModuleBase ):
     outputs = []
     count = 0
     bkTypeDict = {}
-    while ( count < len( self.listoutput ) ):
-      if self.listoutput[count].has_key( 'outputDataName' ):
-        outputs.append( ( ( self.listoutput[ count ][ 'outputDataName' ] ),
-                          ( self.listoutput[ count ][ 'outputDataSE' ] ), ( self.listoutput[ count ][ 'outputDataType' ] ) ) )
-      if self.listoutput[ count ].has_key( 'outputBKType' ):
-        bkTypeDict[ self.listoutput[ count ][ 'outputDataName' ]] = self.listoutput[ count ][ 'outputBKType' ]
+    while ( count < len( self.stepOutputs ) ):
+      if self.stepOutputs[count].has_key( 'outputDataName' ):
+        outputs.append( ( ( self.stepOutputs[ count ][ 'outputDataName' ] ),
+                          ( self.stepOutputs[ count ][ 'outputDataSE' ] ), ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )
+      if self.stepOutputs[ count ].has_key( 'outputBKType' ):
+        bkTypeDict[ self.stepOutputs[ count ][ 'outputDataName' ]] = self.stepOutputs[ count ][ 'outputBKType' ]
       count = count + 1
     outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
     self.log.info( outputs )
