@@ -676,17 +676,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
         runFlush = requireFlush
         if runFlush:
-          if paramValue not in runEvtType:
+          if not runEvtType( paramValue ):
             lfn = runParamLfns[0]
             res = self.__getBookkeepingMetadata( [lfn] )
             if res['OK']:
               runEvtType[paramValue] = res['Value'][lfn].get( 'EventTypeId', 90000000 )
-              self.__logVerbose( 'Event type %s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
+              self.__logVerbose( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
             else:
-              self.__logWarn( "Can't determine event type for transformation %s, can't flush" % paramStr )
-              runFlush = False
+              self.__logWarn( "Can't determine event type for transformation%s, can't flush" % paramStr, res['Message'] )
               runEvtType[paramValue] = None
           evtType = runEvtType[paramValue]
+          if not evtType:
+            runFlush = False
         runParamReplicas = {}
         for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
             runParamReplicas[lfn ] = {}
