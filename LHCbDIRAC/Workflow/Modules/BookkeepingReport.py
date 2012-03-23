@@ -104,12 +104,12 @@ class BookkeepingReport( ModuleBase ):
 
     ## VARS FROM WORKFLOW_COMMONS ##
 
-#    if self.workflow_commons.has_key( 'outputList' ):
-#      for outputItem in self.stepOutputs:
-#        if outputItem not in self.workflow_commons['outputList']:
-#          self.workflow_commons['outputList'].append( outputItem )
-#    else:
-#      self.workflow_commons['outputList'] = self.stepOutputs
+    if self.workflow_commons.has_key( 'outputList' ):
+      for outputItem in self.stepOutputs:
+        if outputItem not in self.workflow_commons['outputList']:
+          self.workflow_commons['outputList'].append( outputItem )
+    else:
+      self.workflow_commons['outputList'] = self.stepOutputs
 
     if self.workflow_commons.has_key( 'BookkeepingLFNs' ) and \
         self.workflow_commons.has_key( 'LogFilePath' )    and \
