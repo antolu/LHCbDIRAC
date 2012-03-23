@@ -580,7 +580,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
       self.__logVerbose( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
     self.__logVerbose( "Timing for getting size of files: %.3f seconds" % ( time.time() - startTime1 ) )
-    return fileSizes
+    return S_OK( fileSizes )
 
   def __clearCachedFileSize( self, lfns ):
     for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
@@ -591,24 +591,29 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not self.params:
       return S_ERROR( "TransformationPlugin._BySize: The 'BySize' plug-in requires parameters." )
     status = self.params['Status']
-    requestedSize = float( self.params['GroupSize'] ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
+    requestedSize = float( self.params.get( 'GroupSize', 1 ) ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
     maxFiles = self.__getPluginParam( 'MaxFiles', 100 )
     # Group files by SE
     fileGroups = self._getFileGroups( self.data )
     # Get the file sizes
-    fileSizes = self.__getFileSize( self.data.keys() )
+    res = self.__getFileSize( self.data.keys() )
+    if not res['OK']:
+      return res
+    fileSizes = res['Value']
     tasks = []
     for replicaSE, lfns in fileGroups.items():
       taskLfns = []
       taskSize = 0
       for lfn in lfns:
-        taskSize += fileSizes[lfn]
-        taskLfns.append( lfn )
-        if ( taskSize > requestedSize ) or ( len( taskLfns ) >= maxFiles ):
-          tasks.append( ( replicaSE, taskLfns ) )
-          self.__clearCachedFileSize( taskLfns )
-          taskLfns = []
-          taskSize = 0
+        size = fileSizes.get( lfn, 0 )
+        if size:
+          taskSize += size
+          taskLfns.append( lfn )
+          if ( taskSize > requestedSize ) or ( len( taskLfns ) >= maxFiles ):
+            tasks.append( ( replicaSE, taskLfns ) )
+            self.__clearCachedFileSize( taskLfns )
+            taskLfns = []
+            taskSize = 0
       if ( status == 'Flush' ) and taskLfns:
         tasks.append( ( replicaSE, taskLfns ) )
         self.__clearCachedFileSize( taskLfns )
