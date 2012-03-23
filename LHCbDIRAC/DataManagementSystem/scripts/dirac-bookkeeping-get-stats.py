@@ -39,16 +39,16 @@ if __name__ == "__main__":
     pass
 
   bkQuery = dmScript.getBKQuery()
-  prodList = bkQuery.getQueryDict().get('ProductionID', [None])
-  bkQuery.setOption('ProductionID', None)
+  prodList = bkQuery.getQueryDict().get( 'ProductionID', [None] )
+  bkQuery.setOption( 'ProductionID', None )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
   for prod in prodList:
-    bkQuery.setOption('Production', prod)
+    bkQuery.setOption( 'Production', prod )
     print "For BK query:", bkQuery
-    res = bk.getFilesSumary( bkQuery.getQueryDict() )
+    res = bk.getFilesSummary( bkQuery.getQueryDict() )
     if not res['OK']:
       print "Error getting statistics from BK"
       DIRAC.exit( 0 )

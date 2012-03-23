@@ -22,13 +22,13 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                              'Records': [['SDST'], ['PID.MDST'], ['GEN'],
                                                                          ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
-    self.bkClientMock.getTypeVersion.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                             {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
                                                                            'getFileTypes', ( {'': ''}, ) ),
                                                      'Value': {'lfn1':'ROOT', 'lfn2':'MDF'}}
 
-    self.bkClientMock.getFileTypeVersion.return_value = {'OK':True, 'Value':{ 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
-                                                                             'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'}}
+#    self.bkClientMock.getFileTypeVersion.return_value = {'OK':True, 'Value':{ 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
+#                                                                             'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'}}
 
     self.IDR = InputDataResolution( {}, self.bkClientMock )
 
@@ -378,7 +378,7 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
     self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} } )
 
-    self.bkClientMock.getTypeVersion.return_value = {'OK': True,
+    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
                                                      'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                   {'skipCACheck': False} ),
                                                                  'getTypeVersion', ( ['/lhcb/user/g/gligorov/2011_12/27896/27896178/SwimBs2KK.dst'], ) ),

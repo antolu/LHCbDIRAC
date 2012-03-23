@@ -80,7 +80,7 @@ class SendBookkeeping( ModuleBase ):
         bkXML = fopen.read()
         fopen.close()
         self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-        result = bk.sendBookkeeping( bkFile, bkXML )
+        result = bk.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )

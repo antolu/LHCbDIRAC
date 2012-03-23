@@ -51,8 +51,8 @@ results_ord = {'BRUNELHIST':{1234:
 def GetRuns( bkDict, bkClient ):
     results = {}
     results_ord = {}
-    results = bkClient.getFilesWithGivenDataSetsForUsers( bkDict )
-    gLogger.debug( "Called bkClient method getFilesWithGivenDataSetsForUsers" )
+    results = bkClient.getVisibleFilesWithMetadata( bkDict )
+    gLogger.debug( "Called bkClient method getVisibleFilesWithMetadata" )
     gLogger.debug( "with bk query %s" % str( bkDict ) )
     if not results['OK']:
       gLogger.debug( "Failed to retrieve dataset. Result is %s" % str( results ) )

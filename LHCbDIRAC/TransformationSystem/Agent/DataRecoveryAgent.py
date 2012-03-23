@@ -381,7 +381,6 @@ class DataRecoveryAgent( AgentModule ):
       self.log.info( 'Checking BK descendents for job %s...' % job )
       #check any input data has descendant files...
       result = self.bkClient.getFileDescendents( fileList, depth = bkDepth, production = int( transformation ), checkreplica = False )
-#      result = self.bkClient.getDescendents(fileList,bkDepth)
       if not result['OK']:
         self.log.error( 'Could not obtain descendents for job %s with result:\n%s' % ( job, result ) )
         bkNotReachable.append( job )
