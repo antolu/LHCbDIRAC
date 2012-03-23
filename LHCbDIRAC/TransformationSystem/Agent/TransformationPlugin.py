@@ -676,7 +676,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.__logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ), len( newLfns ), runID, paramStr ) )
         runFlush = requireFlush
         if runFlush:
-          if not runEvtType( paramValue ):
+          if not runEvtType.get( paramValue ):
             lfn = runParamLfns[0]
             res = self.__getBookkeepingMetadata( [lfn] )
             if res['OK']:
