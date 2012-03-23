@@ -288,8 +288,8 @@ class UploadOutputData( ModuleBase ):
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
         fopen.close()
-        self.log.info( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-        result = bkClient.sendXMLBookkeepingReport( bkFile, bkXML )
+        self.log.info( 'Sending BK record %s:\n%s' % ( bkXML ) )
+        result = bkClient.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )

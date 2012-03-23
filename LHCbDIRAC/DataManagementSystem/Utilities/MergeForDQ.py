@@ -955,7 +955,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
     fopen = open( bkFile, 'r' )
     bkXML = fopen.read()
     fopen.close()
-    result = bkClient.sendXMLBookkeepingReport( bkFile, bkXML )
+    result = bkClient.sendXMLBookkeepingReport( bkXML )
     if result['OK']:
       log.info( 'Bookkeeping report sent for %s' % bkFile )
     else:
