@@ -210,7 +210,8 @@ class ModuleBase( object ):
       pID = copy.deepcopy( self.workflow_commons['ParametricInputData'] )
       if type( pID ) == type( [] ):
         pID = ';'.join( pID )
-      self.InputData += ';' + pID
+#      self.InputData += ';' + pID
+      self.InputData = pID
       self.InputData = self.InputData.rstrip( ';' )
       if self.InputData == ';':
         self.InputData = ''
