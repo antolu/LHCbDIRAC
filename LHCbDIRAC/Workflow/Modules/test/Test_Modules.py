@@ -57,8 +57,8 @@ class ModulesTestCase( unittest.TestCase ):
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
     self.ft_mock = Mock()
-    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': ''}
-    self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': ''}
+    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {}}
+    self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.getRequestObject.return_value = {'OK': True, 'Value': ''}
 
     self.bkc_mock = Mock()
@@ -742,6 +742,8 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
+      if wf_commons.has_key( 'InputData' ):
+        continue
       self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, self.step_commons,
@@ -749,23 +751,59 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                          self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
 
     #no errors, input data
-#    for wf_commons in copy.deepcopy( self.wf_commons ):
-#      open( 'foo.txt', 'w' ).close()
-#      open( 'bar.txt', 'w' ).close()
-#      wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo.txt'},
-#                                  {'outputDataType': 'txt', 'outputDataSE': 'Tier1-RAW', 'outputDataName': 'bar.txt'},
-#                                  ]
-#      wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
-#                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
-#      self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                         self.workflowStatus, self.stepStatus,
-#                                         wf_commons, self.step_commons,
-#                                         self.step_number, self.step_id,
-#                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
-#      os.remove( 'foo.txt' )
-#      os.remove( 'bar.txt' )
-
-    #TODO: make others cases tests! e.g. why does not check for file existance?
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      open( 'foo.txt', 'w' ).close()
+      open( 'bar.txt', 'w' ).close()
+      if not wf_commons.has_key( 'InputData' ):
+        continue
+      if wf_commons['InputData'] == '':
+        continue
+      wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo.txt'},
+                                  {'outputDataType': 'txt', 'outputDataSE': 'Tier1-RAW', 'outputDataName': 'bar.txt'},
+                                  ]
+      wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
+                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
+      self.bkc_mock.getFileDescendents.return_value = {'OK': False,
+                                                       'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                    {'skipCACheck': False,
+                                                                     'timeout': 3600} ),
+                                                                   'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                       'Value': {'Successful': {'foo.txt': ['baaar']},
+                                                                 'Failed': [],
+                                                                 'NotProcessed': []}}
+      self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                         self.workflowStatus, self.stepStatus,
+                                         wf_commons, self.step_commons,
+                                         self.step_number, self.step_id,
+                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+      self.bkc_mock.getFileDescendents.return_value = {'OK': True,
+                                                       'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                    {'skipCACheck': False,
+                                                                     'timeout': 3600} ),
+                                                                   'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                       'Value': {'Successful': {'foo.txt': ['baaar']},
+                                                                 'Failed': [],
+                                                                 'NotProcessed': []}}
+      self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                         self.workflowStatus, self.stepStatus,
+                                         wf_commons, self.step_commons,
+                                         self.step_number, self.step_id,
+                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+      self.bkc_mock.getFileDescendents.return_value = {'OK': True,
+                                                       'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                    {'skipCACheck': False,
+                                                                     'timeout': 3600} ),
+                                                                   'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                       'Value': {'Successful': {},
+                                                                 'Failed': [],
+                                                                 'NotProcessed': []}}
+      self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                         self.workflowStatus, self.stepStatus,
+                                         wf_commons, self.step_commons,
+                                         self.step_number, self.step_id,
+                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+      os.remove( 'foo.txt' )
+      os.remove( 'bar.txt' )
 
 ##############################################################################
 ## UserJobFinalization.py
