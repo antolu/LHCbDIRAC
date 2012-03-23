@@ -22,13 +22,16 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                              'Records': [['SDST'], ['PID.MDST'], ['GEN'],
                                                                          ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
-    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                            {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
-                                                                           'getFileTypes', ( {'': ''}, ) ),
-                                                     'Value': {'lfn1':'ROOT', 'lfn2':'MDF'}}
-
-#    self.bkClientMock.getFileTypeVersion.return_value = {'OK':True, 'Value':{ 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
-#                                                                             'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'}}
+    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
+                                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                      {'skipCACheck': False,
+                                                                       'keepAliveLapse': 150,
+                                                                       'delegatedGroup': 'diracAdmin',
+                                                                       'delegatedDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=fstagni/CN=693025/CN=Federico Stagni',
+                                                                       'timeout': 3600} ),
+                                                                     'getFileTypeVersion', ( ['lfn1', 'lfn2'], ) ),
+                                                         'Value': {'lfn1': 'ROOT',
+                                                                   'lfn2': 'MDF'}}
 
     self.IDR = InputDataResolution( {}, self.bkClientMock )
 
