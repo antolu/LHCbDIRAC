@@ -208,13 +208,15 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'ParametricInputData' ):
       pID = copy.deepcopy( self.workflow_commons['ParametricInputData'] )
-      if type( pID ) == type( [] ):
-        pID = ';'.join( pID )
-#      self.InputData += ';' + pID
-      self.InputData = pID
-      self.InputData = self.InputData.rstrip( ';' )
-      if self.InputData == ';':
-        self.InputData = ''
+      if pID:
+        if type( pID ) == type( [] ):
+          pID = ';'.join( pID )
+  #      self.InputData += ';' + pID
+        self.InputData = pID
+        self.InputData = self.InputData.rstrip( ';' )
+
+    if self.InputData == ';':
+      self.InputData = ''
 
     #only required until the stripping is the same for MC / data
     if self.workflow_commons.has_key( 'configName' ):

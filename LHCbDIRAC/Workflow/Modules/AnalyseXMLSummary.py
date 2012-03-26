@@ -31,13 +31,6 @@ class AnalyseXMLSummary( ModuleBase ):
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
-    self.applicationName = ''
-    self.applicationVersion = ''
-
-    #Resolved to be the input data of the current step
-    self.stepInputData = []
-    #Dict of input data for the job and status
-    self.dictOfInputData = {}
 
 ################################################################################
 
@@ -57,7 +50,7 @@ class AnalyseXMLSummary( ModuleBase ):
                                                 wf_commons, step_commons,
                                                 step_number, step_id )
 
-      self._resolveInputVariables()
+      dictOfInputData = self._resolveInputVariables()
 
       if not rm:
         from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -91,7 +84,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.error( analyseXMLSummaryResult['Message'] )
         self._finalizeWithErrors( analyseXMLSummaryResult['Message'], nc, rm, bk )
 
-        self._updateFileStatus( self.dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -100,7 +93,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( self.dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         return S_OK()
 
       else:
@@ -108,7 +101,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.info( 'XML summary %s, %s' % ( self.XMLSummary, analyseXMLSummaryResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( self.dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
         return S_OK()
 
@@ -131,11 +124,7 @@ class AnalyseXMLSummary( ModuleBase ):
     super( AnalyseXMLSummary, self )._resolveInputVariables()
     super( AnalyseXMLSummary, self )._resolveInputStep()
 
-    if self.stepInputData:
-      self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
-      if type( self.stepInputData ) != type( [] ):
-        self.stepInputData = self.stepInputData.split( ';' )
-
+    dictOfInputData = {}
     inputDataList = []
     if self.InputData:
       self.log.info( 'All input data for workflow taken from JDL parameter' )
@@ -145,9 +134,11 @@ class AnalyseXMLSummary( ModuleBase ):
       #clumsy but now make this a dictionary with default "OK" status for all input data
       for lfn in inputDataList:
         jobStatusDict[lfn.replace( 'LFN:', '' )] = 'OK'
-      self.dictOfInputData = jobStatusDict
+      dictOfInputData = jobStatusDict
     else:
       self.log.verbose( 'Job has no input data requirement' )
+
+    return dictOfInputData
 
 ################################################################################
 

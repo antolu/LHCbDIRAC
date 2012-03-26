@@ -30,17 +30,8 @@ class AnalyseLogFile( ModuleBase ):
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
-    self.applicationName = ''
-    self.applicationLog = ''
-    self.applicationVersion = ''
     self.logFilePath = ''
     self.coreFile = ''
-    self.logString = ''
-
-    #Resolved to be the input data of the current step
-#    self.stepInputData = []
-    #Dict of input data for the job and status
-    self.dictOfInputData = {}
 
 ################################################################################
 
@@ -59,7 +50,7 @@ class AnalyseLogFile( ModuleBase ):
                                              wf_commons, step_commons,
                                              step_number, step_id )
 
-      self._resolveInputVariables( bk )
+      dictOfInputData = self._resolveInputVariables( bk )
 
       if not rm:
         from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -88,19 +79,10 @@ class AnalyseLogFile( ModuleBase ):
 
       if not analyseLogResult['OK']:
         self.log.error( analyseLogResult['Message'] )
-#        if analyseLogResult.has_key( 'Data' ):
-#          fNameStatusDict = analyseLogResult['Data']
-#          fNameLFNs = {}
-#          for lfn in self.dictOfInputData.keys():
-#            for fName, status in fNameStatusDict.items():
-#              if os.path.basename( lfn ) == fName:
-#                fNameLFNs[lfn] = status
-#          for lfn, status in fNameLFNs.items():
-#            self.dictOfInputData[lfn] = status
 
         self._finalizeWithErrors( analyseLogResult['Message'], nc, rm, bk )
 
-        self._updateFileStatus( self.dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -109,7 +91,7 @@ class AnalyseLogFile( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( self.dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
         return S_OK()
 
       else:
@@ -117,7 +99,7 @@ class AnalyseLogFile( ModuleBase ):
         self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( self.dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
 
         return S_OK()
 
@@ -140,11 +122,7 @@ class AnalyseLogFile( ModuleBase ):
     super( AnalyseLogFile, self )._resolveInputVariables()
     super( AnalyseLogFile, self )._resolveInputStep()
 
-#    if self.stepInputData:
-#      self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
-#      if type( self.stepInputData ) != type( [] ):
-#        self.stepInputData = self.stepInputData.split( ';' )
-
+    dictOfInputData = {}
     inputDataList = []
     if self.InputData:
       self.log.info( 'All input data for workflow taken from JDL parameter' )
@@ -154,7 +132,7 @@ class AnalyseLogFile( ModuleBase ):
       #clumsy but now make this a dictionary with default "OK" status for all input data
       for lfn in inputDataList:
         jobStatusDict[lfn.replace( 'LFN:', '' )] = 'OK'
-      self.dictOfInputData = jobStatusDict
+      dictOfInputData = jobStatusDict
     else:
       self.log.verbose( 'Job has no input data requirement' )
 
@@ -170,6 +148,8 @@ class AnalyseLogFile( ModuleBase ):
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         raise Exception, result['Message']
       self.logFilePath = result['Value']['LogFilePath'][0]
+
+    return dictOfInputData
 
 ################################################################################
 
