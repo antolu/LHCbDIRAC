@@ -125,8 +125,16 @@ class OracleBookkeepingDB(IBookkeepingDB):
           outfiletypes = []
         infiletypes.sort()
         outfiletypes.sort()
-        inp = 'lists%s' % (str(tuple(infiletypes)))
-        out = 'lists%s' % (str(tuple(outfiletypes)))
+        values = 'lists( '
+        for i in infiletypes:
+          values += "'%s'," %(i)
+        inp = values[:-1]+')'
+
+        values = 'lists( '
+        for i in outfiletypes:
+          values += "'%s'," %(i)
+        out = values[:-1]+')'
+
         command = "select * from table(BOOKKEEPINGORACLEDB.getStepsForFiletypes(%s, %s, '%s')) s %s" % (inp,out, matching.upper(), condition)
         retVal = self.dbR_._query(command)
       else:
