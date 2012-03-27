@@ -43,6 +43,7 @@ class GaudiApplication( ModuleBase ):
     self.generator_name = ''
     self.optionsFile = ''
     self.optionsLine = ''
+    self.extraOptionsLine = ''
     self.extraPackages = ''
     self.applicationType = ''
     self.stepOutputsType = []
@@ -138,90 +139,96 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      prodConfFile = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
-                                                   self.production_id,
-                                                   self.prod_job_id,
-                                                   self.step_number )
-      p = ProdConf( prodConfFile )
+      if not self.optionsLine:
 
-      optionsDict = {}
-      optionsDict['Application'] = self.applicationName
-      optionsDict['AppVersion'] = self.applicationVersion
+        prodConfFile = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
+                                                     self.production_id,
+                                                     self.prod_job_id,
+                                                     self.step_number )
+        p = ProdConf( prodConfFile )
 
-      if self.optionsFormat:
-        optionsDict['OptionFormat'] = self.optionsFormat
+        optionsDict = {}
+        optionsDict['Application'] = self.applicationName
+        optionsDict['AppVersion'] = self.applicationVersion
+
+        if self.optionsFormat:
+          optionsDict['OptionFormat'] = self.optionsFormat
+  #      else:
+  #        #FIXME: to be removed
+  #        import LHCbDIRAC
+  #        if LHCbDIRAC.majorVersion >= 7 and LHCbDIRAC.minorVersion >= 5:
+  #          pass
+  #        else:
+  #          self.log.warn( '#### EXECUTING BACK-COMPATIBILITY HACK ####' )
+  #          if self.jobType.lower() == 'merge':
+  #            if self.applicationName.lower() == 'davinci':
+  #              self.log.warn( 'Setting optionsFormat = merge, for DaVinci that does merging' )
+  #              optionsDict['OptionFormat'] = 'merge'
+  #            else:
+  #              pass
+  #          elif self.jobType.lower() == 'datastripping':
+  #            if self.applicationName.lower() == 'moore':
+  #              self.log.warn( 'Supposing swimming, setting optionsFormat = swimming' )
+  #              optionsDict['OptionFormat'] = 'swimming'
+  #            elif self.applicationName.lower() == 'davinci':
+  #              self.log.warn( '--> I hope this is NOT swimming nor femto, because this is not foreseen, and we are setting nothing!' )
+  #            else:
+  #              pass
+  #          elif self.jobType.lower() in ( 'datareconstruction', 'datareprocessing' ):
+  #            if self.applicationName.lower() == 'davinci':
+  #              self.log.warn( 'Setting optionsFormat = dq, for DaVinci that does the dq step' )
+  #              optionsDict['OptionFormat'] = 'dq'
+  #            else:
+  #              pass
+  #          self.log.warn( '#### EXECUTED BACK-COMPATIBILITY HACK ####' )
+
+        if self.stepInputData:
+          optionsDict['InputFiles'] = ['LFN:' + x.lstrip( 'LFN:' ) for x in self.stepInputData]
+
+        if self.outputFilePrefix:
+          optionsDict['OutputFilePrefix'] = self.outputFilePrefix
+  #      else:
+  #        #FIXME: to be removed
+  #        self.log.warn( '#### EXECUTING BACK-COMPATIBILITY HACK ####' )
+  #        self.log.warn( 'setting output file prefix' )
+  #        optionsDict['OutputFilePrefix'] = '@{STEP_ID}'
+  #        self.log.warn( '#### EXECUTED BACK-COMPATIBILITY HACK ####' )
+
+        stepOutTypes = copy.deepcopy( self.stepOutputsType )
+        if 'HIST' in stepOutTypes:
+          stepOutTypes.remove( 'HIST' )
+        optionsDict['OutputFileTypes'] = stepOutTypes
+        optionsDict['XMLSummaryFile'] = self.XMLSummary
+        optionsDict['XMLFileCatalog'] = self.poolXMLCatName
+
+        if self.histoName:
+          if 'HIST' in self.stepOutputsType:
+            optionsDict['HistogramFile'] = self.histoName
+  #      else:
+  #        #FIXME: to be removed
+  #        self.log.warn( '#### EXECUTING BACK-COMPATIBILITY HACK ####' )
+  #        self.log.warn( 'setting histo name' )
+  #        optionsDict['HistogramFile'] = '@{applicationName}_@{STEP_ID}_Hist.root'
+  #        self.log.warn( '#### EXECUTED BACK-COMPATIBILITY HACK ####' )
+
+
+        if self.DDDBTag:
+          optionsDict['DDDBTag'] = self.DDDBTag
+        if self.CondDBTag:
+          optionsDict['CondDBTag'] = self.CondDBTag
+        if self.DQTag:
+          optionsDict['DQTag'] = self.DQTag
+        optionsDict['NOfEvents'] = int( self.numberOfEvents )
+        if runNumberGauss:
+          optionsDict['RunNumber'] = runNumberGauss
+        if firstEventNumberGauss:
+          optionsDict['FirstEventNumber'] = firstEventNumberGauss
+
+        p.putOptionsIn( optionsDict )
+
       else:
-        #FIXME: to be removed
-        import LHCbDIRAC
-        if LHCbDIRAC.majorVersion >= 7 and LHCbDIRAC.minorVersion >= 5:
-          pass
-        else:
-          self.log.warn( '#### EXECUTING BACK-COMPATIBILITY HACK ####' )
-          if self.jobType.lower() == 'merge':
-            if self.applicationName.lower() == 'davinci':
-              self.log.warn( 'Setting optionsFormat = merge, for DaVinci that does merging' )
-              optionsDict['OptionFormat'] = 'merge'
-            else:
-              pass
-          elif self.jobType.lower() == 'datastripping':
-            if self.applicationName.lower() == 'moore':
-              self.log.warn( 'Supposing swimming, setting optionsFormat = swimming' )
-              optionsDict['OptionFormat'] = 'swimming'
-            elif self.applicationName.lower() == 'davinci':
-              self.log.warn( '--> I hope this is NOT swimming nor femto, because this is not foreseen, and we are setting nothing!' )
-            else:
-              pass
-          elif self.jobType.lower() in ( 'datareconstruction', 'datareprocessing' ):
-            if self.applicationName.lower() == 'davinci':
-              self.log.warn( 'Setting optionsFormat = dq, for DaVinci that does the dq step' )
-              optionsDict['OptionFormat'] = 'dq'
-            else:
-              pass
-          self.log.warn( '#### EXECUTED BACK-COMPATIBILITY HACK ####' )
+        self.log.warn( 'OLD production, should not happen for newer productions (after LHCbDIRAC v7r5)!' )
 
-      if self.stepInputData:
-        optionsDict['InputFiles'] = ['LFN:' + x.lstrip( 'LFN:' ) for x in self.stepInputData]
-
-      if self.outputFilePrefix:
-        optionsDict['OutputFilePrefix'] = self.outputFilePrefix
-      else:
-        #FIXME: to be removed
-        self.log.warn( '#### EXECUTING BACK-COMPATIBILITY HACK ####' )
-        self.log.warn( 'setting output file prefix' )
-        optionsDict['OutputFilePrefix'] = '@{STEP_ID}'
-        self.log.warn( '#### EXECUTED BACK-COMPATIBILITY HACK ####' )
-
-      stepOutTypes = copy.deepcopy( self.stepOutputsType )
-      if 'HIST' in stepOutTypes:
-        stepOutTypes.remove( 'HIST' )
-      optionsDict['OutputFileTypes'] = stepOutTypes
-      optionsDict['XMLSummaryFile'] = self.XMLSummary
-      optionsDict['XMLFileCatalog'] = self.poolXMLCatName
-
-      if self.histoName:
-        if 'HIST' in self.stepOutputsType:
-          optionsDict['HistogramFile'] = self.histoName
-      else:
-        #FIXME: to be removed
-        self.log.warn( '#### EXECUTING BACK-COMPATIBILITY HACK ####' )
-        self.log.warn( 'setting histo name' )
-        optionsDict['HistogramFile'] = '@{applicationName}_@{STEP_ID}_Hist.root'
-        self.log.warn( '#### EXECUTED BACK-COMPATIBILITY HACK ####' )
-
-
-      if self.DDDBTag:
-        optionsDict['DDDBTag'] = self.DDDBTag
-      if self.CondDBTag:
-        optionsDict['CondDBTag'] = self.CondDBTag
-      if self.DQTag:
-        optionsDict['DQTag'] = self.DQTag
-      optionsDict['NOfEvents'] = int( self.numberOfEvents )
-      if runNumberGauss:
-        optionsDict['RunNumber'] = runNumberGauss
-      if firstEventNumberGauss:
-        optionsDict['FirstEventNumber'] = firstEventNumberGauss
-
-      p.putOptionsIn( optionsDict )
 
       if not projectEnvironment:
         #Now obtain the project environment for execution
@@ -246,9 +253,15 @@ class GaudiApplication( ModuleBase ):
         fopen = open( 'gaudi_extra_options.py', 'w' )
         fopen.write( self.optionsLine )
         fopen.close()
-        command = '%s %s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile, 'gaudi_extra_options.py' )
+        command = '%s %s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
       else:
-        command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile )
+        if self.extraOptionsLine:
+          fopen = open( 'gaudi_extra_options.py', 'w' )
+          fopen.write( self.extraOptionsLine )
+          fopen.close()
+          command = '%s %s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile, 'gaudi_extra_options.py' )
+        else:
+          command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFile )
       print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
       #Set some parameter names

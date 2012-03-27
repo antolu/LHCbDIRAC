@@ -285,6 +285,9 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'optionsLine' ):
       self.optionsLine = self.step_commons['optionsLine']
 
+    if self.step_commons.has_key( 'extraOptionsLine' ):
+      self.extraOptionsLine = self.step_commons['optionsLine']
+
     if self.step_commons.has_key( 'generatorName' ):
       self.generator_name = self.step_commons['generatorName']
 

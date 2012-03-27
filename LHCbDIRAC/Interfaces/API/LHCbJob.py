@@ -245,7 +245,7 @@ class LHCbJob( Job ):
     if optionsFile:
       stepInstance.setValue( "optionsFile", optionsFile )
     if optionsLine:
-      stepInstance.setValue( "optionsLine", optionsLine )
+      stepInstance.setValue( "extraOptionsLine", optionsLine )
     if inputDataType:
       stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
