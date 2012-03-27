@@ -932,7 +932,8 @@ if not merging:
 else:
 
   if not mergingOF:
-    mergingOF = 'merge'
+    if mergingApp.lower() == 'davinci':
+      mergingOF = 'merge'
 
   if not MCEnabled:
     prodID = 1#putsomething here
@@ -953,13 +954,13 @@ else:
   mergingProd.setWorkflowDescription( 'MC workflow for merging outputs from a previous production.' )
   mergingProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
-  if mergingApp == 'LHCb':
+  if mergingApp.lower() == 'lhcb':
     mergingProd.addMergeStep( mergingVersion, mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
                               inputDataType = mergingInputType, inputData = '',
                               condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
                               stepPass = mergingPP, optionsFormat = mergingOF )
-  elif mergingApp == 'DaVinci':
+  elif mergingApp.lower() == 'davinci':
     mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
                                 inputDataType = mergingInputType, inputData = '',
                                 condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,

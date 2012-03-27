@@ -384,9 +384,9 @@ if swimmEnabled:
                                optionsFormat = swimmDVOF )
 
 
-  production.addFinalizationStep( 'UploadOutputData',
-                                 'FailoverRequest',
-                                 'UploadLogFile' )
+  production.addFinalizationStep( ['UploadOutputData',
+                                   'FailoverRequest',
+                                   'UploadLogFile'] )
   production.setProdGroup( prodGroup )
   production.setProdPriority( swimm_priority )
   production.setJobFileGroupSize( swimmFilesPerJob )

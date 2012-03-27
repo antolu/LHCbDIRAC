@@ -306,8 +306,8 @@ class ModuleBase( object ):
       self.stepOutputs = self.step_commons['listoutput']
       self.stepOutputsType = [x['outputDataType'] for x in self.stepOutputs]
 
-    if self.step_commons.has_key( 'OptionsConf' ):
-      self.optionsConf = self.step_commons['OptionsConf']
+    if self.step_commons.has_key( 'optionsFormat' ):
+      self.optionsFormat = self.step_commons['optionsFormat']
 
   #############################################################################
 

@@ -433,7 +433,8 @@ if mergingEnabled:
     mergeStream = mergeStream.upper()
 
     if not mergeOF:
-      mergeOF = 'merge'
+      if mergeApp.lower() == 'davinci':
+        mergeOF = 'merge'
 
     #################################################################################
     # Merging BK Query
