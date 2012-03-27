@@ -13,9 +13,8 @@ import subprocess
 from DIRAC                                                  import gLogger, gConfig, S_ERROR, S_OK
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
-from LHCbDIRAC.Core.Utilities                                       import ProductionEnvironment
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
-from LHCbDIRAC.ResourceStatusSystem.Utilities                       import SLSXML
+from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
+from LHCbDIRAC.ResourceStatusSystem.Utilities               import SLSXML
 
 __RCSID__  = '$Id: $'
    
@@ -28,7 +27,6 @@ def getProbeElements():
 #  try:
   
   rsc     = ResourceStatusClient()
-  rmc     = ResourceManagementClient() 
   condDBs = rsc.getService( serviceType = 'CondDB', meta = { 'columns' : 'SiteName' } )
     
   if not condDBs[ 'OK' ]:
@@ -43,7 +41,7 @@ def getProbeElements():
     return env
   env = env[ 'Value' ]
     
-  return S_OK( [ ( condDB, env, rmc ) for condDB in condDBs[ 'Value' ] ] )
+  return S_OK( [ ( condDB, env, ) for condDB in condDBs[ 'Value' ] ] )
     
 #  except Exception, e:
 #    _msg = '%s: Exception gettingProbeElements'
@@ -83,7 +81,7 @@ def runProbe( probeInfo, testConfig ):
   workdir = testConfig[ 'workdir' ]
   condDB  = probeInfo[ 0 ]
   env     = probeInfo[ 1 ]
-  rmc     = probeInfo[ 2 ]
+#  rmc     = probeInfo[ 2 ]
   
   condDBPath = '/Resources/CondDB/%s' % condDB  
   config     = gConfig.getOptionsDict( condDBPath )
@@ -143,7 +141,7 @@ def runProbe( probeInfo, testConfig ):
                                  ( 'textvalue'   , None, None, 'ConditionDB access time' )
                                 ] 
     
-  return { 'xmlDict' : xmlDict, 'config' : testConfig, 'rmc' : rmc }         
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }#, 'rmc' : rmc }         
        
 ################################################################################
       

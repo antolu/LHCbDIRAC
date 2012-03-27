@@ -11,8 +11,6 @@ import os
 from DIRAC                                import gLogger, S_OK
 from DIRAC.ResourceStatusSystem.Utilities import CS
 
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
-
 __RCSID__  = '$Id:  $'
     
 def getProbeElements():
@@ -23,8 +21,6 @@ def getProbeElements():
   
 #  try:
 
-  rmc = ResourceManagementClient()
-
   elementsToCheck = []      
   spaceEndpoints  = CS.getSpaceTokenEndpoints()
   spaceTokens     = CS.getSpaceTokens() 
@@ -32,7 +28,7 @@ def getProbeElements():
   for site in spaceEndpoints.items():
     for spaceToken in spaceTokens:
 
-      elementsToCheck.append( ( site, spaceToken, rmc ) )
+      elementsToCheck.append( ( site, spaceToken, ) )
         
   return S_OK( elementsToCheck )    
   
@@ -63,7 +59,7 @@ def runProbe( probeInfo, testConfig ):
   '''
       
   total, free, availability  = 0, 0, 0
-  siteTuple, spaceToken, rmc = probeInfo
+  siteTuple, spaceToken      = probeInfo
   site, siteDict             = siteTuple
   url                        = siteDict[ 'Endpoint' ]
     
@@ -111,7 +107,7 @@ def runProbe( probeInfo, testConfig ):
                           ( 'textvalue', None, None, 'Storage space for the specific space token' )
                          ]
      
-  return { 'xmlDict' : xmlDict, 'config' : testConfig, 'rmc' : rmc }     
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }#, 'rmc' : rmc }     
      
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -13,7 +13,7 @@ from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.Core.Utilities.ProcessPool     import ProcessPool
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 
-from LHCbDIRAC.ResourceStatusSystem.Utilities                       import SLSXML
+from LHCbDIRAC.ResourceStatusSystem.Utilities import Utils as LHCbUtils
 
 __RCSID__  = '$Id:  $'
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
@@ -117,7 +117,7 @@ class SLSAgent2( AgentModule ):
         res = self.processPool.createAndQueueTask( mTest.runProbe,
                                                    args              = ( elementToCheck, ),
                                                    kwargs            = { 'testConfig' : testConfig },
-                                                   callback          = SLSXML.writeSLSXml,
+                                                   callback          = LHCbUtils.writeSLSXml,
                                                    timeOut           = timeout )
         
         if not res[ 'OK' ]:

@@ -60,14 +60,14 @@ def __processData( dItem ):
   
   return dataDict
 
-def writeSLSXml( task, taskResult ):  
+def writeSLSXml( task, taskResult, rmc ):  
 
   try:
 
     # This 3 keys must exist
     xmlDict  = taskResult.get( 'xmlDict' )
     config   = taskResult.get( 'config' )
-    rmc      = taskResult.get( 'rmc' )
+#    rmc      = taskResult.get( 'rmc' )
     
     filename = '%s.xml' % xmlDict[ 'id' ]
     target   = xmlDict[ 'target' ]
@@ -151,7 +151,7 @@ def writeSLSXml( task, taskResult ):
 #    gLogger.error( '%s: %s NOT written' % ( config[ 'testName' ], filename ) )
 #    return False     
     
-  return d.toxml()
+  return doc.toxml()
 
 def _writeXml( doc, topElement, elementList ):
 

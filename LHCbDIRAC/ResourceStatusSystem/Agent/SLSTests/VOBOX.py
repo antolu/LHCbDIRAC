@@ -11,8 +11,6 @@ import os
 from DIRAC                      import gConfig, gLogger, S_OK
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
-
 __RCSID__  = '$Id: $'
 
 def getProbeElements():
@@ -24,15 +22,13 @@ def getProbeElements():
 
 #  try:
 
-  rmc = ResourceManagementClient()
-  
   request_management_urls = gConfig.getValue( '/Systems/RequestManagement/Development/URLs/allURLS', [] )
   configuration_urls      = gConfig.getServersList()
   framework_urls          = gConfig.getValue( '/DIRAC/Framework/SystemAdministrator', [] )
     
   elementsToCheck = request_management_urls + configuration_urls + framework_urls 
   
-  return S_OK( [ ( el, rmc ) for el in elementsToCheck ] )    
+  return S_OK( [ ( el, ) for el in elementsToCheck ] )    
   
 #  except Exception, e:
 #    _msg = 'Exception gettingProbeElements'
@@ -67,7 +63,7 @@ def runProbe( probeInfo, testConfig ):
                 }
 
   availability, suptime, muptime = 0, 0, 0
-  url, rmc                       = probeInfo
+  url,                           = probeInfo[ 0 ]
     
   parsed           = urlparse.urlparse( url )
   system, _service = parsed.path.strip("/").split("/")
@@ -120,7 +116,7 @@ def runProbe( probeInfo, testConfig ):
         xmlDict[ 'data' ].append( ( 'numericvalue', '%s - Done' % key,
                                     'Number of Done %s requests' % key, value[ 'Done' ] ) )
             
-  return { 'xmlDict' : xmlDict, 'config' : testConfig, 'rmc' : rmc }   
+  return { 'xmlDict' : xmlDict, 'config' : testConfig }#, 'rmc' : rmc }   
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
