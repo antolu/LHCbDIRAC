@@ -11,12 +11,8 @@ from xml.dom.minidom import Document
 from datetime        import datetime 
 
 from DIRAC           import gLogger
-from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 __RCSID__  = '$Id: $'
-
-# Not best solution, but avoids a big number of connections to the DB oppened.
-#rmc = ResourceManagementClient()
 
 def writeXml( _task, taskResult ):  
   '''
@@ -45,7 +41,7 @@ def writeXml( _task, taskResult ):
 #    gLogger.error( '%s: %s NOT written' % ( config[ 'testName' ], filename ) )
 #    return False     
     
-  return d.toxml()
+  return doc.toxml()
 
 def __processData( dItem ):
   dataDict = { 'tag' : dItem[0] }
