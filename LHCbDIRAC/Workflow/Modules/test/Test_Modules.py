@@ -140,11 +140,25 @@ class ModulesTestCase( unittest.TestCase ):
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'pid1;pid2;pid3'},
                        ]
-    self.step_commons = {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
+    self.step_commons = [
+                         {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
+                                       'outputDataType':'bbb'}]},
+                         {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
+                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                         'optionsLine': '',
+                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
+                                       'outputDataType':'bbb'}]},
+                         {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
+                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                         'extraOptionsLine': 'blaBla',
+                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
                                        'outputDataType':'bbb'}]}
+                         ]
     self.step_number = '321'
     self.step_id = '%s_%s_%s' % ( self.prod_id, self.prod_job_id, self.step_number )
 
@@ -317,7 +331,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     self.mb.execute( self.version, self.prod_id, self.prod_job_id, self.wms_job_id,
                      self.workflowStatus, self.stepStatus,
-                     self.wf_commons, self.step_commons,
+                     self.wf_commons, self.step_commons[0],
                      self.step_number, self.step_id )
     self.assertTrue( self.mb._enableModule() )
 
@@ -431,24 +445,28 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
-                                          self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser,
-                                          self.bkc_mock, self.xf_o_mock )['OK'] )
+      for step_commons in self.step_commons:
+        self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id,
+                                            self.nc_mock, self.rm_mock, logAnalyser,
+                                            self.bkc_mock, self.xf_o_mock )['OK'] )
 
 
     #logAnalyser gives errors
     logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
-                                          self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser,
-                                          self.bkc_mock, self.xf_o_mock )['OK'] )
+      for step_commons in self.step_commons:
+        if wf_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
+          continue
+        self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id,
+                                            self.nc_mock, self.rm_mock, logAnalyser,
+                                            self.bkc_mock, self.xf_o_mock )['OK'] )
 
 
   def test__updateFileStatus( self ):
@@ -473,22 +491,26 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
 
     logAnalyser.return_value = {'OK':True, 'Value':''}
 
-    #no errors, no input data
+#    no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
-                                          self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
+      for step_commons in self.step_commons:
+        self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id,
+                                            self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
 
 
     #logAnalyser gives errors
     logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in copy.deepcopy( self.step_commons ):
+        if wf_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
+          continue
+        self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
+                                          wf_commons, step_commons,
                                           self.step_number, self.step_id,
                                           self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
 
@@ -496,9 +518,10 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
     logAnalyser.return_value = {'OK':True, 'Message':''}
     open( 'ErrorLogging_Step1_coredump.log', 'w' ).close()
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
+                                          wf_commons, step_commons,
                                           self.step_number, self.step_id,
                                           self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
 
@@ -524,9 +547,10 @@ class BookkeepingReportSuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
+                                         wf_commons, step_commons,
                                          self.step_number, self.step_id, False,
                                          self.bkc_mock, self.xf_o_mock )['OK'] )
 
@@ -538,16 +562,17 @@ class BookkeepingReportFailure( ModulesTestCase ):
   def test_execute( self ):
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
-                                          self.step_number, self.step_id, False,
-                                          self.bkc_mock )['OK'] )
-      step_commons = copy.deepcopy( self.step_commons )
-      step_commons.pop( 'XMLSummary' )
-      self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
+                                          self.step_number, self.step_id, False,
+                                          self.bkc_mock )['OK'] )
+      step_commons_1 = copy.deepcopy( step_commons )
+      step_commons_1.pop( 'XMLSummary' )
+      self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons_1,
                                           self.step_number, self.step_id, False,
                                           self.bkc_mock )['OK'] )
 
@@ -564,9 +589,10 @@ class ErrorLoggingSuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.el.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.el.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                        self.workflowStatus, self.stepStatus,
-                       wf_commons, self.step_commons,
+                       wf_commons, step_commons,
                        self.step_number, self.step_id )
 
     #TODO: make a real test (this one always exits with "Application log file from previous module not found locally")
@@ -583,9 +609,10 @@ class FailoverRequestSuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.fr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.fr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                         self.workflowStatus, self.stepStatus,
-                                        wf_commons, self.step_commons,
+                                        wf_commons, step_commons,
                                         self.step_number, self.step_id )['OK'] )
 
 #############################################################################
@@ -627,16 +654,17 @@ class ProtocolAccessTestSuccess( ModulesTestCase ):
     step_commons = copy.deepcopy( self.step_commons )
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
+      for step_commons_1 in step_commons:
+        self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons_1,
+                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
+      step_commons_1['protocols'] = ['pr1', 'pr2']
       self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons,
+                                          wf_commons, step_commons_1,
                                           self.step_number, self.step_id, self.rm_mock )['OK'] )
-      step_commons['protocols'] = ['pr1', 'pr2']
-      self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons,
-                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
-      step_commons['applicationVersion'] = 'v1'
+      step_commons_1['applicationVersion'] = 'v1'
 #      wf_commons['InputData'] = ['lfn1', 'lfn2']
 #      self.assertTrue( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
 #                                          self.workflowStatus, self.stepStatus,
@@ -659,18 +687,20 @@ class RemoveInputDataSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       if 'InputData' in wf_commons.keys():
         continue
-      self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
+                                         wf_commons, step_commons,
                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
 
     #no errors, input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
       if 'InputData' not in wf_commons.keys():
         continue
-      self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
+                                         wf_commons, step_commons,
                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
 
 
@@ -687,9 +717,10 @@ class SendBookkeepingSuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.sb.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.sb.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                         self.workflowStatus, self.stepStatus,
-                                        wf_commons, self.step_commons,
+                                        wf_commons, step_commons,
                                         self.step_number, self.step_id, self.bkc_mock )['OK'] )
 
 #############################################################################
@@ -703,9 +734,10 @@ class StepAccountingSuccess( ModulesTestCase ):
   def test_execute( self ):
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.sa.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.sa.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                         self.workflowStatus, self.stepStatus,
-                                        wf_commons, self.step_commons,
+                                        wf_commons, step_commons,
                                         self.step_number, self.step_id,
                                         self.jobStep_mock, self.xf_o_mock )['OK'] )
 
@@ -721,9 +753,10 @@ class UploadLogFileSuccess( ModulesTestCase ):
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
+                                         wf_commons, step_commons,
                                          self.step_number, self.step_id,
                                          self.rm_mock, self.ft_mock,
                                          self.bkc_mock )['OK'] )
@@ -744,66 +777,70 @@ class UploadOutputDataSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       if wf_commons.has_key( 'InputData' ):
         continue
-      self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in copy.deepcopy( self.step_commons ):
+        self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
+                                         wf_commons, step_commons,
                                          self.step_number, self.step_id,
                                          self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
 
     #no errors, input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
-      open( 'foo.txt', 'w' ).close()
-      open( 'bar.txt', 'w' ).close()
-      if not wf_commons.has_key( 'InputData' ):
-        continue
-      if wf_commons['InputData'] == '':
-        continue
-      wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo.txt'},
-                                  {'outputDataType': 'txt', 'outputDataSE': 'Tier1-RAW', 'outputDataName': 'bar.txt'},
-                                  ]
-      wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
-                                            '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
-      self.bkc_mock.getFileDescendents.return_value = {'OK': False,
-                                                       'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                    {'skipCACheck': False,
-                                                                     'timeout': 3600} ),
-                                                                   'getFileDescendents', ( ['foo'], 9, 0, True ) ),
-                                                       'Value': {'Successful': {'foo.txt': ['baaar']},
-                                                                 'Failed': [],
-                                                                 'NotProcessed': []}}
-      self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
-                                         self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
-      self.bkc_mock.getFileDescendents.return_value = {'OK': True,
-                                                       'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                    {'skipCACheck': False,
-                                                                     'timeout': 3600} ),
-                                                                   'getFileDescendents', ( ['foo'], 9, 0, True ) ),
-                                                       'Value': {'Successful': {'foo.txt': ['baaar']},
-                                                                 'Failed': [],
-                                                                 'NotProcessed': []}}
-      self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
-                                         self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
-      self.bkc_mock.getFileDescendents.return_value = {'OK': True,
-                                                       'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                    {'skipCACheck': False,
-                                                                     'timeout': 3600} ),
-                                                                   'getFileDescendents', ( ['foo'], 9, 0, True ) ),
-                                                       'Value': {'Successful': {},
-                                                                 'Failed': [],
-                                                                 'NotProcessed': []}}
-      self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
-                                         self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
-      os.remove( 'foo.txt' )
-      os.remove( 'bar.txt' )
+      for step_commons in self.step_commons:
+        open( 'foo.txt', 'w' ).close()
+        open( 'bar.txt', 'w' ).close()
+        if not wf_commons.has_key( 'InputData' ):
+          continue
+        if wf_commons['InputData'] == '':
+          continue
+        wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo.txt'},
+                                    {'outputDataType': 'txt', 'outputDataSE': 'Tier1-RAW', 'outputDataName': 'bar.txt'},
+                                    ]
+        wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
+                                              '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
+        self.bkc_mock.getFileDescendents.return_value = {'OK': False,
+                                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                      {'skipCACheck': False,
+                                                                       'timeout': 3600} ),
+                                                                     'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                         'Value': {'Successful': {'foo.txt': ['baaar']},
+                                                                   'Failed': [],
+                                                                   'NotProcessed': []}}
+        self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id,
+                                           self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+        self.bkc_mock.getFileDescendents.return_value = {'OK': True,
+                                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                      {'skipCACheck': False,
+                                                                       'timeout': 3600} ),
+                                                                     'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                         'Value': {'Successful': {'foo.txt': ['baaar']},
+                                                                   'Failed': [],
+                                                                   'NotProcessed': []}}
+        self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id,
+                                           self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+        self.bkc_mock.getFileDescendents.return_value = {'OK': True,
+                                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                                      {'skipCACheck': False,
+                                                                       'timeout': 3600} ),
+                                                                     'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                         'Value': {'Successful': {},
+                                                                   'Failed': [],
+                                                                   'NotProcessed': []}}
+        if wf_commons['Request'] == '':
+          continue
+        self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id,
+                                           self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+        os.remove( 'foo.txt' )
+        os.remove( 'bar.txt' )
 
 ##############################################################################
 ## UserJobFinalization.py
@@ -818,9 +855,10 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
       wf_commons['TotalSteps'] = self.step_number
-      self.assertTrue( self.ujf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.ujf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
-                                         wf_commons, self.step_commons,
+                                         wf_commons, step_commons,
                                          self.step_number, self.step_id,
                                          self.rm_mock, self.ft_mock )['OK'] )
       #with input data - would require correct CS settings...
@@ -850,36 +888,40 @@ class FileUsageSuccess( ModulesTestCase ):
     #no errors, no input files to report
     wfC = copy.deepcopy( self.wf_commons )
     for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
-      self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
+                                          wf_commons, step_commons,
                                           self.step_number, self.step_id )['OK'] )
     wfC = copy.deepcopy( self.wf_commons )
     for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
       wf_commons['ParametricInputData'] = ['LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000287_1.ew.dst',
                                            'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000285_1.ew.dst',
                                            'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000281_1.ew.dst']
-      self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
+                                          wf_commons, step_commons,
                                           self.step_number, self.step_id )['OK'] )
     wfC = copy.deepcopy( self.wf_commons )
     for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
       wf_commons['ParametricInputData'] = ['LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000287_1.ew.dst',
                                            'LFN:/lhcb/data/2010/EW.DST/00008380/0000/00008380_00000285_1.ew.dst',
                                            'LFN:/lhcb/data/2010/PIPPO/00008380/0000/00008380_00000281_1.pippo.dst']
-      self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
-                                          wf_commons, self.step_commons,
+                                          wf_commons, step_commons,
                                           self.step_number, self.step_id )['OK'] )
 
     #workflow status not ok
     wfC = copy.deepcopy( self.wf_commons )
     for wf_commons in wfC:#copy.deepcopy( self.wf_commons ):
       self.workflowStatus = {'OK':False, 'Message':'Mess'}
-      self.assertFalse( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+      for step_commons in self.step_commons:
+        self.assertFalse( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                            self.workflowStatus, self.stepStatus,
-                                           wf_commons, self.step_commons,
+                                           wf_commons, step_commons,
                                            self.step_number, self.step_id )['OK'] )
 
 
