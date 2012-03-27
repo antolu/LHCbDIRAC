@@ -74,7 +74,7 @@ def setupProbes( testConfig ):
 #    gLogger.debug( 'ConditionDB: %s: \n %s' % ( _msg, e ) )
 #    return S_ERROR( '%s: \n %s' % ( _msg, e ) ) 
 
-def runProbe( probeInfo, testConfig, rmc ):
+def runProbe( probeInfo, testConfig ):
   '''
   Runs the probe and formats the results for the XML generation. The probe is a 
   simple gaudirun.  

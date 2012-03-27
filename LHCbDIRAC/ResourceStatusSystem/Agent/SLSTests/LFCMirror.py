@@ -63,7 +63,7 @@ def setupProbes( testConfig ):
   
   return S_OK()
 
-def runProbe( probeInfo, testConfig, rmc ):
+def runProbe( probeInfo, testConfig ):
   '''
   Runs the probe and formats the results for the XML generation. The probe is the
   measurement between a file registration in the master and the replication in the
