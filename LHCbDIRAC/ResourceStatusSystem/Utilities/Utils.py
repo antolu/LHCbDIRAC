@@ -8,7 +8,9 @@
 from LHCbDIRAC.ResourceStatusSystem.Utilities                       import SLSXML
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-_RMC = ResourceManagementClient()
+__RCSID__  = '$Id:  $'
+
+_RMC       = ResourceManagementClient()
 
 def writeSLSXml( task, taskResult ):
   '''
