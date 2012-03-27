@@ -63,9 +63,7 @@ class ShiftDBAgent( AgentModule ):
     setEmail = self.__setRoleEmail( email )
     if not setEmail[ 'OK' ]:
       self.log.error( setEmail[ 'Message' ] )
-      return setEmail
-    
-    self.log.info( '%s added successfully to the eGroup' % email )    
+      return setEmail    
     
     return S_OK()
     
@@ -105,7 +103,7 @@ class ShiftDBAgent( AgentModule ):
     
     wsdl   = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService?WSDL'
     client = suds.client.Client( wsdl )
-    eGroup = 'lhcb-current-shifter'
+    eGroup = 'lhcb-grid-shifter-oncall'
 
     wgroup = client.service.findEgroupByName( self.user, self.passwd, eGroup )
 
@@ -133,6 +131,8 @@ class ShiftDBAgent( AgentModule ):
     if not res[ 'OK' ]:
       self.log.error( res[ 'Message' ] )
       return res
+    
+    self.log.info( '%s added successfully to the eGroup' % email )
     
     return S_OK()
     
