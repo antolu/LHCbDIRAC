@@ -13,9 +13,14 @@ from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 __RCSID__ = '$Id$'
 
 class TransferQualityPolicy( PolicyBase ):
+  '''
+  Evaluates the TransferQuality results given by the DIRACAccounting.TransferQuality
+  command against a certain set of thresholds defined in the CS.
+  '''
+
 
   def evaluate( self ):
-    """
+    '''
     Evaluate policy on Data quality.
 
     :returns:
@@ -23,7 +28,7 @@ class TransferQualityPolicy( PolicyBase ):
           'Status':Error|Unknown|Active|Probing|Banned,
           'Reason':'TransferQuality:None'|'TransferQuality:xx%',
         }
-    """
+    '''
 
     quality = super( TransferQualityPolicy, self ).evaluate()
     result  = {}
