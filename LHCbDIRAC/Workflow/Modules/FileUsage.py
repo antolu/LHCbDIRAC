@@ -95,6 +95,11 @@ class FileUsage( ModuleBase ):
         self.log.error( result['Message'] )
         return S_OK()
       dirDict = result['Value']
+
+      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
+      self.request.setJobID( self.jobID )
+      self.request.setSourceComponent( "Job_%s" % self.jobID )
+
       #Have to work out if the module is part of the last step i.e.
       #user jobs can have any number of steps and we only want
       #to run the finalization once.
