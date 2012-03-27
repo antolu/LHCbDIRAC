@@ -868,7 +868,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and j.runnumber=' + str(runnb)
 
     if filetype != default:
-      condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (str(filetype))
+      if tables.find('bview') > -1:
+        condition += " and bview.filetypeid=ftypes.filetypeid "
+      if type(filetype) == types.ListType:
+        values = ' and ftypes.name in ('
+        for i in filetype:
+          values += " '%s'," %(i)
+        condition += values[:-1] + ')'
+      else:
+        condition += " and ftypes.name='%s' " % (str(filetype))
 
     if quality != default:
       if type(quality) == types.StringType:
