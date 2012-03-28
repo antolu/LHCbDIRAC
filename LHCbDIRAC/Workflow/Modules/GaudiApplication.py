@@ -219,7 +219,7 @@ class GaudiApplication( ModuleBase ):
       setup = gConfig.getValue( '/DIRAC/Setup', '' )
       gaudiRunFlags = gConfig.getValue( '/Operations/GaudiExecution/%s/gaudirunFlags' % ( setup ), 'gaudirun.py' )
 #      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
-      if self.optionsLine:
+      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
       else:
         if self.extraOptionsLine:
