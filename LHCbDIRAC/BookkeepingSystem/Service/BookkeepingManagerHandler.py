@@ -191,7 +191,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     evt = dict.get('EventType', dict.get('EventTypeId', default))
 
     if 'EventTypeId' in dict:
-      gLogger.info('EventTypeId will be not accepted! Please change it to EventType')
+      gLogger.verbose('EventTypeId will be not accepted! Please change it to EventType')
 
     retVal = dataMGMT_.getConditions(configName, configVersion, evt)
     if retVal['OK']:
@@ -251,7 +251,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     evt = dict.get('EventType', dict.get('EventTypeId', default))
 
     if 'EventTypeId' in dict:
-      gLogger.info('The EventTypeId has to be replaced by EventType!')
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     retVal = dataMGMT_.getProductions(configName, configVersion, conddescription, processing, evt)
     if retVal['OK']:
@@ -277,7 +277,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     runnb = dict.get('RunNumber', default)
 
     if 'EventTypeId' in dict:
-      gLogger.info('The EventTypeId has to be replaced by EventType!')
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     retVal = dataMGMT_.getFileTypes(configName, configVersion, conddescription, processing, evt, runnb, production)
     if retVal['OK']:
@@ -310,10 +310,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     runnb = dict.get('RunNumber', default)
 
     if 'EventTypeId' in dict:
-      gLogger.info('The EventTypeId has to be replaced by EventType!')
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     if 'Quality' in dict:
-      gLogger.info('The Quality has to be replaced by DataQuality!')
+      gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     retVal = dataMGMT_.getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
     if retVal['OK']:
@@ -356,10 +356,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     endrun = dict.get('EndRun', default)
 
     if 'EventTypeId' in dict:
-      gLogger.info('The EventTypeId has to be replaced by EventType!')
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     if 'Quality' in dict:
-      gLogger.info('The Quality has to be replaced by DataQuality!')
+      gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     retVal = dataMGMT_.getFilesSummary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun)
     if retVal['OK']:
@@ -390,10 +390,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     max = dict.get('MaxItem', 10)
 
     if 'EventTypeId' in dict:
-      gLogger.info('The EventTypeId has to be replaced by EventType!')
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     if 'Quality' in dict:
-      gLogger.info('The Quality has to be replaced by DataQuality!')
+      gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     retVal = dataMGMT_.getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, start, max)
     if retVal['OK']:
@@ -1035,13 +1035,13 @@ class BookkeepingManagerHandler( RequestHandler ):
     tck = values.get('TCK', [])
 
     if 'ProductionID' in values:
-      gLogger.info('ProductionID will be removed. It will changed to Production')
+      gLogger.verbose('ProductionID will be removed. It will changed to Production')
 
     if 'DataQualityFlag' in values:
-      gLogger.info('DataQualityFlag will be removed. It will changed to DataQuality')
+      gLogger.verbose('DataQualityFlag will be removed. It will changed to DataQuality')
 
     if 'RunNumbers' in values:
-      gLogger.info('RunNumbers will be removed. It will changed to RunNumbers')
+      gLogger.verbose('RunNumbers will be removed. It will changed to RunNumbers')
 
     result = []
     retVal = dataMGMT_.getFiles(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, visible, filesize, tck)
@@ -1085,13 +1085,13 @@ class BookkeepingManagerHandler( RequestHandler ):
       return S_ERROR('FileType is missing!')
 
     if 'ProductionID' in values:
-      gLogger.info('ProductionID will be removed. It will changed to Production')
+      gLogger.verbose('ProductionID will be removed. It will changed to Production')
 
     if 'DataQualityFlag' in values:
-      gLogger.info('DataQualityFlag will be removed. It will changed to DataQuality')
+      gLogger.verbose('DataQualityFlag will be removed. It will changed to DataQuality')
 
     if 'RunNumbers' in values:
-      gLogger.info('RunNumbers will be removed. It will changed to RunNumbers')
+      gLogger.verbose('RunNumbers will be removed. It will changed to RunNumbers')
 
     result = {}
     retVal = dataMGMT_.getVisibleFilesWithMetadata(simdesc, datataking, procPass, ftype, evt, configname, configversion, prod, flag, startd, endd, nbofevents, startRunID, endRunID, runNbs, replicaFlag, tck)
@@ -1280,7 +1280,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     runnb = dict.get('RunNumber',default)
     result = S_ERROR()
     if 'Quality' in  dict:
-      gLogger.info('The Quality has to be replaced by DataQuality!')
+      gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     retVal = dataMGMT_.getTCKs(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
     if retVal['OK']:
@@ -1310,10 +1310,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     runnb = dict.get('RunNumber', default)
 
     if 'EventTypeId' in dict:
-      gLogger.info('The EventTypeId has to be replaced by EventType!')
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     if 'Quality' in dict:
-      gLogger.info('The Quality has to be replaced by DataQuality!')
+      gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     return dataMGMT_.getStepsMetadata(configName, configVersion, cond, procpass, evt, production, filetype, runnb)
 

@@ -2309,7 +2309,7 @@ and files.qualityid= dataquality.qualityid'
     proc = dict.get('ProcessingPass', dict.get('ProcPass', default))
     result = S_ERROR()
     if 'Runnumber' in dict:
-      gLogger.info('The Runnumber has changed to RunNumber!')
+      gLogger.verbose('The Runnumber has changed to RunNumber!')
 
     if run != default:
       if proc != default:
