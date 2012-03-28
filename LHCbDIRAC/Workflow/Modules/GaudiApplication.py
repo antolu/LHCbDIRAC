@@ -71,19 +71,16 @@ class GaudiApplication( ModuleBase ):
     #*or* this is defined at the job level and the job wrapper has created a
     #pool_xml_catalog.xml slice for all requested files.
 
-    print "self.stepInputData", self.stepInputData
-
     if self.stepInputData:
       self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
     elif self.InputData:
-      self.log.info( 'Input data defined taken from JDL parameter' )
+      self.log.info( 'Input data defined taken from workflow/JDL parameter' )
       self.stepInputData = copy.deepcopy( self.InputData )
-    if type( self.stepInputData ) != type( [] ):
-      self.stepInputData = self.stepInputData.split( ';' )
-    else:
-      self.log.verbose( 'Job has no input data requirement' )
-
-    print "self.stepInputData", self.stepInputData
+    if self.stepInputData:
+      if type( self.stepInputData ) != type( [] ):
+        self.stepInputData = self.stepInputData.split( ';' )
+      else:
+        self.log.verbose( 'Job has no input data requirement' )
 
   #############################################################################
 
