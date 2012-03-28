@@ -63,7 +63,7 @@ def runProbe( probeInfo, testConfig ):
                 }
 
   availability, suptime, muptime = 0, 0, 0
-  url,                           = probeInfo[ 0 ]
+  url                            = probeInfo[ 0 ]
     
   parsed           = urlparse.urlparse( url )
   system, _service = parsed.path.strip("/").split("/")
