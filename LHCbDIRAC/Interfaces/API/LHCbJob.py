@@ -248,8 +248,6 @@ class LHCbJob( Job ):
     stepInstance.setValue( "applicationLog", logName )
     if optionsFile:
       stepInstance.setValue( "optionsFile", optionsFile )
-      #hack for SAM jobs
-      stepInstance.setValue( "optionsLine", optionsFile )
     if optionsLine:
       stepInstance.setValue( "extraOptionsLine", optionsLine )
     if inputDataType:
@@ -312,7 +310,6 @@ class LHCbJob( Job ):
     step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, "Application Name" ) )
     step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, "Name of the output file of the application" ) )
     step.addParameter( Parameter( "optionsFile", "", "string", "", "", False, False, "Options File" ) )
-    step.addParameter( Parameter( "optionsLine", "", "string", "", "", False, False, "Standard options" ) )
     step.addParameter( Parameter( "extraOptionsLine", "", "string", "", "", False, False, "This is appended to standard options" ) )
     #step.addParameter(Parameter("optionsLinePrev","","string","","",False,False,"options to be added first","option"))
     #step.addParameter(Parameter("poolXMLCatName","","string","","",False,False,"POOL XML Catalog file name"))

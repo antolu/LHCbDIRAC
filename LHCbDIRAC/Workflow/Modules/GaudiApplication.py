@@ -134,7 +134,31 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      if not self.optionsLine:
+      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+
+        self.log.warn( 'OLD production, should not happen for newer productions (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
+        #Prepare standard project run time options
+        generatedOpts = 'gaudi_extra_options.py'
+        if os.path.exists( generatedOpts ):
+          os.remove( generatedOpts )
+        inputDataOpts = getDataOptions( self.applicationName,
+                                        self.stepInputData,
+                                        self.inputDataType,
+                                        self.poolXMLCatName )['Value'] #always OK
+        projectOpts = getModuleOptions( self.applicationName,
+                                        self.numberOfEvents,
+                                        inputDataOpts,
+                                        self.optionsLine,
+                                        runNumberGauss,
+                                        firstEventNumberGauss,
+                                        self.jobType )['Value'] #always OK
+        self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
+        print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
+        options = open( generatedOpts, 'w' )
+        options.write( projectOpts )
+        options.close()
+
+      else:
 
         prodConfFile = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
                                                      self.production_id,
@@ -175,29 +199,6 @@ class GaudiApplication( ModuleBase ):
           optionsDict['FirstEventNumber'] = firstEventNumberGauss
 
         p.putOptionsIn( optionsDict )
-
-      else:
-        self.log.warn( 'OLD production, should not happen for newer productions (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
-        #Prepare standard project run time options
-        generatedOpts = 'gaudi_extra_options.py'
-        if os.path.exists( generatedOpts ):
-          os.remove( generatedOpts )
-        inputDataOpts = getDataOptions( self.applicationName,
-                                        self.stepInputData,
-                                        self.inputDataType,
-                                        self.poolXMLCatName )['Value'] #always OK
-        projectOpts = getModuleOptions( self.applicationName,
-                                        self.numberOfEvents,
-                                        inputDataOpts,
-                                        self.optionsLine,
-                                        runNumberGauss,
-                                        firstEventNumberGauss,
-                                        self.jobType )['Value'] #always OK
-        self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
-        print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
-        options = open( generatedOpts, 'w' )
-        options.write( projectOpts )
-        options.close()
 
       if not projectEnvironment:
         #Now obtain the project environment for execution
