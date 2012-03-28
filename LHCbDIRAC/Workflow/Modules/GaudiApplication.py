@@ -177,7 +177,7 @@ class GaudiApplication( ModuleBase ):
         p.putOptionsIn( optionsDict )
 
       else:
-        self.log.warn( 'OLD production, should not happen for newer productions (after LHCbDIRAC v7r5)!' )
+        self.log.warn( 'OLD production, should not happen for newer productions (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
         #Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):

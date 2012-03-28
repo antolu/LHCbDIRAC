@@ -196,7 +196,7 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
     try:
       j = LHCbJob( stdout = self.logFile.replace( 'log', 'stdout' ), stderr = self.logFile.replace( 'log', 'stderr' ) )
       j.setSystemConfig( self.appSystemConfig )
-      j.setApplication( appName, appVersion, options, logFile = self.logFile )
+      j.setApplication( appName, appVersion, options, logFile = self.logFile, events = 2 )
       j.setName( '%s%sSAMTest' % ( appName, appVersion ) )
       j.setLogLevel( gConfig.getValue( '/Operations/SAM/LogLevel', 'verbose' ) )
       j.setPlatform( gConfig.getValue( '/Operations/SAM/Platform', 'gLite' ) )

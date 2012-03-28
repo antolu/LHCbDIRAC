@@ -129,7 +129,8 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setApplication( self, appName, appVersion, optionsFiles, inputData = '', optionsLine = '', inputDataType = '', logFile = '' ):
+  def setApplication( self, appName, appVersion, optionsFiles, inputData = '',
+                      optionsLine = '', inputDataType = '', logFile = '', events = -1 ):
     """Helper function.
 
        Specify application for DIRAC workflows.
@@ -149,7 +150,8 @@ class LHCbJob( Job ):
        Example usage:
 
        >>> job = LHCbJob()
-       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
+       >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',
+       inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
 
        @param appName: Application name
        @type appName: string
@@ -165,6 +167,8 @@ class LHCbJob( Job ):
        @type inputDataType: string
        @param logFile: Optional log file name
        @type logFile: string
+       @param events: Optional number of events
+       @type logFile: integer
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles, 'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
@@ -244,12 +248,15 @@ class LHCbJob( Job ):
     stepInstance.setValue( "applicationLog", logName )
     if optionsFile:
       stepInstance.setValue( "optionsFile", optionsFile )
+      #hack for SAM jobs
+      stepInstance.setValue( "optionsLine", optionsFile )
     if optionsLine:
       stepInstance.setValue( "extraOptionsLine", optionsLine )
     if inputDataType:
       stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
       stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
+    stepInstance.setValue( "numberOfEvents", str( events ) )
 
     # now we have to tell DIRAC to install the necessary software
     currentApp = '%s.%s' % ( appName, appVersion )
@@ -305,11 +312,13 @@ class LHCbJob( Job ):
     step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, "Application Name" ) )
     step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, "Name of the output file of the application" ) )
     step.addParameter( Parameter( "optionsFile", "", "string", "", "", False, False, "Options File" ) )
-    step.addParameter( Parameter( "optionsLine", "", "string", "", "", False, False, "This is appended to standard options" ) )
+    step.addParameter( Parameter( "optionsLine", "", "string", "", "", False, False, "Standard options" ) )
+    step.addParameter( Parameter( "extraOptionsLine", "", "string", "", "", False, False, "This is appended to standard options" ) )
     #step.addParameter(Parameter("optionsLinePrev","","string","","",False,False,"options to be added first","option"))
     #step.addParameter(Parameter("poolXMLCatName","","string","","",False,False,"POOL XML Catalog file name"))
     step.addParameter( Parameter( "inputDataType", "", "string", "", "", False, False, "Input Data Type" ) )
     step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, "Input Data Type" ) )
+    step.addParameter( Parameter( "numberOfEvents", "", "string", "", "", False, False, "Events treated" ) )
     return step
 
   #############################################################################
