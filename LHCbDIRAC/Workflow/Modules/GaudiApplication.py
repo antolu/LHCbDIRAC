@@ -72,12 +72,11 @@ class GaudiApplication( ModuleBase ):
     #pool_xml_catalog.xml slice for all requested files.
     if self.stepInputData:
       self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
-      if type( self.stepInputData ) != type( [] ):
-        self.stepInputData = self.stepInputData.split( ';' )
     elif self.InputData:
       self.log.info( 'Input data defined taken from JDL parameter' )
-#      if type( self.InputData ) != type( [] ):
-#        self.InputData = self.InputData.split( ';' )
+      self.stepInputData = copy.deepcopy( self.InputData )
+    if type( self.stepInputData ) != type( [] ):
+      self.stepInputData = self.stepInputData.split( ';' )
     else:
       self.log.verbose( 'Job has no input data requirement' )
 
@@ -183,8 +182,17 @@ class GaudiApplication( ModuleBase ):
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):
           os.remove( generatedOpts )
-        inputDataOpts = getDataOptions( self.applicationName, self.inputData, self.inputDataType, self.poolXMLCatName )['Value'] #always OK
-        projectOpts = getModuleOptions( self.applicationName, self.numberOfEvents, inputDataOpts, self.optionsLine, runNumberGauss, firstEventNumberGauss, self.jobType )['Value'] #always OK
+        inputDataOpts = getDataOptions( self.applicationName,
+                                        self.stepInputData,
+                                        self.inputDataType,
+                                        self.poolXMLCatName )['Value'] #always OK
+        projectOpts = getModuleOptions( self.applicationName,
+                                        self.numberOfEvents,
+                                        inputDataOpts,
+                                        self.optionsLine,
+                                        runNumberGauss,
+                                        firstEventNumberGauss,
+                                        self.jobType )['Value'] #always OK
         self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
         print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
         options = open( generatedOpts, 'w' )
