@@ -879,9 +879,6 @@ class BookkeepingClient:
     s=  '                 WARNING                         \n'
     s+= '                                                 \n'
     s+= errMsg
-    s+= '\n'
-    s+= '                                                 \n'
-    s+= '                                                 \n'
     gLogger.error(s)
 
   #############################################################################
