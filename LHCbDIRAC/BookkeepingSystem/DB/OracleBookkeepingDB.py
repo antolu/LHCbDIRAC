@@ -1040,14 +1040,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if ftype != default:
       condition += " and filetypes.name='%s'" % (ftype)
 
-    command = "select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name, files.inserttimestamp from jobs,files,filetypes where\
+    command = "select files.filename, files.gotreplica, files.filesize,files.guid, filetypes.name, files.inserttimestamp, files.visibilityflag from jobs,files,filetypes where\
     jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production=%d %s" % (prod, condition)
 
     res = self.dbR_._query(command)
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        value[record[0]] = {'GotReplica':record[1], 'FileSize':record[2], 'GUID':record[3], 'FileType':record[4]}
+        value[record[0]] = {'GotReplica':record[1], 'FileSize':record[2], 'GUID':record[3], 'FileType':record[4], 'Visible':record[6]}
       result = S_OK(value)
     else:
       result = S_ERROR(res['Message'])

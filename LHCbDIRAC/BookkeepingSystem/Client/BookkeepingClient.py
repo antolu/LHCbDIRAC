@@ -313,7 +313,7 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getProductionFiles(self, prod, fileType, replica):
+  def getProductionFiles(self, prod, fileType, replica = 'ALL'):
     """
     It returns files and their metadata for a given production, file type and replica.
     """
