@@ -479,3 +479,7 @@ class IBookkeepingDB(object):
   #############################################################################
   def getDirectoryMetadata(self, lfn):
     gLogger.error('This method is not implemented!')
+
+  #############################################################################
+  def getFilesForGUID(self, guid):
+    gLogger.error('This method is not implemented!')

@@ -3461,3 +3461,15 @@ and files.qualityid= dataquality.qualityid'
       result = retVal
     return result
 
+  #############################################################################
+  def getFilesForGUID(self, guid):
+    result = S_ERROR()
+    retVal = self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getFilesForGUID', StringType, [guid])
+    if retVal['OK']:
+      result = S_OK(retVal['Value'])
+    else:
+      result = retVal
+    return result
+
+
+

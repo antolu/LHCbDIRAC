@@ -482,3 +482,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getDirectoryMetadata(self, lfn):
     return self.getManager().getDirectoryMetadata(lfn)
+
+  #############################################################################
+  def getFilesForGUID(self, guid):
+    return self.getManager().getFilesForGUID(guid)

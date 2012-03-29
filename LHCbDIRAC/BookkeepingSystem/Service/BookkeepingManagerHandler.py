@@ -1321,3 +1321,8 @@ class BookkeepingManagerHandler( RequestHandler ):
   types_getDirectoryMetadata = [StringType]
   def export_getDirectoryMetadata(self, lfn):
     return dataMGMT_.getDirectoryMetadata(lfn)
+
+  #############################################################################
+  types_getFilesForGUID = [StringType]
+  def export_getFilesForGUID(self, guid):
+    return dataMGMT_.getFilesForGUID(guid)

@@ -871,6 +871,15 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getDirectoryMetadata(lfn)
 
+  #############################################################################
+  def getFilesForGUID(self, guid):
+    """
+    It returns a file for a given GUID.
+    """
+    server = self.__getServer()
+    return server.getFilesForGUID(guid)
+
+
   # The following method names are changed in the Bookkeeping client.
 
   #############################################################################
