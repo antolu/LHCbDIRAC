@@ -23,7 +23,7 @@ class Synchronizer( BaseSync.Synchronizer ):
     Init.
     '''
     super( Synchronizer, self ).__init__( rsClient, rmClient )
-    self.synclist = self.synclist + ["VOBOX", "CondDBs"]
+    self.synclist = self.synclist + ["VOBOX", "CondDBs", "DISET"]
 
   def _syncVOBOX( self ):
     '''
@@ -59,6 +59,25 @@ class Synchronizer( BaseSync.Synchronizer ):
     for site in condDBInCS - condDBInDB:
       service = "CondDB@" + site
       Utils.protect2(self.rsClient.addOrModifyService, service, 'CondDB', site )
+
+  def _syncDISET( self ):
+    '''
+    Sync StorageElements with DISET BackendType
+    '''
+
+    # Fix to avoid loading CS if not needed
+    from DIRAC.ResourceStatusSystem.Utilities import CS
+
+    ses = CS.getSEs()
+
+    for se in ses:
+      backEnd = gConfig.getValue( '/Resources/StorageElements/%s/BackendType' % se )
+      if backEnd == 'DISET':
+        knownSE = self.rsClient.getStorageElement( se )
+        if knownSE[ 'OK' ] and not knownSE[ 'Value' ]:
+          res = self.rsClient.addOrModifyStorageElement( se, 'VOBOX', 'DISET' )
+          if not res[ 'OK' ]:
+            gLogger.error( res[ 'Message' ] )      
       
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF      
