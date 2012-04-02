@@ -6,6 +6,7 @@ from DIRAC.Core.Workflow.Step import StepDefinition
 from DIRAC.Core.Workflow.Module import ModuleDefinition
 from DIRAC.Core.Workflow.Parameter import Parameter
 
+from DIRAC import gLogger
 #############################################################################
 
 def getStepDefinition( stepName, modulesNameList = [], importLine = """""", parametersList = [] ):
@@ -57,3 +58,41 @@ def addStepToWorkflow( workflow, stepDefinition, name ):
   return workflow
 
 #############################################################################
+
+"""
+makeRunList return a list of runs starting from a string.
+
+Example:
+
+makeRunList("1234:1236,12340,12342,1520:1522") --> ['1234','1235','1236','12340','12342','1520','1521','1522']
+ 
+"""
+
+def makeRunList(runInput):
+
+  import string
+
+  res={'OK':False,'RunList':[],'Message':''}
+  try:
+    #remove blank spaces
+    l = string.join(runInput.split(),"")
+    i = l.split(",")
+    runList=[]
+    for part in i:
+       if part.find(':'):
+         pp = part.split(":")
+         print pp 
+         for p in range(int(pp[0]),int(pp[len(pp)-1])+1):
+           runList.append(str(p))
+       else:
+          runList.append(str(part))
+    res['OK']=True
+    res['RunList']=runList
+    res['Message']='Successfully parsed run input list'
+    gLogger.info(res['Message'])
+  except:
+    res['OK']=False
+    res['Message']='Run List string not correctly parsed!'
+    print res['Message']
+    gLogger.error(res['Message'])
+  return res
