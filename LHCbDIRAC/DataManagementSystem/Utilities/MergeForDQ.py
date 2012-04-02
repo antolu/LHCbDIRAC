@@ -141,22 +141,54 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir , testMode , special
     results['OK'] = False
     return results
 
-  gLogger.info( "Now processing run %s in pass %s." % ( 
-  str( run ), bkDict['ProcessingPass'] ) )
+  gLogger.info( "Now processing run %s in pass %s." % (
+  str(run), bkDict['ProcessingPass'] ) )
 
-  brunelLocal = []
-  davinciLocal = []
-  gLogger.info( '===>Retrieving Brunel histograms locally' )
+  brunelLocal=[]
+  davinciLocal=[]
+  res={}
+  gLogger.info('===>Retrieving Brunel histograms locally')
   for lfn in brunelList:
-    res = rm.getFile( lfn, homeDir )
-    if res['OK']:
-      brunelLocal.append( res['Value']['Successful'][lfn] )
-
-  gLogger.info( '===>Retrieving DaVinci histograms locally' )
+    res['OK']=False
+    s = lfn.split('/')
+    localfile=homeDir+s[len(s)-1]
+    if os.path.exists(localfile):
+      gLogger.info("Found file %s in local temp folder"%localfile)
+      brunelLocal.append(localfile)
+    else:
+      retry = 1
+      while retry<6  and not res['OK']:
+        gLogger.info("Trying to download %s time"%retry)
+        res = rm.getFile(lfn,homeDir)
+        retry = retry+1
+      if res['OK'] and res['Value']['Successful'].has_key(lfn):
+        brunelLocal.append(res['Value']['Successful'][lfn])
+      else:
+        if not res['Value']['Successful'].has_key(lfn):
+          gLogger.error("Cannot retrieve %s" %lfn)
+          return results
+  
+  gLogger.info('===>Retrieving DaVinci histograms locally')
   for lfn in davinciList:
-    res = rm.getFile( lfn, homeDir )
-    if res['OK']:
-      davinciLocal.append( res['Value']['Successful'][lfn] )
+    res['OK']=False
+    s = lfn.split('/')
+    localfile=homeDir+s[len(s)-1]
+    if os.path.exists(localfile):
+      gLogger.info("Found file %s in local temp folder"%localfile)
+      brunelLocal.append(localfile)
+    else:
+      retry = 1
+      while retry<6 and not res['OK']:
+        gLogger.info("Trying to download %s time"%retry)
+        res = rm.getFile(lfn,homeDir)
+        retry = retry+1
+      if res['OK'] and res['Value']['Successful'].has_key(lfn):
+        davinciLocal.append(res['Value']['Successful'][lfn])
+      else:
+        if not res['Value']['Successful'].has_key(lfn):
+          gLogger.error("Cannot retrieve %s" %lfn)
+          return results
+
 
   '''
   Real Merging part 
