@@ -5,7 +5,7 @@
 
 '''
 
-from DIRAC                                import gLogger
+from DIRAC                                import gLogger, gConfig
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 from DIRAC.ResourceStatusSystem.Utilities import Synchronizer as BaseSync
 
