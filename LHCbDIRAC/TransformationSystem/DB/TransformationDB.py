@@ -1,5 +1,3 @@
-# $HeadURL$
-
 """ DIRAC Transformation DB
 
     Transformation database is used to collect and serve the necessary information
@@ -10,18 +8,19 @@
 
 __RCSID__ = "$Id$"
 
-import re, time, types, string
+import re
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.DB                                 import DB
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
 from DIRAC.Core.Utilities.List                          import intListToString
 import threading, copy
-from types import *
+from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
 
 MAX_ERROR_COUNT = 3
 
 class TransformationDB( DIRACTransformationDB ):
+  """ Extension of the DIRAC Transformation DB
+  """
 
   def __init__( self, dbname, dbconfig, maxQueueSize = 10 ):
     """ The standard constructor takes the database name (dbname) and the name of the
@@ -30,7 +29,9 @@ class TransformationDB( DIRACTransformationDB ):
     DIRACTransformationDB.__init__( self, dbname, dbconfig, maxQueueSize )
     self.lock = threading.Lock()
     self.dbname = dbname
-    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType', 'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag', 'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
+    self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
+                        'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag',
+                         'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
 
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
@@ -238,8 +239,8 @@ class TransformationDB( DIRACTransformationDB ):
   def __insertExistingTransformationFiles( self, transID, fileTuples, connection = False ):
     req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
     candidates = False
-    for tuple in fileTuples:
-      lfn, originalID, fileID, status, taskID, targetSE, usedSE, errorCount, lastUpdate, insertTime, runNumber = tuple[:11]
+    for ft in fileTuples:
+      lfn, originalID, fileID, status, taskID, targetSE, usedSE, errorCount, lastUpdate, insertTime, runNumber = ft[:11]
       if status != 'Unused':
         candidates = True
         if not re.search( '-', status ):
@@ -293,7 +294,8 @@ class TransformationDB( DIRACTransformationDB ):
 
     # Insert the task into the jobs table and retrieve the taskID
     self.lock.acquire()
-    req = "INSERT INTO TransformationTasks(TransformationID, ExternalStatus, ExternalID, TargetSE, CreationTime, LastUpdateTime, RunNumber) VALUES\
+    req = "INSERT INTO TransformationTasks(TransformationID, ExternalStatus, ExternalID, \
+    TargetSE, CreationTime, LastUpdateTime, RunNumber) VALUES\
      (%d,'%s','%d','%s', UTC_TIMESTAMP(), UTC_TIMESTAMP(),%d);" % ( transID, 'Created', 0, se, runID )
     res = self._update( req, connection )
     if not res['OK']:
@@ -323,13 +325,20 @@ class TransformationDB( DIRACTransformationDB ):
   # Managing the TransformationRuns table
   #
 
-  def getTransformationRuns( self, condDict = {}, older = None, newer = None, timeStamp = 'LastUpdate', orderAttribute = None, limit = None, connection = False ):
+  def getTransformationRuns( self, condDict = {}, older = None, newer = None, timeStamp = 'LastUpdate',
+                             orderAttribute = None, limit = None, connection = False ):
     connection = self.__getConnection( connection )
     selectDict = {}
     for key in condDict.keys():
       if key in self.transRunParams:
         selectDict[key] = condDict[key]
-    req = "SELECT %s FROM TransformationRuns %s" % ( intListToString( self.transRunParams ), self.buildCondition( selectDict, older = older, newer = newer, timeStamp = timeStamp, orderAttribute = orderAttribute, limit = limit ) )
+    req = "SELECT %s FROM TransformationRuns %s" % ( intListToString( self.transRunParams ),
+                                                     self.buildCondition( selectDict,
+                                                                          older = older,
+                                                                          newer = newer,
+                                                                          timeStamp = timeStamp,
+                                                                          orderAttribute = orderAttribute,
+                                                                          limit = limit ) )
     res = self._query( req, connection )
     if not res['OK']:
       return res
@@ -356,7 +365,9 @@ class TransformationDB( DIRACTransformationDB ):
 
   def getTransformationRunStats( self, transIDs, connection = False ):
     connection = self.__getConnection( connection )
-    res = self.getCounters( 'TransformationFiles', ['TransformationID', 'RunNumber', 'Status'], {'TransformationID':transIDs} )
+    res = self.getCounters( 'TransformationFiles',
+                            ['TransformationID', 'RunNumber', 'Status'],
+                            {'TransformationID':transIDs} )
     if not res['OK']:
       return res
     transRunStatusDict = {}
@@ -386,7 +397,8 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     fileIDs, lfnFilesIDs = res['Value']
-    req = "UPDATE TransformationFiles SET RunNumber = %d WHERE TransformationID = %d AND FileID IN (%s)" % ( runID, transID, intListToString( fileIDs.keys() ) )
+    req = "UPDATE TransformationFiles SET RunNumber = %d \
+    WHERE TransformationID = %d AND FileID IN (%s)" % ( runID, transID, intListToString( fileIDs.keys() ) )
     res = self._update( req, connection )
     if not res['OK']:
       return res
@@ -399,7 +411,8 @@ class TransformationDB( DIRACTransformationDB ):
       if not lfn in successful.keys():
         failed[lfn] = "Missing"
     # Now update the TransformationRuns to include the newly updated files
-    req = "UPDATE TransformationRuns SET LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber = %d" % ( transID, runID )
+    req = "UPDATE TransformationRuns SET LastUpdate = UTC_TIMESTAMP() \
+    WHERE TransformationID = %d and RunNumber = %d" % ( transID, runID )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to update TransformationRuns table with LastUpdate", res['Message'] )
@@ -418,7 +431,8 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    req = "UPDATE TransformationRuns SET Status = '%s', LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber in (%s)" % ( status, transID, intListToString( runIDs ) )
+    req = "UPDATE TransformationRuns SET Status = '%s', LastUpdate = UTC_TIMESTAMP() \
+    WHERE TransformationID = %d and RunNumber in (%s)" % ( status, transID, intListToString( runIDs ) )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to update TransformationRuns table with Status", res['Message'] )
@@ -430,7 +444,8 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    req = "UPDATE TransformationRuns SET SelectedSite = '%s', LastUpdate = UTC_TIMESTAMP() WHERE TransformationID = %d and RunNumber = %d" % ( selectedSite, transID, runID )
+    req = "UPDATE TransformationRuns SET SelectedSite = '%s', LastUpdate = UTC_TIMESTAMP() \
+    WHERE TransformationID = %d and RunNumber = %d" % ( selectedSite, transID, runID )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to update TransformationRuns table with SelectedSite", res['Message'] )
@@ -439,10 +454,55 @@ class TransformationDB( DIRACTransformationDB ):
     return res
 
   def __insertTransformationRun( self, transID, runID, selectedSite = '', connection = False ):
-    req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % ( transID, runID )
+    req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) \
+    VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % ( transID, runID )
     if selectedSite:
-      req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,SelectedSite,Status,LastUpdate) VALUES (%d,%d,'%s','Active',UTC_TIMESTAMP())" % ( transID, runID, selectedSite )
+      req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,SelectedSite,Status,LastUpdate) \
+      VALUES (%d,%d,'%s','Active',UTC_TIMESTAMP())" % ( transID, runID, selectedSite )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to insert to TransformationRuns table", res['Message'] )
     return res
+
+  #############################################################################
+  #
+  # Managing the RunsMetadata table
+  #
+
+  def setRunsMetadata( self, runID, metadataDict, connection = False ):
+    """ Add the metadataDict to runID
+    """
+    connection = self.__getConnection( connection )
+    for name, value in metadataDict.items():
+      self.__insertRunMetadata( runID, name, value, connection )
+
+  def __insertRunMetadata( self, runID, name, value, connection ):
+    req = "INSERT INTO RunsMetadata (RunNumber, Name, Value) VALUES(%d, '%s', '%s')" % ( runID, name, value )
+    res = self._update( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failed to insert to RunsMetadata table", res['Message'] )
+    return res
+
+  def getRunsMetadata( self, runIDs, connection = False ):
+    """ get meta of a run, those set in 'names', default is 'ALL'. RunIDs can be a list.  
+    """
+    connection = self.__getConnection( connection )
+    if type( runIDs ) in ( StringTypes, IntType ):
+      runIDs = [runIDs]
+    runIDs = [str( x ) for x in runIDs]
+    runIDs = ', '.join( runIDs )
+    req = "SELECT * FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      res = res['Value']
+      dictOfNameValue = {}
+      for t in res:
+        if t[0] in dictOfNameValue.keys():
+          dictOfNameValue[t[0]].update( {t[1]:t[2]} )
+        else:
+          dictOfNameValue[t[0]] = {t[1]:t[2]}
+      return dictOfNameValue
+

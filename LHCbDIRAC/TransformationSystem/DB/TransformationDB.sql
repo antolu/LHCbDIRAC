@@ -54,3 +54,13 @@ CREATE TABLE TransformationRuns(
   LastUpdate DATETIME,
   PRIMARY KEY (TransformationID,RunNumber)
 ) ENGINE=MyISAM;
+
+DROP TABLE IF EXISTS RunsMetadata;
+CREATE TABLE RunsMetadata(
+  RunNumber INT(11) NOT NULL,
+  INDEX (RunNumber),
+  Name VARCHAR(256) NOT NULL,
+  Value VARCHAR(256) NOT NULL,
+  PRIMARY KEY (RunNumber, Name)
+) ENGINE=MyISAM;
+
