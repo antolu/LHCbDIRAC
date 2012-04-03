@@ -43,8 +43,11 @@ class SLSAgent2( AgentModule ):
     # Attribute defined outside __init__  
     # pylint: disable-msg=W0201
 
-    webRoot = self.am_getOption( 'webRoot', 'webRoot/www/sls2/')
+    # Get proxy with lhcb_prod group
+    self.am_setOption( 'shifterProxy', 'DataManager' )
 
+    webRoot = self.am_getOption( 'webRoot', 'webRoot/www/sls2/')
+    
     self.workdir  = '%s/%s' % ( rootPath, webRoot )
     self.tModules = {}
     self.tests    = []
