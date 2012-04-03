@@ -452,7 +452,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
       for i in inFileTypes:
-        values += "ftype(' %s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
+        values += "ftype('%s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
       values = values[:-1]
       values += ')'
 
@@ -462,7 +462,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       values += ' , filetypesARRAY('
       selection += ',OutputFileTypes'
       for i in outFileTypes:
-        values += "ftype(' %s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
+        values += "ftype('%s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
       values = values[:-1]
       values += ')'
 
