@@ -5,7 +5,7 @@
   
 '''
 
-from DIRAC                                        import S_OK, S_ERROR
+from DIRAC                                        import S_ERROR
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping  import getGOCSiteName
 from DIRAC.ResourceStatusSystem.Command.Command   import Command
 from DIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
@@ -16,7 +16,7 @@ class SAMResultsCommand( Command ):
   
   __APIs__ = [ 'SAMResultsClient', 'ResourceStatusClient' ]
   
-  def doCommand( self, rsClientIn = None ):
+  def doCommand( self ):
     ''' 
     Return getStatus from SAM Results Client  
     
@@ -59,15 +59,14 @@ class SAMResultsCommand( Command ):
           return siteName
         siteName = siteName['Value']
     else:
-      return S_ERROR( '%s is not a valid granularity' % self.args[ 0 ] ) 
+      return { 'Result' : S_ERROR( '%s is not a valid granularity' % self.args[ 0 ] ) } 
     
     if len( self.args ) > 3:
       tests = self.args[ 3 ]
     else:
       tests = None
 
-    res = self.APIs[ 'SAMResultsClient' ].getStatus( granularity, name, siteName, 
-                                                     tests, timeout = self.timeout ) 
+    res = self.APIs[ 'SAMResultsClient' ].getStatus( granularity, name, siteName, tests ) 
 
     return { 'Result' : res }
   
