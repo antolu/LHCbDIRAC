@@ -56,10 +56,14 @@ class ModulesTestCase( unittest.TestCase ):
     self.jsu_mock = Mock()
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
+    request_mock = Mock()
+    request_mock.addSubRequest.return_value = {'OK': True, 'Value': ''}
+    request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': {'UploadedSE':''}}
+
     self.ft_mock = Mock()
     self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
-    self.ft_mock.getRequestObject.return_value = {'OK': True, 'Value': ''}
+    self.ft_mock.getRequestObject.return_value = {'OK': True, 'Value': request_mock}
 
     self.bkc_mock = Mock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
@@ -755,13 +759,19 @@ class UploadLogFileSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, step_commons,
-                                         self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock,
-                                         self.bkc_mock )['OK'] )
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id,
+                                           self.rm_mock, self.ft_mock,
+                                           self.bkc_mock )['OK'] )
 
-    #TODO: make others cases tests!
+    #putStorageDirectory returns False
+    rm_mock = copy.deepcopy( self.rm_mock )
+    rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      for step_commons in self.step_commons:
+        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
+
 
 ##############################################################################
 ## UploadOutputData.py

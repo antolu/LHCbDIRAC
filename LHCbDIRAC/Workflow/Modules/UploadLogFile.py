@@ -39,7 +39,8 @@ class UploadLogFile( ModuleBase ):
     self.logSizeLimit = gConfig.getValue( '/Operations/LogFiles/SizeLimit', 20 * 1024 * 1024 )
     self.logExtensions = gConfig.getValue( '/Operations/LogFiles/Extensions', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
-    self.diracLogo = gConfig.getValue( '/Operations/SAM/LogoURL', 'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
+    self.diracLogo = gConfig.getValue( '/Operations/SAM/LogoURL',
+                                       'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
 
 
 ######################################################################
@@ -172,7 +173,9 @@ class UploadLogFile( ModuleBase ):
     self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
 
-    res = rm.putStorageDirectory( {self.logFilePath:os.path.realpath( self.logdir )}, self.logSE, singleDirectory = True )
+    res = rm.putStorageDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )},
+                                  storageElementName = self.logSE,
+                                  singleDirectory = True )
     self.log.verbose( res )
     self.setJobParameter( 'Log URL', logURL, jr = self.jobReport )
     if res['OK']:
@@ -186,7 +189,8 @@ class UploadLogFile( ModuleBase ):
 
     #########################################
     # Recover the logs to a failover storage element
-    self.log.error( 'Completely failed to upload log files to %s with message "%s", will attempt upload to failover SE' % ( self.logSE, res['Message'] ) )
+    self.log.error( 'Completely failed to upload log files to %s with message "%s", \
+    will attempt upload to failover SE' % ( self.logSE, res['Message'] ) )
 
     #make a tar file
     tarFileName = os.path.basename( self.logLFNPath )
@@ -199,9 +203,10 @@ class UploadLogFile( ModuleBase ):
 
     ############################################################W
     random.shuffle( self.failoverSEs )
-    self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName, string.join( self.failoverSEs, ', ' ) ) )
+    self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
+                                                                                 string.join( self.failoverSEs, ', ' ) ) )
     result = ft.transferAndRegisterFile( fileName = tarFileName,
-                                         localPath = '%s/%s' % ( self.logdir, tarFileName ),
+                                         localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
                                          lfn = self.logLFNPath,
                                          destinationSEList = self.failoverSEs,
                                          fileGUID = None,
@@ -317,7 +322,7 @@ class UploadLogFile( ModuleBase ):
     fileDict = {'Status': 'Waiting', 'LFN': logFileLFN}
     result = self.request.setSubRequestFiles( index, 'logupload', [fileDict] )
 
-    self.log.info( 'Setting log removal request for s' % ( logFileLFN ) )
+    self.log.info( 'Setting log removal request for %s' % ( logFileLFN ) )
     result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
                                                        'TargetSE':result['Value']['UploadedSE'],
                                                        'ExecutionOrder':1}},
