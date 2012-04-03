@@ -15,7 +15,7 @@ class FakeConfirmPolicy( PolicyBase ):
     """
     """
 
-    Fake_R = super( FakeConfirmPolicy, self ).evaluate()
+    commandResult = super( FakeConfirmPolicy, self ).evaluate()
 
     return { 'Status' : 'Active', 'Reason' : 'fake' }
 

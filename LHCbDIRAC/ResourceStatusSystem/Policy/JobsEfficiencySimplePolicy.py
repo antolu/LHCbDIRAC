@@ -23,35 +23,35 @@ class JobsEfficiencySimplePolicy( PolicyBase ):
       }
   """
 
-    status = super( JobsEfficiencySimplePolicy, self ).evaluate()
+    commandResult = super( JobsEfficiencySimplePolicy, self ).evaluate()
     result = {}
 
-    if status is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
 
-    if not status[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = status[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result
 
-    status = status[ 'Value' ]
+    commandResult = commandResult[ 'Value' ]
       
-    if status == 'Good':
+    if commandResult == 'Good':
       result[ 'Status' ] = 'Active'
-    elif status == 'Fair':
+    elif commandResult == 'Fair':
       result[ 'Status' ] = 'Active'   
-    elif status == 'Poor':
+    elif commandResult == 'Poor':
       result[ 'Status' ] = 'Probing'
-    elif status == 'Idle':
+    elif commandResult == 'Idle':
       result[ 'Status' ] = 'Unknown'
-    elif status == 'Bad':
+    elif commandResult == 'Bad':
       result[ 'Status' ] = 'Bad'
 
     result[ 'Reason' ] = 'Simple Jobs Efficiency: '
-    if status != 'Idle':
-      result[ 'Reason' ] = result[ 'Reason' ] + status
+    if commandResult != 'Idle':
+      result[ 'Reason' ] = result[ 'Reason' ] + commandResult
     else:
       result[ 'Reason' ] = 'No values to take a decision'
 

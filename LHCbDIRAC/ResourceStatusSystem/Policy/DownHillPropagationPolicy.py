@@ -25,28 +25,28 @@ class DownHillPropagationPolicy( PolicyBase ):
         }
     """
 
-    resourceStatus = super( DownHillPropagationPolicy, self ).evaluate()
+    commandResult = super( DownHillPropagationPolicy, self ).evaluate()
     result = {}
 
-    if resourceStatus is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
 
-    if not resourceStatus[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = resourceStatus[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result
 
-    resourceStatus = resourceStatus[ 'Value' ]
+    commandResult = commandResult[ 'Value' ]
     
-    if resourceStatus is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decission'
       return result
 
-    result[ 'Status' ] = resourceStatus
-    result[ 'Reason' ] = 'DownHill propagated status: %s' % resourceStatus
+    result[ 'Status' ] = commandResult
+    result[ 'Reason' ] = 'DownHill propagated status: %s' % commandResult
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

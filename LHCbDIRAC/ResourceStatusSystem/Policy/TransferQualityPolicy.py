@@ -30,63 +30,53 @@ class TransferQualityPolicy( PolicyBase ):
         }
     '''
 
-    quality = super( TransferQualityPolicy, self ).evaluate()
+    commandResult = super( TransferQualityPolicy, self ).evaluate()
     result  = {}
 
-    if quality is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
     
-    if not quality[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = quality[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result
     
-    quality = quality[ 'Value' ]
-    if quality == None:
+    commandResult = commandResult[ 'Value' ]
+    if commandResult == None:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decision'
       return result 
     
-    quality = int( round( quality ) )
-    result[ 'Reason' ] = 'TransferQuality: %d %% -> ' % quality
+    commandResult = int( round( commandResult ) )
+    result[ 'Reason' ] = 'TransferQuality: %d %% -> ' % commandResult
 
     policyParameters = Configurations.getPolicyParameters()
 
     if 'FAILOVER'.lower() in self.args[ 1 ].lower():
 
-      if quality < policyParameters[ 'Transfer_QUALITY_LOW' ]:
+      if commandResult < policyParameters[ 'Transfer_QUALITY_LOW' ]:
         result[ 'Status' ] = 'Probing'
         strReason = 'Low'
-      elif quality < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
+      elif commandResult < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
         result[ 'Status' ] = 'Active'
         strReason = 'Mean'
       else:
-      #elif quality >= Configurations.Transfer_QUALITY_HIGH :
         result[ 'Status' ] = 'Active'
         strReason = 'High'
-      #else:
-      #  result[ 'Status' ] = 'Active'
-      #  strReason = 'Mean'
-
-      #result[ 'Reason' ] = result[ 'Reason' ] + strReason
 
     else:
 
-      if quality < policyParameters[ 'Transfer_QUALITY_LOW' ] :
+      if commandResult < policyParameters[ 'Transfer_QUALITY_LOW' ] :
         result[ 'Status' ] = 'Bad'
         strReason          = 'Low'
-      elif quality < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
+      elif commandResult < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
         result[ 'Status' ] = 'Probing'
         strReason          = 'Mean'
       else:
-#      elif quality >= Configurations.Transfer_QUALITY_HIGH :
         result[ 'Status' ] = 'Active'
         strReason          = 'High'
-#      elif quality >= Configurations.Transfer_QUALITY_LOW and quality < Configurations.Transfer_QUALITY_HIGH:
-#        result[ 'Status' ] = 'Probing'
-#        strReason = 'Mean'
 
     result[ 'Reason' ] = result[ 'Reason' ] + strReason
     return result

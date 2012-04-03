@@ -25,38 +25,40 @@ class PropagationPolicy( PolicyBase ):
       }
     """
 
-    stats = super( PropagationPolicy, self ).evaluate()
+    commandResult = super( PropagationPolicy, self ).evaluate()
     result = {}
 
-    if stats is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
 
-    if not stats[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = stats[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result
 
-    stats = stats[ 'Value' ]
+    commandResult = commandResult[ 'Value' ]
 
-    if stats['Active'] > 0 and stats['Probing'] == 0 and stats['Bad'] == 0 and stats['Banned'] == 0:
+    if ( commandResult[ 'Active' ] > 0 and commandResult[ 'Probing' ] == 0 and 
+         commandResult[ 'Bad' ] == 0 and commandResult[ 'Banned' ] == 0 ):
       status = 'Active'
-    elif stats['Active'] == 0 and stats['Probing'] == 0 and stats['Bad'] == 0 and stats['Banned'] > 0:
+    elif ( commandResult[ 'Active' ] == 0 and commandResult[ 'Probing' ] == 0 and 
+           commandResult[ 'Bad' ] == 0 and commandResult[ 'Banned' ] > 0 ):
       status = 'Banned'
-    elif stats['Active'] > 0 or stats['Probing'] > 0 or stats['Bad'] > 0 or stats['Banned'] > 0:
+    elif ( commandResult[ 'Active' ] > 0 or commandResult[ 'Probing' ] > 0 or 
+           commandResult[ 'Bad' ] > 0 or commandResult[ 'Banned' ] > 0 ):
       status = 'Bad'
     else:
       status = 'Unknown'
 
-    result['Status'] = status
+    result[ 'Status' ] = status
     # TODO: Check that self.args[2] is correct, in the future, use
     # named fields instead of numbers
-    result['Reason'] = '%s: Active:%d, Probing :%d, Bad: %d, Banned:%d' % ( self.args[2],
-                                                                           stats['Active'],
-                                                                           stats['Probing'],
-                                                                           stats['Bad'],
-                                                                           stats['Banned'] )
+    _msg = '%s: Active:%d, Probing :%d, Bad: %d, Banned:%d' 
+    result[ 'Reason' ] = _msg % ( self.args[ 2 ], commandResult[ 'Active' ], 
+                                  commandResult[ 'Probing' ], commandResult[ 'Bad' ],
+                                  commandResult[ 'Banned' ] )
 
     return result
 

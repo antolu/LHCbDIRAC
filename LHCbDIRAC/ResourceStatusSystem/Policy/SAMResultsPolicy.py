@@ -23,25 +23,25 @@ class SAMResultsPolicy( PolicyBase ):
         }
     """
 
-    SAMstatus = super( SAMResultsPolicy, self ).evaluate()
+    commandResult = super( SAMResultsPolicy, self ).evaluate()
     result = {}
 
-    if SAMstatus is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
 
-    if not SAMstatus[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = SAMstatus[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result
 
-    SAMstatus = SAMstatus[ 'Value' ]
+    commandResult = commandResult[ 'Value' ]
     
     result[ 'Status' ] = 'Active'
     status             = 'ok'
 
-    for s in SAMstatus.values():
+    for s in commandResult.values():
       if s == 'error':
         status = 'down'
         result[ 'Status' ] = 'Bad'
@@ -61,7 +61,7 @@ class SAMResultsPolicy( PolicyBase ):
 
     if status == 'ok':
       na = True
-      for s in SAMstatus.values():
+      for s in commandResult.values():
         if s != 'na':
           na = False
           break

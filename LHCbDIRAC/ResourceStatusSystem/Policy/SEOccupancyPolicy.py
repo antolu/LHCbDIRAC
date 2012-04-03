@@ -24,35 +24,35 @@ class SEOccupancyPolicy( PolicyBase ):
     """
 
     # This call SLS_Command/SLSStatus_Command (see Configurations.py)
-    status = super( SEOccupancyPolicy, self ).evaluate()
+    commandResult = super( SEOccupancyPolicy, self ).evaluate()
     result = {}
 
-    if status is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
 
-    if not status[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = status[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result
 
     # SLSStatus_Command returns None if something goes wrong,
     # otherwise returns an integer (the SLS availability)
 
-    status = status[ 'Value' ]
+    commandResult = commandResult[ 'Value' ]
     # FIXME: Use threshold from SLS, put more meaningful comments.
-    if status == 0: 
+    if commandResult == 0: 
       result[ 'Status' ] = 'Banned'
       comment            = 'SE Full!'
-    elif status < 10: 
+    elif commandResult < 10: 
       result[ 'Status' ] = 'Bad'
       comment            = 'SE has not much space left'  
     else: 
       result[ 'Status' ] = 'Active'
       comment            = 'SE has enough space left'
 
-    result['Reason'] = 'Space availability: %d %% (%s)' % ( status, comment )
+    result['Reason'] = 'Space availability: %d %% (%s)' % ( commandResult, comment )
     return result
 
   evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__

@@ -20,35 +20,35 @@ class NagiosProbesPolicy( PolicyBase ):
   
     _KNOWN_METRIC_STATUS = [ 'OK', 'WARNING', 'CRITICAL', 'UNKNOWN' ]
                     
-    probes   = super( NagiosProbesPolicy, self ).evaluate()  
+    commandResult   = super( NagiosProbesPolicy, self ).evaluate()  
     result = {}
     result[ 'Status' ] = 'Unknown'
     result[ 'Reason' ] = 'No values to take a decision'
 
-    if probes is None:
+    if commandResult is None:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Command evaluation returned None'
       return result
 
-    if not probes[ 'OK' ]:
+    if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = probes[ 'Message' ]
+      result[ 'Reason' ] = commandResult[ 'Message' ]
       return result      
     
-    probes = probes[ 'Value' ]
+    commandResult = commandResult[ 'Value' ]
         
-    for k in probes.keys():
+    for k in commandResult.keys():
       if not k in _KNOWN_METRIC_STATUS:
         result[ 'Status' ] = 'Error'
         result[ 'Reason' ] = '%s is not a valid MetricStatus' % k
         return result
     
-    if probes.has_key( 'CRITICAL' ):
+    if commandResult.has_key( 'CRITICAL' ):
       result[ 'Status' ] = 'Banned'
-      result[ 'Reason' ] = '%d CRITICAL Nagios probes' % probes[ 'CRITICAL' ][ 1 ]
+      result[ 'Reason' ] = '%d CRITICAL Nagios probes' % commandResult[ 'CRITICAL' ][ 1 ]
     
     #Only if there is all Ok we return Active
-    elif probes.keys() == [ 'OK' ]:
+    elif commandResult.keys() == [ 'OK' ]:
       result[ 'Status' ] = 'Active'
       result[ 'Reason' ] = 'All OK Nagios probes'
     

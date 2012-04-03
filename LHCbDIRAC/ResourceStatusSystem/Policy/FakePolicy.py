@@ -15,7 +15,7 @@ class FakePolicy( PolicyBase ):
     """
     """
 
-    Fake_R = super( FakePolicy, self ).evaluate()
+    commandResult = super( FakePolicy, self ).evaluate()
 
     return { 'Status' : 'Unknown' }
 

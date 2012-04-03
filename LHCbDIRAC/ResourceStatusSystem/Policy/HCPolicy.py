@@ -50,27 +50,27 @@ class HCPolicy( PolicyBase ):
         
     """
 
-    status = super( HCPolicy, self ).evaluate()
+    commandResult = super( HCPolicy, self ).evaluate()
 
     result = { 'SAT':False, 
                'Status':self.args[2], 
                'Reason':'None'}
 
-    if status is None:
+    if commandResult is None:
       result['SAT']    = None
       result['reason'] = 'No scheduled,ongoing or finished HC test' 
     
-    elif len(status) == 0:
+    elif len( commandResult ) == 0:
       result['reason'] = 'HC has no opinion'
       pass 
 
     else:
       
-      completed = float( status['completed'] )
-      failed    = float( status['failed'] )
-      submitted = float( status['submitted'] )
-      running   = float( status['running'] )
-      total     = float( status['total'] )
+      completed = float( commandResult['completed'] )
+      failed    = float( commandResult['failed'] )
+      submitted = float( commandResult['submitted'] )
+      running   = float( commandResult['running'] )
+      total     = float( commandResult['total'] )
       
       cf = completed + failed
       
