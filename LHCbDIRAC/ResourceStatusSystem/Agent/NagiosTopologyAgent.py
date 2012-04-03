@@ -81,7 +81,7 @@ class NagiosTopologyAgent( AgentModule ):
       if ces[ 'OK' ]:
         res = self.__writeCEInfo( xml_doc, xml_site, site, ces[ 'Value' ] )
         # Update has_grid_elem
-        has_grid_elem = res or has_grid_elemen
+        has_grid_elem = res or has_grid_elem
          
 #      if gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )[ 'OK' ]:
 #        for site_ce_name in gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )[ 'Value' ] :
@@ -101,7 +101,7 @@ class NagiosTopologyAgent( AgentModule ):
       if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1' ]:
         res = self.__writeSEInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
-        has_grid_elem = res or has_grid_elemen
+        has_grid_elem = res or has_grid_elem
         
 #        has_grid_elem  = True
 #        real_site_name = site.split( "." )[ 1 ] if site.split( "." )[ 1 ] != "NIKHEF" else "SARA"
@@ -120,7 +120,7 @@ class NagiosTopologyAgent( AgentModule ):
       if sites[ 'OK' ] and site in sites[ 'Value' ]:
         res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
-        has_grid_elem = res or has_grid_elemen      
+        has_grid_elem = res or has_grid_elem    
       
 #      if site in gConfig.getSections( '/Resources/FileCatalogs/LcgFileCatalogCombined' )[ 'Value' ]:
 #        has_grid_elem = True
