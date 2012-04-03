@@ -12,7 +12,7 @@ import os
 import time
 import xml.dom.minidom
 
-from DIRAC                                import gConfig, S_OK, rootPath
+from DIRAC                                import gConfig, S_OK, rootPath, gLogger
 from DIRAC.Core.Base.AgentModule          import AgentModule
 from DIRAC.ResourceStatusSystem.Utilities import Utils
 
@@ -56,15 +56,6 @@ class NagiosTopologyAgent( AgentModule ):
 
     # xml header info
     self.__writeHeaderInfo( xml_doc, xml_root )
-#    self.xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP')
-#    self.xml_append( xml_doc, xml_root, 'description', 
-#                     'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
-#    self.xml_append( xml_doc, xml_root, 'feed_responsible', 
-#                     dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser', 
-#                     name = 'Stefan Roiser' )
-#    self.xml_append( xml_doc, xml_root, 'last_update', 
-#                     time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
-#    self.xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
 
     # loop over sites
     for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
@@ -83,38 +74,12 @@ class NagiosTopologyAgent( AgentModule ):
         # Update has_grid_elem
         has_grid_elem = res or has_grid_elem
          
-#      if gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )[ 'OK' ]:
-#        for site_ce_name in gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )[ 'Value' ] :
-#          has_grid_elem = True
-#          site_ce_opts  = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s/CEs/%s' % ( site,site_ce_name ) )[ 'Value' ]
-#          site_ce_type  = site_ce_opts.get( 'CEType' )
-#          if site_ce_type == 'LCG': 
-#            site_ce_type = 'CE'
-#          elif site_ce_type == 'CREAM': 
-#            site_ce_type = 'CREAM-CE'
-#          elif not site_ce_type: 
-#            site_ce_type = 'UNDEFINED'
-#          self.xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name, 
-#                           flavour = site_ce_type )
-
       # SE info
       if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1' ]:
         res = self.__writeSEInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
         has_grid_elem = res or has_grid_elem
         
-#        has_grid_elem  = True
-#        real_site_name = site.split( "." )[ 1 ] if site.split( "." )[ 1 ] != "NIKHEF" else "SARA"
-#        site_se_opts   = gConfig.getOptionsDict( '/Resources/StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )[ 'Value' ]
-#        site_se_name   = site_se_opts.get( 'Host' )
-#        site_se_type   = site_se_opts.get( 'ProtocolName' )
-#        if site_se_type == 'SRM2': 
-#          site_se_type = 'SRMv2'
-#        elif not site_se_type: 
-#          site_se_type = 'UNDEFINED'
-#        self.xml_append( xml_doc, xml_site, 'service', hostname = site_se_name, 
-#                         flavour = site_se_type )
-
       # FileCatalog info
       sites = gConfig.getSections( '/Resources/FileCatalogs/LcgFileCatalogCombined' )
       if sites[ 'OK' ] and site in sites[ 'Value' ]:
@@ -122,18 +87,6 @@ class NagiosTopologyAgent( AgentModule ):
         # Update has_grid_elem
         has_grid_elem = res or has_grid_elem    
       
-#      if site in gConfig.getSections( '/Resources/FileCatalogs/LcgFileCatalogCombined' )[ 'Value' ]:
-#        has_grid_elem = True
-#        site_fc_opts  = gConfig.getOptionsDict( '/Resources/FileCatalogs/LcgFileCatalogCombined/%s' % site )[ 'Value' ]
-#        if site_fc_opts.has_key( 'ReadWrite' ): 
-#          self.xml_append( xml_doc, xml_site, 'service', 
-#                           hostname = site_fc_opts.get( 'ReadWrite' ), 
-#                           flavour = 'Central-LFC' )
-#        if site_fc_opts.has_key( 'ReadOnly' ): 
-#          self.xml_append( xml_doc, xml_site, 'service', 
-#                           hostname = site_fc_opts.get( 'ReadOnly' ), 
-#                           flavour = 'Local-LFC' )
-
       # Site info will be put if we found at least one CE, SE or LFC element
       if has_grid_elem:
         self.xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, 
@@ -153,7 +106,9 @@ class NagiosTopologyAgent( AgentModule ):
           pass
 
       else :
-        self.log.warn( "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" % ( site, site_name ) )
+        _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" 
+        _msg = _msg % ( site, site_name )
+        self.log.warn( _msg )
         xml_root.removeChild( xml_site )
 
     # produce the xml
