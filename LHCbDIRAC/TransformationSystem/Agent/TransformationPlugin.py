@@ -15,6 +15,8 @@ from DIRAC.Resources.Storage.StorageElement                            import St
 import time, types
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin             import TransformationPlugin as DIRACTransformationPlugin
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus                  import ResourceStatus
+
 
 class TransformationPlugin( DIRACTransformationPlugin ):
 
@@ -35,6 +37,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.freeSpace = {}
     self.startTime = time.time()
     self.RMClient = ResourceManagementClient()
+    self.resourceStatus = ResourceStatus()
 
   def __del__( self ):
     self.__logInfo( "Execution finished, timing: %.3f seconds" % ( time.time() - self.startTime ) )
@@ -1147,20 +1150,39 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.__createTasks( storageElementGroups ) )
 
   def __getActiveSEs( self, selist ):
+    
     activeSE = []
+    
     try:
-      from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
-      res = ResourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
+      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
       if res[ 'OK' ]:
-        activeSE = [se for se, access in res['Value'].items() if access.get( 'Write' ) in ( 'Active', 'Bad' )]
+        for k, v in res[ 'Value' ].items():
+          if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
+            activeSE.append( k )
       else:
-        self.__logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
+        self.__logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )  
     except:
       for se in selist:
         res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
         if res['OK'] and res['Value'] == 'Active':
           activeSE.append( se )
+          
     return activeSE
+#    try:
+#      from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
+#      res = ResourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
+#      if res[ 'OK' ]:
+#        activeSE = [se for se, access in res['Value'].items() if access.get( 'Write' ) in ( 'Active', 'Bad' )]
+#      else:
+#        self.__logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
+#    except:
+#      for se in selist:
+#        res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
+#        if res['OK'] and res['Value'] == 'Active':
+#          activeSE.append( se )
+#          
+#          
+#    return activeSE
 
   def __getListFromString( self, s ):
     # Avoid using eval()... painful
