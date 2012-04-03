@@ -41,28 +41,28 @@ class SAMResultsPolicy( PolicyBase ):
     result[ 'Status' ] = 'Active'
     status             = 'ok'
 
-    for s in commandResult.values():
-      if s == 'error':
+    for samStatus in commandResult.values():
+      if samStatus == 'error':
         status = 'down'
         result[ 'Status' ] = 'Bad'
         break
-      elif s == 'down':
+      elif samStatus == 'down':
         status = 'down'
         result[ 'Status' ] = 'Bad'
         break
-      elif s == 'warn':
+      elif samStatus == 'warn':
         status = 'degraded'
         result[ 'Status' ] = 'Probing'
         break
-      elif s == 'maint':
+      elif samStatus == 'maint':
         status = 'maint'
         result[ 'Status' ] = 'Bad'
         break
 
     if status == 'ok':
       na = True
-      for s in commandResult.values():
-        if s != 'na':
+      for samStatus in commandResult.values():
+        if samStatus != 'na':
           na = False
           break
 
