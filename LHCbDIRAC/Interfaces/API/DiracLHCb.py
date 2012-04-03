@@ -17,7 +17,7 @@ from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 
-from DIRAC.ResourceStatusSystem.Client import ResourceStatus
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -64,6 +64,7 @@ class DiracLHCb( Dirac ):
                              'DataQualityFlag'          : 'All',
                              'Visibility'               : 'Yes'}
     self.bk = BookkeepingClient() #to expose all BK client methods indirectly
+    self.resourceStatus = ResourceStatus()
 
   #############################################################################
   def addRootFile( self, lfn, fullPath, diracSE, printOutput = False ):
@@ -935,7 +936,7 @@ class DiracLHCb( Dirac ):
     result = {}
 
     seList = sortList( res['Value'] )
-    res    = ResourceStatus.getStorageElementStatus( seList )
+    res    = self.resourceStatus.getStorageElementStatus( seList )
     if not res[ 'OK' ]:
       gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
 
