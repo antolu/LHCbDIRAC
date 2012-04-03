@@ -49,6 +49,7 @@ destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG
 startRun = '{{RecoRunStart#GENERAL: run start, to set the start run#0}}'
 endRun = '{{RecoRunEnd#GENERAL: run end, to set the end of the range#0}}'
 evtsPerJob = '{{NumberEvents#GENERAL: number of events per job (set to something small for a test)#-1}}'
+strippRuns = '{{strippRuns#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
 
 #stripp params
 stripp_priority = '{{priority#PROD-Stripping: priority#7}}'
@@ -274,6 +275,8 @@ if strippEnabled:
     if 'HIST' in sOL:
       histFlag = True
 
+  strippDQFlag = strippDQFlag.replace( ',', ';;;' ).replace( ' ', '' )
+
   strippInputBKQuery = {
                         'DataTakingConditions'     : dataTakingCond,
                         'ProcessingPass'           : processingPass,
@@ -296,6 +299,10 @@ if strippEnabled:
     strippInputBKQuery['StartRun'] = int( startRun )
   if int( endRun ):
     strippInputBKQuery['EndRun'] = int( endRun )
+
+  if strippRuns:
+    strippInputBKQuery['RunNumbers'] = strippRuns.replace( ',', ';;;' ).replace( ' ', '' )
+
 
   #################################################################################
   # Create the stripping production

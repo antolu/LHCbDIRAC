@@ -50,6 +50,7 @@ sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
 startRun = '{{RecoRunStart#GENERAL: run start, to set the start run#0}}'
 endRun = '{{RecoRunEnd#GENERAL: run end, to set the end of the range#0}}'
+runs = '{{runs#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
 
 #swimming (Moore) params
 swimm_priority = '{{priority#PROD-swimming-Moore: priority#5}}'
@@ -322,6 +323,8 @@ if swimmEnabled:
     swimmDVType = swimmDVOutputList[0].strip()
     swimmDVEO = []
 
+  swimmDQFlag = swimmDQFlag.replace( ',', ';;;' ).replace( ' ', '' )
+
   swimmInputBKQuery = {
                         'DataTakingConditions'     : dataTakingCond,
                         'ProcessingPass'           : processingPass,
@@ -345,6 +348,10 @@ if swimmEnabled:
     swimmInputBKQuery['StartRun'] = int( startRun )
   if int( endRun ):
     swimmInputBKQuery['EndRun'] = int( endRun )
+
+  if runs:
+    swimmInputBKQuery['RunNumbers'] = runs.replace( ',', ';;;' ).replace( ' ', '' )
+
 
   #################################################################################
   # Create the swimming production

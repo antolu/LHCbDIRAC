@@ -66,7 +66,7 @@ recoTransFlag = '{{RecoTransformation#PROD-RECO: distribute output data True/Fal
 recoStartRun = '{{RecoRunStart#PROD-RECO: run start, to set the start run#0}}'
 recoEndRun = '{{RecoRunEnd#PROD-RECO: run end, to set the end of the range#0}}'
 recoType = '{{RecoType#PROD-RECO: DataReconstruction or DataReprocessing#DataReconstruction}}'
-recoRuns = '{{RecoRuns#PROD-RECO: dicrete list of run numbers (do not mix with start/endrun)#}}'
+recoRuns = '{{RecoRuns#PROD-RECO: discrete list of run numbers (do not mix with start/endrun)#}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -145,6 +145,8 @@ if certificationFlag:
 
 if validationFlag:
   outBkConfigName = 'validation'
+
+recoDQFlag = recoDQFlag.replace( ',', ';;;' ).replace( ' ', '' )
 
 recoInputBKQuery = {
                     'DataTakingConditions'     : dataTakingCond,

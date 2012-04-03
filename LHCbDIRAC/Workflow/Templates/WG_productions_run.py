@@ -478,6 +478,8 @@ if strippEnabled:
     if 'HIST' in sOL:
       histFlag = True
 
+  strippDQFlag = strippDQFlag.replace( ',', ';;;' ).replace( ' ', '' )
+
   strippInputBKQuery = {
                         'ProcessingPass'           : processingPass,
                         'FileType'                 : strippFileType,
