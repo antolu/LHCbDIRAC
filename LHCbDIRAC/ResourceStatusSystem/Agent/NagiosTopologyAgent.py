@@ -79,7 +79,7 @@ class NagiosTopologyAgent( AgentModule ):
       # CE info
       ces = gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )
       if ces[ 'OK' ]:
-        res = self.__writeCEInfo( xml_doc, xml_site, ces[ 'Value' ] )
+        res = self.__writeCEInfo( xml_doc, xml_site, site, ces[ 'Value' ] )
         # Update has_grid_elem
         has_grid_elem = res or has_grid_elemen
          
@@ -195,7 +195,7 @@ class NagiosTopologyAgent( AgentModule ):
                      time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
     self.xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
     
-  def __writeCEInfo( self, xml_doc, xml_site, ces ):
+  def __writeCEInfo( self, xml_doc, xml_site, site, ces ):
     '''
       Writes CE information in the XML Document
     '''
