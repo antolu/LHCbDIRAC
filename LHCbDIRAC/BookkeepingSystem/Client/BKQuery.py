@@ -65,6 +65,7 @@ class BKQuery():
           bkFields = ( "Runs", "ProcessingPass", "EventTypeId", "FileType" )
         elif url[0] not in ( 'sim', 'daq', 'cond' ):
           print 'Invalid BK path:', bkPath
+          self.bkQueryDict = {}
           return self.bkQueryDict
         bkPath = url[1]
       if bkPath[0] != '/':
@@ -149,6 +150,7 @@ class BKQuery():
             bkQuery['EndRun'] = int( runs[1] )
         except:
           print runs, 'is an invalid run range'
+          self.bkQueryDict = {}
           return self.bkQueryDict
       else:
         if 'StartRun' in bkQuery: bkQuery.pop( 'StartRun' )
@@ -160,6 +162,7 @@ class BKQuery():
         bkQuery.setdefault( 'ProductionID', [] ).extend( [int( prod ) for prod in prods] )
       except:
         print prods, 'invalid as production list'
+        self.bkQueryDict = {}
         return self.bkQueryDict
 
     # Set the file type(s) taking into account excludes file types
