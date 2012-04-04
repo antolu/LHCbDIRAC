@@ -68,6 +68,52 @@ def GetRuns( bkDict, bkClient ):
     return results_ord
 
 
+def GetProductionId(run, procPass, eventTypeId , bkClient):
+  bkDict = {'Runnumber' : run,
+            'ProcPass'  : procPass}
+  res = bkClient.getProductionsFromView(bkDict)
+  if not res['OK']:
+    outMess = 'Cannot get the production id for run %s proc. pass. %s' %(
+      run, procPass)
+    gLogger.error(outMess)
+    gLogger.error(res['Message'])
+    return res
+
+  prodId = 0
+  if not len(res['Value']):
+    outMess = 'Empty production id list for run %s proc. pass. %s' %(run, procPass)
+    gLogger.error(outMess)
+    gLogger.error(res)
+    res['OK']=False
+    return res
+
+  allProdList = res['Value']
+  for prodList in allProdList:
+    thisProdId = int(prodList[0])
+    res = bkClient.getProductionInformations(thisProdId)
+    if not res['OK']:
+      outMess = 'Cannot get the information for production %s' %(thisProdId)
+      gLogger.error(outMess)
+      gLogger.error(res['Message'])
+      return res
+    if int(res['Value']['Production informations'][0][2]) == int(eventTypeId):
+      if thisProdId > prodId:
+        prodId = thisProdId
+
+  if prodId == 0:
+    return prodId
+  
+  retVal = str(prodId)
+  length = len(retVal)
+  
+  for i in range(8-length):
+    retVal = '0' + retVal
+  
+  res={}
+  res['OK']=True
+  res['prodId']=retVal 
+  return res
+
 
 '''
                                                                               
@@ -77,7 +123,7 @@ def GetRuns( bkDict, bkClient ):
  2 - Merge the output of step 1; 
  3 - Merge the output of step 2.
 '''
-def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir , testMode , specialMode ,
+def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,testMode , specialMode ,
               mergeExeDir , mergeStep1Command, mergeStep2Command, mergeStep3Command,
               brunelCount , daVinciCount , logFile , logFileName , environment ):
 
@@ -122,8 +168,9 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir , testMode , special
   if countBrunel == 0:
     results['OK'] = False
     return results
-
-  targetFile = GetTargetFile( run, homeDir )
+  
+ 
+  targetFile = GetTargetFile( run, prodId , homeDir , addFlag)
 
   #Redundancy check of existence
   retVal = os.path.exists( targetFile )
@@ -209,8 +256,11 @@ GetTargetFile:
 Define the full path of the final histogram file.                           
                                                                             
 '''
-def GetTargetFile( run , homeDir ):
-  targetFile = '%sBrunel_DaVinci_run_%s.root' % ( homeDir, run )
+def GetTargetFile( run , prodId, homeDir ,addFlag):
+  if addFlag=='True':
+    targetFile = '%sBrunelDaVinci_run_%s_%s.root' % ( homeDir , prodId , run )
+  else:
+    targetFile = '%sBrunelDaVinci_run_%s.root' % ( homeDir , run )
   return targetFile
 
 
@@ -675,10 +725,12 @@ def Finalization( homeDir, logDir, lfns, OutputFileName, LogFileName, inputData,
 '''
 Build LFN for data and logfile 
 '''
-def BuildLFNs( bkDict, run ):
+def BuildLFNs( bkDict, run ,prodId ,addFlag ):
   lfns = {}
-  lfns['DATA'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/HIST/' + str( run ) + '/Brunel_DaVinci_' + str( run ) + '_Hist.root'
-  lfns['LOG'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run ) + '/Brunel_DaVinci_' + str( run ) + '_Hist.log'
+  if addFlag:
+    p = "_"+str(prodId)
+  lfns['DATA'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/HIST/' + str( run ) + '/BrunelDaVinci_' + str( run )+ p + '_Hist.root'
+  lfns['LOG'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run ) + '/BrunelDaVinci_' + str( run )+ p + '_Hist.log'
   lfns['LOGDIR'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run )
   return lfns
 
