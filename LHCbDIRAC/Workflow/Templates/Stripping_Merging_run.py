@@ -60,7 +60,7 @@ strippTransFlag = '{{StrippTransformation#PROD-Stripping: distribute output data
 unmergedStreamSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-DST}}'
 strippAncestorProd = '{{StrippAncestorProd#PROD-Stripping: ancestor production if any#0}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#protocol}}'
-strippEOpts = '{{MergeStreamSE#PROD-Merging: extra options#}}'
+strippEOpts = '{{strippEO#PROD-Stripping: extra options#}}'
 
 #merging params
 mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK#OK}}'
@@ -71,7 +71,7 @@ mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
 mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
 mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
-mergeEOpts = '{{MergeStreamSE#PROD-Merging: extra options#}}'
+mergeEOpts = '{{MergeEO#PROD-Merging: extra options#}}'
 
 ###########################################
 # Fixed and implied parameters 
@@ -240,6 +240,9 @@ if validationFlag:
 #################################################################################
 
 if strippEnabled:
+
+  if not stripOF:
+    stripOF = 'stripping'
 
   #################################################################################
   # Stripping BK Query
