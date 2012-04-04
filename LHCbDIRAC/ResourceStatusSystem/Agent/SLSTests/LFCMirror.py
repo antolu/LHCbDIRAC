@@ -5,7 +5,9 @@
 
 '''
 
-import time, os
+import time
+import os
+import lfc2
 
 from DIRAC                                                  import gLogger, S_OK     
 from DIRAC.Interfaces.API.Dirac                             import Dirac
