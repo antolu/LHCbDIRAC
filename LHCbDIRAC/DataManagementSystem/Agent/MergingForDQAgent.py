@@ -74,7 +74,8 @@ class MergingForDQAgent( AgentModule ):
                      'ProcessingPasses' : False,
                      'testMode' : False,
                      'specialMode' : False,
-                     'specialRuns' : False}
+                     'specialRuns' : False,
+                     'addFlag' : False}
 
     gLogger.info( '=====Gathering information from dirac.cfg=====' )
     options = "Systems/DataManagement/Production/Agents/MergingForDQAgent"
@@ -95,6 +96,15 @@ class MergingForDQAgent( AgentModule ):
       gLogger.info( 'Checking temp dir %s' % ( d ) )
       if not os.path.exists( d ):
         gLogger.info( '%s not found. Going to create' % ( d ) )
+        os.makedirs(d)
+      else:
+        removal = self.homeDir+'*'
+        r = glob.glob(removal)
+        for i in r:
+          if os.path.isdir(i) == True:
+            shutil.rmtree(i)
+          else:
+            os.remove(i)
         os.makedirs( d )
 
     '''
@@ -187,6 +197,10 @@ class MergingForDQAgent( AgentModule ):
       l = string.join( Runs.split(), "" )
       self.specialRuns = l.split( "," )
     Configuration['specialRuns'] = True
+    
+    self.addFlag = gConfig.getValue( "%s/addFlag" % options )
+    if self.addFlag: Configuration['addFlag'] = True
+    
 
     #If one of the configuration is missing the initialization fails
     nConf = False
@@ -303,7 +317,12 @@ class MergingForDQAgent( AgentModule ):
                     if q['OK']:
                       gLogger.info( "Run %s has already been flagged skipping" )
                       continue
-                    lfns = BuildLFNs( bkDict_brunel, run )
+                    
+                    resProdId  = GetProductionId(run, p, e , self.bkClient)
+                    if not resProdId['OK']:
+                      gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(r,p))
+                      continue
+                    lfns = BuildLFNs( bkDict_brunel, run ,resProdId['prodId'],self.addFlag)
                     #If the LFN is already in the BK it will be skipped
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
                     if res['Value']:
@@ -328,9 +347,10 @@ class MergingForDQAgent( AgentModule ):
                       gLogger.error( "Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s" % run )
                       continue
                     #Starting the three step Merging process
-                    res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , self.testMode, self.specialMode ,
-                                    self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command, self.mergeStep3Command,
-                                    self.brunelCount , self.daVinciCount , self.logFile , self.logFileName, self.environment )
+                    res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , resProdId['prodId'] , self.addFlag,
+                                    self.testMode, self.specialMode ,self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command, 
+                                    self.mergeStep3Command,self.brunelCount , self.daVinciCount , self.logFile , self.logFileName, 
+                                    self.environment )
                     #if the Merging process went fine the Finalization method is called
                     if res['Merged']:
                       inputData = res_0[run]['LFNs'] + res_1[run]['LFNs']
