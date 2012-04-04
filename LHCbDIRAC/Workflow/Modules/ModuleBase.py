@@ -1,10 +1,5 @@
-########################################################################
-# $HeadURL$
-########################################################################
-
 """ ModuleBase - base class for LHCb workflow modules. Defines several
     common utility methods
-
 """
 
 __RCSID__ = "$Id$"
@@ -158,7 +153,7 @@ class ModuleBase( object ):
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
     if not jr:
-      jr = self.__getJobReporter()
+      jr = self._getJobReporter()
 
     sendStatus = jr.sendStoredJobParameters()
     if not sendStatus['OK']:

@@ -423,11 +423,6 @@ if mergingEnabled:
 
   mergeOutputList = [x[0].lower() for x in mergeOutput['Value']['Records']]
 
-  if strippEnabled:
-    if mergeInputList != strippOutputList:
-      gLogger.error( 'MergeInput %s != strippOutput %s' % ( mergeInputList, strippOutputList ) )
-      DIRAC.exit( 2 )
-
   if mergeInputList != mergeOutputList:
     gLogger.error( 'MergeInput %s != mergeOutput %s' % ( mergeInputList, mergeOutputList ) )
     DIRAC.exit( 2 )
