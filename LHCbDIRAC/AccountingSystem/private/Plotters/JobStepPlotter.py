@@ -489,7 +489,7 @@ class JobStepPlotter(BaseReporter):
 
   #############################################################################
   def __plot2D( self, reportRequest, plotInfo, filename, label ):
-    metadata = { 'title' : 'Jobs per pilot by %s' % reportRequest[ 'grouping' ],
+    metadata = { 'title' : 'Jobs by %s' % reportRequest[ 'grouping' ],
                  'starttime' : reportRequest[ 'startTime' ],
                  'endtime' : reportRequest[ 'endTime' ],
                  'span' : plotInfo[ 'granularity' ],
