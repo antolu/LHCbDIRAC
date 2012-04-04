@@ -240,7 +240,7 @@ class UploadLogFile( ModuleBase ):
     """ The files which are below a configurable size will be stored in the logs.
         This will typically pick up everything in the working directory minus the output data files.
     """
-    logFileExtensions = ['*.txt', '*.log', '*.out', '*.output', '*.xml', '*.sh', '*.info', '*.err'] #'*.root',
+    logFileExtensions = ['*.txt', '*.log', '*.out', '*.output', '*.xml', '*.sh', '*.info', '*.err', 'prodConf*.py'] #'*.root',
     if self.logExtensions:
       self.log.info( 'Using list of log extensions from CS:\n%s' % ( string.join( self.logExtensions, ', ' ) ) )
       logFileExtensions = self.logExtensions
