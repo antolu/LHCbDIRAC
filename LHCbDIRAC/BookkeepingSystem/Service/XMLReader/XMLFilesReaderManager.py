@@ -278,8 +278,8 @@ class XMLFilesReaderManager:
 
     currentEventInputStat = job.getParam('EventInputStat')
     if currentEventInputStat != None:
-        if currentEventInputStat != evtinput:
-          gLogger.error('EventInputStat is not equal' + str(currentEventInputStat) + '  ' + str(evtinput))
+        if long(currentEventInputStat.getValue()) != long(evtinput):
+          gLogger.error('EventInputStat is not equal' + str(currentEventInputStat.getValue()) + '  ' + str(evtinput))
         currentEventInputStat.setValue(evtinput)
     elif not job.exists('EventInputStat') and len(inputfiles) > 0:
       newJobParams = JobParameters()
