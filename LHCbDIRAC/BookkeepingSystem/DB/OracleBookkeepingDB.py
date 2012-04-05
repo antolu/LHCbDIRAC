@@ -2949,7 +2949,7 @@ and files.qualityid= dataquality.qualityid'
     if retVal['OK']:
       stepName = 'Real Data'
       if len(retVal['Value']) == 0:
-        retVal = self.insertStep({'Step':{'StepName':stepName, 'ApplicationName':programName, 'ApplicationVersion':programVersion, 'ProcessingPass':stepName}, 'OutputFileTypes':[{'FileType':'RAW', 'Visible':'Y'}]})
+        retVal = self.insertStep({'Step':{'StepName':stepName, 'ApplicationName':programName, 'ApplicationVersion':programVersion, 'ProcessingPass':stepName, 'Visible':'Y'}, 'OutputFileTypes':[{'FileType':'RAW', 'Visible':'Y'}]})
         if retVal['OK']:
           return S_OK([retVal['Value'], stepName])
         else:

@@ -367,6 +367,7 @@ if __name__ == "__main__":
                     'HLT':'UNKOWN', \
                     'VeloPosition':'OPEN'}
 
+  datataking = {'VELO': 'INCLUDED', 'RICH2': 'INCLUDED', 'RICH1': 'INCLUDED', 'BeamEnergy': '4000.0', 'SPD_PRS': 'INCLUDED', 'ECAL': 'INCLUDED', 'TT': 'INCLUDED', 'MagneticField': 'DOWN', 'IT': 'INCLUDED', 'BeamCond': 'UNKNOWN', 'MUON': 'INCLUDED', 'L0': 'INCLUDED', 'HLT': 'UNKNOWN', 'HCAL': 'INCLUDED', 'VeloPosition': 'CLOSED', 'OT': 'INCLUDED'}
   print datataking
 
   context = Context( datataking, 'PRS' )

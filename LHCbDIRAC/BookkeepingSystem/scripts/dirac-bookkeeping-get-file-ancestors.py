@@ -59,7 +59,7 @@ else:
   for i in files.keys():
     print i + ':'
     for j in files[i]:
-      print '                 ' + j
+      print '                 ' + j['FileName']
   print 'Failed:', values['Failed']
 
 DIRAC.exit( exitCode )

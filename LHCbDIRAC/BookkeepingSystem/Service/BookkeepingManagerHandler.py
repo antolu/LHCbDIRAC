@@ -786,7 +786,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     steps = None
     prodinfos = None
 
-    value = dataMGMT_.getJobsNb(prodid)
+    value = dataMGMT_.getProductionNbOfJobs(prodid)
     if value['OK']:
       nbjobs = value['Value']
 

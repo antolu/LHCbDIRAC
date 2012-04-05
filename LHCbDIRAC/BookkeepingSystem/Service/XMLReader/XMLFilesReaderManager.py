@@ -428,7 +428,12 @@ class XMLFilesReaderManager:
           else:
             dataTackingPeriodDesc = datataking['Description'] # The new data taking condition inserted. The name should be the generated name.
       else:
-        return S_ERROR("DATA TAKING Problem:" + str(res['Message']))
+        # Note we allow to insert data quality tags when only the description is different.
+        res = dataManager_.insertDataTakingCond(datataking)
+        if not res['OK']:
+          return S_ERROR("DATA TAKING Problem:" + str(res['Message']))
+        else:
+          dataTackingPeriodDesc = datataking['Description'] # The new data taking condition inserted. The name should be the generated name.
 
       #insert processing pass
       programName = None
