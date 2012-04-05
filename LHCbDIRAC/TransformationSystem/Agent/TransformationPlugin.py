@@ -661,6 +661,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not res['OK']:
       self.__logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
+    runSites = dict( [ ( r['RunNumber'], r['SelectedSite'] ) for r in res['Value'] if r['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.data.copy()
     self.__readCacheFile( transID )
@@ -671,7 +672,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if transStatus == 'Flush':
         runStatus = 'Flush'
       paramDict = runDict.get( runID, {} )
-      targetSites = [se for se in paramDict.get( 'SelectedSite', '' ).split( ',' ) if se]
+      targetSites = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
       runRAWFiles = {}
       for paramValue in sortList( paramDict.keys() ):
         if paramValue:
@@ -740,7 +741,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.__logVerbose( "Set site for run %s as %s" % ( str( runID ), str( targetSites ) ) )
           res = self.transClient.setTransformationRunsSite( transID, runID, ','.join( targetSites ) )
           if not res['OK']:
-            self.__logError( "Failed to set target site to run %s as %s" % ( str( runID ), str( targetSites ) ) )
+            self.__logError( "Failed to set target site to run %s as %s" % ( str( runID ), str( targetSites ) ), res['Message'] )
         self.cachedRunLfns[runID][paramValue] = [lfn for lfn in runParamLfns if lfn not in taskLfns]
     self.data = inputData
     self.__writeCacheFile()
