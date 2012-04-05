@@ -54,7 +54,7 @@ class CombinedSoftwareInstallation:
 
     self.apps = []
     for app in apps:
-      DIRAC.gLogger.verbose( 'Requested Package %s' % app )
+      DIRAC.gLogger.verbose( 'Requested Package %s' % str( app ) )
       app = tuple( app.split( '.' ) )
       self.apps.append( app )
 
@@ -118,10 +118,10 @@ class CombinedSoftwareInstallation:
       return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
     for app in copy.deepcopy( self.apps ):
-      DIRAC.gLogger.info( 'Checking %s for %s with site root %s' % ( app, self.jobConfig, self.mySiteRoot ) )
+      DIRAC.gLogger.info( 'Checking %s for %s with site root %s' % ( str( app ), self.jobConfig, self.mySiteRoot ) )
       result = CheckApplication( app, self.jobConfig, self.mySiteRoot )
       if not result:
-        DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area: %s' % app )
+        DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area: %s' % str( app ) )
         if re.search( ':', self.mySiteRoot ):
           result = InstallApplication( app, self.jobConfig, self.mySiteRoot )
           if not result:
@@ -133,7 +133,7 @@ class CombinedSoftwareInstallation:
           DIRAC.gLogger.error( 'No local area was found to install missing software!' )
           return DIRAC.S_ERROR( 'No Local Area Found' )
       else:
-        DIRAC.gLogger.info( '%s is installed for %s' % ( app, self.jobConfig ) )
+        DIRAC.gLogger.info( '%s is installed for %s' % ( str( app ), self.jobConfig ) )
 
     return DIRAC.S_OK()
 
