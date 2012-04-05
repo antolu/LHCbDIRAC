@@ -1,8 +1,4 @@
-########################################################################
-# $HeadURL$
-########################################################################
-
-""" In general for data processing producitons we need to completely abandon the 'by hand'
+""" In general for data processing productions we need to completely abandon the 'by hand'
     reschedule operation such that accidental reschedulings don't result in data being processed twice.
 
     For all above cases the following procedure should be used to achieve 100%:
@@ -25,22 +21,23 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                       import S_OK, S_ERROR, gConfig, gLogger, rootPath
+from DIRAC                                                       import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
 from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestClient
 from DIRAC.Core.Utilities.List                                   import uniqueElements
-from DIRAC.Core.Utilities.Time                                   import timeInterval, dateTime
-from DIRAC.Core.DISET.RPCClient                                  import RPCClient
+from DIRAC.Core.Utilities.Time                                   import dateTime
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-import string, re, datetime
+import string, datetime
 
 AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
 class DataRecoveryAgent( AgentModule ):
+  """ Standard DIRAC agent class
+  """
 
   #############################################################################
   def initialize( self ):
@@ -74,7 +71,8 @@ class DataRecoveryAgent( AgentModule ):
     self.log.info( 'Enable flag is %s' % self.enableFlag )
     self.removalOKFlag = self.am_getOption( 'RemovalOKFlag', True )
 
-    transformationTypes = self.am_getOption( 'TransformationTypes', ['DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] )
+    transformationTypes = self.am_getOption( 'TransformationTypes', ['DataReconstruction', 'DataStripping',
+                                                                     'DataSwimming', 'Merge'] )
     transformationStatus = self.am_getOption( 'TransformationStatus', ['Active', 'Completing'] )
     fileSelectionStatus = self.am_getOption( 'FileSelectionStatus', ['Assigned', 'MaxReset'] )
     updateStatus = self.am_getOption( 'FileUpdateStatus', 'Unused' )
@@ -92,13 +90,16 @@ class DataRecoveryAgent( AgentModule ):
         return S_ERROR( 'Could not obtain eligible transformations for status "%s"' % ( transStatus ) )
 
       if not result['Value']:
-        self.log.info( 'No "%s" transformations of types %s to process.' % ( transStatus, string.join( transformationTypes, ', ' ) ) )
+        self.log.info( 'No "%s" transformations of types %s to process.' % ( transStatus,
+                                                                             string.join( transformationTypes, ', ' ) ) )
         continue
 
       transformationDict.update( result['Value'] )
 
-    self.log.info( 'Selected %s transformations of types %s' % ( len( transformationDict.keys() ), string.join( transformationTypes, ', ' ) ) )
-    self.log.verbose( 'The following transformations were selected out of %s:\n%s' % ( string.join( transformationTypes, ', ' ), string.join( transformationDict.keys(), ', ' ) ) )
+    self.log.info( 'Selected %s transformations of types %s' % ( len( transformationDict.keys() ),
+                                                                 string.join( transformationTypes, ', ' ) ) )
+    self.log.verbose( 'The following transformations were selected out of %s:\n%s' % ( string.join( transformationTypes, ', ' ),
+                                                                                       string.join( transformationDict.keys(), ', ' ) ) )
 
     trans = []
     #initially this was useful for restricting the considered list
@@ -137,7 +138,8 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       if not result['Value']:
-        self.log.info( 'No files in status %s selected for transformation %s' % ( string.join( fileSelectionStatus, ', ' ), transformation ) )
+        self.log.info( 'No files in status %s selected for transformation %s' % ( string.join( fileSelectionStatus, ', ' ),
+                                                                                  transformation ) )
         continue
 
       fileDict = result['Value']
@@ -148,7 +150,8 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       if not result['Value']:
-        self.log.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict.keys() ), fileDict.keys()[0] ) )
+        self.log.info( 'No eligible WMS jobIDs found for %s files in list:\n%s ...' % ( len( fileDict.keys() ),
+                                                                                        fileDict.keys()[0] ) )
         continue
 
       jobFileDict = result['Value']
@@ -186,9 +189,12 @@ class DataRecoveryAgent( AgentModule ):
       jobsWithProblematicFiles = result['Value']['jobfiledictproblematic']
       jobsWithDescendentsInBK = result['Value']['replicaflagproblematic']
 
-      self.log.info( '====> Transformation %s total jobs that can be updated now: %s' % ( transformation, len( jobsWithFilesOKToUpdate.keys() ) ) )
-      self.log.info( '====> Transformation %s total jobs with problematic descendent files but no replica flags: %s' % ( transformation, len( jobsWithProblematicFiles.keys() ) ) )
-      self.log.info( '====> Transformation %s total jobs with problematic descendent files having BK replica flags: %s' % ( transformation, len( jobsWithDescendentsInBK.keys() ) ) )
+      self.log.info( '====> Transformation %s total jobs that can be updated now: %s' % ( transformation,
+                                                                                          len( jobsWithFilesOKToUpdate.keys() ) ) )
+      self.log.info( '====> Transformation %s total jobs with problematic descendent \
+      files but no replica flags: %s' % ( transformation, len( jobsWithProblematicFiles.keys() ) ) )
+      self.log.info( '====> Transformation %s total jobs with problematic descendent \
+      files having BK replica flags: %s' % ( transformation, len( jobsWithDescendentsInBK.keys() ) ) )
 
       filesToUpdate = []
       for job, fileList in jobsWithFilesOKToUpdate.items():
@@ -200,7 +206,8 @@ class DataRecoveryAgent( AgentModule ):
           self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result ) )
           continue
       else:
-        self.log.info( 'There are no files without problematic descendents to update for production %s in this cycle' % transformation )
+        self.log.info( 'There are no files without problematic descendents to update for \
+        production %s in this cycle' % transformation )
 
       if problematicFiles:
         if self.removalOKFlag:
@@ -211,8 +218,9 @@ class DataRecoveryAgent( AgentModule ):
         else:
           for job, fileList in jobsWithProblematicFiles.items():
             self.log.info( 'Job: %s, Input data: %s' % ( job, string.join( fileList, '\n' ) ) )
-          self.log.info( '!!!!!!!!Production %s has %s problematic descendent files without replica flags (found from %s jobs above).' % ( transformation, len( problematicFiles ), len( jobsWithProblematicFiles.keys() ) ) )
-          self.log.info( 'This must be investigated by hand or removalOKFlag should be set to True!!!!!!!!' )
+          self.log.warn( '!!!!!!!!Production %s has %s problematic descendent files without \
+          replica flags (found from %s jobs above).' % ( transformation, len( problematicFiles ), len( jobsWithProblematicFiles.keys() ) ) )
+          self.log.warn( 'This must be investigated by hand or removalOKFlag should be set to True!!!!!!!!' )
           continue
       else:
         self.log.info( 'No problematic files without replica flags were found to be removed for transformation %s' % ( transformation ) )
@@ -224,19 +232,24 @@ class DataRecoveryAgent( AgentModule ):
       if problematicFilesToUpdate:
         result = self.updateFileStatus( transformation, problematicFilesToUpdate, updateStatus )
         if not result['OK']:
-          self.log.error( 'Problematic files without replica flags were not updated with result:\n%s' % ( result ) )
+          self.log.warn( 'Problematic files without replica flags were not updated \
+          with result:\n%s' % ( result ) )
           continue
-        self.log.info( '%s problematic files without replica flags were recovered for transformation %s' % ( len( problematicFilesToUpdate ), transformation ) )
+        self.log.info( '%s problematic files without replica flags were recovered \
+        for transformation %s' % ( len( problematicFilesToUpdate ), transformation ) )
       else:
-        self.log.info( 'There are no problematic files without replica flags to update for production %s in this cycle' % transformation )
+        self.log.info( 'There are no problematic files without replica flags to \
+        update for production %s in this cycle' % transformation )
 
       if jobsWithDescendentsInBK:
-        self.log.info( '!!!!!!!! Note that transformation %s has descendents with BK replica flags for files that are not marked as processed !!!!!!!!' % ( transformation ) )
+        self.log.info( '!!!!!!!! Note that transformation %s has descendents with \
+        BK replica flags for files that are not marked as processed !!!!!!!!' % ( transformation ) )
         for n, v in jobsWithDescendentsInBK.items():
           self.log.info( 'Job %s, Files %s' % ( n, v ) )
 
     if not self.enableFlag:
-      self.log.info( '%s is disabled by configuration option EnableFlag\ntherefore no "one-way" operations such as ProductionDB updates are performed.' % ( AGENT_NAME ) )
+      self.log.info( '%s is disabled by configuration option EnableFlag\ntherefore no \
+      "one-way" operations such as ProductionDB updates are performed.' % ( AGENT_NAME ) )
 
     return S_OK()
 
@@ -287,7 +300,8 @@ class DataRecoveryAgent( AgentModule ):
         for example) that will not be touched.
     """
     prodJobIDs = uniqueElements( fileDict.values() )
-    self.log.info( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ), prodJobIDs ) )
+    self.log.info( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
+                                                                                             prodJobIDs ) )
 
     jobFileDict = {}
     condDict = {'TransformationID':transformation, self.taskIDName:prodJobIDs}
@@ -295,7 +309,10 @@ class DataRecoveryAgent( AgentModule ):
     now = dateTime()
     olderThan = now - delta
 
-    res = self.transClient.getTransformationTasks( condDict = condDict, older = olderThan, timeStamp = 'LastUpdateTime', inputVector = True )
+    res = self.transClient.getTransformationTasks( condDict = condDict,
+                                                   older = olderThan,
+                                                   timeStamp = 'LastUpdateTime',
+                                                   inputVector = True )
     self.log.debug( res )
     if not res['OK']:
       self.log.error( 'getTransformationTasks returned an error:\n%s' )
@@ -323,10 +340,14 @@ class DataRecoveryAgent( AgentModule ):
         self.log.info( 'Prod job %s status is %s (ID = %s) so will not recheck with WMS' % ( job, wmsStatus, wmsID ) )
         continue
 
-      self.log.info( 'Job %s, prod job %s last update %s, production management system status %s' % ( wmsID, job, lastUpdate, wmsStatus ) )
+      self.log.info( 'Job %s, prod job %s last update %s, production management system status %s' % ( wmsID,
+                                                                                                      job,
+                                                                                                      lastUpdate,
+                                                                                                      wmsStatus ) )
       #Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
       if not wmsStatus in wmsStatusList:
-        self.log.info( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus, string.join( wmsStatusList, ', ' ) ) )
+        self.log.info( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
+                                                                               string.join( wmsStatusList, ', ' ) ) )
         continue
 
       finalJobData = []
@@ -380,7 +401,10 @@ class DataRecoveryAgent( AgentModule ):
         continue
       self.log.info( 'Checking BK descendents for job %s...' % job )
       #check any input data has descendant files...
-      result = self.bkClient.getFileDescendents( fileList, depth = bkDepth, production = int( transformation ), checkreplica = False )
+      result = self.bkClient.getFileDescendents( fileList,
+                                                 depth = bkDepth,
+                                                 production = int( transformation ),
+                                                 checkreplica = False )
       if not result['OK']:
         self.log.error( 'Could not obtain descendents for job %s with result:\n%s' % ( job, result ) )
         bkNotReachable.append( job )
@@ -418,7 +442,8 @@ class DataRecoveryAgent( AgentModule ):
             toRemove += descendents
 
     if toRemove:
-      self.log.info( 'Found %s descendent files of transformation %s without BK replica flag to be removed:\n%s' % ( len( toRemove ), transformation, string.join( toRemove, '\n' ) ) )
+      self.log.info( 'Found %s descendent files of transformation %s without \
+      BK replica flag to be removed:\n%s' % ( len( toRemove ), transformation, string.join( toRemove, '\n' ) ) )
 
     if hasReplicaFlag:
       self.log.info( 'Found %s jobs with descendent files that do have a BK replica flag' % ( len( hasReplicaFlag ) ) )
@@ -444,7 +469,11 @@ class DataRecoveryAgent( AgentModule ):
       if jobFileDict.has_key( removeMe ):
         del jobFileDict[removeMe]
 
-    result = {'toremove':toRemove, 'jobfiledictok':jobFileDict, 'jobfiledictproblematic':problematic, 'replicaflagproblematic':replicaFlagProblematic}
+    result = {'toremove':toRemove,
+              'jobfiledictok':jobFileDict,
+              'jobfiledictproblematic':problematic,
+              'replicaflagproblematic':replicaFlagProblematic}
+
     return S_OK( result )
 
   ############################################################################
@@ -473,17 +502,24 @@ class DataRecoveryAgent( AgentModule ):
     """ Update file list to specified status.
     """
     if not self.enableFlag:
-      self.log.info( 'Enable flag is False, would update  %s files to "%s" status for %s' % ( len( fileList ), fileStatus, transformation ) )
+      self.log.info( 'Enable flag is False, would update  %s files to "%s" status for %s' % ( len( fileList ),
+                                                                                              fileStatus,
+                                                                                              transformation ) )
       return S_OK()
 
-    self.log.info( 'Updating %s files to "%s" status for %s' % ( len( fileList ), fileStatus, transformation ) )
-    result = self.transClient.setFileStatusForTransformation( int( transformation ), fileStatus, fileList, force = False )
+    self.log.info( 'Updating %s files to "%s" status for %s' % ( len( fileList ),
+                                                                 fileStatus,
+                                                                 transformation ) )
+    result = self.transClient.setFileStatusForTransformation( int( transformation ),
+                                                              fileStatus,
+                                                              fileList,
+                                                              force = False )
     self.log.debug( result )
     if not result['OK']:
       self.log.error( result )
       return result
     if result['Value']['Failed']:
-      self.log.error( result['Value']['Failed'] )
+      self.log.warn( result['Value']['Failed'] )
       return result
 
     msg = result['Value']['Successful']

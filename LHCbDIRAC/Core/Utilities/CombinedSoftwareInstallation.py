@@ -17,7 +17,7 @@
 """
 __RCSID__ = "$Id$"
 
-import os, shutil, sys, urllib, re, string
+import os, shutil, sys, urllib, re, string, copy
 import DIRAC
 from DIRAC import gConfig
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
@@ -117,7 +117,7 @@ class CombinedSoftwareInstallation:
       DIRAC.gLogger.error( 'Requested architecture not supported by CE' )
       return DIRAC.S_ERROR( 'Requested architecture not supported by CE' )
 
-    for app in self.apps:
+    for app in copy.deepcopy( self.apps ):
       DIRAC.gLogger.info( 'Checking %s for %s with site root %s' % ( app, self.jobConfig, self.mySiteRoot ) )
       result = CheckApplication( app, self.jobConfig, self.mySiteRoot )
       if not result:
@@ -358,6 +358,8 @@ def RemoveApplication( app, config, area ):
 #############################################################################
 
 def _getAreas( area ):
+  """ split localArea:sharedArea (when available)
+  """
   localArea = area
   sharedArea = ''
   if re.search( ':', area ):
@@ -380,7 +382,7 @@ def _getApp( app ):
 
 def SharedArea():
   """
-   Discover localtion of Shared SW area
+   Discover location of Shared SW area
    This area is populated by a tool independent of the DIRAC jobs
   """
   sharedArea = ''

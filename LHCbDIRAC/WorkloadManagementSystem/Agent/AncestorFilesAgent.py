@@ -1,9 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   AncestorFilesAgent.py
-# Author : Stuart Paterson
-########################################################################
-
 """   The LHCb AncestorFilesAgent queries the Bookkeeping catalogue for ancestor
       files if the JDL parameter AncestorDepth is specified.  The ancestor files
       are subsequently added to the existing input data requirement of the job.
@@ -14,16 +8,15 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
-from DIRAC.Core.Utilities.ClassAd.ClassAdLight             import ClassAd
+import time
+from DIRAC import S_OK, S_ERROR
+from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule import OptimizerModule
+from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles import getAncestorFiles
 
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles   import getAncestorFiles 
-
-from DIRAC                                                 import gConfig, S_OK, S_ERROR
-
-import re, time
 
 class AncestorFilesAgent( OptimizerModule ):
+  """ Connects to BKK, ran through the optimizer
+  """
 
   #############################################################################
   def checkJob( self, job, classadJob ):
@@ -33,7 +26,7 @@ class AncestorFilesAgent( OptimizerModule ):
     if not result['OK']:
       return result
 
-    return self.setNextOptimizer(job)
+    return self.setNextOptimizer( job )
 
   #############################################################################
   def __checkAncestorDepth( self, job, classadJob ):
@@ -46,12 +39,12 @@ class AncestorFilesAgent( OptimizerModule ):
       inputData = classadJob.getListFromExpression( 'InputData' )
 
     if not classadJob.lookupAttribute( 'AncestorDepth' ):
-      self.log.warn( 'No AncestorDepth requirement found for job %s' %( job ) )
+      self.log.warn( 'No AncestorDepth requirement found for job %s' % ( job ) )
       return S_ERROR( 'AncestorDepth Not Found' )
 
     ancestorDepth = classadJob.getAttributeInt( 'AncestorDepth' )
 
-    if ancestorDepth==0:
+    if ancestorDepth == 0:
       return S_OK( 'Null AncestorDepth specified' )
 
     self.log.info( 'Job %s has %s input data files and specified ancestor depth of %s' % ( job,
@@ -73,27 +66,29 @@ class AncestorFilesAgent( OptimizerModule ):
     """Extend the list of LFNs with the LFNs for their ancestor files
        for the generation depth specified in the job JDL.
     """
-    inputData = [ i.replace('LFN:','') for i in inputData ]
+    inputData = [ i.replace( 'LFN:', '' ) for i in inputData ]
     start = time.time()
     try:
       result = getAncestorFiles( inputData, ancestorDepth )
-    except Exception,x:
-      self.log.warn('getAncestors failed with exception:\n%s' %x)
-      return S_ERROR(self.failedMinorStatus)
+    except Exception, x:
+      self.log.warn( 'getAncestors failed with exception:\n%s' % x )
+      return S_ERROR( self.failedMinorStatus )
 
-    self.log.info('BK lookup time %.2f s' %(time.time()-start))
-    self.log.debug(result)
+    self.log.info( 'BK lookup time %.2f s' % ( time.time() - start ) )
+    self.log.debug( result )
     if not result['OK']:
       report = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), result['Message'] )
-      self.log.warn(result['Message'])
-      return S_ERROR('No Ancestors Found For Input Data')
+      if not report['OK']:
+        self.log.warn( report['Message'] )
+        self.log.warn( result['Message'] )
+      return S_ERROR( 'No Ancestors Found For Input Data' )
 
     newInputData = result['Value']
-    totalAncestors = len(newInputData)-len(inputData)
-    param = '%s ancestor files retrieved from BK for depth %s' %(totalAncestors,ancestorDepth)
-    report = self.setJobParam(job, self.am_getModuleParam( 'optimizerName' ), param)
+    totalAncestors = len( newInputData ) - len( inputData )
+    param = '%s ancestor files retrieved from BK for depth %s' % ( totalAncestors, ancestorDepth )
+    report = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
     if not report['OK']:
-      self.log.warn(report['Message'])
+      self.log.warn( report['Message'] )
 
     return result
 
@@ -101,19 +96,19 @@ class AncestorFilesAgent( OptimizerModule ):
   def __setJobInputData( self, job, jdl, inputData ):
     """Sets the new job input data requirement including ancestor files.
     """
-    inputData = [ i.replace('LFN:','') for i in inputData]
-    inputData = map( lambda x: 'LFN:'+x, inputData)
+    inputData = [ i.replace( 'LFN:', '' ) for i in inputData]
+    inputData = map( lambda x: 'LFN:' + x, inputData )
 
     result = self.jobDB.setInputData( job, inputData )
     if not result['OK']:
-      self.log.warn(result['Message'])
-      return S_ERROR('Setting New Input Data')
+      self.log.error( result['Message'] )
+      return S_ERROR( 'Setting New Input Data' )
 
     result = self.jobDB.setJobJDL( job, jdl )
     if not result['OK']:
-      self.log.warn(result['Message'])
-      return S_ERROR('Setting New JDL')
+      self.log.error( result['Message'] )
+      return S_ERROR( 'Setting New JDL' )
 
-    return S_OK('Job updated')
+    return S_OK( 'Job updated' )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
