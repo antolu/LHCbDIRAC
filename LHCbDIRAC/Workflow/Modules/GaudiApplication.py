@@ -56,6 +56,7 @@ class GaudiApplication( ModuleBase ):
     self.CondDBTag = ''
     self.DQTag = ''
     self.outputFilePrefix = ''
+    self.runNumber = 0
 
   #############################################################################
 
@@ -197,6 +198,9 @@ class GaudiApplication( ModuleBase ):
         optionsDict['NOfEvents'] = int( self.numberOfEvents )
         if runNumberGauss:
           optionsDict['RunNumber'] = runNumberGauss
+        if self.runNumber:
+          if self.runNumber != 'Unknown':
+            optionsDict['RunNumber'] = self.runNumber
         if firstEventNumberGauss:
           optionsDict['FirstEventNumber'] = firstEventNumberGauss
 
