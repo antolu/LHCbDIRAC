@@ -1,6 +1,3 @@
-########################################################################
-########################################################################
-
 """   The Stripping_Merging.py Template will handle stripping cases, with or without merging, 
       with or without replication
 
@@ -474,7 +471,7 @@ if mergingEnabled:
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                                 optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
-      mergeProd.addMergeStep( mergeVersion, mergeOptions, strippProdID, eventType, mergeEP, inputData = [],
+      mergeProd.addMergeStep( mergeVersion, mergeOptions, eventType, mergeEP, inputData = [],
                               outputSE = mergedStreamSE, inputDataType = mergeStream, extraOpts = mergeEOpts,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
