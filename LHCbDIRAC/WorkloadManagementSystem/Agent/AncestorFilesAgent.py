@@ -80,7 +80,7 @@ class AncestorFilesAgent( OptimizerModule ):
       report = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), result['Message'] )
       if not report['OK']:
         self.log.warn( report['Message'] )
-        self.log.warn( result['Message'] )
+      self.log.warn( result['Message'] )
       return S_ERROR( 'No Ancestors Found For Input Data' )
 
     newInputData = result['Value']
