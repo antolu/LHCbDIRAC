@@ -151,7 +151,7 @@ class UsersAndGroups( AgentModule ):
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
-          for l in lfcBANDNs:
+          for l in self.lfcBANDNs:
             if str( l ).find( lfc_dn ) != -1:
               lfc_uid = self.lfcBANDNs[l]
               break
