@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import Bo
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient    import ResourceManagementClient
 from DIRAC.Resources.Storage.StorageElement                            import StorageElement
-import time, types
+import time, types, datetime
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin             import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus                  import ResourceStatus
@@ -264,6 +264,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _AtomicRun( self ):
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
+    delay = self.__getPluginParam( 'RunDelay', 6 )
     self.__removeProcessedFiles()
     # Get the requested shares from the CS
     backupSE = 'CERN-RAW'
@@ -340,6 +341,20 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     for runDict in res['Value']:
       runID = runDict['RunNumber']
+      if transType == 'DataReconstruction':
+        # Wait for 6 hours before starting the task
+        res = self.bk.getRunInformations( runID )
+        if res['OK']:
+          endDate = res['Value']['RunEnd']
+          if datetime.datetime.utcnow() - endDate < datetime.timedelta( hours=delay ):
+            self.__logVerbose( 'Run %d was taken less than %d hours ago, skip...' % ( runID, delay ) )
+            if runID in runFileDict:
+              runFileDict.pop( runID )
+            continue
+          else:
+            self.__logVerbose( 'Run %d was taken more than %d hours ago, we take!' % ( runID, delay ) )
+        else:
+          self.__logError( "Error getting run information for run %d" % runID, res['Message'] )
       if runDict['SelectedSite']:
         runSEDict[runID] = runDict['SelectedSite']
         runUpdate[runID] = False
