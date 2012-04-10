@@ -70,7 +70,7 @@ class LHCbWorkflowTasks( WorkflowTasks ):
           if paramValue:
             self.log.verbose( 'Setting allocated site to: %s' % ( paramValue ) )
             oJob.setDestination( paramValue )
-        elif paramName == 'TargetSE' and paramDict.get( 'Site', 'ANY' ).upper() != 'ANY':
+        elif paramName == 'TargetSE' and paramsDict.get( 'Site', 'ANY' ).upper() == 'ANY':
           sites = []
           seList = paramValue.split( ',' )
           for se in seList:
