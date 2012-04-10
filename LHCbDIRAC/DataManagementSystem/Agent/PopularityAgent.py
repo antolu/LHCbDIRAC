@@ -144,7 +144,7 @@ class PopularityAgent( AgentModule ):
         popRecord.setValueByKey( "NormalizedUsage", normUsage )
         res = gDataStoreClient.addRegister( popRecord )
         if not res[ 'OK']:
-          self.log.notice( "ERROR: In getStorageUsage addRegister returned: %s" % res )
+          gLogger.error( "ERROR: addRegister returned: %s" % res['Message'] )
           continue
         self.numPopRows += 1
 
