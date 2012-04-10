@@ -637,7 +637,7 @@ class StorageUsageDB( DB ):
     if not res[ 'OK' ]:
       return S_ERROR( res )
     if not res[ 'Value' ]:
-      gLogger.error( "Entry for site=%s, spaceToken=%s is not there => insert new entry " %( site, spaceToken) )
+      gLogger.warn( "Entry for site=%s, spaceToken=%s is not there => insert new entry " %( site, spaceToken) )
       sqlCmd = "INSERT INTO `se_STSummary` (Site, SpaceToken, TotalSize, TotalFiles, Updated) VALUES ( %s, %s, %d, %d, UTC_TIMESTAMP())" % ( sqlSite, sqlSpaceToken, sqlTotalSize, sqlTotalFiles )
 
     else:
