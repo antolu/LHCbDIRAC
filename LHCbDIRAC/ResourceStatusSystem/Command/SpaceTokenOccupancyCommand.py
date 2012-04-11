@@ -31,10 +31,11 @@ class SpaceTokenOccupancyCommand( Command ):
     if occupancy[ 0 ] == 0:
     
       output = answer[1][0]
-      total  = float( output[ 'totalsize' ] ) / 1e12 # Bytes to Terabytes
-      free   = float( output[ 'unusedsize' ] ) / 1e12
+      total      = float( output[ 'totalsize' ] ) / 1e12 # Bytes to Terabytes
+      guaranteed = float( output[ 'guaranteedsize' ] ) / 1e12
+      free       = float( output[ 'unusedsize' ] ) / 1e12
       
-      res = S_OK( { 'total' : total, 'free' : free } )
+      res = S_OK( { 'total' : total, 'free' : free, 'guaranteed' : guaranteed } )
           
     else:  
 

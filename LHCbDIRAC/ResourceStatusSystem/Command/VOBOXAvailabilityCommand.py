@@ -26,13 +26,13 @@ class VOBOXAvailabilityCommand( Command ):
     
     serviceURL   = self.args[ 0 ]
     
-    pinger  = RPCClient( url )
+    pinger  = RPCClient( serviceURL )
     resPing = pinger.ping()
     
     if resPing[ 'OK' ]: 
       
       serviceUpTime = resPing[ 'Value' ].get( 'service uptime', 0 )
-      machineUpYime = resPing[ 'Value' ].get( 'host uptime', 0 )
+      machineUpTime = resPing[ 'Value' ].get( 'host uptime', 0 )
       
       res = S_OK( 
                   { 
