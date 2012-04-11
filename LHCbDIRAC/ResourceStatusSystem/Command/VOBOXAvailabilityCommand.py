@@ -24,9 +24,7 @@ class VOBOXAvailabilityCommand( Command ):
     '''
     super( VOBOXAvailabilityCommand, self ).doCommand()
     
-    #granularity = self.args[0]
-    #name        = self.args[ 1 ]
-    serviceURL   = self.args[ 2 ]
+    serviceURL   = self.args[ 0 ]
     
     pinger  = RPCClient( url )
     resPing = pinger.ping()

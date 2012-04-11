@@ -23,10 +23,8 @@ class SpaceTokenOccupancyCommand( Command ):
     '''
     super( SpaceTokenOccupancyCommand, self ).doCommand()
 
-    #granularity = self.args[0]
-    #name    = self.args[ 1 ]
-    spaceTokenEndpoint = self.args[ 2 ]
-    spaceToken         = self.args[ 3 ]  
+    spaceTokenEndpoint = self.args[ 0 ]
+    spaceToken         = self.args[ 1 ]  
     
     occupancy = lcg_util.lcg_stmd( spaceToken, spaceTokenEndpoint, True, 0 )
            
