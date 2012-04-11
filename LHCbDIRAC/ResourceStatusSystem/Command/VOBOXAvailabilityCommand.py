@@ -5,7 +5,7 @@
   
 '''
 
-from DIRAC                                      import S_OK, S_ERROR
+from DIRAC                                      import S_OK
 from DIRAC.Core.DISET.RPCClient                 import RPCClient
 from DIRAC.ResourceStatusSystem.Command.Command import Command
 

@@ -30,7 +30,7 @@ class SpaceTokenOccupancyCommand( Command ):
            
     if occupancy[ 0 ] == 0:
     
-      output = answer[1][0]
+      output     = ocucpancy[1][0]
       total      = float( output[ 'totalsize' ] ) / 1e12 # Bytes to Terabytes
       guaranteed = float( output[ 'guaranteedsize' ] ) / 1e12
       free       = float( output[ 'unusedsize' ] ) / 1e12
