@@ -2811,10 +2811,10 @@ and files.qualityid= dataquality.qualityid'
       condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (evt)
 
     if production != default:
-      condition += ' and j.production=%d' % (production)
+      condition += ' and j.production=%d' % (int(production))
 
     if runnb != default:
-      condition += ' and j.runnumber=%d' % (runnb)
+      condition += ' and j.runnumber=%d' % (int(runnb))
 
     if filetype != default:
       condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (filetype)
