@@ -57,7 +57,11 @@ class Production():
     self.prodVersion = __RCSID__
     self.csSection = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
     self.LHCbJob.gaudiStepCount = 0
+
+    self.LHCbJob.setOutputSandbox( ['std.out', 'std.err', '*.log'] )
+    #FIXME: necessary?
     self.LHCbJob.addToOutputSandbox.append( '*.log' )
+
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
 #    defaultHistName    = '@{STEP_ID}_@{applicationName}_Hist.root'
     self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
