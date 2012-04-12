@@ -217,6 +217,9 @@ class UploadLogFile( ModuleBase ):
       self.setApplicationStatus( 'Failed To Upload Logs' )
       return S_OK()
 
+    uploadedSE = result['Value']['uploadedSE']
+    self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
+
     #Now after all operations, retrieve potentially modified request object
     result = ft.getRequestObject()
     if not result['OK']:
@@ -224,7 +227,7 @@ class UploadLogFile( ModuleBase ):
       return S_ERROR( 'Could not retrieve modified request' )
 
     self.request = result['Value']
-    res = self.createLogUploadRequest( self.logSE, self.logLFNPath )
+    res = self.createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
     if not res['OK']:
       self.log.error( 'Failed to create failover request', res['Message'] )
       self.setApplicationStatus( 'Failed To Upload Logs To Failover' )
@@ -308,7 +311,7 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def createLogUploadRequest( self, targetSE, logFileLFN ):
+  def createLogUploadRequest( self, targetSE, logFileLFN, uploadedSE ):
     """ Set a request to upload job log files from the output sandbox
     """
     self.log.info( 'Setting log upload request for %s at %s' % ( logFileLFN, targetSE ) )
@@ -321,10 +324,12 @@ class UploadLogFile( ModuleBase ):
     index = res['Value']
     fileDict = {'Status': 'Waiting', 'LFN': logFileLFN}
     result = self.request.setSubRequestFiles( index, 'logupload', [fileDict] )
+    if not result['OK']:
+      return result
 
     self.log.info( 'Setting log removal request for %s' % ( logFileLFN ) )
     result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
-                                                       'TargetSE':result['Value']['UploadedSE'],
+                                                       'TargetSE':uploadedSE,
                                                        'ExecutionOrder':1}},
                                          'removal' )
     if not result['OK']:
@@ -367,7 +372,9 @@ class UploadLogFile( ModuleBase ):
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>\n""" )
-    fopen.write( "<title>Logs for Job %s of Production %s (DIRAC WMS ID %s)</title>\n" % ( prodJobID, productionID, wmsJobID ) )
+    fopen.write( "<title>Logs for Job %s of Production %s (DIRAC WMS ID %s)</title>\n" % ( prodJobID,
+                                                                                           productionID,
+                                                                                           wmsJobID ) )
     fopen.write( """</head>
 <body text="#000000" bgcolor="#33ffff" link="#000099" vlink="#990099"
  alink="#000099"> \n
@@ -379,9 +386,13 @@ class UploadLogFile( ModuleBase ):
     for fileName in selectedFiles:
       fopen.write( '<a href="%s">%s</a><br> \n' % ( fileName, fileName ) )
 
-    fopen.write( "<p>Job %s_%s corresponds to WMS JobID %s executed at %s.</p><br>" % ( productionID, prodJobID, wmsJobID, DIRAC.siteName() ) )
+    fopen.write( "<p>Job %s_%s corresponds to WMS JobID %s executed at %s.</p><br>" % ( productionID,
+                                                                                        prodJobID,
+                                                                                        wmsJobID,
+                                                                                        DIRAC.siteName() ) )
     fopen.write( "<h3>Parameter summary for job %s_%s</h3> \n" % ( prodJobID, productionID ) )
-    check = ['SystemConfig', 'SoftwarePackages', 'BannedSites', 'LogLevel', 'JobType', 'MaxCPUTime', 'ProductionOutputData', 'LogFilePath', 'InputData', 'InputSandbox']
+    check = ['SystemConfig', 'SoftwarePackages', 'BannedSites', 'LogLevel', 'JobType', 'MaxCPUTime',
+             'ProductionOutputData', 'LogFilePath', 'InputData', 'InputSandbox']
     params = {}
     for n, v in self.workflow_commons.items():
       for item in check:
