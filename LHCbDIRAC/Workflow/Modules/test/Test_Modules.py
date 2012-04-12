@@ -58,10 +58,10 @@ class ModulesTestCase( unittest.TestCase ):
 
     request_mock = Mock()
     request_mock.addSubRequest.return_value = {'OK': True, 'Value': ''}
-    request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': {'UploadedSE':''}}
+    request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': ''}
 
     self.ft_mock = Mock()
-    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {}}
+    self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.getRequestObject.return_value = {'OK': True, 'Value': request_mock}
 
