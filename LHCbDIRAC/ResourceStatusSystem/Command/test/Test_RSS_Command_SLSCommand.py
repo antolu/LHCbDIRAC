@@ -219,7 +219,6 @@ class SLSStatusCommand_Success( SLSStatusCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res[ 'Result' ][ 'OK' ], False )
 
-    global slsResult
     slsResult = { 'OK' : False, 'Message' : 'TestMessage' }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
@@ -235,7 +234,6 @@ class SLSStatusCommand_Success( SLSStatusCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
     
-    global slsResult
     slsResult = { 'OK' : True, 'Value' : { 'Availability' : 'A', 2 : 3 } }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
@@ -259,7 +257,6 @@ class SLSLinkCommand_Success( SLSLinkCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res[ 'Result' ][ 'OK' ], False )
 
-    global slsResult
     slsResult = { 'OK' : False, 'Message' : 'TestMessage' }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
@@ -275,7 +272,6 @@ class SLSLinkCommand_Success( SLSLinkCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : { 'OK' : True, 'Value' : 1 } } )
     
-    global slsResult
     slsResult = { 'OK' : True, 'Value' : { 'Weblink' : 'A', 2 : 3 } }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
@@ -299,7 +295,6 @@ class SLSServiceInfoCommand_Success( SLSServiceInfoCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res[ 'Result' ][ 'OK' ], False )
 
-    global slsResult
     slsResult = { 'OK' : False, 'Message' : 'TestMessage' }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
@@ -315,13 +310,11 @@ class SLSServiceInfoCommand_Success( SLSServiceInfoCommand_TestCase ):
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : slsResult } )
     
-    global slsResult
     slsResult = { 'OK' : True, 'Value' : 1 }
     c = self.command( [ 1, 2, 3 ] ) 
     res    = c.doCommand()
     self.assertEqual( res, { 'Result' : slsResult } )  
 
-    global slsResult
     slsResult = { 'OK' : True, 'Value' : { 1 : 1 } }
     c = self.command( [ 'StorageElement', '2', 3 ] ) 
     res    = c.doCommand()
