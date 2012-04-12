@@ -55,7 +55,9 @@ class ShiftDBAgent( AgentModule ):
     email = self.__getRoleEmail()
     if not email[ 'OK' ]:
       self.log.error( email[ 'Message' ] )
-      return email
+      # We do not return, we keep execution to clean old shifters
+      email[ 'Value' ] = None
+      
     
     email = email[ 'Value' ]
     
@@ -85,8 +87,8 @@ class ShiftDBAgent( AgentModule ):
         
         linesplitted = line.split( '|' )
         
-        if linesplitted[ 4 ].find( ':' ) != -1 :
-          email = linesplitted[ 4 ].split( ':' )[ 1 ]
+        if linesplitted[ 5 ].find( ':' ) != -1 :
+          email = linesplitted[ 5 ].split( ':' )[ 1 ]
           
           if email.find( '@' ) != -1:
             self.log.info( email )
@@ -120,7 +122,10 @@ class ShiftDBAgent( AgentModule ):
       self.log.info( 'eGroup is empty, adding member')     
 
     else :
-      if members[ 0 ].Email.strip() == email.strip():
+      if email is None:
+        self.log.info( 'Get email returned None, deleting previous ...' % members[ 0 ].Email )
+        del members[ 0 ]
+      elif members[ 0 ].Email.strip() == email.strip():
         self.log.info( '%s has not changed as shifter, no changes needed' % email )
         return S_OK()
       else:
