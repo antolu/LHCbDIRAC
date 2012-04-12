@@ -125,6 +125,7 @@ class ShiftDBAgent( AgentModule ):
       if email is None:
         self.log.info( 'Get email returned None, deleting previous ...' % members[ 0 ].Email )
         del members[ 0 ]
+        return S_OK()
       elif members[ 0 ].Email.strip() == email.strip():
         self.log.info( '%s has not changed as shifter, no changes needed' % email )
         return S_OK()
