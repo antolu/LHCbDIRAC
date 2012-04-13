@@ -1,34 +1,34 @@
 COMPONENT_NAME = 'LHCbTaskManager'
 
 import string, re, time, types, os
-from DIRAC                                                      import gConfig, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List                                  import sortList
-
+from DIRAC import gConfig, S_OK, S_ERROR
+from DIRAC.Core.Utilities.List import sortList
 from DIRAC.TransformationSystem.Client.TaskManager import WorkflowTasks
+from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE
 
 class LHCbWorkflowTasks( WorkflowTasks ):
   """ A simple LHCb extension to the task manager, for now only used to set the runNumber
   """
 
-  def __init__( self, transClient=None, logger=None, submissionClient=None, jobMonitoringClient=None,
-                outputDataModule=None ):
+  def __init__( self, transClient = None, logger = None, submissionClient = None, jobMonitoringClient = None,
+                outputDataModule = None ):
     """ calls __init__ of super class
     """
 
     if not outputDataModule:
       outputDataModule = gConfig.getValue( "/DIRAC/VOPolicy/OutputDataModule", "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
 
-    super( LHCbWorkflowTasks, self ).__init__( outputDataModule=outputDataModule )
+    super( LHCbWorkflowTasks, self ).__init__( outputDataModule = outputDataModule )
 
   #############################################################################
 
-  def prepareTransformationTasks( self, transBody, taskDict, owner='', ownerGroup='', job=None ):
+  def prepareTransformationTasks( self, transBody, taskDict, owner = '', ownerGroup = '', job = None ):
     """ For the moment this is just a copy/paste of the superclass method that:
         - use LHCbJob instead of Job
         - adds the runNumber information
-        it would be better to split the code of the
+        it would be better to split the code of the base DIRAC class, because here there's everything
     """
     if ( not owner ) or ( not ownerGroup ):
       from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -65,7 +65,20 @@ class LHCbWorkflowTasks( WorkflowTasks ):
           if paramValue:
             self.log.verbose( 'Setting input data to %s' % paramValue )
             self.log.verbose( 'Setting run number to %s' % str( paramsDict['RunNumber'] ) )
-            oJob.setInputData( paramValue, runNumber=paramsDict['RunNumber'] )
+            oJob.setInputData( paramValue, runNumber = paramsDict['RunNumber'] )
+
+            runMetaData = paramsDict['RunMetadata']
+            self.log.verbose( 'Setting run metadata informations to %s' % str( runMetaData ) )
+
+            oJob.setInputData( paramValue, runNumber = paramsDict['RunNumber'] )
+
+            try:
+              runMetadata = paramsDict['RunMetadata']
+              self.log.verbose( 'Setting run metadata informations to %s' % str( runMetadata ) )
+              oJob.setRunMetadata( runMetadata )
+            except KeyError:
+              pass
+
         elif paramName == 'Site':
           if paramValue:
             self.log.verbose( 'Setting allocated site to: %s' % ( paramValue ) )
@@ -89,12 +102,12 @@ class LHCbWorkflowTasks( WorkflowTasks ):
         hospitalCEs = gConfig.getValue( "/Operations/Hospital/HospitalCEs", [] )
         oJob.setType( 'Hospital' )
         oJob.setDestination( hospitalSite )
-        oJob.setInputDataPolicy( 'download', dataScheduling=False )
+        oJob.setInputDataPolicy( 'download', dataScheduling = False )
         if hospitalCEs:
           oJob._addJDLParameter( 'GridRequiredCEs', hospitalCEs )
       taskDict[taskNumber]['TaskObject'] = ''
       res = self.getOutputData( {'Job':oJob._toXML(), 'TransformationID':transID, 'TaskID':taskNumber, 'InputData':inputData},
-                                moduleLocation=self.outputDataModule )
+                                moduleLocation = self.outputDataModule )
       if not res ['OK']:
         self.log.error( "Failed to generate output data", res['Message'] )
         continue
