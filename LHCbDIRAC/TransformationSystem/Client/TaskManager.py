@@ -1,4 +1,9 @@
+""" Extension of DIRAC Task Manager
+"""
+
 COMPONENT_NAME = 'LHCbTaskManager'
+
+__RCSID__ = "$Id$"
 
 import string, re, time, types, os
 from DIRAC import gConfig, S_OK, S_ERROR
@@ -65,11 +70,6 @@ class LHCbWorkflowTasks( WorkflowTasks ):
           if paramValue:
             self.log.verbose( 'Setting input data to %s' % paramValue )
             self.log.verbose( 'Setting run number to %s' % str( paramsDict['RunNumber'] ) )
-            oJob.setInputData( paramValue, runNumber = paramsDict['RunNumber'] )
-
-            runMetaData = paramsDict['RunMetadata']
-            self.log.verbose( 'Setting run metadata informations to %s' % str( runMetaData ) )
-
             oJob.setInputData( paramValue, runNumber = paramsDict['RunNumber'] )
 
             try:

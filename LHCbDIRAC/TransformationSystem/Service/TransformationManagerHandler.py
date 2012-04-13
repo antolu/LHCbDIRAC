@@ -1,14 +1,12 @@
-########################################################################
-# $Id$
-########################################################################
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                      import S_OK, S_ERROR
-from DIRAC.TransformationSystem.Service.TransformationManagerHandler   import TransformationManagerHandlerBase
-from LHCbDIRAC.TransformationSystem.DB.TransformationDB         import TransformationDB
 from types import LongType, IntType, StringType, DictType, ListType, StringTypes
+
+from DIRAC import S_OK, S_ERROR
+from DIRAC.TransformationSystem.Service.TransformationManagerHandler import TransformationManagerHandlerBase
+from LHCbDIRAC.TransformationSystem.DB.TransformationDB import TransformationDB
 
 database = False
 def initializeTransformationManagerHandler( serviceInfo ):
@@ -219,3 +217,7 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
   types_addRunsMetadata = [[LongType, IntType], DictType]
   def export_addRunsMetadata( self, runID, metadataDict ):
     return database.setRunsMetadata( runID, metadataDict )
+
+  types_getRunsInCache = []
+  def export_getRunsInCache( self ):
+    return database.getRunsInCache()

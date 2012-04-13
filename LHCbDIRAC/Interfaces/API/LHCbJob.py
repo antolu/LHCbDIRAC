@@ -1,9 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   LHCbJob.py
-# Author : Stuart Paterson
-########################################################################
-
 """LHCb Job Class
 
    The LHCb Job class inherits generic VO functionality from the Job base class
@@ -22,7 +16,9 @@
      j = LHCbJob()
      j.setCPUTime(5000)
      j.setSystemConfig('slc4_ia32_gcc34')
-     j.setApplication('DaVinci','v19r12','DaVinciv19r12.opts',optionsLine='ApplicationMgr.EvtMax=1',inputData=['/lhcb/production/DC06/phys-v2-lumi2/00001650/DST/0000/00001650_00000054_5.dst'])
+     j.setApplication('DaVinci','v19r12','DaVinciv19r12.opts',
+     optionsLine='ApplicationMgr.EvtMax=1',
+     inputData=['/lhcb/production/DC06/phys-v2-lumi2/00001650/DST/0000/00001650_00000054_5.dst'])
      j.setName('MyJobName')
      #j.setDestination('LCG.CERN.ch')
 
@@ -40,7 +36,8 @@
      j = LHCbJob()
      j.setCPUTime(5000)
      j.setSystemConfig('slc4_ia32_gcc34')
-     j.setApplicationScript('DaVinci','v19r11','myGaudiPythonScript.py',inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
+     j.setApplicationScript('DaVinci','v19r11','myGaudiPythonScript.py',
+     inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
      j.setName('MyJobName')
      #j.setDestination('LCG.CERN.ch')
 
@@ -56,7 +53,8 @@
      j = LHCbJob()
      j.setCPUTime(5000)
      j.setSystemConfig('slc4_ia32_gcc34')
-     j.setBenderModule('v8r3','BenderExample.PhiMC',inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
+     j.setBenderModule('v8r3','BenderExample.PhiMC',
+     inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
      j.setName('MyJobName')
 
      dirac = DiracLHCb()
@@ -87,7 +85,8 @@
      j = LHCbJob()
      j.setCPUTime(50000)
      j.setSystemConfig('slc4_ia32_gcc34')
-     j.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
+     j.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
+     inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
      j.setLogLevel('verbose')
 
      dirac = DiracLHCb()
@@ -97,8 +96,6 @@
 """
 
 __RCSID__ = "$Id$"
-
-import string
 
 from DIRAC.Core.Workflow.Parameter                  import *
 from DIRAC.Core.Workflow.Module                     import *
@@ -113,6 +110,8 @@ from DIRAC                                          import gConfig
 COMPONENT_NAME = '/WorkflowLib/API/LHCbJob'
 
 class LHCbJob( Job ):
+  """ LHCbJob class as extension of DIRAC Job class
+  """
 
   #############################################################################
 
@@ -170,7 +169,8 @@ class LHCbJob( Job ):
        @param events: Optional number of events
        @type logFile: integer
     """
-    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles, 'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles,
+              'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
@@ -210,8 +210,8 @@ class LHCbJob( Job ):
         return self._reportError( 'Specified options file %s does not exist' % ( optsFile ), __name__, **kwargs )
 
     #ensure optionsFile list is unique:
-    tmpList = string.split( optionsFile, ';' )
-    optionsFile = string.join( uniqueElements( tmpList ), ';' )
+    tmpList = optionsFile.split( ';' )
+    optionsFile = uniqueElements( tmpList ).join( ';' )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
     if inputData:
       if type( inputData ) in types.StringTypes:
@@ -221,7 +221,7 @@ class LHCbJob( Job ):
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
       inputData = map( lambda x: 'LFN:' + x, inputData )
-      inputDataStr = string.join( inputData, ';' )
+      inputDataStr = inputData.join( ';' )
       self.addToInputData.append( inputDataStr )
 
     self.gaudiStepCount += 1
@@ -253,7 +253,7 @@ class LHCbJob( Job ):
     if inputDataType:
       stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
-      stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
+      stepInstance.setValue( "inputData", inputData.join( ';' ) )
     stepInstance.setValue( "numberOfEvents", str( events ) )
 
     # now we have to tell DIRAC to install the necessary software
@@ -264,7 +264,7 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
       apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in string.split( apps, ';' ):
+      if not currentApp in apps.split( ';' ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
@@ -359,7 +359,8 @@ class LHCbJob( Job ):
        @param logFile: Optional log file name
        @type logFile: string
     """
-    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments, 'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
+    kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments,
+              'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
     if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
@@ -395,7 +396,7 @@ class LHCbJob( Job ):
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
       inputData = map( lambda x: 'LFN:' + x, inputData )
-      inputDataStr = string.join( inputData, ';' )
+      inputDataStr = inputData.join( ';' )
       self.addToInputData.append( inputDataStr )
 
     self.gaudiStepCount += 1
@@ -426,7 +427,7 @@ class LHCbJob( Job ):
     if inputDataType:
       stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
-      stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
+      stepInstance.setValue( "inputData", inputData.join( ';' ) )
     if poolXMLCatalog:
       stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
 
@@ -438,7 +439,7 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
       apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in string.split( apps, ';' ):
+      if not currentApp in apps.split( ';' ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
@@ -453,7 +454,8 @@ class LHCbJob( Job ):
     # Create the GaudiApplication script module first
     moduleName = 'GaudiApplicationScript'
     module = ModuleDefinition( moduleName )
-    module.setDescription( 'A  Gaudi Application script module that can execute any provided script in the given project name and version environment' )
+    module.setDescription( 'A  Gaudi Application script module that can execute any provided script \
+    in the given project name and version environment' )
     body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
     module.setBody( body )
     #Add user job finalization module
@@ -502,7 +504,8 @@ class LHCbJob( Job ):
        Example usage:
 
        >>> job = LHCbJob()
-       >>> job.setBenderModule('v8r3','BenderExample.PhiMC',inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
+       >>> job.setBenderModule('v8r3','BenderExample.PhiMC',
+       inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
 
        @param benderVersion: Bender Project Version
        @type benderVersion: string
@@ -513,7 +516,8 @@ class LHCbJob( Job ):
        @param numberOfEvents: Number of events to process e.g. -1
        @type numberOfEvents: integer
     """
-    kwargs = {'benderVersion':benderVersion, 'modulePath':modulePath, 'inputData':inputData, 'numberOfEvents':numberOfEvents}
+    kwargs = {'benderVersion':benderVersion, 'modulePath':modulePath,
+              'inputData':inputData, 'numberOfEvents':numberOfEvents}
     if not type( benderVersion ) == type( ' ' ):
       return self._reportError( 'Bender version should be a string', __name__, **kwargs )
     if not type( modulePath ) == type( ' ' ):
@@ -544,15 +548,16 @@ class LHCbJob( Job ):
     os.mkdir( tmpdir )
     fopen = open( '%s/BenderScript.py' % tmpdir, 'w' )
     self.log.verbose( 'Bender script is: %s/BenderScript.py' % tmpdir )
-    fopen.write( string.join( benderScript, '\n' ) )
+    fopen.write( benderScript.join( '\n' ) )
     fopen.close()
     #should try all components of the PYTHONPATH before giving up...
-    userModule = '%s.py' % ( string.split( modulePath, '.' )[-1] )
+    userModule = '%s.py' % ( modulePath.split( '.' )[-1] )
     self.log.verbose( 'Looking for user module with name: %s' % userModule )
     if os.path.exists( userModule ):
       self.addToInputSandbox.append( userModule )
     self.setInputData( inputData )
-    self.setApplicationScript( 'Bender', benderVersion, '%s/BenderScript.py' % tmpdir, logFile = 'Bender%s.log' % benderVersion )
+    self.setApplicationScript( 'Bender', benderVersion, '%s/BenderScript.py' % tmpdir,
+                               logFile = 'Bender%s.log' % benderVersion )
     return S_OK()
 
   #############################################################################
@@ -640,7 +645,8 @@ class LHCbJob( Job ):
 
         Supports the root macro, python and executable wrapper functions.
     """
-    kwargs = {'rootVersion':rootVersion, 'rootScript':rootScript, 'rootType':rootType, 'arguments':arguments, 'logFile':logFile}
+    kwargs = {'rootVersion':rootVersion, 'rootScript':rootScript, 'rootType':rootType,
+              'arguments':arguments, 'logFile':logFile}
     if not type( arguments ) == types.ListType:
       arguments = [arguments]
 
@@ -660,7 +666,8 @@ class LHCbJob( Job ):
 
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
-      return self._reportError( 'Requested ROOT version %s is not in supported list: %s' % ( rootVersion, string.join( rootList, ', ' ) ), __name__, **kwargs )
+      return self._reportError( 'Requested ROOT version %s is \
+      not in supported list: %s' % ( rootVersion, rootList.join( ', ' ) ), __name__, **kwargs )
 
     rootName = os.path.basename( rootScript ).replace( '.', '' )
     if logFile:
@@ -704,7 +711,7 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
       apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in string.split( apps, ';' ):
+      if not currentApp in apps.split( ';' ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
@@ -783,7 +790,7 @@ class LHCbJob( Job ):
     else:
       apps = self.workflow.findParameter( swPackages ).getValue()
       if apps:
-        if not currentApp in string.split( apps, ';' ):
+        if not currentApp in  apps.split( ';' ):
           apps += ';' + currentApp
         self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
 
@@ -878,11 +885,11 @@ class LHCbJob( Job ):
       try:
         db = str( db )
         tag = str( tag )
-        conditions.append( string.join( [db, tag], '.' ) )
+        conditions.append( [db, tag].join( '.' ) )
       except Exception, x:
         return self._reportError( 'Expected string for conditions', __name__, **kwargs )
 
-    condStr = string.join( conditions, ';' )
+    condStr = conditions.join( ';' )
     description = 'List of CondDB tags'
     self._addParameter( self.workflow, 'CondDBTags', 'JDL', condStr, description )
     return S_OK()
@@ -911,7 +918,7 @@ class LHCbJob( Job ):
     """
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
     if type( lfns ) == list and len( lfns ):
-      outputDataStr = string.join( lfns, ';' )
+      outputDataStr = lfns.join( ';' )
       description = 'List of output data files'
       self._addParameter( self.workflow, 'UserOutputData', 'JDL', outputDataStr, description )
     elif type( lfns ) == type( " " ):
@@ -1095,12 +1102,12 @@ class LHCbJob( Job ):
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
       inputData = map( lambda x: 'LFN:' + x, inputData )
-      inputDataStr = string.join( inputData, ';' )
+      inputDataStr = inputData.join( ';' )
       self.addToInputData.append( inputDataStr )
 
     if type( protocols ) == type( ' ' ):
       protocols = [protocols]
-    protocols = string.join( protocols, ';' )
+    protocols = protocols.join( ';' )
 
     #Must check if ROOT version in available versions and define appName appVersion...
     rootVersions = gConfig.getOptions( self.rootSection, [] )
@@ -1109,7 +1116,8 @@ class LHCbJob( Job ):
 
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
-      return self._reportError( 'Requested ROOT version %s is not in supported list: %s' % ( rootVersion, string.join( rootList, ', ' ) ), __name__, **kwargs )
+      return self._reportError( 'Requested ROOT version %s \
+      is not in supported list: %s' % ( rootVersion, rootList.join( ', ' ) ), __name__, **kwargs )
 
     stepDefn = 'ProtocolTestStep%s' % ( stepNumber )
     step = self.__getProtocolStep( stepDefn )
@@ -1127,7 +1135,7 @@ class LHCbJob( Job ):
     if logFile:
       stepInstance.setValue( "applicationLog", logFile )
     if inputData:
-      stepInstance.setValue( "inputData", string.join( inputData, ';' ) )
+      stepInstance.setValue( "inputData", inputData.join( ';' ) )
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
@@ -1144,7 +1152,7 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
     else:
       apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in string.split( apps, ';' ):
+      if not currentApp in apps.split( ';' ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
 
@@ -1206,6 +1214,15 @@ class LHCbJob( Job ):
         runNumber = 'Unknown'
 
     self._addParameter( self.workflow, 'runNumber', 'JDL', runNumber, 'Input run rumber' )
+
+  #############################################################################
+
+  def setRunMetadata( self, runMetadataDict ):
+    """ set the run metadata
+    """
+
+    self._addParameter( self.workflow, 'runMetadata', 'String', str( runMetadataDict ), 'Input run metadata' )
+
 
   #############################################################################
 

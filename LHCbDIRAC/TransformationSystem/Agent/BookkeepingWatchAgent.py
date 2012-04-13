@@ -191,11 +191,13 @@ class BookkeepingWatchAgent( AgentModule ):
                       self.__logWarn( "Failed to associate %d files to run %d" % ( len( lfns ), runID ), res['Message'], transID = transID )
 
               # Add the run metadata
-              #FIXME: !!!
               runsList = runDict.keys()
-              runsInCache = self.transClient._getRunsInCache()
-              newRuns = runsList - runsInCache
+              runsInCache = self.transClient.getRunsInCache()
+              if not runsInCache['OK']:
+                return runsInCache
+              newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
               if newRuns:
+                #FIXME: !!!
                 res = self.bkClient.getXXXX()
                 if not res['OK']:
                   self.__logError( "Failed to get BK metadata for runs" )

@@ -39,13 +39,16 @@ class TransformationDB( DIRACTransformationDB ):
     self.TASKSPARAMS.append( "RunNumber" )
 
   def cleanTransformation( self, transName, author = '', connection = False ):
-    """ Clean the transformation specified by name or id """
+    """ Clean the transformation specified by name or id
+        Extends DIRAC one for deleting the unused runs metadata
+    """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
 
+    # deleting runs metadata
     req = "SELECT DISTINCT RunNumber FROM TransformationRuns WHERE TransformationID = %s" % transID
     res = self._query( req )
     if not res['OK']:
@@ -66,6 +69,7 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
 
+    # delete files, tasks, taskinputs and parameters as for base DIRAC class 
     res = self.__deleteTransformationFiles( transID, connection = connection )
     if not res['OK']:
       return res
@@ -82,6 +86,36 @@ class TransformationDB( DIRACTransformationDB ):
     self.__updateTransformationLogging( transID, message, author, connection = connection )
     return S_OK( transID )
 
+
+  def getTasksForSubmission( self, transName, numTasks = 1, site = "", statusList = ['Created'],
+                             older = None, newer = None, connection = False ):
+    """ extends base class including the run metadata
+    """
+    tasksDict = DIRACTransformationDB.getTasksForSubmission( self, transName, numTasks, site, statusList,
+                                                             older, newer, connection )
+    if not tasksDict['OK']:
+      return tasksDict
+
+    tasksDict = tasksDict['Value']
+    runNumbers = []
+    for taskForSumbission in tasksDict.values():
+      if 'RunNumber' in taskForSumbission.keys():
+        run = taskForSumbission['RunNumber']
+        if run not in runNumbers:
+          runNumbers.append( run )
+
+    runsMetadata = self.getRunsMetadata( runNumbers, connection )
+    if not runsMetadata['OK']:
+      return runsMetadata
+
+    runsMetadata = runsMetadata['Value']
+    for taskForSumbission in tasksDict.values():
+      try:
+        taskForSumbission['RunMetadata'] = runsMetadata[taskForSumbission['RunNumber']]
+      except KeyError:
+        continue
+
+    return S_OK( tasksDict )
 
 
   #############################################################################
@@ -516,7 +550,7 @@ class TransformationDB( DIRACTransformationDB ):
   #
 
   def setRunsMetadata( self, runID, metadataDict, connection = False ):
-    """ Add the metadataDict to runID
+    """ Add the metadataDict to runID (if already present, does nothing)
     """
     connection = self.__getConnection( connection )
     for name, value in metadataDict.items():
@@ -532,6 +566,7 @@ class TransformationDB( DIRACTransformationDB ):
     res = self._update( req, connection )
     if not res['OK']:
       if '1062: Duplicate entry' in res['Message']:
+        gLogger.debug( "Failed to insert to RunsMetadata table: %s" % res['Message'] )
         return S_OK()
       else:
         gLogger.error( "Failed to insert to RunsMetadata table", res['Message'] )
@@ -560,7 +595,7 @@ class TransformationDB( DIRACTransformationDB ):
           dictOfNameValue[t[0]].update( {t[1]:t[2]} )
         else:
           dictOfNameValue[t[0]] = {t[1]:t[2]}
-      return dictOfNameValue
+      return S_OK( dictOfNameValue )
 
   def deleteRunsMetadata( self, runIDs, connection = False ):
     """ delete meta of a run. RunIDs can be a list.  
@@ -577,3 +612,16 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     return S_OK()
 
+  def getRunsInCache( self, connection = False ):
+    """ get which runNumnber are cached
+    """
+    connection = self.__getConnection( connection )
+    req = "SELECT DISTINCT RunNumber FROM RunsMetadata"
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      return S_OK( [run[0] for run in res['Value']] )
+
+  #############################################################################
