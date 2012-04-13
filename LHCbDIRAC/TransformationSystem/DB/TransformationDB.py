@@ -38,6 +38,52 @@ class TransformationDB( DIRACTransformationDB ):
     self.TRANSFILEPARAMS.append( "RunNumber" )
     self.TASKSPARAMS.append( "RunNumber" )
 
+  def cleanTransformation( self, transName, author = '', connection = False ):
+    """ Clean the transformation specified by name or id """
+    res = self._getConnectionTransID( connection, transName )
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+
+    req = "SELECT DISTINCT RunNumber FROM TransformationRuns WHERE TransformationID = %s" % transID
+    res = self._query( req )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    runsMaybeToDelete = [r[0] for r in res['Value']]
+
+    req = "SELECT DISTINCT RunNumber FROM TransformationRuns WHERE TransformationID != %s" % transID
+    res = self._query( req )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    runsToKeep = [r[0] for r in res['Value']]
+
+    runIDsToBeDeleted = list( set( runsToKeep ) - set( runsMaybeToDelete ) )
+
+    res = self.deleteRunsMetadata( runIDsToBeDeleted, connection )
+    if not res['OK']:
+      return res
+
+    res = self.__deleteTransformationFiles( transID, connection = connection )
+    if not res['OK']:
+      return res
+    res = self.__deleteTransformationTasks( transID, connection = connection )
+    if not res['OK']:
+      return res
+    res = self.__deleteTransformationTaskInputs( transID, connection = connection )
+    if not res['OK']:
+      return res
+    res = self.setTransformationParameter( transID, 'Status', 'Cleaned', author = author, connection = connection )
+    if not res['OK']:
+      return res
+    message = "Transformation Cleaned"
+    self.__updateTransformationLogging( transID, message, author, connection = connection )
+    return S_OK( transID )
+
+
+
   #############################################################################
   #
   # Managing the BkQueries table
@@ -474,17 +520,27 @@ class TransformationDB( DIRACTransformationDB ):
     """
     connection = self.__getConnection( connection )
     for name, value in metadataDict.items():
-      self.__insertRunMetadata( runID, name, value, connection )
+      res = self.__insertRunMetadata( runID, name, value, connection )
+      if not res['OK']:
+        return res
+    return S_OK()
 
   def __insertRunMetadata( self, runID, name, value, connection ):
+    if type( runID ) in StringTypes:
+      runID = int( runID )
     req = "INSERT INTO RunsMetadata (RunNumber, Name, Value) VALUES(%d, '%s', '%s')" % ( runID, name, value )
     res = self._update( req, connection )
     if not res['OK']:
-      gLogger.error( "Failed to insert to RunsMetadata table", res['Message'] )
-    return res
+      if '1062: Duplicate entry' in res['Message']:
+        return S_OK()
+      else:
+        gLogger.error( "Failed to insert to RunsMetadata table", res['Message'] )
+        return res
+    gLogger.info( "Inserted %s %s of run %d to RunsMetadata table" % ( name, value, runID ) )
+    return S_OK()
 
   def getRunsMetadata( self, runIDs, connection = False ):
-    """ get meta of a run, those set in 'names', default is 'ALL'. RunIDs can be a list.  
+    """ get meta of a run. RunIDs can be a list.  
     """
     connection = self.__getConnection( connection )
     if type( runIDs ) in ( StringTypes, IntType ):
@@ -505,4 +561,19 @@ class TransformationDB( DIRACTransformationDB ):
         else:
           dictOfNameValue[t[0]] = {t[1]:t[2]}
       return dictOfNameValue
+
+  def deleteRunsMetadata( self, runIDs, connection = False ):
+    """ delete meta of a run. RunIDs can be a list.  
+    """
+    connection = self.__getConnection( connection )
+    if type( runIDs ) in ( StringTypes, IntType ):
+      runIDs = [runIDs]
+    runIDs = [str( x ) for x in runIDs]
+    runIDs = ', '.join( runIDs )
+    req = "DELETE FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
+    res = self._update( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    return S_OK()
 

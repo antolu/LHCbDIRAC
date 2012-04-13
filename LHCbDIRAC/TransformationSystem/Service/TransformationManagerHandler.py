@@ -209,3 +209,13 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     resultDict['Records'] = transList
     resultDict['Extras'] = statusDict
     return S_OK( resultDict )
+
+
+  #############################################################################
+  #
+  # Managing the RunsMetadata table
+  #
+
+  types_addRunsMetadata = [[LongType, IntType], DictType]
+  def export_addRunsMetadata( self, runID, metadataDict ):
+    return database.setRunsMetadata( runID, metadataDict )
