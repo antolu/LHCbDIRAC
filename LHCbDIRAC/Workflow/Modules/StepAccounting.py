@@ -1,7 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
-
 """ StepAccounting module performs several common operations at the end of
     a workflow step, in particular prepares and sends the step accounting
     data
@@ -18,6 +14,8 @@ from DIRAC.Core.Utilities import Time
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class StepAccounting( ModuleBase ):
+  """ StepAccounting class
+  """
 
   def __init__( self ):
 

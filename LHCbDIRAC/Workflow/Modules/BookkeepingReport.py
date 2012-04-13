@@ -1,7 +1,6 @@
-########################################################################
-# $Id$
-########################################################################
-"""Bookkeeping Report class"""
+"""  Bookkeeping Reporting module (just prepare the files, do not send them 
+    (which is done in the uploadOutput) 
+"""
 
 __RCSID__ = "$Id$"
 
@@ -19,6 +18,8 @@ from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummaryError
 
 class BookkeepingReport( ModuleBase ):
+  """ BookkeepingReport class
+  """
 
   def __init__( self ):
     #TODO check which variables are really needed here
