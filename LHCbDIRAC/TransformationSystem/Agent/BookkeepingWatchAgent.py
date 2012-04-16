@@ -197,7 +197,7 @@ class BookkeepingWatchAgent( AgentModule ):
                 return runsInCache
               newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
               if newRuns:
-                res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
+                res = self.bkClient.getRunInformations( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
                 if not res['OK']:
                   self.__logError( "Failed to get BK metadata for runs" )
                 else:
