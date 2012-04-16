@@ -1,9 +1,9 @@
 """ Extension of DIRAC Task Manager
 """
 
-COMPONENT_NAME = 'LHCbTaskManager'
-
 __RCSID__ = "$Id$"
+
+COMPONENT_NAME = 'LHCbTaskManager'
 
 import string, re, time, types, os
 from DIRAC import gConfig, S_OK, S_ERROR
@@ -23,7 +23,8 @@ class LHCbWorkflowTasks( WorkflowTasks ):
     """
 
     if not outputDataModule:
-      outputDataModule = gConfig.getValue( "/DIRAC/VOPolicy/OutputDataModule", "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
+      outputDataModule = gConfig.getValue( "/DIRAC/VOPolicy/OutputDataModule",
+                                           "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
 
     super( LHCbWorkflowTasks, self ).__init__( outputDataModule = outputDataModule )
 
@@ -65,7 +66,8 @@ class LHCbWorkflowTasks( WorkflowTasks ):
       oJob._setParamValue( 'JOB_ID', str( taskNumber ).zfill( 8 ) )
       inputData = None
       for paramName, paramValue in paramsDict.items():
-        self.log.verbose( 'TransID: %s, TaskID: %s, ParamName: %s, ParamValue: %s' % ( transID, taskNumber, paramName, paramValue ) )
+        self.log.verbose( 'TransID: %s, TaskID: %s, ParamName: %s, ParamValue: %s' % ( transID, taskNumber,
+                                                                                       paramName, paramValue ) )
         if paramName == 'InputData':
           if paramValue:
             self.log.verbose( 'Setting input data to %s' % paramValue )
@@ -74,7 +76,7 @@ class LHCbWorkflowTasks( WorkflowTasks ):
 
             try:
               runMetadata = paramsDict['RunMetadata']
-              self.log.verbose( 'Setting run metadata informations to %s' % str( runMetadata ) )
+              self.log.verbose( 'Setting run metadata information to %s' % str( runMetadata ) )
               oJob.setRunMetadata( runMetadata )
             except KeyError:
               pass
@@ -106,7 +108,8 @@ class LHCbWorkflowTasks( WorkflowTasks ):
         if hospitalCEs:
           oJob._addJDLParameter( 'GridRequiredCEs', hospitalCEs )
       taskDict[taskNumber]['TaskObject'] = ''
-      res = self.getOutputData( {'Job':oJob._toXML(), 'TransformationID':transID, 'TaskID':taskNumber, 'InputData':inputData},
+      res = self.getOutputData( {'Job':oJob._toXML(), 'TransformationID':transID,
+                                 'TaskID':taskNumber, 'InputData':inputData},
                                 moduleLocation = self.outputDataModule )
       if not res ['OK']:
         self.log.error( "Failed to generate output data", res['Message'] )
@@ -119,6 +122,9 @@ class LHCbWorkflowTasks( WorkflowTasks ):
   #############################################################################
 
   def submitTaskToExternal( self, job ):
+    """ Submit a task to the WMS.
+        The only difference with the base DIRAC class is the use of LHCbJob instead of Job
+    """
     if type( job ) in types.StringTypes:
       try:
         job = LHCbJob( job )
