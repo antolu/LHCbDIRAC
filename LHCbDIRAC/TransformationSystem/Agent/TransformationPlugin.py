@@ -264,7 +264,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _AtomicRun( self ):
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
-    delay = self.__getPluginParam( 'RunDelay', 6 )
+    delay = self.__getPluginParam( 'RunDelay', 1 )
     self.__removeProcessedFiles()
     # Get the requested shares from the CS
     backupSE = 'CERN-RAW'
@@ -343,10 +343,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runID = runDict['RunNumber']
       if transType == 'DataReconstruction':
         # Wait for 6 hours before starting the task
-        res = self.bk.getRunInformations( runID )
+        res = self.bk.getRunInformations( int( runID ) )
         if res['OK']:
           endDate = res['Value']['RunEnd']
-          if datetime.datetime.utcnow() - endDate < datetime.timedelta( hours=delay ):
+          if datetime.datetime.now() - endDate < datetime.timedelta( hours=delay ):
             self.__logVerbose( 'Run %d was taken less than %d hours ago, skip...' % ( runID, delay ) )
             if runID in runFileDict:
               runFileDict.pop( runID )
@@ -375,12 +375,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                   runUpdate[runID] = True
 
     # Choose the destination site for new runs
+    activeRAWSEs = self.__getActiveSEs( cpuShares.keys() )
+    inactiveRAWSEs = [se for se in cpuShares if se not in activeRAWSEs]
+    self.__logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
+    if inactiveRAWSEs:
+      self.__logInfo( "Some RAW SEs are not active: %s" % inactiveRAWSEs )
     for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict]:
       runLfns = runFileDict[runID]
       distinctSEs = []
       candidates = []
       for lfn in runLfns:
-        for se in [se for se in self.data[lfn].keys() if se not in distinctSEs]:
+        for se in [se for se in self.data[lfn].keys() if se not in distinctSEs and se in activeRAWSEs]:
           if se == "CERN-RDST":
             se = "CERN-RAW"
           if se in distinctSEs: continue
@@ -393,7 +398,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               for site in [site for site in res['Value'] if site in targetSites and site not in candidates]:
                 candidates.append( site )
       if len( distinctSEs ) < 2:
-        self.__logInfo( "Not found two candidate SEs for run %d, skipped" % runID )
+        self.__logInfo( "Not found two active candidate SEs for run %d, skipped" % runID )
       else:
         if cpuForRaw:
           seProbs = {}
@@ -1166,23 +1171,23 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.__createTasks( storageElementGroups ) )
 
   def __getActiveSEs( self, selist ):
-    
+
     activeSE = []
-    
+
     try:
-      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
+      res = self.resourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
       if res[ 'OK' ]:
         for k, v in res[ 'Value' ].items():
           if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
             activeSE.append( k )
       else:
-        self.__logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )  
+        self.__logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
     except:
       for se in selist:
         res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
         if res['OK'] and res['Value'] == 'Active':
           activeSE.append( se )
-          
+
     return activeSE
 #    try:
 #      from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
@@ -1196,8 +1201,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 #        res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
 #        if res['OK'] and res['Value'] == 'Active':
 #          activeSE.append( se )
-#          
-#          
+#
+#
 #    return activeSE
 
   def __getListFromString( self, s ):
