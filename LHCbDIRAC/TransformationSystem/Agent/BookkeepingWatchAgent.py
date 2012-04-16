@@ -1,13 +1,16 @@
-################################################################################
-# $HeadURL$
-################################################################################
+""" This LHCbDIRAC agent takes BkQueries from the TranformationDB,
+    and issue a query to the BKK, for populating a table in the Transformation DB,
+    with all the files in input to a transformation.
+    
+    A pickle file is used as a cache.
+"""
 
 __RCSID__ = "$Id$"
 
 from DIRAC                                                                import S_OK, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import sortList, breakListIntoChunks
 import os, time, datetime, pickle, Queue
@@ -15,19 +18,23 @@ import os, time, datetime, pickle, Queue
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
 
 class BookkeepingWatchAgent( AgentModule ):
+  """ LHCbDIRAC only agent. A threaded agent.
+  """
 
 ################################################################################
   def initialize( self ):
-    """ Make the necessary initializations """
+    """ Make the necessary initializations. 
+        The ThreadPool is created here, the _execute() method is what each thread will execute.
+    """
 
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
 
     try:
-      f = open( self.pickleFile, 'r' )
-      self.timeLog = pickle.load( f )
-      self.fullTimeLog = pickle.load( f )
-      self.bkQueries = pickle.load( f )
-      f.close()
+      pf = open( self.pickleFile, 'r' )
+      self.timeLog = pickle.load( pf )
+      self.fullTimeLog = pickle.load( pf )
+      self.bkQueries = pickle.load( pf )
+      pf.close()
       self.__logInfo( "successfully loaded Log from", self.pickleFile, "initialize" )
     except:
       self.__logInfo( "failed loading Log from", self.pickleFile, "initialize" )
@@ -37,7 +44,7 @@ class BookkeepingWatchAgent( AgentModule ):
 
     self.maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
     self.threadPool = ThreadPool( self.maxNumberOfThreads,
-                                            self.maxNumberOfThreads )
+                                  self.maxNumberOfThreads )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
 
     self.bkQueriesToBeChecked = Queue.Queue()
@@ -72,18 +79,18 @@ class BookkeepingWatchAgent( AgentModule ):
   def __dumpLog( self ):
     if self.pickleFile:
       try:
-        f = open( self.pickleFile, 'w' )
-        pickle.dump( self.timeLog, f )
-        pickle.dump( self.fullTimeLog, f )
-        pickle.dump( self.bkQueries, f )
-        f.close()
+        pf = open( self.pickleFile, 'w' )
+        pickle.dump( self.timeLog, pf )
+        pickle.dump( self.fullTimeLog, pf )
+        pickle.dump( self.bkQueries, pf )
+        pf.close()
         self.__logVerbose( "successfully dumped Log into %s" % self.pickleFile )
       except Exception, e:
         self.__logError( "fail to dump Log into %s: %s" % ( self.pickleFile, e ) )
 
 ################################################################################
   def execute( self ):
-    """ Main execution method
+    """ Main execution method. Just fills a list, and a queue, with BKKQueries ID.
     """
 
     gMonitor.addMark( 'Iteration', 1 )
@@ -114,6 +121,8 @@ class BookkeepingWatchAgent( AgentModule ):
     return S_OK()
 
   def _execute( self ):
+    """ Real executor. This is what is executed by the single threads.
+    """
 
     while True:#not self.bkQueriesToBeChecked.empty():
 
@@ -140,7 +149,9 @@ class BookkeepingWatchAgent( AgentModule ):
         if 'StartDate' in bkQueryLog:
           bkQueryLog.pop( 'StartDate' )
         self.bkQueries[transID] = bkQuery.copy()
-        if transID in self.timeLog and bkQueryLog == bkQuery and  ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
+        if transID in self.timeLog \
+        and bkQueryLog == bkQuery \
+        and  ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
           # If it is more than a day since the last reduced query, make a full query just in case
           timeStamp = self.timeLog[transID]
           bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
@@ -197,7 +208,7 @@ class BookkeepingWatchAgent( AgentModule ):
                 return runsInCache
               newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
               if newRuns:
-                res = self.bkClient.getRunInformations( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
+                res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
                 if not res['OK']:
                   self.__logError( "Failed to get BK metadata for runs" )
                 else:
