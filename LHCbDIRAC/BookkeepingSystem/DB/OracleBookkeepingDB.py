@@ -2483,6 +2483,8 @@ and files.qualityid= dataquality.qualityid'
         for i in runnumbers:
           cond += 'j.runnumber=' + str(i) + ' or '
         cond = cond[:-3] + ')'
+      elif type(runnumbers) == types.StringType:
+        cond = ' j.runnumber=%s' % (str(runnumbers))
       if startRunID == None and endRunID == None:
         condition += " and %s " % (cond)
       elif startRunID != None and endRunID != None:
