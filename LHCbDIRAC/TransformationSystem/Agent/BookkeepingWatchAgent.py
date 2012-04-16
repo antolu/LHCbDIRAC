@@ -208,11 +208,13 @@ class BookkeepingWatchAgent( AgentModule ):
                 return runsInCache
               newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
               if newRuns:
+                self.__logVerbose( "Associating run metadata to %d runs" % len( newRuns ), transID = transID )
                 res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
                 if not res['OK']:
                   self.__logError( "Failed to get BK metadata for runs" )
                 else:
-                  self.transClient.addRunsMetadata( res['Value'] )
+                  for run, runMeta in res['Value'].items():
+                    self.transClient.addRunsMetadata( run, runMeta )
 
         self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
 
