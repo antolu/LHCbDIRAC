@@ -24,7 +24,7 @@ from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 setup = gConfig.getValue( '/DIRAC/Setup', '' )
 InstallProject = 'install_project.py'
-InstallProjectURL = gConfig.getValue( '/Operations/GaudiExecution/%s/install_project_location' % ( setup ),
+InstallProjectURL = gConfig.getValue( '/Operations/%s/GaudiExecution/install_project_location' % ( setup ),
                                       'http://lhcbproject.web.cern.ch/lhcbproject/dist/' )
 natOS = NativeMachine()
 
@@ -202,7 +202,7 @@ def CheckApplication( app, config, area ):
 
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmds = gConfig.getValue( '/Operations/GaudiExecution/%s/checkProjectOptions' % ( setup ), '-b --check' )
+  cmds = gConfig.getValue( '/Operations/%s/GaudiExecution/checkProjectOptions' % ( setup ), '-b --check' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
@@ -272,7 +272,7 @@ def InstallApplication( app, config, area ):
 
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmds = gConfig.getValue( '/Operations/GaudiExecution/%s/installProjectOptions' % ( setup ), '-b' )
+  cmds = gConfig.getValue( '/Operations/%s/GaudiExecution/installProjectOptions' % ( setup ), '-b' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
@@ -336,7 +336,7 @@ def RemoveApplication( app, config, area ):
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
   #removal options
-  cmds = gConfig.getValue( '/Operations/GaudiExecution/%s/removalProjectOptions' % ( setup ), '-r' )
+  cmds = gConfig.getValue( '/Operations/%s/GaudiExecution/removalProjectOptions' % ( setup ), '-r' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
