@@ -689,6 +689,11 @@ class BookkeepingManagerHandler( RequestHandler ):
     return dataMGMT_.getRunInformations(runnb)
 
   #############################################################################
+  types_getRunInformation = [DictType]
+  def export_getRunInformation(self, runnb):
+    return dataMGMT_.getRunInformation(runnb)
+
+  #############################################################################
   types_getFileCreationLog = [StringType]
   def export_getFileCreationLog(self, lfn):
     return dataMGMT_.getFileCreationLog(lfn)

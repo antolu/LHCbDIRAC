@@ -567,7 +567,7 @@ thisproc CONSTANT VARCHAR2(50) := 'trap_errmesg';
 begin
  select v.path into retval from (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path
    FROM processing
-   WHERE LEVEL > 0 and id in (select distinct processingid from productionscontainer prod where prod.production=prod)
+   WHERE LEVEL > 0 and id = (select distinct processingid from productionscontainer prod where prod.production=prod)
    CONNECT BY NOCYCLE PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
 return retval;
 EXCEPTION WHEN OTHERS THEN
@@ -881,6 +881,9 @@ function insertJobsRow (
 
   commit;
   return jid;
+  EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    select j.jobid into jid from jobs j where j.runnumber=v_runNumber and j.production<0;
   end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function insertFilesRow (

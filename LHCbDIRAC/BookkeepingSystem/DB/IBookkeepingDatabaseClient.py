@@ -248,6 +248,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getRunInformations(runnb)
 
   #############################################################################
+  def getRunInformation(self, runnb):
+    return self.getManager().getRunInformation(runnb)
+
+  #############################################################################
   def getFileCreationLog(self, lfn):
     return self.getManager().getFileCreationLog(lfn)
 
@@ -396,8 +400,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProductionProcessingPassSteps(prod)
 
   #############################################################################
-  def getStepIdandNameForRUN(self, programName, programVersion):
-    return self.getManager().getStepIdandNameForRUN(programName, programVersion)
+  def getStepIdandNameForRUN(self, programName, programVersion, conddb, dddb):
+    return self.getManager().getStepIdandNameForRUN(programName, programVersion, conddb, dddb)
 
   #############################################################################
   def getDataTakingCondDesc(self, condition):

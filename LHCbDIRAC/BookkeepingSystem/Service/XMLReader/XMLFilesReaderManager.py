@@ -438,21 +438,32 @@ class XMLFilesReaderManager:
       #insert processing pass
       programName = None
       programVersion = None
+      conddb = None
+      dddb = None
       found = False
       for param in job.getJobParams():
         if param.getName() == 'ProgramName':
           programName = param.getValue()
         elif param.getName() == 'ProgramVersion':
           programVersion = param.getValue()
+        elif param.getName() == 'CondDB':
+          conddb = param.getValue()
+        elif param.getName() == 'DDDB':
+          dddb = param.getValue()
         elif param.getName() == 'RunNumber':
           production = long(param.getValue()) * -1
           found = True
+
+      if job.exists('CondDB'):
+        job.removeParam('CondDB')
+      if job.exists('DDDB'):
+        job.removeParam('DDDB')
 
       if not found:
         gLogger.error('Runn number is missing!')
         return S_ERROR('Runn number is missing!')
 
-      retVal = dataManager_.getStepIdandNameForRUN(programName, programVersion)
+      retVal = dataManager_.getStepIdandNameForRUN(programName, programVersion, conddb, dddb)
 
       if not retVal['OK']:
         return S_ERROR(retVal['Message'])

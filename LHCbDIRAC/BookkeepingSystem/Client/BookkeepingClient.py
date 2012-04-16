@@ -504,7 +504,21 @@ class BookkeepingClient:
     It returns run information and statistics.
     """
     server = self.__getServer()
-    result = server.getRunInformations(runnb)
+    result = server.getRunInformations(int(runnb))
+    return result
+
+  #############################################################################
+  def getRunInformation(self, dict):
+    """
+    It returns run information and statistics.
+    """
+    server = self.__getServer()
+    if 'Fields' not in dict:
+      dict['Fields'] = ['ConfigName', 'ConfigVersion', 'JobStart', 'JobEnd', 'TCK', 'FillNumber', 'ProcessingPass', 'ConditionDescription', 'CONDDB', 'DDDB']
+    if 'Statistics' in dict and len(dict['Statistics']) == 0:
+      dict['Statistics']=['NbOfFiles','EventStat', 'FileSize', 'FullStat', 'Luminosity', 'InstLumonosity', 'EventType']
+
+    result = server.getRunInformation(dict)
     return result
 
   #############################################################################
@@ -665,6 +679,8 @@ class BookkeepingClient:
     Input parameters:
     runs: list of run numbers.
     """
+    if type(runs) in [types.StringType, types.LongType, types.IntType]:
+      runs = [runs]
     server = self.__getServer()
     return server.getRunFilesDataQuality(runs)
 

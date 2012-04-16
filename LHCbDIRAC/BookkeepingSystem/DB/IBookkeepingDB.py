@@ -250,6 +250,11 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
+  def getRunInformation(self, runnb):
+    gLogger.error('This method is not implemented!')
+
+
+  #############################################################################
   def getFileCreationLog(self, lfn):
     gLogger.error('This method is not implemented!')
 
@@ -397,7 +402,7 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
-  def getStepIdandNameForRUN(self, programName, programVersion):
+  def getStepIdandNameForRUN(self, programName, programVersion, conddb, dddb):
     gLogger.error('This method is not implemented!')
 
   #############################################################################

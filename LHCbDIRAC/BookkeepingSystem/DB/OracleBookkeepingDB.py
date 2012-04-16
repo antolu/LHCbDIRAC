@@ -674,7 +674,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
       if pro == '':
         return S_ERROR('Empty Directory')
-      command = 'select distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,prodview,productionscontainer,processing %s where \
+      command = 'select  /*+ NOPARALLEL(prodview) */ distinct eventTypes.EventTypeId, eventTypes.Description from eventtypes,prodview,productionscontainer,processing %s where \
         prodview.production=productionscontainer.production and \
         eventTypes.EventTypeId=prodview.eventtypeid and \
         productionscontainer.processingid=processing.id and \
@@ -689,11 +689,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return retVal
 
       command = "SELECT distinct name \
-      FROM processing   where parentid in (select id from  processing where name='%s') START WITH id in (select distinct productionscontainer.processingid from productionscontainer,prodview %s where \
+      FROM processing   where parentid in (select id from  processing where name='%s') START WITH id in (select /*+ NOPARALLEL(prodview) */ distinct productionscontainer.processingid from productionscontainer,prodview %s where \
       productionscontainer.production=prodview.production  %s )  CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc" % (str(proc), tables, condition)
     else:
       command = 'SELECT distinct name \
-      FROM processing  where parentid is null START WITH id in (select distinct productionscontainer.processingid from productionscontainer, prodview %s where \
+      FROM processing  where parentid is null START WITH id in (select /*+ NOPARALLEL(prodview) */ distinct productionscontainer.processingid from productionscontainer, prodview %s where \
       productionscontainer.production=prodview.production %s ) CONNECT BY NOCYCLE PRIOR  parentid=id order by name desc' % (tables, condition)
     retVal = self.dbR_._query(command)
     if retVal['OK']:
@@ -831,12 +831,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
         pro += "%s," % (str(i[0]))
       pro = pro[:-1]
       pro += (')')
-      command = "select distinct ftypes.name from \
+      command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name from \
                  productionscontainer pcont,prodview bview, filetypes ftypes  %s \
                  where pcont.processingid in %s \
                   and bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid  %s" % (tables, pro, condition)
     else:
-      command = "select distinct ftypes.name  from productionscontainer pcont, prodview bview,  filetypes ftypes %s where \
+      command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name  from productionscontainer pcont, prodview bview,  filetypes ftypes %s where \
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid %s" % (tables, condition)
     return self.dbR_._query(command)
 
@@ -1988,6 +1988,95 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
 
   #############################################################################
+  def getRunInformation(self, inputParams):
+
+    result = S_ERROR()
+    runnb = inputParams.get('RunNumber', default)
+    if runnb == default:
+      result = S_ERROR ('The RunNumber must be given!')
+    else:
+      if type(runnb) in [types.StringType, types.IntType, types.LongType]:
+        runnb = [runnb]
+      runs = ''
+      for i in runnb:
+        runs += '%d,' % (int(i))
+      runs = runs[:-1]
+      fields = inputParams.get('Fields', ['CONFIGNAME', 'CONFIGVERSION', 'JOBSTART', 'JOBEND', 'TCK', 'FILLNUMBER', 'PROCESSINGPASS', 'CONDITIONDESCRIPTION', 'CONDDB', 'DDDB'])
+      statistics = inputParams.get('Statistics', [])
+      configurationsFields = ['CONFIGNAME', 'CONFIGVERSION']
+      jobsFields = [ 'JOBSTART', 'JOBEND', 'TCK', 'FILLNUMBER', 'PROCESSINGPASS']
+      conditionsFields = ['CONDITIONDESCRIPTION']
+      stepsFields = ['CONDDB', 'DDDB']
+      selection = ''
+      tables = 'jobs j,'
+      conditions = ' j.runnumber in (%s) and j.production <0 ' % (runs)
+
+      for i in fields:
+        if i.upper() in configurationsFields:
+          if tables.find('configurations') < 0:
+            tables += ' configurations c,'
+            conditions += " and j.configurationid=c.configurationid "
+          selection += 'c.%s,' % (i)
+        elif i.upper() in jobsFields:
+          if i.upper() == 'PROCESSINGPASS':
+            selection += 'BOOKKEEPINGORACLEDB.getProductionProcessingPass(-1 * j.runnumber),'
+          else:
+            selection += 'j.%s,' % (i)
+        elif i.upper() in conditionsFields:
+          if tables.find('productionscontainer') < 0:
+            tables += ' productionscontainer prod, data_taking_conditions daq,'
+            conditions += ' and j.production=prod.production and prod.daqperiodid=daq.daqperiodid '
+          selection += 'daq.description,'
+        elif i.upper() in stepsFields:
+          if tables.find('stepscontainer') < 0:
+            tables += ' stepscontainer st, steps s,'
+            conditions += ' and j.production=st.production and st.stepid=s.stepid '
+          selection += ' s.%s,' % (i)
+
+      selection = selection[:-1]
+      tables = tables[:-1]
+
+      command = "select j.runnumber, %s from %s where %s" % (selection, tables, conditions)
+      retVal = self.dbR_._query(command)
+      if not retVal['OK']:
+        result = retVal
+      else:
+        values = {}
+        for i in retVal['Value']:
+          rnb = i[0]
+          i = i[1:]
+          record = dict(zip(fields, i))
+          values[rnb] = record
+
+        if len(statistics) > 0:
+          filesFields = ['NBOFFILES', 'EVENTSTAT', 'FILESIZE', 'FULLSTAT', 'LUMINOSITY', 'INSTLUMINOSITY', 'EVENTTYPEID']
+          tables = 'jobs j, files f'
+          conditions = " j.jobid=f.jobid and j.runnumber in (%s) and j.production <0 and f.gotreplica='Yes' Group by j.runnumber,f.eventtypeid" % (runs)
+          selection = 'j.runnumber,'
+          for i in statistics:
+            if i.upper() == 'NBOFFILES':
+              selection += "count(*),"
+            elif i.upper() == 'EVENTTYPEID':
+              selection += 'f.%s,' % (i)
+            elif i.upper() in filesFields:
+              selection += 'sum(f.%s),' % (i)
+          selection = selection[:-1]
+          command = "select %s  from %s where %s" % (selection, tables, conditions)
+          retVal = self.dbR_._query(command)
+          if not retVal['OK']:
+            result = retVal
+          else:
+            for i in retVal['Value']:
+              rnb = i[0]
+              if 'Statistics' not in values[rnb]:
+                values[rnb]['Statistics'] = []
+              i = i[1:]
+              record = dict(zip(statistics, i))
+              values[rnb]['Statistics'] += [record]
+        result = S_OK(values)
+    return result
+
+  #############################################################################
   def getProductionFilesStatus(self, productionid=None, lfns=[]):
     result = {}
     missing = []
@@ -2943,13 +3032,13 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getStepIdandNameForRUN(self, programName, programVersion):
-    command = "select stepid, stepname from steps where applicationname='%s' and applicationversion='%s'" % (programName, programVersion)
+  def getStepIdandNameForRUN(self, programName, programVersion, conddb, dddb):
+    command = "select stepid, stepname from steps where applicationname='%s' and applicationversion='%s' and CondDB='%s' and DDDB='%s'" % (programName, programVersion, conddb, dddb)
     retVal = self.dbR_._query(command)
     if retVal['OK']:
       stepName = 'Real Data'
       if len(retVal['Value']) == 0:
-        retVal = self.insertStep({'Step':{'StepName':stepName, 'ApplicationName':programName, 'ApplicationVersion':programVersion, 'ProcessingPass':stepName, 'Visible':'Y'}, 'OutputFileTypes':[{'FileType':'RAW', 'Visible':'Y'}]})
+        retVal = self.insertStep({'Step':{'StepName':stepName, 'ApplicationName':programName, 'ApplicationVersion':programVersion, 'ProcessingPass':stepName, 'Visible':'Y', 'CONDDB':conddb, 'DDDB':dddb}, 'OutputFileTypes':[{'FileType':'RAW', 'Visible':'Y'}]})
         if retVal['OK']:
           return S_OK([retVal['Value'], stepName])
         else:
