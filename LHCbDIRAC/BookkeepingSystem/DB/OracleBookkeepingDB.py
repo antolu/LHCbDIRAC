@@ -2477,6 +2477,7 @@ and files.qualityid= dataquality.qualityid'
         condition += ' and j.production=' + str(production)
 
     if len(runnumbers) > 0:
+      cond = None
       if type(runnumbers) == types.ListType:
         cond = ' ( '
         for i in runnumbers:

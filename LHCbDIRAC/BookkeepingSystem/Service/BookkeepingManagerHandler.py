@@ -1013,6 +1013,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getFilesWithGivenDataSets = [DictType]
   def export_getFilesWithGivenDataSets(self, values):
+    gLogger.debug('getFiles dataset:'+str(values))
     return self.export_getFiles(values)
 
   #############################################################################
