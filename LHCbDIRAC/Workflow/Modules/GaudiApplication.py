@@ -1,7 +1,6 @@
-########################################################################
-# $Id$
-########################################################################
-"""Gaudi Application class"""
+""" Gaudi Application module - main module: creates the environment, 
+    executes gaudirun with the right options
+"""
 
 __RCSID__ = "$Id$"
 
@@ -19,10 +18,14 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 
 class GaudiApplication( ModuleBase ):
+  """ GaudiApplication class
+  """
 
   #############################################################################
 
   def __init__( self ):
+    """ Usual init for LHCb workflow modules
+    """
 
     self.log = gLogger.getSubLogger( "GaudiApplication" )
     super( GaudiApplication, self ).__init__( self.log )
@@ -57,6 +60,7 @@ class GaudiApplication( ModuleBase ):
     self.DQTag = ''
     self.outputFilePrefix = ''
     self.runNumber = 0
+    self.TCK = ''
 
   #############################################################################
 
@@ -112,7 +116,8 @@ class GaudiApplication( ModuleBase ):
 
       if self.jobType.lower() == 'merge':
         #Disable the watchdog check in case the file uploading takes a long time
-        self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog for Merge production' )
+        self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to \
+        disable the Watchdog for Merge production' )
         fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
         fopen.write( '%s' % time.asctime() )
         fopen.close()
@@ -127,7 +132,8 @@ class GaudiApplication( ModuleBase ):
             self.log.info( 'Found options file containing environment variable: %s' % fileopt )
             self.optfile += '  %s' % ( fileopt )
           else:
-            self.log.error( 'Cannot process options: "%s" not found via environment variable or in local directory' % ( fileopt ) )
+            self.log.error( 'Cannot process options: "%s" not found via environment variable \
+            or in local directory' % ( fileopt ) )
 
       self.log.info( 'Final options files: %s' % ( self.optfile ) )
 
@@ -139,7 +145,8 @@ class GaudiApplication( ModuleBase ):
 
       if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
 
-        self.log.warn( 'OLD production, should not happen for newer productions (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
+        self.log.warn( 'OLD production, should not happen for newer productions \
+        (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
         #Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):
@@ -170,7 +177,9 @@ class GaudiApplication( ModuleBase ):
         p = ProdConf( prodConfFile )
 
         optionsDict = {}
+
         optionsDict['Application'] = self.applicationName
+
         optionsDict['AppVersion'] = self.applicationVersion
 
         if self.optionsFormat:
@@ -180,29 +189,59 @@ class GaudiApplication( ModuleBase ):
 
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
+
         stepOutTypes = copy.deepcopy( self.stepOutputsType )
         if 'HIST' in stepOutTypes:
           stepOutTypes.remove( 'HIST' )
         optionsDict['OutputFileTypes'] = stepOutTypes
+
         optionsDict['XMLSummaryFile'] = self.XMLSummary
+
         optionsDict['XMLFileCatalog'] = self.poolXMLCatName
+
         if self.histoName:
           if 'HIST' in self.stepOutputsType:
             optionsDict['HistogramFile'] = self.histoName
+
         if self.DDDBTag:
-          optionsDict['DDDBTag'] = self.DDDBTag
+          if self.DDDBTag.lower() == 'online':
+            try:
+              optionsDict['DDDBTag'] = self.onlineDDDBTag
+              self.log.debug( 'Set the online DDDB tag' )
+            except NameError, e:
+              self.log.error( 'Could not find an online DDDb Tag: ', e )
+              return S_ERROR( 'Could not find an online DDDb Tag' )
+          else:
+            optionsDict['DDDBTag'] = self.DDDBTag
+
         if self.CondDBTag:
-          optionsDict['CondDBTag'] = self.CondDBTag
+          if self.CondDBTag.lower() == 'online':
+            try:
+              optionsDict['CondDBTag'] = self.onlineCondDBTag
+              self.log.debug( 'Set the online CondDB tag' )
+            except NameError, e:
+              self.log.error( 'Could not find an online CondDb Tag: ', e )
+              return S_ERROR( 'Could not find an online CondDb Tag' )
+          else:
+            optionsDict['CondDBTag'] = self.CondDBTag
+
         if self.DQTag:
           optionsDict['DQTag'] = self.DQTag
+
         optionsDict['NOfEvents'] = int( self.numberOfEvents )
+
         if runNumberGauss:
           optionsDict['RunNumber'] = runNumberGauss
+
         if self.runNumber:
           if self.runNumber != 'Unknown':
             optionsDict['RunNumber'] = self.runNumber
+
         if firstEventNumberGauss:
           optionsDict['FirstEventNumber'] = firstEventNumberGauss
+
+        if self.TCK:
+          optionsDict['TCK'] = self.TCK
 
         p.putOptionsIn( optionsDict )
 
@@ -311,6 +350,9 @@ class GaudiApplication( ModuleBase ):
   #############################################################################
 
   def _manageGaudiAppOutput( self ):
+    """ Calls self._findOuputs to find what's produced, 
+        then creates the LFNs
+    """
 
     try:
       finalOutputs, bkFileTypes = self._findOutputs( self.stepOutputs )
@@ -365,7 +407,8 @@ class GaudiApplication( ModuleBase ):
           break
 
       if found:
-        self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk, output['outputDataName'] ) )
+        self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk,
+                                                                                       output['outputDataName'] ) )
         output['outputDataName'] = fileOnDisk
         filesFound.append( output )
       else:

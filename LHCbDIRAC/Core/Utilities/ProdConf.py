@@ -6,11 +6,15 @@
     test jobs.
 """
 
+__RCSID__ = "$Id$"
+
 import os, re
 
 ################################################################################
 
 class ProdConf:
+  """ Class for managing ProdConf objects
+  """
 
   def __init__( self, fileName = 'prodConf.py', log = None ):
     """ initialize a ProdConf object, setting some relevant info
@@ -31,6 +35,7 @@ class ProdConf:
                         'NOfEvents':'integer',
                         'RunNumber':'integer',
                         'FirstEventNumber':'integer',
+                        'TCK':'string'
                         }
 
     if not log:
@@ -60,27 +65,26 @@ class ProdConf:
 
     lines = re.split( '\n+', fileString )
     for line in lines:
-      for option, type in self.optionsDict.items():
+      for option, pcType in self.optionsDict.items():
         if re.match( '[ ]*' + option + '[a-z,A-Z,0-9.]*', line ):
           optionValues = re.split( option + '=+', line )
           for optionValue in optionValues:
             optionValue = optionValue.strip( ' ' )
             if optionValue:
-              if type == 'list':
+              if pcType == 'list':
                 optionValueEls = optionValue.split( '[' )
-#              elif type == 'string':
               else:
                 optionValueEls = optionValue.split( ',' )
               for optionValueEl in optionValueEls:
                 if optionValueEl:
                   value = optionValueEl.replace( '"', '' ).replace( ']', '' ).replace( "'", '' ).strip( ' ' )
-                  if type == 'list':
+                  if pcType == 'list':
                     if value == ',':
                       value = []
                     else:
                       value = [x.strip() for x in value.split( ',' )]
                       value.remove( '' )
-                  elif type == 'integer':
+                  elif pcType == 'integer':
                     value = int( value )
                   self.whatsIn[option] = value
 
@@ -98,11 +102,11 @@ class ProdConf:
         pass
 
     optsThatWillGoIn = self._buildOptions( optionsDict )
-    str = self._getOptionsString( optsThatWillGoIn )
+    stringToPut = self._getOptionsString( optsThatWillGoIn )
 
     #Easier to re-write it completely
     fopen = open( self.fileName, 'w' )
-    fopen.write( str )
+    fopen.write( stringToPut )
     fopen.close()
 
     self._getWhatsIn()

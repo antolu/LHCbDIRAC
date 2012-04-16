@@ -229,6 +229,12 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'DQTag' ):
       self.DQTag = self.workflow_commons['DQTag']
 
+    if self.workflow_commons.has_key( 'RunMetadata' ):
+      runMetadataDict = eval( self.workflow_commons['RunMetadata'] )
+      self.onlineDDBTags = runMetadataDict['DDDB']
+      self.onlineCondDBTag = runMetadataDict['CondDb']
+      self.TCK = runMetadataDict['TCK']
+
   #############################################################################
 
   def _resolveInputStep( self ):
