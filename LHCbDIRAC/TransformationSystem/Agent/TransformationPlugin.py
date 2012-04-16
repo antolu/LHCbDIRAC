@@ -6,7 +6,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC                                                             import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
-from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, sortList, randomize
+from DIRAC.Core.Utilities.List                                         import breakListIntoChunks, randomize
 from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
@@ -125,7 +125,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       targetShares.pop( 'LCG.CERN.ch' )
     targetShares = self._normaliseShares( targetShares )
     self.__logInfo( "Obtained the following target shares (%):" )
-    for site in sortList( targetShares.keys() ):
+    for site in sorted( targetShares.keys() ):
       self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), targetShares[site] ) )
 
     # Ensure that our files only have one existing replica at CERN
@@ -146,7 +146,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not res['OK']:
         return res
       runFileDict = res['Value']
-      for runID in sortList( runFileDict.keys() ):
+      for runID in sorted( runFileDict.keys() ):
         res = self.transClient.setTransformationRunsSite( transID, runID, se )
         if not res['OK']:
           self.__logError( "Failed to assign TransformationRun site", res['Message'] )
@@ -162,7 +162,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if existingCount:
       self.__logInfo( "Existing storage element utilization (%):" )
       normalisedExistingCount = self._normaliseShares( existingCount )
-      for site in sortList( normalisedExistingCount.keys() ):
+      for site in sorted( normalisedExistingCount.keys() ):
         self.__logInfo( "%s: %.1f" % ( site.ljust( 15 ), normalisedExistingCount[site] ) )
 
     # Group the remaining data by run
@@ -185,7 +185,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Choose the destination SE
     tasks = []
-    for runID in [run for run in sortList( runFileDict.keys() ) if run in runSEDict]:
+    for runID in [run for run in sorted( runFileDict.keys() ) if run in runSEDict]:
       runLfns = runFileDict[runID][None]
       assignedSE = None
       if runSEDict[runID]:
@@ -286,11 +286,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not res['OK']:
         return res
       cpuShares = res['Value']
-      targetSites = sortList( cpuShares.keys() )
+      targetSites = sorted( cpuShares.keys() )
     else:
       cpuForRaw = True
       rawFraction = res['Value']
-      targetSites = sortList( rawFraction.keys() )
+      targetSites = sorted( rawFraction.keys() )
       result = self._getShares( 'RAW', normalise=True )
       if result['OK']:
         rawShares = result['Value']
@@ -318,7 +318,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       normalisedExistingCount = {}
     self.__logInfo( "Target shares and utilisation for production (%%):" )
-    for se in sortList( cpuShares.keys() ):
+    for se in sorted( cpuShares.keys() ):
       infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), cpuShares[se] )
       if se in normalisedExistingCount:
         infoStr += " %4.1f" % normalisedExistingCount[se]
@@ -380,7 +380,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.__logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
     if inactiveRAWSEs:
       self.__logInfo( "Some RAW SEs are not active: %s" % inactiveRAWSEs )
-    for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict]:
+    for runID in [run for run in sorted( runFileDict.keys() ) if run not in runSEDict]:
       runLfns = runFileDict[runID]
       distinctSEs = []
       candidates = []
@@ -406,7 +406,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if backupSE not in distinctSEs:
             self.__logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
             backupSE = None
-          distinctSEs = sortList( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
+          distinctSEs = sorted( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
           for se in distinctSEs:
             prob += rawFraction[se] / len( distinctSEs )
             seProbs[se] = prob
@@ -439,7 +439,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Create the tasks
     tasks = []
-    for runID in sortList( runSEDict.keys() ):
+    for runID in sorted( runSEDict.keys() ):
       targetSite = runSEDict[runID]
       if runUpdate[runID]:
         # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
@@ -456,7 +456,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         else:
           possibleSEs = None
       if possibleSEs:
-        for lfn in sortList( runFileDict[runID] ):
+        for lfn in sorted( runFileDict[runID] ):
           if len( self.data[lfn] ) >= 2:
             for se in self.data[lfn].keys():
               if se == "CERN-RDST":
@@ -694,7 +694,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       paramDict = runDict.get( runID, {} )
       targetSites = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
       runRAWFiles = {}
-      for paramValue in sortList( paramDict.keys() ):
+      for paramValue in sorted( paramDict.keys() ):
         if paramValue:
           paramStr = " (%s : %s) " % ( param, paramValue )
         else:
@@ -992,7 +992,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if exclusiveSEs:
       targetSEs = [se for se in targetSEs if se not in existingSEs]
     self.__logVerbose( "Selected target SEs: %s" % targetSEs )
-    return ','.join( sortList( targetSEs ) )
+    return ','.join( sorted( targetSEs ) )
 
   def __assignTargetToLfns( self, lfns, stringTargetSEs ):
     targetSEs = [se for se in stringTargetSEs.split( ',' ) if se]
@@ -1005,7 +1005,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       ses = [se for se in targetSEs if se not in existingSEs ]
       # discard SEs at sites where already normal replica
       neededSEs = [se for se in ses if self.__isArchive( se ) or self.__isFreezer( se ) or self._getSiteForSE( se )['Value'] not in existingSites]
-      stringTargetSEs = ','.join( sortList( neededSEs ) )
+      stringTargetSEs = ','.join( sorted( neededSEs ) )
       if not neededSEs:
         alreadyCompleted.append( lfn )
       else:
@@ -1310,7 +1310,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         else:
           alreadyCompleted += lfns
         if targetSEs:
-          stringTargetSEs = ','.join( sortList( targetSEs ) )
+          stringTargetSEs = ','.join( sorted( targetSEs ) )
           #Now assign the individual files to their targets
           ( chunkFileTargetSEs, completed ) = self.__assignTargetToLfns( lfns, stringTargetSEs )
           alreadyCompleted += completed
@@ -1342,9 +1342,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __createTasks( self, storageElementGroups, chunkSize=100 ):
     #  create reasonable size tasks
     tasks = []
-    for stringTargetSEs in sortList( storageElementGroups.keys() ):
+    for stringTargetSEs in sorted( storageElementGroups.keys() ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
-      for lfnGroup in breakListIntoChunks( sortList( stringTargetLFNs ), 100 ):
+      for lfnGroup in breakListIntoChunks( sorted( stringTargetLFNs ), 100 ):
         tasks.append( ( stringTargetSEs, lfnGroup ) )
     self.__logVerbose( "%d tasks created" % len( tasks ) )
     return tasks
@@ -1404,7 +1404,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             targetSEs = randomize( existingSEs )[0:-minKeep]
 
       if targetSEs:
-        stringTargetSEs = ','.join( sortList( targetSEs ) )
+        stringTargetSEs = ','.join( sorted( targetSEs ) )
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
       else:
         self.__logInfo( "Found %s files that don't need any replica deletion" % len( lfns ) )
