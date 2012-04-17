@@ -8,13 +8,13 @@
 from LHCbDIRAC.ResourceStatusSystem.Utilities                       import SLSXML
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__  = '$Id:  $'
+__RCSID__  = '$Id: $'
 
-_RMC       = ResourceManagementClient()
+RMC = ResourceManagementClient()
 
 def writeSLSXml( task, taskResult ):
   '''
   Call the real SLSXML.writeSLSXml function, but adding the connection to the 
   DB.
   '''
-  return SLSXML.writeSLSXml( task, taskResult, _RMC )
+  return SLSXML.writeSLSXml( task, taskResult, RMC )
