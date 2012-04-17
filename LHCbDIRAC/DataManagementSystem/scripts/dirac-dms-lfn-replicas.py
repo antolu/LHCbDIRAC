@@ -63,11 +63,11 @@ if __name__ == "__main__":
       value = {'Failed': res['Value']['Failed'].copy(), 'Successful' : {}}
       for lfn in replicas:
         for se in replicas[lfn]:
-          res1 = rm.getCatalogReplicaStatus( {lfn:se}, singleFile=True )
+          res1 = rm.getCatalogReplicaStatus( {lfn:se} )
           if not res1['OK']:
             value['Failed'][lfn] = "Can't get replica status"
           else:
-            value['Successful'].setdefault( lfn, {} )[se] = "(%s) %s" % ( res1['Value'], replicas[lfn][se] )
+            value['Successful'].setdefault( lfn, {} )[se] = "(%s) %s" % ( res1['Value']['Successful'][lfn], replicas[lfn][se] )
       res = DIRAC.S_OK( value )
   #DIRAC.exit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
   #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
