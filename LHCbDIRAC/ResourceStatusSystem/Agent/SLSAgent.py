@@ -17,8 +17,9 @@ import sys, os, re, subprocess, pwd
 
 import lfc2, lcg_util
 
+rmDB = None
+
 impl = xml.dom.getDOMImplementation()
-rmDB = DB( "ResourceManagementDB", "ResourceStatus/ResourceManagementDB", 10 )
 
 # Generate MySQL INSERT queries
 def gen_mysql( n, d, keys ):
@@ -877,6 +878,10 @@ class LFCTest( TestBase ):
 
 class SLSAgent( AgentModule ):
   def initialize( self ):
+    
+    global rmDB
+    rmDB = DB( "ResourceManagementDB", "ResourceStatus/ResourceManagementDB", 10 )
+    
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
