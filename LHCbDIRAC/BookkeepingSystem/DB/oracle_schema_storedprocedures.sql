@@ -810,6 +810,7 @@ function insertJobsRow (
   jid       number;
   configId  number;
   existInDB  number;
+  ecode    Varchar2(256);
   begin
     configId := 0;
     select count(*) into existInDB from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
@@ -883,7 +884,41 @@ function insertJobsRow (
   return jid;
   EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
+    jid:=0;
     select j.jobid into jid from jobs j where j.runnumber=v_runNumber and j.production<0;
+    if jid = 0 then
+       ecode:= SQLERRM;
+      raise_application_error(ecode, 'It is not a run!');
+    else
+       update jobs set ConfigurationId=configId,
+         DiracJobId=v_DiracJobId,
+         DiracVersion=v_DiracVersion,
+         EventInputStat=v_EventInputStat,
+         ExecTime=v_ExecTime,
+         FirstEventNumber=v_FirstEventNumber,
+         JobEnd=v_JobEnd,
+         JobStart=v_JobStart,
+         Location=v_Location,
+         Name=v_Name,
+         NumberOfEvents=v_NumberOfEvents,
+         Production=v_Production,
+         ProgramName=v_ProgramName,
+         ProgramVersion=v_ProgramVersion,
+         StatisticsRequested=v_StatisticsRequested,
+         WNCPUPower=v_WNCPUPower,
+         CPUTime=v_CPUTime,
+         WNCache=v_WNCache,
+         WNMemory=v_WNMemory,
+         WNModel=v_WNModel,
+         WorkerNode=v_WorkerNode,
+         FillNumber=v_fillNumber,
+         WNCPUHS06=v_WNCPUHS06,
+         TotalLuminosity=v_totalLuminosity,
+         Tck=v_tck where runnumber=v_runNumber;
+      commit;
+    return jid;
+    END IF;
+    return -1;  
   end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function insertFilesRow (
@@ -953,6 +988,26 @@ function insertFilesRow (
                 );
   COMMIT;
   return fid;
+  EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    select fileid into fid from files where FileName=v_FileName;
+    update files set Adler32=v_Adler32,
+                CreationDate=v_CreationDate,
+                EventStat=v_EventStat,
+                EventTypeId=v_EventTypeId,
+                FileTypeId=v_FileTypeId,
+                GotReplica=v_GotReplica,
+                Guid=v_Guid,
+                JobId=v_JobId,
+                MD5Sum=v_MD5Sum,
+                FileSize=v_FileSize,
+                FullStat=v_FullStat,
+                Qualityid=dqid,
+                inserttimestamp=v_utc,
+                Luminosity=v_luminosity,
+                InstLuminosity=v_instluminosity,
+                VisibilityFlag=v_visibilityFlag where fileid=fid;
+    return fid;
   end;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 PROCEDURE insertInputFilesRow (v_FileId NUMBER, v_JobId NUMBER)is
