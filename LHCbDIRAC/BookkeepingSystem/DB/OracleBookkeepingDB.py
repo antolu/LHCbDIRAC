@@ -770,7 +770,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += ' and bview.eventtypeid=' + str(evt)
 
     if processing != default:
-      command = "select distinct pcont.production from \
+      command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from \
                  productionscontainer pcont,prodview bview \
                  where pcont.processingid in \
                     (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
@@ -779,7 +779,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
                      where v.path='" + processing + "') \
                   and bview.production=pcont.production " + condition
     else:
-      command = "select distinct pcont.production from productionscontainer pcont,prodview bview where \
+      command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from productionscontainer pcont,prodview bview where \
                  bview.production=pcont.production " + condition
     return self.dbR_._query(command)
 

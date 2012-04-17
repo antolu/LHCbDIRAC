@@ -33,7 +33,7 @@ def getFileAncestors( inputData, ancestorDepth ):
   inputData = [ i.replace( 'LFN:', '' ) for i in inputData]
   bk = BookkeepingClient()
 
-  result = bk.getAncestors( inputData, depth = ancestorDepth )
+  result = bk.getFileAncestors( inputData, depth = ancestorDepth, replica=True )
   gLogger.debug( result )
   if not result['OK']:
     gLogger.warn( 'Problem during getAncestors call:\n%s' % ( result['Message'] ) )

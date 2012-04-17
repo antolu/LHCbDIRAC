@@ -1481,14 +1481,14 @@ class LHCB_BKKDBManager( BaseESManager ):
       return S_ERROR( "Error discoverd during the option file creation!" )
 
   #############################################################################
-  def writeJobOptions( self, files, optionsFile = '', savedType = None, catalog = None, savePfn = None, dataset = None ):
+  def writeJobOptions(self, files, optionsFile='', savedType=None, catalog=None, savePfn=None, dataset=None):
 
     fd = ''
     if optionsFile == '':
       fd = ''
       if savedType == 'txt':
         for lfn in files:
-          fd += str( lfn ) + '\n'
+          fd += str(lfn) + '\n'
         return fd
 
     # get lst of event types
@@ -1498,33 +1498,28 @@ class LHCB_BKKDBManager( BaseESManager ):
     fileType = None
     for i in files:
         file = files[i]
-        type = int( file['EventTypeId'] )
+        type = int(file['EventTypeId'])
         stat = 0
         if file['EventStat'] != None:
-          stat = int( file['EventStat'] )
+          stat = int(file['EventStat'])
 
-        if not evtTypes.has_key( type ):
+        if not evtTypes.has_key(type):
             evtTypes[type] = [0, 0, 0.]
         evtTypes[type][0] += 1
         evtTypes[type][1] += stat
         if files[i]['FileSize'] == None:
           evtTypes[type][2] += 0
         else:
-          evtTypes[type][2] += int( file['FileSize'] ) / 1000000000.
+          evtTypes[type][2] += int(file['FileSize']) / 1000000000.
 
         nbEvts += stat
-        if not fileType:
-            fileType = file['FileType']
-        if file['FileType'] != fileType:
-            print "All files don't have the same type, impossible to write jobOptions"
-            return 1
 
     pythonOpts = None
     if savedType != None:
       pythonOpts = savedType == 'py'
     else:
-      fd = open( optionsFile, 'w' )
-      n, ext = os.path.splitext( optionsFile )
+      fd = open(optionsFile, 'w')
+      n, ext = os.path.splitext(optionsFile)
       pythonOpts = ext == '.py'
 
     s = ''
@@ -1538,7 +1533,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     types = evtTypes.keys()
     types.sort()
     for type in types:
-        s += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % ( type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2] )
+        s += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (type, evtTypes[type][0], evtTypes[type][1], evtTypes[type][2])
 
     if dataset:
       s += "\n\n%s Extra information about the data processing phases:\n" % (comment)
@@ -1547,35 +1542,55 @@ class LHCB_BKKDBManager( BaseESManager ):
         for record in retVal['Value']['Records']:
           s += "\n\n%s Processing Pass %s \n\n" % (comment, record)
           for i in retVal['Value']['Records'][record]:
-            s += "%s %s : %s \n" % (comment, i[0],i[1])
+            s += "%s %s : %s \n" % (comment, i[0], i[1])
 
     rootFormat = True
+    filesandformats = {}
     if savePfn: # we have to decide the file type version. This variable contains the file type version, if it is empty I check in the bkk
+      print savePfn
       lfn = savePfn.keys()[0]
-      type = savePfn[lfn]['pfntype'] # we assume all the files are created with the same version.
-      if type.upper() == 'ROOT_ALL':
-        rootFormat = False
-    else:
-      lfn = files.keys()[0]
-      retVal = self.db_.getFileTypeVersion( lfn )
-      if retVal['OK']:
-        type = retVal['Value'][lfn]
-        if type.upper() == 'ROOT_ALL':
+      for i in savePfn:
+        if savePfn[i]['pfntype'].upper() == 'ROOT_ALL':
           rootFormat = False
+        filesandformats[i] = savePfn[i]['pfntype']
+    else:
+      retVal = self.db_.getFileTypeVersion(files.keys())
+      if retVal['OK']:
+        records = retVal['Value']
+        for i in records:
+          filesandformats[i] = records[i]
       else:
-        return S_ERROR( retVal )
+        return S_ERROR(retVal)
 
     if rootFormat:
       s += "\nfrom Gaudi.Configuration import * "
       s += "\nfrom GaudiConf import IOHelper"
-      s += "\nIOHelper().inputFiles(["
-      keys = files.keys()
-      keys.sort()
-      for lfn in keys:
-        s += "'LFN:%s',\n" % ( lfn )
-      s = s[:-2]
-      s += '\n], clear=True)\n'
+      ioCounter = 0
+      type = None
+      for i in sorted(filesandformats.items()):
+        if ioCounter == 0:
+          type = i[1]
+          s += "\nIOHelper('%s').inputFiles([" % (type)
+          s += "'LFN:%s',\n" % (i[0])
+          ioCounter += 1
+        elif ioCounter > 0  and type == i[1]:
+          s += "'LFN:%s',\n" % (i[0])
+        elif ioCounter > 0 and type != i[1]:
+          type = i[1]
+          s = s[:-2]
+          if ioCounter == 1 :
+            s += '\n], clear=True)\n'
+            ioCounter += 1
+          else:
+            s += '\n])\n'
+          s += "\nIOHelper('%s').inputFiles([" % (type)
+          s += "'LFN:%s',\n" % (i[0])
 
+      s = s[:-2]
+      if ioCounter == 1 :
+        s += '\n], clear=True)\n'
+      else:
+        s += '\n])\n'
     else:
     # Now write the event selector option
       if pythonOpts:
@@ -1587,7 +1602,7 @@ class LHCB_BKKDBManager( BaseESManager ):
       fileType = fileType.split()[0]
       # Allow fileType to be of the form XXX.<fileType>
       try:
-        fileType = fileType.split( "." )[1]
+        fileType = fileType.split(".")[1]
       except:
         pass
       mdfTypes = ["RAW", "MDF"]
@@ -1625,7 +1640,7 @@ class LHCB_BKKDBManager( BaseESManager ):
     if catalog != None:
       s += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
     if fd:
-      fd.write( s )
+      fd.write(s)
       fd.close()
     else:
       return s
