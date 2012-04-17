@@ -10,7 +10,7 @@ from DIRAC.Core.Workflow.Parameter import Parameter
 from mock import Mock
 from DIRAC.Core.Workflow.Workflow import *
 from DIRAC.Interfaces.API.Job import Job
-from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition, makeRunList
 
 #############################################################################
 
@@ -23,7 +23,6 @@ class APITestCase( unittest.TestCase ):
     pass
 
 class Success( APITestCase ):
-
 
   def test__getStepDefinition( self ):
     importLine = """
@@ -52,7 +51,6 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
     stepDef = getStepDefinition( 'Gaudi_App_Step', ['GaudiApplication', 'BookkeepingReport'] )
     self.assert_( str( gaudiAppDefn ) == str( stepDef ) )
 
-
     self.job._addParameter( gaudiAppDefn, 'name', 'type', 'value', 'desc' )
     self.job._addParameter( gaudiAppDefn, 'name1', 'type1', 'value1', 'desc1' )
 
@@ -64,6 +62,9 @@ from LHCbDIRAC.Workflow.Modules.<MODULE> import <MODULE>
 
     self.assert_( str( gaudiAppDefn ) == str( stepDef ) )
 
+  def test_makeRunList( self ):
+    res = makeRunList( "1234:1236,12340,12342,1520:1522" )
+    self.assertEqual( res['Value'], ['1234', '1235', '1236', '12340', '12342', '1520', '1521', '1522'] )
 
 
 if __name__ == '__main__':
