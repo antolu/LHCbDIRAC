@@ -1,7 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
-
 """ Analyse log file(s) module
 """
 
@@ -287,11 +283,7 @@ class AnalyseLogFile( ModuleBase ):
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End"
                      % ( msg ) )
     else:
-      from DIRAC import gConfig
-      mailAddress = gConfig.getValue( '/Operations/EMail/JobFailuresPerSetup/%s'
-                                      % gConfig.getValue( "DIRAC/Setup" ) )
-      if not mailAddress:
-        mailAddress = 'lhcb-datacrash@cern.ch'
+      mailAddress = self.opsH.getValue( 'EMail/JobFailures', 'lhcb-datacrash@cern.ch' )
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
 
       if not nc:

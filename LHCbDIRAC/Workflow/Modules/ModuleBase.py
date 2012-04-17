@@ -13,7 +13,7 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def __init__( self, loggerIn = None ):
+  def __init__( self, loggerIn = None, operationsHelperIn = None ):
     """ Initialization of module base.
     """
 
@@ -22,6 +22,12 @@ class ModuleBase( object ):
       self.log = gLogger.getSubLogger( 'ModuleBase' )
     else:
       self.log = loggerIn
+
+    if not operationsHelperIn:
+      from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+      self.opsH = Operations()
+    else:
+      self.opsH = operationsHelperIn
 
   #############################################################################
 
