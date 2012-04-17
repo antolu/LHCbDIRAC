@@ -17,15 +17,15 @@
 """
 __RCSID__ = "$Id$"
 
-import os, shutil, sys, urllib, re, string, copy
+import os, shutil, sys, urllib, re, copy
 import DIRAC
-from DIRAC import gConfig
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
-setup = gConfig.getValue( '/DIRAC/Setup', '' )
+opsH = Operations()
 InstallProject = 'install_project.py'
-InstallProjectURL = gConfig.getValue( '/Operations/%s/GaudiExecution/install_project_location' % ( setup ),
-                                      'http://lhcbproject.web.cern.ch/lhcbproject/dist/' )
+InstallProjectURL = opsH.getValue( 'GaudiExecution/install_project_location',
+                                   'http://lhcbproject.web.cern.ch/lhcbproject/dist/' )
 natOS = NativeMachine()
 
 #############################################################################
@@ -97,7 +97,7 @@ class CombinedSoftwareInstallation:
       if not self.jobConfig:
         return DIRAC.S_ERROR( '/LocalSite/Architecture is missing and must be specified' )
 
-    DIRAC.gLogger.info( 'CE supported system configurations are: %s' % ( string.join( self.ceConfigs, ', ' ) ) )
+    DIRAC.gLogger.info( 'CE supported system configurations are: %s' % ( ', '.join( self.ceConfigs ) ) )
     if not self.ceConfigs:  # redundant check as this is done in the job agent and above
       DIRAC.gLogger.info( 'Assume locally running job without CE configuration settings' )
       return DIRAC.S_OK()
@@ -202,7 +202,7 @@ def CheckApplication( app, config, area ):
 
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmds = gConfig.getValue( '/Operations/%s/GaudiExecution/checkProjectOptions' % ( setup ), '-b --check' )
+  cmds = opsH.getValue( 'GaudiExecution/checkProjectOptions', '-b --check' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
@@ -231,11 +231,10 @@ def InstallApplication( app, config, area ):
   """
   if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
     try:
-      localname, headers = urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
-    except:
-      DIRAC.gLogger.exception()
+      urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
+    except Exception, e:
+      DIRAC.gLogger.exception( e )
       return False
-    #localname,headers = urllib.urlretrieve('%s%s' %('http://lhcbproject.web.cern.ch/lhcbproject/dist/devel/install_project.py',InstallProject),InstallProject)
     if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
       DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
       return False
@@ -272,7 +271,7 @@ def InstallApplication( app, config, area ):
 
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
-  cmds = gConfig.getValue( '/Operations/%s/GaudiExecution/installProjectOptions' % ( setup ), '-b' )
+  cmds = opsH.getValue( 'GaudiExecution/installProjectOptions', '-b' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
@@ -304,9 +303,9 @@ def RemoveApplication( app, config, area ):
   """
   if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
     try:
-      localname, headers = urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
-    except:
-      DIRAC.gLogger.exception()
+      urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
+    except Exception, e:
+      DIRAC.gLogger.exception( e )
       return False
     if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
       DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
@@ -336,7 +335,7 @@ def RemoveApplication( app, config, area ):
   cmdTuple = [sys.executable]
   cmdTuple += [InstallProject]
   #removal options
-  cmds = gConfig.getValue( '/Operations/%s/GaudiExecution/removalProjectOptions' % ( setup ), '-r' )
+  cmds = opsH.getValue( 'GaudiExecution/removalProjectOptions', '-r' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
   cmdTuple += [ appName ]
@@ -363,8 +362,8 @@ def _getAreas( area ):
   localArea = area
   sharedArea = ''
   if re.search( ':', area ):
-    localArea = string.split( area, ':' )[0]
-    sharedArea = string.split( area, ':' )[1]
+    localArea = ':'.split( area )[0]
+    sharedArea = ':'.split( area )[1]
   return ( localArea, sharedArea )
 
 def _getApp( app ):
@@ -467,21 +466,5 @@ def LocalArea():
         DIRAC.gLogger.error( 'Cannot create:', localArea )
         localArea = ''
   return localArea
-
-#############################################################################
-
-def compareConfigs( self , config1 , config2 ):
-  if len( config1.keys() ) != len( config2.keys() ):
-    return False
-  for key in config1:
-    if not key in config2:
-      return False
-    else:
-      if key == 'ExtraPackages':
-        if not sorted( config2[ 'ExtraPackages' ] ) == sorted( config1[ 'ExtraPackages' ] ):
-          return False
-      elif config1[ key ] != config2[ key ]:
-        return False
-  return True
 
 #############################################################################
