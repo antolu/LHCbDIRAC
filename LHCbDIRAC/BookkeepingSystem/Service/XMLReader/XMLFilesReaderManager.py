@@ -107,7 +107,7 @@ class XMLFilesReaderManager:
     for file in outputFiles:
       name = file.getFileName()
       result = dataManager_.checkfile(name)
-      if result['OK']:
+      if result['OK'] and not job.exists('RunNumber'):
         return S_OK("The file " + str(name) + " already exists.")
 
       typeName = file.getFileType()
@@ -478,6 +478,8 @@ class XMLFilesReaderManager:
       if res['OK']:
         gLogger.info("New processing pass has been created!")
         gLogger.info("New production is:", production)
+      elif job.exists('RunNumber'):
+        gLogger.warn('The run already registered!')
       else:
         retVal = dataManager_.deleteSetpContiner(production)
         if not retVal['OK']:
