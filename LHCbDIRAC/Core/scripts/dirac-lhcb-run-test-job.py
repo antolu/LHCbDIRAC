@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-# File :    dirac-lhcb-run-test-job
-# Author :  Stuart Paterson
-########################################################################
 __RCSID__ = "$Id$"
 
 import sys, string, os, shutil
@@ -27,7 +22,7 @@ Script.parseCommandLine( ignoreErrors = True )
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC import gLogger
 
 args = Script.getPositionalArgs()
 

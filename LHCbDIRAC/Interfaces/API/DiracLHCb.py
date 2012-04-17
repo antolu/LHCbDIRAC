@@ -16,7 +16,6 @@ from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
-
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
@@ -31,12 +30,18 @@ COMPONENT_NAME = 'DiracLHCb'
 class DiracLHCb( Dirac ):
 
   #############################################################################
-  def __init__( self, withRepo = False, repoLocation = '' ):
+  def __init__( self, withRepo = False, repoLocation = '', operationsHelperIn = None ):
     """Internal initialization of the DIRAC API.
     """
 
     Dirac.__init__( self, withRepo = withRepo, repoLocation = repoLocation )
     self.tier1s = []
+
+    if not operationsHelperIn:
+      from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+      self.opsH = Operations()
+    else:
+      self.opsH = operationsHelperIn
 
     try:
       #fix for bug in RSS
@@ -49,7 +54,6 @@ class DiracLHCb( Dirac ):
     except Exception, e:
       return S_ERROR( 'Could not get the sites or sites tier ' + e )
 
-    self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
                              'DataTakingConditions'     : 'All',
@@ -65,6 +69,8 @@ class DiracLHCb( Dirac ):
                              'Visibility'               : 'Yes'}
     self.bk = BookkeepingClient() #to expose all BK client methods indirectly
     self.resourceStatus = ResourceStatus()
+
+
 
   #############################################################################
   def addRootFile( self, lfn, fullPath, diracSE, printOutput = False ):
@@ -156,7 +162,7 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    rootVersions = gConfig.getOptionsDict( self.rootSection )
+    rootVersions = self.opsH.getOptionsDict( '/SoftwareDistribution/LHCbRoot' )
     if not rootVersions['OK']:
       return self.__errorReport( rootVersions, 'Could not contact DIRAC Configuration Service for supported ROOT version list' )
 
@@ -184,7 +190,7 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    softwareDistribution = gConfig.getOptionsDict( self.softwareSection )
+    softwareDistribution = self.opsH.getOptionsDict( 'SoftwareDistribution' )
     if not softwareDistribution['OK']:
       return self.__errorReport( 'Could not contact DIRAC Configuration Service for supported software version list' )
 
@@ -936,11 +942,11 @@ class DiracLHCb( Dirac ):
     result = {}
 
     seList = sortList( res['Value'] )
-    res    = self.resourceStatus.getStorageElementStatus( seList )
+    res = self.resourceStatus.getStorageElementStatus( seList )
     if not res[ 'OK' ]:
       gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
 
-    for k,v in res[ 'Value' ].items():
+    for k, v in res[ 'Value' ].items():
 
       readState, writeState = 'Active', 'Active'
 

@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-# File :    dirac-lhcb-analyse-log-file.py
-# Author :  Stuart Paterson
-########################################################################
 """
   Perform comprehensive checks on the supplied log file if it exists.
 """
@@ -22,7 +17,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  %s [option|cfgfile] ... CE' % Script.scriptName ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
 
 args = Script.getPositionalArgs()

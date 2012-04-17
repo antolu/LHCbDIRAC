@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-# File :    dirac-dms-fix-file-guid
-# Author :  Stuart Paterson, Philippe Charpentier
-########################################################################
 """
   Fix incorrect file GUIDs
 """
@@ -29,7 +24,7 @@ args = Script.getPositionalArgs()
 from DIRAC.Interfaces.API.Dirac import Dirac
 from LHCbDIRAC.Core.Utilities.ClientTools  import getRootFileGUID
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC import gLogger
 
 oldLFN = ''
 newLFN = ''

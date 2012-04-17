@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-# File :    dirac-lhcb-list-software
-# Author :  Stuart Paterson
-########################################################################
 __RCSID__ = "$Id$"
 import sys, string
 import DIRAC

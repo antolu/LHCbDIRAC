@@ -9,22 +9,23 @@
 
 __RCSID__ = "$Id$"
 
+import string, re, os, shutil
+import DIRAC
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Os import sourceEnv
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-
-import DIRAC
-import string, re, os, shutil
 
 gLogger = gLogger.getSubLogger( 'ProductionEnvironment' )
 groupLogin = 'LbLogin.sh'
 projectEnv = 'SetupProject.sh'
 defaultCatalogName = 'pool_xml_catalog.xml'
-timeout = gConfig.getValue( '/Operations/EnvironmentScripts/Default', 600 )
-siteSpecificTimeout = gConfig.getValue( '/Operations/EnvironmentScripts/%s' % ( DIRAC.siteName() ), 0 )
+opsH = Operations()
+timeout = opsH.getValue( 'oEnvironmentScripts/Default', 600 )
+siteSpecificTimeout = opsH.getValue( 'EnvironmentScripts/%s' % ( DIRAC.siteName() ), 0 )
 if siteSpecificTimeout:
   gLogger.info( 'Using timeout of %ss for site %s, overrides global default of %ss' % ( siteSpecificTimeout,
                                                                                         DIRAC.siteName(),

@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
     
@@ -14,7 +11,7 @@ __RCSID__ = "$Id$"
 
 import string, re, os, types, datetime, copy
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gLogger
 
 gLogger = gLogger.getSubLogger( 'ProductionData' )
 
