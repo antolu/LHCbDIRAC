@@ -1,9 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   GaudiApplicationScript.py
-# Author : Stuart Paterson
-########################################################################
-
 """ Gaudi Application Script Class
 
     This allows the execution of a simple python script in a given LHCb project environment,

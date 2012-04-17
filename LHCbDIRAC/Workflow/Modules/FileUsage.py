@@ -1,6 +1,3 @@
-########################################################################
-# $Id: FileUsage.py 35442 2012-01-16 11:00:54Z dremensk $
-########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the user workflow.
 """
@@ -44,7 +41,9 @@ class FileUsage( ModuleBase ):
         inputDataList = inputDataList.split( ';' )
 
     dirDict = {}
-    #InputDataList: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', '/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
+    #InputDataList: ['LFN:/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000753_1.bhadron.dst', 
+    #'/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/00012957_00000752_1.bhadron.dst', 
+    #'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/test.dst']
     #build the dictionary of dataset usage
     #strip the 'LFN:' part if present
     if inputDataList:
@@ -112,14 +111,16 @@ class FileUsage( ModuleBase ):
       if currentStep == totalSteps:
         self.lastStep = True
       else:
-        self.log.verbose( 'Current step = %s, total steps of workflow = %s, FileUsage will enable itself only at the last workflow step.' % ( currentStep, totalSteps ) )
+        self.log.verbose( 'Current step = %s, total steps of workflow = %s, \ 
+        FileUsage will enable itself only at the last workflow step.' % ( currentStep, totalSteps ) )
 
       if not self.lastStep:
         return S_OK()
 
       #result = self._getJobJDL( jobID )
       if not self.enable:
-        self.log.info( 'Module is disabled by control flag, would have attempted to report the following dataset usage %s' % self.dirDict )
+        self.log.info( 'Module is disabled by control flag, would have attempted \
+        to report the following dataset usage %s' % self.dirDict )
         return S_OK( 'Module is disabled by control flag' )
       """
       if dirDict:
@@ -148,7 +149,8 @@ class FileUsage( ModuleBase ):
 
   def _reportFileUsage( self, dirDict ):
     """Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
-    example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1, '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
+    example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1, 
+    '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
     """
     self.log.verbose( 'FileUsage._reportFileUsage' )
     self.log.verbose( 'Reporting input file usage:' )

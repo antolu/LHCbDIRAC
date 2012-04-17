@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the user workflow.
 """

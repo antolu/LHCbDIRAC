@@ -1,7 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
-
 __RCSID__ = "$Id$"
 
 """ The Protocol Access Test module opens connections to the supplied files for the supplied protocols.

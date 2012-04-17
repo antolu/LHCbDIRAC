@@ -4,18 +4,15 @@
 
 __RCSID__ = "$Id$"
 
+import os, shutil, glob, string, random
 
+import DIRAC
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
 from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath
-
-
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-import DIRAC
-
-import os, shutil, glob, string, random
 
 class UploadLogFile( ModuleBase ):
 
@@ -30,15 +27,13 @@ class UploadLogFile( ModuleBase ):
 
     self.version = __RCSID__
 
-    self.setup = gConfig.getValue( '/DIRAC/Setup' )
-    self.logSE = gConfig.getValue( '/Operations/%s/LogStorage/LogSE' % ( self.setup ), 'LogSE' )
+    self.logSE = self.opsH.getValue( 'LogStorage/LogSE', 'LogSE' )
     self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
-    self.logSizeLimit = gConfig.getValue( '/Operations/LogFiles/SizeLimit', 20 * 1024 * 1024 )
-    self.logExtensions = gConfig.getValue( '/Operations/LogFiles/Extensions', [] )
+    self.logSizeLimit = self.opsH.getValue( 'LogFiles/SizeLimit', 20 * 1024 * 1024 )
+    self.logExtensions = self.opsH.getValue( 'LogFiles/Extensions', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
-    self.diracLogo = gConfig.getValue( '/Operations/SAM/LogoURL',
-                                       'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
-
+    self.diracLogo = self.opsH.getValue( 'SAM/LogoURL',
+                                         'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
 
 ######################################################################
 
