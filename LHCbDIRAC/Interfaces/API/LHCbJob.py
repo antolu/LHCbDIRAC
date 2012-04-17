@@ -107,7 +107,6 @@ from DIRAC.Core.Utilities.File                      import makeGuid
 from DIRAC.Core.Utilities.List                      import uniqueElements
 from DIRAC                                          import gConfig
 
-COMPONENT_NAME = '/WorkflowLib/API/LHCbJob'
 
 class LHCbJob( Job ):
   """ LHCbJob class as extension of DIRAC Job class
@@ -122,7 +121,6 @@ class LHCbJob( Job ):
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
     self.inputDataType = 'DATA' #Default, other options are MDF, ETC
-    self.scratchDir = gConfig.getValue( self.section + '/LocalSite/ScratchDir', '/tmp' )
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
 
@@ -543,7 +541,7 @@ class LHCbJob( Job ):
     benderScript.append( 'evtSel.open ( %s ) ' % inputData )
     benderScript.append( 'USERMODULE.run( %s )\n' % numberOfEvents )
     guid = makeGuid()
-    tmpdir = self.scratchDir + '/' + guid
+    tmpdir = '/tmp/' + guid
     self.log.verbose( 'Created temporary directory for submission %s' % ( tmpdir ) )
     os.mkdir( tmpdir )
     fopen = open( '%s/BenderScript.py' % tmpdir, 'w' )

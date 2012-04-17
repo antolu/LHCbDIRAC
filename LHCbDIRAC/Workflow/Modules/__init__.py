@@ -1,9 +1,5 @@
-############################################################
-# $HeadURL$
-############################################################
-
 """
-   DIRAC.WorkflowLib.Module package
+   DIRAC.Workflow.Modules package
 """
 
 __RCSID__ = "$Id$"

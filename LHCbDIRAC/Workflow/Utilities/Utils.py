@@ -6,7 +6,6 @@ from DIRAC.Core.Workflow.Step import StepDefinition
 from DIRAC.Core.Workflow.Module import ModuleDefinition
 from DIRAC.Core.Workflow.Parameter import Parameter
 
-from DIRAC import gLogger
 #############################################################################
 
 def getStepDefinition( stepName, modulesNameList = [], importLine = """""", parametersList = [] ):
@@ -75,6 +74,6 @@ def makeRunList( runInput ):
         runList.append( str( part ) )
     return S_OK( runList )
   except Exception, e:
-    return S_ERROR( "Could not parse runList", e )
+    return S_ERROR( "Could not parse runList " + e )
 
 #############################################################################
