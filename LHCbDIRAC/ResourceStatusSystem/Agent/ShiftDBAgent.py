@@ -13,7 +13,7 @@ import urllib2
 from DIRAC                       import S_OK, S_ERROR  
 from DIRAC.Core.Base.AgentModule import AgentModule
 
-__RCSID__  = '$Id:  $'
+__RCSID__  = '$Id: $'
 AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
 
 class ShiftDBAgent( AgentModule ):

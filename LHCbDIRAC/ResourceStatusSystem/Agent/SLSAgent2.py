@@ -15,7 +15,7 @@ from DIRAC.ResourceStatusSystem.Utilities import Utils
 
 from LHCbDIRAC.ResourceStatusSystem.Utilities import Utils as LHCbUtils
 
-__RCSID__  = '$Id:  $'
+__RCSID__  = '$Id: $'
 AGENT_NAME = 'ResourceStatus/SLSAgent2'
 
 class SLSAgent2( AgentModule ):
