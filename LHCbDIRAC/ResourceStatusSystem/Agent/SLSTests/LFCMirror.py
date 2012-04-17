@@ -10,7 +10,6 @@ import os
 import lfc2
 
 from DIRAC                                                  import gLogger, S_OK     
-from DIRAC.Interfaces.API.Dirac                             import Dirac
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
 
 __RCSID__  = "$Id:  $"
@@ -92,7 +91,10 @@ def runProbe( probeInfo, testConfig ):
 
   gLogger.info( 'LFCMirror: Registering file %s at %s' % ( lfn, diracSE ) )
   
+  #Imported here, as it's import it is not inocuous, it runs Script.initialize()
+  from DIRAC.Interfaces.API.Dirac import Dirac
   diracAPI = Dirac() 
+  
   res      = diracAPI.addFile( lfn, fullPath, diracSE )
   
   if not res[ 'OK' ]:
