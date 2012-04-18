@@ -1,5 +1,5 @@
 # $HeadURL: $
-''' Test_Resources_Storage_LHCbOnlineStorage
+''' Test_AS_Client_Type_DataStorage
 
 '''
 
