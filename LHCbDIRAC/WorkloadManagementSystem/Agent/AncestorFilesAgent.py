@@ -11,12 +11,16 @@ __RCSID__ = "$Id$"
 import time
 from DIRAC import S_OK, S_ERROR
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule import OptimizerModule
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles import getAncestorFiles
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 
 class AncestorFilesAgent( OptimizerModule ):
   """ Connects to BKK, ran through the optimizer
   """
+
+  def initializeOptimizer( self ):
+    self.bk = BookkeepingClient()
+    return S_OK()
 
   #############################################################################
   def checkJob( self, job, classadJob ):
@@ -69,10 +73,10 @@ class AncestorFilesAgent( OptimizerModule ):
     inputData = [ i.replace( 'LFN:', '' ) for i in inputData ]
     start = time.time()
     try:
-      result = getAncestorFiles( inputData, ancestorDepth )
+      result = self.bk.getFileAncestors( inputData, ancestorDepth, replica = True )
     except Exception, x:
-      self.log.warn( 'getAncestorFiles failed with exception:\n%s' % x )
-      return S_ERROR( 'getAncestorFiles failed with exception' )
+      self.log.warn( 'getFileAncestors failed with exception:\n%s' % x )
+      return S_ERROR( 'getFileAncestors failed with exception' )
 
     self.log.info( 'BK lookup time %.2f s' % ( time.time() - start ) )
     self.log.debug( result )
@@ -83,7 +87,7 @@ class AncestorFilesAgent( OptimizerModule ):
       self.log.warn( result['Message'] )
       return S_ERROR( 'No Ancestors Found For Input Data' )
 
-    ancestors = [ancestor['FileName'] for ancestor in result['Value'] if type( ancestor ) == type( {} )]
+    ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
     newInputData = ancestors + inputData
     param = '%d ancestor files retrieved from BK for depth %s' % ( len( ancestors ), ancestorDepth )
 

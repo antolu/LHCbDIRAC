@@ -23,8 +23,8 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  LFN:      Logical File Name' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 
-from DIRAC.Interfaces.API.Dirac                              import Dirac
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles        import getAncestorFiles
+from DIRAC.Interfaces.API.Dirac import Dirac
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 args = Script.getPositionalArgs()
 
@@ -57,16 +57,16 @@ if ancestorDepth:
     print 'ERROR: ancestor depth must be an integer %s' % x
     DIRAC.exit( 2 )
   if ancestorDepth:
-    result = getAncestorFiles( lfns, ancestorDepth )
+    result = BookkeepingClient().getFileAncestors( lfns, ancestorDepth, replica = True )
     if not result:
-      print 'ERROR: null result from getAncestorFiles() call'
+      print 'ERROR: null result from getFileAncestors() call'
       DIRAC.exit( 2 )
     if not result['OK']:
-      print 'ERROR: problem during getAncestorFiles() call\n%s' % result['Message']
+      print 'ERROR: problem during getFileAncestors() call\n%s' % result['Message']
       DIRAC.exit( 2 )
-    lfns = result['Value']
+    ancestorsList = [x[0]['FileName'] for x in res['Value']['Successful'].values()]
 
-result = dirac.getInputDataCatalog( lfns, siteName, catalogName, ignoreMissing = ignore )
+result = dirac.getInputDataCatalog( lfns + ancestorsList, siteName, catalogName, ignoreMissing = ignore )
 if not result['OK']:
   exitCode = 2
   print 'ERROR: %s' % result['Message']

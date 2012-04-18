@@ -20,7 +20,7 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.BookkeepingSystem.Client.AncestorFiles import getAncestorFiles
+
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import  DMScript
 
 import os, glob, fnmatch, string, time, re
@@ -228,20 +228,30 @@ class DiracLHCb( Dirac ):
     return S_OK( result )
 
   #############################################################################
+
   def getBKAncestors( self, lfns, depth ):
     """ This function allows to retrieve ancestor files from the Bookkeeping.
 
         Example Usage:
 
         >>> dirac.getBKAncestors('/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst',2)
-        {'OK': True, 'Value': ['/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst', '/lhcb/data/2009/RAW/FULL/LHCb/COLLISION09/63807/063807_0000000004.raw']}
+        {'OK': True, 'Value': ['/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst', 
+        '/lhcb/data/2009/RAW/FULL/LHCb/COLLISION09/63807/063807_0000000004.raw']}
 
        @param lfn: Logical File Name (LFN)
        @type lfn: string or list
        @param depth: Ancestor depth
        @type depth: integer
     """
-    return getAncestorFiles( lfns, depth )
+
+    result = self.bk.getFileAncestors( lfns, depth, replica = True )
+    if not result['OK']:
+      return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
+    ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
+
+    return S_OK( lfns + ancestors )
+
+  #############################################################################
 
   def __translateBKPath( self, bkPath, procPassID = 3 ):
     bk = removeEmptyElements( bkPath.split( '/' ) )
