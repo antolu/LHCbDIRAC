@@ -235,7 +235,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     result = S_ERROR()
     retVal = self.export_getProcessingPass(dict, path)
     if retVal['OK']:
-      result = S_OK(retVal['Value'][0])
+      result = S_OK(retVal['Value'])
     else:
       result = retVal
     return result
