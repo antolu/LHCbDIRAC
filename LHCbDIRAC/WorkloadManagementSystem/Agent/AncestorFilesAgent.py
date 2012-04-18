@@ -71,8 +71,8 @@ class AncestorFilesAgent( OptimizerModule ):
     try:
       result = getAncestorFiles( inputData, ancestorDepth )
     except Exception, x:
-      self.log.warn( 'getAncestors failed with exception:\n%s' % x )
-      return S_ERROR( self.failedMinorStatus )
+      self.log.warn( 'getAncestorFiles failed with exception:\n%s' % x )
+      return S_ERROR( 'getAncestorFiles failed with exception' )
 
     self.log.info( 'BK lookup time %.2f s' % ( time.time() - start ) )
     self.log.debug( result )
@@ -83,14 +83,15 @@ class AncestorFilesAgent( OptimizerModule ):
       self.log.warn( result['Message'] )
       return S_ERROR( 'No Ancestors Found For Input Data' )
 
-    newInputData = result['Value']
-    totalAncestors = len( newInputData ) - len( inputData )
-    param = '%s ancestor files retrieved from BK for depth %s' % ( totalAncestors, ancestorDepth )
+    ancestors = [ancestor['FileName'] for ancestor in result['Value'] if type( ancestor ) == type( {} )]
+    newInputData = ancestors + inputData
+    param = '%d ancestor files retrieved from BK for depth %s' % ( len( ancestors ), ancestorDepth )
+
     report = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
     if not report['OK']:
       self.log.warn( report['Message'] )
 
-    return result
+    return S_OK( newInputData )
 
   #############################################################################
   def __setJobInputData( self, job, jdl, inputData ):
