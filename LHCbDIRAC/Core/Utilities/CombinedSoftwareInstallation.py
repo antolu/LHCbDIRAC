@@ -362,8 +362,8 @@ def _getAreas( area ):
   localArea = area
   sharedArea = ''
   if re.search( ':', area ):
-    localArea = ':'.split( area )[0]
-    sharedArea = ':'.split( area )[1]
+    localArea = area.split( ':' )[0]
+    sharedArea = area.split( ':' )[1]
   return ( localArea, sharedArea )
 
 def _getApp( app ):
