@@ -81,7 +81,7 @@ class MergingForDQAgent( AgentModule ):
     options = "Systems/DataManagement/Production/Agents/MergingForDQAgent"
     if not options:
       gLogger.error( "No configuration for MergingForDQAgent found in the CS" )
-      DIRAC.exit( 2 )
+      return S_ERROR()
     self.applicationName = gConfig.getValue( "%s/applicationName" % options )
     gLogger.info( 'applicationName %s' % self.applicationName )
     if self.applicationName: Configuration['applicationName'] = True
@@ -105,8 +105,7 @@ class MergingForDQAgent( AgentModule ):
             shutil.rmtree(i)
           else:
             os.remove(i)
-        os.makedirs( d )
-
+      
     '''
     Compiled C++ root macros for the three Merging steps. 
     '''
@@ -120,7 +119,7 @@ class MergingForDQAgent( AgentModule ):
 
     if not ( os.path.exists( self.mergeStep1Command ) and os.path.exists( self.mergeStep2Command ) and os.path.exists( self.mergeStep3Command ) ):
       gLogger.error( 'Executables not found' )
-      DIRAC.exit( 2 )
+      return S_ERROR()
     else :
       gLogger.info( 'Executables found in %s' % self.mergeExeDir )
 
@@ -189,6 +188,7 @@ class MergingForDQAgent( AgentModule ):
 
 
     self.testMode = gConfig.getValue( "%s/testMode" % options )
+    print "testmode value ",self.testMode,type(self.testMode) 
     if self.testMode: Configuration['testMode'] = True
     self.specialMode = gConfig.getValue( "%s/specialMode" % options )
     if self.specialMode: Configuration['specialMode'] = True
@@ -209,7 +209,7 @@ class MergingForDQAgent( AgentModule ):
         gLogger.error( '%s not specified in CS' % confVar )
         gLogger.error( '---------------------------------' )
         nConf = True
-    if nConf: DIRAC.exit( 2 )
+    if nConf: return S_ERROR()
 
     gLogger.info( '=====All informations from dirac.cfg retrieved=====' )
 
@@ -224,7 +224,7 @@ class MergingForDQAgent( AgentModule ):
     #If the environment cannot be setup the init fails
     if not res['OK']:
       gLogger.error( '===== Cannot create the environment check LocalArea or SharedArea in dirac.cfg =====' )
-      DIRAC.exit( 2 )
+      return S_ERROR()
 
     self.environment = res['Value']
 
@@ -290,7 +290,7 @@ class MergingForDQAgent( AgentModule ):
                 gLogger.info( '==================================================' )
                 #Retrieve the of file and order them per run
                 res_0 = GetRuns( bkDict_brunel, self.bkClient )
-                gLogger.info( "Numer of Runs found %s" % len( res_0.keys() ) )
+                gLogger.info( "Number of Runs found %s" % len( res_0.keys() ) )
 
                 bkDict_davinci = bkDict_brunel
 
@@ -320,14 +320,15 @@ class MergingForDQAgent( AgentModule ):
                     
                     resProdId  = GetProductionId(run, p, e , self.bkClient)
                     if not resProdId['OK']:
-                      gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(r,p))
+                      gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(run,p))
                       continue
                     lfns = BuildLFNs( bkDict_brunel, run ,resProdId['prodId'],self.addFlag)
                     #If the LFN is already in the BK it will be skipped
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
                     if res['Value']:
-                      gLogger.info( "%s already in the bookkeeping. Continue with the other runs." % str( lfns['DATA'] ) )
-                      continue
+                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
+                        gLogger.info( "%s already in the bookkeeping. Continue with the other runs." % str( lfns['DATA'] ) )
+                        continue
                     #log directory that will be uploaded 
                     logDir = self.homeDir + 'MERGEFORDQ_RUN_' + str( run )
                     if not os.path.exists( logDir ):
@@ -339,7 +340,6 @@ class MergingForDQAgent( AgentModule ):
 
                     self.logFile = open( self.logFileName, 'w+' )
 
-                    gLogger.info( 'Starting Merging Process for run %s' % run )
                     gLogger.info ( 'Runs to be skipped %s' % self.specialRuns )
                     if str( run ) in self.specialRuns:
                       continue
@@ -347,6 +347,7 @@ class MergingForDQAgent( AgentModule ):
                       gLogger.error( "Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s" % run )
                       continue
                     #Starting the three step Merging process
+                    gLogger.info( '=======================Starting Merging Process for run %s========================' % run )
                     res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , resProdId['prodId'] , self.addFlag,
                                     self.testMode, self.specialMode ,self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command, 
                                     self.mergeStep3Command,self.brunelCount , self.daVinciCount , self.logFile , self.logFileName, 
@@ -362,7 +363,7 @@ class MergingForDQAgent( AgentModule ):
                       res = Finalization( self.homeDir, logDir, lfns, res['OutputFile'], ( 'Brunel_DaVinci_%s.log' % run ), inputData, run, bkDict_brunel, rootVersion )
                       if res['OK']:
                         '''
-                        If the finalization went fine an automated message is sent to the revelant mailing list specified in the cfg.
+                        If the finalization went fine an automated message is sent to the relevant mailing list specified in the cfg.
                         '''
                         outMess = "**********************************************************************************************************************************\n"
                         outMess = outMess + "\nThis is an automatic message:\n"
