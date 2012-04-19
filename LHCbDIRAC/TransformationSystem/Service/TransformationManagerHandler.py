@@ -32,6 +32,14 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     res = database.createTransformationQuery( transName, queryDict, author = authorDN )
     return self._parseRes( res )
 
+  types_createTransformationRunQuery = [ [LongType, IntType, StringType], DictType ]
+  def export_createTransformationRunQuery( self, transName, queryDict ):
+    credDict = self.getRemoteCredentials()
+    authorDN = credDict[ 'DN' ]
+    res = database.createTransformationRunQuery( transName, queryDict, author = authorDN )
+    return self._parseRes( res )
+
+
   types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
   def export_deleteTransformationBookkeepingQuery( self, transName ):
     credDict = self.getRemoteCredentials()
@@ -57,6 +65,16 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
   types_setBookkeepingQueryStartRunForTransformation = [ [LongType, IntType, StringType] , [LongType, IntType]]
   def export_setBookkeepingQueryStartRunForTransformation( self, transName, runNumber ):
     res = database.setBookkeepingQueryStartRunForTransformation( transName, runNumber )
+    return self._parseRes( res )
+
+  types_addBookkeepingQueryRunListTransformation = [ [LongType, IntType, StringType] , [StringType]]
+  def export_addBookkeepingQueryRunListTransformation( self, transName, runList ):
+    res = database.addBookkeepingQueryRunListTransformation( transName, runList )
+    return self._parseRes( res )
+
+  types_convertBookkeepingQueryRunListTransformation = [ [LongType, IntType, StringType] ]
+  def export_convertBookkeepingQueryRunListTransformation( self, transName ):
+    res = database.convertBookkeepingQueryRunListTransformation( transName )
     return self._parseRes( res )
 
 
