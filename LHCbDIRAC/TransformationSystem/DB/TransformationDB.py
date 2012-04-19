@@ -13,6 +13,7 @@ import re
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
 from DIRAC.Core.Utilities.List                          import intListToString
+from LHCbDIRAC.Workflow.Utilities.Utils                 import makeRunList
 import threading, copy
 from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
 
@@ -33,7 +34,6 @@ class TransformationDB( DIRACTransformationDB ):
                         'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag',
                          'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
-
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
     self.TRANSFILEPARAMS.append( "RunNumber" )
     self.TASKSPARAMS.append( "RunNumber" )
@@ -177,52 +177,129 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     return self.__getBookkeepingQuery( res['Value'], connection = connection )
 
-  def setBookkeepingQueryEndRunForTransformation( self, transName, runNumber, connection = False ):
-    """ Set the EndRun for the supplied transformation """
+  def convertBookkeepingQueryRunListTransformation( self, transName, connection = False ):
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
-      return res
+      return S_ERROR("Failed to get Connection to TransformationDB")
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
     res = self.__getTransformationBkQueryID( transID, connection = connection )
     if not res['OK']:
-      return res
+      return S_ERROR("Cannot retrieve BkQueryID")
     bkQueryID = res['Value']
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
-      return res
-    startRun = res['Value'].get( 'StartRun' )
-    endRun = res['Value'].get( 'EndRun' )
-    if endRun and runNumber < endRun:
-      return S_ERROR( "EndRun can not be reduced" )
-    if startRun and startRun > runNumber:
-      return S_ERROR( "EndRun is before StartRun!" )
-    req = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
-    return self._update( req, connection )
+      return S_ERROR("Cannot retrieve BkQuery")
+    bkQuery = res['Value']
+    startRun = bkQuery.get( 'StartRun' )
+    endRun = bkQuery.get( 'EndRun' )
+    runInput=str(startRun)+":"+str(endRun)
+    res = makeRunList(str(runInput))
+    runs=res['Value']
+    if len(runs)>999:
+      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")
+    self.__setTransformationQuery(transID, bkQueryID)
+    req1 = "UPDATE BkQueries SET StartRun = %d WHERE BkQueryID = %d" % ( 0, bkQueryID )
+    req2 = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % ( 0, bkQueryID )
+    value = ';;;'.join( runs )
+    req3 = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
+    self._update( req1, connection )
+    self._update( req2, connection )
+    self._update( req3, connection )
+    return S_OK(runs)
 
-  def setBookkeepingQueryStartRunForTransformation( self, transName, runNumber, connection = False ):
-    """ Set the StartRun for the supplied transformation """
+  def setBookkeepingQueryEndRunForTransformation( self, transName, EndRun, connection = False ):
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
-      return res
+      return S_ERROR("Failed to get Connection to TransformationDB")
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
     res = self.__getTransformationBkQueryID( transID, connection = connection )
     if not res['OK']:
-      return res
+      return S_ERROR("Cannot retrieve BkQueryID")
     bkQueryID = res['Value']
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
-      return res
-    endRun = res['Value'].get( 'EndRun' )
-    startRun = res['Value'].get( 'StartRun' )
-    if startRun and runNumber > startRun:
-      return S_ERROR( "StartRun can not be increased!" )
-    if endRun and runNumber > endRun:
-      return S_ERROR( "StartRun cannot be after EndRun!" )
-    req = "UPDATE BkQueries SET StartRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
-    return self._update( req, connection )
+      return S_ERROR("Cannot retrieve BkQuery")
+    bkQuery = res['Value']
+    RunInQuery = bkQuery['RunNumbers']
+    if EndRun<int(RunInQuery[-1]):
+      return S_ERROR("Cannot decrease the end run!")
+    if str(EndRun) not in RunInQuery:
+      s = str(RunInQuery[-1])+':'+str(EndRun)
+      res = makeRunList(str(s))
+      runs=res['Value']
+      for r in runs:
+        if r not in RunInQuery:
+          RunInQuery.append(r)
+          RunInQuery.sort()
+    if len(RunInQuery)>999:
+      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
+    value = ';;;'.join( RunInQuery )
+    req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
+    self._update( req, connection )
+    return S_OK()
 
+  def setBookkeepingQueryStartRunForTransformation( self, transName, StartRun, connection = False ):
+    res = self._getConnectionTransID( connection, transName )
+    if not res['OK']:
+      return S_ERROR("Failed to get Connection to TransformationDB")
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    res = self.__getTransformationBkQueryID( transID, connection = connection )
+    if not res['OK']:
+      return S_ERROR("Cannot retrieve BkQueryID")
+    bkQueryID = res['Value']
+    res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
+    if not res['OK']:
+      return S_ERROR("Cannot retrieve BkQuery")
+    bkQuery = res['Value']
+    RunInQuery = bkQuery['RunNumbers']
+    if StartRun>int(RunInQuery[0]):
+      return S_ERROR("Cannot decrease the end run!")
+    if str(StartRun) not in RunInQuery:
+      s = str(StartRun)+':'+str(RunInQuery[0])
+      res = makeRunList(str(s))
+      runs=res['Value']
+      for r in runs:
+        if r not in RunInQuery:
+          RunInQuery.append(r)
+          RunInQuery.sort()
+    if len(RunInQuery)>999:
+      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
+    value = ';;;'.join( RunInQuery )
+    req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
+    self._update( req, connection )
+    return S_OK()
+
+  def addBookkeepingQueryRunListTransformation( self, transName, runList, connection = False ):
+    res = self._getConnectionTransID( connection, transName )
+    if not res['OK']:
+      return S_ERROR("Failed to get Connection to TransformationDB")
+    connection = res['Value']['Connection']
+    transID = res['Value']['TransformationID']
+    res = self.__getTransformationBkQueryID( transID, connection = connection )
+    if not res['OK']:
+      return S_ERROR("Cannot retrieve BkQueryID")
+    bkQueryID = res['Value']
+    res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
+    if not res['OK']:
+      return S_ERROR("Cannot retrieve BkQuery")
+    bkQuery = res['Value']
+    RunInQuery = bkQuery['RunNumbers']
+    res = makeRunList(str(runList))
+    runs=res['Value']
+    for r in runs:
+      if r not in RunInQuery:
+         RunInQuery.append(r)
+    RunInQuery.sort()
+    if len(RunInQuery)>999:
+      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
+    value = ';;;'.join( RunInQuery )
+    req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
+    self._update( req, connection )
+    return S_OK()
+  
   def __getTransformationBkQueryID( self, transName, connection = False ):
     res = self.getTransformationParameters( transName, ['BkQueryID'], connection = connection )
     if not res['OK']:
@@ -233,6 +310,7 @@ class TransformationDB( DIRACTransformationDB ):
   def __setTransformationQuery( self, transName, bkQueryID, author = '', connection = False ):
     """ Set the bookkeeping query ID of the transformation specified by transID """
     return self.setTransformationParameter( transName, 'BkQueryID', bkQueryID, author = author, connection = connection )
+
 
   def __addBookkeepingQuery( self, queryDict, connection = False ):
     """ Add a new Bookkeeping query specification
@@ -247,25 +325,13 @@ class TransformationDB( DIRACTransformationDB ):
           value = 'All'
       else:
         value = queryDict[field]
+                        
         if type( value ) in ( IntType, LongType, FloatType ):
           value = str( value )
         if type( value ) in ( ListType, TupleType ):
           value = [str( x ) for x in value]
           value = ';;;'.join( value )
       values.append( value )
-
-    # Check for the already existing queries first
-#    selections = []
-#    for i in range( len( self.queryFields ) ):
-#      selections.append( "%s= BINARY '%s'" % ( self.queryFields[i], values[i] ) )
-#    selectionString = ' AND '.join( selections )
-#    req = "SELECT BkQueryID FROM BkQueries WHERE %s" % selectionString
-#    result = self._query( req, connection )
-#    if not result['OK']:
-#      return result
-#    if result['Value']:
-#      bkQueryID = result['Value'][0][0]
-#      return S_OK( bkQueryID )
 
     # Insert the new bk query
     values = ["'%s'" % x for x in values]
@@ -275,6 +341,8 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     queryID = res['lastRowId']
     return S_OK( queryID )
+
+         
 
   def __getBookkeepingQuery( self, bkQueryID = 0, connection = False ):
     """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
