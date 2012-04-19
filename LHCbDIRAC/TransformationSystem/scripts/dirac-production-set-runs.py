@@ -6,9 +6,9 @@ __RCSID__ = '$Id: dirac-production-set-run.py$'
 Examples of Usage :
   with 1234 = ProdID
   with 99000 = RunNumber
-  dirac-production-set-run 1234 -l         (list of runs. If the query is built with "RunNumbers" key.)
-  dirac-production-set-run 1234 -a 99000   (list of runs. If the query is built with "RunNumbers" key.)
-  dirac-production-set-run 1234 -e 99000   (list of runs. If the query is built with "RunNumbers" key.)
+  dirac-production-set-run 1234 -l         (list of runs.)
+  dirac-production-set-run 1234 -a 99000   (list of runs.)
+  dirac-production-set-run 1234 -e 99000   (list of runs.)
   
 """
 
@@ -23,10 +23,10 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  RunList: List of Runs to be added',
                                      'Examples:\n',
                                      'dirac-production-set-run.py 92 -l                         (show the list of runs for production 92)\n',
-                                     'dirac-production-set-run.py 92 -p 98200,98201             (add some discrete run to production 92 - only if "RunNumbers " is already defined in the BKQuery)\n',
-                                     'dirac-production-set-run.py 92 -p 98200,98201,99000:99100 (add some discrete run and a range of runs to production 92 - only if "RunNumbers" is already defined in the BKQuery)\n',
-                                     'dirac-production-set-run.py 92 -a                         (change the start run for production 92 - only if "StartRun" is already defined in the BKQuery)\n',
-                                     'dirac-production-set-run.py 92 -e                         (change the end run  for production 92 - only if  "EndRun" is already defined in the BKQuery)\n'
+                                     'dirac-production-set-run.py 92 -p 98200,98201             (add some discrete run to production 92)\n',
+                                     'dirac-production-set-run.py 92 -p 98200,98201,99000:99100 (add some discrete run and a range of runs to production 92)\n',
+                                     'dirac-production-set-run.py 92 -a                         (change the start run for production 92)\n',
+                                     'dirac-production-set-run.py 92 -e                         (change the end run  for production 92)\n'
                                      ]) )
 
 Script.registerSwitch( 'e', 'end', "Specify endrun for the production" )
