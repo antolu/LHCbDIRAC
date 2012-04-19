@@ -2485,7 +2485,7 @@ and files.qualityid= dataquality.qualityid'
         condition += ' and '
         cond = ' ( '
         for i in production:
-          cond += 'j.production=' + str(i) + ' or '
+          cond += ' j.production=' + str(i) + ' or '
         cond = cond[:-3] + ')'
         condition += cond
       else:
@@ -2496,7 +2496,7 @@ and files.qualityid= dataquality.qualityid'
       if type(runnumbers) == types.ListType:
         cond = ' ( '
         for i in runnumbers:
-          cond += 'j.runnumber=' + str(i) + ' or '
+          cond += ' j.runnumber=' + str(i) + ' or '
         cond = cond[:-3] + ')'
       elif type(runnumbers) == types.StringType:
         cond = ' j.runnumber=%s' % (str(runnumbers))
@@ -2590,7 +2590,7 @@ and files.qualityid= dataquality.qualityid'
           else:
             quality = res['Value'][0][0]
           conds += ' f.qualityid=' + str(quality) + ' or'
-        condition += 'and' + conds[:-3] + ')'
+        condition += ' and' + conds[:-3] + ')'
       else:
         quality = None
         command = 'select QualityId from dataquality where dataqualityflag=\'' + str(flag) + '\''
