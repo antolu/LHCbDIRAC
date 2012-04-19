@@ -108,6 +108,7 @@ unifyMooreAndDV = eval( unifyMooreAndDV )
 
 swimmEnabled = False
 mergingEnabled = False
+justMoore = False
 
 oneStep = '{{p1App}}'
 twoSteps = '{{p2App}}'
@@ -207,8 +208,30 @@ elif twoSteps:
     error = True
 
 elif oneStep:
-  gLogger.error( 'One step only specified, not sure what to do! Exiting...' )
-  error = True
+  if oneStep.lower() == 'moore':
+    gLogger.info( "swimming production without merging is requested..." )
+
+    swimmEnabled = True
+    unifyMooreAndDV = False
+    justMoore = True
+
+    swimmDQFlag = inDQFlag
+    swimmStep = int( '{{p1Step}}' )
+    swimmName = '{{p1Name}}'
+    swimmVisibility = '{{p1Vis}}'
+    swimmCDb = '{{p1CDb}}'
+    swimmDDDb = '{{p1DDDb}}'
+    swimmOptions = '{{p1Opt}}'
+    swimmPass = '{{p1Pass}}'
+    swimmVersion = '{{p1Ver}}'
+    swimmEP = '{{p1EP}}'
+    swimmOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
+
+    swimmFileType = '{{inFileType}}'
+
+  else:
+    gLogger.error( 'First step is %s' % oneStep )
+    error = True
 
 if error:
   DIRAC.exit( 2 )
@@ -297,30 +320,31 @@ if swimmEnabled:
     swimmType = swimmOutputList[0].strip()
     swimmEO = []
 
-  swimmDVInput = BKClient.getStepInputFiles( swimmDVStep )
-  if not swimmDVInput:
-    gLogger.error( 'Error getting res from BKK: %s', swimmDVInput['Message'] )
-    DIRAC.exit( 2 )
+  if not justMoore:
+    swimmDVInput = BKClient.getStepInputFiles( swimmDVStep )
+    if not swimmDVInput:
+      gLogger.error( 'Error getting res from BKK: %s', swimmDVInput['Message'] )
+      DIRAC.exit( 2 )
 
-  swimmDVInputList = [x[0].lower().strip() for x in swimmDVInput['Value']['Records']]
-  if len( swimmDVInputList ) == 1:
-    swimmDVInput = swimmDVInputList[0].strip()
-  else:
-    gLogger.error( 'Multiple inputs to swimming DV...?', swimmDVInput['Value']['Records'] )
-    DIRAC.exit( 2 )
+    swimmDVInputList = [x[0].lower().strip() for x in swimmDVInput['Value']['Records']]
+    if len( swimmDVInputList ) == 1:
+      swimmDVInput = swimmDVInputList[0].strip()
+    else:
+      gLogger.error( 'Multiple inputs to swimming DV...?', swimmDVInput['Value']['Records'] )
+      DIRAC.exit( 2 )
 
-  swimmDVOutput = BKClient.getStepOutputFiles( swimmDVStep )
-  if not swimmDVOutput:
-    gLogger.error( 'Error getting res from BKK: %s', swimmDVOutput['Message'] )
-    DIRAC.exit( 2 )
+    swimmDVOutput = BKClient.getStepOutputFiles( swimmDVStep )
+    if not swimmDVOutput:
+      gLogger.error( 'Error getting res from BKK: %s', swimmDVOutput['Message'] )
+      DIRAC.exit( 2 )
 
-  swimmDVOutputList = [x[0].lower().strip() for x in swimmDVOutput['Value']['Records']]
-  if len( swimmDVOutputList ) > 1:
-    gLogger.error( 'Multiple outputs to swimming DV...?', swimmDVInput['Value']['Records'] )
-    DIRAC.exit( 2 )
-  else:
-    swimmDVType = swimmDVOutputList[0].strip()
-    swimmDVEO = []
+    swimmDVOutputList = [x[0].lower().strip() for x in swimmDVOutput['Value']['Records']]
+    if len( swimmDVOutputList ) > 1:
+      gLogger.error( 'Multiple outputs to swimming DV...?', swimmDVInput['Value']['Records'] )
+      DIRAC.exit( 2 )
+    else:
+      swimmDVType = swimmDVOutputList[0].strip()
+      swimmDVEO = []
 
   swimmInputBKQuery = {
                         'DataTakingConditions'     : dataTakingCond,
@@ -444,6 +468,8 @@ if swimmEnabled:
     swimmProdID = 1
     gLogger.info( 'swimming production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, swimmProdID ) )
 
+  if justMoore:
+    DIRAC.exit( 0 )
 
   if not unifyMooreAndDV:
 
@@ -490,7 +516,7 @@ if swimmEnabled:
                                    optionsFormat = swimmDVOF )
 
 
-    DVProduction.addFinalizationStep(['UploadOutputData',
+    DVProduction.addFinalizationStep( ['UploadOutputData',
                                       'FailoverRequest',
                                       'UploadLogFile'] )
     DVProduction.setProdGroup( prodGroup )
@@ -634,10 +660,10 @@ if mergingEnabled:
 
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
-                                inputDataType = mergeStream.lower(), extraOpts = mergeEOpts, inputData = [], 
-                                outputSE = mergedStreamSE, stepID = mergeStep, stepName = mergeName,stepVisible = mergeVisibility, 
+                                inputDataType = mergeStream.lower(), extraOpts = mergeEOpts, inputData = [],
+                                outputSE = mergedStreamSE, stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility,
                                 stepPass = mergePass, optionsFormat = mergeOF )
-      
+
     elif mergeApp.lower() == 'lhcb':
       mergeProd.addMergeStep( mergeVersion, mergeOptions, swimmProdID, eventType, mergeEP, inputData = [],
                               inputDataType = mergeStream.lower(), outputSE = mergedStreamSE, extraOpts = mergeEOpts,

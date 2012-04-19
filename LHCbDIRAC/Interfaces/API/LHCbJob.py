@@ -209,7 +209,7 @@ class LHCbJob( Job ):
 
     #ensure optionsFile list is unique:
     tmpList = optionsFile.split( ';' )
-    optionsFile = uniqueElements( tmpList ).join( ';' )
+    optionsFile = ';'.join( uniqueElements( tmpList ) )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
     if inputData:
       if type( inputData ) in types.StringTypes:
@@ -219,7 +219,7 @@ class LHCbJob( Job ):
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
       inputData = map( lambda x: 'LFN:' + x, inputData )
-      inputDataStr = inputData.join( ';' )
+      inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
     self.gaudiStepCount += 1
@@ -251,7 +251,7 @@ class LHCbJob( Job ):
     if inputDataType:
       stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
-      stepInstance.setValue( "inputData", inputData.join( ';' ) )
+      stepInstance.setValue( "inputData", ';'.join( inputData ) )
     stepInstance.setValue( "numberOfEvents", str( events ) )
 
     # now we have to tell DIRAC to install the necessary software
@@ -394,7 +394,7 @@ class LHCbJob( Job ):
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
       inputData = map( lambda x: 'LFN:' + x, inputData )
-      inputDataStr = inputData.join( ';' )
+      inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
     self.gaudiStepCount += 1
@@ -425,7 +425,7 @@ class LHCbJob( Job ):
     if inputDataType:
       stepInstance.setValue( "inputDataType", inputDataType )
     if inputData:
-      stepInstance.setValue( "inputData", inputData.join( ';' ) )
+      stepInstance.setValue( "inputData", ';'.join( inputData ) )
     if poolXMLCatalog:
       stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
 
@@ -546,7 +546,7 @@ class LHCbJob( Job ):
     os.mkdir( tmpdir )
     fopen = open( '%s/BenderScript.py' % tmpdir, 'w' )
     self.log.verbose( 'Bender script is: %s/BenderScript.py' % tmpdir )
-    fopen.write( benderScript.join( '\n' ) )
+    fopen.write( '\n'.join( benderScript ) )
     fopen.close()
     #should try all components of the PYTHONPATH before giving up...
     userModule = '%s.py' % ( modulePath.split( '.' )[-1] )
@@ -665,7 +665,7 @@ class LHCbJob( Job ):
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
       return self._reportError( 'Requested ROOT version %s is \
-      not in supported list: %s' % ( rootVersion, rootList.join( ', ' ) ), __name__, **kwargs )
+      not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
 
     rootName = os.path.basename( rootScript ).replace( '.', '' )
     if logFile:
@@ -883,11 +883,11 @@ class LHCbJob( Job ):
       try:
         db = str( db )
         tag = str( tag )
-        conditions.append( [db, tag].join( '.' ) )
+        conditions.append( '.'.join( [db, tag] ) )
       except Exception, x:
         return self._reportError( 'Expected string for conditions', __name__, **kwargs )
 
-    condStr = conditions.join( ';' )
+    condStr = ';'.join( conditions )
     description = 'List of CondDB tags'
     self._addParameter( self.workflow, 'CondDBTags', 'JDL', condStr, description )
     return S_OK()
@@ -916,7 +916,7 @@ class LHCbJob( Job ):
     """
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
     if type( lfns ) == list and len( lfns ):
-      outputDataStr = lfns.join( ';' )
+      outputDataStr = ';'.join( lfns )
       description = 'List of output data files'
       self._addParameter( self.workflow, 'UserOutputData', 'JDL', outputDataStr, description )
     elif type( lfns ) == type( " " ):
@@ -1100,12 +1100,12 @@ class LHCbJob( Job ):
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
       inputData = map( lambda x: 'LFN:' + x, inputData )
-      inputDataStr = inputData.join( ';' )
+      inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
     if type( protocols ) == type( ' ' ):
       protocols = [protocols]
-    protocols = protocols.join( ';' )
+    protocols = ';'.join( protocols )
 
     #Must check if ROOT version in available versions and define appName appVersion...
     rootVersions = gConfig.getOptions( self.rootSection, [] )
@@ -1115,7 +1115,7 @@ class LHCbJob( Job ):
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
       return self._reportError( 'Requested ROOT version %s \
-      is not in supported list: %s' % ( rootVersion, rootList.join( ', ' ) ), __name__, **kwargs )
+      is not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
 
     stepDefn = 'ProtocolTestStep%s' % ( stepNumber )
     step = self.__getProtocolStep( stepDefn )
@@ -1133,7 +1133,7 @@ class LHCbJob( Job ):
     if logFile:
       stepInstance.setValue( "applicationLog", logFile )
     if inputData:
-      stepInstance.setValue( "inputData", inputData.join( ';' ) )
+      stepInstance.setValue( "inputData", ';'.join( inputData ) )
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )

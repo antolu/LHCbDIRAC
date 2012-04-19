@@ -237,7 +237,7 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'runMetadata' ):
       runMetadataDict = eval( self.workflow_commons['runMetadata'] )
-      self.onlineDDBTags = runMetadataDict['DDDB']
+      self.onlineDDDBTag = runMetadataDict['DDDB']
       self.onlineCondDBTag = runMetadataDict['CondDb']
       self.TCK = runMetadataDict['TCK']
 
