@@ -101,19 +101,21 @@ class TransformationDB( DIRACTransformationDB ):
     for taskForSumbission in tasksDict.values():
       if 'RunNumber' in taskForSumbission.keys():
         run = taskForSumbission['RunNumber']
-        if run not in runNumbers:
-          runNumbers.append( run )
+        if run:
+          if run not in runNumbers:
+            runNumbers.append( run )
 
-    runsMetadata = self.getRunsMetadata( runNumbers, connection )
-    if not runsMetadata['OK']:
-      return runsMetadata
+    if runNumbers:
+      runsMetadata = self.getRunsMetadata( runNumbers, connection )
+      if not runsMetadata['OK']:
+        return runsMetadata
 
-    runsMetadata = runsMetadata['Value']
-    for taskForSumbission in tasksDict.values():
-      try:
-        taskForSumbission['RunMetadata'] = runsMetadata[taskForSumbission['RunNumber']]
-      except KeyError:
-        continue
+      runsMetadata = runsMetadata['Value']
+      for taskForSumbission in tasksDict.values():
+        try:
+          taskForSumbission['RunMetadata'] = runsMetadata[taskForSumbission['RunNumber']]
+        except KeyError:
+          continue
 
     return S_OK( tasksDict )
 
