@@ -32,7 +32,7 @@ CREATE TABLE BkQueries (
   INDEX (StartRun),
   EndRun INT(11) NOT NULL DEFAULT 0,
   INDEX (EndRun),
-  RunNumbers VARCHAR(512) NOT NULL DEFAULT 'All',
+  RunNumbers BLOB NOT NULL DEFAULT 'All',
   INDEX (RunNumbers),
   TCK VARCHAR(512) NOT NULL DEFAULT 'All',
   INDEX (TCK),
