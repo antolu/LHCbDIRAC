@@ -74,6 +74,7 @@ class DMScript():
     Script.registerSwitch( '', "DQFlags=", "   DQ flag used in query", self.setDQFlags )
     Script.registerSwitch( '', "StartDate=", "   Start date for the BK query", self.setStartDate )
     Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate )
+    Script.registerSwitch( '', "Invisible", "   See also invisible files", self.setInvisible )
 
 
   def registerNamespaceSwitches( self ):
@@ -156,6 +157,10 @@ class DMScript():
     self.options['DQFlags'] = dqFlags
     return DIRAC.S_OK()
 
+  def setInvisible( self, arg ):
+    self.options['Invisible'] = True
+    return DIRAC.S_OK()
+
   def setDirectory( self, arg ):
     self.options['Directory'] = arg.split( ',' )
     return DIRAC.S_OK()
@@ -189,12 +194,13 @@ class DMScript():
   def getOption( self, switch, default=None ):
     return self.options.get( switch, default )
 
-  def getBKQuery( self, visible=True ):
+  def getBKQuery( self, visible=None ):
     if self.bkQuery:
       return self.bkQuery
     if self.bkQueryDict:
         self.bkQuery = BKQuery( self.bkQueryDict )
     else:
+      visible = not self.options.get( 'Invisible', False ) if visible == None else visible
       bkPath = self.options.get( 'BKPath' )
       prods = self.options.get( 'Productions' )
       runs = self.options.get( 'Runs' )
