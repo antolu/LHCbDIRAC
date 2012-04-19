@@ -73,7 +73,7 @@ def makeRunList( runInput ):
       else:
         runList.append( str( part ) )
     return S_OK( runList )
-  except Exception, e:
-    return S_ERROR( "Could not parse runList " + e )
+  except Exception:
+    return S_ERROR( "Could not parse runList ")
 
 #############################################################################
