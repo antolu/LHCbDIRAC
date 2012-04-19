@@ -841,8 +841,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_._query(command)
 
   #############################################################################
-  def getFilesWithMetadata(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default):
+  def getFilesWithMetadata(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default, visible='Y'):
     condition = ''
+
+    tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
+    if visible not in ['Y','N']:
+      return S_ERROR('The visible flag has to be Y or N! '+str(visible))
+    else:
+      condition += "and f.visibilityFlag='%s' " % (visible)
+
     if configName != default:
       condition += " and c.configname='%s' " % (configName)
 
@@ -856,10 +863,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         return retVal
 
-    tables = ''
-    if evt != default:
+    if evt != default and visible =='Y':
       tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (evt)
+      condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (str(evt))
+    else:
+      condition += '  and j.production=prod.production and f.eventtypeid=%s ' % (str(evt))
 
     if production != default:
       condition += ' and j.production=' + str(production)
@@ -867,7 +875,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if runnb != default:
       condition += ' and j.runnumber=' + str(runnb)
 
-    if filetype != default:
+    if filetype != default and visible=='Y':
       if tables.find('bview') > -1:
         condition += " and bview.filetypeid=ftypes.filetypeid "
       if type(filetype) == types.ListType:
@@ -876,6 +884,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
           values += " '%s'," %(i)
         condition += values[:-1] + ')'
       else:
+        condition += " and ftypes.name='%s' " % (str(filetype))
+    else:
+      if type(filetype) == types.ListType:
+        values = ' and ftypes.name in ('
+        for i in filetype:
+          values += " '%s'," %(i)
+        condition += values[:-1] + ')'
+      elif filetype != default:
         condition += " and ftypes.name='%s' " % (str(filetype))
 
     if quality != default:
@@ -922,11 +938,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       condition += " and prod.processingid in %s" % (pro)
 
     command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
-    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes %s  where \
+    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s  where \
     j.jobid=f.jobid and \
     d.qualityid=f.qualityid and \
     f.gotreplica='Yes' and \
-    f.visibilityFlag='Y' and \
     ftypes.filetypeid=f.filetypeid and \
     j.configurationid=c.configurationid %s" % (tables, condition)
     return self.dbR_._query(command)

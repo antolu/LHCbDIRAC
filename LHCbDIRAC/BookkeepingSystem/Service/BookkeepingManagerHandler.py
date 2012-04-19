@@ -226,7 +226,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     conddescription = dict.get('ConditionDescription', default)
     prod = dict.get('Production', default)
     runnb = dict.get('RunNumber', default)
-    evt = dict.get('EventType', default)
+    evt = dict.get('EventType',dict.get('EventTypeId', default))
     return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, runnb, prod, evt, path)
 
   ############################################################################
@@ -308,6 +308,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     filetype = dict.get('FileType', default)
     quality = dict.get('DataQuality', dict.get('Quality', default))
     runnb = dict.get('RunNumber', default)
+    visible = dict.get('Visible','Y')
 
     if 'EventTypeId' in dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
@@ -315,7 +316,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if 'Quality' in dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
-    retVal = dataMGMT_.getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
+    retVal = dataMGMT_.getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible)
     if retVal['OK']:
       records = []
       parameters = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'Name', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',

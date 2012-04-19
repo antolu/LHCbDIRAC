@@ -84,8 +84,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getFileTypes(configName, configVersion, conddescription, processing, evt, runnb, production)
 
   #############################################################################
-  def getFilesWithMetadata(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
-    return self.getManager().getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
+  def getFilesWithMetadata(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible):
+    return self.getManager().getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible)
 
   #############################################################################
   def getFilesSummary(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun):

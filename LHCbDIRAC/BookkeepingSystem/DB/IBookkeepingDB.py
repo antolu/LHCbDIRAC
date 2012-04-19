@@ -84,7 +84,7 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
-  def getFilesWithMetadata(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb):
+  def getFilesWithMetadata(self, configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
