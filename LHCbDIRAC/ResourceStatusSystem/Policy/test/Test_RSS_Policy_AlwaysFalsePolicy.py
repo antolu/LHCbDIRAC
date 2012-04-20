@@ -16,8 +16,8 @@ class PolicyBase( object ):
     self.args       = None
     self.commandRes = None
     
-  def evaluate( self ):
-    return self.commandRes
+#  def evaluate( self ):
+#    return self.commandRes
 
 class AlwaysFalsePolicy_TestCase( unittest.TestCase ):
   

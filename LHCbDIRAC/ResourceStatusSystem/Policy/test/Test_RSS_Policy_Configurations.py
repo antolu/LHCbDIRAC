@@ -16,7 +16,7 @@ class DummyReturn( object ):
   def dummyMethod( self, *args, **kwargs ):
     if dummyResults.has_key( self.__class__.__name__ ):
       return dummyResults[ self.__class__.__name__ ]
-    return None
+#    return None
   
 class dCS( DummyReturn ): pass 
 
