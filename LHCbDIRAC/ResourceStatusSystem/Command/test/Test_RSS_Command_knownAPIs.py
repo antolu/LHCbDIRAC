@@ -13,14 +13,14 @@ class DummyReturn( object ):
     pass
   def __getattr__( self, name ):
     return self.dummyMethod
-  def __call__( self, *args, **kwargs ):
-    if hasattr( self, 'returnArgs' ) and self.returnArgs is None:
-      return args[ 0 ]
-    return self.dummyMethod()
+#  def __call__( self, *args, **kwargs ):
+#    if hasattr( self, 'returnArgs' ) and self.returnArgs is None:
+#      return args[ 0 ]
+#    return self.dummyMethod()
   def dummyMethod( self, *args, **kwargs ):
     if dummyResults.has_key( self.__class__.__name__ ):
       return dummyResults[ self.__class__.__name__ ]
-    return None
+#    return None
 
 class dDIRACknownAPIs( DummyReturn ): 
   __APIs__ = { 'ResourceManagementClient' : None }
