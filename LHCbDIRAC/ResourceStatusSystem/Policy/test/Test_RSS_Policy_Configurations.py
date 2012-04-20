@@ -33,7 +33,7 @@ class Configurations_TestCase( unittest.TestCase ):
     import LHCbDIRAC.ResourceStatusSystem.Policy.Configurations as moduleTested   
     moduleTested.CS = dCS()
       
-    self.configurations = configurations
+    self.configurations = moduleTested
     
   def tearDown( self ):
     '''
