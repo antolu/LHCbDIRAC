@@ -11,6 +11,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class PilotsEfficiencySimplePolicy( PolicyBase ):
+  '''
+  PilotsEfficiencySimplePolicy, given the status of the pilots running on the 
+  element, proposes a new status for the element.  
+  '''
 
   def evaluate( self ):
     """

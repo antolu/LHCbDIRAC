@@ -11,6 +11,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class SLSPolicy( PolicyBase ):
+  '''
+  SLSPolicy, given the SLS availability metrics for the element, proposes a new
+  status. 
+  '''
 
   def evaluate( self ):
     """

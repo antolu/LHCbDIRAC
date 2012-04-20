@@ -11,6 +11,9 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class SEOccupancyPolicy( PolicyBase ):
+  '''
+  SEOccupancyPolicy, given the space left at the element, proposes a new status.
+  '''
 
   def evaluate(self):
     """

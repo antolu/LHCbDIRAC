@@ -11,6 +11,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class SAMResultsPolicy( PolicyBase ):
+  '''
+  SAMResultsPolicy, given the SAM status for the element, proposes a new
+  status.
+  '''
 
   def evaluate(self):
     """

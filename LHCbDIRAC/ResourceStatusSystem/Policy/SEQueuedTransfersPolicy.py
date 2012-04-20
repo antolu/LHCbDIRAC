@@ -11,6 +11,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class SEQueuedTransfersPolicy( PolicyBase ):
+  '''
+  SEQueuedTransfersPolicy, given the amount of queued transfers on the element,
+  proposes a new status.
+  '''
 
   def evaluate(self):
     """

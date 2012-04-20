@@ -11,6 +11,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class JobsEfficiencySimplePolicy( PolicyBase ):
+  '''
+  JobsEfficiencySimplePolicy, given the status of the jobs running on the 
+  element, proposes a new status for the element.
+  '''
 
   def evaluate( self ):
     """

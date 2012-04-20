@@ -10,6 +10,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id: $'
 
 class NagiosProbesPolicy( PolicyBase ):
+  '''
+  NagiosProbesPolicy, given the Nagios probes in activeMQ for this element,
+  proposes a new status.
+  '''
   
   def evaluate(self):
     '''
