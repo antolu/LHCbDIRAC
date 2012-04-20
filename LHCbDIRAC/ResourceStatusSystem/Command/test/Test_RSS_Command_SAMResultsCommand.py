@@ -143,7 +143,13 @@ class SAMResults_Success( SAMResults_TestCase ):
     dummyResults[ 'dSAMResultsClient' ] = { 'OK' : False, 'Message' : 'Not R2' }   
     res = c.doCommand()
     self.assertEquals( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } }) 
-    
+
+    c.args = ( 'Resource', None, 'SiteName2', None )  
+    dummyResults[ 'dResourceStatusClient' ] = None
+    dummyResults[ 'dgetGOCSiteName' ] = { 'OK' : True, 'Value' : 'SiteR2' }
+    dummyResults[ 'dSAMResultsClient' ] = { 'OK' : False, 'Message' : 'Not R2' }   
+    res = c.doCommand()
+    self.assertEquals( res, { 'Result' : { 'OK' : False, 'Message' : 'Not R2' } })     
           
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
