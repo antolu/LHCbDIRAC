@@ -12,6 +12,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class PropagationPolicy( PolicyBase ):
+  '''
+  PropagationPolicy, given the status(es) of the element children, proposes a new
+  status.
+  '''
 
   def evaluate( self ):
     """
