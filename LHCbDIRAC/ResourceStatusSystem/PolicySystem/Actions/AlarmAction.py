@@ -6,7 +6,9 @@
 import urllib2
 
 from DIRAC.ResourceStatusSystem.PolicySystem.Actions.AlarmAction import AlarmAction as BaseAlarmAction
-from DIRAC.ResourceStatusSystem.Utilities import Utils
+from DIRAC.ResourceStatusSystem.Utilities                        import Utils
+
+__RCSID__ = '$Id: $'
 
 class AlarmAction( BaseAlarmAction ):
   '''
@@ -14,6 +16,9 @@ class AlarmAction( BaseAlarmAction ):
   '''
   
   def get_shiftdb_users( self ):
+    '''
+    Gets Production shifter email from ShiftDB.
+    '''
     try: 
       url = urllib2.urlopen("http://lbshiftdb.cern.ch/shiftdb_report.php", timeout = 60)
     except urllib2.URLError:

@@ -87,10 +87,13 @@ class ShiftDBAgent( AgentModule ):
         
         linesplitted = line.split( '|' )
         
-        if linesplitted[ 5 ].find( ':' ) != -1 :
-          email = linesplitted[ 5 ].split( ':' )[ 1 ]
+        if linesplitted[ 4 ].find( ':' ) != -1 :
+          email = linesplitted[ 4 ].split( ':' )[ 1 ]
           
           if email.find( '@' ) != -1:
+            
+            email = email.strip()
+            
             self.log.info( email )
             return S_OK( email )
           else:
