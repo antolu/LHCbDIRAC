@@ -51,15 +51,15 @@ class Configurations_Success( Configurations_TestCase ):
     
     global dummyResults
     
-    dummyResults[ 'CS' ] = None
+    dummyResults[ 'dCS' ] = None
     res = self.configurations.getPolicyParameters()
     self.assertEquals( res, None )
     
-    dummyResults[ 'CS' ] = [ 1,2 ]
+    dummyResults[ 'dCS' ] = [ 1,2 ]
     res = self.configurations.getPolicyParameters()
     self.assertEquals( res, [ 1, 2 ] )
         
-    dummyResults[ 'CS' ] = 'HastaLaVistaBaby'
+    dummyResults[ 'dCS' ] = 'HastaLaVistaBaby'
     res = self.configurations.getPolicyParameters()
     self.assertEquals( res, 'HastaLaVistaBaby' )    
         
