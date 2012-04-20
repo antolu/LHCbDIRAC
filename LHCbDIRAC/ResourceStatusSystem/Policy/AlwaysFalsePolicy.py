@@ -10,6 +10,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class AlwaysFalsePolicy( PolicyBase ):
+  '''
+  AlwaysFalsePolicy is a prototype that can be used for insipiration. Note that
+  it is not invoking any Command.
+  '''
 
   def evaluate(self):
     """

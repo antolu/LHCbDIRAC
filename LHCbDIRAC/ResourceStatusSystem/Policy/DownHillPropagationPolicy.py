@@ -12,6 +12,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class DownHillPropagationPolicy( PolicyBase ):
+  '''
+  DownHillPropagationPolicy, given the status of the parent element, propagates
+  its status to the child element.
+  '''
 
   def evaluate(self):
     """

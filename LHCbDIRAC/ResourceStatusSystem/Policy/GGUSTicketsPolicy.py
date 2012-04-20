@@ -2,7 +2,7 @@
 ''' GGUSTicketsPolicy 
   
   The GGUSTicketsPolicy class is a policy class that evaluates on
-  how many tickets are open atm.
+  how many tickets are open at the moment.
   
 '''
 
@@ -11,6 +11,10 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 __RCSID__ = '$Id$'
 
 class GGUSTicketsPolicy( PolicyBase ):
+  '''
+  GGUSTicketsPolicy, given the number of GGUS tickets opened, proposes a new
+  status for the element.
+  '''
 
   def evaluate( self ):
     """
