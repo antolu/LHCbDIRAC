@@ -4,7 +4,7 @@ __RCSID__ = "$Id$"
 
 import sys
 
-def getFilesForRun( id, runID, status = None, lfnList = None ):
+def getFilesForRun( id, runID, status=None, lfnList=None ):
     selectDict = {'TransformationID':id}
     if runID:
         selectDict["RunNumber"] = runID
@@ -57,10 +57,10 @@ Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with c
 Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
 Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
 Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
-Script.registerSwitch( '', 'FixIt', 'Fix the run number in transformation table')
+Script.registerSwitch( '', 'FixIt', 'Fix the run number in transformation table' )
 Script.registerSwitch( 'v', 'Verbose', '' )
 
-Script.parseCommandLine( ignoreErrors = True )
+Script.parseCommandLine( ignoreErrors=True )
 import DIRAC
 #from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -147,10 +147,10 @@ reqClient = RequestClient()
 rm = ReplicaManager()
 dmTransTypes = ( "Replication", "Removal" )
 now = datetime.datetime.utcnow()
-timeLimit = now - datetime.timedelta( hours = 2 )
+timeLimit = now - datetime.timedelta( hours=2 )
 
 for id in idList:
-    res = transClient.getTransformation( id, extraParams = False )
+    res = transClient.getTransformation( id, extraParams=False )
     if not res['OK']:
         print "Couldn't find transformation", id
         continue
@@ -268,25 +268,25 @@ for id in idList:
                 taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
                 if byFiles and not taskList:
                     print "LFN:", fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
-                if fileDict['RunNumber'] == 0 and fileDict['LFN'].find('/MC') < 0:
+                if fileDict['RunNumber'] == 0 and fileDict['LFN'].find( '/MC' ) < 0:
                   filesToBeFixed.append( fileDict['LFN'] )
             if filesToBeFixed:
               if not fixIt:
-                print '%d files have run number 0, use --FixIt to get this fixed' %len(filesToBeFixed)
+                print '%d files have run number 0, use --FixIt to get this fixed' % len( filesToBeFixed )
               else:
                 fixedFiles = 0
-                res = bkClient.getFileMetadata(filesToBeFixed)
+                res = bkClient.getFileMetadata( filesToBeFixed )
                 if res['OK']:
                   runFiles = {}
                   for lfn, metadata in res['Value'].items():
-                    runFiles.setdefault(metadata['RunNumber'], []).append(lfn)
+                    runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
                   for run in runFiles:
-                    res = transClient.addTransformationRunFiles( id, run, runFiles[run])
+                    res = transClient.addTransformationRunFiles( id, run, runFiles[run] )
                     # print run, runFiles[run], res
                     if not res['OK']:
-                      print "Failed to set %d files to run %d in transformation %d" %(len(runFiles[run]), run, id)
+                      print "Failed to set %d files to run %d in transformation %d" % ( len( runFiles[run] ), run, id )
                     else:
-                      fixedFiles += len(runFiles[run])
+                      fixedFiles += len( runFiles[run] )
                 print "Successfully fixed run number for %d files" % fixedFiles
             if status == 'MissingLFC':
                 lfns = [fileDict['LFN'] for fileDict in filesList]
@@ -379,22 +379,27 @@ for id in idList:
                                 requestName = res['Value'][2]
                             else:
                                 requestName = None
-                            if task['ExternalStatus'] == 'Failed':
+                            if not taskCompleted and task['ExternalStatus'] == 'Failed':
                                 if kickRequests:
                                     res = transClient.setFileStatusForTransformation( id, 'Unused', lfns )
                                     if res['OK']:
                                         print "Task is failed: %d files reset Unused" % len( lfns )
                                 else:
                                     print "Task is failed: %d files could be reset Unused: use --KickRequest option" % len( lfns )
-                            if taskCompleted and requestName and task['ExternalStatus'] != 'Done':
+                            if taskCompleted and task['ExternalStatus'] != 'Done':
                                 prString = "Task %s is completed: no %s files" % ( requestName, statComment )
-                                if kickRequests and requestName:
+                                if kickRequests:
+                                  if requestName:
                                     res = reqClient.setRequestStatus( requestName, 'Done' )
                                     if res['OK']:
-                                        prString += ": request set to Done"
-                                        res = transClient.setFileStatusForTransformation( id, 'Processed', lfns )
-                                        if res['OK']:
-                                            prString += " - %d files set Processed" % len( lfns )
+                                      prString += ": request set to Done"
+                                    else:
+                                      prString += ": error setting request to Done (%s)" % res['Message']
+                                  res = transClient.setFileStatusForTransformation( id, 'Processed', lfns )
+                                  if res['OK']:
+                                    prString += " - %d files set Processed" % len( lfns )
+                                  else:
+                                    prString += " - Failed to set %d files Processed (%s)" % ( len( lfns ), res['Message'] )
                                 else:
                                     prString += " - To mark them done, use option --KickRequests"
                                 print prString
