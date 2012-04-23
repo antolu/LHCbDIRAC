@@ -521,9 +521,9 @@ if strippEnabled:
     production.setTargetSite( destination )
 
   if sysConfig:
-    production.setSystemConfig( sysConfig )
+    production.setJobParameters( { 'SystemConfig': sysConfig } )
 
-  production.setCPUTime( strippCPU )
+  production.setJobParameters( { 'CPUTime': strippCPU } )
   production.setProdType( 'WGProduction' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
   production.setWorkflowName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
@@ -533,7 +533,7 @@ if strippEnabled:
   if strippDQ is None:
     strippDQ = ''
   production.setDBTags( strippCDb, strippDDDb, strippDQ )
-  production.setInputDataPolicy( strippIDPolicy )
+  production.setJobParameters( { 'InputDataPolicy': strippIDPolicy } )
   production.setProdPlugin( strippPlugin )
 
   if strippInput.lower() == 'sdst':
@@ -581,7 +581,7 @@ if strippEnabled:
                              bkScript = BKscriptFlag,
                              requestID = currentReqID,
                              reqUsed = 1,
-                             transformation = strippTransFlag
+                             transformation = False
                              )
   if not result['OK']:
     gLogger.error( 'Production creation failed with result:\n%s\ntemplate is exiting...' % ( result ) )
@@ -668,13 +668,13 @@ if mergingEnabled:
 
 
     mergeProd = Production()
-    mergeProd.setCPUTime( mergeCPU )
+    mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
     mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
-      mergeProd.setSystemConfig( sysConfig )
+      mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
     mergeProd.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( mergeStream, strippProdID ) )
     mergeProd.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
@@ -705,11 +705,20 @@ if mergingEnabled:
                                 stepID = step3_Step, stepName = step3_Name, stepVisible = step3_Visibility,
                                 stepPass = step3_Pass, optionsFormat = step3_OF )
 
-    mergeProd.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+    if mergeRemoveInputsFlag:
+      mergeProd.addFinalizationStep( ['UploadOutputData',
+                                     'FailoverRequest',
+                                     'RemoveInputData',
+                                     'UploadLogFile'] )
+    else:
+      mergeProd.addFinalizationStep( ['UploadOutputData',
+                                     'FailoverRequest',
+                                     'UploadLogFile'] )
+
     mergeProd.setInputBKSelection( mergeBKQuery )
     mergeProd.setInputDataPolicy( mergeIDPolicy )
     mergeProd.setProdGroup( prodGroup )
-    mergeProd.setProdPriority( mergePriority )
+    mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     mergeProd.setJobFileGroupSize( mergeFileSize )
     mergeProd.setProdPlugin( mergePlugin )
 
@@ -820,7 +829,7 @@ if step4Enabled:
 
 
     step4_Prod = Production()
-    step4_Prod.setCPUTime( step4_CPU )
+    step4_Prod.setJobParameters( { 'CPUTime': step4_CPU } )
     step4_Prod.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
     step4_Prod.setWorkflowName( '%s_%s_%s' % ( step4_Stream.split( '.' )[0], wkfName, appendName ) )
@@ -851,7 +860,16 @@ if step4Enabled:
       gLogger.error( 'Merging is not DaVinci nor LHCb and is %s' % step4_App )
       DIRAC.exit( 2 )
 
-    step4_Prod.addFinalizationStep( removeInputData = mergeRemoveInputsFlag )
+    if mergeRemoveInputsFlag:
+      step4_Prod.addFinalizationStep( ['UploadOutputData',
+                                     'FailoverRequest',
+                                     'RemoveInputData',
+                                     'UploadLogFile'] )
+    else:
+      step4_Prod.addFinalizationStep( ['UploadOutputData',
+                                     'FailoverRequest',
+                                     'UploadLogFile'] )
+
     step4_Prod.setInputBKSelection( step4_BKQuery )
     step4_Prod.setInputDataPolicy( step4_IDPolicy )
     step4_Prod.setProdGroup( prodGroup )
