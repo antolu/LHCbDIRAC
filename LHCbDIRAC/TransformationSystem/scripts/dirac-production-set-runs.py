@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
   Set the Start or End Run for a given Transformation of add a set runs.
 """
@@ -101,8 +102,6 @@ for switch in switches[0]:
           print "Start run of production %s is now %s" % ( str( prodId ), str( runId ) )
         else:
           print res['Message']
-      else:
-        print "Cannot increase the StartRun for Production %s" % str( prodId ) 
 
   if opt in ( 'p', 'add' ):    
     runId = str( args[1] )
