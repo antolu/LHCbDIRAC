@@ -32,14 +32,6 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     res = database.createTransformationQuery( transName, queryDict, author = authorDN )
     return self._parseRes( res )
 
-  types_createTransformationRunQuery = [ [LongType, IntType, StringType], DictType ]
-  def export_createTransformationRunQuery( self, transName, queryDict ):
-    credDict = self.getRemoteCredentials()
-    authorDN = credDict[ 'DN' ]
-    res = database.createTransformationRunQuery( transName, queryDict, author = authorDN )
-    return self._parseRes( res )
-
-
   types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
   def export_deleteTransformationBookkeepingQuery( self, transName ):
     credDict = self.getRemoteCredentials()
