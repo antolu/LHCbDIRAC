@@ -19,7 +19,8 @@ fileStateRev = {}
 def initializeRunDBInterfaceHandler( serviceInfo ):
   global server
   #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
-  sys.path.append( '/group/online/rundb/RunDatabase/python' )
+  #sys.path.append( '/group/online/rundb/RunDatabase/python' )
+  sys.path.append( '/admin/RunDatabase/python' )
   from path import SQL_ALCHEMY_PATH
   sys.path.append( SQL_ALCHEMY_PATH )
   try:
