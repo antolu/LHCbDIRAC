@@ -143,7 +143,7 @@ def getCondDBFiles( localSite = '', directory = '', forceSite = '' ):
     user = gConfig.getValue( '/Resources/CondDB/%s/Username' % ( site ), '' )
     passPhrase = gConfig.getValue( '/Resources/CondDB/%s/Password' % ( site ), '' )
     if not user or not passPhrase:
-      gLogger.warn( 'Excluding %s CondDB since not all info is available: Username "%s", Password "%s"' % ( user, passPhrase ) )
+      gLogger.warn( 'Excluding CondDB since not all info is available: Username "%s", Password "%s"' % ( user, passPhrase ) )
       continue
 
     for conddb in connectionStrings.values():
