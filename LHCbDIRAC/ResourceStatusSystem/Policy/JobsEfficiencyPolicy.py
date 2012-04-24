@@ -20,8 +20,8 @@
 #  def evaluate( self, args, knownInfo = None, commandPeriods = None, commandStats = None,
 #               commandEff = None, commandCharge = None ):
 #    """ evaluate policy on jobs stats, using args (tuple).
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #
 #        returns:
 #            {
@@ -34,7 +34,7 @@
 #    if type(args) != tuple:
 #      raise TypeError, where( self, self.evaluate )
 #
-#    if args[0] not in ValidRes:
+#    if args[0] not in ValidElement:
 #      return {'SAT':None}
 #
 #    if knownInfo is not None:
@@ -96,8 +96,8 @@
 #  def _getPeriods( self, args, meanProcessedJobs = None, commandIn = None ):
 #    """ Returns a list of periods of time where args[1] was in status args[2]
 #
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #        - args[2] should be the present status
 #
 #        - meanProcessedJobs determines the periods window
@@ -136,8 +136,8 @@
 #  def _getJobsStats( self, args, periods, commandIn = None ):
 #    """ Returns jobs stats invoking jobs client
 #
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #
 #        - periods contains the periods to consider in the query
 #
@@ -166,8 +166,8 @@
 #  def _getJobsEff( self, args, periods, commandIn = None ):
 #    """ Returns jobs efficiency invoking jobs client
 #
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #
 #        - periods contains the periods to consider in the query
 #

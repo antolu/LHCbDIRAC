@@ -21,11 +21,11 @@ class SAMResultsCommand( Command ):
     Return getStatus from SAM Results Client  
     
     :attr:`args`: 
-     - args[0]: string: should be a ValidRes
+     - args[0]: string: should be a ValidElement
 
-     - args[1]: string: should be the (DIRAC) name of the ValidRes
+     - args[1]: string: should be the (DIRAC) name of the ValidElement
      
-     - args[2]: string: optional - should be the (DIRAC) site name of the ValidRes
+     - args[2]: string: optional - should be the (DIRAC) site name of the ValidElement
      
      - args[3]: list: list of tests
     '''

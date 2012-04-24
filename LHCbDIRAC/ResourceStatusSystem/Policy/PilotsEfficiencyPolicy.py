@@ -20,8 +20,8 @@
 #  def evaluate( self, args, knownInfo = None, commandPeriods = None, commandStats = None,
 #               commandEff = None ):
 #    """ evaluate policy on pilots stats, using args (tuple). 
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #        - args[2] should be the present status
 #        
 #        returns:
@@ -35,7 +35,7 @@
 #    if not isinstance( args, tuple ):
 #      raise TypeError, where( self, self.evaluate )
 #
-#    if args[0] not in ValidRes:
+#    if args[0] not in ValidElement:
 #      return { 'SAT' : None }
 #
 #    if args[2] not in ValidStatus:
@@ -122,8 +122,8 @@
 #  def _getPeriods( self, args, meanProcessedPilots = None, commandIn = None ):
 #    """ Returns a list of periods of time where args[1] was in status args[2]
 #
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #        - args[2] should be the present status
 #
 #        - meanProcessedPilots determines the periods window
@@ -162,8 +162,8 @@
 #  def _getPilotsStats( self, args, periods, commandIn = None ):
 #    """ Returns pilots stats invoking pilots client
 #
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #
 #        - periods contains the periods to consider in the query
 #
@@ -192,8 +192,8 @@
 #  def _getPilotsEff( self, args, periods, commandIn = None ):
 #    """ Returns pilots efficiency invoking pilots client
 #
-#        - args[0] should be a ValidRes
-#        - args[1] should be the name of the ValidRes
+#        - args[0] should be a ValidElement
+#        - args[1] should be the name of the ValidElement
 #        
 #        - periods contains the periods to consider in the query
 #

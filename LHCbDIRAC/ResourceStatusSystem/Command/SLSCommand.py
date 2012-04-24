@@ -93,8 +93,8 @@ class SLSServiceInfoCommand( Command ):
     Return getServiceInfo from SLS Client
 
     :attr:`args`:
-     - args[0]: string: should be a ValidRes
-     - args[1]: string: should be the (DIRAC) name of the ValidRes
+     - args[0]: string: should be a ValidElement
+     - args[1]: string: should be the (DIRAC) name of the ValidElement
     '''
 
     super( SLSServiceInfoCommand, self ).doCommand()
