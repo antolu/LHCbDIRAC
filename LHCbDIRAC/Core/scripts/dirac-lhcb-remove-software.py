@@ -75,7 +75,7 @@ else:
 #Get the list of possible system configurations
 systemConfigs = gConfig.getOptions( osSection )
 if not systemConfigs['OK']:
-  print 'ERROR: Could not get value for %s with message' % ( osSection, result['Message'] )
+  print 'ERROR: Could not get value for %s with message' % ( osSection )
   DIRAC.exit( 255 )
 
 #Prompt for system configurations to add the software for
