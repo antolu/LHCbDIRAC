@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __RCSID__ = "$Id$"
-import sys, string
+import string
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig
@@ -24,7 +24,7 @@ if len( args ) > 1:
 
 softwareDistribution = gConfig.getOptionsDict( '/Operations/SoftwareDistribution' )
 if not softwareDistribution['OK']:
-  print 'ERROR: Could not get values for /Operations/SoftwareDistribution section with message:\n%s' % ( result['Message'] )
+  print 'ERROR: Could not get values for /Operations/SoftwareDistribution section with message:\n%s' % ( softwareDistribution['Message'] )
   DIRAC.exit( 2 )
 
 software = softwareDistribution['Value']
