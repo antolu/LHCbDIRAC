@@ -13,7 +13,6 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 
@@ -97,7 +96,7 @@ class UploadOutputData( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               rm = None, ft = None, bk = None ):
+               rm = None, ft = None, bk = None, SEs = None ):
     """ Main execution function.
     """
 
@@ -145,14 +144,20 @@ class UploadOutputData( ModuleBase ):
 
       #Get final, resolved SE list for files
       final = {}
-      for fileName, metadata in fileMetadata.items():
-        result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
-        if not result['OK']:
-          self.log.error( 'Could not resolve output data SE: ', result['Message'] )
-          self.setApplicationStatus( 'Failed To Resolve OutputSE' )
-          return result
 
-        resolvedSE = result['Value']
+
+
+      for fileName, metadata in fileMetadata.items():
+        if not SEs:
+          from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
+          result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
+          if not result['OK']:
+            self.log.error( 'Could not resolve output data SE: ', result['Message'] )
+            self.setApplicationStatus( 'Failed To Resolve OutputSE' )
+            return result
+          resolvedSE = result['Value']
+        else:
+          resolvedSE = SEs
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 

@@ -792,7 +792,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
                                          self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+                                         self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
 
     #no errors, input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -820,7 +820,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+                                           self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
         self.bkc_mock.getFileDescendents.return_value = {'OK': True,
                                                          'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                       {'skipCACheck': False,
@@ -833,7 +833,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+                                           self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
         self.bkc_mock.getFileDescendents.return_value = {'OK': True,
                                                          'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                       {'skipCACheck': False,
@@ -848,7 +848,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           self.rm_mock, self.ft_mock, self.bkc_mock )['OK'] )
+                                           self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
         os.remove( 'foo.txt' )
         os.remove( 'bar.txt' )
 
@@ -941,25 +941,25 @@ class FileUsageSuccess( ModulesTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseXMLSummarySuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportFailure ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SendBookkeepingSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadLogFileSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseXMLSummarySuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
+##  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportFailure ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
+##  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SendBookkeepingSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UploadOutputDataSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobFinalizationSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FileUsageSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobFinalizationSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FileUsageSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
