@@ -107,7 +107,7 @@ gLogger.verbose( 'Existing GUID is %s' % oldGUID )
 if not os.path.exists( os.path.basename( oldLFN ) ):
   download = dirac.getFile( oldLFN )
   if not download['OK'] or download['Value']['Failed']:
-    print 'ERROR: Could not download file with message - %s' % result['Message']
+    print 'ERROR: Could not download file with message - %s' % download['Message']
     os.chdir( start )
     DIRAC.exit( exitCode )
 else:
