@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """
     Script that install a new version of LHCbDIRAC, based on DEV and the latest (or coming) version of DIRAC.
-    Instructions can be found at 
+    Instructions can be found at
     http://lhcb-release-area.web.cern.ch/LHCb-release-area/DOC/lhcbdirac/rst/html/DevsGuide/DevsGuide.html#developers-installations
 """
 
 import DIRAC
-from DIRAC import S_OK
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
+from DIRAC import gLogger
 
 
 Script.registerSwitch( 'D', 'days', "Days requested" )
@@ -37,7 +37,7 @@ client = SystemAdministratorClient( 'volhcb12.cern.ch' )
 print "First, we'll update the software. This can take a while, please wait ..."
 result = client.updateSoftware( 'DEV' )
 if not result['OK']:
-  self.__errMsg( "Failed to update the software" )
+  gLogger.error( "Failed to update the software" )
   print result['Message']
 else:
   print "Software successfully updated."
