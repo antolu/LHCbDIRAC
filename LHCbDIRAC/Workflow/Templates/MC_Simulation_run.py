@@ -875,7 +875,7 @@ else:
 
   selectionProd.addDaVinciStep( selectionVersion, selectionOutputType, selectionOptions, extraPackages = selectionEP,
                                 inputDataType = selectionInputType, dataType = 'MC', extraOpts = selectionExtraOptions,
-                                eventType = '{{eventType}}',
+                                eventType = '{{eventType}}', inputData = '',
                                 outputSE = daVinciDataSE, condDBTag = selectionCDb, ddDBTag = selectionDDDb,
                                 stepID = selectionStep, stepName = selectionName, stepVisible = selectionVisibility,
                                 stepPass = selectionPP, optionsFormat = selectionOF )
