@@ -221,11 +221,10 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
       return S_ERROR("Cannot retrieve BkQuery")
-    RunInQuery = res['Value']['RunNumbers']
-    if isinstance(bkQuery['RunNumbers'], str):
-      RunInQuery = [bkQuery['RunNumbers']]
+    if isinstance(res['Value']['RunNumbers'], str):
+      RunInQuery = [res['Value']['RunNumbers']]
     else:
-      RunInQuery = bkQuery['RunNumbers'] 
+      RunInQuery =res['Value']['RunNumbers'] 
     if EndRun<int(RunInQuery[-1]):
       return S_ERROR("Cannot decrease the end run!")
     if str(EndRun) not in RunInQuery:
@@ -256,11 +255,10 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
       return S_ERROR("Cannot retrieve BkQuery")
-    RunInQuery = res['Value']['RunNumbers']
-    if isinstance(bkQuery['RunNumbers'], str):
-      RunInQuery = [bkQuery['RunNumbers']]
+    if isinstance(res['Value']['RunNumbers'], str):
+      RunInQuery = [res['Value']['RunNumbers']]
     else:
-      RunInQuery = bkQuery['RunNumbers'] 
+      RunInQuery =res['Value']['RunNumbers']     
     if StartRun>int(RunInQuery[0]):
       return S_ERROR("Cannot increase the start run!")
     if str(StartRun) not in RunInQuery:
@@ -291,8 +289,10 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
       return S_ERROR("Cannot retrieve BkQuery")
-    bkQuery = res['Value']
-    RunInQuery = bkQuery['RunNumbers']
+    if isinstance(res['Value']['RunNumbers'], str):
+      RunInQuery = [res['Value']['RunNumbers']]
+    else:
+      RunInQuery =res['Value']['RunNumbers']     
     res = makeRunList(str(runList))
     runs=res['Value']
     for r in runs:
