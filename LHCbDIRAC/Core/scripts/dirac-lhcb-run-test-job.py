@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 __RCSID__ = "$Id$"
 
-import sys, string, os, shutil
+import string, os, shutil
 
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -22,7 +22,7 @@ Script.parseCommandLine( ignoreErrors = True )
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC import gLogger
+from DIRAC import gLogger, S_OK
 
 args = Script.getPositionalArgs()
 
