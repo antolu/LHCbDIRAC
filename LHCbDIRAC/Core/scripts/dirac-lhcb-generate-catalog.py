@@ -64,7 +64,7 @@ if ancestorDepth:
     if not result['OK']:
       print 'ERROR: problem during getFileAncestors() call\n%s' % result['Message']
       DIRAC.exit( 2 )
-    ancestorsList = [x[0]['FileName'] for x in res['Value']['Successful'].values()]
+    ancestorsList = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
 
 result = dirac.getInputDataCatalog( lfns + ancestorsList, siteName, catalogName, ignoreMissing = ignore )
 if not result['OK']:
