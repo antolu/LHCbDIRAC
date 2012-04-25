@@ -26,8 +26,8 @@ import string, types
 COMPONENT_NAME = 'LHCbInputDataResolution'
 
 class InputDataResolution:
-
-  #############################################################################
+  """ Define the Input Data Policy
+  """
 
   def __init__( self, argumentsDict, bkkClient = None ):
     """ Standard constructor
