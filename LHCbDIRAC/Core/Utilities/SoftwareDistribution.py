@@ -25,6 +25,7 @@ from DIRAC                                               import S_OK, S_ERROR, g
 import os
 
 class SoftwareDistribution:
+  """ Make sure that Environment is ready for software distribution """
 
   #############################################################################
   def __init__( self, argumentsDict ):
