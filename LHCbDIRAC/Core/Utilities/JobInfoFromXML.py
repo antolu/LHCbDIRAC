@@ -3,6 +3,8 @@
 # File :   JobOutputLFN.py
 # Author : Vladimir Romanovsky
 ########################################################################
+""" Return the INFO a a given job from the XML file
+"""
 
 __RCSID__ = "$Id$"
 
@@ -30,22 +32,21 @@ def makeProductionLFN( jobid, prodid, config, fname, ftype ):
 
   try:
     jobindex = "%04d" % ( int( jobid ) / 10000 )
-  except:
+  except Exception:
     jobindex = '0000'
 
   return os.path.join( lfnroot, str( ftype ).upper(), prodid, jobindex, fname )
 
 
 class JobInfoFromXML:
-  '''
-  '''
+  """ main class"""
 
   def __init__( self, jobid ):
 
     self.message = None
     try:
       job = int( jobid )
-    except:
+    except Exception:
       self.message = 'Input parameter is not integer'
       return
 
@@ -90,12 +91,13 @@ class JobInfoFromXML:
       return
 
   def valid( self ):
+    """ Check the validity of message"""
     if self.message:
       return S_ERROR( self.message )
     return S_OK()
 
   def getInputLFN( self ):
-
+    """ return the list of LFNS for the job """
     if self.message:
       return S_ERROR( self.message )
 
@@ -111,7 +113,7 @@ class JobInfoFromXML:
     return S_OK( inputlfns )
 
   def getOutputLFN( self ):
-
+    """  get the list of LFNs for the output """
     if self.message:
       return S_ERROR( self.message )
 
