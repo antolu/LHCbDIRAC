@@ -4,6 +4,10 @@
 # File :    dirac-lhcb-manage-software
 # Author :  Stuart Paterson
 ########################################################################
+"""
+ script to list the software installed in an Area
+"""
+
 __RCSID__ = "$Id$"
 import sys
 import DIRAC
@@ -16,6 +20,7 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 def usage():
+  """ give the help """
   print 'Usage: %s [<PATH TO SOFTWARE CACHE>]' % ( Script.scriptName )
   print 'If not specified, path to software cache taken from /LocalSite/SharedArea'
   DIRAC.exit( 2 )
