@@ -224,7 +224,7 @@ class TransformationDB( DIRACTransformationDB ):
     if isinstance(res['Value']['RunNumbers'], str):
       RunInQuery = [res['Value']['RunNumbers']]
     else:
-      RunInQuery =res['Value']['RunNumbers'] 
+      RunInQuery =res['Value']['RunNumbers']
     if EndRun<int(RunInQuery[-1]):
       return S_ERROR("Cannot decrease the end run!")
     if str(EndRun) not in RunInQuery:
