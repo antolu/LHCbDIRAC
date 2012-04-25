@@ -39,12 +39,12 @@ Script.parseCommandLine ( ignoreErrors = True )
 args = Script.getPositionalArgs()
 switches = Script.getUnprocessedSwitches()
 
-if len( args )>2 or len( switches )!=1:
+if (len( args )>2 or len( switches )!=1):
   Script.showHelp()
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-if not args[0]=='h':
+if not switches[0] in ( 'e', 'end' ):
   prodId = int( args[0] )
   client = TransformationClient()
   try:
@@ -57,72 +57,83 @@ if not args[0]=='h':
 for switch in switches[0]:
   opt = switch.lower()
   if opt in ( 'e', 'end' ):
-    try:
-      runId = int( args[1] )
-    except ValueError:
+    if (len(args)!=2):
+      Script.showHelp()
+    else:  
+      try:
+        runId = int( args[1] )
+      except ValueError:
         print "EndRun not integer"
         DIRAC.exit(2)
-    if (bkDict.has_key("EndRun") and bkDict.has_key("StartRun")):
-      endRun = int(res['Value']['EndRun'])
-      res = client.convertBookkeepingQueryRunListTransformation(prodId)
-      res = client.setBookkeepingQueryEndRunForTransformation(prodId,runId)
-      if res['OK']:
-        print "End run of production %s is now %s" % ( str( prodId ), str( runId ) )
-      else:
-        print res['Message']
-    else:
-      runList =bkDict['RunNumbers']
-      if str(runId) not in runList:
-        res = client.setBookkeepingQueryEndRunForTransformation(prodId,runId)          
+      if (bkDict.has_key("EndRun") and bkDict.has_key("StartRun")):
+        endRun = int(res['Value']['EndRun'])
+        res = client.convertBookkeepingQueryRunListTransformation(prodId)
+        res = client.setBookkeepingQueryEndRunForTransformation(prodId,runId)
         if res['OK']:
           print "End run of production %s is now %s" % ( str( prodId ), str( runId ) )
         else:
           print res['Message']
       else:
-        print "Cannot descrease the EndRun for Production %s" % str( prodId ) 
+        runList =bkDict['RunNumbers']
+        if str(runId) not in runList:
+          res = client.setBookkeepingQueryEndRunForTransformation(prodId,runId)          
+          if res['OK']:
+            print "End run of production %s is now %s" % ( str( prodId ), str( runId ) )
+          else:
+            print res['Message']
   
   if opt in ( 'a', 'start' ):
-    try:
-      runId = int( args[1] )
-    except ValueError:
+    if (len(args)!=2):
+      Script.showHelp()
+    else:  
+      try:
+        runId = int( args[1] )
+      except ValueError:
         print "StartRun not integer"
         DIRAC.exit(2)
-    if (bkDict.has_key("EndRun") and bkDict.has_key("StartRun")):
-      res = client.convertBookkeepingQueryRunListTransformation(prodId)
-      res = client.setBookkeepingQueryStartRunForTransformation(prodId,runId)
-      if res['OK']:
-        print "Start run of production %s is now %s" % ( str( prodId ), str( runId ) )
-      else:
-        print res['Message']
-    else:
-      runList =bkDict['RunNumbers']
-      if str(runId) not in runList:
-        res = client.setBookkeepingQueryStartRunForTransformation(prodId,runId)          
+      if (bkDict.has_key("EndRun") and bkDict.has_key("StartRun")):
+        res = client.convertBookkeepingQueryRunListTransformation(prodId)
+        res = client.setBookkeepingQueryStartRunForTransformation(prodId,runId)
         if res['OK']:
           print "Start run of production %s is now %s" % ( str( prodId ), str( runId ) )
         else:
           print res['Message']
+      else:
+        runList =bkDict['RunNumbers']
+        if str(runId) not in runList:
+          res = client.setBookkeepingQueryStartRunForTransformation(prodId,runId)
+          print res          
+          if res['OK']:
+            print "Start run of production %s is now %s" % ( str( prodId ), str( runId ) )
+          else:
+            print res['Message']
 
-  if opt in ( 'p', 'add' ):    
-    runId = str( args[1] )
-    if (bkDict.has_key("EndRun") and bkDict.has_key("StartRun")):
-      res = client.convertBookkeepingQueryRunListTransformation(prodId)
-      res = client.addBookkeepingQueryRunListTransformation(prodId,runId)
-      if res['OK']:
-        print "Run list modified for production %s" % str( prodId )
+  if opt in ( 'p', 'add' ):
+    if (len(args)!=2):
+      Script.showHelp()
+    else:  
+      runId = str( args[1] )
+      if (bkDict.has_key("EndRun") and bkDict.has_key("StartRun")):
+        res = client.convertBookkeepingQueryRunListTransformation(prodId)
+        res = client.addBookkeepingQueryRunListTransformation(prodId,runId)
+        if res['OK']:
+          print "Run list modified for production %s" % str( prodId )
+        else:
+          print res['Message']
       else:
-        print res['Message']
-    else:
-      runList =bkDict['RunNumbers']
-      res = client.addBookkeepingQueryRunListTransformation(prodId,runId)          
-      if res['OK']:
-        print "Run list modified for production %s" % str( prodId )
-      else:
-        print res['Message']
+        runList =bkDict['RunNumbers']
+        res = client.addBookkeepingQueryRunListTransformation(prodId,runId)          
+        if res['OK']:
+          print "Run list modified for production %s" % str( prodId )
+        else:
+          print res['Message']
 
   if opt in ( 'l', 'list' ):
-    if bkDict.has_key('RunNumbers'):
-      print  bkDict['RunNumbers']   
-    else:
-      print "Start run of production %s is %s" % ( str( prodId ), bkDict['StartRun'] )
-      print "End run of production %s is %s" % ( str( prodId ), bkDict['EndRun'] )
+    if (len(args)!=1):
+      Script.showHelp()
+    else:  
+      if bkDict.has_key('RunNumbers'):
+        print  bkDict['RunNumbers']   
+      else:
+        print "Start run of production %s is %s" % ( str( prodId ), bkDict['StartRun'] )
+        print "End run of production %s is %s" % ( str( prodId ), bkDict['EndRun'] )
