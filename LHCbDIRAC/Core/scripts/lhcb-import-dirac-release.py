@@ -9,13 +9,12 @@
 """
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC import S_OK, gLogger
 from DIRAC.Core.Base      import Script
-from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.CFG import CFG
 from LHCbDIRAC.Core.Utilities import Distribution
 
-import sys, os, tempfile, shutil, getpass
+import sys, os, tempfile, shutil
 
 module = "DIRAC"
 release = ""
@@ -23,21 +22,25 @@ svnUsername = ""
 checkNew = True
 
 def setRelease( optionValue ):
+  """ set the release version """
   global release
   release = optionValue
   return S_OK()
 
 def setPackage( optionValue ):
+  """ set the package name """
   global svnPackages
   svnPackages = optionValue
   return S_OK()
 
 def setUsername( optionValue ):
+  """ set th eusername to access SVN"""
   global svnUsername
   svnUsername = optionValue
   return S_OK()
 
 def unsetCheckNew( optionValue ):
+  """ unset the value CheckNow """
   global checkNew
   checkNew = False
   return S_OK()
