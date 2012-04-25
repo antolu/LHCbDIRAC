@@ -27,7 +27,7 @@ def isBinaryDbg( cmtconfig ):
       bindbg = False
   else :
     if not cmtconfig.endswith( "_dbg" ) :
-        bindbg = False
+      bindbg = False
   return bindbg
 
 def isBinaryOpt( cmtconfig ):
@@ -44,9 +44,9 @@ def getBinaryDbg( cmtconfig ):
   if not isBinaryDbg( cmtconfig ) :
     if isNewStyleBinary( cmtconfig ) :
       if cmtconfig.endswith( "-opt" ) :
-          cmtdbg = "-".join( cmtconfig.split( "-" )[:-1] ) + "-dbg"
+        cmtdbg = "-".join( cmtconfig.split( "-" )[:-1] ) + "-dbg"
       else :
-          cmtdbg += "-dbg"
+        cmtdbg += "-dbg"
     else :
       cmtdbg += "_dbg"
   return cmtdbg
@@ -111,6 +111,7 @@ def getArchitecture( cmtconfig ):
   return architecture
 
 def getConfig( architecture, platformtype, compiler, debug = False ):
+  """ determine the Configuration according to system info """
   cmtconfig = None
   if platformtype.startswith( "win" ) :
     if compiler :
@@ -191,7 +192,7 @@ def pathBinaryMatch( path, cmtconfig ):
       selected = True
   return selected
 
-def pathSharedMatch( path, cmtconfig = None ):
+def pathSharedMatch( path ):
   """ select path with are not part of a binary distribution
   @param path: file/dir path to be tested
   @param cmtconfig: optional parameter to exclude specific files for a given cmtconfig
@@ -211,10 +212,11 @@ def pathMatch( path, cmtconfig, shared = False ):
   if not shared :
     selected = pathBinaryMatch( path, cmtconfig )
   else :
-    selected = pathSharedMatch( path, cmtconfig )
+    selected = pathSharedMatch( path )
   return selected
 
 def pathFilter( pathlist, cmtconfig, shared = False ):
+  """ return the path the filter"""
   return [ p for p in pathlist if pathMatch( p, cmtconfig, shared ) ]
 
 # supported shells
@@ -295,6 +297,7 @@ supported_compilers = {
                        "osx106" : ["gcc42"]
                        }
 class NativeMachine:
+  """ class of the Native machine """
   def __init__( self ):
     """
     constructor
@@ -354,6 +357,7 @@ class NativeMachine:
 
   # OS extraction
   def OSFlavour( self, teststring = None ):
+    """ return the OS found """
     if not self._osflavor or teststring:
       if self._ostype == "Windows" :
         self._osflavor = self._sysinfo[2]
@@ -469,6 +473,7 @@ class NativeMachine:
     return ncv
 
   def nativeCompiler( self ):
+    """ return the name of the compiler """
     if not self._compiler :
       if self._ostype == "Windows" :
         self._compiler = self.nativeCompilerVersion()
