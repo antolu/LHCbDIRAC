@@ -1,14 +1,15 @@
-""" Utilities to check the XML summary files  
+""" Utilities to check the XML summary files
 """
 
 __RCSID__ = "$Id$"
 
 import os
-from DIRAC import S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
 
 class XMLSummaryError( Exception ):
+  """ Define error for XML summary """
 
   def __init__( self, message = "" ):
 
@@ -22,13 +23,14 @@ class XMLSummaryError( Exception ):
 ################################################################################
 
 class XMLSummary:
+  """ XML summary class """
 
   def __init__( self, xmlFileName, log = None ):
     """ initialize a XML summary object, given a fileName, getting some relevant info
     """
 
     if not log:
-      from DIRAC import gLogger
+#      from DIRAC import gLogger
       self.log = gLogger.getSubLogger( 'XMLSummary' )
     else:
       self.log = log
@@ -105,9 +107,9 @@ class XMLSummary:
     """get the success
     """
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    successXML = sum.childrens( 'success' )
+    successXML = summary.childrens( 'success' )
     if len( successXML ) != 1:
       raise XMLSummaryError, 'XMLSummary bad formatted: Nr of success items != 1'
 
@@ -119,9 +121,9 @@ class XMLSummary:
     """Get the step
     """
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    stepXML = sum.childrens( 'step' )
+    stepXML = summary.childrens( 'step' )
     if len( stepXML ) != 1:
       raise XMLSummaryError, 'XMLSummary bad formatted: Nr of step items != 1'
 
@@ -133,9 +135,9 @@ class XMLSummary:
     """get the memory used
     """
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    statXML = sum.childrens( 'usage' )
+    statXML = summary.childrens( 'usage' )
     if len( statXML ) != 1:
       raise XMLSummaryError, 'XMLSummary bad formatted: Nr of step items != 1'
 
@@ -149,7 +151,7 @@ class XMLSummary:
     '''
       We know beforehand the structure of the XML, which makes our life
       easier.
-      
+
       < summary >
         ...
         < input >
@@ -158,12 +160,12 @@ class XMLSummary:
 
     files = []
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    for input in sum.childrens( 'input' ):
-      for file in input.childrens( 'file' ):
+    for input in summary.childrens( 'input' ):
+      for filename in input.childrens( 'file' ):
         try:
-          files.append( ( file.attributes[ 'name' ], file.attributes[ 'status' ] ) )
+          files.append( ( filename.attributes[ 'name' ], filename.attributes[ 'status' ] ) )
         except Exception:
           raise XMLSummaryError, 'Bad formatted file keys'
 
@@ -226,7 +228,7 @@ class XMLSummary:
     '''
       We know beforehand the structure of the XML, which makes our life
       easier.
-      
+
       < summary >
         ...
         < input >
@@ -236,9 +238,9 @@ class XMLSummary:
     inputEventsTotal = 0
     inputsEvents = {}
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    for output in sum.childrens( 'input' ):
+    for output in summary.childrens( 'input' ):
       for fileIn in output.childrens( 'file' ):
         inputEventsTotal += int( fileIn.value )
         inputsEvents[fileIn.attributes['name'].replace( 'LFN:', '' ).replace( 'PFN:', '' ).split( '/' ).pop()] = fileIn.value
@@ -251,7 +253,7 @@ class XMLSummary:
     '''
       We know beforehand the structure of the XML, which makes our life
       easier.
-      
+
       < summary >
         ...
         < output >
@@ -260,9 +262,9 @@ class XMLSummary:
 
     files = []
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    for output in sum.childrens( 'output' ):
+    for output in summary.childrens( 'output' ):
       for fileIn in output.childrens( 'file' ):
         try:
           files.append( ( fileIn.attributes[ 'name' ], fileIn.attributes[ 'status' ] ) )
@@ -277,7 +279,7 @@ class XMLSummary:
     '''
       We know beforehand the structure of the XML, which makes our life
       easier.
-      
+
       < summary >
         ...
         < output >
@@ -287,9 +289,9 @@ class XMLSummary:
     outputEventsTotal = 0
     outputsEvents = {}
 
-    sum = self.xmlTree[ 0 ]
+    summary = self.xmlTree[ 0 ]
 
-    for output in sum.childrens( 'output' ):
+    for output in summary.childrens( 'output' ):
       for fileIn in output.childrens( 'file' ):
         outputEventsTotal += int( fileIn.value )
         outputsEvents[fileIn.attributes['name'].replace( 'LFN:', '' ).replace( 'PFN:', '' ).split( '/' ).pop()] = fileIn.value
@@ -317,28 +319,28 @@ class XMLSummary:
                    'other' : 0
                    }
 
-    for file, status in res:
+    for filename, status in res:
 
       if status == 'fail':
-        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Output File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
-        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Output File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
-        self.log.error( 'Output File %s is on status %s.' % ( file, status ) )
+        self.log.error( 'Output File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
         #If it is Ok, we do not print anything
-        #self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        #self.log.error( 'File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'full' ] += 1
 
       # This should never happen, but just in case
       else:
-        self.log.error( 'Output File %s is on unknown status: %s' % ( file, status ) )
+        self.log.error( 'Output File %s is on unknown status: %s' % ( filename, status ) )
         fileCounter[ 'other'] += 1
 
     files = [ '%d output file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
