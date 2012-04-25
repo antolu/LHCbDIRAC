@@ -26,23 +26,23 @@ from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClie
 from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
 from DIRAC                                                   import gConfig
 
-import string
-
 diracAdmin = DiracAdmin()
 modifiedCS = False
 mailadress = 'lhcb-sam@cern.ch'
 
 def usage():
+  """ help function """
   print 'Usage: %s <NAME> <VERSION>' % ( Script.scriptName )
   DIRAC.exit( 2 )
 
 def changeCS( path, val ):
+  """ update the CS with the given values """
   val.sort()
-  result = diracAdmin.csModifyValue( path, string.join( val, ', ' ) )
-  print result
-  if not result['OK']:
+  changeresult = diracAdmin.csModifyValue( path, str.join( val, ', ' ) )
+  print changeresult
+  if not changeresult['OK']:
     print "Cannot modify value of %s" % path
-    print result['Message']
+    print changeresult['Message']
     DIRAC.exit( 255 )
 
 if len( args ) < 2:
@@ -132,7 +132,7 @@ if modifiedCS:
     res = diracAdmin.sendMail( mailadress, subject, msg )
 
     if not res[ 'OK' ]:
-        print 'The mail could not be sent'
+      print 'The mail could not be sent'
 else:
   print 'No modifications to CS required'
 
