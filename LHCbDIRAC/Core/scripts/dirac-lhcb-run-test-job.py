@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+"""  run an LHCb test job
+"""
 __RCSID__ = "$Id$"
 
-import string, os, shutil
+import os, shutil
 
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -52,6 +54,7 @@ exitCode = 0
 #Methods to help with the script execution
 
 def usage():
+  """ help function """
   print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
   DIRAC.exit( 2 )
 
@@ -98,7 +101,7 @@ def runJob( projectName, projectVersion, optionsFile, systemConfig, submissionMo
     fopen.write( 'j.setApplication("%s","%s","%s")\n' % ( projectName, projectVersion, optionsFile ) )
     j.setApplication( projectName, projectVersion, optionsFile )
   else:
-    fopen.write( 'j.setApplication("%s","%s","%s",inputData=["%s"])\n' % ( projectName, projectVersion, optionsFile, string.join( inputDatasets, '","' ) ) )
+    fopen.write( 'j.setApplication("%s","%s","%s",inputData=["%s"])\n' % ( projectName, projectVersion, optionsFile, str.join( inputDatasets, '","' ) ) )
     j.setApplication( projectName, projectVersion, optionsFile, inputData = inputDatasets )
   fopen.write( 'j.setName("%s")\n' % jobName )
   j.setName( jobName )
@@ -144,13 +147,14 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower() in ( 'g', 'generate' ):
     generate = True
   elif switch[0].lower() in ( 'i', 'inputdata' ):
-    id = str( switch[1] ).split( ';' )
-    for i in id:
-      if i: inputDatasets.append( i )
+    userid = str( switch[1] ).split( ';' )
+    for i in userid:
+      if i:
+        inputDatasets.append( i )
 
 if not projectName in lhcbConvention.keys():
   exitCode = 2
-  print 'ERROR: Project name must be one of %s not %s' % ( string.join( lhcbConvention.keys(), ',' ), projectName )
+  print 'ERROR: Project name must be one of %s not %s' % ( str.join( lhcbConvention.keys(), ',' ), projectName )
 
 if not submissionMode.lower() in ['local', 'agent', 'wms']:
   exitCode = 2
