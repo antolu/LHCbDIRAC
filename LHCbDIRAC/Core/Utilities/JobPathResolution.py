@@ -22,8 +22,8 @@ from DIRAC                                                 import S_OK, S_ERROR,
 COMPONENT_NAME = 'LHCbJobPathResolution'
 
 class JobPathResolution:
+  """ Main class for JobPathResolution """
 
-  #############################################################################
   def __init__( self, argumentsDict ):
     """ Standard constructor
     """
@@ -31,7 +31,6 @@ class JobPathResolution:
     self.name = COMPONENT_NAME
     self.log = gLogger.getSubLogger( self.name )
 
-  #############################################################################
   def execute( self ):
     """Given the arguments from the JobPathAgent, this function resolves job optimizer
        paths according to LHCb VO policy.
