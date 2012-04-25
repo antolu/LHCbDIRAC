@@ -138,13 +138,20 @@ class TableCell ( object ):
   def __str__( self ):
     """return the HTML code for the table cell as a string"""
     attribs_str = ""
-    if self.bgcolor: self.attribs['bgcolor'] = self.bgcolor
-    if self.width:   self.attribs['width'] = self.width
-    if self.align:   self.attribs['align'] = self.align
-    if self.char:    self.attribs['char'] = self.char
-    if self.charoff: self.attribs['charoff'] = self.charoff
-    if self.valign:  self.attribs['valign'] = self.valign
-    if self.style:   self.attribs['style'] = self.style
+    if self.bgcolor:
+      self.attribs['bgcolor'] = self.bgcolor
+    if self.width:
+      self.attribs['width'] = self.width
+    if self.align:
+      self.attribs['align'] = self.align
+    if self.char:
+      self.attribs['char'] = self.char
+    if self.charoff:
+      self.attribs['charoff'] = self.charoff
+    if self.valign:
+      self.attribs['valign'] = self.valign
+    if self.style:
+      self.attribs['style'] = self.style
     for attr in self.attribs:
       attribs_str += ' %s="%s"' % ( attr, self.attribs[attr] )
     if self.text:
@@ -193,7 +200,8 @@ class TableRow ( object ):
   def __str__( self ):
     """return the HTML code for the table row as a string"""
     attribs_str = ""
-    if self.bgcolor: self.attribs['bgcolor'] = self.bgcolor
+    if self.bgcolor:
+      self.attribs['bgcolor'] = self.bgcolor
     for attr in self.attribs:
       attribs_str += ' %s="%s"' % ( attr, self.attribs[attr] )
     result = ' <TR%s>\n' % attribs_str
@@ -271,11 +279,16 @@ class Table ( object ):
   def __str__( self ):
     """return the HTML code for the table as a string"""
     attribs_str = ""
-    if self.border: self.attribs['border'] = self.border
-    if self.style:  self.attribs['style'] = self.style
-    if self.width:  self.attribs['width'] = self.width
-    if self.cellspacing:  self.attribs['cellspacing'] = self.cellspacing
-    if self.cellpadding:  self.attribs['cellpadding'] = self.cellpadding
+    if self.border:
+      self.attribs['border'] = self.border
+    if self.style:
+      self.attribs['style'] = self.style
+    if self.width:
+      self.attribs['width'] = self.width
+    if self.cellspacing:
+      self.attribs['cellspacing'] = self.cellspacing
+    if self.cellpadding:
+      self.attribs['cellpadding'] = self.cellpadding
     for attr in self.attribs:
       attribs_str += ' %s="%s"' % ( attr, self.attribs[attr] )
     result = '<TABLE%s>\n' % attribs_str
@@ -355,7 +368,7 @@ class List ( object ):
     if lines:
       self.lines = lines
     else:
-        elf.lines = []
+      self.lines = []
     self.ordered = ordered
     self.start = start
     if attribs:
@@ -366,7 +379,8 @@ class List ( object ):
   def __str__( self ):
     """return the HTML code for the list as a string"""
     attribs_str = ""
-    if self.start:  self.attribs['start'] = self.start
+    if self.start:
+      self.attribs['start'] = self.start
     for attr in self.attribs:
       attribs_str += ' %s="%s"' % ( attr, self.attribs[attr] )
     if self.ordered:
@@ -414,17 +428,19 @@ class List ( object ):
 
 # much simpler definition of a link as a function:
 def Link( text, url ):
+  """ create an reference link """
   return '<a href="%s">%s</a>' % ( url, text )
 
 def link( text, url ):
+  """ create an reference link """
   return '<a href="%s">%s</a>' % ( url, text )
 
 def table( *args, **kwargs ):
-  'return HTML code for a table as a string. See Table class for parameters.'
+  """ return HTML code for a table as a string. See Table class for parameters."""
   return str( Table( *args, **kwargs ) )
 
 def list( *args, **kwargs ):
-  'return HTML code for a list as a string. See List class for parameters.'
+  """ return HTML code for a list as a string. See List class for parameters."""
   return str( List( *args, **kwargs ) )
 
 
