@@ -1,12 +1,12 @@
 #! /usr/bin/env python
-import os, sys
 ########################################################################
 # $HeadURL$
 # File :    dirac-lhcb-job-logging-check
 # Author :  Greig A Cowan
 ########################################################################
+""" check the logging info of a job """
 __RCSID__ = "$Id$"
-import sys, string, pprint
+
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -22,7 +22,6 @@ Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
 from DIRAC.Core.Utilities.List import sortList
 args = Script.getPositionalArgs()
 
@@ -36,11 +35,12 @@ date = None
 verbose = False
 
 def usage():
+  """ help function """
   print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
   DIRAC.exit( 2 )
 
 def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac ):
-  '''Gets information about jobs from the WMS'''
+  """Gets information about jobs from the WMS"""
   # getJobStates
   result_wms = dirac.selectJobs( Status = wmsStatus,
                                  MinorStatus = minorStatus,
@@ -61,11 +61,13 @@ def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, da
   return jobIDs
 
 def getAttributes( jobID ):
+  """ get the attributes of the JOB """
   result = dirac.attributes( jobID, printOutput = False )
   if result['OK']:
     return result['Value']['Owner']
 
 def getLogging( jobID ):
+  """ get the logging info of the JOB """
   result = dirac.loggingInfo( jobID, printOutput = False )
   if result['OK']:
     try:
@@ -85,6 +87,7 @@ def getLogging( jobID ):
 
 
 def getParameters( jobID ):
+  """ get the parameters of the JOB """
   result = dirac.parameters( jobID, printOutput = False )
   if result['OK']:
     try:
