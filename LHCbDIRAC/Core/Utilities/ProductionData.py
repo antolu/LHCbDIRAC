@@ -1,15 +1,15 @@
 """ Utility to construct production LFNs from workflow parameters
     according to LHCb conventions.
-    
-    The methods here are mostly from ancient history and need to be 
+
+    The methods here are mostly from ancient history and need to be
     reviewed, these methods were grouped together as they form the
     "interface" for production clients and workflow modules to create LFNs.
-    
+
 """
 
 __RCSID__ = "$Id$"
 
-import string, re, os, types, datetime, copy
+import re, os, types, datetime, copy
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
@@ -51,7 +51,7 @@ def constructProductionLFNs( paramDict, bkClient = None ):
         fileName[index] = str( productionID ).zfill( 8 )
       if not fileName[index + 1] == str( jobID ).zfill( 8 ):
         fileName[index + 1] = str( jobID ).zfill( 8 )
-      fileTupleList.append( ( string.join( fileName, '_' ), info['outputDataType'] ) )
+      fileTupleList.append( ( str.join( fileName, '_' ), info['outputDataType'] ) )
 
     #Strip output data according to file mask
     fileTupleListMasked = _applyMask( wfMask, fileTupleList )
@@ -110,13 +110,13 @@ def constructProductionLFNs( paramDict, bkClient = None ):
     if not outputData:
       gLogger.info( 'No output data LFN(s) constructed' )
     else:
-      gLogger.verbose( 'Created the following output data LFN(s):\n%s' % ( string.join( outputData, '\n' ) ) )
+      gLogger.verbose( 'Created the following output data LFN(s):\n%s' % ( str.join( outputData, '\n' ) ) )
     gLogger.verbose( 'Log file path is:\n%s' % logFilePath[0] )
     gLogger.verbose( 'Log target path is:\n%s' % logTargetPath[0] )
     if bkLFNs:
-      gLogger.verbose( 'BookkeepingLFN(s) are:\n%s' % ( string.join( bkLFNs, '\n' ) ) )
+      gLogger.verbose( 'BookkeepingLFN(s) are:\n%s' % ( str.join( bkLFNs, '\n' ) ) )
     if debugLFNs:
-      gLogger.verbose( 'DebugLFN(s) are:\n%s' % ( string.join( debugLFNs, '\n' ) ) )
+      gLogger.verbose( 'DebugLFN(s) are:\n%s' % ( str.join( debugLFNs, '\n' ) ) )
     jobOutputs = {'ProductionOutputData':outputData, 'LogFilePath':logFilePath, 'LogTargetPath':logTargetPath, 'BookkeepingLFNs':bkLFNs, 'DebugLFNs':debugLFNs}
     return S_OK( jobOutputs )
 
@@ -126,6 +126,7 @@ def constructProductionLFNs( paramDict, bkClient = None ):
 #############################################################################
 
 def _applyMask( mask, dataTuplesList ):
+  """ apply the MASK to the dataset"""
 
   maskedData = copy.deepcopy( dataTuplesList )
 
@@ -182,38 +183,38 @@ def getLogPath( paramDict, bkClient = None ):
 def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
   """ This method is used to supplant the standard job wrapper output data policy
       for LHCb.  The initial convention adopted for user output files is the following:
-      
+
       /lhcb/user/<initial e.g. p>/<owner e.g. paterson>/<outputPath>/<yearMonth e.g. 2010_02>/<subdir>/<fileName>
   """
   try:
     initial = owner[:1]
     subdir = str( jobID / 1000 )
     timeTup = datetime.date.today().timetuple()
-    yearMonth = '%s_%s' % ( timeTup[0], string.zfill( str( timeTup[1] ), 2 ) )
+    yearMonth = '%s_%s' % ( timeTup[0], str.zfill( str( timeTup[1] ), 2 ) )
     outputLFNs = {}
 
     #Strip out any leading or trailing slashes but allow fine structure
     if outputPath:
-      outputPathList = string.split( outputPath, os.sep )
+      outputPathList = str.split( outputPath, os.sep )
       newPath = []
       for i in outputPathList:
         if i:
           newPath.append( i )
-      outputPath = string.join( newPath, os.sep )
+      outputPath = str.join( newPath, os.sep )
 
     if not type( outputFiles ) == types.ListType:
       outputFiles = [outputFiles]
 
     for outputFile in outputFiles:
       #strip out any fine structure in the output file specified by the user, restrict to output file names
-      #the output path field can be used to describe this    
+      #the output path field can be used to describe this
       outputFile = outputFile.replace( 'LFN:', '' )
       lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPath, yearMonth, subdir, str( jobID ) ) + os.sep + os.path.basename( outputFile )
       outputLFNs[outputFile] = lfn
 
     outputData = outputLFNs.values()
     if outputData:
-      gLogger.info( 'Created the following output data LFN(s):\n%s' % ( string.join( outputData, '\n' ) ) )
+      gLogger.info( 'Created the following output data LFN(s):\n%s' % ( str.join( outputData, '\n' ) ) )
     else:
       gLogger.info( 'No output LFN(s) constructed' )
 
@@ -225,8 +226,8 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
 
 def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2' ):
   """ Constructs LFNs to be added to the job description prior to submission
-      or simply for visual inspection. 
-      
+      or simply for visual inspection.
+
       This is a wrapper around constructProductionLFNs used by the production
       clients.
   """
@@ -258,8 +259,8 @@ def _makeProductionPath( JOB_ID, LFN_ROOT, typeName, mode, prodstring, log = Fal
   if log:
     try:
       jobid = int( JOB_ID )
-      jobindex = string.zfill( jobid / 10000, 4 )
-    except:
+      jobindex = str.zfill( jobid / 10000, 4 )
+    except Exception:
       jobindex = '0000'
     result += jobindex
 
@@ -276,8 +277,8 @@ def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, prodstring ):
                                                                                                str( filetuple ) ) )
   try:
     jobid = int( JOB_ID )
-    jobindex = string.zfill( jobid / 10000, 4 )
-  except:
+    jobindex = str.zfill( jobid / 10000, 4 )
+  except Exception:
     jobindex = '0000'
 
   fname = filetuple[0]
@@ -303,7 +304,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None ):
   if not dataTypes['OK']:
     raise Exception, dataTypes['Message']
   dataTypes = [x[0] for x in dataTypes['Value']['Records']]
-  gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( string.join( dataTypes, ', ' ) ) )
+  gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( str.join( dataTypes, ', ' ) ) )
   LFN_ROOT = ''
   gLogger.verbose( 'wf lfn: %s, namespace: %s, configVersion: %s' % ( lfn, namespace, configVersion ) )
   if not lfn:
@@ -329,7 +330,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None ):
     else:
       tmpLfnRoot[-1] = namespace
 
-    LFN_ROOT = string.join( tmpLfnRoot, os.path.sep )
+    LFN_ROOT = str.join( tmpLfnRoot, os.path.sep )
 
   return LFN_ROOT
 
