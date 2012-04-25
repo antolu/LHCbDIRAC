@@ -4,6 +4,7 @@
     Instructions can be found at
     http://lhcb-release-area.web.cern.ch/LHCb-release-area/DOC/lhcbdirac/rst/html/DevsGuide/DevsGuide.html#developers-installations
 """
+__RCSID__ = "$Id"
 
 import DIRAC
 from DIRAC.Core.Base import Script
