@@ -1,5 +1,7 @@
 #! /usr/bin/env python
-
+"""
+script to get the GUID of a ROOT file
+"""
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base                                      import Script
@@ -17,6 +19,7 @@ if not localFiles:
   gLogger.info( "Try dirac-lhcb-get-root-guid --help for options" )
   DIRAC.exit( 0 )
 existFiles = []
+
 for localFile in localFiles:
   if os.path.exists( localFile ):
     existFiles.append( os.path.realpath( localFile ) )
@@ -27,9 +30,9 @@ if not res['OK']:
   gLogger.error( "Failed to obtain file GUIDs", res['Message'] )
   DIRAC.exit( -1 )
 fileGUIDs = res['Value']
-for file in sortList( fileGUIDs.keys() ):
+for filename in sortList( fileGUIDs.keys() ):
   if fileGUIDs[file]:
-    gLogger.info( "%s GUID: %s" % ( file, fileGUIDs[file] ) )
+    gLogger.info( "%s GUID: %s" % ( filename, fileGUIDs[filename] ) )
   else:
-    gLogger.info( "%s GUID: Failed to get GUID" % file )
+    gLogger.info( "%s GUID: Failed to get GUID" % filename )
 DIRAC.exit( 0 )
