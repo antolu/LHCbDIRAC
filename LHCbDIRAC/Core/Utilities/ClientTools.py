@@ -9,7 +9,7 @@
 
 __RCSID__ = "$Id$"
 
-import string, re, os, shutil, types, tempfile
+import re, os, shutil, types, tempfile
 
 import DIRAC
 
@@ -64,7 +64,7 @@ def packageInputs( appName, appVersion, optionsFiles = [], destinationDir = '', 
 
   systemConfig = localEnv['CMTCONFIG']
   userArea = ''
-  for path in string.split( localEnv['CMTPROJECTPATH'], ':' ):
+  for path in str.split( localEnv['CMTPROJECTPATH'], ':' ):
     if re.search( 'cmtuser', path ):
       userArea = path
 
@@ -99,7 +99,7 @@ def packageInputs( appName, appVersion, optionsFiles = [], destinationDir = '', 
 def _getOptsFiles( appName, appVersion, optionsFiles, destinationDir ):
   """Set up project environment and expand options.
   """
-  gLogger.verbose( 'Options files to locate are: %s' % string.join( optionsFiles, ', ' ) )
+  gLogger.verbose( 'Options files to locate are: %s' % str.join( optionsFiles, ', ' ) )
   ret = __setupProjectEnvironment( appName, version = appVersion )
   if not ret['OK']:
     gLogger.warn( 'Error during SetupProject\n%s' % ret )
@@ -115,12 +115,12 @@ def _getOptsFiles( appName, appVersion, optionsFiles, destinationDir ):
   for n, v in appEnv.items():
     for optFile in toInclude:
       if re.search( '\$%s' % n, optFile ):
-        toCheck.append( string.replace( optFile, '$%s' % n, v ) )
+        toCheck.append( str.replace( optFile, '$%s' % n, v ) )
 
 #  if toInclude:
 #    gLogger.verbose('Options files are: %s' %(string.join(toInclude,'\n')))
   if toCheck:
-    gLogger.verbose( 'Environment expanded options files are: %s' % ( string.join( toCheck, '\n' ) ) )
+    gLogger.verbose( 'Environment expanded options files are: %s' % ( str.join( toCheck, '\n' ) ) )
 
   if not len( toCheck ) == len( optionsFiles ):
     gLogger.warn( 'Could not account for all options files' )
@@ -132,7 +132,7 @@ def _getOptsFiles( appName, appVersion, optionsFiles, destinationDir ):
 #      shutil.copy(optFile,'%s/%s' %(destinationDir,os.path.basename(optFile)))
 
   if missing:
-    gLogger.error( 'The following options files could not be found:\n%s' % ( string.join( missing, '\n' ) ) )
+    gLogger.error( 'The following options files could not be found:\n%s' % ( str.join( missing, '\n' ) ) )
     return S_ERROR( missing )
 
 
@@ -151,7 +151,7 @@ def _getOptsFiles( appName, appVersion, optionsFiles, destinationDir ):
     cmdTuple.append( i )
 #  cmdTuple.append('>!')
 #  cmdTuple.append(newOptsName)
-  gLogger.verbose( 'Commmand is: %s' % ( string.join( cmdTuple, ' ' ) ) )
+  gLogger.verbose( 'Commmand is: %s' % ( str.join( cmdTuple, ' ' ) ) )
   ret = DIRAC.systemCall( 1800, cmdTuple, env = appEnv, callbackFunction = log )
   if not ret['OK']:
     gLogger.error( 'Problem during gaudirun.py call\n%s' % ret )
@@ -316,6 +316,7 @@ def getRootFileGUID( fileName, cleanUp = True ):
 
 #############################################################################
 def _getROOTGUID( rootFile, rootEnv, cleanUp = True ):
+  """ function to get the GUID of the ROOT file """
   # Write the script to be executed
   fopen = open( 'tmpRootScript.py', 'w' )
   fopen.write( 'from ROOT import TFile\n' )
@@ -350,6 +351,7 @@ def _getROOTGUID( rootFile, rootEnv, cleanUp = True ):
 
 #############################################################################
 def mergeRootFiles( outputFile, inputFiles, daVinciVersion = '', cleanUp = True ):
+  """ merge several ROOT files """
   # Setup the root enviroment
   res = __setupProjectEnvironment( 'DaVinci', version = daVinciVersion )
   if not res['OK']:
@@ -358,9 +360,9 @@ def mergeRootFiles( outputFile, inputFiles, daVinciVersion = '', cleanUp = True 
   # Perform the merging
   lists = breakListIntoChunks( inputFiles, 20 )
   tempFiles = []
-  for list in lists:
+  for filelist in lists:
     tempOutputFile = tempfile.mktemp()
-    res = _mergeRootFiles( tempOutputFile, list, rootEnv )
+    res = _mergeRootFiles( tempOutputFile, filelist, rootEnv )
     if not res['OK']:
       return _errorReport( res['Message'], "Failed to perform ROOT merger" )
     tempFiles.append( tempOutputFile )
@@ -368,16 +370,17 @@ def mergeRootFiles( outputFile, inputFiles, daVinciVersion = '', cleanUp = True 
   if not res['OK']:
     return _errorReport( res['Message'], "Failed to perform final ROOT merger" )
   if cleanUp:
-    for file in tempFiles:
-      if os.path.exists( file ):
-        os.remove( file )
+    for filename in tempFiles:
+      if os.path.exists( filename ):
+        os.remove( filename )
   return S_OK( outputFile )
 
 #############################################################################
 def _mergeRootFiles( outputFile, inputFiles, rootEnv ):
+  """ Merge ROOT files """
   cmd = "hadd -f %s" % outputFile
-  for file in inputFiles:
-    cmd = "%s %s" % ( cmd, file )
+  for filename in inputFiles:
+    cmd = "%s %s" % ( cmd, filename )
   res = DIRAC.shellCall( 1800, cmd, env = rootEnv )
   if not res['OK']:
     return res
@@ -420,10 +423,14 @@ def parseGaudiCard( datacard ):
   lfns = []
   for line in inputFile:
     l = line.lstrip()
-    if l[0:1] == "#" : continue
-    if l[0:3] == "from" : continue
-    if l.find( "EventSelector" ) > -1:continue
-    if l.rfind( "DATAFILE" ) == -1: continue
+    if l[0:1] == "#" :
+      continue
+    if l[0:3] == "from" :
+      continue
+    if l.find( "EventSelector" ) > -1:
+      continue
+    if l.rfind( "DATAFILE" ) == -1:
+      continue
     wds = l.split( "'" )
     lfn = wds[1].lstrip( "LFN:" )
     lfns.append( lfn )
