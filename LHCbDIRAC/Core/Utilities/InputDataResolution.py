@@ -21,7 +21,7 @@ from DIRAC                                                          import S_OK,
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 
-import string, types
+import types
 
 COMPONENT_NAME = 'LHCbInputDataResolution'
 
@@ -62,7 +62,7 @@ class InputDataResolution:
     if result.has_key( 'Failed' ):
       failedReplicas = result['Failed']
       if failedReplicas and not ignoreMissing:
-        self.log.error( 'Failed to obtain access to the following files:\n%s' % ( string.join( failedReplicas, '\n' ) ) )
+        self.log.error( 'Failed to obtain access to the following files:\n%s' % ( str.join( failedReplicas, '\n' ) ) )
         return S_ERROR( 'Failed to access all of requested input data' )
 
     if not result.has_key( 'Successful' ):
@@ -151,7 +151,7 @@ class InputDataResolution:
       #In principle this can be a list of modules with the first taking precedence
       if type( policy ) in types.StringTypes:
         policy = [policy]
-      self.log.info( 'Job has a specific policy setting: %s' % ( string.join( policy, ', ' ) ) )
+      self.log.info( 'Job has a specific policy setting: %s' % ( str.join( policy, ', ' ) ) )
     else:
       self.log.verbose( 'Attempting to resolve input data policy for site %s' % site )
       inputDataPolicy = gConfig.getOptionsDict( '/Operations/InputDataPolicy' )
@@ -161,12 +161,12 @@ class InputDataResolution:
       options = inputDataPolicy['Value']
       if options.has_key( site ):
         policy = options[site]
-        policy = [x.strip() for x in string.split( policy, ',' )]
-        self.log.info( 'Found specific input data policy for site %s:\n%s' % ( site, string.join( policy, ',\n' ) ) )
+        policy = [x.strip() for x in str.split( policy, ',' )]
+        self.log.info( 'Found specific input data policy for site %s:\n%s' % ( site, str.join( policy, ',\n' ) ) )
       elif options.has_key( 'Default' ):
         policy = options['Default']
-        policy = [x.strip() for x in string.split( policy, ',' )]
-        self.log.info( 'Applying default input data policy for site %s:\n%s' % ( site, string.join( policy, ',\n' ) ) )
+        policy = [x.strip() for x in str.split( policy, ',' )]
+        self.log.info( 'Applying default input data policy for site %s:\n%s' % ( site, str.join( policy, ',\n' ) ) )
 
     dataToResolve = None #if none, all supplied input data is resolved
     allDataResolved = False
@@ -183,7 +183,7 @@ class InputDataResolution:
           failedReplicas = result['Failed']
 
         if failedReplicas:
-          self.log.info( '%s failed for the following files:\n%s' % ( modulePath, string.join( failedReplicas, '\n' ) ) )
+          self.log.info( '%s failed for the following files:\n%s' % ( modulePath, str.join( failedReplicas, '\n' ) ) )
           dataToResolve = failedReplicas
         else:
           self.log.info( 'All replicas resolved after %s execution' % ( modulePath ) )
