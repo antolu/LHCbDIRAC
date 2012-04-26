@@ -3,13 +3,13 @@
 ########################################################################
 """ Production environment is a utility to neatly wrap all LHCb production
     environment settings.  This includes all calls to set up the environment
-    or run projects via wrapper scripts. The methods here are intended for 
+    or run projects via wrapper scripts. The methods here are intended for
     use by workflow modules or client tools.
 """
 
 __RCSID__ = "$Id$"
 
-import string, re, os, shutil
+import re, os, shutil
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -37,7 +37,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
                            runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '', generatorName = '',
                            poolXMLCatalogName = defaultCatalogName, env = None ):
   """ This function uses all below methods to get the complete project environment
-      thus ensuring consistent behaviour from all modules.  The environment is 
+      thus ensuring consistent behaviour from all modules.  The environment is
       returned as a dictionary and can be passed directly to a shellCall as well
       as saved to a debug script.
   """
@@ -69,7 +69,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
 
-  #This is a really awful horrible horrible hack that we are forced to add in 
+  #This is a really awful horrible horrible hack that we are forced to add in
   #order to bypass CORAL / LFC interactions.
   if environment.has_key( 'APPCONFIGROOT' ):
     gLogger.verbose( 'APPCONFIGROOT found, will obtain XML files to disable CORAL LFC Access (even if this is unnecessary...)' )
@@ -88,13 +88,13 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
 #############################################################################
 def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', coreDumpLog = 'Step' ):
-  """ Wrap the actual execution command with some defaults that are useful for 
-      debugging. This is always executed by a shellCall so can use standard 
-      commands. 
+  """ Wrap the actual execution command with some defaults that are useful for
+      debugging. This is always executed by a shellCall so can use standard
+      commands.
   """
   #First some preamble
   cmdList = []
-  cmdSep = 'echo "%s"' % ( '='*50 )
+  cmdSep = 'echo "%s"' % ( '=' * 50 )
   cmdList.append( cmdSep )
   cmdList.append( 'echo "Log file from execution of: %s"' % ( command ) )
   for variable in ['LD_LIBRARY_PATH', 'PYTHONPATH', 'PATH']:
@@ -117,7 +117,7 @@ def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', c
   cmdList.append( 'EOF' )
   cmdList.append( 'fi' )
   cmdList.append( 'exit $appstatus' )
-  return S_OK( string.join( cmdList, ';' ) )
+  return S_OK( str.join( cmdList, ';' ) )
 
 #############################################################################
 def createDebugScript( name, command, env = None, postExecution = '', envLogFile = 'localEnv.log', coreDumpLog = 'Step' ):
@@ -134,11 +134,11 @@ def createDebugScript( name, command, env = None, postExecution = '', envLogFile
   script = []
   msg = '# Dynamically generated script to reproduce execution environment.'
   script.append( '#!/bin/sh' )
-  script.append( '#'*len( msg ) )
+  script.append( '#' * len( msg ) )
   script.append( msg )
-  script.append( '#'*len( msg ) )
+  script.append( '#' * len( msg ) )
   script.append( '# %s' % ( version ) )
-  script.append( '#'*len( msg ) + '\n' )
+  script.append( '#' * len( msg ) + '\n' )
 
   for var in env:
     script.append( 'export %s="%s"' % ( var, env[var] ) )
@@ -148,7 +148,7 @@ def createDebugScript( name, command, env = None, postExecution = '', envLogFile
     script.append( '%s' % ( cmd ) )
 
   fopen = open( name, 'w' )
-  fopen.write( '%s\n' % ( string.join( script, '\n' ) ) )
+  fopen.write( '%s\n' % ( str.join( script, '\n' ) ) )
   fopen.close()
   os.chmod( name, 0755 )
   return S_OK( name )
@@ -167,11 +167,11 @@ def runEnvironmentScripts( commandsList, env = None ):
   names = []
   for command in commandsList:
     gLogger.info( 'Attempting to run: %s' % ( command ) )
-    name = os.path.basename( string.split( command, ' ' )[0] )
+    name = os.path.basename( str.split( command, ' ' )[0] )
     names.append( name )
     #very annoying sourceEnv feature, implies .sh will be added for you so have to remove it!
     exeCommand = command.replace( groupLogin, groupLogin[:-3] ).replace( projectEnv, projectEnv[:-3] )
-    exeCommand = string.split( exeCommand, ' ' )
+    exeCommand = str.split( exeCommand, ' ' )
     result = sourceEnv( timeout, exeCommand, env )
     if not result['OK']:
       gLogger.error( 'Problem executing %s: %s' % ( command, result['Message'] ) )
@@ -183,14 +183,14 @@ def runEnvironmentScripts( commandsList, env = None ):
 
     env = result['outputEnv']
 
-  gLogger.info( '%s were executed successfully' % ( string.join( names, ', ' ) ) )
+  gLogger.info( '%s were executed successfully' % ( str.join( names, ', ' ) ) )
   return S_OK( env )
 
 #############################################################################
 def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, systemConfig, directory = '',
                            poolXMLCatalogName = defaultCatalogName, env = None ):
   """ Sets default environment variables for project execution, will use the
-      environment passed or the current os.environ if not provided.  The 
+      environment passed or the current os.environ if not provided.  The
       current working directory is assumed if not provided.
   """
   if not env:
@@ -269,10 +269,11 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
     if not os.path.exists( os.path.join( package, 'cmt' ) ):
       os.mkdir( os.path.join( package, 'cmt' ) )
 
-    if os.path.exists( os.path.join( package, 'cmt', 'project.cmt' ) ): os.remove( os.path.join( package, 'cmt', 'project.cmt' ) )
+    if os.path.exists( os.path.join( package, 'cmt', 'project.cmt' ) ):
+      os.remove( os.path.join( package, 'cmt', 'project.cmt' ) )
 
     fopen = open( os.path.join( package, 'cmt', 'project.cmt' ), 'w' )
-    fopen.write( 'use %s %s_%s' % ( string.upper( applicationName ), string.upper( applicationName ), string.upper( applicationVersion ) ) )
+    fopen.write( 'use %s %s_%s' % ( str.upper( applicationName ), str.upper( applicationName ), str.upper( applicationVersion ) ) )
     fopen.close()
     shutil.copy( os.path.join( directory, 'lib', 'requirements' ), os.path.join( package, 'cmttemp', 'v1', 'cmt' ) )
 
@@ -281,21 +282,21 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
 #############################################################################
 def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], generatorName = '', site = '',
                        runTimeProject = '', runTimeProjectVersion = '', additional = '', directory = '' ):
-  """ Returns (without executing) the SetupProject command line string and requires 
+  """ Returns (without executing) the SetupProject command line string and requires
       the following arguments:
-      
+
       - location - full path to SetupProject.sh e.g. output of getScriptsLocation()
       - applicationName
       - applicationVersion
-      
+
       optionally with the following additional arguments:
-      
+
       - extraPackages - i.e. a list of [<name>.<version>] strings which are expressed as --use "<name> version>"
       - generatorName - expressed as --tag_add=<generatorName>
       - site - will default to the current site name but can be specified, governs the externals policy
       - runTimeProject - i.e. --runtime-project <runTimeProject>
       - additional - add additional arbitrary options.
-      
+
       The directory parameter is used to check whether any shipped requirements are
       present that require an additional tag (conventionally this is --use="cmttemp v1").
   """
@@ -306,7 +307,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
     if not type( extraPackages ) == type( [] ) and extraPackages:
       extraPackages = [extraPackages]
 
-    gLogger.verbose( 'Requested extra package versions: %s' % ( string.join( extraPackages, ', ' ) ) )
+    gLogger.verbose( 'Requested extra package versions: %s' % ( str.join( extraPackages, ', ' ) ) )
     for package in extraPackages:
 #      if not re.search( '.', package ):
 ##        gLogger.error( 'Not sure what to do with "%s", expected "<Application>.<Version>", will be left out' )
@@ -340,11 +341,11 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
   externals = ''
   if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % ( site ) )['OK']:
     externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' % ( site ), [] )
-    externals = string.join( externals, ' ' )
+    externals = str.join( externals, ' ' )
     gLogger.info( 'Found externals policy for %s = %s' % ( site, externals ) )
   else:
     externals = gConfig.getValue( '/Operations/ExternalsPolicy/Default', [] )
-    externals = string.join( externals, ' ' )
+    externals = str.join( externals, ' ' )
     gLogger.info( 'Using default externals policy for %s = %s' % ( site, externals ) )
 
   cmd.append( externals )
@@ -353,17 +354,17 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
     gLogger.info( 'Requested additional options: %s' % ( additional ) )
     cmd.append( additional )
 
-  finalCommand = string.join( cmd, ' ' )
+  finalCommand = str.join( cmd, ' ' )
   gLogger.verbose( '%s command = %s' % ( projectEnv, finalCommand ) )
   return S_OK( finalCommand )
 
 #############################################################################
 def getScriptsLocation():
   """ This function determines the location of LbLogin / SetupProject based on the
-      local site configuration.  The order of preference for the local software 
-      location is: 
-        - LocalSite/LocalArea - only if software is installed locally 
-        - $VO_LHCB_SW_DIR/lib - typically defined for Grid jobs 
+      local site configuration.  The order of preference for the local software
+      location is:
+        - LocalSite/LocalArea - only if software is installed locally
+        - $VO_LHCB_SW_DIR/lib - typically defined for Grid jobs
         - LocalSite/SharedArea - for locally running jobs
       If LbLogin / SetupProject are not found in the above locations this function
       returns an error. Otherwise the location of the environment scripts is returned
@@ -377,12 +378,12 @@ def getScriptsLocation():
   gLogger.info( 'MYSITEROOT = %s' % softwareArea )
   localArea = ''
   if re.search( ':', softwareArea ):
-    jobAgentSoftware = string.split( softwareArea, ':' )[0]
+    jobAgentSoftware = str.split( softwareArea, ':' )[0]
     if os.path.exists( os.path.join( jobAgentSoftware, groupLogin ) ):
       localArea = jobAgentSoftware
       gLogger.info( 'Will use %s from local software area at %s' % ( groupLogin, localArea ) )
     else:
-      localArea = string.split( softwareArea, ':' )[1]
+      localArea = str.split( softwareArea, ':' )[1]
       if os.path.exists( os.path.join( localArea, groupLogin ) ):
         gLogger.info( 'Using %s from the site shared area directory at %s' % ( groupLogin, localArea ) )
       else:
