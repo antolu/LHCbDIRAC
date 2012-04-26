@@ -499,7 +499,7 @@ if swimmEnabled:
       DVProduction.setJobParameters( { 'SystemConfig': sysConfig } )
 
     DVProduction.setJobParameters( { 'CPUTime': swimmCPU_DV } )
-    DVProduction.setProdType( 'DataStripping' )
+    DVProduction.setProdType( 'DataSwimming' )
     wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
     DVProduction.setWorkflowName( 'SWIMMING_DV_%s_%s' % ( wkfName, appendName ) )
     DVProduction.setWorkflowDescription( "%s real data swimming DV Production." % ( prodGroup ) )
