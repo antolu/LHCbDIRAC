@@ -11,7 +11,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
-import string, re
+import re
 
 gLogger = gLogger.getSubLogger( 'ProductionOptions' )
 
@@ -166,7 +166,7 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
   if numberOfEvents != 0:
     optionsLines.append( "ApplicationMgr().EvtMax = %s" % ( numberOfEvents ) )
 
-  finalLines = string.join( optionsLines, '\n' ) + '\n'
+  finalLines = str.join( optionsLines, '\n' ) + '\n'
   return S_OK( finalLines )
 
 #############################################################################
@@ -208,7 +208,7 @@ def getEventSelectorInput( inputDataList, inputDataType ):
     else:
       inputDataFiles.append( """ "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % ( lfn ) )
 
-  inputDataOpt = string.join( inputDataFiles, '\n' )[:-2]
+  inputDataOpt = str.join( inputDataFiles, '\n' )[:-2]
   return S_OK( inputDataOpt )
 
 #############################################################################
