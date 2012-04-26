@@ -39,7 +39,7 @@ for dirname in fd:
       if line.find( "Polling time" ) != -1:
         try:
           pollingtime = line.split( ':' )[4].split( ' ' )[1].split( '.' )[0]
-        except TyepError:
+        except TypeError:
           gLogger.error( "    wrong format for Polling Time : " + line )
           break
       else:
