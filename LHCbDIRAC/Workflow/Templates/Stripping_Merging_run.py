@@ -203,6 +203,7 @@ else:
 
 recoInputDataList = []
 strippInputDataList = []
+mergeInputDataList = []
 
 if not publishFlag:
   strippTestData = 'LFN:/lhcb/data/2010/SDST/00008375/0001/00008375_00016947_1.sdst'
@@ -211,6 +212,7 @@ if not publishFlag:
 #  strippInputDataList.append( strippTestDataRAW )
   strippIDPolicy = 'protocol'
   evtsPerJob = '2000'
+  #mergeInputDataList = ['put something here']
   BKscriptFlag = True
 else:
   BKscriptFlag = False
@@ -469,11 +471,11 @@ if mergingEnabled:
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
                                 inputDataType = mergeStream,
-                                extraOpts = mergeEOpts, inputData = [], outputSE = mergedStreamSE,
+                                extraOpts = mergeEOpts, inputData = mergeInputDataList, outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                                 optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
-      mergeProd.addMergeStep( mergeVersion, mergeOptions, eventType, mergeEP, inputData = [],
+      mergeProd.addMergeStep( mergeVersion, mergeOptions, eventType, mergeEP, inputData = mergeInputDataList,
                               outputSE = mergedStreamSE, inputDataType = mergeStream, extraOpts = mergeEOpts,
                               condDBTag = mergeCDb, ddDBTag = mergeDDDb, dataType = 'Data',
                               stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
@@ -499,6 +501,21 @@ if mergingEnabled:
     mergeProd.setJobFileGroupSize( mergeFileSize )
   #  mergeProd.setFileMask( mergeStream.lower() )
     mergeProd.setProdPlugin( mergePlugin )
+
+    if ( not publishFlag ) and ( testFlag ):
+
+      gLogger.info( 'Production test will be launched with number of events set to %s.' % ( evtsPerJob ) )
+      try:
+        result = mergeProd.runLocal()
+        gLogger.info( 'Template finished successfully' )
+        if result['OK']:
+          DIRAC.exit( 0 )
+        else:
+          gLogger.error( 'Something wrong with execution!' )
+          DIRAC.exit( 2 )
+      except Exception, x:
+        gLogger.error( 'Production test failed with exception:\n%s' % ( x ) )
+        DIRAC.exit( 2 )
 
     result = mergeProd.create( 
                               publish = publishFlag,
