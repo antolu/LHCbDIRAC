@@ -23,6 +23,7 @@ gRepos = { 'DIRAC' : 'https://github.com/DIRACGrid/DIRAC.git',
            'Web'   : 'https://github.com/DIRACGrid/DIRACWeb.git' }
 
 def setRepoName( opVal ):
+  """ setthe repository name """
   global repoName
   if opVal not in userName:
     return S_ERROR( "Only %s are valid" " or ".join( gRepos.keys() ) )
@@ -30,16 +31,19 @@ def setRepoName( opVal ):
   return S_OK()
 
 def setVersion( opVal ):
+  """ set the version of the package """
   global version
   version = opVal
   return S_OK()
 
 def setUser( opVal ):
+  """ set the username for SVN """
   global userName
   userName = opVal
   return S_OK()
 
 def setOverwrite( opVal ):
+  """ set if you need to overwrite existing version """
   global overwrite
   overwrite = True
   return S_OK()
@@ -58,11 +62,9 @@ Script.disableCS()
 Script.addDefaultOptionValue( "/DIRAC/Setup", "Dummy" )
 Script.parseCommandLine( ignoreErrors = False )
 
-
 if not version:
   gLogger.fatal( "Missing version to import" )
   sys.exit( 1 )
-
 
 deleteTag = False
 
@@ -81,8 +83,6 @@ if "%s/" % version in tags:
   if not overwrite:
     gLogger.always( "Aborting" )
     sys.exit( 1 )
-
-
 
 gLogger.notice( "Creating temporary work dir" )
 workDir = tempfile.mkdtemp( ".git2svn.%s" % repoName )
@@ -125,6 +125,7 @@ if deleteTag:
     sys.exit( 1 )
 
 def createSVNTag( repoName, subDir, tagSVNPath, sourceDir ):
+  """ create the TAG for SVN """
   result = distMaker.doLS( tagSVNPath )
   if result[0] == 0:
     if distMaker.doRM( tagSVNPath, ciMsg )[0]:
