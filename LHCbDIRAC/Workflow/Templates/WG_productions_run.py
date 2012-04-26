@@ -73,6 +73,7 @@ mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (dow
 mergedStreamSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
 mergeEO = '{{MergeEO#PROD-Merging: extra options#}}'
 
+#step3 params
 step3_ExtraOpts = '{{step3_ExtraOpts#STEP-3: extra options, if needed#}}'
 
 step4_ExtraOpts = '{{step4_ExtraOpts#STEP-4: extra options, if needed#}}'
@@ -656,11 +657,6 @@ if mergingEnabled:
     mergeBKQuery = { 'ProductionID'             : strippProdID,
                      'DataQualityFlag'          : mergeDQFlag,
                      'FileType'                 : mergeStream}
-      #below should be integrated in the ProductionOptions utility
-#    if mergeApp.lower() == 'davinci':
-#      dvExtraOptions = "from Configurables import RecordStream;"
-#      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
-#      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
     ###########################################
     # Create the merging production
@@ -817,11 +813,6 @@ if step4Enabled:
                      'DataQualityFlag'          : 'OK',
                      'FileType'                 : step4_Stream
                      }
-      #below should be integrated in the ProductionOptions utility
-    if step4_App.lower() == 'davinci':
-      dvExtraOptions = "from Configurables import RecordStream;"
-      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
-      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
 
     ###########################################
     # Create the merging production
@@ -845,7 +836,7 @@ if step4Enabled:
 
     if step4_App.lower() == 'davinci':
       step4_Prod.addDaVinciStep( step4_Version, 'step4_', step4_Options, extraPackages = step4_EP, eventType = eventType,
-                                 inputDataType = step4_Stream.lower(), extraOpts = dvExtraOptions, numberOfEvents = evtsPerJob,
+                                 inputDataType = step4_Stream.lower(), numberOfEvents = evtsPerJob,
                                  inputProduction = strippProdID, inputData = step4_InputDataList, outputSE = step4_StreamSE,
                                  condDBTag = step4_CDb, ddDBTag = step4_DDDb, DQTag = step4_DQ,
                                  stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility, stepPass = step4_Pass,
