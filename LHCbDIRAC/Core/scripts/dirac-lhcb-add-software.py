@@ -20,7 +20,6 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  Version:  Version of the LHCb software package' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
-from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
 from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
 from DIRAC                                                   import gConfig
 
@@ -29,6 +28,7 @@ modifiedCS = False
 mailadress = 'lhcb-sam@cern.ch'
 
 def changeCS( path, val ):
+  """ update the Configuration service """
   val.sort()
   ret = diracAdmin.csModifyValue( path, ', '.join( val ) )
   if not ret['OK']:
