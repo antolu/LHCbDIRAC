@@ -114,7 +114,7 @@ class Distribution:
       remoteFile.close()
       if remoteData:
         return remoteData
-    except Exception:
+    except urllib2.URLError:
       pass
     #Web cat failed. Try directly with svn
     exitStatus, remoteData = self.executeCommand( "svn cat '%s" % remoteLocation )
@@ -320,7 +320,7 @@ def writeVersionToInit( rootPath, version ):
     fd = open( initFile, "r" )
     fileData = fd.read()
     fd.close()
-  except Exception, e:
+  except IOError, e:
     return S_ERROR( "Could not open %s: %s" % ( initFile, str( e ) ) )
   versionStrings = ( "majorVersion", "minorVersion", "patchLevel", "preVersion" )
   reList = []
@@ -339,7 +339,7 @@ def writeVersionToInit( rootPath, version ):
     fd = open( initFile, "w" )
     fd.write( "\n".join( newData ) )
     fd.close()
-  except Exception, e:
+  except IOError, e:
     return S_ERROR( "Could write to %s: %s" % ( initFile, str( e ) ) )
   return S_OK()
 
