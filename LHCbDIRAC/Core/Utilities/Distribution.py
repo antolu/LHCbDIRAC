@@ -1,4 +1,6 @@
 # $HeadURL$
+""" Definition of all the method to create tar ball for distribution """
+
 __RCSID__ = "$Id$"
 
 import urllib2, re, tarfile, os, types, sys, subprocess, urlparse, tempfile
@@ -7,7 +9,7 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities import CFG, File, List
 
 class Distribution:
-
+  """ main class """
   cernAnonRoot = 'http://svn.cern.ch/guest/dirac'
   cernDevRoot = 'svn+ssh://svn.cern.ch/reps/dirac'
 
@@ -26,6 +28,7 @@ class Distribution:
                }
 
   def __init__( self, package = False ):
+    """ Constructor """
     if not package:
       package = 'global'
     if package not in Distribution.anonymousSVNRoot:
@@ -37,38 +40,47 @@ class Distribution:
     self.cmdQueue = []
 
   def getSVNPathForPackage( self, package, path ):
+    """ get the SVN path for th epackage """
     if package not in self.anonymousSVNRoot:
       return "%s/%s" % ( Distribution.cernAnonRoot, path )
     return "%s/%s" % ( self.anonymousSVNRoot[ package ], path )
 
   def getPackageName( self ):
+    """ get th epackage name """
     return self.package
 
   def getDevPath( self, path = False ):
+    """ get the SVN PATH for the DEV part """
     devPath = Distribution.devSVNRoot[ self.package ]
     if path:
       devPath += "/%s" % path
     return devPath
 
   def setSVNPassword( self, password ):
+    """ get the SVN password """
     self.svnPass = password
 
   def setSVNUser( self, user ):
+    """ get the SVN username """
     self.svnUser = user
 
   def addCommandToQueue( self, cmd ):
+    """ add the action in a queue """
     self.cmdQueue.append( cmd )
 
   def executeCommandQueue( self ):
+    """ execute the action which are in the queue """
     while self.cmdQueue:
       if not self.executeCommand( self.cmdQueue.pop( 0 ), getOutput = False ):
         return False
     return True
 
   def emptyQueue( self ):
+    """ free the content of the queue """
     return len( self.cmdQueue ) == 0
 
   def getRepositoryVersions( self ):
+    """ get all the versions in the repository """
     if self.package == 'global' :
       webLocation = "%s/tags" % self.svnRoot
     else:
@@ -93,6 +105,7 @@ class Distribution:
     return versions
 
   def getSVNFileContents( self, svnPath ):
+    """ get the Contents of SVN file """
     gLogger.info( "Reading %s from %s" % ( svnPath, self.svnRoot ) )
     remoteLocation = "%s/%s" % ( self.svnRoot, svnPath )
     try:
@@ -111,13 +124,16 @@ class Distribution:
     return remoteData
 
   def loadCFGFromRepository( self, svnPath ):
+    """ load the Configuration from the repository """
     remoteData = self.getSVNFileContents( svnPath )
     return CFG.CFG().loadFromBuffer( remoteData )
 
   def getVersionsCFG( self ):
+    """ get the file which contains the versions """
     return self.loadCFGFromRepository( '%s/trunk/%s/versions.cfg' % ( self.package, self.package ) )
 
   def executeCommand( self, cmd, getOutput = True ):
+    """ execut emethod """
     env = dict( os.environ )
     if self.svnPass:
       env[ 'SVN_PASSWORD' ] = self.svnPass
@@ -132,6 +148,7 @@ class Distribution:
     return ( proc.returncode, stdData )
 
   def __getDevCmdBase( self, path ):
+    """ get the command for the DEV part """
     devRoot = self.getDevPath( path )
     isHTTPS = False
     urlRes = urlparse.urlparse( devRoot )
@@ -157,69 +174,84 @@ class Distribution:
 
 
   def doLS( self, path ):
+    """ execute SVN ls """
     destT = self.__getDevCmdBase( path )
     cmd = "svn ls %s %s" % destT
     return self.executeCommand( cmd, True )
 
   def doRM( self, path, comment ):
+    """ execute SVN rm """
     destT = self.__getDevCmdBase( path )
     cmd = "svn rm -m '%s' %s %s" % ( comment, destT[0], destT[1] )
     return self.executeCommand( cmd, True )
 
   def __cmdImport( self, origin, dest, comment ):
+    """ execute SVN import """
     destT = self.__getDevCmdBase( dest )
     cmd = "svn import -m '%s' %s '%s' '%s'" % ( comment, destT[0], origin, destT[1] )
     return cmd
 
   def queueImport( self, origin, dest, comment ):
+    """ queue the Import SVN files """
     self.addCommandToQueue( self.__cmdImport( origin, dest, comment ) )
 
   def doImport( self, origin, dest, comment ):
+    """ do th eimport of SVN files """
     return self.executeCommand( self.__cmdImport( origin, dest, comment ), False )
 
   def __cmdCopy( self, origin, dest, comment ):
+    """ execute SVN copy """
     destT = self.__getDevCmdBase( dest )
     orT = self.__getDevCmdBase( origin )
     cmd = "svn copy -m '%s' %s '%s' '%s'" % ( comment, destT[0], orT[1], destT[1] )
     return cmd
 
   def queueCopy( self, origin, dest, comment ):
+    """ insert the copy in the queue """
     self.addCommandToQueue( self.__cmdCopy( origin, dest, comment ) )
 
   def __cmdMultiCopy( self, originList, dest, comment ):
+    """ execute several copy at once """
     orList = [ "'%s'" % self.__getDevCmdBase( orPath )[1] for orPath in originList ]
     destT = self.__getDevCmdBase( dest )
     cmd = "svn copy -m '%s' %s %s '%s'" % ( comment, destT[0], " ".join( orList ), destT[1] )
     return cmd
 
   def queueMultiCopy( self, originList, dest, comment ):
+    """ put several copy in the queue """
     self.addCommandToQueue( self.__cmdMultiCopy( originList, dest, comment ) )
 
   # def doCopy( self, path, comment ):
   #   return self.executeCommand( self.__cmdCopy( origin, dest, comment ), False )
 
   def __cmdMakeDir( self, path, comment ):
+    """ execute command to create a Directory """
     destT = self.__getDevCmdBase( path )
     return "svn mkdir --parents -m '%s' %s %s" % ( comment, destT[0], destT[1] )
 
   def queueMakeDir( self, path, comment ):
+    """ add to the queue the creation of the directory """
     self.addCommandToQueue( self.__cmdMakeDir( path, comment ) )
 
   def doMakeDir( self, path, comment ):
+    """ execute the creation of directory """
     return self.executeCommand( self.__cmdMakeDir( path, comment ), False )
 
   def doCheckout( self, path, location ):
+    """ execute the SVN checkOut """
     destT = self.__getDevCmdBase( path )
     cmd = "svn co %s '%s' '%s'" % ( destT[0], destT[1], location )
     return self.executeCommand( cmd, False )
 
   def doCommit( self, location, comment ):
+    """ execute the SVN commit """
     destT = self.__getDevCmdBase( "" )
     cmd = "svn ci -m '%s' %s '%s'" % ( comment, destT[0], location )
     return self.executeCommand( cmd, False )
 
   #Get copy revision
   def getCopyRevision( self, location ):
+    """ execute the SVN log """
     destT = self.__getDevCmdBase( location )
     cmd = "svn log --stop-on-copy %s '%s'" % ( destT[0], destT[1] )
     exitCode, outData = self.executeCommand( cmd )
@@ -235,6 +267,7 @@ class Distribution:
 
   #
   def writeVersionToTmpInit( self, version ):
+    """ put the verion of the tag in a tmp INIT file """
     verTup = parseVersionString( version )
     if not verTup:
       return False
@@ -263,6 +296,7 @@ class Distribution:
 
 gVersionRE = re.compile( "v([0-9]+)(?:r([0-9]+))?(?:p([0-9]+))?(?:-pre([0-9]+))?" )
 def parseVersionString( version ):
+  """ analyse the version file """
   result = gVersionRE.match( version.strip() )
   if not result:
     return False
@@ -275,6 +309,7 @@ def parseVersionString( version ):
   return tuple( vN )
 
 def writeVersionToInit( rootPath, version ):
+  """ put the verion of the tag in the INIT file """
   verTup = parseVersionString( version )
   if not verTup:
     return S_OK()
@@ -312,6 +347,7 @@ def writeVersionToInit( rootPath, version ):
 #
 
 def createTarball( tarballPath, directoryToTar, additionalDirectoriesToTar = None ):
+  """ create the tar ball """
   tf = tarfile.open( tarballPath, "w:gz" )
   tf.add( directoryToTar, os.path.basename( os.path.abspath( directoryToTar ) ), recursive = True )
   if type( additionalDirectoriesToTar ) in ( types.StringType, types.UnicodeType ):
@@ -341,6 +377,7 @@ gAllowedNoteTypes = ( "NEW", "CHANGE", "BUGFIX", 'FIX' )
 gNoteTypeAlias = { 'FIX' : 'BUGFIX' }
 
 def retrieveReleaseNotes( packages ):
+  """ retrieve the releases notes """
   if type( packages ) in ( types.StringType, types.UnicodeType ):
     packages = [ str( packages ) ]
   packageCFGDict = {}
@@ -385,6 +422,7 @@ def retrieveReleaseNotes( packages ):
   return pkgNotesDict
 
 def generateReleaseNotes( packages, destinationPath, versionReleased = "", singleVersion = False ):
+  """ generate the release notes """
   if type( packages ) in ( types.StringType, types.UnicodeType ):
     packages = [ str( packages ) ]
   pkgNotesDict = retrieveReleaseNotes( packages )
@@ -431,6 +469,7 @@ def generateReleaseNotes( packages, destinationPath, versionReleased = "", singl
   fd.close()
 
 def generateHTMLReleaseNotesFromRST( rstFile, htmlFile ):
+  """ generate the HTML file for release notes """
   try:
     import docutils.core
   except ImportError:
@@ -440,7 +479,7 @@ def generateHTMLReleaseNotesFromRST( rstFile, htmlFile ):
     fd = open( rstFile )
     rstData = fd.read()
     fd.close()
-  except Exception:
+  except IOError:
     gLogger.error( "Oops! Could not read the rst file :P" )
     return False
   parts = docutils.core.publish_parts( rstData, writer_name = 'html' )
@@ -448,7 +487,7 @@ def generateHTMLReleaseNotesFromRST( rstFile, htmlFile ):
     fd = open( htmlFile, "w" )
     fd.write( parts[ 'whole' ] )
     fd.close()
-  except Exception:
+  except IOError:
     gLogger.error( "Oops! Could not write the html file :P" )
     return False
   return True
