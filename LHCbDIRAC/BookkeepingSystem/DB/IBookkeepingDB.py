@@ -120,6 +120,10 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
+  def getJobInformation(self, lfn):
+    gLogger.error('This method is not implemented!')
+
+  #############################################################################
   def getRunNumber(self, lfn):
     gLogger.error('This method is not implemented!')
 

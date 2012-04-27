@@ -295,6 +295,15 @@ class BookkeepingClient:
     return result
 
   #############################################################################
+  def getJobInformation(self, dict):
+    """
+    It returns the job metadata information for a given lfn produced by this job.
+    """
+    server = self.__getServer()
+    result = server.getJobInformation(dict)
+    return result
+
+  #############################################################################
   def getJobInfo(self, lfn):
     """
     It returns the job metadata information for a given lfn produced by this job.

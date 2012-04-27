@@ -439,6 +439,11 @@ class BookkeepingManagerHandler( RequestHandler ):
     return dataMGMT_.getJobInfo(lfn)
 
   #############################################################################
+  types_getJobInformation = [DictType]
+  def export_getJobInformation(self, dict):
+    return dataMGMT_.getJobInformation(dict)
+
+  #############################################################################
   types_getRunNumber = [StringType]
   def export_getRunNumber(self, lfn):
     return dataMGMT_.getRunNumber(lfn)

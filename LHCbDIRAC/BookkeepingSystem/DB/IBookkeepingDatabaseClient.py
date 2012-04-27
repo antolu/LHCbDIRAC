@@ -120,6 +120,10 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getJobInfo(lfn)
 
   #############################################################################
+  def getJobInformation(self, dict):
+    return self.getManager().getJobInformation(dict)
+
+  #############################################################################
   def getRunNumber(self, lfn):
     return self.getManager().getRunNumber(lfn)
 

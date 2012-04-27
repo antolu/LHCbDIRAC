@@ -1036,6 +1036,53 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getJobInfo', [lfn])
 
   #############################################################################
+  def getJobInformation(self, params):
+    production = params.get('Production', default)
+    lfn = params.get('LFN', default)
+    condition = ''
+    tables = ' jobs j, files f'
+    result = None
+    if production != default:
+      if type(production) in [ types.StringType, types.IntType, types.LongType] :
+        condition+= " and j.production=%d " %(int(production))
+      elif type(production) == types.ListType:
+        condition += ' and j.production in ( '
+        for i in production:
+          condition += "%d," % (int(i))
+        condition = condition[:-1] + ')'
+      else:
+        result = S_ERROR("The production type is invalid. It can be a list, integer or string!")
+    elif lfn != default:
+      if type(lfn) == types.StringType:
+        condition += " and f.filename='%s' " % (lfn)
+      elif type(lfn) == types.ListType:
+        condition += ' and ('
+        for i in lfn:
+          condition += " filename='%s' or" % (i)
+        condition = condition[:-2] + ")"
+      else:
+        result = S_ERROR("You must provide an LFN or a list of LFNs!")
+
+    if not result:
+      command = " select  distinct j.DIRACJOBID, j.DIRACVERSION, j.EVENTINPUTSTAT, j.EXECTIME, j.FIRSTEVENTNUMBER,j.LOCATION,  j.NAME, j.NUMBEROFEVENTS, \
+                 j.STATISTICSREQUESTED, j.WNCPUPOWER, j.CPUTIME, j.WNCACHE, j.WNMEMORY, j.WNMODEL, j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production\
+                 from %s \
+                 where f.jobid=j.jobid %s" % (tables, condition)
+      retVal = self.dbR_._query(command)
+      if retVal['OK']:
+        records = []
+        parameters = ['DiracJobID','DiracVersion','EventInputStat','Exectime','FirstEventNumber','Location','JobName','NumberOfEvents','StatisticsRequested','WNCPUPower', 'CPUTime','WNCache','WNMemory','WNModel','WorkerNode','WNCPUHS06','JobId','TotalLuminosity','Production']
+        for i in retVal['Value']:
+          records += [dict(zip(parameters,i))]
+        result = S_OK(records)
+      else:
+        result = retVal
+
+    return result
+
+
+
+  #############################################################################
   def getRunNumber(self, lfn):
     return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getRunNumber', LongType, [lfn])
 

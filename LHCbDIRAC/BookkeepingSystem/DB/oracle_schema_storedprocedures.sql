@@ -192,14 +192,14 @@ descr varchar2(256);
 begin
 found := 0;
 id := -1;
-select count(filetypeid) into found from filetypes where filetypes.name=v_name and filetypes.version=filetype;
+select count(filetypeid) into found from filetypes where filetypes.name=UPPER(v_name) and filetypes.version=filetype;
 if found>0 then
   RAISE found_name;
 else
 select distinct DESCRIPTION into descr from filetypes where
-           NAME=v_name;
+           NAME=UPPER(v_name);
 select max(filetypeid)+1 into id from filetypes;
-insert into filetypes(filetypeid,name,description,version) values(id,v_name,descr,filetype);
+insert into filetypes(filetypeid,name,description,version) values(id, UPPER(v_name),descr,filetype);
 commit;
 return id;
 end if;
@@ -208,7 +208,7 @@ EXCEPTION
   raise_application_error(-20001,'The '||v_name || ' file type is already exist!!!');
   WHEN NO_DATA_FOUND then
    select max(filetypeid)+1 into id from filetypes;
-   insert into filetypes(filetypeid,name,description,version) values(id,v_name,description,filetype);
+   insert into filetypes(filetypeid,name,description,version) values(id,UPPER(v_name),description,filetype);
    commit;
   return id;
   WHEN OTHERS THEN
