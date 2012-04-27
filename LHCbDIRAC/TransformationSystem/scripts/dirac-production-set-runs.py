@@ -45,14 +45,14 @@ if (len( args )>2 or len( switches )!=1):
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 
-if not args[0]=='h':
-  prodId = int( args[0] )
-  client = TransformationClient()
-  try:
-    res = client.getBookkeepingQueryForTransformation(prodId)
-    bkDict = res['Value']
-  except:
-    print "Error retrieving bkquery for Production %s"%prodId
+prodId = int( args[0] )
+client = TransformationClient()
+try:
+  res = client.getBookkeepingQueryForTransformation(prodId)
+  bkDict = res['Value']
+except:
+  print "Error retrieving bkquery for Production %s"%prodId
+  DIRAC.exit(2)
 
 
 
