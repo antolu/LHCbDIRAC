@@ -64,12 +64,6 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     res = database.addBookkeepingQueryRunListTransformation( transName, runList )
     return self._parseRes( res )
 
-  types_convertBookkeepingQueryRunListTransformation = [ [LongType, IntType, StringType] ]
-  def export_convertBookkeepingQueryRunListTransformation( self, transName ):
-    res = database.convertBookkeepingQueryRunListTransformation( transName )
-    return self._parseRes( res )
-
-
   #############################################################################
   #
   # Managing the TransformationRuns table
