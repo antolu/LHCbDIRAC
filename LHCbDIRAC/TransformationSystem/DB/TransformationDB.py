@@ -177,104 +177,52 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     return self.__getBookkeepingQuery( res['Value'], connection = connection )
 
-  def convertBookkeepingQueryRunListTransformation( self, transName, connection = False ):
+    
+  def setBookkeepingQueryEndRunForTransformation( self, transName, runNumber, connection = False ):
+    """ Set the EndRun for the supplied transformation """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
-      return S_ERROR("Failed to get Connection to TransformationDB")
+      return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
     res = self.__getTransformationBkQueryID( transID, connection = connection )
     if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQueryID")
+      return res
     bkQueryID = res['Value']
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQuery")
-    bkQuery = res['Value']
-    startRun = bkQuery.get( 'StartRun' )
-    endRun = bkQuery.get( 'EndRun' )
-    runInput=str(startRun)+":"+str(endRun)
-    res = makeRunList(str(runInput))
-    runs=res['Value']
-    if len(runs)>999:
-      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")
-    self.__setTransformationQuery(transID, bkQueryID)
-    req1 = "UPDATE BkQueries SET StartRun = %d WHERE BkQueryID = %d" % ( 0, bkQueryID )
-    req2 = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % ( 0, bkQueryID )
-    value = ';;;'.join( runs )
-    req3 = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
-    self._update( req1, connection )
-    self._update( req2, connection )
-    self._update( req3, connection )
-    return S_OK(runs)
+      return res
+    startRun = res['Value'].get( 'StartRun' )
+    endRun = res['Value'].get( 'EndRun' )
+    if endRun and runNumber < endRun:
+      return S_ERROR( "EndRun can not be reduced!" )
+    if startRun and startRun > runNumber:
+      return S_ERROR( "EndRun is before StartRun!" )
+    req = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
+    return self._update( req, connection )
 
-  def setBookkeepingQueryEndRunForTransformation( self, transName, EndRun, connection = False ):
+  def setBookkeepingQueryStartRunForTransformation( self, transName, runNumber, connection = False ):
+    """ Set the StartRun for the supplied transformation """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
-      return S_ERROR("Failed to get Connection to TransformationDB")
+      return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
     res = self.__getTransformationBkQueryID( transID, connection = connection )
     if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQueryID")
+      return res
     bkQueryID = res['Value']
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQuery")
-    if isinstance(res['Value']['RunNumbers'], str):
-      RunInQuery = [res['Value']['RunNumbers']]
-    else:
-      RunInQuery =res['Value']['RunNumbers']
-    if EndRun<int(RunInQuery[-1]):
-      return S_ERROR("Cannot decrease the end run!")
-    if str(EndRun) not in RunInQuery:
-      s = str(RunInQuery[-1])+':'+str(EndRun)
-      res = makeRunList(str(s))
-      runs=res['Value']
-      for r in runs:
-        if r not in RunInQuery:
-          RunInQuery.append(r)
-          RunInQuery.sort()
-    if len(RunInQuery)>999:
-      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
-    value = ';;;'.join( RunInQuery )
-    req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
-    self._update( req, connection )
-    return S_OK()
-
-  def setBookkeepingQueryStartRunForTransformation( self, transName, StartRun, connection = False ):
-    res = self._getConnectionTransID( connection, transName )
-    if not res['OK']:
-      return S_ERROR("Failed to get Connection to TransformationDB")
-    connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
-    res = self.__getTransformationBkQueryID( transID, connection = connection )
-    if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQueryID")
-    bkQueryID = res['Value']
-    res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
-    if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQuery")
-    if isinstance(res['Value']['RunNumbers'], str):
-      RunInQuery = [res['Value']['RunNumbers']]
-    else:
-      RunInQuery =res['Value']['RunNumbers']     
-    if StartRun>int(RunInQuery[0]):
-      return S_ERROR("Cannot increase the start run!")
-    if str(StartRun) not in RunInQuery:
-      s = str(StartRun)+':'+str(RunInQuery[0])
-      res = makeRunList(str(s))
-      runs=res['Value']
-      for r in runs:
-        if r not in RunInQuery:
-          RunInQuery.append(r)
-          RunInQuery.sort()
-    if len(RunInQuery)>999:
-      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
-    value = ';;;'.join( RunInQuery )
-    req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
-    self._update( req, connection )
-    return S_OK()
+      return res
+    endRun = res['Value'].get( 'EndRun' )
+    startRun = res['Value'].get( 'StartRun' )
+    if startRun and runNumber > startRun:
+      return S_ERROR( "StartRun can not be increased!" )
+    if endRun and runNumber > endRun:
+      return S_ERROR( "StartRun cannot be after EndRun!" )
+    req = "UPDATE BkQueries SET StartRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
+    return self._update( req, connection )
 
   def addBookkeepingQueryRunListTransformation( self, transName, runList, connection = False ):
     res = self._getConnectionTransID( connection, transName )
