@@ -1,6 +1,3 @@
-########################################################################
-########################################################################
-
 """   The Swimming.py Template will handle swimming cases, with or without merging, 
       with or without replication
 
@@ -52,27 +49,27 @@ startRun = '{{RecoRunStart#GENERAL: run start, to set the start run#0}}'
 endRun = '{{RecoRunEnd#GENERAL: run end, to set the end of the range#0}}'
 
 #swimming (Moore) params
-swimm_priority = '{{priority#PROD-swimming-Moore: priority#5}}'
+swimm_priority = '{{priority#PROD-swimming-Moore: priority#1}}'
 swimmCPU = '{{swimmMaxCPUTime#PROD-swimming-Moore: Max CPU time in secs#1000000}}'
 swimmPlugin = '{{swimmPluginType#PROD-swimming-Moore: plugin name#LHCbStandard}}'
 swimmFilesPerJob = '{{swimmFilesPerJob#PROD-swimming-Moore: Group size or number of files per job#1}}'
 unmergedStreamSE = '{{swimmStreamSE#PROD-swimming-Moore: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd = '{{swimmAncestorProd#PROD-swimming-Moore: ancestor production if any#0}}'
 swimmIDPolicy = '{{swimmIDPolicy#PROD-swimming-Moore: policy for input data access (download or protocol)#download}}'
-swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}"}}'
+swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#}}'
 
 #swimming (DaVinci) params
 swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
-swimmPlugin_DV = '{{swimmPluginType-DV#PROD-swimming-DaVinci: plugin name#LHCbStandard}}'
+swimmPlugin_DV = '{{swimmPluginType-DV#PROD-swimming-DaVinci: plugin name#BySize}}'
 swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size or number of files per job#1}}'
 unmergedStreamSE_DV = '{{swimmStreamSE-DV#PROD-swimming-DaVinci: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd_DV = '{{swimmAncestor-DVProd#PROD-swimming-DaVinci: ancestor production if any#0}}'
 swimmIDPolicy_DV = '{{swimmIDPolicy-DV#PROD-swimming-DaVinci: policy for input data access (download or protocol)#download}}'
-swimmEOpts_DV = '{{swimmEO_DV#PROD-swimming-DaVinci: extra options#from Configurables import Swimming;Swimming().OutputFile="@{outputData}";from Swimming.Configuration import ConfigureDaVinci;ConfigureDaVinci()}}'
+swimmEOpts_DV = '{{swimmEO_DV#PROD-swimming-DaVinci: extra options#}}'
 
 
 #merging params
-mergePriority = '{{MergePriority#PROD-Merging: priority#9}}'
+mergePriority = '{{MergePriority#PROD-Merging: priority#8}}'
 mergePlugin = '{{MergePlugin#PROD-Merging: plugin#BySize}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
 mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'

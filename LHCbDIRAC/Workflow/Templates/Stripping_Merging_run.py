@@ -49,14 +49,14 @@ evtsPerJob = '{{NumberEvents#GENERAL: number of events per job (set to something
 strippRuns = '{{strippRuns#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
 
 #stripp params
-stripp_priority = '{{priority#PROD-Stripping: priority#7}}'
+stripp_priority = '{{priority#PROD-Stripping: priority#5}}'
 strippCPU = '{{StrippMaxCPUTime#PROD-Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#ByRunWithFlush}}'
-strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#10}}'
+strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#2}}'
 strippTransFlag = '{{StrippTransformation#PROD-Stripping: distribute output data True/False (False if merging)#False}}'
 unmergedStreamSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-DST}}'
 strippAncestorProd = '{{StrippAncestorProd#PROD-Stripping: ancestor production if any#0}}'
-strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#protocol}}'
+strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#download}}'
 strippEOpts = '{{strippEO#PROD-Stripping: extra options#}}'
 
 #merging params

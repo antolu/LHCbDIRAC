@@ -1,6 +1,3 @@
-########################################################################
-########################################################################
-
 """ WG productions: 2 3 or 4 steps:
         selection + mergeDST + nTupleCreation (opt) + nTupleMerging (opt)
 """
@@ -52,10 +49,10 @@ endRun = '{{RecoRunEnd#GENERAL: run end, to set the end of the range#0}}'
 wgRuns = '{{wgRuns#GENERAL: dicrete list of run numbers (do not mix with start/endrun)#}}'
 
 #stripp params
-stripp_priority = '{{priority#PROD-Selection: priority#5}}'
+stripp_priority = '{{priority#PROD-Selection: priority#8}}'
 strippCPU = '{{StrippMaxCPUTime#PROD-Selection: Max CPU time in secs#1000000}}'
-strippPlugin = '{{StrippPluginType#PROD-Selection: plugin name#LHCbStandard}}'
-strippFilesPerJob = '{{StrippFilesPerJob#PROD-Selection: Group size or number of files per job#10}}'
+strippPlugin = '{{StrippPluginType#PROD-Selection: plugin name#BySize}}'
+strippFilesPerJob = '{{StrippFilesPerJob#PROD-Selection: Group size or number of files per job#50}}'
 strippTransFlag = '{{StrippTransformation#PROD-Selection: distribute output data True/False (False if merging)#False}}'
 unmergedStreamSE = '{{StrippStreamSE#PROD-Selection: output data SE (un-merged streams)#Tier1-DST}}'
 strippAncestorProd = '{{StrippAncestorProd#PROD-Selection: ancestor production if any#0}}'
@@ -78,8 +75,8 @@ step3_ExtraOpts = '{{step3_ExtraOpts#STEP-3: extra options, if needed#}}'
 
 step4_ExtraOpts = '{{step4_ExtraOpts#STEP-4: extra options, if needed#}}'
 step4_StreamSE = '{{step4_StreamSE#STEP-4: output data SE (fourth step)#CERN-HIST}}'
-step4_IDPolicy = '{{step4_IDPolicy#STEP-4: policy for input data access (download or protocol)#download}}'
-step4_CPU = '{{step4_MaxCPUTime#STEP-$: Max CPU time in secs#100000}}'
+step4_IDPolicy = '{{step4_IDPolicy#STEP-4: policy for input data access (download or protocol)#protocol}}'
+step4_CPU = '{{step4_MaxCPUTime#STEP-$: Max CPU time in secs#10000}}'
 
 
 ###########################################

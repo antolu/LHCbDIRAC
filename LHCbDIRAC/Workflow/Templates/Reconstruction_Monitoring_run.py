@@ -1,8 +1,3 @@
-########################################################################
-# $HeadURL: 
-########################################################################
-
-
 """  The Reconstruction monitoring template creates a workflow for Brunel & DaVinci with
      configurable number of events, CPU time, jobs to extend and priority.
      
@@ -14,7 +9,6 @@
      not require execution or distribution outside of CERN this template is very 
      suitable.
 """
-
 
 __RCSID__ = "$Id$"
 
@@ -56,7 +50,7 @@ sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-
 express = '{{express#GENERAL: Set True for EXPRESS (Run at CERN, saving only HIST)#False}}'
 
 #reco params
-recoPriority = '{{RecoPriority#PROD-RECO: priority#7}}'
+recoPriority = '{{RecoPriority#PROD-RECO: priority#2}}'
 recoCPU = '{{RecoMaxCPUTime#PROD-RECO: Max CPU time in secs#1000000}}'
 recoPlugin = '{{RecoPluginType#PROD-RECO: production plugin name#AtomicRun}}'
 recoAncestorProd = '{{RecoAncestorProd#PROD-RECO: ancestor production if any#0}}'

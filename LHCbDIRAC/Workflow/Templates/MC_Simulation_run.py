@@ -1,7 +1,3 @@
-########################################################################
-# $HeadURL$
-########################################################################
-
 """  The MC Simulation Template creates workflows for the following simulation
      use-cases:
       WORKFLOW1: Simulation+MCMerge+Selection+Merge
@@ -62,7 +58,7 @@ targetSite = '{{TargetSite#GENERAL: Set a target site (blank for everything)#}}'
 
 events = '{{MCNumberOfEvents#PROD-MC: Number of events per job#1000}}'
 cpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
-priority = '{{MCPriority#PROD-MC: Production priority#4}}'
+priority = '{{MCPriority#PROD-MC: Production priority#0}}'
 extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
 gaussExtraOptions = '{{gaussExtraOptions#PROD-MC: Gauss extra options (leave blank for default)#}}'
 brunelExtraOptions = '{{brunelExtraOptions#PROD-MC: Brunel extra options (leave blank for default)#}}'
@@ -70,12 +66,12 @@ daVinciExtraOptions = '{{daVinciExtraOptions#PROD-MC: DaVinci extra options (lea
 
 selectionPlugin = '{{selectionPlugin#PROD-Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#5}}'
-selectionPriority = '{{selectionPriority#PROD-Selection: Job Priority e.g. 8 by default#6}}'
+selectionPriority = '{{selectionPriority#PROD-Selection: Job Priority e.g. 8 by default#3}}'
 selectionExtraOptions = '{{selectionExtraOptions#PROD-Selection: selection extra options (leave blank for default)#}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
-mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
+mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#4}}'
 
 replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
 replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcastRandom}}'
