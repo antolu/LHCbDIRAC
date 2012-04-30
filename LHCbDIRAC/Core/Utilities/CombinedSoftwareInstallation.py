@@ -23,14 +23,16 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 opsH = Operations()
-InstallProject = 'install_project.py'
-InstallProjectURL = opsH.getValue( 'GaudiExecution/install_project_location',
+installProjectFile = 'install_project.py'
+installProjectURL = opsH.getValue( 'GaudiExecution/install_project_location',
                                    'http://lhcbproject.web.cern.ch/lhcbproject/dist/' )
 natOS = NativeMachine()
 
 #############################################################################
 
 class CombinedSoftwareInstallation:
+  """ The LHCb Local Software Install class is used by the DIRAC Job Agent
+    to install necessary software via the ModuleFactory"""
 
   def __init__( self, argumentsDict ):
     """ Standard constructor
@@ -144,8 +146,8 @@ def log( n, line ):
 
 #############################################################################
 
-def MySiteRoot():
-  """Returns the MySiteRoot for the current local and / or shared areas.
+def mySiteRoot():
+  """Returns the mySiteRoot for the current local and / or shared areas.
   """
   mySiteRoot = ''
   localArea = LocalArea()
@@ -176,11 +178,11 @@ def CheckApplication( app, config, area ):
 
   curDir = os.getcwd()
 
-  installProject = os.path.join( localArea, InstallProject )
+  installProject = os.path.join( localArea, installProjectFile )
   if not os.path.exists( installProject ):
-    installProject = os.path.join( sharedArea, InstallProject )
+    installProject = os.path.join( sharedArea, installProjectFile )
     if not os.path.exists( installProject ):
-      DIRAC.gLogger.warn( 'Failed to find:', InstallProject )
+      DIRAC.gLogger.warn( 'Failed to find:', installProjectFile )
       return False
     else:
   #NOTE: must cd to LOCAL area directory (install_project requirement)
@@ -201,7 +203,7 @@ def CheckApplication( app, config, area ):
   DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
   cmdTuple = [sys.executable]
-  cmdTuple += [InstallProject]
+  cmdTuple += [installProjectFile]
   cmds = opsH.getValue( 'GaudiExecution/checkProjectOptions', '-b --check' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
@@ -229,14 +231,14 @@ def InstallApplication( app, config, area ):
    it will check already installed packages in shared area and install locally
    only missing parts
   """
-  if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
+  if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
     try:
-      urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
+      urllib.urlretrieve( '%s%s' % ( installProjectURL, installProjectFile ), installProjectFile )
     except Exception, e:
       DIRAC.gLogger.exception( e )
       return False
-    if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
-      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
+    if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
+      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( installProjectURL, installProjectFile ) )
       return False
 
   if not area:
@@ -248,10 +250,10 @@ def InstallApplication( app, config, area ):
   # make a copy of the environment dictionary
   cmtEnv = dict( os.environ )
 
-  installProject = os.path.join( localArea, InstallProject )
+  installProject = os.path.join( localArea, installProjectFile )
   if not os.path.exists( installProject ):
     try:
-      shutil.copy( InstallProject, localArea )
+      shutil.copy( installProjectFile, localArea )
     except:
       DIRAC.gLogger.warn( 'Failed to create:', installProject )
       return False
@@ -270,7 +272,7 @@ def InstallApplication( app, config, area ):
   DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
   cmdTuple = [sys.executable]
-  cmdTuple += [InstallProject]
+  cmdTuple += [installProjectFile]
   cmds = opsH.getValue( 'GaudiExecution/installProjectOptions', '-b' )
   for cmdTupleC in cmds.split( ' ' ):
     cmdTuple += [cmdTupleC]
@@ -301,14 +303,14 @@ def RemoveApplication( app, config, area ):
    it will check already installed packages in shared area and install locally
    only missing parts
   """
-  if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
+  if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
     try:
-      urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
+      urllib.urlretrieve( '%s%s' % ( installProjectURL, installProjectFile ), installProjectFile )
     except Exception, e:
       DIRAC.gLogger.exception( e )
       return False
-    if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
-      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
+    if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
+      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( installProjectURL, installProjectFile ) )
       return False
 
   if not area:
@@ -320,10 +322,10 @@ def RemoveApplication( app, config, area ):
   cmtEnv['MYSITEROOT'] = area
   cmtEnv['CMTCONFIG'] = config
 
-  installProject = os.path.join( area, InstallProject )
+  installProject = os.path.join( area, installProjectFile )
   if not os.path.exists( installProject ):
     try:
-      shutil.copy( InstallProject, area )
+      shutil.copy( installProjectFile, area )
     except:
       DIRAC.gLogger.warn( 'Failed to create:', installProject )
       return False
@@ -333,7 +335,7 @@ def RemoveApplication( app, config, area ):
   # Move to requested are and run the installation
   os.chdir( area )
   cmdTuple = [sys.executable]
-  cmdTuple += [InstallProject]
+  cmdTuple += [installProjectFile]
   #removal options
   cmds = opsH.getValue( 'GaudiExecution/removalProjectOptions', '-r' )
   for cmdTupleC in cmds.split( ' ' ):

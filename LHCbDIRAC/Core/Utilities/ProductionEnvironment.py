@@ -15,7 +15,7 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Os import sourceEnv
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import mySiteRoot
 from LHCbDIRAC.Core.Utilities.CondDBAccess                  import getCondDBFiles
 
 
@@ -370,7 +370,7 @@ def getScriptsLocation():
       returns an error. Otherwise the location of the environment scripts is returned
       in a dictionary with the name as the key.
   """
-  softwareArea = MySiteRoot()
+  softwareArea = mySiteRoot()
   if softwareArea == '':
     gLogger.error( 'Could not determine MYSITEROOT: "%s"' % softwareArea )
     return S_ERROR( 'MYSITEROOT Not Found' )
