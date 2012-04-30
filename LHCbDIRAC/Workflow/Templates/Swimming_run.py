@@ -41,7 +41,7 @@ validationFlag = '{{validationFlag#GENERAL: Set True to create validation produc
 unifyMooreAndDV = '{{productionsCreated#GENERAL: Moore and DaVinci within the same job#True}}'
 
 # workflow params for all productions
-sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
+sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#x86_64-slc5-gcc46-opt}}'
 
 # workflow params for all productions
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
