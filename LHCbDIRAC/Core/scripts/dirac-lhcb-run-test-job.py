@@ -85,7 +85,7 @@ def getOptionsFile( localprojectName, localprojectVersion, localsharedArea, loca
   else:
     return None
 
-def runJob( localprojectName, localprojectVersion, localoptionsFile, lsystemConfig, lsubmissionMode, lcpuTime, llogLevel, ljobName, linputDatasets, generate ):
+def runJob( localprojectName, localprojectVersion, localoptionsFile, lsystemConfig, lsubmissionMode, lcpuTime, llogLevel, ljobName, linputDatasets, lgenerate ):
   """Local submission of a dynamically created job.
   """
   scriptName = '%s/DiracAPI_%s_%s_%s.py' % ( os.getcwd(), localprojectName, localprojectVersion, lsubmissionMode.lower().capitalize() )
@@ -112,7 +112,7 @@ def runJob( localprojectName, localprojectVersion, localoptionsFile, lsystemConf
   gLogger.info( 'DIRAC API script written to %s for future use' % scriptName )
   if lsubmissionMode.lower() == 'wms':
     lsubmissionMode = None
-  if not generate:
+  if not lgenerate:
     dirac = Dirac()
     return dirac.submit( j, mode = lsubmissionMode )
   else:
@@ -175,7 +175,7 @@ if not os.path.exists( testDir ):
   gLogger.verbose( 'Creating specified test directory %s' % testDir )
   try:
     os.mkdir( testDir )
-  except Exception, x:
+  except SystemError:
     print 'ERROR: Could not create test directory %s' % testDir
     exitCode = 2
 else:
