@@ -412,7 +412,7 @@ class GaudiApplication( ModuleBase ):
         filesFound.append( output )
       else:
         self.log.error( '%s not found' % output['outputDataName'] )
-        raise IOError, '%s not found' % output['outputDataName']
+        raise IOError, 'OutputData not found'
 
     for f in filesFound:
       bkFileTypes.append( f['outputDataType'].upper() )
