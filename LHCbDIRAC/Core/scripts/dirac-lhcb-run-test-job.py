@@ -101,7 +101,7 @@ def runJob( projectName, projectVersion, optionsFile, systemConfig, submissionMo
     fopen.write( 'j.setApplication("%s","%s","%s")\n' % ( projectName, projectVersion, optionsFile ) )
     j.setApplication( projectName, projectVersion, optionsFile )
   else:
-    fopen.write( 'j.setApplication("%s","%s","%s",inputData=["%s"])\n' % ( projectName, projectVersion, optionsFile, str.join( inputDatasets, '","' ) ) )
+    fopen.write( 'j.setApplication("%s","%s","%s",inputData=["%s"])\n' % ( projectName, projectVersion, optionsFile, '","'.join( inputDatasets ) ) )
     j.setApplication( projectName, projectVersion, optionsFile, inputData = inputDatasets )
   fopen.write( 'j.setName("%s")\n' % jobName )
   j.setName( jobName )
@@ -154,7 +154,7 @@ for switch in Script.getUnprocessedSwitches():
 
 if not projectName in lhcbConvention.keys():
   exitCode = 2
-  print 'ERROR: Project name must be one of %s not %s' % ( str.join( lhcbConvention.keys(), ',' ), projectName )
+  print 'ERROR: Project name must be one of %s not %s' % ( ','.join( lhcbConvention.keys() ), projectName )
 
 if not submissionMode.lower() in ['local', 'agent', 'wms']:
   exitCode = 2
