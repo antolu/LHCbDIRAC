@@ -58,65 +58,65 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
   DIRAC.exit( 2 )
 
-def getOptionsFile( projectName, projectVersion, sharedArea, lhcbConvention, events ):
+def getOptionsFile( localprojectName, localprojectVersion, localsharedArea, locallhcbConvention, events ):
   """Simple function to retrieve project python options file from specified sharedArea
      if not specified by the user.
   """
-  optionsFiles = ['lhcb-2008.py', '%s-2008.py' % projectName, '%s.py' % projectName]
-  projectUpper = projectName.upper()
-  optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/options' % ( sharedArea, projectUpper, projectUpper, projectVersion, lhcbConvention[projectName], projectName )
+  optionsFiles = ['lhcb-2008.py', '%s-2008.py' % localprojectName, '%s.py' % localprojectName]
+  projectUpper = localprojectName.upper()
+  optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/options' % ( localsharedArea, projectUpper, projectUpper, localprojectVersion, locallhcbConvention[localprojectName], localprojectName )
   if not os.path.isdir( optionsPath ):
-    gLogger.verbose( 'Assume %s %s uses old package structure' % ( projectName, projectVersion ) )
-    optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/%s/options' % ( sharedArea, projectUpper, projectUpper, projectVersion, lhcbConvention[projectName], projectName, projectVersion )
-  gLogger.info( 'Searching for %s %s options in path:\n%s' % ( projectName, projectVersion, optionsPath ) )
-  newPath = '%s/Opts%s%s.py' % ( os.getcwd(), projectName, projectVersion )
+    gLogger.verbose( 'Assume %s %s uses old package structure' % ( localprojectName, localprojectVersion ) )
+    optionsPath = '%s/lhcb/%s/%s_%s/%s/%s/%s/options' % ( localsharedArea, projectUpper, projectUpper, localprojectVersion, lhcbConvention[localprojectName], localprojectName, localprojectVersion )
+  gLogger.info( 'Searching for %s %s options in path:\n%s' % ( localprojectName, localprojectVersion, optionsPath ) )
+  newPath = '%s/Opts%s%s.py' % ( os.getcwd(), localprojectName, localprojectVersion )
   for opts in optionsFiles:
-    optionsFile = '%s/%s' % ( optionsPath, opts )
-    gLogger.verbose( 'Searching for %s %s options file:\n%s' % ( projectName, projectVersion, optionsFile ) )
-    if not os.path.exists( optionsFile ):
+    localoptionsFile = '%s/%s' % ( optionsPath, opts )
+    gLogger.verbose( 'Searching for %s %s options file:\n%s' % ( localprojectName, localprojectVersion, localoptionsFile ) )
+    if not os.path.exists( localoptionsFile ):
       continue
-    gLogger.info( 'Found options file %s' % optionsFile )
-    shutil.copy( optionsFile, newPath )
+    gLogger.info( 'Found options file %s' % localoptionsFile )
+    shutil.copy( localoptionsFile, newPath )
     fopen = open( newPath, 'a' )
     fopen.write( 'ApplicationMgr( EvtMax = %s )\n' % events )
     fopen.close()
-    gLogger.info( '%s %s options written to %s' % ( projectName, projectVersion, newPath ) )
+    gLogger.info( '%s %s options written to %s' % ( localprojectName, localprojectVersion, newPath ) )
     return newPath
   else:
     return None
 
-def runJob( projectName, projectVersion, optionsFile, systemConfig, submissionMode, cpuTime, logLevel, jobName, inputDatasets, generate ):
+def runJob( localprojectName, localprojectVersion, localoptionsFile, lsystemConfig, lsubmissionMode, lcpuTime, llogLevel, ljobName, linputDatasets, generate ):
   """Local submission of a dynamically created job.
   """
-  scriptName = '%s/DiracAPI_%s_%s_%s.py' % ( os.getcwd(), projectName, projectVersion, submissionMode.lower().capitalize() )
+  scriptName = '%s/DiracAPI_%s_%s_%s.py' % ( os.getcwd(), localprojectName, localprojectVersion, lsubmissionMode.lower().capitalize() )
   fopen = open( scriptName, 'w' )
-  fopen.write( '# Example DIRAC API script written for %s %s in %s mode using:\n# %s\n\n' % ( projectName, projectVersion, submissionMode, __RCSID__ ) )
+  fopen.write( '# Example DIRAC API script written for %s %s in %s mode using:\n# %s\n\n' % ( localprojectName, localprojectVersion, lsubmissionMode, __RCSID__ ) )
   fopen.write( 'from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob\nfrom DIRAC.Interfaces.API.Dirac import Dirac\nj=LHCbJob()\n' )
   j = LHCbJob()
-  fopen.write( 'j.setCPUTime("%s")\n' % cpuTime )
-  j.setCPUTime( cpuTime )
-  fopen.write( 'j.setSystemConfig("%s")\n' % systemConfig )
-  j.setSystemConfig( systemConfig )
-  if not inputDatasets:
-    fopen.write( 'j.setApplication("%s","%s","%s")\n' % ( projectName, projectVersion, optionsFile ) )
-    j.setApplication( projectName, projectVersion, optionsFile )
+  fopen.write( 'j.setCPUTime("%s")\n' % lcpuTime )
+  j.setCPUTime( lcpuTime )
+  fopen.write( 'j.setSystemConfig("%s")\n' % lsystemConfig )
+  j.setSystemConfig( lsystemConfig )
+  if not linputDatasets:
+    fopen.write( 'j.setApplication("%s","%s","%s")\n' % ( localprojectName, localprojectVersion, localoptionsFile ) )
+    j.setApplication( localprojectName, localprojectVersion, localoptionsFile )
   else:
-    fopen.write( 'j.setApplication("%s","%s","%s",inputData=["%s"])\n' % ( projectName, projectVersion, optionsFile, '","'.join( inputDatasets ) ) )
-    j.setApplication( projectName, projectVersion, optionsFile, inputData = inputDatasets )
-  fopen.write( 'j.setName("%s")\n' % jobName )
-  j.setName( jobName )
-  fopen.write( 'j.setLogLevel("%s")\n' % logLevel )
-  j.setLogLevel( logLevel )
-  fopen.write( 'dirac=Dirac()\nprint dirac.submit(j,mode="%s")\n' % submissionMode )
+    fopen.write( 'j.setApplication("%s","%s","%s",inputData=["%s"])\n' % ( localprojectName, localprojectVersion, localoptionsFile, '","'.join( linputDatasets ) ) )
+    j.setApplication( localprojectName, localprojectVersion, localoptionsFile, inputData = linputDatasets )
+  fopen.write( 'j.setName("%s")\n' % ljobName )
+  j.setName( ljobName )
+  fopen.write( 'j.setLogLevel("%s")\n' % llogLevel )
+  j.setLogLevel( llogLevel )
+  fopen.write( 'dirac=Dirac()\nprint dirac.submit(j,mode="%s")\n' % lsubmissionMode )
   fopen.close()
   gLogger.info( 'DIRAC API script written to %s for future use' % scriptName )
-  if submissionMode.lower() == 'wms':
-    submissionMode = None
+  if lsubmissionMode.lower() == 'wms':
+    lsubmissionMode = None
   if not generate:
     dirac = Dirac()
-    return dirac.submit( j, mode = submissionMode )
+    return dirac.submit( j, mode = lsubmissionMode )
   else:
-    gLogger.info( 'Generate flag is enabled, only creating API script and options file for %s %s' % ( projectName, projectVersion ) )
+    gLogger.info( 'Generate flag is enabled, only creating API script and options file for %s %s' % ( localprojectName, localprojectVersion ) )
     return S_OK()
 
 #Start the script and perform checks
