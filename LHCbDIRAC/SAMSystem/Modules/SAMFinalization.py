@@ -22,13 +22,14 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
 import LHCbDIRAC
 
-import string, os, sys, re, glob, shutil, time
+import os, sys, re, glob, shutil, time
 
 SAM_TEST_NAME = 'CE-lhcb-sam-publish'
 SAM_LOG_FILE = 'sam-publish.log'
 SAM_LOCK_NAME = 'DIRAC-SAM-Test-Lock'
 
 class SAMFinalization( ModuleBaseSAM ):
+  """ SAM Finalization class """
 
   #############################################################################
   def __init__( self ):
@@ -115,15 +116,15 @@ class SAMFinalization( ModuleBaseSAM ):
     samResults = self.workflow_commons['SAMResults']
     #If the lock test has failed or is not OK, another job is running and the lock should not be removed
     if samResults.has_key( 'CE-lhcb-lock' ):
-        if not int( samResults['CE-lhcb-lock'] ) > int( self.samStatus['info'] ):
-          result = self.__removeLockFile( sharedArea )
-          if not result['OK']:
-            self.setApplicationStatus( 'Could Not Remove Lock File' )
-            self.writeToLog( 'Failed to remove lock file with result:\n%s' % result )
-            failed = True
-        else:
-          self.log.info( 'Another SAM job is running, leaving SAM lock file in shared area' )
-          self.writeToLog( 'Another SAM job is running, leaving SAM lock file in shared area' )
+      if not int( samResults['CE-lhcb-lock'] ) > int( self.samStatus['info'] ):
+        result = self.__removeLockFile( sharedArea )
+        if not result['OK']:
+          self.setApplicationStatus( 'Could Not Remove Lock File' )
+          self.writeToLog( 'Failed to remove lock file with result:\n%s' % result )
+          failed = True
+      else:
+        self.log.info( 'Another SAM job is running, leaving SAM lock file in shared area' )
+        self.writeToLog( 'Another SAM job is running, leaving SAM lock file in shared area' )
 
     if not failed:
       self.setApplicationStatus( 'Starting %s Test' % self.testName )
@@ -189,8 +190,8 @@ class SAMFinalization( ModuleBaseSAM ):
     """
     testStatus = str( testStatus )
     statusString = ''
-    for status, id in self.samStatus.items():
-      if id == testStatus:
+    for status, localid in self.samStatus.items():
+      if localid == testStatus:
         statusString = status
     return statusString
 
@@ -234,11 +235,11 @@ class SAMFinalization( ModuleBaseSAM ):
       return 'Software installation test was disabled for this job by the SAM lock file.'
 
     activeSw = gConfig.getValue( '/Operations/SoftwareDistribution/Active', [] )
-    self.log.debug( 'Active software is: %s' % ( string.join( activeSw, ', ' ) ) )
+    self.log.debug( 'Active software is: %s' % ( ', '.join( activeSw ) ) )
     arch = gConfig.getValue( '/LocalSite/Architecture' )
     self.log.verbose( 'Current node system configuration is: %s' % ( arch ) )
     architectures = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % arch, [] )
-    self.log.verbose( 'Compatible system configurations are: %s' % ( string.join( architectures, ', ' ) ) )
+    self.log.verbose( 'Compatible system configurations are: %s' % ( ', '.join( architectures ) ) )
     softwareDict = {}
     for architecture in architectures:
       archSw = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( architecture ), [] )
@@ -263,7 +264,7 @@ class SAMFinalization( ModuleBaseSAM ):
       archList = softwareDict[appNameVersion]
       name = appNameVersion.split( '.' )[0]
       version = appNameVersion.split( '.' )[1]
-      sysConfigs = string.join( archList, ', ' )
+      sysConfigs = ', '.join( archList )
       rows += """
 
 <tr>
@@ -316,105 +317,6 @@ class SAMFinalization( ModuleBaseSAM ):
 """
     self.log.debug( table )
     return table
-
-  #############################################################################
-  def __publishSAMResults( self, samNode, samResults, samLogs ):
-    """Prepares SAM publishing files and reports results to the SAM DB.
-    """
-
-    self.log.info( 'Preparing SAM publishing files' )
-    if not self.jobID:
-      self.log.verbose( 'No jobID defined, setting to 12345 and samNode to test.node for test purposes' )
-      self.jobID = 12345
-      samNode = 'test.node'
-
-    #Get SAM client
-    self.log.info( 'Publish Flag: %s, Enable Flag: %s' % ( self.publishResultsFlag, self.enable ) )
-    if self.publishResultsFlag and self.enable:
-      result = self.__getSAMClient()
-      if not result['OK']:
-        self.setJobParameter( self.testName, 'Failed to locate SAM client with message %s' % ( result['Message'] ) )
-        return result
-
-    lfnPath = self.__getLFNPathString( samNode )
-    testSummary = self.__getTestSummary( lfnPath, samResults, samLogs )
-    softwareReport = self.__getSoftwareReport( lfnPath, samResults, samLogs )
-    counter = 0
-    publishFlag = True
-    for testName, testStatus in samResults.items():
-      counter += 1
-      defFile = """testName: %s
-testAbbr: LHCb %s
-testTitle: LHCb SAM %s
-EOT
-""" % ( testName, testName, testName )
-
-      envFile = """envName: CE-00%s%s
-name: LHCbSAMTest
-value: OK
-""" % ( self.jobID, counter )
-
-      resultFile = """nodename: %s
-testname: %s
-envName: CE-00%s%s
-voname: lhcb
-status: %s
-detaileddata: EOT
-<br>
-<IMG SRC="%s" ALT="DIRAC" WIDTH="300" HEIGHT="120" ALIGN="left" BORDER="0">
-<br><br><br><br><br><br><br>
-<br>DIRAC Site Name %s ( CE = %s )<br>
-<br>Corresponding to JobID %s in DIRAC setup %s<br>
-<br>Test Summary %s:<br>
-<br>
-%s
-<br>
-<br><br><br>
-Link to log files: <br>
-<UL><br>
-<LI><A HREF='%s%s'>Log SE output</A><br>
-<LI><A HREF='%s%s/test/sam/%s'>Previous tests for %s</A><br>
-<LI><A HREF='%s%s/test/sam'>LHCb SAM Logs CE Directory</A><br>
-</UL><br>
-<br>
-%s
-<br>
-EOT
-""" % ( samNode, testName, self.jobID, counter, testStatus, self.diracLogo, DIRAC.siteName(), samNode, self.jobID, self.diracSetup, time.strftime( '%Y-%m-%d' ), testSummary, self.logURL, lfnPath, self.logURL, self.samVO, samNode, samNode, self.logURL, self.samVO, softwareReport )
-
-      files = {}
-      files[defFile] = '.def'
-      files[resultFile] = '.result'
-      files[envFile] = '.env'
-
-      for contents, ext in files.items():
-        fopen = open( testName + ext, 'w' )
-        fopen.write( contents )
-        fopen.close()
-
-      testDict = {'TestDef':'.def', 'TestData':'.result', 'TestEnvVars':'.env'}
-      if not self.publishResultsFlag:
-        self.log.info( 'Publish flag is disabled for %s %s' % ( testName, testStatus ) )
-      if self.publishResultsFlag and self.enable:
-        self.log.info( 'Attempting to publish results for %s to SAM DB' % ( testName ) )
-        samHome = '%s/sam' % ( os.getcwd() )
-        samPublish = '%s/%s' % ( os.getcwd(), self.samPublishScript )
-        os.environ['SAME_HOME'] = samHome
-        sys.path.insert( 0, samHome )
-        if not os.path.exists( samPublish ):
-          return S_ERROR( '%s does not exist' % ( samPublish ) )
-        for testTitle, testExtn in testDict.items():
-          testFile = '%s%s' % ( testName, testExtn )
-          cmd = '%s %s %s' % ( samPublish, testTitle, testFile )
-          result = self.runCommand( 'Publishing %s %s' % ( testName, testFile ), cmd )
-          if not result['OK']:
-            self.setJobParameter( testName, 'Publishing %s %s failed' % ( testName, testFile ) )
-            publishFlag = False
-
-    if not publishFlag:
-      return S_ERROR( 'Publishing of some results failed' )
-
-    return S_OK()
 
   #############################################################################
   def __publishSAMResultsNagios( self, samNode, samResults, samLogs ):
@@ -485,7 +387,7 @@ EOT
   def __uploadSAMLogs( self, samNode ):
     """Saves SAM log files to the log SE.
     """
-    self.log.info( 'Saving SAM log files with extension: %s' % ( string.join( self.samLogFiles, ', ' ) ) )
+    self.log.info( 'Saving SAM log files with extension: %s' % ( ', '.join( self.samLogFiles ) ) )
     logFiles = []
     for extnType in self.samLogFiles:
       globList = glob.glob( extnType )
@@ -497,10 +399,10 @@ EOT
     self.log.verbose( 'Creating log directory %s' % logDir )
     try:
       os.mkdir( logDir )
-    except Exception:
+    except SystemError:
       return S_ERROR( 'Could not create log directory %s' % logDir )
 
-    self.log.info( 'Saving log files: %s' % ( string.join( logFiles, ', ' ) ) )
+    self.log.info( 'Saving log files: %s' % ( ', '.join( logFiles ) ) )
     for toSave in logFiles:
       shutil.copy( toSave, logDir )
 
