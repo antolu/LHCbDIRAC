@@ -117,7 +117,7 @@ def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', c
   cmdList.append( 'EOF' )
   cmdList.append( 'fi' )
   cmdList.append( 'exit $appstatus' )
-  return S_OK( str.join( cmdList, ';' ) )
+  return S_OK( ';'.join( cmdList ) )
 
 #############################################################################
 def createDebugScript( name, command, env = None, postExecution = '', envLogFile = 'localEnv.log', coreDumpLog = 'Step' ):
@@ -148,7 +148,7 @@ def createDebugScript( name, command, env = None, postExecution = '', envLogFile
     script.append( '%s' % ( cmd ) )
 
   fopen = open( name, 'w' )
-  fopen.write( '%s\n' % ( str.join( script, '\n' ) ) )
+  fopen.write( '%s\n' % ( '\n'.join( script ) ) )
   fopen.close()
   os.chmod( name, 0755 )
   return S_OK( name )
@@ -167,11 +167,11 @@ def runEnvironmentScripts( commandsList, env = None ):
   names = []
   for command in commandsList:
     gLogger.info( 'Attempting to run: %s' % ( command ) )
-    name = os.path.basename( str.split( command, ' ' )[0] )
+    name = os.path.basename( command.split( ' ' )[0] )
     names.append( name )
     #very annoying sourceEnv feature, implies .sh will be added for you so have to remove it!
     exeCommand = command.replace( groupLogin, groupLogin[:-3] ).replace( projectEnv, projectEnv[:-3] )
-    exeCommand = str.split( exeCommand, ' ' )
+    exeCommand = exeCommand.split( ' ' )
     result = sourceEnv( timeout, exeCommand, env )
     if not result['OK']:
       gLogger.error( 'Problem executing %s: %s' % ( command, result['Message'] ) )
@@ -183,7 +183,7 @@ def runEnvironmentScripts( commandsList, env = None ):
 
     env = result['outputEnv']
 
-  gLogger.info( '%s were executed successfully' % ( str.join( names, ', ' ) ) )
+  gLogger.info( '%s were executed successfully' % ( ', '.join( names ) ) )
   return S_OK( env )
 
 #############################################################################
@@ -273,7 +273,7 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
       os.remove( os.path.join( package, 'cmt', 'project.cmt' ) )
 
     fopen = open( os.path.join( package, 'cmt', 'project.cmt' ), 'w' )
-    fopen.write( 'use %s %s_%s' % ( str.upper( applicationName ), str.upper( applicationName ), str.upper( applicationVersion ) ) )
+    fopen.write( 'use %s %s_%s' % ( applicationName.upper(), applicationName.upper(), applicationVersion.upper() ) )
     fopen.close()
     shutil.copy( os.path.join( directory, 'lib', 'requirements' ), os.path.join( package, 'cmttemp', 'v1', 'cmt' ) )
 
@@ -307,7 +307,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
     if not type( extraPackages ) == type( [] ) and extraPackages:
       extraPackages = [extraPackages]
 
-    gLogger.verbose( 'Requested extra package versions: %s' % ( str.join( extraPackages, ', ' ) ) )
+    gLogger.verbose( 'Requested extra package versions: %s' % ( ', '.join( extraPackages ) ) )
     for package in extraPackages:
 #      if not re.search( '.', package ):
 ##        gLogger.error( 'Not sure what to do with "%s", expected "<Application>.<Version>", will be left out' )
@@ -341,11 +341,11 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
   externals = ''
   if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % ( site ) )['OK']:
     externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' % ( site ), [] )
-    externals = str.join( externals, ' ' )
+    externals = ' '.join( externals )
     gLogger.info( 'Found externals policy for %s = %s' % ( site, externals ) )
   else:
     externals = gConfig.getValue( '/Operations/ExternalsPolicy/Default', [] )
-    externals = str.join( externals, ' ' )
+    externals = ' '.join( externals )
     gLogger.info( 'Using default externals policy for %s = %s' % ( site, externals ) )
 
   cmd.append( externals )
@@ -354,7 +354,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
     gLogger.info( 'Requested additional options: %s' % ( additional ) )
     cmd.append( additional )
 
-  finalCommand = str.join( cmd, ' ' )
+  finalCommand = ' '.join( cmd )
   gLogger.verbose( '%s command = %s' % ( projectEnv, finalCommand ) )
   return S_OK( finalCommand )
 
@@ -378,12 +378,12 @@ def getScriptsLocation():
   gLogger.info( 'MYSITEROOT = %s' % softwareArea )
   localArea = ''
   if re.search( ':', softwareArea ):
-    jobAgentSoftware = str.split( softwareArea, ':' )[0]
+    jobAgentSoftware = softwareArea.split( ':' )[0]
     if os.path.exists( os.path.join( jobAgentSoftware, groupLogin ) ):
       localArea = jobAgentSoftware
       gLogger.info( 'Will use %s from local software area at %s' % ( groupLogin, localArea ) )
     else:
-      localArea = str.split( softwareArea, ':' )[1]
+      localArea = softwareArea.split( ':' )[1]
       if os.path.exists( os.path.join( localArea, groupLogin ) ):
         gLogger.info( 'Using %s from the site shared area directory at %s' % ( groupLogin, localArea ) )
       else:

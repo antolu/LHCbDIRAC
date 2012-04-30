@@ -166,7 +166,7 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
   if numberOfEvents != 0:
     optionsLines.append( "ApplicationMgr().EvtMax = %s" % ( numberOfEvents ) )
 
-  finalLines = str.join( optionsLines, '\n' ) + '\n'
+  finalLines = '\n'.join( optionsLines ) + '\n'
   return S_OK( finalLines )
 
 #############################################################################
@@ -208,7 +208,7 @@ def getEventSelectorInput( inputDataList, inputDataType ):
     else:
       inputDataFiles.append( """ "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % ( lfn ) )
 
-  inputDataOpt = str.join( inputDataFiles, '\n' )[:-2]
+  inputDataOpt = '\n'.join( inputDataFiles )[:-2]
   return S_OK( inputDataOpt )
 
 #############################################################################

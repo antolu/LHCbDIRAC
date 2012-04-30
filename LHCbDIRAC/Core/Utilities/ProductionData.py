@@ -51,7 +51,7 @@ def constructProductionLFNs( paramDict, bkClient = None ):
         fileName[index] = str( productionID ).zfill( 8 )
       if not fileName[index + 1] == str( jobID ).zfill( 8 ):
         fileName[index + 1] = str( jobID ).zfill( 8 )
-      fileTupleList.append( ( str.join( fileName, '_' ), info['outputDataType'] ) )
+      fileTupleList.append( ( '_'.join( fileName ), info['outputDataType'] ) )
 
     #Strip output data according to file mask
     fileTupleListMasked = _applyMask( wfMask, fileTupleList )
@@ -110,13 +110,13 @@ def constructProductionLFNs( paramDict, bkClient = None ):
     if not outputData:
       gLogger.info( 'No output data LFN(s) constructed' )
     else:
-      gLogger.verbose( 'Created the following output data LFN(s):\n%s' % ( str.join( outputData, '\n' ) ) )
+      gLogger.verbose( 'Created the following output data LFN(s):\n%s' % ( '\n'.join( outputData ) ) )
     gLogger.verbose( 'Log file path is:\n%s' % logFilePath[0] )
     gLogger.verbose( 'Log target path is:\n%s' % logTargetPath[0] )
     if bkLFNs:
-      gLogger.verbose( 'BookkeepingLFN(s) are:\n%s' % ( str.join( bkLFNs, '\n' ) ) )
+      gLogger.verbose( 'BookkeepingLFN(s) are:\n%s' % ( '\n'.join( bkLFNs ) ) )
     if debugLFNs:
-      gLogger.verbose( 'DebugLFN(s) are:\n%s' % ( str.join( debugLFNs, '\n' ) ) )
+      gLogger.verbose( 'DebugLFN(s) are:\n%s' % ( '\n'.join( debugLFNs ) ) )
     jobOutputs = {'ProductionOutputData':outputData, 'LogFilePath':logFilePath, 'LogTargetPath':logTargetPath, 'BookkeepingLFNs':bkLFNs, 'DebugLFNs':debugLFNs}
     return S_OK( jobOutputs )
 
@@ -190,17 +190,17 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
     initial = owner[:1]
     subdir = str( jobID / 1000 )
     timeTup = datetime.date.today().timetuple()
-    yearMonth = '%s_%s' % ( timeTup[0], str.zfill( str( timeTup[1] ), 2 ) )
+    yearMonth = '%s_%s' % ( timeTup[0], str( timeTup[1] ).zfill( 2 ) )
     outputLFNs = {}
 
     #Strip out any leading or trailing slashes but allow fine structure
     if outputPath:
-      outputPathList = str.split( outputPath, os.sep )
+      outputPathList = str( outputPath ).split( os.sep )
       newPath = []
       for i in outputPathList:
         if i:
           newPath.append( i )
-      outputPath = str.join( newPath, os.sep )
+      outputPath = ( os.sep ).join( newPath )
 
     if not type( outputFiles ) == types.ListType:
       outputFiles = [outputFiles]
@@ -214,7 +214,7 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
 
     outputData = outputLFNs.values()
     if outputData:
-      gLogger.info( 'Created the following output data LFN(s):\n%s' % ( str.join( outputData, '\n' ) ) )
+      gLogger.info( 'Created the following output data LFN(s):\n%s' % ( '\n'.join( outputData ) ) )
     else:
       gLogger.info( 'No output LFN(s) constructed' )
 
@@ -259,7 +259,7 @@ def _makeProductionPath( JOB_ID, LFN_ROOT, typeName, mode, prodstring, log = Fal
   if log:
     try:
       jobid = int( JOB_ID )
-      jobindex = str.zfill( jobid / 10000, 4 )
+      jobindex = str( jobid / 10000 ).zfill( 4 )
     except Exception:
       jobindex = '0000'
     result += jobindex
@@ -277,7 +277,7 @@ def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, prodstring ):
                                                                                                str( filetuple ) ) )
   try:
     jobid = int( JOB_ID )
-    jobindex = str.zfill( jobid / 10000, 4 )
+    jobindex = str( jobid / 10000 ).zfill( 4 )
   except Exception:
     jobindex = '0000'
 
@@ -304,7 +304,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None ):
   if not dataTypes['OK']:
     raise Exception, dataTypes['Message']
   dataTypes = [x[0] for x in dataTypes['Value']['Records']]
-  gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( str.join( dataTypes, ', ' ) ) )
+  gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( ', '.join( dataTypes ) ) )
   LFN_ROOT = ''
   gLogger.verbose( 'wf lfn: %s, namespace: %s, configVersion: %s' % ( lfn, namespace, configVersion ) )
   if not lfn:
@@ -330,7 +330,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None ):
     else:
       tmpLfnRoot[-1] = namespace
 
-    LFN_ROOT = str.join( tmpLfnRoot, os.path.sep )
+    LFN_ROOT = ( os.path.sep ).join( tmpLfnRoot, )
 
   return LFN_ROOT
 

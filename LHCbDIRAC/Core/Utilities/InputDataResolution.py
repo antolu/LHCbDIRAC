@@ -62,7 +62,7 @@ class InputDataResolution:
     if result.has_key( 'Failed' ):
       failedReplicas = result['Failed']
       if failedReplicas and not ignoreMissing:
-        self.log.error( 'Failed to obtain access to the following files:\n%s' % ( str.join( failedReplicas, '\n' ) ) )
+        self.log.error( 'Failed to obtain access to the following files:\n%s' % ( '\n'.join( failedReplicas ) ) )
         return S_ERROR( 'Failed to access all of requested input data' )
 
     if not result.has_key( 'Successful' ):
@@ -161,12 +161,12 @@ class InputDataResolution:
       options = inputDataPolicy['Value']
       if options.has_key( site ):
         policy = options[site]
-        policy = [x.strip() for x in str.split( policy, ',' )]
-        self.log.info( 'Found specific input data policy for site %s:\n%s' % ( site, str.join( policy, ',\n' ) ) )
+        policy = [x.strip() for x in policy.split( ',' )]
+        self.log.info( 'Found specific input data policy for site %s:\n%s' % ( site, ',\n'.join( policy ) ) )
       elif options.has_key( 'Default' ):
         policy = options['Default']
-        policy = [x.strip() for x in str.split( policy, ',' )]
-        self.log.info( 'Applying default input data policy for site %s:\n%s' % ( site, str.join( policy, ',\n' ) ) )
+        policy = [x.strip() for x in policy.split( ',' )]
+        self.log.info( 'Applying default input data policy for site %s:\n%s' % ( site, ',\n'.join( policy ) ) )
 
     dataToResolve = None #if none, all supplied input data is resolved
     allDataResolved = False
@@ -183,7 +183,7 @@ class InputDataResolution:
           failedReplicas = result['Failed']
 
         if failedReplicas:
-          self.log.info( '%s failed for the following files:\n%s' % ( modulePath, str.join( failedReplicas, '\n' ) ) )
+          self.log.info( '%s failed for the following files:\n%s' % ( modulePath, '\n'.join( failedReplicas ) ) )
           dataToResolve = failedReplicas
         else:
           self.log.info( 'All replicas resolved after %s execution' % ( modulePath ) )
