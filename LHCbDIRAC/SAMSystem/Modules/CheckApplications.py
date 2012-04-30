@@ -14,7 +14,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC import systemCall
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea, MySiteRoot
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea, mySiteRoot
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -115,10 +115,10 @@ class CheckApplications( ModuleBaseSAM ):
 #
 #to be remove...
 #
-      sharedArea = MySiteRoot()
+      sharedArea = mySiteRoot()
       if sharedArea == '':
-        self.log.error( 'MySiteRoot Not found' )
-        return S_ERROR( ' MySiteRoot Not Found' )
+        self.log.error( 'mySiteRoot Not found' )
+        return S_ERROR( ' mySiteRoot Not Found' )
 
       mySiteRoot = sharedArea
       self.log.info( 'MYSITEROOT is %s' % mySiteRoot )
