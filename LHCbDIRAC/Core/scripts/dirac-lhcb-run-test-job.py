@@ -141,7 +141,7 @@ for switch in Script.getUnprocessedSwitches():
   elif switch[0].lower() in ( 'n', 'jobname' ):
     jobName = switch[1]
   elif switch[0].lower() in ( 'e', 'events' ):
-    events = int( switch[1] )
+    nbEvents = int( switch[1] )
   elif switch[0].lower() in ( 'd', 'testdir' ):
     testDir = switch[1]
   elif switch[0].lower() in ( 'g', 'generate' ):
