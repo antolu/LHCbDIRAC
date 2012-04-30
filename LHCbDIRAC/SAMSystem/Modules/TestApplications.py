@@ -22,15 +22,15 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 
-import string, os, sys, shutil
+import os, sys, shutil
 
 SAM_TEST_NAME = '' #Defined in the workflow
 SAM_LOG_FILE = ''  #Defined using workflow parameters
 natOS = NativeMachine()
 
 class TestApplications( ModuleBaseSAM ):
+  """ Test Application sSAM class """
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
@@ -115,8 +115,8 @@ class TestApplications( ModuleBaseSAM ):
 
     if not self.appSystemConfig in localPlatforms:
       if not self.appSystemConfig in localArch:
-        self.log.info( '%s is not in list of supported system configurations at this site: %s' % ( self.appSystemConfig, string.join( localPlatforms, ',' ) ) )
-        self.writeToLog( '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' % ( self.appSystemConfig, string.join( localPlatforms, ',' ) ) )
+        self.log.info( '%s is not in list of supported system configurations at this site: %s' % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
+        self.writeToLog( '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
         return self.finalize( '%s Test Disabled' % self.testName, 'Status NOTICE (=30)', 'notice' )
       else:
         self.appSystemConfig = localPlatforms[0]
@@ -208,7 +208,7 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
       #Correct the log file name since it will have Step1_ prepended.
       if os.path.exists( 'Step1_%s' % self.logFile ):
         shutil.move( 'Step1_%s' % self.logFile, self.logFile )
-    except Exception, x:
+    except SystemError, x:
       self.log.warn( 'Problem during %s %s execution: "%s"' % ( appName, appVersion, x ) )
       return S_ERROR( str( x ) )
     return result
