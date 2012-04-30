@@ -5,9 +5,10 @@
 
 '''
 
-from DIRAC                                import gLogger, gConfig
-from DIRAC.ResourceStatusSystem.Utilities import Utils
-from DIRAC.ResourceStatusSystem.Utilities import Synchronizer as BaseSync
+from DIRAC                                               import gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ResourceStatusSystem.Utilities                import Utils
+from DIRAC.ResourceStatusSystem.Utilities                import Synchronizer as BaseSync
 
 __RCSID__  = '$Id: $'
 
@@ -70,8 +71,11 @@ class Synchronizer( BaseSync.Synchronizer ):
 
     ses = CS.getSEs()
 
+    opHelper = Operations()
+
     for se in ses:
-      backEnd = gConfig.getValue( '/Resources/StorageElements/%s/BackendType' % se )
+      backEnd = opHelper.getValue( 'StorageElements/%s/BackendType' % se )
+      #backEnd = gConfig.getValue( '/Resources/StorageElements/%s/BackendType' % se )
       if backEnd == 'DISET':
         knownSE = self.rsClient.getStorageElement( se )
         if knownSE[ 'OK' ] and not knownSE[ 'Value' ]:

@@ -13,11 +13,12 @@ import re
 import tempfile
 import time
 
-from DIRAC                                            import S_OK, gConfig
-from DIRAC.Core.Base.AgentModule                      import AgentModule
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.WorkloadManagementSystem.DB.JobDB          import JobDB
-from DIRAC.Core.Utilities                             import Time
+from DIRAC                                               import S_OK, gConfig
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Base.AgentModule                         import AgentModule
+from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+from DIRAC.WorkloadManagementSystem.DB.JobDB             import JobDB
+from DIRAC.Core.Utilities                                import Time
 
 MC_JOB_TYPES   = [ 'normal', '^MC' ]
 DATA_JOB_TYPES = [ '^Data' ]
@@ -51,6 +52,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     self.jobDB           = JobDB()
     self.siteGOCNameDict = {}
     self.hrefPrefix      = self.am_getOption( 'SiteHrefPrefix', prefix )
+    self.opHelper        = Operations()
     
     return S_OK()
 
@@ -257,12 +259,14 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     """ Get DIRAC Site name to GOC Site name mapping
     """
 
-    result = gConfig.getSections( '/Resources/Sites/LCG' )
+    #result = gConfig.getSections( '/Resources/Sites/LCG' )
+    result = self.opHelper.getSections( 'Sites/LCG' )
     if not result[ 'OK' ]:
       return result
 
     for site in result[ 'Value' ]:
-      gocName = gConfig.getValue( '/Resources/Sites/LCG/%s/Name' % site, 'Unknown' )
+      gocName = self.opHelper.getValue( 'Sites/LCG/%s/Name' % site, 'Unknown' )
+      #gocName = gConfig.getValue( '/Resources/Sites/LCG/%s/Name' % site, 'Unknown' )
       self.siteGOCNameDict[ site ] = gocName
 
   def __getGOCName( self, site ):

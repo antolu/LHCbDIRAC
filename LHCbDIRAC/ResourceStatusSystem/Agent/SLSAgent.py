@@ -5,6 +5,7 @@ from DIRAC import gLogger, gConfig, S_OK, S_ERROR, rootPath
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from DIRAC.Core.Base.DB import DB
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
 from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
@@ -65,11 +66,15 @@ def gen_xml_stub():
 #### Helper functions to send a warning mail to a site (for space-token test)
 
 def get_pledged_value_for_token( se, st ):
-  val = float( gConfig.getValue( "/Resources/Shares/Disk/" + se + "/" + st ) )
+  opHelper = Operations()
+  val = float( opHelper.getValue( "Shares/Disk/" + se + "/" + st ) )
+  #val = float( gConfig.getValue( "/Resources/Shares/Disk/" + se + "/" + st ) )
   return ( val if val != None else 0 )
 
 def contact_mail_of_site( site ):
-  return gConfig.getValue( "/Resources/Shares/Disk/" + site + "/Mail" )
+  opHelper = Operations()
+  return opHelper.getValue( "Shares/Disk/" + site + "/Mail" )
+  #return gConfig.getValue( "/Resources/Shares/Disk/" + site + "/Mail" )
 
 def send_mail_to_site( site, token, pledged, total ):
   from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
@@ -253,8 +258,12 @@ class DIRACTest( TestBase ):
 
   # This test is an isolated SLS test for one service.. Why is it different ?
   def xml_gw( self ):
+    
+    opHelper = Operations()
+    
     try:
-      sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
+      sites = opHelper.getSections( 'Sites/LCG' )['Value']
+      #sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
     except KeyError:
       gLogger.error( "SLSAgent, DIRACTest: Unable to query CS" )
       sites = []
@@ -510,7 +519,8 @@ class CondDBTest( TestBase ):
     super( CondDBTest, self ).__init__( am )
 
     # Get ConDB infos
-    self.CDB_infos = CS.getTypedDictRootedAt( root = "", relpath = "/Resources/CondDB" )
+    self.CDB_infos = CS.getTypedDictRootedAtOperations( root = "", relpath = "CondDB" )
+    #self.CDB_infos = CS.getTypedDictRootedAt( root = "", relpath = "/Resources/CondDB" )
     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
 
     try:

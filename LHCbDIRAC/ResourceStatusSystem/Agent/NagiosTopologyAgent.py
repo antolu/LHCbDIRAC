@@ -12,9 +12,10 @@ import os
 import time
 import xml.dom.minidom
 
-from DIRAC                                import gConfig, S_OK, rootPath, gLogger
-from DIRAC.Core.Base.AgentModule          import AgentModule
-from DIRAC.ResourceStatusSystem.Utilities import Utils
+from DIRAC                                               import gConfig, S_OK, rootPath, gLogger
+from DIRAC.Core.Base.AgentModule                         import AgentModule
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ResourceStatusSystem.Utilities                import Utils
 
 __RCSID__  = '$Id: $'
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -57,18 +58,23 @@ class NagiosTopologyAgent( AgentModule ):
     # xml header info
     self.__writeHeaderInfo( xml_doc, xml_root )
 
+    opHelper = Operations()
+
     # loop over sites
-    for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
+    for site in Utils.unpack( opHelper.getSections( 'Sites/LCG' ) ):
+    #for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
 
       # Site config
-      site_opts     = Utils.unpack( gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site ) )
+      site_opts     = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
+      #site_opts     = Utils.unpack( gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site ) )
       site_name     = site_opts.get( 'Name' )
       site_tier     = site_opts.get( 'MoUTierLevel', 'None' )
       has_grid_elem = False
       xml_site      = self.xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
       # CE info
-      ces = gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )
+      ces = opHelper.getSections( 'Sites/LCG/%s/CEs' % site )
+      #ces = gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )
       if ces[ 'OK' ]:
         res = self.__writeCEInfo( xml_doc, xml_site, site, ces[ 'Value' ] )
         # Update has_grid_elem
@@ -81,7 +87,8 @@ class NagiosTopologyAgent( AgentModule ):
         has_grid_elem = res or has_grid_elem
         
       # FileCatalog info
-      sites = gConfig.getSections( '/Resources/FileCatalogs/LcgFileCatalogCombined' )
+      sites = opHelper.getSections( 'FileCatalogs/LcgFileCatalogCombined' )
+      #sites = gConfig.getSections( '/Resources/FileCatalogs/LcgFileCatalogCombined' )
       if sites[ 'OK' ] and site in sites[ 'Value' ]:
         res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
@@ -157,12 +164,15 @@ class NagiosTopologyAgent( AgentModule ):
     
     has_grid_elem = False
     
+    opHelper = Operations()
+    
     #for site_ce_name in gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )[ 'Value' ]:
     for site_ce_name in ces:
       
       has_grid_elem = True
       
-      site_ce_opts = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
+      site_ce_opts = opHelper.getOptionsDict( 'Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
+      #site_ce_opts = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
       if not site_ce_opts[ 'OK' ]:
         gLogger.error( site_ce_opts[ 'Message' ] )
         continue
@@ -188,6 +198,8 @@ class NagiosTopologyAgent( AgentModule ):
     '''    
     has_grid_elem  = True
     
+    opHelper = Operations()
+    
     splittedSite = site.split( "." )[ 1 ]
     if splittedSite != 'NIKHEF':
       real_site_name = splittedSite
@@ -195,7 +207,7 @@ class NagiosTopologyAgent( AgentModule ):
       real_site_name = 'SARA'  
     
     #real_site_name = site.split( "." )[ 1 ] if site.split( "." )[ 1 ] != "NIKHEF" else "SARA"
-    site_se_opts = gConfig.getOptionsDict( '/Resources/StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )
+    site_se_opts = opHelper.getOptionsDict( 'StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )
     
     if not site_se_opts[ 'OK' ]:
       gLogger.error( site_se_opts[ 'Message' ] )
@@ -222,7 +234,9 @@ class NagiosTopologyAgent( AgentModule ):
 
     has_grid_elem = True
     
-    site_fc_opts  = gConfig.getOptionsDict( '/Resources/FileCatalogs/LcgFileCatalogCombined/%s' % site )
+    opHelper = Operations()
+    
+    site_fc_opts  = opHelper.getOptionsDict( 'FileCatalogs/LcgFileCatalogCombined/%s' % site )
     if not site_fc_opts[ 'OK' ]:
       gLogger.error( site_fc_opts[ 'Message' ] )
       return False
