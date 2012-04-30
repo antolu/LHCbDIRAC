@@ -9,7 +9,6 @@ from DIRAC                                               import gConfig
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getScriptsLocation
 from LHCbDIRAC.Workflow.Modules.RootApplication import RootApplication
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import MySiteRoot
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from DIRAC.Core.Base.Script import parseCommandLine
 from DIRAC.Interfaces.API.Dirac import Dirac
@@ -269,14 +268,14 @@ class MergeForDQ_GetProcessingPasses( UtilitiesTestCase ):
 class MergeForDQ_GetRun( UtilitiesTestCase ):
   def test_GetRun( self ):
     #bkTree, bkClient , eventType, evtTypeList, dqFlag
-    expectedbkTree = {'LHCb': 
-                      {'Collision11': 
+    expectedbkTree = {'LHCb':
+                      {'Collision11':
                        {'Beam1380GeV-VeloOpen-MagUp': {},
                         'Beam3500GeV-VeloClosed-MagDown':
                          {'/Real Data/Reco09': {}, '/Real Data/Reco10': {}},
                         'Beam3500GeV-VeloClosed-MagUp':
-                         {'/Real Data/Reco09': {}, '/Real Data/Reco10': {}}, 
-                        'Beam1380GeV-VeloOpen-MagDown': 
+                         {'/Real Data/Reco09': {}, '/Real Data/Reco10': {}},
+                        'Beam1380GeV-VeloOpen-MagDown':
                          {'/Real Data/Reco09': {}}}}}
 
     #eventType = 'EXPRESS'
@@ -287,7 +286,7 @@ class MergeForDQ_GetRun( UtilitiesTestCase ):
     parseCommandLine()
 
     bkClient = BookkeepingClient()
-    
+
     ( bkDict , res ) = GetRuns( expectedbkTree, bkClient, eventType,
                             eventTypeList, dqFlag )
     #print "\n=====================================>bkDict After GetRuns",bkDict
@@ -297,22 +296,22 @@ class MergeForDQ_Merge( UtilitiesTestCase ):
   This class can test the MergeRun function issueing a bkDict that corresponds to data present in the BK.
   The directories must be changed accoding to the access rights of who is testing.
   Most important, the castor upload directory must be own by who have the credentials to access BK, if not it should at
-  least be part of the same group. 
+  least be part of the same group.
   '''
   def test_Merge( self ):
     parseCommandLine()
-    bkDict = {'StartRun': 81811, 'ConfigName': 'LHCb', 
-              'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown-Excl-R2', 
-              'EndRun': 81811, 'EventType': 90000000, 
-              'ProcessingPass': '/Real Data/Reco07/Stripping11', 
-              'ConfigVersion': 'Collision10', 
+    bkDict = {'StartRun': 81811, 'ConfigName': 'LHCb',
+              'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown-Excl-R2',
+              'EndRun': 81811, 'EventType': 90000000,
+              'ProcessingPass': '/Real Data/Reco07/Stripping11',
+              'ConfigVersion': 'Collision10',
               'DataQualityFlag': 'OK'}
 
     eventType = 'EXPRESS'
     eventTypeList = {'EXPRESS' : '91000000', 'FULL'    : '90000000'}
     dqFlag = 'UNCHECKED'
     histTypeList = ['BRUNELHIST', 'DAVINCIHIST']
-    
+
     homeDir = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/ROOT'#testdirs
     testDir = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Test'#testdirs
     workDir = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work'#testdirs
@@ -321,167 +320,165 @@ class MergeForDQ_Merge( UtilitiesTestCase ):
     mergeStep1Command = mergeExeDir + '/Merge'
     mergeStep2Command = mergeExeDir + '/Merge2'
     mergeStep3Command = mergeExeDir + '/Merge3'
-    logFileName = '%s/logs/Merge_%s_histograms.log' % ( scriptsDir,'EXPRESS')
+    logFileName = '%s/logs/Merge_%s_histograms.log' % ( scriptsDir, 'EXPRESS' )
 #    castorHistDir = '/castor/cern.ch/grid'
 #    castorHistPre = 'castor://castorlhcb.cern.ch:9002//castor/cern.ch/grid'
 #    castorHistPost='?svcClass=lhcbdisk&castorVersion=2'
     #castorHistDir = 'castor://castorlhcb.cern.ch:9002//castor/cern.ch/grid'
     castorHistPre = 'castor://castorlhcb.cern.ch:9002//castor/cern.ch/grid/lhcb/user/a/afalabel'
-    castorHistPost='?svcClass=lhcbdisk&castorVersion=2'
-    
+    castorHistPost = '?svcClass=lhcbdisk&castorVersion=2'
+
     senderAddress = 'falabella@fe.infn.it'
     mailAddress = 'falabella@fe.infn.it'
 
-    testMode=False
-    specialMode=False
-    brunelCount=0
-    daVinciCount=0
+    testMode = False
+    specialMode = False
+    brunelCount = 0
+    daVinciCount = 0
 
-    
-    logFile     = open(logFileName, 'a')
-    
-    dirac     = Dirac()
+
+    logFile = open( logFileName, 'a' )
+
+    dirac = Dirac()
 
     parseCommandLine()
 
     bkClient = BookkeepingClient()
-    res = MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir , 
-                    testMode, specialMode , mergeExeDir , mergeStep1Command, 
-                    mergeStep2Command,mergeStep3Command,specialMode,testMode, castorHistPre, castorHistPost , 
-                    workDir ,brunelCount , daVinciCount , logFile , logFileName ,dirac ,senderAddress , mailAddress)
-    
-    
-    
+    res = MergeRun( bkDict, eventType , histTypeList , bkClient , homeDir , testDir ,
+                    testMode, specialMode , mergeExeDir , mergeStep1Command,
+                    mergeStep2Command, mergeStep3Command, specialMode, testMode, castorHistPre, castorHistPost ,
+                    workDir , brunelCount , daVinciCount , logFile , logFileName , dirac , senderAddress , mailAddress )
+
+
+
 
 class MergeForDQ_MergeStep2( UtilitiesTestCase ):
   def test_MergeStep2( self ):
     scriptsDir = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/scripts'#testdirs
-    logFileName = '%s/logs/Merge_%s_histograms.log' % ( scriptsDir,'EXPRESS')
+    logFileName = '%s/logs/Merge_%s_histograms.log' % ( scriptsDir, 'EXPRESS' )
     targetFile = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_1190.root'
     mergeStep2Command = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/exedir/Merge2'
 
-#    merge =[72, '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_1190.root', 
-#            '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/exedir/Merge2', 
-#            '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_1190_0.root', 
+#    merge =[72, '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_1190.root',
+#            '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/exedir/Merge2',
+#            '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_1190_0.root',
 #            '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_1190_1.root']
-    
-    logFile     = open(logFileName, 'a')
-    
+
+    logFile = open( logFileName, 'a' )
+
     parseCommandLine()
-    stepHist = ['/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_4253_0.root', 
+    stepHist = ['/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_4253_0.root',
                  '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/Work/Brunel_4253_1.root']
-    
-    dim =72
-    #print "logFile ",logFile 
+
+    dim = 72
+    #print "logFile ",logFile
     #print " len( stepHist )",len( stepHist )
-    
-    merge = stepHist[0:len( stepHist )]  
+
+    merge = stepHist[0:len( stepHist )]
     merge.insert( 0, str( dim ) )
     merge.insert( 0, targetFile )
     merge.insert( 0, mergeStep2Command )
-    
+
     #print "Merge----",merge
 
     p = subprocess.call( merge, stdout = logFile )
     #p = subprocess.call( merge )
-      
-    
-    
+
+
+
 
 
 class MergeForDQ_OutPut( UtilitiesTestCase ):
   def test_EnV( self ):
     parseCommandLine()
-    merge=[]
-    histopath='/afs/cern.ch/user/a/afalabel/private/ROOT/'
+    merge = []
+    histopath = '/afs/cern.ch/user/a/afalabel/private/ROOT/'
     exe = '/afs/cern.ch/lhcb/group/dataquality/adinolfi/Merge'
-    targetFile='/afs/cern.ch/user/a/afalabel/private/ROOT/merged_histos.root'
-    logFileName='/afs/cern.ch/user/a/afalabel/private/ROOT/log.txt'
+    targetFile = '/afs/cern.ch/user/a/afalabel/private/ROOT/merged_histos.root'
+    logFileName = '/afs/cern.ch/user/a/afalabel/private/ROOT/log.txt'
     logFile = open( logFileName, 'a' )
-    filename = histopath+'num1.root'
-    print "\nfilename %s" % ( filename ) 
+    filename = histopath + 'num1.root'
+    print "\nfilename %s" % ( filename )
     merge.append( filename )
-    filename = histopath+'num2.root'
+    filename = histopath + 'num2.root'
     merge.append( filename )
-    filename = histopath+'num3.root'
+    filename = histopath + 'num3.root'
     merge.append( filename )
     merge.insert( 0, targetFile )
     merge.insert( 0, exe )
-    print "\nmerge %s" % (merge )
+    print "\nmerge %s" % ( merge )
     p = subprocess.call( merge, stdout = logFile )
-    StreamToLog(logFileName,gLogger,exe)
+    StreamToLog( logFileName, gLogger, exe )
 
 class MergeForDQ_Merge2( UtilitiesTestCase ):
   def test_Merge( self ):
-'''
-This second class can be used to test the Merge method so it tests ONLY the merging process given whatever bunch 
-of files who tests provide as input.  
-'''
+    """ This second class can be used to test the Merge method so it tests ONLY the merging process given whatever bunch
+    of files who tests provide as input.  """
     homeDir = '/afs/cern.ch/user/a/afalabel/private/ROOT'#testdirs
     testDir = '/afs/cern.ch/user/a/afalabel/private/ROOT'#testdirs
     workDir = '/afs/cern.ch/user/a/afalabel/private/ROOT'#testdirs
     scriptsDir = '/afs/cern.ch/user/a/afalabel/private/ROOT'#testdirs
     castorHistPre = '/afs/cern.ch/user/a/afalabel/private/ROOT'
-    castorHistPost=''
+    castorHistPost = ''
     mergeExeDir = '/afs/cern.ch/user/a/afalabel/test_MergeForDQAgent/exedir'#TO BE CHANGED
     mergeStep1Command = mergeExeDir + '/Merge'
     mergeStep2Command = mergeExeDir + '/Merge2'
     mergeStep3Command = mergeExeDir + '/Merge3'
-    logFileName = '%s/Merge_%s_histograms.log' % ( scriptsDir,'EXPRESS')
+    logFileName = '%s/Merge_%s_histograms.log' % ( scriptsDir, 'EXPRESS' )
     senderAddress = 'falabella@fe.infn.it'
     mailAddress = 'falabella@fe.infn.it'
- 
+
     eventType = 'EXPRESS'
     eventTypeList = {'EXPRESS' : '91000000', 'FULL'    : '90000000'}
     dqFlag = 'UNCHECKED'
     histTypeList = ['BRUNELHIST', 'DAVINCIHIST']
-           
-    bkDict = {'StartRun': 1, 'ConfigName': 'LHCb', 
-              'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown-Excl-R2', 
-              'EndRun': 1, 'EventType': 9, 
-              'ProcessingPass': '/Real Data/Reco07/Stripping11', 
-              'ConfigVersion': 'Collision10', 
+
+    bkDict = {'StartRun': 1, 'ConfigName': 'LHCb',
+              'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown-Excl-R2',
+              'EndRun': 1, 'EventType': 9,
+              'ProcessingPass': '/Real Data/Reco07/Stripping11',
+              'ConfigVersion': 'Collision10',
               'DataQualityFlag': 'OK'}
 
 
-    testMode=False
-    specialMode=False
-    brunelCount=0
-    daVinciCount=0
+    testMode = False
+    specialMode = False
+    brunelCount = 0
+    daVinciCount = 0
     bkClient = BookkeepingClient()
-    
-    logFile     = open(logFileName, 'a')
-    
-    dirac     = Dirac()
+
+    logFile = open( logFileName, 'a' )
+
+    dirac = Dirac()
 
     parseCommandLine()
 
-    
+
     brunelHist = 'BRUNELHIST'
     daVinciHist = 'DAVINCIHIST'
-    histType=''
+    histType = ''
     runNumber = '1'
-    
+
     targetFile = '/afs/cern.ch/user/a/afalabel/private/ROOT/Merged.root'
-   
-    brunelHist=['/BRUNEL_1.root',
+
+    brunelHist = ['/BRUNEL_1.root',
                 '/BRUNEL_2.root',
                 '/BRUNEL_3.root']
-    
-    daVinciHist=['/DAVINCI_1.root',
+
+    daVinciHist = ['/DAVINCI_1.root',
                  '/DAVINCI_2.root',
                  '/DAVINCI_3.root']
 
     run = '1'
     res = Merge( targetFile, run, brunelHist, daVinciHist , mergeExeDir ,
                  mergeStep1Command, mergeStep2Command, mergeStep3Command,
-                 specialMode,testMode, castorHistPre, castorHistPost, homeDir, workDir ,
-                 brunelCount , daVinciCount , logFile , logFileName , dirac)
-    os.remove(logFileName)
-    
-    
+                 specialMode, testMode, castorHistPre, castorHistPost, homeDir, workDir ,
+                 brunelCount , daVinciCount , logFile , logFileName , dirac )
+    os.remove( logFileName )
 
-    
+
+
+
 
 #############################################################################
 # Test Suite run
