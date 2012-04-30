@@ -19,14 +19,14 @@ from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, I
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-import string, os, sys, re, shutil, urllib
+import os, sys, re, shutil, urllib
 
 SAM_TEST_NAME = 'CE-lhcb-install'
 SAM_LOG_FILE = 'sam-install.log'
 
 class SoftwareInstallation( ModuleBaseSAM ):
+  """ SoftwareInstallation SAM class """
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
@@ -185,11 +185,11 @@ class SoftwareInstallation( ModuleBaseSAM ):
         return self.finalize( 'Could not obtain compatible platforms for %s' % localArch, '/Resources/Computing/OSCompatibility/%s' % localArch, 'error' )
 
       for systemConfig in localPlatforms:
-        self.log.info( 'The following software packages will be installed:\n%s\nfor system configuration %s' % ( string.join( installList, '\n' ), systemConfig ) )
+        self.log.info( 'The following software packages will be installed:\n%s\nfor system configuration %s' % ( '\n'.join( installList ), systemConfig ) )
         packageList = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( systemConfig ), [] )
 
         for installPackage in installList:
-          appNameVersion = string.split( installPackage, '.' )
+          appNameVersion = installPackage.split( '.' )
           if not len( appNameVersion ) == 2:
             if isPoolAccount:
               self.__changePermissions( sharedArea )
@@ -220,7 +220,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
             self.log.info( '%s is not supported for system configuration %s, nothing to install.' % ( installPackage, systemConfig ) )
 
         for removePackage in removeList:
-          appNameVersion = string.split( removePackage, '.' )
+          appNameVersion = removePackage.split( '.' )
           if not len( appNameVersion ) == 2:
             if isPoolAccount:
               self.__changePermissions( sharedArea )
@@ -307,15 +307,15 @@ class SoftwareInstallation( ModuleBaseSAM ):
             raise x
 
         for toChange in files:
-          file = os.path.join( dirName, toChange )
-          if os.path.isfile( file ) and not os.path.islink( file ) and os.stat( file )[4] == userID :
+          filename = os.path.join( dirName, toChange )
+          if os.path.isfile( filename ) and not os.path.islink( filename ) and os.stat( filename )[4] == userID :
             try:
-              os.chmod( file, 0775 )
+              os.chmod( filename, 0775 )
             except Exception, x:
-              self.log.error( 'Can not change permission to file:', file )
-              self.log.error( 'Is file: ', os.path.isfile( file ) )
-              self.log.error( 'Is link: ', os.path.islink( file ) )
-              self.log.error( 'Is exits:', os.path.exists( file ) )
+              self.log.error( 'Can not change permission to file:', filename )
+              self.log.error( 'Is file: ', os.path.isfile( filename ) )
+              self.log.error( 'Is link: ', os.path.islink( filename ) )
+              self.log.error( 'Is exits:', os.path.exists( filname ) )
               raise x
     except Exception, x:
       self.log.error( 'Problem changing shared area permissions', str( x ) )
