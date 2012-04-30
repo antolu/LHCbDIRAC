@@ -251,14 +251,14 @@ def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2' ):
 
 #############################################################################
 
-def _makeProductionPath( JOB_ID, LFN_ROOT, typeName, mode, prodstring, log = False ):
+def _makeProductionPath( jobID, lfnROOT, typeName, mode, prodstring, log = False ):
   """ Constructs the path in the logical name space where the output
       data for the given production will go. In
   """
-  result = LFN_ROOT + '/' + typeName.upper() + '/' + prodstring + '/'
+  result = lfnROOT + '/' + typeName.upper() + '/' + prodstring + '/'
   if log:
     try:
-      jobid = int( JOB_ID )
+      jobid = int( jobID )
       jobindex = str( jobid / 10000 ).zfill( 4 )
     except Exception:
       jobindex = '0000'
@@ -268,15 +268,15 @@ def _makeProductionPath( JOB_ID, LFN_ROOT, typeName, mode, prodstring, log = Fal
 
 #############################################################################
 
-def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, prodstring ):
+def _makeProductionLFN( jobID, lfnROOT, filetuple, prodstring ):
   """ Constructs the logical file name according to LHCb conventions.
       Returns the lfn without 'lfn:' prepended.
   """
-  gLogger.debug( 'Making production LFN for JOB_ID %s, LFN_ROOT %s, prodstring %s for\n%s' % ( JOB_ID, LFN_ROOT,
+  gLogger.debug( 'Making production LFN for JOB_ID %s, LFN_ROOT %s, prodstring %s for\n%s' % ( jobID, lfnROOT,
                                                                                                prodstring,
                                                                                                str( filetuple ) ) )
   try:
-    jobid = int( JOB_ID )
+    jobid = int( jobID )
     jobindex = str( jobid / 10000 ).zfill( 4 )
   except Exception:
     jobindex = '0000'
@@ -285,7 +285,7 @@ def _makeProductionLFN( JOB_ID, LFN_ROOT, filetuple, prodstring ):
   if re.search( 'lfn:', fname ) or re.search( 'LFN:', fname ):
     return fname.replace( 'lfn:', '' ).replace( 'LFN:', '' )
 
-  return LFN_ROOT + '/' + filetuple[1].upper() + '/' + prodstring + '/' + jobindex + '/' + fname
+  return lfnROOT + '/' + filetuple[1].upper() + '/' + prodstring + '/' + jobindex + '/' + fname
 
 #############################################################################
 
