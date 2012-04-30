@@ -263,11 +263,11 @@ def InstallApplication( app, config, area ):
   # Move to requested are and run the installation
   os.chdir( localArea )
 
-  mySiteRoot = os.getcwd()
+  localmySiteRoot = os.getcwd()
   if sharedArea:
-    mySiteRoot += ':%s' % sharedArea
-  cmtEnv['MYSITEROOT'] = mySiteRoot
-  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % mySiteRoot )
+    localmySiteRoot += ':%s' % sharedArea
+  cmtEnv['MYSITEROOT'] = localmySiteRoot
+  DIRAC.gLogger.info( 'Defining MYSITEROOT = %s' % localmySiteRoot )
   cmtEnv['CMTCONFIG'] = config
   DIRAC.gLogger.info( 'Defining CMTCONFIG = %s' % config )
 
