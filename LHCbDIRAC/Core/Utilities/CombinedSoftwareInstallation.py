@@ -149,17 +149,17 @@ def log( n, line ):
 def mySiteRoot():
   """Returns the mySiteRoot for the current local and / or shared areas.
   """
-  mySiteRoot = ''
+  localmySiteRoot = ''
   localArea = LocalArea()
   if not localArea:
     DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
-    return mySiteRoot
+    return localmySiteRoot
   sharedArea = SharedArea()
   if not sharedArea:
     DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
     return localArea
-  mySiteRoot = '%s:%s' % ( localArea, sharedArea )
-  return mySiteRoot
+  localmySiteRoot = '%s:%s' % ( localArea, sharedArea )
+  return localmySiteRoot
 
 #############################################################################
 
