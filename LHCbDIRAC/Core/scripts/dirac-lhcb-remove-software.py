@@ -38,7 +38,7 @@ def usage():
 def changeCS( path, val ):
   """ update the CS with the given values """
   val.sort()
-  changeresult = diracAdmin.csModifyValue( path, str.join( val, ', ' ) )
+  changeresult = diracAdmin.csModifyValue( path, ', '.join( val ) )
   print changeresult
   if not changeresult['OK']:
     print "Cannot modify value of %s" % path
