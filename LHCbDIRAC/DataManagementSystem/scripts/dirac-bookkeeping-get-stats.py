@@ -49,7 +49,7 @@ if __name__ == "__main__":
     bkQuery.setOption( 'Production', prod )
     print "For BK query:", bkQuery
     queryDict = bkQuery.getQueryDict()
-    if 'Visible' in queryDict:
+    if 'Visible' in queryDict and 'StartRun' not in queryDict and 'EndRun' not in queryDict:
       res = bk.getFilesSummary( queryDict )
       if not res['OK']:
         print "Error getting statistics from BK"
