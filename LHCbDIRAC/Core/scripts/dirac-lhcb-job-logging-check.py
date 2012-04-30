@@ -39,16 +39,16 @@ def usage():
   print 'Usage: %s [Try -h,--help for more information]' % ( Script.scriptName )
   DIRAC.exit( 2 )
 
-def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, date, dirac ):
+def getJobMetadata( localwmsStatus, localminorStatus, localappStatus, localsite, localowner, localjobGroup, intdate, intdirac ):
   """Gets information about jobs from the WMS"""
   # getJobStates
-  result_wms = dirac.selectJobs( Status = wmsStatus,
-                                 MinorStatus = minorStatus,
-                                 ApplicationStatus = appStatus,
-                                 Site = site,
-                                 Owner = owner,
-                                 JobGroup = jobGroup,
-                                 Date = date
+  result_wms = intdirac.selectJobs( Status = localwmsStatus,
+                                 MinorStatus = localminorStatus,
+                                 ApplicationStatus = localappStatus,
+                                 Site = localsite,
+                                 Owner = localowner,
+                                 JobGroup = localjobGroup,
+                                 Date = intdate
                                  )
 
   if not result_wms['OK']:
@@ -56,19 +56,19 @@ def getJobMetadata( wmsStatus, minorStatus, appStatus, site, owner, jobGroup, da
     DIRAC.exit( 2 )
   else:
     # create list of jobIDs in this state belonging to this production
-    jobIDs = result_wms['Value']
+    localjobIDs = result_wms['Value']
 
-  return jobIDs
+  return localjobIDs
 
-def getAttributes( jobID ):
+def getAttributes( localjobID ):
   """ get the attributes of the JOB """
-  result = dirac.attributes( jobID, printOutput = False )
+  result = dirac.attributes( localjobID, printOutput = False )
   if result['OK']:
     return result['Value']['Owner']
 
-def getLogging( jobID ):
+def getLogging( localjobID ):
   """ get the logging info of the JOB """
-  result = dirac.loggingInfo( jobID, printOutput = False )
+  result = dirac.loggingInfo( localjobID, printOutput = False )
   if result['OK']:
     try:
       for status in result['Value']:
@@ -82,22 +82,22 @@ def getLogging( jobID ):
              'exited with status' in status[1].lower() ):
           failed_time = status[3]
           return failed_time, status[1]
-    except:
+    except TypeError:
       return None, None
 
 
-def getParameters( jobID ):
+def getParameters( localjobID ):
   """ get the parameters of the JOB """
-  result = dirac.parameters( jobID, printOutput = False )
+  result = dirac.parameters( localjobID, printOutput = False )
   if result['OK']:
     try:
-      node = result['Value']['HostName']
+      localnode = result['Value']['HostName']
       walltime = result['Value']['WallClockTime(s)']
       cputime = result['Value']['TotalCPUTime(s)']
-      memory = result['Value']['Memory(kB)']
-      eff = float( cputime ) / float( walltime )
-      return node, eff, memory
-    except:
+      localmemory = result['Value']['Memory(kB)']
+      localeff = float( cputime ) / float( walltime )
+      return localnode, localeff, localmemory
+    except TypeError:
       return None, None, None
 
 
