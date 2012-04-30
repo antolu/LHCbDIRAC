@@ -151,7 +151,7 @@ class InputDataResolution:
       #In principle this can be a list of modules with the first taking precedence
       if type( policy ) in types.StringTypes:
         policy = [policy]
-      self.log.info( 'Job has a specific policy setting: %s' % ( str.join( policy, ', ' ) ) )
+      self.log.info( 'Job has a specific policy setting: %s' % ( ', '.join( policy ) ) )
     else:
       self.log.verbose( 'Attempting to resolve input data policy for site %s' % site )
       inputDataPolicy = gConfig.getOptionsDict( '/Operations/InputDataPolicy' )
