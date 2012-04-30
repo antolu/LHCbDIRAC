@@ -62,7 +62,7 @@ class SAMFinalization( ModuleBaseSAM ):
     self.uploadLogsFlag = False
 
   #############################################################################
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
     if self.step_commons.has_key( 'enable' ):
@@ -93,7 +93,7 @@ class SAMFinalization( ModuleBaseSAM ):
     """The main execution method of the SAMFinalization module.
     """
     self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
+    self._resolveInputVariables()
     self.runinfo = self.getRunInfo()
     sharedArea = SharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
@@ -427,7 +427,7 @@ EOT
       self.jobID = 12345
       samNode = 'test.node'
 
-     
+
     lfnPath = self.__getLFNPathString( samNode )
     testSummary = self.__getTestSummary( lfnPath, samResults, samLogs )
     softwareReport = self.__getSoftwareReport( lfnPath, samResults, samLogs )
@@ -461,14 +461,14 @@ EOT
       report = {}
       report['testName'] = testName
       report['testStatus'] = testStatus
-      report['testSummary'] = "%s %s"%(testName,testStatus)
+      report['testSummary'] = "%s %s" % ( testName, testStatus )
       report['testDetails'] = testDetails
-      reports.append(report)
-      
-    sys.path.append(self.samPublishClient+"/stomp")
+      reports.append( report )
+
+    sys.path.append( self.samPublishClient + "/stomp" )
 
     res = pythonCall( 600, self.__publisherNagios, samNode, reports )
-    
+
     if not res['OK']:
       return res
 
@@ -535,7 +535,7 @@ EOT
   def __publisherNagios( self, ce, reports ):
     """
     Publish information to Nagious:
-    
+
     hostName:           CE name for example ce06.pic.es
     metricName:         org.lhcb.WN-<test_name>-lhcb
     metricStatus:       0 is OK, 1 is WARNING, 2 is ERROR
@@ -543,50 +543,50 @@ EOT
     summaryData:        Few lines summarizing the test
     detailsData:        Free format text (this could be a link to the logSE if you prefer)
     """
-  
+
     import stomp
-    self.log.verbose ( "Nagios")
+    self.log.verbose ( "Nagios" )
     host = 'egi.msg.cern.ch'
     port = 6163
-    queue = '/queue/grid.probe.metricOutput.EGEE.sam-lhcb_cern_ch' 
+    queue = '/queue/grid.probe.metricOutput.EGEE.sam-lhcb_cern_ch'
     try:
-      conn = stomp.Connection([(host,port)])
+      conn = stomp.Connection( [( host, port )] )
       conn.start()
       conn.connect()
     except Exception:
-      return S_ERROR('Exception on connect to %s %d'%(host,port))    
+      return S_ERROR( 'Exception on connect to %s %d' % ( host, port ) )
 
 
-    timeStamp =  time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime())
-  
+    timeStamp = time.strftime( "%Y-%m-%dT%H:%M:%S", time.gmtime() )
+
     for report in reports:
-    
-      testStatus = int(report['testStatus'])
-      
+
+      testStatus = int( report['testStatus'] )
+
       metricStatus = 0
       if 0 < testStatus < 50:
         metricStatus = 1
       if testStatus >= 50:
         metricStatus = 2
-	
+
       message = ""
-      message +="hostName: %s\n"%ce
-      message +="metricName: org.lhcb.WN-%s-lhcb\n"%report['testName']
-      message +="metricStatus: %d\n"%metricStatus
-      message +="timestamp: %s\n"%timeStamp
-      message +="summaryData: %s\n"%report['testSummary']
-      message +="detailsData: %s\n"%report['testDetails']
-      message +="EOT\n"
+      message += "hostName: %s\n" % ce
+      message += "metricName: org.lhcb.WN-%s-lhcb\n" % report['testName']
+      message += "metricStatus: %d\n" % metricStatus
+      message += "timestamp: %s\n" % timeStamp
+      message += "summaryData: %s\n" % report['testSummary']
+      message += "detailsData: %s\n" % report['testDetails']
+      message += "EOT\n"
 
       try:
-        conn.send(message,destination=queue, ack='auto', persistent='true')
+        conn.send( message, destination = queue, ack = 'auto', persistent = 'true' )
       except Exception:
-        return S_ERROR('Exception on send to %s %d %s' %(host,port,queue))    
+        return S_ERROR( 'Exception on send to %s %d %s' % ( host, port, queue ) )
 
     try:
       conn.disconnect()
     except Exception:
-      return S_ERROR('Exception on disconnect to %s %d '%(host,port))    
+      return S_ERROR( 'Exception on disconnect to %s %d ' % ( host, port ) )
 
     return S_OK()
 
