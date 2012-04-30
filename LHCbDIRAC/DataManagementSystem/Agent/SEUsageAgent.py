@@ -1,18 +1,27 @@
-"""  SEUsageAgent browses the SEs to determine their content and store it into a DB.
+#####################################################################################
+# $HeadURL$
+#####################################################################################
+""" SEUsageAgent browses the SEs to determine their content and store it into a DB.
 """
+
 __RCSID__ = "$Id$"
 
-from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
-from DIRAC.Core.Base.AgentModule import AgentModule
+import os
+import time
+import urllib2
+import tarfile
+import signal
+from types import *
 
+from DIRAC import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
-from DIRAC.Core.Utilities.SiteSEMapping                import getSEsForSite
+from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.List import sortList
-from DIRAC.Resources.Storage.StorageElement         import StorageElement
-import time, os, urllib2, tarfile, signal
-from types import *
+from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 def alarmTimeoutHandler( *args ):
   raise Exception( 'Timeout' )
@@ -20,6 +29,9 @@ def alarmTimeoutHandler( *args ):
 AGENT_NAME = 'DataManagement/SEUsageAgent'
 
 class SEUsageAgent( AgentModule ):
+  """ ..class:: SEUsageAgent
+  """
+
   def initialize( self ):
 
     if self.am_getOption( 'DirectDB', False ):
@@ -30,6 +42,9 @@ class SEUsageAgent( AgentModule ):
       self.__storageUsage = RPCClient( 'DataManagement/StorageUsage' )
 
     self.__replicaManager = ReplicaManager()
+    
+    ## operations helper
+    self.__opHelper = Operations()
 
     #self.am_setModuleParam( "shifterProxy", "DataManager" )
     # This sets the Default Proxy to used as that defined under
@@ -302,8 +317,9 @@ class SEUsageAgent( AgentModule ):
         self.spaceTokens[ site ][ st ]['Check'] = True
 
 
-    rootConfigPath = '/Operations/DataConsistency'
-    res = gConfig.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
+    rootConfigPath = 'DataConsistency'
+    res = self.__opHelper.getOptionsDict(  "%s/%s" % ( rootConfigPath, site ) )
+    #res = gConfig.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
     if not res[ 'OK' ]:
       gLogger.error( "could not get configuration for site %s : %s " % ( site, res['Message'] ) )
       return S_ERROR( res['Message'] )
