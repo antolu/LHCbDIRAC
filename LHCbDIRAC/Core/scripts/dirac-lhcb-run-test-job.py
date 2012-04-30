@@ -32,7 +32,7 @@ from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
 
 #Constants (some can be overidden, some are messy)
 
-events = 2
+nbEvents = 2
 systemConfig = 'x86_64-slc5-gcc43-opt'
 cpuTime = 3600
 logLevel = 'info'
@@ -196,7 +196,7 @@ if not exitCode:
         exitCode = 2
         print 'ERROR: Options file must exist locally, %s was not found' % optionsFile
   else:
-    optionsFile = getOptionsFile( projectName, projectVersion, sharedArea, lhcbConvention, events )
+    optionsFile = getOptionsFile( projectName, projectVersion, sharedArea, lhcbConvention, nbEvents )
     if not optionsFile:
       exitCode = 2
       print 'ERROR: Could not retrieve options file for %s %s from shared area %s' % ( projectName, projectVersion, sharedArea )
