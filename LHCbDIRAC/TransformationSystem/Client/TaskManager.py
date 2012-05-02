@@ -94,9 +94,10 @@ class LHCbWorkflowTasks( WorkflowTasks ):
               sites += [site for site in res['Value'] if site not in sites]
           self.log.verbose( 'Setting allocated site from TargetSE to: %s' % ( sites ) )
           oJob.setDestination( sites )
-        elif paramValue:
-          self.log.verbose( 'Setting %s to %s' % ( paramName, paramValue ) )
-          oJob._addJDLParameter( paramName, paramValue )
+        elif paramName not in ( 'InputData', 'RunNumber', 'RunMetadata', 'Site', 'TargetSE' ):
+          if paramValue:
+            self.log.verbose( 'Setting %s to %s' % ( paramName, paramValue ) )
+            oJob._addJDLParameter( paramName, paramValue )
 
       hospitalTrans = [int( x ) for x in gConfig.getValue( "/Operations/Hospital/Transformations", [] )]
       if int( transID ) in hospitalTrans:
