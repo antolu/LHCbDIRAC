@@ -51,7 +51,11 @@ class Synchronizer( BaseSync.Synchronizer ):
     gLogger.info( "Updating %d VOBOXes on DB" % len(voBoxInCS - voBOXInDB) )
     for site in voBoxInCS - voBOXInDB:
       service = 'VO-BOX@' + site
-      Utils.protect2(self.rsClient.addOrModifyService, service, 'VO-BOX', site )
+      #Utils.protect2(self.rsClient.addOrModifyService, service, 'VO-BOX', site )
+      res = self.rsClient.addOrModifyService( service, 'VO-BOX', site )
+      if not res[ 'OK' ]:
+        gLogger.error( res[ 'Message' ] )
+        return res
 
   def _syncCondDBs(self):
     '''
@@ -76,7 +80,11 @@ class Synchronizer( BaseSync.Synchronizer ):
     gLogger.info("Updating %d CondDBs on DB" % len (condDBInCS - condDBInDB))
     for site in condDBInCS - condDBInDB:
       service = "CondDB@" + site
-      Utils.protect2(self.rsClient.addOrModifyService, service, 'CondDB', site )
+      #Utils.protect2(self.rsClient.addOrModifyService, service, 'CondDB', site )
+      res = self.rsClient.addOrModifyService( service, 'CondDB', site )
+      if not res[ 'OK' ]:
+        gLogger.error( res[ 'Message' ] )
+        return res
 
   def _syncDISET( self ):
     '''

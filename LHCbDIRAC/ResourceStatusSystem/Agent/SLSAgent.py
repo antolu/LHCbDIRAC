@@ -7,7 +7,7 @@ from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
-from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
+#from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 
 from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
 
@@ -21,6 +21,19 @@ import lfc2, lcg_util
 rmDB = None
 
 impl = xml.dom.getDOMImplementation()
+
+# Taken from utilities
+def xml_append(doc, tag, value_=None, elt_=None, **kw):
+  new_elt = doc.createElement(tag)
+  for k in kw:
+    new_elt.setAttribute(k, str(kw[k]))
+  if value_ != None:
+    textnode = doc.createTextNode(str(value_))
+    new_elt.appendChild(textnode)
+  if elt_ != None:
+    return elt_.appendChild(new_elt)
+  else:
+    return doc.documentElement.appendChild(new_elt)
 
 # Generate MySQL INSERT queries
 def gen_mysql( n, d, keys ):
@@ -650,17 +663,17 @@ LoadDDDB(Node = '/dd/Structure/LHCb')
       # Workaround: on some VOBOXes, the dirac process runs without a USER env variable.
       os.environ["USER"] = pwd.getpwuid( os.getuid() )[0]
 
-    try:
-      #env = Utils.unpack( ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', "LHCb" ) )
-      env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', "LHCb" )
-      if not env[ 'OK' ]:
-        gLogger.error( env[ 'Message' ] )
-        return env
-      env = env[ 'Value' ]
+#    try:
+    #env = Utils.unpack( ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', "LHCb" ) )
+    env = ProductionEnvironment.getProjectEnvironment( 'x86_64-slc5-gcc43-opt', "LHCb" )
+    if not env[ 'OK' ]:
+      gLogger.error( env[ 'Message' ] )
+      return env
+    env = env[ 'Value' ]
       
-    except Utils.RPCError:
-      gLogger.warn( "Unable to run CondDB test for site %s: environment cannot be set. Aborting." % site )
-      return
+#    except Utils.RPCError:
+#      gLogger.warn( "Unable to run CondDB test for site %s: environment cannot be set. Aborting." % site )
+#      return
 
     f = open( "result.log", "w" )
     try:
