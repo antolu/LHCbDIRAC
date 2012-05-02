@@ -12,10 +12,9 @@ import os
 import time
 import xml.dom.minidom
 
-from DIRAC                                               import gConfig, S_OK, rootPath, gLogger
+from DIRAC                                               import S_OK, rootPath, gLogger
 from DIRAC.Core.Base.AgentModule                         import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.ResourceStatusSystem.Utilities                import Utils
 
 __RCSID__  = '$Id: $'
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -82,7 +81,7 @@ class NagiosTopologyAgent( AgentModule ):
       site_name     = site_opts.get( 'Name' )
       site_tier     = site_opts.get( 'MoUTierLevel', 'None' )
       has_grid_elem = False
-      xml_site      = self.xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
+      xml_site      = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
       # CE info
       ces = opHelper.getSections( 'Sites/LCG/%s/CEs' % site )
@@ -108,18 +107,18 @@ class NagiosTopologyAgent( AgentModule ):
       
       # Site info will be put if we found at least one CE, SE or LFC element
       if has_grid_elem:
-        self.xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, 
+        xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, 
                          type = 'LHCb_Tier' )
-        self.xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
-        self.xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
+        xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
+        xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
         try:
           if int( site_tier ) == 2:
-            self.xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
+            xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
 
           else: # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
             # If site_type is None, then we go to the exception.
-            self.xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
-            self.xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
+            xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
+            xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
 
         except ValueError: # Site tier is None, do nothing
           pass
@@ -141,33 +140,20 @@ class NagiosTopologyAgent( AgentModule ):
 
 ################################################################################
 
-  def xml_append( self, doc, base, elem, cdata = None, **attrs ):
-    '''
-      Given a Document, we append to it an element.
-    '''
-    
-    new_elem = doc.createElement( elem )
-    for attr in attrs: 
-      new_elem.setAttribute( attr, attrs[ attr ] )
-    if cdata: 
-      new_elem.appendChild( doc.createTextNode( cdata ) )
-      
-    return base.appendChild( new_elem )
-
   def __writeHeaderInfo( self, xml_doc, xml_root ):
     '''
       Writes XML document header.
     '''
 
-    self.xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP')
-    self.xml_append( xml_doc, xml_root, 'description', 
+    xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP')
+    xml_append( xml_doc, xml_root, 'description', 
                      'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
-    self.xml_append( xml_doc, xml_root, 'feed_responsible', 
+    xml_append( xml_doc, xml_root, 'feed_responsible', 
                      dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser', 
                      name = 'Stefan Roiser' )
-    self.xml_append( xml_doc, xml_root, 'last_update', 
+    xml_append( xml_doc, xml_root, 'last_update', 
                      time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
-    self.xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
+    xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
     
   def __writeCEInfo( self, xml_doc, xml_site, site, ces ):
     '''
@@ -199,7 +185,7 @@ class NagiosTopologyAgent( AgentModule ):
       elif not site_ce_type: 
         site_ce_type = 'UNDEFINED'
     
-      self.xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name, 
+      xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name, 
                        flavour = site_ce_type )    
         
     return has_grid_elem  
@@ -234,7 +220,7 @@ class NagiosTopologyAgent( AgentModule ):
     elif not site_se_type: 
       site_se_type = 'UNDEFINED'
     
-    self.xml_append( xml_doc, xml_site, 'service', hostname = site_se_name, 
+    xml_append( xml_doc, xml_site, 'service', hostname = site_se_name, 
                      flavour = site_se_type )    
 
     return has_grid_elem
@@ -255,16 +241,31 @@ class NagiosTopologyAgent( AgentModule ):
     site_fc_opts = site_fc_opts[ 'Value' ]
     
     if site_fc_opts.has_key( 'ReadWrite' ): 
-      self.xml_append( xml_doc, xml_site, 'service', 
+      xml_append( xml_doc, xml_site, 'service', 
                        hostname = site_fc_opts.get( 'ReadWrite' ), 
                        flavour = 'Central-LFC' )
     
     if site_fc_opts.has_key( 'ReadOnly' ): 
-      self.xml_append( xml_doc, xml_site, 'service', 
+      xml_append( xml_doc, xml_site, 'service', 
                        hostname = site_fc_opts.get( 'ReadOnly' ), 
                        flavour = 'Local-LFC' )
   
     return has_grid_elem  
+
+################################################################################
+
+def xml_append( self, doc, base, elem, cdata = None, **attrs ):
+  '''
+    Given a Document, we append to it an element.
+  '''
+    
+  new_elem = doc.createElement( elem )
+  for attr in attrs: 
+    new_elem.setAttribute( attr, attrs[ attr ] )
+  if cdata: 
+    new_elem.appendChild( doc.createTextNode( cdata ) )
+      
+  return base.appendChild( new_elem )
   
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
