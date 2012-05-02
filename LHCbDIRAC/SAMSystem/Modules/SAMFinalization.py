@@ -458,7 +458,6 @@ EOT
     except Exception:
       return S_ERROR( 'Exception on connect to %s %d' % ( host, port ) )
 
-
     timeStamp = time.strftime( "%Y-%m-%dT%H:%M:%S", time.gmtime() )
 
     for report in reports:
