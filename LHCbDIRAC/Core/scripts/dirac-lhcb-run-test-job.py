@@ -85,7 +85,11 @@ def getOptionsFile( localprojectName, localprojectVersion, localsharedArea, loca
   else:
     return None
 
+<<<<<<< HEAD
 def runJob( localprojectName, localprojectVersion, localoptionsFile, lsystemConfig, lsubmissionMode, lcpuTime, llogLevel, ljobName, linputDatasets, lgenerate ):
+== == == =
+def runJob( localprojectName, localprojectVersion, localoptionsFile, lsystemConfig, lsubmissionMode, lcpuTime, llogLevel, ljobName, linputDatasets, generate ):
+>>>>>>> change variable name to avoid double usage
   """Local submission of a dynamically created job.
   """
   scriptName = '%s/DiracAPI_%s_%s_%s.py' % ( os.getcwd(), localprojectName, localprojectVersion, lsubmissionMode.lower().capitalize() )
