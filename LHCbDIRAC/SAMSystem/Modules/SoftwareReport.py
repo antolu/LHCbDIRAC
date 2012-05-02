@@ -148,6 +148,7 @@ class SoftwareReport( ModuleBaseSAM ):
 #
 #to be remove...
 #
+<<<<<<< HEAD
 #      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
       ret_area = CheckSharedArea( self, sharedArea )
       if not ret_area['OK']:
@@ -158,6 +159,19 @@ class SoftwareReport( ModuleBaseSAM ):
         for ver in soft_remove[app]:
           appName = app + '.' + ver
           softwareDictRemove[appName] = 'ALL'
+== == == =
+      sharedArea = mySiteRoot()
+      if sharedArea == '':
+        self.log.error( 'mySiteRoot Not found' )
+        return S_ERROR( ' mySiteRoot Not Found' )
+
+      mySiteRoot = sharedArea
+      self.log.info( 'MYSITEROOT is %s' % mySiteRoot )
+      localArea = sharedArea
+      if re.search( ':', sharedArea ):
+        localArea = string.split( sharedArea, ':' )[0]
+        self.log.info( 'Setting local software area to %s' % localArea )
+>>>>>>> Replace MySiteRoot mySiteRoot
 
       for systemConfig in localPlatforms['Value'].keys():
 #        self.log.info('The following software packages will be checked:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
