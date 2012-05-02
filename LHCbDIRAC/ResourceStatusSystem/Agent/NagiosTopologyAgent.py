@@ -16,7 +16,7 @@ from DIRAC                                               import S_OK, rootPath, 
 from DIRAC.Core.Base.AgentModule                         import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-__RCSID__  = '$Id: $'
+__RCSID__ = '$Id: $'
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 class NagiosTopologyAgent( AgentModule ):
@@ -26,16 +26,16 @@ class NagiosTopologyAgent( AgentModule ):
   '''
   # Too many public methods
   # pylint: disable-msg=R0904  
-  
+
   def initialize( self ):
     '''
     Initialize the agent.
     '''
-    
+
     # Attribute defined outside __init__  
     # pylint: disable-msg=W0201
-    
-    self.xmlPath      = rootPath + '/' + self.am_getOption( 'webRoot' )
+
+    self.xmlPath = rootPath + '/' + self.am_getOption( 'webRoot' )
 
     try:
       os.makedirs( self.xmlPath )
@@ -48,10 +48,10 @@ class NagiosTopologyAgent( AgentModule ):
     '''
     Let's generate the xml file with the topology.
     '''
-    
+
     # instantiate xml doc
     xml_impl = xml.dom.minidom.getDOMImplementation()
-    xml_doc  = xml_impl.createDocument( None, 'root', None )
+    xml_doc = xml_impl.createDocument( None, 'root', None )
     xml_root = xml_doc.documentElement
 
     # xml header info
@@ -60,28 +60,36 @@ class NagiosTopologyAgent( AgentModule ):
     opHelper = Operations()
 
     # loop over sites
-    
+<<<<<<< HEAD
+
     sites = opHelper.getSections( 'Sites/LCG' )
     if not sites[ 'OK' ]:
       gLogger.error( sites[ 'Message' ] )
       return sites
-    
+
     #for site in Utils.unpack( opHelper.getSections( 'Sites/LCG' ) ):
     #for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
     for site in sites[ 'Value' ]:
 
       # Site config
-      site_opts     = opHelper.getOptionsDict( 'Sites/LCG/%s' % site )
+      site_opts = opHelper.getOptionsDict( 'Sites/LCG/%s' % site )
       if not site_opts[ 'OK' ]:
         gLogger.error( site_opts[ 'Message' ] )
         return site_opts
       site_opts = site_opts[ 'Value' ]
       #site_opts     = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
+== == == =
+    for site in Utils.unpack( opHelper.getSections( 'Sites/LCG' ) ):
+    #for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
+
+      # Site config
+      site_opts = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
+>>>>>>> FIX: updated to use OperationsHelper
       #site_opts     = Utils.unpack( gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site ) )
-      site_name     = site_opts.get( 'Name' )
-      site_tier     = site_opts.get( 'MoUTierLevel', 'None' )
+      site_name = site_opts.get( 'Name' )
+      site_tier = site_opts.get( 'MoUTierLevel', 'None' )
       has_grid_elem = False
-      xml_site      = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
+      xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
       # CE info
       ces = opHelper.getSections( 'Sites/LCG/%s/CEs' % site )
@@ -90,24 +98,24 @@ class NagiosTopologyAgent( AgentModule ):
         res = self.__writeCEInfo( xml_doc, xml_site, site, ces[ 'Value' ] )
         # Update has_grid_elem
         has_grid_elem = res or has_grid_elem
-         
+
       # SE info
       if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1' ]:
         res = self.__writeSEInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
         has_grid_elem = res or has_grid_elem
-        
+
       # FileCatalog info
       sites = opHelper.getSections( 'FileCatalogs/LcgFileCatalogCombined' )
       #sites = gConfig.getSections( '/Resources/FileCatalogs/LcgFileCatalogCombined' )
       if sites[ 'OK' ] and site in sites[ 'Value' ]:
         res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
-        has_grid_elem = res or has_grid_elem    
-      
+        has_grid_elem = res or has_grid_elem
+
       # Site info will be put if we found at least one CE, SE or LFC element
       if has_grid_elem:
-        xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, 
+        xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier,
                          type = 'LHCb_Tier' )
         xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
         xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
@@ -124,7 +132,7 @@ class NagiosTopologyAgent( AgentModule ):
           pass
 
       else :
-        _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml" 
+        _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
         _msg = _msg % ( site, site_name )
         self.log.warn( _msg )
         xml_root.removeChild( xml_site )
@@ -145,83 +153,83 @@ class NagiosTopologyAgent( AgentModule ):
       Writes XML document header.
     '''
 
-    xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP')
-    xml_append( xml_doc, xml_root, 'description', 
+    xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP' )
+    xml_append( xml_doc, xml_root, 'description',
                      'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
-    xml_append( xml_doc, xml_root, 'feed_responsible', 
-                     dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser', 
+    xml_append( xml_doc, xml_root, 'feed_responsible',
+                     dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser',
                      name = 'Stefan Roiser' )
-    xml_append( xml_doc, xml_root, 'last_update', 
+    xml_append( xml_doc, xml_root, 'last_update',
                      time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
     xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
-    
+
   def __writeCEInfo( self, xml_doc, xml_site, site, ces ):
     '''
       Writes CE information in the XML Document
     '''
-    
+
     has_grid_elem = False
-    
+
     opHelper = Operations()
-    
+
     #for site_ce_name in gConfig.getSections( '/Resources/Sites/LCG/%s/CEs' % site )[ 'Value' ]:
     for site_ce_name in ces:
-      
+
       has_grid_elem = True
-      
+
       site_ce_opts = opHelper.getOptionsDict( 'Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
       #site_ce_opts = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
       if not site_ce_opts[ 'OK' ]:
         gLogger.error( site_ce_opts[ 'Message' ] )
         continue
       site_ce_opts = site_ce_opts[ 'Value' ]
-      
-      site_ce_type  = site_ce_opts.get( 'CEType' )
-      
-      if site_ce_type == 'LCG': 
+
+      site_ce_type = site_ce_opts.get( 'CEType' )
+
+      if site_ce_type == 'LCG':
         site_ce_type = 'CE'
-      elif site_ce_type == 'CREAM': 
+      elif site_ce_type == 'CREAM':
         site_ce_type = 'CREAM-CE'
-      elif not site_ce_type: 
+      elif not site_ce_type:
         site_ce_type = 'UNDEFINED'
-    
-      xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name, 
-                       flavour = site_ce_type )    
-        
-    return has_grid_elem  
+
+      xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name,
+                       flavour = site_ce_type )
+
+    return has_grid_elem
 
   def __writeSEInfo( self, xml_doc, xml_site, site ):
     '''
       Writes SE information in the XML Document
-    '''    
-    has_grid_elem  = True
-    
+    '''
+    has_grid_elem = True
+
     opHelper = Operations()
-    
+
     splittedSite = site.split( "." )[ 1 ]
     if splittedSite != 'NIKHEF':
       real_site_name = splittedSite
     else:
-      real_site_name = 'SARA'  
-    
+      real_site_name = 'SARA'
+
     #real_site_name = site.split( "." )[ 1 ] if site.split( "." )[ 1 ] != "NIKHEF" else "SARA"
     site_se_opts = opHelper.getOptionsDict( 'StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )
-    
+
     if not site_se_opts[ 'OK' ]:
       gLogger.error( site_se_opts[ 'Message' ] )
       return False
     site_se_opts = site_se_opts[ 'Value' ]
-    
+
     site_se_name = site_se_opts.get( 'Host' )
     site_se_type = site_se_opts.get( 'ProtocolName' )
-    
-    if site_se_type == 'SRM2': 
+
+    if site_se_type == 'SRM2':
       site_se_type = 'SRMv2'
-    elif not site_se_type: 
+    elif not site_se_type:
       site_se_type = 'UNDEFINED'
-    
-    xml_append( xml_doc, xml_site, 'service', hostname = site_se_name, 
-                     flavour = site_se_type )    
+
+    xml_append( xml_doc, xml_site, 'service', hostname = site_se_name,
+                     flavour = site_se_type )
 
     return has_grid_elem
 
@@ -231,26 +239,26 @@ class NagiosTopologyAgent( AgentModule ):
     '''
 
     has_grid_elem = True
-    
+
     opHelper = Operations()
-    
-    site_fc_opts  = opHelper.getOptionsDict( 'FileCatalogs/LcgFileCatalogCombined/%s' % site )
+
+    site_fc_opts = opHelper.getOptionsDict( 'FileCatalogs/LcgFileCatalogCombined/%s' % site )
     if not site_fc_opts[ 'OK' ]:
       gLogger.error( site_fc_opts[ 'Message' ] )
       return False
     site_fc_opts = site_fc_opts[ 'Value' ]
-    
-    if site_fc_opts.has_key( 'ReadWrite' ): 
-      xml_append( xml_doc, xml_site, 'service', 
-                       hostname = site_fc_opts.get( 'ReadWrite' ), 
+
+    if site_fc_opts.has_key( 'ReadWrite' ):
+      xml_append( xml_doc, xml_site, 'service',
+                       hostname = site_fc_opts.get( 'ReadWrite' ),
                        flavour = 'Central-LFC' )
-    
-    if site_fc_opts.has_key( 'ReadOnly' ): 
-      xml_append( xml_doc, xml_site, 'service', 
-                       hostname = site_fc_opts.get( 'ReadOnly' ), 
+
+    if site_fc_opts.has_key( 'ReadOnly' ):
+      xml_append( xml_doc, xml_site, 'service',
+                       hostname = site_fc_opts.get( 'ReadOnly' ),
                        flavour = 'Local-LFC' )
-  
-    return has_grid_elem  
+
+    return has_grid_elem
 
 ################################################################################
 
@@ -258,14 +266,14 @@ def xml_append( self, doc, base, elem, cdata = None, **attrs ):
   '''
     Given a Document, we append to it an element.
   '''
-    
+
   new_elem = doc.createElement( elem )
-  for attr in attrs: 
+  for attr in attrs:
     new_elem.setAttribute( attr, attrs[ attr ] )
-  if cdata: 
+  if cdata:
     new_elem.appendChild( doc.createTextNode( cdata ) )
-      
+
   return base.appendChild( new_elem )
-  
+
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
