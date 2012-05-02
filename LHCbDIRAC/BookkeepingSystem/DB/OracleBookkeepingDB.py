@@ -3098,14 +3098,30 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getStepIdandNameForRUN(self, programName, programVersion, conddb, dddb):
-    command = "select stepid, stepname from steps where applicationname='%s' and applicationversion='%s' and CondDB='%s' and DDDB='%s'" % (programName, programVersion, conddb, dddb)
+
+    dataset = {'Step':{'StepName':'Real Data', 'ApplicationName':programName, 'ApplicationVersion':programVersion, 'ProcessingPass':'Real Data', 'Visible':'Y', 'CONDDB':None, 'DDDB':None}, 'OutputFileTypes':[{'FileType':'RAW', 'Visible':'Y'}]}
+    condition = ''
+    if conddb == None:
+      condition += " and CondDB='NULL' "
+      dataset['Step'].pop('CONDDB')
+    else:
+      condition += " and CondDB='%s' " % (conddb)
+      dataset['Step']['CONDDB'] = conddb
+
+    if dddb == None:
+      condition += " and DDDB = 'NULL'"
+      dataset['Step'].pop('DDDB')
+    else:
+      condition += " and DDDB='%s'" % (dddb)
+      dataset['Step']['DDDB'] = dddb
+
+    command = "select stepid, stepname from steps where applicationname='%s' and applicationversion='%s' %s " % (programName, programVersion, condition)
     retVal = self.dbR_._query(command)
     if retVal['OK']:
-      stepName = 'Real Data'
       if len(retVal['Value']) == 0:
-        retVal = self.insertStep({'Step':{'StepName':stepName, 'ApplicationName':programName, 'ApplicationVersion':programVersion, 'ProcessingPass':stepName, 'Visible':'Y', 'CONDDB':conddb, 'DDDB':dddb}, 'OutputFileTypes':[{'FileType':'RAW', 'Visible':'Y'}]})
+        retVal = self.insertStep(dataset)
         if retVal['OK']:
-          return S_OK([retVal['Value'], stepName])
+          return S_OK([retVal['Value'], 'Real Data'])
         else:
           return retVal
       else:
