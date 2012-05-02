@@ -36,8 +36,17 @@ class Synchronizer( BaseSync.Synchronizer ):
 
     # services in the DB now
     voBoxInCS = set(CS.getT1s())
-    voBOXInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
-          serviceType = "VO-BOX", meta = { 'columns' : "SiteName" } ))))
+    
+    #voBOXInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
+    #      serviceType = "VO-BOX", meta = { 'columns' : "SiteName" } ))))
+    
+    voBOXInDB = self.rsClient.getServicePresent( serviceType = "VO-BOX", 
+                                                 meta = { 'columns' : "SiteName" } )
+    if not voBOXInDB[ 'OK' ]:
+      gLogger.error( voBOXInDB[ 'Message' ] )
+      return voBOXInDB
+    
+    voBOXInDB = set( Utils.list_flatten( voBOXInDB[ 'Value' ] ) )
 
     gLogger.info( "Updating %d VOBOXes on DB" % len(voBoxInCS - voBOXInDB) )
     for site in voBoxInCS - voBOXInDB:
@@ -53,9 +62,17 @@ class Synchronizer( BaseSync.Synchronizer ):
     from DIRAC.ResourceStatusSystem.Utilities import CS
     
     condDBInCS = set(CS.getCondDBs())
-    condDBInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
-            serviceType = "CondDB", meta = { 'columns' : "SiteName" } ))))
-
+    #condDBInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
+    #        serviceType = "CondDB", meta = { 'columns' : "SiteName" } ))))
+    condDBInDB = self.rsClient.getServicePresent( serviceType = "CondDB", 
+                                                  meta = { 'columns' : "SiteName" } )
+    
+    if not condDBInDB[ 'OK' ]:
+      gLogger.error( condDBInDB[ 'Message' ] )
+      return condDBInDB
+    
+    condDBInDB = set(Utils.list_flatten( condDBInDB[ 'Value' ] ) )
+            
     gLogger.info("Updating %d CondDBs on DB" % len (condDBInCS - condDBInDB))
     for site in condDBInCS - condDBInDB:
       service = "CondDB@" + site

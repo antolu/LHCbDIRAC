@@ -61,11 +61,23 @@ class NagiosTopologyAgent( AgentModule ):
     opHelper = Operations()
 
     # loop over sites
-    for site in Utils.unpack( opHelper.getSections( 'Sites/LCG' ) ):
+    
+    sites = opHelper.getSections( 'Sites/LCG' )
+    if not sites[ 'OK' ]:
+      gLogger.error( sites[ 'Message' ] )
+      return sites
+    
+    #for site in Utils.unpack( opHelper.getSections( 'Sites/LCG' ) ):
     #for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
+    for site in sites[ 'Value' ]:
 
       # Site config
-      site_opts     = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
+      site_opts     = opHelper.getOptionsDict( 'Sites/LCG/%s' % site )
+      if not site_opts[ 'OK' ]:
+        gLogger.error( site_opts[ 'Message' ] )
+        return site_opts
+      site_opts = site_opts[ 'Value' ]
+      #site_opts     = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
       #site_opts     = Utils.unpack( gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site ) )
       site_name     = site_opts.get( 'Name' )
       site_tier     = site_opts.get( 'MoUTierLevel', 'None' )
