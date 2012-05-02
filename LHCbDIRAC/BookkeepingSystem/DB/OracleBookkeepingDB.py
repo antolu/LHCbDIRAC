@@ -2843,13 +2843,15 @@ and files.qualityid= dataquality.qualityid'
 
     condition = ''
     tables = ' jobs j, files f'
-    if configName != default:
-      tables += ' , configurations c'
-      condition += " and c.configname='%s' " % (configName)
-      condition += ' and j.configurationid=c.configurationid '
-
-    if configVersion != default:
-      condition += " and c.configversion='%s' " % (configVersion)
+    if configName != default and configVersion != default:
+      condition += " and j.configurationid=(select c.configurationid from configurations c  where c.configname='%s' and c.configversion='%s') " % (configName, configVersion)
+    else:
+      if configName != default:
+        tables += ' , configurations c'
+        condition += " and c.configname='%s' " % (configName)
+        condition += ' and j.configurationid=c.configurationid '
+      if configVersion != default:
+        condition += " and c.configversion='%s' " % (configVersion)
 
     sim_dq_conditions = ''
     if conddescription != default:
@@ -2874,7 +2876,6 @@ and files.qualityid= dataquality.qualityid'
       for i in runnb:
         cond += 'j.runnumber=' + str(i) + ' or '
       condition += " and %s )" % (cond[:-3])
-
 
     tables += ' ,filetypes ftypes '
     tables2 = ''
@@ -2927,10 +2928,10 @@ and files.qualityid= dataquality.qualityid'
                 )" % (processing.split('/')[1], processing, tables2, fcond, econd, sim_dq_conditions)
 
     if startrun != default:
-      condition += " and j.runnumber > %d" % (startrun)
+      condition += " and j.runnumber >= %d" % (startrun)
 
     if endrun != default:
-      condition += " and j.runnumber < %d" % (endrun)
+      condition += " and j.runnumber <= %d" % (endrun)
 
     command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
