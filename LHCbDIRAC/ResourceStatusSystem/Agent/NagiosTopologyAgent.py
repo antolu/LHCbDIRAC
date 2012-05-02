@@ -60,7 +60,6 @@ class NagiosTopologyAgent( AgentModule ):
     opHelper = Operations()
 
     # loop over sites
-<<<<<<< HEAD
 
     sites = opHelper.getSections( 'Sites/LCG' )
     if not sites[ 'OK' ]:
@@ -78,13 +77,7 @@ class NagiosTopologyAgent( AgentModule ):
         return site_opts
       site_opts = site_opts[ 'Value' ]
       #site_opts     = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
-== == == =
-    for site in Utils.unpack( opHelper.getSections( 'Sites/LCG' ) ):
-    #for site in Utils.unpack( gConfig.getSections( '/Resources/Sites/LCG' ) ):
 
-      # Site config
-      site_opts = Utils.unpack( opHelper.getOptionsDict( 'Sites/LCG/%s' % site ) )
->>>>>>> FIX: updated to use OperationsHelper
       #site_opts     = Utils.unpack( gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site ) )
       site_name = site_opts.get( 'Name' )
       site_tier = site_opts.get( 'MoUTierLevel', 'None' )
