@@ -8,14 +8,14 @@ __RCSID__ = "$Id$"
 from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client                               import PathFinder
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
-from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
+from DIRAC.Core.Utilities.List                                      import breakListIntoChunks, randomize
 from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
 import types, os
 
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
   """
-  def __init__( self, url = False ):
+  def __init__( self, url=False ):
     """ Constructor of the Bookkeeping catalogue client
     """
     self.splitSize = 1000
@@ -23,7 +23,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
     self.valid = True
     try:
       if not url:
-        self.url = PathFinder.getServiceURL( 'Bookkeeping/BookkeepingManager' )
+        managers = PathFinder.getServiceURL( 'Bookkeeping/BookkeepingManager' ).split( ',' )
+        self.url = randomize( managers )[0]
       else:
         self.url = url
     except Exception, exceptionMessage:
@@ -102,7 +103,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
 
-  def removeDirectory( self, lfn, recursive = False ):
+  def removeDirectory( self, lfn, recursive=False ):
     res = self.__checkArgumentFormat( lfn )
     if not res['OK']:
       return res
@@ -192,7 +193,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( urls )
 
   def __setHasReplicaFlag( self, lfns ):
-    server = RPCClient( self.url, timeout = 120 )
+    server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -210,7 +211,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def __unsetHasReplicaFlag( self, lfns ):
-    server = RPCClient( self.url, timeout = 120 )
+    server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -228,7 +229,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def __exists( self, lfns ):
-    server = RPCClient( self.url, timeout = 120 )
+    server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -243,7 +244,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def __getFileMetadata( self, lfns ):
-    server = RPCClient( self.url, timeout = 120 )
+    server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
