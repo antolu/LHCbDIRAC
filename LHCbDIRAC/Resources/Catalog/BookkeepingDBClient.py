@@ -23,10 +23,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
     self.valid = True
     try:
       if not url:
-        managers = PathFinder.getServiceURL( 'Bookkeeping/BookkeepingManager' ).split( ',' )
-        self.url = randomize( managers )[0]
-      else:
-        self.url = url
+        url = PathFinder.getServiceURL( 'Bookkeeping/BookkeepingManager' )
+      self.url = url.split( ',' )
+      gLogger.verbose( "BK catalog URLs: %s" % self.url )
     except Exception, exceptionMessage:
       gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.', '', exceptionMessage )
       self.valid = False
@@ -194,6 +193,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
 
   def __setHasReplicaFlag( self, lfns ):
     server = RPCClient( self.url, timeout=120 )
+    print "**** Set replica flag on", self.url
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
