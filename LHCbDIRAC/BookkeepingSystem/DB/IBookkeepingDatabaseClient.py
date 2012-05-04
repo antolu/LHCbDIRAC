@@ -494,3 +494,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getFilesForGUID(self, guid):
     return self.getManager().getFilesForGUID(guid)
+
+  #############################################################################
+  def setFileDataQuality(self, lfns, flag):
+    return self.getManager().setFileDataQuality(lfns, flag)

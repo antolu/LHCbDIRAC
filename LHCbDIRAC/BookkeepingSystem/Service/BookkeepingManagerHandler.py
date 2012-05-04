@@ -342,7 +342,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_getFilesSummary = [DictType]
   def export_getFilesSummary(self, dict):
-
+    gLogger.debug('Input:'+str(dict))
     result = S_ERROR()
     configName = dict.get('ConfigName', default)
     configVersion = dict.get('ConfigVersion', default)
