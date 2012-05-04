@@ -20,6 +20,7 @@ from DIRAC.Core.Utilities                                                       
 import time,sys,os
 import cPickle
 
+from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 
 dataMGMT_ = None
 
@@ -344,33 +345,54 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getFilesSummary(self, dict):
     gLogger.debug('Input:'+str(dict))
     result = S_ERROR()
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    conddescription = dict.get('ConditionDescription', default)
-    processing = dict.get('ProcessingPass', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
-    production = dict.get('Production', default)
-    filetype = dict.get('FileType', default)
-    quality = dict.get('DataQuality', dict.get('Quality', default))
-    runnb = dict.get('RunNumbers', dict.get('RunNumber', default))
-    startrun = dict.get('StartRun', default)
-    endrun = dict.get('EndRun', default)
-
-    if 'EventTypeId' in dict:
-      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
-
-    if 'Quality' in dict:
-      gLogger.verbose('The Quality has to be replaced by DataQuality!')
-
-    retVal = dataMGMT_.getFilesSummary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun)
-    if retVal['OK']:
-      records = []
-      parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
-      for record in retVal['Value']:
-        records += [[record[0], record[1], record[2], record[3], record[4]]]
-      result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
+    if len(dict) == 0:
+      res = self.getRemoteCredentials()
+      if 'username' in res:
+        address = res['username']
+      if address != None:
+        address = 'zmathe@cern.ch,'+res['username']
+        subject = 'getFilesSummary method!'
+        body = 'You did not provided enough input parameters! \n the input parameters:%s \n and user %s' % (str(dict),res['username'])
+        NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch')
+      gLogger.error('Got you: '+str(dict))
+    elif len(dict) <= 3:
+      res = self.getRemoteCredentials()
+      if 'username' in res:
+        address = res['username']
+      if address != None:
+        address = 'zmathe@cern.ch,'+res['username']
+        subject = 'getFilesSummary method!'
+        body = 'You did not provided enough input parameters! \n the input parameters:%s \n and user %s' % (str(dict),res['username'])
+        NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch')
+      gLogger.error('Got you: '+str(dict))
     else:
-      result = retVal
+      configName = dict.get('ConfigName', default)
+      configVersion = dict.get('ConfigVersion', default)
+      conddescription = dict.get('ConditionDescription', default)
+      processing = dict.get('ProcessingPass', default)
+      evt = dict.get('EventType', dict.get('EventTypeId', default))
+      production = dict.get('Production', default)
+      filetype = dict.get('FileType', default)
+      quality = dict.get('DataQuality', dict.get('Quality', default))
+      runnb = dict.get('RunNumbers', dict.get('RunNumber', default))
+      startrun = dict.get('StartRun', default)
+      endrun = dict.get('EndRun', default)
+
+      if 'EventTypeId' in dict:
+        gLogger.verbose('The EventTypeId has to be replaced by EventType!')
+
+      if 'Quality' in dict:
+        gLogger.verbose('The Quality has to be replaced by DataQuality!')
+
+      retVal = dataMGMT_.getFilesSummary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun)
+      if retVal['OK']:
+        records = []
+        parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
+        for record in retVal['Value']:
+          records += [[record[0], record[1], record[2], record[3], record[4]]]
+        result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})
+      else:
+        result = retVal
     return result
 
   #############################################################################
