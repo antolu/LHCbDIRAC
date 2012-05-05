@@ -23,8 +23,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
     self.valid = True
     try:
       if not url:
-        url = PathFinder.getServiceURL( 'Bookkeeping/BookkeepingManager' )
-      self.url = url.split( ',' )
+        self.url = 'Bookkeeping/BookkeepingManager'
+      else:
+        self.url = url
       gLogger.verbose( "BK catalog URLs: %s" % self.url )
     except Exception, exceptionMessage:
       gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.', '', exceptionMessage )
