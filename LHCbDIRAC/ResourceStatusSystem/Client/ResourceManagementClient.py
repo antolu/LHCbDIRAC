@@ -42,6 +42,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   the client considerably.
   """
 
+  def __init__( self , serviceIn = None ):
+    '''
+    The client tries to connect to :class:ResourceManagementHandler by default.
+    A database connection can be provided through serviceIn too.
+    '''
+    if not serviceIn:
+      self.gate = RPCClient( "ResourceStatus/ResourceManagement" )
+    else:
+      self.gate = serviceIn 
+
   def __query( self, queryType, tableName, kwargs ):
     '''
       This method is a rather important one. It will format the input for the DB
