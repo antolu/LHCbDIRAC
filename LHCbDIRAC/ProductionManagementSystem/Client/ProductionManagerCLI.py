@@ -369,7 +369,7 @@ class ProductionManagerCLI( TransformationCLI ):
 
     result = self.server.getAllProductions()
     if not result['OK']:
-      print "Error during command execution: %s" % ret['Message']
+      print "Error during command execution: %s" % result['Message']
     else:
       if detailed:
         print "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
@@ -454,16 +454,19 @@ class ProductionManagerCLI( TransformationCLI ):
     status = argss[1].lower().capitalize()
     self.server.setTransformationStatus( prodID, status )
 
-  def do_setProductionPlugin( self, args ):
-    """ Set status of the production
+# Commented out as the plugin varialbe is missing and I have no idea where to get it.
+# Probably args.
 
-    Usage: setProductionStatus ProdName Status
-    """
-    argss, length = self.check_params( args, 2 )
-    if not argss:
-      return
-    prodID = self.check_id_or_name( argss[0] )
-    self.server.setTransformationPlugin( prodID, plugin )
+#  def do_setProductionPlugin( self, args ):
+#    """ Set status of the production
+#
+#    Usage: setProductionStatus ProdName Status
+#    """
+#    argss, length = self.check_params( args, 2 )
+#    if not argss:
+#      return
+#    prodID = self.check_id_or_name( argss[0] )
+#    self.server.setTransformationPlugin( prodID, plugin )
 
   def do_setProductionParameter( self, args ):
     """ Set production parameter
@@ -684,7 +687,6 @@ class ProductionManagerCLI( TransformationCLI ):
     else:
         print ret
 
-
   def do_deleteJobs( self, args ):
     """ Delete jobs from the Production
 
@@ -702,26 +704,28 @@ class ProductionManagerCLI( TransformationCLI ):
 
     print self.server.deleteJobs( prodID, jobIDmin, jobIDmax )
 
-  def do_submitJobs( self, args ):
-    """ Submit jobs given number of jobs of the specified Production
+# This method is buggy. Instance of DiracProduction has not method submitProduction
 
-    Usage: submitJobs productionID [numJobs=1] [site]
-    list of sites = LCG.CERN.ch LCG.CNAF.it LCG.PIC.es LCG.IN2P3.fr LCG.NIKHEF.nl LCG.GRIDKA.de LCG.RAL.uk DIRAC.CERN.ch
-    """
-    argss, length = self.check_params( args, 1 )
-    if not argss:
-      return
-    prodID = self.check_id_or_name( argss[0] )
-    numJobs = int( 1 )
-    site = ''
-    if length > 1:
-      numJobs = int( argss[1] )
-    if length > 2:
-      site = argss[2]
-
-    prod = DiracProduction()
-
-    result = prod.submitProduction( prodID, numJobs, site )
+#  def do_submitJobs( self, args ):
+#    """ Submit jobs given number of jobs of the specified Production
+#
+#    Usage: submitJobs productionID [numJobs=1] [site]
+#    list of sites = LCG.CERN.ch LCG.CNAF.it LCG.PIC.es LCG.IN2P3.fr LCG.NIKHEF.nl LCG.GRIDKA.de LCG.RAL.uk DIRAC.CERN.ch
+#    """
+#    argss, length = self.check_params( args, 1 )
+#    if not argss:
+#      return
+#    prodID = self.check_id_or_name( argss[0] )
+#    numJobs = int( 1 )
+#    site = ''
+#    if length > 1:
+#      numJobs = int( argss[1] )
+#    if length > 2:
+#      site = argss[2]
+#
+#    prod = DiracProduction()
+#
+#    result = prod.submitProduction( prodID, numJobs, site )
 
   def do_testMode( self, args ):
     """ Changes Production manager handler to the testing version
