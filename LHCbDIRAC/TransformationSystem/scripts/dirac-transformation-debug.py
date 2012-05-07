@@ -212,10 +212,17 @@ for id in idList:
         for runRange in runList:
             runRange = runRange.split( ':' )
             if len( runRange ) == 1:
-                runs.append( {'RunNumber':int( runRange[0] )} )
+                runs.append( runRange[0] )
             else:
                 for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
-                    runs.append( {'RunNumber':run} )
+                    runs.append( run )
+        res = transClient.getTransformationRuns( {'TransformationID':id, 'RunNumber': runs} )
+        if res['OK']:
+            if not len( res['Value'] ):
+                print "No runs found, set to 0"
+                runs = [{'RunNumber':0}]
+            else:
+                runs = res['Value']
     elif not byRuns:
         runs = [{'RunNumber': 0}]
     else:
@@ -246,7 +253,7 @@ for id in idList:
         if len( filesList ):
             if runID or verbose:
                 ( files, processed ) = filesProcessed( id, runID )
-                print "Run:", runID, "- %d files, %d processed" % ( files, processed )
+                print "Run:", runID, "- %d files (SelectedSite: %s), %d processed" % ( files, SEs, processed )
                 if queryProduction:
                     ( filesAncestor, processedAncestor ) = filesProcessed( queryProduction, runID )
                     print "For ancestor production", queryProduction, "- %d files, %d processed" % ( filesAncestor, processedAncestor )
@@ -308,9 +315,9 @@ for id in idList:
             problematicReplicas = {}
             failedFiles = []
             if not taskList:
-                taskList1 = [t for t in taskDict]
+                taskList1 = sorted( taskDict )
             else:
-              taskList1 = taskList
+              taskList1 = sorted( taskList )
             for taskID in taskList1:
                 res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskID} )
                 #print res

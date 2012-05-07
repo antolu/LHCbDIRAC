@@ -82,7 +82,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       #          may have themselves descendants with replicas
       res = self.bk.getFileDescendents( lfns, production=int( transID ), depth=1, checkreplica=True )
       if not res['OK']:
-        self.__logError( "Cannot get descendants of files: %s", res['Message'] )
+        self.__logError( "Cannot get descendants of files:", res['Message'] )
       else:
         descendants.update( res['Value']['Successful'] )
     self.__logVerbose( "Got Descendents of %d files in %.3f seconds" % ( len( self.data ), time.time() - startTime ) )
@@ -237,9 +237,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       usedSE = usedDict['UsedSE']
       if usedSE != 'Unknown':
         usageDict[usedSE] = count
-    if 'NIKHEF-RAW' in usageDict:
-      usageDict['SARA-RAW'] = usageDict.setdefault( 'SARA-RAW', 0 ) + usageDict['NIKHEF-RAW']
-      usageDict.pop( 'NIKHEF-RAW' )
     if requestedSites:
       siteDict = {}
       for se, count in usageDict.items():
@@ -312,11 +309,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       normalisedExistingCount = {}
     self.__logInfo( "Target shares and utilisation for production (%%):" )
-    for se in sortList( cpuShares.keys() ):
+    for se in sorted( cpuShares ):
       infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), cpuShares[se] )
       if se in normalisedExistingCount:
         infoStr += " %4.1f" % normalisedExistingCount[se]
       self.__logInfo( infoStr )
+
+    activeRAWSEs = self.__getActiveSEs( cpuShares.keys() )
+    inactiveRAWSEs = [se for se in cpuShares if se not in activeRAWSEs]
+    self.__logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
+    if inactiveRAWSEs:
+      self.__logInfo( "Some RAW SEs are not active: %s" % inactiveRAWSEs )
 
     # Group the remaining data by run
     res = self.__groupByRun()
@@ -341,14 +344,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if res['OK']:
           endDate = res['Value']['RunEnd']
           if datetime.datetime.now() - endDate < datetime.timedelta( hours=delay ):
-            self.__logVerbose( 'Run %d was taken less than %d hours ago, skip...' % ( runID, delay ) )
+            self.__logInfo( 'Run %d was taken less than %d hours ago, skip...' % ( runID, delay ) )
             if runID in runFileDict:
               runFileDict.pop( runID )
             continue
           else:
             self.__logVerbose( 'Run %d was taken more than %d hours ago, we take!' % ( runID, delay ) )
         else:
-          self.__logError( "Error getting run information for run %d" % runID, res['Message'] )
+          self.__logError( "Error getting run information for run %d (skipped):" % runID, res['Message'] )
+          continue
       if runDict['SelectedSite']:
         runSEDict[runID] = runDict['SelectedSite']
         runUpdate[runID] = False
@@ -362,88 +366,75 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             for dict in res['Value']:
               lfnSEs[dict['LFN']] = [dict['UsedSE']]
             sortedSEs = self.__sortExistingSEs( lfnSEs.keys(), lfnSEs )
-            res = getSitesForSE( sortedSEs[0], gridName='LCG' )
-            if  res['OK']:
-              for site in [site for site in res['Value'] if site in targetSites]:
-                  runSEDict[runID] = site
-                  runUpdate[runID] = True
+            if len( sortedSEs ) > 1:
+              self.__logWarn( 'For run %d, files are assigned to more than one site: %s' % ( runID, sortedSEs ) )
+            runSEDict[runID] = sortedSEs[0]
+            runUpdate[runID] = True
 
     # Choose the destination site for new runs
-    activeRAWSEs = self.__getActiveSEs( cpuShares.keys() )
-    inactiveRAWSEs = [se for se in cpuShares if se not in activeRAWSEs]
-    self.__logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
-    if inactiveRAWSEs:
-      self.__logInfo( "Some RAW SEs are not active: %s" % inactiveRAWSEs )
-    for runID in [run for run in sortList( runFileDict.keys() ) if run not in runSEDict]:
+    for runID in [run for run in sorted( runFileDict ) if run not in runSEDict]:
       runLfns = runFileDict[runID]
       distinctSEs = []
-      candidates = []
       for lfn in runLfns:
         for se in [se for se in self.data[lfn].keys() if se not in distinctSEs and se in activeRAWSEs]:
           if se not in distinctSEs:
             distinctSEs.append( se )
       if len( distinctSEs ) < 2:
         self.__logInfo( "Not found two active candidate SEs for run %d, skipped" % runID )
-      else:
-        seProbs = {}
-        prob = 0.
-        if backupSE not in distinctSEs:
-          self.__logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
-          backupSE = None
-        distinctSEs = sortList( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
-        for se in distinctSEs:
-          prob += rawFraction[se] / len( distinctSEs )
-          seProbs[se] = prob
-        if backupSE:
-          seProbs[backupSE] = 1.
-          distinctSEs.append( backupSE )
-        # get a random number between 0 and 1
-        import random
-        rand = random.uniform( 0., 1. )
-        strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
-        self.__logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
-        for se in distinctSEs:
-          if rand <= seProbs[se]:
-            selectedSE = se
-            break
-        self.__logVerbose( "Selected SE for reconstruction is %s", selectedSE )
-        targetSite = selectedSE
-        if targetSite:
-          existingCount[targetSite] = existingCount.setdefault( targetSite, 0 ) + len( runLfns )
-          runSEDict[runID] = targetSite
-          runUpdate[runID] = True
-          self.__logInfo( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), targetSite ) )
+        continue
+      seProbs = {}
+      prob = 0.
+      if backupSE not in distinctSEs:
+        self.__logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
+        backupSE = None
+      distinctSEs = sortList( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
+      for se in distinctSEs:
+        prob += rawFraction[se] / len( distinctSEs )
+        seProbs[se] = prob
+      if backupSE:
+        seProbs[backupSE] = 1.
+        distinctSEs.append( backupSE )
+      # get a random number between 0 and 1
+      import random
+      rand = random.uniform( 0., 1. )
+      strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
+      self.__logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
+      for se in distinctSEs:
+        if rand <= seProbs[se]:
+          selectedSE = se
+          break
+      self.__logVerbose( "Selected SE for reconstruction is %s", selectedSE )
+      if selectedSE:
+        existingCount[selectedSE] = existingCount.setdefault( selectedSE, 0 ) + len( runLfns )
+        runSEDict[runID] = selectedSE
+        runUpdate[runID] = True
+        self.__logInfo( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), selectedSE ) )
 
     # Create the tasks
     tasks = []
-    for runID in sortList( runSEDict.keys() ):
-      targetSite = runSEDict[runID]
+    for runID in sorted( runSEDict ):
+      selectedSE = runSEDict[runID]
+      self.__logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, len( runFileDict[runID] ) ) )
+      if not selectedSE:
+        self.__logWarn( "Run %d has no targetSE, skipped..." % runID )
+        continue
       if runUpdate[runID]:
+        self.__logVerbose( "Assign run site for run %d: %s" % ( runID, selectedSE ) )
         # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
-        res = self.transClient.setTransformationRunsSite( transID, runID, targetSite )
+        res = self.transClient.setTransformationRunsSite( transID, runID, selectedSE )
         if not res['OK']:
           self.__logError( "Failed to assign TransformationRun site", res['Message'] )
           continue
-      if not targetSite.startswith( 'LCG.' ):
-        possibleSEs = [targetSite]
+      status = self.params['Status']
+      self.params['Status'] = 'Flush'
+      res = self._groupBySize( [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2] )
+      self.params['Status'] = status
+      if res['OK']:
+        for task in res['Value']:
+          if selectedSE in task[0].split( ',' ):
+            tasks.append( ( selectedSE, task[1] ) )
       else:
-        res = getSEsForSite( targetSite )
-        if  res['OK']:
-          possibleSEs = res['Value']
-        else:
-          possibleSEs = None
-      if possibleSEs:
-        status = self.params['Status']
-        self.params['Status'] = 'Flush'
-        res = self._groupBySize( [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2] )
-        if res['OK']:
-          for task in res['Value']:
-            targetSEs = [se for se in task[0].split( ',' ) if se in possibleSEs]
-            if targetSEs:
-              tasks.append( ( ','.join( targetSEs ), task[1] ) )
-        else:
-          self.__logError( 'Error grouping files by size', res['Message'] )
-        self.params['Status'] = status
+        self.__logError( 'Error grouping files by size', res['Message'] )
 
     if self.pluginCallback:
       self.pluginCallback( transID, invalidateCache=True )
