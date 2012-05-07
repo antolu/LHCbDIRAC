@@ -10,11 +10,11 @@ import sys, os
 import signal
 import string
 import time
-from DIRAC import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.TransformationSystem.Client.TransformationDBCLI   import TransformationDBCLI
+from DIRAC                                               import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
+from DIRAC.TransformationSystem.Client.TransformationCLI import TransformationCLI
 #job submission
-from LHCbDIRAC.Interfaces.API.DiracProduction             import DiracProduction
+from LHCbDIRAC.Interfaces.API.DiracProduction            import DiracProduction
 
 def printDict( dictionary ):
   """ Dictionary pretty printing
@@ -30,7 +30,7 @@ def printDict( dictionary ):
   for key, value in dictionary.items():
     print key.rjust( key_max ), ' : ', str( value ).ljust( value_max )
 
-class ProductionManagerCLI( TransformationDBCLI ):
+class ProductionManagerCLI( TransformationCLI ):
 
   def __init__( self ):
     TransformationDBCLI.__init__( self )
