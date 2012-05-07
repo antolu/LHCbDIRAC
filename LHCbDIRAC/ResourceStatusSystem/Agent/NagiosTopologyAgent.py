@@ -255,7 +255,7 @@ class NagiosTopologyAgent( AgentModule ):
 
 ################################################################################
 
-def xml_append( self, doc, base, elem, cdata = None, **attrs ):
+def xml_append( doc, base, elem, cdata = None, **attrs ):
   '''
     Given a Document, we append to it an element.
   '''
