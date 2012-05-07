@@ -33,7 +33,7 @@ def printDict( dictionary ):
 class ProductionManagerCLI( TransformationCLI ):
 
   def __init__( self ):
-    TransformationDBCLI.__init__( self )
+    TransformationCLI.__init__( self )
     self.identSpace = 20
     self.server = RPCClient( 'ProductionManagement/ProductionManager' )
     self.lfc = None
