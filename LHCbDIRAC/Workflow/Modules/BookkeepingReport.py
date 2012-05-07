@@ -420,7 +420,7 @@ class BookkeepingReport( ModuleBase ):
         try:
           fileStats = self.xf_o.outputsEvents[output]
         except KeyError, e:
-          if 'hist' in outputtype.lower():
+          if ('hist' in outputtype.lower()) or ('root' in outputtype.lower()):
             self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
             fileStats = 'Unknown'
           else:
