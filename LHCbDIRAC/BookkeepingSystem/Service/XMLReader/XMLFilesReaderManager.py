@@ -355,25 +355,6 @@ class XMLFilesReaderManager:
         id = long(result['Value'])
         file.setFileID(id)
 
-      qualities = file.getQualities()
-      for quality in qualities:
-        group = quality.getGroup()
-        flag = quality.getFlag()
-        result = dataManager_.insertQuality(file.getFileID(), group, flag)
-        if not result['OK']:
-          return S_ERROR("Unable to create Quality " + str(group) + "/" + str(flag) + "\" for file " + str(file.getFileName()) + ".\n")
-        else:
-          qualityID = long(result['Value'])
-          quality.setQualityID(qualityID)
-
-        params = quality.getParams()
-        for param in params:
-          name = param.getName()
-          value = param.getValue()
-          result = dataManager_.insertQualityParam(file.getFileID(), quality.getQualityID(), name, value)
-          if not result['OK']:
-            return S_ERROR("Unable to create Parameter \"" + str(name) + " = " + str(value) + "\" for quality " + group + "/" + flag + "\".\n")
-
       replicas = file.getReplicas()
       for replica in replicas:
         params = replica.getaprams()

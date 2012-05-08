@@ -152,10 +152,6 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().insertTag(name, tag)
 
   #############################################################################
-  def setQuality(self, lfns, flag):
-    return self.getManager().setQuality(lfns, flag)
-
-  #############################################################################
   def setRunAndProcessingPassDataQuality(self, runNB, procpass, flag):
     return self.getManager().setRunAndProcessingPassDataQuality(runNB, procpass, flag)
 

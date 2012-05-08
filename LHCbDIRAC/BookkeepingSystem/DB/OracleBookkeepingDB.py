@@ -1354,7 +1354,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
   def __updateQualityFlag(self, lfn, qid):
     result = S_ERROR()
     utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    command = "update files set inserttimestamp=TO_TIMESTAMP('%s', 'YYYY-MM-DD HH24:MI:SS), qualityid=%d where filename='%s'" %(str(utctime), qid, lfn)
+    command = "update files set inserttimestamp=TO_TIMESTAMP('%s', 'YYYY-MM-DD HH24:MI:SS'), qualityid=%d where filename='%s'" %(str(utctime), qid, lfn)
     retVal = self.dbW_._query(command)
     if not retVal['OK']:
       result = retVal

@@ -548,7 +548,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   #############################################################################
   types_setFileDataQuality = [ListType, StringType]
   def export_setFileDataQuality(self, lfns, flag):
-    return dataMGMT_.setFileQuality(lfns, flag)
+    return dataMGMT_.setFileDataQuality(lfns, flag)
 
   #############################################################################
   types_setRunAndProcessingPassDataQuality = [LongType, StringType, StringType]
