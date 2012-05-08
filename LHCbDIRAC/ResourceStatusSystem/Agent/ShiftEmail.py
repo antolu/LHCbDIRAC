@@ -9,7 +9,7 @@ __RCSID__  = '$Id: $'
 
 ################################################################################
 
-__production = '''Dear %s, 
+__productionBody__ = '''Dear %s, 
 
 this is an (automatic) mail to welcome you on the grid operations shifts. In order to facilitate your shift activities we wanted to provide you some pointers where you could find more information about shifts, the activities and your duties during this period. 
 
@@ -41,7 +41,12 @@ Best regards and happy shifting
   
 '''  
 
-emailBody = { 'Production' : __production }
+def getBodyEmail( role ):
 
+  if role == 'Production':
+    return __productionBody__
+  else:
+    return None
+  
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
