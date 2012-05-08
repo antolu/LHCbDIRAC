@@ -75,11 +75,12 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
     self.assertEqual( res, '"1" is not a proper gate call' )   
     
     global dummyResults
-    dummyResults[ 'DIRACResourceManagementClient' ] = 'returnArgs'
-        
+    dummyResults[ 'dGate' ] = { 'OK' : True, 'Value': 1 }
+
     client.gate = dGate()
     res = client._ResourceManagementClient__query( 'insert', 'tableName', { 'self' : 1, 'meta' : False } )
-    #raise NameError( res )
+    self.assertEqual( res, { 'OK' : True, 'Value': 1 } )
+
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
