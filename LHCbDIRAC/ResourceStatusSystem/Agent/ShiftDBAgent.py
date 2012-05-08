@@ -12,7 +12,7 @@ import urllib2
 
 from DIRAC                                           import S_OK, S_ERROR, gConfig  
 from DIRAC.Core.Base.AgentModule                     import AgentModule
-from DIRAC.Interfaces.API.DiracAdmin                 import DiracAdmin
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
 from LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail import getBodyEmail
 
@@ -52,7 +52,7 @@ class ShiftDBAgent( AgentModule ):
     self.roleShifters = {}
     self.newShifters  = {}
 
-    self.diracAdmin = DiracAdmin()
+    self.notification = NotificationClient()
     
     return S_OK()
   
@@ -279,7 +279,7 @@ class ShiftDBAgent( AgentModule ):
       geocRole = self.roles[ 'Grid Expert' ]
       body = body % ( self.roleShifters[ prodRole ][0], self.roleShifters[ geocRole ][0] )
     
-    res = self.diracAdmin.sendMail( '%s@cern.ch' % eGroup, 'Shifter information', body )
+    res = self.notification.sendMail( '%s@cern.ch' % eGroup, 'Shifter information', body )
     return res     
   
 ################################################################################
