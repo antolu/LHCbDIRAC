@@ -10,11 +10,11 @@ import os
 import suds
 import urllib2
 
-from DIRAC                                import S_OK, S_ERROR, gConfig  
-from DIRAC.Core.Base.AgentModule          import AgentModule
-from DIRAC.Interfaces.API.DiracAdmin      import DiracAdmin
+from DIRAC                                           import S_OK, S_ERROR, gConfig  
+from DIRAC.Core.Base.AgentModule                     import AgentModule
+from DIRAC.Interfaces.API.DiracAdmin                 import DiracAdmin
 
-from LHCbDIRAC.ResourceStatusSystem.Agent import ShiftEmail
+from LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail import emailBody
 
 __RCSID__  = '$Id: $'
 AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
@@ -268,11 +268,11 @@ class ShiftDBAgent( AgentModule ):
     Sends an email to the shifter ( if any ) at the beginning of the shift period.
     '''
   
-    if not ShiftEmail.emailBody.has_key( role ):
+    if not emailBody.has_key( role ):
       self.log.info( 'No email body defined for %s role' % role )
       return S_OK()
     
-    body = ShiftEmail.emailBody[ role ]
+    body = emailBody[ role ]
     if role == 'Production':
       prodRole = self.roles[ 'Production' ]
       geocRole = self.roles[ 'Grid Expert' ]

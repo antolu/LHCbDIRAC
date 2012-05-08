@@ -9,7 +9,7 @@ __RCSID__  = '$Id: $'
 
 ################################################################################
 
-production = '''Dear %s, 
+__production = '''Dear %s, 
 
 this is an (automatic) mail to welcome you on the grid operations shifts. In order to facilitate your shift activities we wanted to provide you some pointers where you could find more information about shifts, the activities and your duties during this period. 
 
@@ -41,7 +41,7 @@ Best regards and happy shifting
   
 '''  
 
-emailBody = { 'Production' : 'production' }
+emailBody = { 'Production' : __production }
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
