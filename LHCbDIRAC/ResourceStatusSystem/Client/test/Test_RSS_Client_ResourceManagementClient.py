@@ -79,7 +79,7 @@ class ResourceManagementClient_Success( ResourceManagementClient_TestCase ):
         
     client.gate = dGate()
     res = client._ResourceManagementClient__query( 'insert', 'tableName', { 'self' : 1, 'meta' : False } )
-    raise NameError( res )
+    #raise NameError( res )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
