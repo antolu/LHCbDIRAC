@@ -60,7 +60,7 @@ strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access 
 strippEOpts = '{{strippEO#PROD-Stripping: extra options#}}'
 
 #merging params
-mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK,UNCHECKED#OK}}'
+mergeDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK,UNCHECKED#OK;;;UNCHECKED}}'
 mergePriority = '{{MergePriority#PROD-Merging: priority#8}}'
 mergePlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRunWithFlush}}'
 mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
