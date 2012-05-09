@@ -26,7 +26,6 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript       import  DMScript
 
 __RCSID__ = "$Id$"
 
