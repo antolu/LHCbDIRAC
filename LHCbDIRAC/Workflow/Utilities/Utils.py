@@ -12,6 +12,7 @@ def getStepDefinition( stepName, modulesNameList = [], importLine = """""", para
   """ Given a name, a list modules, and a list of parameters , return a step definition.
       Step definition = Parameters + Module Instances
   """
+  #TODO: generic enough, can be moved to DIRAC
 
   if not importLine:
     importLine = "LHCbDIRAC.Workflow.Modules"
@@ -45,9 +46,7 @@ def addStepToWorkflow( workflow, stepDefinition, name ):
   """
 
   workflow.addStep( stepDefinition )
-  workflow.createStepInstance( stepDefinition.getType(), name )
-
-  return workflow
+  return workflow.createStepInstance( stepDefinition.getType(), name )
 
 #############################################################################
 
@@ -74,6 +73,6 @@ def makeRunList( runInput ):
         runList.append( str( part ) )
     return S_OK( runList )
   except Exception:
-    return S_ERROR( "Could not parse runList ")
+    return S_ERROR( "Could not parse runList " )
 
 #############################################################################

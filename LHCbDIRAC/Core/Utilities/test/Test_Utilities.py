@@ -9,6 +9,8 @@ from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import _getAreas, _getApp
+from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
+
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
@@ -38,7 +40,7 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.pc = ProdConf()
 
   def tearDown( self ):
-    for fileProd in ['prodConf.py']:
+    for fileProd in ['prodConf.py', 'data.py']:
       try:
         os.remove( fileProd )
       except OSError:
@@ -188,6 +190,72 @@ class ProdConfSuccess( UtilitiesTestCase ):
     string = "from ProdConf import ProdConf\n\nProdConf(\n  Application='',\n  InputFiles=[],\n  AppVersion='v30r0',\n  RunNumber=12345,\n)"
     self.assertEquals( string, fileString )
 
+
+#################################################
+
+class GangaDataFileSuccess( UtilitiesTestCase ):
+
+  def test_getGangaDataFile( self ):
+    gdf = GangaDataFile()
+
+    res = gdf.generateDataFile( ['foo', 'bar'], 'ROOT' )
+    root = '\
+\n#new method\
+\nfrom GaudiConf import IOExtension\
+\nIOExtension("ROOT").inputFiles([\
+\n    "LFN:foo",\
+\n    "LFN:bar"\
+\n], clear=True)\
+\n\
+\nfrom Gaudi.Configuration import FileCatalog\
+\nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
+'
+    self.assertEqual( res, root )
+
+    res = gdf.generateDataFile( ['foo', 'bar'], 'Pool' )
+    pool = '\
+\ntry:\
+\n    #new method\
+\n    from GaudiConf import IOExtension\
+\n    IOExtension("POOL").inputFiles([\
+\n        "LFN:foo",\
+\n        "LFN:bar"\
+\n    ], clear=True)\
+\nexcept ImportError:\
+\n    #Use previous method\
+\n    from Gaudi.Configuration import EventSelector\
+\n    EventSelector().Input=[\
+\n        "DATAFILE=\'LFN:foo\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'",\
+\n        "DATAFILE=\'LFN:bar\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'"\
+\n    ]\
+\n\
+\nfrom Gaudi.Configuration import FileCatalog\
+\nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
+'
+
+    self.assertEqual( res, pool )
+
+    res = gdf.generateDataFile( ['foo', 'bar'] )
+    nothing = '\
+\ntry:\
+\n    #new method\
+\n    from GaudiConf import IOExtension\
+\n    IOExtension().inputFiles([\
+\n        "LFN:foo",\
+\n        "LFN:bar"\
+\n    ], clear=True)\
+\nexcept ImportError:\
+\n    #Use previous method\
+\n    from Gaudi.Configuration import EventSelector\
+\n    EventSelector().Input=[\
+\n        "DATAFILE=\'LFN:foo\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'",\
+\n        "DATAFILE=\'LFN:bar\' TYP=\'POOL_ROOTTREE\' OPT=\'READ\'"\
+\n    ]\
+\n\
+\nfrom Gaudi.Configuration import FileCatalog\
+\nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
+'
+    self.assertEqual( res, nothing )
 
 #################################################
 

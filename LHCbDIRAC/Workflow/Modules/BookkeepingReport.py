@@ -23,10 +23,10 @@ class BookkeepingReport( ModuleBase ):
 
   def __init__( self ):
     #TODO check which variables are really needed here
-    '''
+    """
     Dunno why there are so maaaaaany variables here. Probably not all are
     really needed at this level...
-    '''
+    """
 
     self.log = gLogger.getSubLogger( "BookkeepingReport" )
 
@@ -99,6 +99,8 @@ class BookkeepingReport( ModuleBase ):
 ################################################################################
 
   def _resolveInputVariables( self, bk = None, xf_o = None ):
+    """ By convention the module parameters are resolved here.
+    """
 
     super( BookkeepingReport, self )._resolveInputVariables()
     super( BookkeepingReport, self )._resolveInputStep()
@@ -420,7 +422,7 @@ class BookkeepingReport( ModuleBase ):
         try:
           fileStats = self.xf_o.outputsEvents[output]
         except KeyError, e:
-          if ('hist' in outputtype.lower()) or ('.root' in outputtype.lower()):
+          if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
             self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
             fileStats = 'Unknown'
           else:

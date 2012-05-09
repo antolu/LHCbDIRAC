@@ -95,18 +95,18 @@
 
 """
 
-from DIRAC.Core.Workflow.Parameter                       import *
-from DIRAC.Core.Workflow.Module                          import *
-from DIRAC.Core.Workflow.Step                            import *
-from DIRAC.Core.Workflow.Workflow                        import *
-from DIRAC.Core.Workflow.WorkflowReader                  import *
-from DIRAC.Interfaces.API.Job                            import Job
-from DIRAC.Core.Utilities.File                           import makeGuid
-from DIRAC.Core.Utilities.List                           import uniqueElements
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC                                               import gConfig
-
 __RCSID__ = "$Id$"
+
+import os, types, re
+
+from DIRAC import gConfig, S_OK, S_ERROR
+
+from DIRAC.Interfaces.API.Job import Job
+from DIRAC.Core.Utilities.File import makeGuid
+from DIRAC.Core.Utilities.List import uniqueElements
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition, addStepToWorkflow
 
 class LHCbJob( Job ):
   """ LHCbJob class as extension of DIRAC Job class
@@ -118,12 +118,12 @@ class LHCbJob( Job ):
     """Instantiates the Workflow object and some default parameters.
     """
     Job.__init__( self, script, stdout, stderr )
-    self.gaudiStepCount    = 0
+    self.gaudiStepCount = 0
     self.currentStepPrefix = ''
-    self.inputDataType     = 'DATA' #Default, other options are MDF, ETC
-    self.rootSection       = 'SoftwareDistribution/LHCbRoot'
-    self.importLocation    = 'LHCbDIRAC.Workflow.Modules'
-    self.opsHelper         = Operations()
+    self.inputDataType = 'DATA' #Default, other options are MDF, ETC
+    self.rootSection = 'SoftwareDistribution/LHCbRoot'
+    self.importLocation = 'LHCbDIRAC.Workflow.Modules'
+    self.opsHelper = Operations()
 
   #############################################################################
 
@@ -225,8 +225,26 @@ class LHCbJob( Job ):
 
     self.gaudiStepCount += 1
     stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' % ( appName, stepNumber )
-    step = self.__getGaudiApplicationStep( stepDefn )
+    stepName = '%sStep%s' % ( appName, stepNumber )
+
+    modulesNameList = [
+                       'GaudiApplication',
+                       'FileUsage',
+                       'UserJobFinalization'
+                       ]
+    parametersList = [
+                      ( 'applicationName', 'string', '', 'Application Name' ),
+                      ( 'applicationVersion', 'string', '', 'Application Version' ),
+                      ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                      ( 'optionsFile', 'string', '', 'Options File' ),
+                      ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
+                      ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                      ( 'inputData', 'string', '', 'Input Data' ),
+                      ( 'numberOfEvents', 'string', '', 'Events treated' )
+                      ]
+
+    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
+
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
     stepName = 'Run%sStep%s' % ( appName, stepNumber )
@@ -235,12 +253,10 @@ class LHCbJob( Job ):
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
 
-    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
-    # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
     stepInstance.setValue( "applicationName", appName )
     stepInstance.setValue( "applicationVersion", appVersion )
@@ -267,55 +283,6 @@ class LHCbJob( Job ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
-
-  #############################################################################
-
-  def __getGaudiApplicationStep( self, name = 'GaudiApplication' ):
-    """Internal function.
-
-        This method controls the definition for a GaudiApplication step.
-    """
-    # Create the GaudiApplication module first
-    moduleName = 'GaudiApplication'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A generic Gaudi Application module that can execute any provided project name and version' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    module.setBody( body )
-    #Add user job finalization module
-    moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition( moduleName )
-    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    userData.setBody( body )
-
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
-
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    step.addModule( fileUsage )
-    step.addModule( userData )
-    step.createModuleInstance( 'GaudiApplication', name )
-    step.createModuleInstance( 'FileUsage', name )
-    step.createModuleInstance( 'UserJobFinalization', name )
-
-    # Define step parameters
-    step.addParameter( Parameter( "applicationName", "", "string", "", "", False, False, "Application Name" ) )
-    step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, "Application Name" ) )
-    step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, "Name of the output file of the application" ) )
-    step.addParameter( Parameter( "optionsFile", "", "string", "", "", False, False, "Options File" ) )
-    step.addParameter( Parameter( "extraOptionsLine", "", "string", "", "", False, False, "This is appended to standard options" ) )
-    #step.addParameter(Parameter("optionsLinePrev","","string","","",False,False,"options to be added first","option"))
-    #step.addParameter(Parameter("poolXMLCatName","","string","","",False,False,"POOL XML Catalog file name"))
-    step.addParameter( Parameter( "inputDataType", "", "string", "", "", False, False, "Input Data Type" ) )
-    step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, "Input Data Type" ) )
-    step.addParameter( Parameter( "numberOfEvents", "", "string", "", "", False, False, "Events treated" ) )
-    return step
 
   #############################################################################
 
@@ -400,8 +367,30 @@ class LHCbJob( Job ):
 
     self.gaudiStepCount += 1
     stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' % ( appName, stepNumber )
-    step = self.__getGaudiApplicationScriptStep( stepDefn )
+#    step = self.__getGaudiApplicationScriptStep( stepDefn )
+
+
+    stepName = '%sStep%s' % ( appName, stepNumber )
+
+    modulesNameList = [
+                       'GaudiApplicationScript',
+                       'FileUsage',
+                       'UserJobFinalization'
+                       ]
+
+    parametersList = [
+                      ( 'applicationName', 'string', '', 'Application Name' ),
+                      ( 'applicationVersion', 'string', '', 'Application Version' ),
+                      ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                      ( 'script', 'string', '', 'Script Name' ),
+                      ( 'arguments', 'string', '', 'Arguments for script' ),
+                      ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
+                      ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                      ( 'inputData', 'string', '', 'Input Data' ),
+                      ]
+
+    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
+
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
     stepName = 'Run%sStep%s' % ( appName, stepNumber )
@@ -410,12 +399,10 @@ class LHCbJob( Job ):
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
 
-    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
-    # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
     stepInstance.setValue( "applicationName", appName )
     stepInstance.setValue( "applicationVersion", appVersion )
@@ -442,53 +429,6 @@ class LHCbJob( Job ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
-
-  #############################################################################
-
-  def __getGaudiApplicationScriptStep( self, name = 'GaudiApplicationScript' ):
-    """Internal function.
-
-      This method controls the definition for a GaudiApplicationScript step.
-    """
-    # Create the GaudiApplication script module first
-    moduleName = 'GaudiApplicationScript'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A  Gaudi Application script module that can execute any provided script \
-    in the given project name and version environment' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    module.setBody( body )
-    #Add user job finalization module
-    moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition( moduleName )
-    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    userData.setBody( body )
-
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    step.addModule( fileUsage )
-    step.addModule( userData )
-    step.createModuleInstance( 'GaudiApplicationScript', name )
-    step.createModuleInstance( 'FileUsage', name )
-    step.createModuleInstance( 'UserJobFinalization', name )
-
-    # Define step parameters
-    step.addParameter( Parameter( "applicationName", "", "string", "", "", False, False, "Application Name" ) )
-    step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, "Application Name" ) )
-    step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, "Name of the output file of the application" ) )
-    step.addParameter( Parameter( "script", "", "string", "", "", False, False, "Script name" ) )
-    step.addParameter( Parameter( "arguments", "", "string", "", "", False, False, "Arguments for script" ) )
-    step.addParameter( Parameter( "poolXMLCatName", "", "string", "", "", False, False, "POOL XML Catalog file name" ) )
-    step.addParameter( Parameter( "inputDataType", "", "string", "", "", False, False, "Input Data Type" ) )
-    step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, "Input Data Type" ) )
-    return step
 
   #############################################################################
 
@@ -677,22 +617,36 @@ class LHCbJob( Job ):
 
     self.gaudiStepCount += 1
     stepNumber = self.gaudiStepCount
-    stepDefn = '%sStep%s' % ( rootName, stepNumber )
-    step = self.__getRootApplicationStep( stepDefn )
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+    stepName = '%sStep%s' % ( rootName, stepNumber )
 
-    stepName = 'Run%sStep%s' % ( rootName, stepNumber )
+
+    modulesNameList = [
+                       'RootApplication',
+                       'FileUsage',
+                       'UserJobFinalization'
+                       ]
+    parametersList = [
+                      ( 'rootVersion', 'string', '', 'Root version' ),
+                      ( 'rootScript', 'string', '', 'Root script' ),
+                      ( 'rootType', 'string', '', 'Root type' ),
+                      ( 'arguments', 'list', [], 'Optional arguments for payload' ),
+                      ( 'logFile', 'string', '', 'Log file name' )
+                      ]
+
+    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
+
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
     logPrefix = 'Step%s_' % ( stepNumber )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
 
-    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
+    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
+
     # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
     stepInstance.setValue( "rootVersion", rootVersion )
     stepInstance.setValue( "rootType", rootType )
     stepInstance.setValue( "rootScript", os.path.basename( rootScript ) )
@@ -716,49 +670,6 @@ class LHCbJob( Job ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
     return S_OK()
-
-  #############################################################################
-
-  def __getRootApplicationStep( self, name = 'RootApplication' ):
-    """Internal function.
-
-        This method controls the definition for a RootApplication step.
-    """
-    # Create the RootApplication module first
-    moduleName = 'RootApplication'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A generic Root Application module that can execute macros, python scripts or executables' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    module.setBody( body )
-    #Add user job finalization module
-    moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition( moduleName )
-    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    userData.setBody( body )
-
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    step.addModule( fileUsage )
-    step.addModule( userData )
-
-    step.createModuleInstance( 'RootApplication', name )
-    step.createModuleInstance( 'FileUsage', name )
-    step.createModuleInstance( 'UserJobFinalization', name )
-    # Define step parameters
-    step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, "Root version." ) )
-    step.addParameter( Parameter( "rootScript", "", "string", "", "", False, False, "Root script." ) )
-    step.addParameter( Parameter( "rootType", "", "string", "", "", False, False, "Root type." ) )
-    step.addParameter( Parameter( "arguments", [], "list", "", "", False, False, "Optional arguments for payload." ) )
-    step.addParameter( Parameter( "logFile", "", "string", "", "", False, False, "Log file name." ) )
-    return step
 
   #############################################################################
 
@@ -995,17 +906,32 @@ class LHCbJob( Job ):
 
     moduleName = moduleName.replace( '.', '' )
     stepNumber = self.gaudiStepCount
-    stepDefn = 'ScriptStep%s' % ( stepNumber )
-    step = self.__getLHCbScriptStep( stepDefn )
+    stepName = 'ScriptStep%s' % ( stepNumber )
+
+    modulesNameList = [
+                       'Script',
+                       'FileUsage',
+                       'UserJobFinalization'
+                       ]
+    parametersList = [
+                      ( 'name', 'string', '', 'Name of executable' ),
+                      ( 'executable', 'string', '', 'Executable Script' ),
+                      ( 'arguments', 'string', '', 'Arguments for executable Script' ),
+                      ( 'logFile', 'string', '', 'Log file name' )
+                      ]
+
+    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
+
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+
     stepName = 'RunScriptStep%s' % ( stepNumber )
     logPrefix = 'Script%s_' % ( stepNumber )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
-    self.workflow.addStep( step )
 
-    # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
+
+
     stepInstance.setValue( "name", moduleName )
     stepInstance.setValue( "logFile", logName )
     stepInstance.setValue( "executable", executable )
@@ -1016,45 +942,6 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def __getLHCbScriptStep( self, name = 'Script' ):
-    """Internal function. This method controls the definition for a script module.
-    """
-    # Create the script module first
-    moduleName = 'Script'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A  script module that can execute any provided script.' )
-    body = 'from DIRAC.Core.Workflow.Modules.Script import Script\n'
-    module.setBody( body )
-
-    moduleName = 'FileUsage'
-    fileUsage = ModuleDefinition( moduleName )
-    fileUsage.setDescription( "Sends input data usage information for popularity framework" )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    fileUsage.setBody( body )
-
-    #Add user job finalization module
-    moduleName = 'UserJobFinalization'
-    userData = ModuleDefinition( moduleName )
-    userData.setDescription( 'Uploads user output data files with LHCb specific policies.' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    userData.setBody( body )
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    step.addModule( fileUsage )
-    step.addModule( userData )
-
-    step.createModuleInstance( 'Script', name )
-    step.createModuleInstance( 'FileUsage', name )
-    step.createModuleInstance( 'UserJobFinalization', name )
-    # Define step parameters
-    step.addParameter( Parameter( "name", "", "string", "", "", False, False, 'Name of executable' ) )
-    step.addParameter( Parameter( "executable", "", "string", "", "", False, False, 'Executable Script' ) )
-    step.addParameter( Parameter( "arguments", "", "string", "", "", False, False, 'Arguments for executable Script' ) )
-    step.addParameter( Parameter( "logFile", "", "string", "", "", False, False, 'Log file name' ) )
-    return step
-
-  #############################################################################
 
   def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '' ):
     """Helper function.
@@ -1121,18 +1008,30 @@ class LHCbJob( Job ):
       return self._reportError( 'Requested ROOT version %s \
       is not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
 
-    stepDefn = 'ProtocolTestStep%s' % ( stepNumber )
-    step = self.__getProtocolStep( stepDefn )
+    stepName = 'ProtocolTestStep%s' % ( stepNumber )
+
+    modulesNameList = [
+                       'ProtocolAccessTest'
+                       ]
+    parametersList = [
+                      ( 'protocols', 'string', '', 'List of Protocols' ),
+                      ( 'applicationLog', 'string', '', 'Log file name' ),
+                      ( 'applicationVersion', 'string', '', 'DaVinci version' ),
+                      ( 'rootVersion', 'string', '', 'ROOT version' ),
+                      ( 'inputData', 'string', '', 'Input Data' ),
+                      ]
+
+    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
+
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
 
     stepName = 'RunProtocolTestStep%s' % ( stepNumber )
 
-    self.workflow.addStep( step )
     stepPrefix = '%s_' % stepName
     self.currentStepPrefix = stepPrefix
 
-    # Define Step and its variables
-    stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
+
     stepInstance.setValue( "protocols", protocols )
     if logFile:
       stepInstance.setValue( "applicationLog", logFile )
@@ -1158,29 +1057,6 @@ class LHCbJob( Job ):
       if not currentApp in apps.split( ';' ):
         apps += ';' + currentApp
       self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
-
-  #############################################################################
-
-  def __getProtocolStep( self, name = 'ProtocolAccessTest' ):
-    """Internal function. This method controls the definition for the ProtocolAccessTest module.
-    """
-    # Create the ProtocolAccessTest module first
-    moduleName = 'ProtocolAccessTest'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A module to perform a Protocol Access Test' )
-    body = 'from %s.%s import %s\n' % ( self.importLocation, moduleName, moduleName )
-    module.setBody( body )
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    step.createModuleInstance( 'ProtocolAccessTest', name )
-    # Define step parameters
-    step.addParameter( Parameter( "protocols", "", "string", "", "", False, False, 'List of Protocols' ) )
-    step.addParameter( Parameter( "applicationLog", "", "string", "", "", False, False, 'Log file name' ) )
-    step.addParameter( Parameter( "applicationVersion", "", "string", "", "", False, False, 'DaVinci version' ) )
-    step.addParameter( Parameter( "rootVersion", "", "string", "", "", False, False, 'ROOT version' ) )
-    step.addParameter( Parameter( "inputData", "", "string", "", "", False, False, 'Input Data' ) )
-    return step
 
   #############################################################################
 
