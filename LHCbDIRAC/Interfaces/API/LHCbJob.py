@@ -95,18 +95,18 @@
 
 """
 
+from DIRAC.Core.Workflow.Parameter                       import *
+from DIRAC.Core.Workflow.Module                          import *
+from DIRAC.Core.Workflow.Step                            import *
+from DIRAC.Core.Workflow.Workflow                        import *
+from DIRAC.Core.Workflow.WorkflowReader                  import *
+from DIRAC.Interfaces.API.Job                            import Job
+from DIRAC.Core.Utilities.File                           import makeGuid
+from DIRAC.Core.Utilities.List                           import uniqueElements
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC                                               import gConfig
+
 __RCSID__ = "$Id$"
-
-from DIRAC.Core.Workflow.Parameter                  import *
-from DIRAC.Core.Workflow.Module                     import *
-from DIRAC.Core.Workflow.Step                       import *
-from DIRAC.Core.Workflow.Workflow                   import *
-from DIRAC.Core.Workflow.WorkflowReader             import *
-from DIRAC.Interfaces.API.Job                       import Job
-from DIRAC.Core.Utilities.File                      import makeGuid
-from DIRAC.Core.Utilities.List                      import uniqueElements
-from DIRAC                                          import gConfig
-
 
 class LHCbJob( Job ):
   """ LHCbJob class as extension of DIRAC Job class
@@ -118,11 +118,12 @@ class LHCbJob( Job ):
     """Instantiates the Workflow object and some default parameters.
     """
     Job.__init__( self, script, stdout, stderr )
-    self.gaudiStepCount = 0
+    self.gaudiStepCount    = 0
     self.currentStepPrefix = ''
-    self.inputDataType = 'DATA' #Default, other options are MDF, ETC
-    self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
-    self.importLocation = 'LHCbDIRAC.Workflow.Modules'
+    self.inputDataType     = 'DATA' #Default, other options are MDF, ETC
+    self.rootSection       = 'SoftwareDistribution/LHCbRoot'
+    self.importLocation    = 'LHCbDIRAC.Workflow.Modules'
+    self.opsHelper         = Operations()
 
   #############################################################################
 
@@ -658,7 +659,8 @@ class LHCbJob( Job ):
     self.addToInputSandbox.append( rootScript )
 
     #Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptions( self.rootSection, [] )
+    #rootVersions = gConfig.getOptions( self.rootSection, [] )
+    rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
       return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
 
@@ -700,7 +702,8 @@ class LHCbJob( Job ):
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    currentApp = gConfig.getValue( appRoot, '' )
+    #currentApp = gConfig.getValue( appRoot, '' )
+    currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
     swPackages = 'SoftwarePackages'
@@ -1108,7 +1111,8 @@ class LHCbJob( Job ):
     protocols = ';'.join( protocols )
 
     #Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptions( self.rootSection, [] )
+    #rootVersions = gConfig.getOptions( self.rootSection, [] )
+    rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
       return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
 
@@ -1137,7 +1141,8 @@ class LHCbJob( Job ):
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    currentApp = gConfig.getValue( appRoot, '' )
+    #currentApp = gConfig.getValue( appRoot, '' )
+    currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
 

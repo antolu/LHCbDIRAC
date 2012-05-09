@@ -56,7 +56,8 @@ class DiracLHCb( Dirac ):
     except Exception, e:
       return S_ERROR( 'Could not get the sites or sites tier ' + e )
 
-    self.softwareSection = '/Operations/SoftwareDistribution'
+# Commented out, I believe it is not used.
+#    self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
                              'DataTakingConditions'     : 'All',
                              'ProcessingPass'           : 'All',

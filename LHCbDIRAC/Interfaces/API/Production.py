@@ -8,16 +8,18 @@
     - Uses getOutputLFNs() function to add production output directory parameter
 """
 
+import string
+import shutil
+
+from DIRAC                                               import gConfig
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Workflow.Workflow                        import *
+from DIRAC.Core.Utilities.List                           import removeEmptyElements, uniqueElements
+
+from LHCbDIRAC.Core.Utilities.ProductionData             import preSubmissionLFNs
+from LHCbDIRAC.Workflow.Utilities.Utils                  import getStepDefinition
+
 __RCSID__ = "$Id$"
-
-import string, shutil
-
-from DIRAC import gConfig
-from DIRAC.Core.Workflow.Workflow import *
-from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
-
-from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
-from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 
 COMPONENT_NAME = 'LHCbSystem/Client/Production'
 
@@ -54,18 +56,22 @@ class Production():
       from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
       self.transformation = Transformation()
 
-    self.prodVersion = __RCSID__
-    self.csSection = '/Operations/Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
+    self.opsHelper = Operations()
+
+    self.prodVersion            = __RCSID__
+    self.csSection              = 'Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
     self.LHCbJob.gaudiStepCount = 0
 
-    inOutputSandbox = gConfig.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ), ['std.out', 'std.err', '*.log'] )
+    #inOutputSandbox = gConfig.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ), ['std.out', 'std.err', '*.log'] )
+    inOutputSandbox = self.opsHelper.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ), ['std.out', 'std.err', '*.log'] )
     self.LHCbJob.setOutputSandbox( inOutputSandbox )
 
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
 #    defaultHistName    = '@{STEP_ID}_@{applicationName}_Hist.root'
-    self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
-    self.histogramSE = gConfig.getValue( '%s/HistogramSE' % ( self.csSection ), 'CERN-HIST' )
-    self.systemConfig = gConfig.getValue( '%s/SystemConfig' % ( self.csSection ), 'ANY' )
+    #self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
+    self.histogramName = self.opsHelper.getValue( '%s/HistogramName' % self.csSection, defaultHistName )
+    self.histogramSE   = self.opsHelper.getValue( '%s/HistogramSE' % self.csSection, 'CERN-HIST' )
+    self.systemConfig  = self.opsHelper.getValue( '%s/SystemConfig' % self.csSection, 'ANY' )
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
     #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
     self.defaultProdID = '12345'
@@ -140,7 +146,8 @@ class Production():
   def _setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
-    proposedParam = gConfig.getValue( '%s/%s' % ( self.csSection, name ), '' )
+    #proposedParam = gConfig.getValue( '%s/%s' % ( self.csSection, name ), '' )
+    proposedParam = self.opsHelper.getValue( '%s/%s' % ( self.csSection, name ), '' )
     if proposedParam:
       self.LHCbJob.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description )
@@ -521,14 +528,17 @@ class Production():
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
-      modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
-                                                                                    'AnalyseLogFile',
-                                                                                    'AnalyseXMLSummary',
-                                                                                    'ErrorLogging',
-                                                                                    'BookkeepingReport',
-                                                                                    'StepAccounting'
-                                                                                    ] )
-
+#      modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
+#                                                                                    'AnalyseLogFile',
+#                                                                                    'AnalyseXMLSummary',
+#                                                                                    'ErrorLogging',
+#                                                                                    'BookkeepingReport',
+#                                                                                    'StepAccounting'
+#                                                                                    ] )
+      gaudiModules   = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
+      gaudiPath       = '%s/GaudiStep_Modules' % self.csSection
+      modulesNameList = self.opsHelper.getValue( gaudiPath, gaudiModules )      
       #pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
@@ -739,9 +749,13 @@ class Production():
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
       if not modulesList:
-        modulesNameList = gConfig.getValue( '%s/FinalizationStep_Modules' % self.csSection, ['UploadOutputData',
-                                                                                             'FailoverRequest',
-                                                                                             'UploadLogFile'] )
+#        modulesNameList = gConfig.getValue( '%s/FinalizationStep_Modules' % self.csSection, ['UploadOutputData',
+#                                                                                             'FailoverRequest',
+#                                                                                             'UploadLogFile'] )
+        finalizationPath = '%s/FinalizationStep_Modules' % self.csSection
+        finalizationMods = [ 'UploadOutputData', 'FailoverRequest', 'UploadLogFile' ]
+        modulesNameList  = self.opsHelper.getValue( finalizationPath, finalizationMods )
+        
       else:
         modulesNameList = modulesList
 
