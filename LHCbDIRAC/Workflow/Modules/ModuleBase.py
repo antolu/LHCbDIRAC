@@ -196,6 +196,11 @@ class ModuleBase( object ):
     else:
       self.runNumber = 'Unknown'
 
+    if self.workflow_commons.has_key( 'persistency' ):
+      self.persistency = self.workflow_commons['persistency']
+    else:
+      self.persistency = ''
+
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
 

@@ -228,6 +228,7 @@ class LHCbJob( Job ):
     stepName = '%sStep%s' % ( appName, stepNumber )
 
     modulesNameList = [
+                       'CreateDataFile',
                        'GaudiApplication',
                        'FileUsage',
                        'UserJobFinalization'
@@ -373,6 +374,7 @@ class LHCbJob( Job ):
     stepName = '%sStep%s' % ( appName, stepNumber )
 
     modulesNameList = [
+                       'CreateDataFile',
                        'GaudiApplicationScript',
                        'FileUsage',
                        'UserJobFinalization'
@@ -621,6 +623,7 @@ class LHCbJob( Job ):
 
 
     modulesNameList = [
+                       'CreateDataFile',
                        'RootApplication',
                        'FileUsage',
                        'UserJobFinalization'
@@ -909,6 +912,7 @@ class LHCbJob( Job ):
     stepName = 'ScriptStep%s' % ( stepNumber )
 
     modulesNameList = [
+                       'CreateDataFile',
                        'Script',
                        'FileUsage',
                        'UserJobFinalization'
@@ -1060,19 +1064,18 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setInputData( self, lfns, BKKClientIn = None, runNumber = None ):
+  def setInputData( self, lfns, bkClient = None, runNumber = None, persistencyType = None ):
     """ Add the input data and the run number, if available
     """
 
     Job.setInputData( self, lfns )
 
-    if not runNumber:
-      if BKKClientIn is not None:
-        bkClient = BKKClientIn
-      else:
+    if not runNumber or persistencyType:
+      if not bkClient:
         from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkClient = BookkeepingClient()
 
+    if not runNumber:
       res = bkClient.getFileMetadata( lfns )
       if not res['OK']:
         return res
@@ -1092,7 +1095,32 @@ class LHCbJob( Job ):
       else:
         runNumber = 'Unknown'
 
-    self._addParameter( self.workflow, 'runNumber', 'JDL', runNumber, 'Input run rumber' )
+    if not persistencyType:
+
+      res = bkClient.getFileTypeVersion ( lfns )
+      if not res['OK']:
+        return res
+
+      typeVersions = res['Value']
+
+      if not typeVersions:
+        self.log.verbose( 'The requested files do not exist in the BKK' )
+        typeVersion = ''
+
+      else:
+        self.log.verbose( 'Found file types %s for LFNs: %s' % ( typeVersions.values(), typeVersions.keys() ) )
+        typeVersionsList = []
+        for tv in typeVersions.values():
+          if tv not in typeVersionsList:
+            typeVersionsList.append( tv )
+
+        if len( typeVersionsList ) == 1:
+          typeVersion = typeVersionsList[0]
+        else:
+          typeVersion = ''
+
+    self._addParameter( self.workflow, 'runNumber', 'String', runNumber, 'Input run rumber' )
+    self._addParameter( self.workflow, 'persistency', 'String', typeVersion, 'Persistency type of the inputs' )
 
   #############################################################################
 

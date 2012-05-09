@@ -195,7 +195,8 @@ class ProdConfSuccess( UtilitiesTestCase ):
 
 class GangaDataFileSuccess( UtilitiesTestCase ):
 
-  def test_getGangaDataFile( self ):
+  def test_generateGangaDataFile( self ):
+
     gdf = GangaDataFile()
 
     res = gdf.generateDataFile( ['foo', 'bar'], 'ROOT' )
@@ -256,6 +257,16 @@ class GangaDataFileSuccess( UtilitiesTestCase ):
 \nFileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]\
 '
     self.assertEqual( res, nothing )
+
+#################################################
+
+class GangaDataFileFailure( UtilitiesTestCase ):
+
+  def test_generateDataFile( self ):
+
+    gdf = GangaDataFile()
+    self.assertRaises( TypeError, gdf.generateDataFile, ( '' ) )
+    self.assertRaises( ValueError, gdf.generateDataFile, ( [] ) )
 
 #################################################
 

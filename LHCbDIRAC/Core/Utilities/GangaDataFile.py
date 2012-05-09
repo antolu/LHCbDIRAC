@@ -1,6 +1,6 @@
 """ GangaDataFile is a utility to create a Data file, to be used by ganga.
 
-    Given input files, it will create:
+    Given input files, it will create something like:
     
     from GaudiConf import IOExtension
     IOExtension("ROOT").inputFiles([
@@ -15,7 +15,7 @@
 
 import os, fnmatch
 
-class GangaDataFile:
+class GangaDataFile( object ):
   """ Creates ganga data file
   """
 
@@ -57,7 +57,7 @@ class GangaDataFile:
       self.log.error( 'Was expecting a list' )
       raise TypeError( 'Expected List' )
     if not len( lfns ):
-      self.log.error( 'Was expecting a non-empty list' )
+      self.log.warn( 'No file generated: was expecting a non-empty list' )
       raise ValueError( 'list empty' )
 
     script = ''
@@ -71,13 +71,13 @@ class GangaDataFile:
     elif persistency == 'POOL':
       script = self.__legacyInputFileStringBuilder( len( lfns ),
                                                     persistency ) % ( tuple( lfns ) + self.__buildTypeSelectorTuple( lfns,
-                                                                                                                TSDefaultStr,
-                                                                                                                TSLookupMap ) )
+                                                                                                                     TSDefaultStr,
+                                                                                                                     TSLookupMap ) )
     else:
       script = self.__legacyInputFileStringBuilder( len( lfns ),
                                                     None ) % ( tuple( lfns ) + self.__buildTypeSelectorTuple( lfns,
-                                                                                                         TSDefaultStr,
-                                                                                                         TSLookupMap ) )
+                                                                                                              TSDefaultStr,
+                                                                                                              TSLookupMap ) )
 
     f = open( self.fileName, 'w' )
     f.write( script )
@@ -131,7 +131,6 @@ class GangaDataFile:
 
     return script
 
-
   ################################################################################
 
   def __typeSelectorString( self, filename, defaultStr = "TYP='POOL_ROOTTREE' OPT='READ'",
@@ -140,10 +139,12 @@ class GangaDataFile:
                                          '*.mdf':"SVC='LHCb::MDFSelector'",
                                          '*.MDF':"SVC='LHCb::MDFSelector'"}
                           ):
+    """ helper function 
+    """
 
     for key, val in lookupMap.iteritems():
-        if fnmatch.fnmatch( filename, key ):
-            return val
+      if fnmatch.fnmatch( filename, key ):
+        return val
 
     return defaultStr
 
@@ -155,10 +156,12 @@ class GangaDataFile:
                                                '*.mdf':"SVC='LHCb::MDFSelector'",
                                                '*.MDF':"SVC='LHCb::MDFSelector'"}
                                ):
+    """ helper function 
+    """
 
     r = []
     for i in range( len( lfns ) ):
-        r.extend( [lfns[i], self.__typeSelectorString( lfns[i], TSDefaultStr, TSLookupMap )] )
+      r.extend( [lfns[i], self.__typeSelectorString( lfns[i], TSDefaultStr, TSLookupMap )] )
     return tuple( r )
 
 ################################################################################
