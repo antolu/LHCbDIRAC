@@ -15,8 +15,7 @@ import string
 import time
 import re
 
-from DIRAC                                               import gLogger, S_OK, S_ERROR 
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig 
 from DIRAC.Core.Utilities.List                           import sortList, removeEmptyElements
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
 from DIRAC.Interfaces.API.Dirac                          import Dirac
@@ -911,9 +910,8 @@ class DiracLHCb( Dirac ):
     if not siteMask['OK']:
       return siteMask
 
-    #totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
-    totalList = self.opsH.getSections( 'Sites/%s' % gridType )
-    
+    totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
+        
     if not totalList['OK']:
       return S_ERROR( 'Could not get list of sites from CS' )
     totalList = totalList['Value']
@@ -945,10 +943,9 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    #storageCFGBase = '/Resources/StorageElements'
-    #res = gConfig.getSections( storageCFGBase, True )
-    res = self.opsH.getSections( 'StorageElements', True )
-
+    storageCFGBase = '/Resources/StorageElements'
+    res = gConfig.getSections( storageCFGBase, True )
+    
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
 
