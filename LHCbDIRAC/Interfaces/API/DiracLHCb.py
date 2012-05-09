@@ -16,6 +16,7 @@ import time
 import re
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig 
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List                           import sortList, removeEmptyElements
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
 from DIRAC.Interfaces.API.Dirac                          import Dirac
