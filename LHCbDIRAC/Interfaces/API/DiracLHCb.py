@@ -8,22 +8,27 @@
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-__RCSID__ = "$Id$"
+import os
+import glob
+import fnmatch
+import string
+import time
+import re
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List import sortList, removeEmptyElements
-from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
-from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
-from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC                                               import gLogger, S_OK, S_ERROR 
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Utilities.List                           import sortList, removeEmptyElements
+from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
+from DIRAC.Interfaces.API.Dirac                          import Dirac
+from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
+from DIRAC.ResourceStatusSystem.Utilities.CS             import getSites, getSiteTier
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 
-from LHCbDIRAC.Core.Utilities.ClientTools import mergeRootFiles, getRootFileGUID
+from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles, getRootFileGUID
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript       import  DMScript
 
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import  DMScript
-
-import os, glob, fnmatch, string, time, re
+__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
 
@@ -38,7 +43,6 @@ class DiracLHCb( Dirac ):
     self.tier1s = []
 
     if not operationsHelperIn:
-      from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
       self.opsH = Operations()
     else:
       self.opsH = operationsHelperIn
@@ -908,7 +912,9 @@ class DiracLHCb( Dirac ):
     if not siteMask['OK']:
       return siteMask
 
-    totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
+    #totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
+    totalList = self.opsH.getSections( 'Sites/%s' % gridType )
+    
     if not totalList['OK']:
       return S_ERROR( 'Could not get list of sites from CS' )
     totalList = totalList['Value']
@@ -940,8 +946,9 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    storageCFGBase = '/Resources/StorageElements'
-    res = gConfig.getSections( storageCFGBase, True )
+    #storageCFGBase = '/Resources/StorageElements'
+    #res = gConfig.getSections( storageCFGBase, True )
+    res = self.opsH.getSections( 'StorageElements', True )
 
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
