@@ -15,6 +15,7 @@ from DIRAC import gLogger
 
 
 Script.registerSwitch( 'D', 'days', "Days requested" )
+Script.registerSwitch( '', 'noMail', "No mail option" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] --RequestType <type>' % Script.scriptName, ] ) )
@@ -23,9 +24,13 @@ switches = Script.getUnprocessedSwitches()
 
 daysRequested = '1'
 
+sendMail = True
+
 for switch in switches:
   if switch[0].lower() == 'days' or switch[0].lower() == 'd':
     daysRequested = switch[1]
+  if switch[0].lower() == 'noMail':
+    sendMail = False
 
 res = getProxyInfo()
 if not res[ 'OK' ]:
@@ -51,9 +56,10 @@ else:
     for comp in result['Value']:
       print comp.rjust( 32 ), ':', result['Value'][comp]['RunitStatus']
 
-subject = 'User ' + userName + ' is now using the development machine'
-body = "The duration of the 'token' is set to be %s days.\n" % daysRequested
-body = body + "Please don't interfere with %s work, unless stated otherwise." % userName
+if sendMail:
+  subject = 'User ' + userName + ' is now using the development machine'
+  body = "The duration of the 'token' is set to be %s days.\n" % daysRequested
+  body = body + "Please don't interfere with %s work, unless stated otherwise." % userName
+  NotificationClient().sendMail( 'lhcb-dirac@cern.ch', subject, body, '%s@cern.ch' % userName )
 
-NotificationClient().sendMail( 'lhcb-dirac@cern.ch', subject, body, '%s@cern.ch' % userName )
 DIRAC.exit( 0 )
