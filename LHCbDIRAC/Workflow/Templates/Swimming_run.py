@@ -38,7 +38,7 @@ certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification tes
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True to create validation productions#False}}'
 
-unifyMooreAndDV = '{{productionsCreated#GENERAL: Moore and DaVinci within the same job#True}}'
+unifyMooreAndDV = '{{productionsCreated#GENERAL: Moore and DaVinci within the same job#False}}'
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#x86_64-slc5-gcc46-opt}}'
@@ -61,7 +61,7 @@ swimmEOpts = '{{swimmEO#PROD-swimming-Moore: extra options#}}'
 #swimming (DaVinci) params
 swimmCPU_DV = '{{swimmMaxCPUTime-DV#PROD-swimming-DaVinci: Max CPU time in secs#1000000}}'
 swimmPlugin_DV = '{{swimmPluginType-DV#PROD-swimming-DaVinci: plugin name#BySize}}'
-swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size or number of files per job#1}}'
+swimmFilesPerJob_DV = '{{swimmFilesPerJob-DV#PROD-swimming-DaVinci: Group size or number of files per job#5}}'
 unmergedStreamSE_DV = '{{swimmStreamSE-DV#PROD-swimming-DaVinci: output data SE (un-merged streams)#Tier1-DST}}'
 swimmAncestorProd_DV = '{{swimmAncestor-DVProd#PROD-swimming-DaVinci: ancestor production if any#0}}'
 swimmIDPolicy_DV = '{{swimmIDPolicy-DV#PROD-swimming-DaVinci: policy for input data access (download or protocol)#download}}'
@@ -71,7 +71,7 @@ swimmEOpts_DV = '{{swimmEO_DV#PROD-swimming-DaVinci: extra options#}}'
 #merging params
 mergePriority = '{{MergePriority#PROD-Merging: priority#8}}'
 mergePlugin = '{{MergePlugin#PROD-Merging: plugin#BySize}}'
-mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
+mergeRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#False}}'
 mergeCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergeFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
 mergeIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
@@ -515,6 +515,7 @@ if swimmEnabled:
 
     DVProduction.addFinalizationStep( ['UploadOutputData',
                                       'FailoverRequest',
+                                      'RemoveInputData',
                                       'UploadLogFile'] )
     DVProduction.setProdGroup( prodGroup )
     DVProduction.setProdPriority( swimm_priority )
