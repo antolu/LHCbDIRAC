@@ -374,6 +374,7 @@ if strippEnabled:
                              bkQuery = strippInputBKQuery,
                              groupSize = strippFilesPerJob,
                              bkScript = BKscriptFlag,
+                             derivedProduction = int( strippAncestorProd ),
                              requestID = currentReqID,
                              reqUsed = 1,
                              transformation = strippTransFlag
