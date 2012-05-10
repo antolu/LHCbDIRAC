@@ -29,7 +29,7 @@ sendMail = True
 for switch in switches:
   if switch[0].lower() == 'days' or switch[0].lower() == 'd':
     daysRequested = switch[1]
-  if switch[0].lower() == 'noMail':
+  elif switch[0].lower() == 'noMail':
     sendMail = False
 
 res = getProxyInfo()
