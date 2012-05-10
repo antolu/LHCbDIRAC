@@ -5,11 +5,11 @@ __RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'LHCbTaskManager'
 
-import string, re, time, types, os
+import types, os, copy
 from DIRAC import gConfig, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List import sortList
-from DIRAC.TransformationSystem.Client.TaskManager import WorkflowTasks
+from DIRAC.Core.Utilities.List import sortList, fromChar
 from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+from DIRAC.TransformationSystem.Client.TaskManager import WorkflowTasks
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
@@ -18,13 +18,19 @@ class LHCbWorkflowTasks( WorkflowTasks ):
   """
 
   def __init__( self, transClient = None, logger = None, submissionClient = None, jobMonitoringClient = None,
-                outputDataModule = None ):
+                outputDataModule = None, opsH = None ):
     """ calls __init__ of super class
     """
 
     if not outputDataModule:
       outputDataModule = gConfig.getValue( "/DIRAC/VOPolicy/OutputDataModule",
                                            "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
+
+    if opsH:
+      self.opsH = opsH
+    else:
+      from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+      self.opsH = Operations()
 
     super( LHCbWorkflowTasks, self ).__init__( outputDataModule = outputDataModule )
 
@@ -65,49 +71,27 @@ class LHCbWorkflowTasks( WorkflowTasks ):
       oJob._setParamValue( 'PRODUCTION_ID', str( transID ).zfill( 8 ) )
       oJob._setParamValue( 'JOB_ID', str( taskNumber ).zfill( 8 ) )
       inputData = None
-      for paramName, paramValue in paramsDict.items():
-        self.log.verbose( 'TransID: %s, TaskID: %s, ParamName: %s, ParamValue: %s' % ( transID, taskNumber,
-                                                                                       paramName, paramValue ) )
-        if paramName == 'InputData':
-          if paramValue:
-            self.log.verbose( 'Setting input data to %s' % paramValue )
-            self.log.verbose( 'Setting run number to %s' % str( paramsDict['RunNumber'] ) )
-            oJob.setInputData( paramValue, runNumber = paramsDict['RunNumber'] )
 
-            try:
-              runMetadata = paramsDict['RunMetadata']
-              self.log.verbose( 'Setting run metadata information to %s' % str( runMetadata ) )
-              oJob.setRunMetadata( runMetadata )
-            except KeyError:
-              pass
+      self.log.debug( 'TransID: %s, TaskID: %s, paramsDict: %s' % ( transID, taskNumber, str( paramsDict ) ) )
 
-        elif paramName == 'Site':
-          if paramValue:
-            self.log.verbose( 'Setting allocated site to: %s' % ( paramValue ) )
-            oJob.setDestination( paramValue )
-        elif paramName == 'TargetSE' and paramsDict.get( 'Site', 'ANY' ).upper() == 'ANY':
-          sites = []
-          seList = paramValue.split( ',' )
-          for se in seList:
-            res = getSitesForSE( se )
-            if res['OK']:
-              sites += [site for site in res['Value'] if site not in sites]
-          self.log.verbose( 'Setting allocated site from TargetSE to: %s' % ( sites ) )
-          oJob.setDestination( sites )
-        elif paramName not in ( 'InputData', 'RunNumber', 'RunMetadata', 'Site', 'TargetSE' ):
-          if paramValue:
-            self.log.verbose( 'Setting %s to %s' % ( paramName, paramValue ) )
-            oJob._addJDLParameter( paramName, paramValue )
+      #These helper functions do the real job
+      sites = self._handleDestination( paramsDict )
+      if not sites:
+        self.log.warn( 'Could not get a list a sites', ', '.join( sites ) )
+        taskDict[taskNumber]['TaskObject'] = ''
+        continue
+      else:
+        sitesString = ', '.join( sites )
+        self.log.verbose( 'Setting Site according to TargetSE: ', sitesString )
+        oJob.setDestination( sitesString )
 
-      hospitalTrans = [int( x ) for x in gConfig.getValue( "/Operations/Hospital/Transformations", [] )]
+      self._handleInputs( oJob, paramsDict )
+      self._handleRest( oJob, paramsDict )
+
+      hospitalTrans = [int( x ) for x in self.opsH.getValue( "Hospital/Transformations", [] )]
       if int( transID ) in hospitalTrans:
-        hospitalSite = gConfig.getValue( "/Operations/Hospital/HospitalSite", 'DIRAC.JobDebugger.ch' )
-        hospitalCEs = gConfig.getValue( "/Operations/Hospital/HospitalCEs", [] )
-        oJob.setType( 'Hospital' )
-        oJob.setDestination( hospitalSite )
-        oJob.setInputDataPolicy( 'download', dataScheduling = False )
-        if hospitalCEs:
-          oJob._addJDLParameter( 'GridRequiredCEs', hospitalCEs )
+        self.handleHospital( oJob )
+
       taskDict[taskNumber]['TaskObject'] = ''
       res = self.getOutputData( {'Job':oJob._toXML(), 'TransformationID':transID,
                                  'TaskID':taskNumber, 'InputData':inputData},
@@ -116,11 +100,112 @@ class LHCbWorkflowTasks( WorkflowTasks ):
         self.log.error( "Failed to generate output data", res['Message'] )
         continue
       for name, output in res['Value'].items():
-        oJob._addJDLParameter( name, string.join( output, ';' ) )
+        oJob._addJDLParameter( name, ';'.join( output ) )
       taskDict[taskNumber]['TaskObject'] = LHCbJob( oJob._toXML() )
     return S_OK( taskDict )
 
   #############################################################################
+
+  def _handleDestination( self, paramsDict, getSitesForSE = None ):
+    """ Handle Sites and TargetSE in the parameters
+    """
+
+    try:
+      sites = ['ANY']
+      if paramsDict['Site']:
+        sites = fromChar( paramsDict['Site'] )
+    except KeyError:
+      pass
+
+    try:
+      seList = []
+      if paramsDict['TargetSE']:
+        seList = fromChar( paramsDict['TargetSE'] )
+    except KeyError:
+      pass
+
+    if not seList:
+      return sites
+
+    if not getSitesForSE:
+      from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+
+    seSites = []
+    for se in seList:
+      res = getSitesForSE( se )
+      if not res['OK']:
+        self.log.warn( 'Could not get Sites associated to SE', res['Message'] )
+      else:
+        thisSESites = res['Value']
+        if not thisSESites:
+          continue
+        if seSites == []:
+          seSites = copy.deepcopy( thisSESites )
+        else:
+          # If it is not the first SE, keep only those that are common
+          for nSE in list( seSites ):
+            if nSE not in thisSESites:
+              seSites.remove( nSE )
+
+    # Now we need to make the AND with the sites, if defined
+    if sites == ['ANY']:
+      return seSites
+    else:
+      # Need to get the AND
+      for nSE in list( seSites ):
+        if nSE not in sites:
+          seSites.remove( nSE )
+
+      return seSites
+
+
+  def _handleInputs( self, oJob, paramsDict ):
+    """ set job inputs (+ metadata)
+    """
+    try:
+      if paramsDict['InputData']:
+        self.log.verbose( 'Setting input data to %s' % paramsDict['InputData'] )
+        self.log.verbose( 'Setting run number to %s' % str( paramsDict['RunNumber'] ) )
+        oJob.setInputData( paramsDict['InputData'], runNumber = paramsDict['RunNumber'] )
+
+        try:
+          runMetadata = paramsDict['RunMetadata']
+          self.log.verbose( 'Setting run metadata information to %s' % str( runMetadata ) )
+          oJob.setRunMetadata( runMetadata )
+        except KeyError:
+          pass
+
+    except KeyError:
+      self.log.error( 'Could not found an input data or a run number' )
+      raise KeyError, 'Could not found an input data or a run number'
+
+
+
+  def _handleRest( self, oJob, paramsDict ):
+    """ add as JDL parameters all the other parameters that are not for inputs or destination 
+    """
+
+    for paramName, paramValue in paramsDict.items():
+      if paramName not in ( 'InputData', 'RunNumber', 'RunMetadata', 'Site', 'TargetSE' ):
+        if paramValue:
+          self.log.verbose( 'Setting %s to %s' % ( paramName, paramValue ) )
+          oJob._addJDLParameter( paramName, paramValue )
+
+
+  def _handleHospital( self, oJob ):
+    """ Optional handle of hospital jobs
+    """
+
+    oJob.setType( 'Hospital' )
+    oJob.setInputDataPolicy( 'download', dataScheduling = False )
+    hospitalSite = self.opsH.getValue( "/Operations/Hospital/HospitalSite", 'DIRAC.JobDebugger.ch' )
+    oJob.setDestination( hospitalSite )
+    hospitalCEs = self.opsH.getValue( "/Operations/Hospital/HospitalCEs", [] )
+    if hospitalCEs:
+      oJob._addJDLParameter( 'GridRequiredCEs', hospitalCEs )
+
+  #############################################################################
+
 
   def submitTaskToExternal( self, job ):
     """ Submit a task to the WMS.
