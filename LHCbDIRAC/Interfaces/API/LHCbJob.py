@@ -1070,7 +1070,7 @@ class LHCbJob( Job ):
 
     Job.setInputData( self, lfns )
 
-    if not runNumber or persistencyType:
+    if not runNumber or not persistencyType:
       if not bkClient:
         from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkClient = BookkeepingClient()
