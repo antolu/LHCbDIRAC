@@ -193,13 +193,14 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
     """Method to run a test job locally.
     """
     result = S_OK()
+    from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
     try:
       j = LHCbJob( stdout = self.logFile.replace( 'log', 'stdout' ), stderr = self.logFile.replace( 'log', 'stderr' ) )
       j.setSystemConfig( self.appSystemConfig )
       j.setApplication( appName, appVersion, options, logFile = self.logFile, events = 2 )
       j.setName( '%s%sSAMTest' % ( appName, appVersion ) )
-      j.setLogLevel( gConfig.getValue( '/Operations/SAM/LogLevel', 'verbose' ) )
-      j.setPlatform( gConfig.getValue( '/Operations/SAM/Platform', 'gLite' ) )
+      j.setLogLevel( Operations().getValue( 'SAM/LogLevel', 'verbose' ) )
+      j.setPlatform( Operations().getValue( 'SAM/Platform', 'gLite' ) )
       self.log.verbose( 'Job JDL is:\n%s' % ( j._toJDL() ) )
       dirac = Dirac()
       if self.enable:

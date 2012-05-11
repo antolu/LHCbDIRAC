@@ -1,9 +1,3 @@
-########################################################################
-# $Id$
-# File :   InputDataResolution.py
-# Author : Stuart Paterson
-########################################################################
-
 """ The input data resolution module is a VO-specific plugin that
     allows to define VO input data policy in a simple way using existing
     utilities in DIRAC or extension code supplied by the VO.

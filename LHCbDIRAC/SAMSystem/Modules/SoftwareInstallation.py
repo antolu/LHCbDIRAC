@@ -315,7 +315,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
               self.log.error( 'Can not change permission to file:', filename )
               self.log.error( 'Is file: ', os.path.isfile( filename ) )
               self.log.error( 'Is link: ', os.path.islink( filename ) )
-              self.log.error( 'Is exits:', os.path.exists( filname ) )
+              self.log.error( 'Is exits:', os.path.exists( filename ) )
               raise x
     except Exception, x:
       self.log.error( 'Problem changing shared area permissions', str( x ) )

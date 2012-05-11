@@ -13,14 +13,16 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
-from DIRAC.Core.Utilities.Subprocess                    import pythonCall
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 import DIRAC
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities.Subprocess import pythonCall
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
 import LHCbDIRAC
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
 
 import os, sys, re, glob, shutil, time
 
@@ -44,9 +46,10 @@ class SAMFinalization( ModuleBaseSAM ):
     self.diracSetup = gConfig.getValue( '/DIRAC/Setup', 'None' )
     self.log = gLogger.getSubLogger( "SAMFinalization" )
     self.result = S_ERROR()
-    self.diracLogo = gConfig.getValue( '/Operations/SAM/LogoURL', 'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
-    self.samVO = gConfig.getValue( '/Operations/SAM/VO', 'lhcb' )
-    self.samLogFiles = gConfig.getValue( '/Operations/SAM/LogFiles', [] )
+    self.opsH = Operations()
+    self.diracLogo = self.opsH.getValue( 'SAM/LogoURL', 'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
+    self.samVO = self.opsH.getValue( 'SAM/VO', 'lhcb' )
+    self.samLogFiles = self.opsH.getValue( 'SAM/LogFiles', [] )
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
     self.siteRoot = os.path.dirname( os.path.realpath( LHCbDIRAC.__path__[0] ) )
 #    self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' % ( self.siteRoot )
@@ -234,7 +237,7 @@ class SAMFinalization( ModuleBaseSAM ):
       self.log.info( 'Software install test was not run by this job.' )
       return 'Software installation test was disabled for this job by the SAM lock file.'
 
-    activeSw = gConfig.getValue( '/Operations/SoftwareDistribution/Active', [] )
+    activeSw = self.opsH.getValue( 'SoftwareDistribution/Active', [] )
     self.log.debug( 'Active software is: %s' % ( ', '.join( activeSw ) ) )
     arch = gConfig.getValue( '/LocalSite/Architecture' )
     self.log.verbose( 'Current node system configuration is: %s' % ( arch ) )
@@ -242,7 +245,7 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log.verbose( 'Compatible system configurations are: %s' % ( ', '.join( architectures ) ) )
     softwareDict = {}
     for architecture in architectures:
-      archSw = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( architecture ), [] )
+      archSw = self.opsH.getValue( 'SoftwareDistribution/%s' % ( architecture ), [] )
       for sw in activeSw:
         if sw in archSw:
           if softwareDict.has_key( sw ):

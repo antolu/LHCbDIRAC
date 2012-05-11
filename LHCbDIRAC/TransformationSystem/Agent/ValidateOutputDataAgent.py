@@ -25,8 +25,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
-    # This sets the Default Proxy to used as that defined under 
-    # /Operations/Shifter/DataManager
+    # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 

@@ -1,19 +1,16 @@
-########################################################################
-# $HeadURL$
-# Author : Stuart Paterson
-########################################################################
-
 """ LHCb LockSharedArea SAM Test Module
 """
 
 __RCSID__ = "$Id$"
 
+import os, re, time
+import DIRAC
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-import DIRAC
 
-import os, re, time
 
 SAM_TEST_NAME = 'CE-lhcb-lock'
 SAM_LOG_FILE = 'sam-lock.log'
@@ -38,7 +35,7 @@ class LockSharedArea( ModuleBaseSAM ):
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
-    self.lockValidity = gConfig.getValue( '/Operations/SAM/LockValidity', 24 * 60 * 60 )
+    self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
 
     #Workflow parameters for the test
     self.enable = True

@@ -21,8 +21,7 @@ class MCReplicationCleaningAgent( AgentModule ):
     #self.requestClient = RequestClient()
     self.requestClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
 
-    # This sets the Default Proxy to used as that defined under 
-    # /Operations/Shifter/DataManager
+    # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 

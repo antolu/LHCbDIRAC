@@ -54,8 +54,7 @@ class DataRecoveryAgent( AgentModule ):
     self.externalID = 'ExternalID'
     self.am_setOption( 'PollingTime', 2 * 60 * 60 ) #no stalled jobs are considered so can be frequent
 
-    # This sets the Default Proxy to used as that defined under
-    # /Operations/Shifter/ProductionManager
+    # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 

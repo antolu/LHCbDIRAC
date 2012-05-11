@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ Production environment is a utility to neatly wrap all LHCb production
     environment settings.  This includes all calls to set up the environment
     or run projects via wrapper scripts. The methods here are intended for
@@ -339,12 +336,13 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
     site = DIRAC.siteName()
 
   externals = ''
-  if gConfig.getOption( '/Operations/ExternalsPolicy/%s' % ( site ) )['OK']:
-    externals = gConfig.getValue( '/Operations/ExternalsPolicy/%s' % ( site ), [] )
+
+  if opsH.getValue( 'ExternalsPolicy/%s' % ( site ) ) != '':
+    externals = opsH.getValue( 'ExternalsPolicy/%s' % ( site ), [] )
     externals = ' '.join( externals )
     gLogger.info( 'Found externals policy for %s = %s' % ( site, externals ) )
   else:
-    externals = gConfig.getValue( '/Operations/ExternalsPolicy/Default', [] )
+    externals = opsH.getValue( 'ExternalsPolicy/Default', [] )
     externals = ' '.join( externals )
     gLogger.info( 'Using default externals policy for %s = %s' % ( site, externals ) )
 

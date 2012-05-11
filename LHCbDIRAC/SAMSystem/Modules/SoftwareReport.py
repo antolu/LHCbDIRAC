@@ -1,8 +1,3 @@
-########################################################################
-# $HeadURL$
-# Author : Stuart Paterson
-########################################################################
-
 """ LHCb SoftwareReport SAM Test Module
 
     Corresponds to SAM test CE-lhcb-softreport, utilizes the SoftwareManagementAgent
@@ -12,14 +7,13 @@
 
 __RCSID__ = "$Id$"
 
+import string, os, sys, re, shutil, urllib
+
+import DIRAC
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
-
-import DIRAC
-
-import string, os, sys, re, shutil, urllib
 
 SAM_TEST_NAME = 'CE-lhcb-softreport'
 SAM_LOG_FILE = 'sam-softreport.log'

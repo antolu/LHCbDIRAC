@@ -26,8 +26,7 @@ class BKInputDataAgent( OptimizerModule ):
     self.dataAgentName = self.am_getOption( 'InputDataAgent', 'InputData' )
 
     #Define the shifter proxy needed
-    # This sets the Default Proxy to used as that defined under
-    # /Operations/Shifter/ProductionManager
+    # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 

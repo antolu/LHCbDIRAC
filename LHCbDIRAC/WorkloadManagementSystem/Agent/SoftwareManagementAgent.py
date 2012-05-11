@@ -1,9 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   SoftwareManagementAgent.py
-# Author : Stuart Paterson
-########################################################################
-
 """  The LHCb SoftwareManagementAgent is designed to manage software caches
      for DIRAC or Grid sites.  This could be integrated as part of e.g. a
      SAM framework or can simply be used 'by hand' to install all VO software.
@@ -24,112 +18,112 @@ import os, sys, re, string, time, shutil
 
 AGENT_NAME = 'WorkloadManagement/SoftwareManagementAgent'
 
-class SoftwareManagementAgent(AgentModule):
+class SoftwareManagementAgent( AgentModule ):
 
   #############################################################################
-  def initialize(self):
+  def initialize( self ):
     """Sets defaults
     """
-    self.pollingTime = self.am_getOption('PollingTime',120)
+    self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     #DEBUGGING OPTIONS
     self.pollingTime = 5
     self.maxcount = 1 #Agent.py base class must be fixed for run_once use-case
     return S_OK()
 
   #############################################################################
-  def execute(self):
+  def execute( self ):
     """The SoftwareManagementAgent execution method.
     """
-    softwareModule = self.am_getOption('ModulePath','LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation')
-    self.log.info('LHCb Software Distribution module: %s' %(softwareModule))
+    softwareModule = self.am_getOption( 'ModulePath', 'LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation' )
+    self.log.info( 'LHCb Software Distribution module: %s' % ( softwareModule ) )
     try:
-      exec 'from %s import InstallApplication,RemoveApplication' %softwareModule
-    except Exception,x:
-      return self.__finish('Could not import InstallApplication,RemoveApplication from %s' %(softwareModule))
+      exec 'from %s import InstallApplication,RemoveApplication' % softwareModule
+    except Exception, x:
+      return self.__finish( 'Could not import InstallApplication,RemoveApplication from %s' % ( softwareModule ) )
 
-    activeSoftware = self.am_getOption('ActiveSoftwareSection','/Operations/SoftwareDistribution/Active')
-    installList = gConfig.getValue(activeSoftware,[])
+    activeSoftware = self.am_getOption( 'ActiveSoftwareSection', '/Operations/SoftwareDistribution/Active' )
+    installList = gConfig.getValue( activeSoftware, [] )
     if not installList:
-      return self.__finish('The active list of software could not be retreived from %s or is null' %(activeSoftware))
+      return self.__finish( 'The active list of software could not be retreived from %s or is null' % ( activeSoftware ) )
 
-    deprecatedSoftware = self.am_getOption('DeprecatedSoftwareSection','/Operations/SoftwareDistribution/Deprecated')
-    removeList = gConfig.getValue(deprecatedSoftware,[])
+    deprecatedSoftware = self.am_getOption( 'DeprecatedSoftwareSection', '/Operations/SoftwareDistribution/Deprecated' )
+    removeList = gConfig.getValue( deprecatedSoftware, [] )
 
-    localPlatforms = gConfig.getValue('/LocalSite/Architecture',[])
+    localPlatforms = gConfig.getValue( '/LocalSite/Architecture', [] )
     if not localPlatforms:
-      return self.__finish('/LocalSite/Architecture is not defined in the local configuration')
+      return self.__finish( '/LocalSite/Architecture is not defined in the local configuration' )
 
-    sharedArea = gConfig.getValue('/LocalSite/SharedArea')
+    sharedArea = gConfig.getValue( '/LocalSite/SharedArea' )
     if not sharedArea:
-      return self.__finish('/LocalSite/SharedArea is not found, exiting')
+      return self.__finish( '/LocalSite/SharedArea is not found, exiting' )
 
-    purgeFlag =  gConfig.getValue(self.section+'/PurgeFlag','Disabled')
-    if purgeFlag.lower()=='enabled':
-      self.log.info('Purge flag is ENABLED, removing all software from shared area')
-      for item in os.listdir(sharedArea):
-        self.log.verbose('Removing %s from shared area %s' %(item,sharedArea))
-        if os.path.isdir('%s/%s' %(sharedArea,item)):
-          shutil.rmtree('%s/%s' %(sharedArea,item))
+    purgeFlag = gConfig.getValue( self.section + '/PurgeFlag', 'Disabled' )
+    if purgeFlag.lower() == 'enabled':
+      self.log.info( 'Purge flag is ENABLED, removing all software from shared area' )
+      for item in os.listdir( sharedArea ):
+        self.log.verbose( 'Removing %s from shared area %s' % ( item, sharedArea ) )
+        if os.path.isdir( '%s/%s' % ( sharedArea, item ) ):
+          shutil.rmtree( '%s/%s' % ( sharedArea, item ) )
         else:
-          os.remove('%s/%s' %(sharedArea,item))
+          os.remove( '%s/%s' % ( sharedArea, item ) )
 
-    if not os.path.exists(sharedArea):
+    if not os.path.exists( sharedArea ):
       try:
-        os.mkdir(sharedArea)
-      except Exception,x:
-        return self.__finish('Could not create proposed shared area directory:\n%s' %(sharedArea))
+        os.mkdir( sharedArea )
+      except Exception, x:
+        return self.__finish( 'Could not create proposed shared area directory:\n%s' % ( sharedArea ) )
 
     for systemConfig in localPlatforms:
-      self.log.info('The following software packages will be installed by %s:\n%s\nfor system configuration %s' %(AGENT_NAME,string.join(installList,'\n'),systemConfig))
-      packageList = gConfig.getValue('/Operations/SoftwareDistribution/%s' %(systemConfig),[])
+      self.log.info( 'The following software packages will be installed by %s:\n%s\nfor system configuration %s' % ( AGENT_NAME, string.join( installList, '\n' ), systemConfig ) )
+      packageList = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( systemConfig ), [] )
 
       for installPackage in installList:
-        appNameVersion = string.split(installPackage,'.')
-        if not len(appNameVersion)==2:
-          return self.__finish('Could not determine name and version of package: %s' %installPackage)
+        appNameVersion = string.split( installPackage, '.' )
+        if not len( appNameVersion ) == 2:
+          return self.__finish( 'Could not determine name and version of package: %s' % installPackage )
         #Must check that package to install is supported by LHCb for requested system configuration
 
         if installPackage in packageList:
-          self.log.info('Attempting to install %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-          result = InstallApplication(appNameVersion, systemConfig, sharedArea )
+          self.log.info( 'Attempting to install %s %s for system configuration %s' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+          result = InstallApplication( appNameVersion, systemConfig, sharedArea )
           #result = True
           if not result: #or not result['OK']:
-            return self.__finish('Problem during execution:\n %s\n agent is stopped.' %(result))
+            return self.__finish( 'Problem during execution:\n %s\n agent is stopped.' % ( result ) )
           else:
-            self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+            self.log.info( 'Installation of %s %s for %s successful' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
         else:
-          self.log.info('%s is not supported for system configuration %s, nothing to install.' %(installPackage,systemConfig))
+          self.log.info( '%s is not supported for system configuration %s, nothing to install.' % ( installPackage, systemConfig ) )
 
       for removePackage in removeList:
-        appNameVersion = string.split(removePackage,'.')
-        if not len(appNameVersion)==2:
-          return self.__finish('Could not determine name and version of package: %s' %installPackage)
+        appNameVersion = string.split( removePackage, '.' )
+        if not len( appNameVersion ) == 2:
+          return self.__finish( 'Could not determine name and version of package: %s' % installPackage )
 
         if removePackage in packageList:
-          self.log.info('Attempting to remove %s %s for system configuration %s' %(appNameVersion[0],appNameVersion[1],systemConfig))
-          result = RemoveApplication(appNameVersion, systemConfig, sharedArea )
+          self.log.info( 'Attempting to remove %s %s for system configuration %s' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+          result = RemoveApplication( appNameVersion, systemConfig, sharedArea )
           result = True
           if not result: # or not result['OK']:
-            return self.__finish('Problem during execution:\n %s\n agent is stopped.' %(result))
+            return self.__finish( 'Problem during execution:\n %s\n agent is stopped.' % ( result ) )
           else:
-            self.log.info('Removal of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+            self.log.info( 'Removal of %s %s for %s successful' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
         else:
-          self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
+          self.log.info( '%s is not supported for system configuration %s, nothing to remove.' % ( removePackage, systemConfig ) )
 
-    return self.__finish('Successful',failed=False)
+    return self.__finish( 'Successful', failed = False )
 
   #############################################################################
-  def __finish(self,message,failed=True):
+  def __finish( self, message, failed = True ):
     """Force the agent to complete gracefully.
     """
-    self.log.info('%s will stop with message: \n%s' %(AGENT_NAME,message))
+    self.log.info( '%s will stop with message: \n%s' % ( AGENT_NAME, message ) )
     if failed:
-      self.log.info('%s Stopped at %s [UTC] .' %(AGENT_NAME,time.asctime(time.gmtime())))
+      self.log.info( '%s Stopped at %s [UTC] .' % ( AGENT_NAME, time.asctime( time.gmtime() ) ) )
       self.am_stopExecution()
     else:
-      self.log.info('%s Stopped at %s [UTC] after one loop.' %(AGENT_NAME,time.asctime(time.gmtime())))
-    result =  S_OK(message)
-    result['AgentResult']=failed
+      self.log.info( '%s Stopped at %s [UTC] after one loop.' % ( AGENT_NAME, time.asctime( time.gmtime() ) ) )
+    result = S_OK( message )
+    result['AgentResult'] = failed
     return result
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

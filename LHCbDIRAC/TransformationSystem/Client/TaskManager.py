@@ -197,9 +197,9 @@ class LHCbWorkflowTasks( WorkflowTasks ):
 
     oJob.setType( 'Hospital' )
     oJob.setInputDataPolicy( 'download', dataScheduling = False )
-    hospitalSite = self.opsH.getValue( "/Operations/Hospital/HospitalSite", 'DIRAC.JobDebugger.ch' )
+    hospitalSite = self.opsH.getValue( "Hospital/HospitalSite", 'DIRAC.JobDebugger.ch' )
     oJob.setDestination( hospitalSite )
-    hospitalCEs = self.opsH.getValue( "/Operations/Hospital/HospitalCEs", [] )
+    hospitalCEs = self.opsH.getValue( "Hospital/HospitalCEs", [] )
     if hospitalCEs:
       oJob._addJDLParameter( 'GridRequiredCEs', hospitalCEs )
 

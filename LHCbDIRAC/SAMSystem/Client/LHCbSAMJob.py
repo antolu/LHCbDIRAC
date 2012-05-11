@@ -43,7 +43,8 @@ from DIRAC.Core.Workflow.Module                     import ModuleDefinition
 from DIRAC.Core.Workflow.Step                       import StepDefinition
 from DIRAC.Interfaces.API.Job                       import Job
 from DIRAC.Core.Utilities.SiteCEMapping             import getSiteForCE
-from DIRAC                                          import gConfig
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
 
 COMPONENT_NAME = 'LHCbDIRAC/SAMSystem/Client/LHCbSAMJob'
 
@@ -56,15 +57,16 @@ class LHCbSAMJob( Job ):
     """
     Job.__init__( self, script, stdout, stderr )
     self.gaudiStepCount = 0
-    self.samLogLevel = gConfig.getValue( '/Operations/SAM/LogLevel', 'verbose' )
-    self.samDefaultCPUTime = gConfig.getValue( '/Operations/SAM/CPUTime', 50000 )
-    self.samPlatform = gConfig.getValue( '/Operations/SAM/Platform', 'gLite-SAM' )
-    self.samGroup = gConfig.getValue( '/Operations/SAM/JobGroup', 'SAM' )
-    self.samType = gConfig.getValue( '/Operations/SAM/JobType', 'SAM' )
-    #self.samOwnerGroup = gConfig.getValue('/Operations/SAM/OwnerGroup','lhcb_admin')
-    self.samOutputFiles = gConfig.getValue( '/Operations/SAM/OutputSandbox', ['*.log'] )
-    self.appTestPath = '/Operations/SAM/TestApplications'
-    self.samPriority = gConfig.getValue( '/Operations/SAM/Priority', 1 )
+    self.opsH = Operations()
+    self.samLogLevel = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
+    self.samDefaultCPUTime = self.opsH.getValue( 'SAM/CPUTime', 50000 )
+    self.samPlatform = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
+    self.samGroup = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
+    self.samType = self.opsH.getValue( 'SAM/JobType', 'SAM' )
+    #self.samOwnerGroup = self.opsH.getValue('SAM/OwnerGroup','lhcb_admin')
+    self.samOutputFiles = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
+    self.appTestPath = 'SAM/TestApplications'
+    self.samPriority = self.opsH.getValue( 'SAM/Priority', 1 )
     self.importLine = """
 try:
   from LHCbDIRAC.SAMSystem.Modules.<MODULE> import <MODULE>
@@ -440,12 +442,12 @@ except Exception,x:
       raise TypeError, 'Expected boolean value for enableFlag'
 
     if enableFlag:
-      result = gConfig.getOptionsDict( self.appTestPath )
+      result = self.opsH.getOptionsDict( self.appTestPath )
       if not result['OK']:
         raise TypeError, 'Section %s is not defined or could not be retrieved' % self.appTestPath
-      testList = gConfig.getValue( '/Operations/SAM/ApplicationTestList', [] )
+      testList = self.opsH.getValue( 'SAM/ApplicationTestList', [] )
       if not testList:
-        raise TypeError, 'Could not get list of tests from /Operations/SAM/ApplicationTestList'
+        raise TypeError, 'Could not get list of tests from /Operations /SAM/ApplicationTestList'
 
       self.log.verbose( 'Will generate tests for: %s' % ( string.join( testList, ', ' ) ) )
       for testName in testList:

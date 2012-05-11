@@ -12,10 +12,12 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Interfaces.API.Dirac                         import Dirac, gLogger, gConfig, S_OK, S_ERROR
-from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob              import LHCbSAMJob
-from DIRAC.Core.Utilities.SiteCEMapping                 import getCESiteMapping
 import string
+from DIRAC.Interfaces.API.Dirac import Dirac, gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.Core.Utilities.SiteCEMapping import getCESiteMapping
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
+from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob import LHCbSAMJob
 #from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 class DiracSAM( Dirac ):
@@ -26,8 +28,9 @@ class DiracSAM( Dirac ):
     """
     Dirac.__init__( self )
     self.gridType = 'LCG'
-    self.bannedSites = gConfig.getValue( '/Operations/SAM/BannedSites', [] )
-    self.samRole = gConfig.getValue( '/Operations/SAM/DefaultRole', 'lhcb_admin' )
+    opsH = Operations()
+    self.bannedSites = opsH.getValue( 'SAM/BannedSites', [] )
+    self.samRole = opsH.getValue( 'SAM/DefaultRole', 'lhcb_admin' )
     self.log = gLogger.getSubLogger( "DiracSAM" )
 
   #############################################################################
