@@ -31,6 +31,8 @@ class TaskManagerSuccess( ClientTestCase ):
     self.assertEqual( res, ['ANY'] )
     res = self.l_wft._handleDestination( {'Site':'ANY', 'TargetSE':''} )
     self.assertEqual( res, ['ANY'] )
+    res = self.l_wft._handleDestination( {'TargetSE':'Unknown'} )
+    self.assertEqual( res, ['ANY'] )
     res = self.l_wft._handleDestination( {'Site':'Site1, Site2', 'TargetSE':''} )
     self.assertEqual( res, ['Site1', 'Site2'] )
     res = self.l_wft._handleDestination( {'Site':'Site1, Site2', 'TargetSE':'pippo'}, getSitesForSE )

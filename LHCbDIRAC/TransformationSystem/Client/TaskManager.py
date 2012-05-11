@@ -8,7 +8,6 @@ COMPONENT_NAME = 'LHCbTaskManager'
 import types, os, copy
 from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import sortList, fromChar
-from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
 from DIRAC.TransformationSystem.Client.TaskManager import WorkflowTasks
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
@@ -77,12 +76,12 @@ class LHCbWorkflowTasks( WorkflowTasks ):
       #These helper functions do the real job
       sites = self._handleDestination( paramsDict )
       if not sites:
-        self.log.warn( 'Could not get a list a sites', ', '.join( sites ) )
+        self.log.error( 'Could not get a list a sites', ', '.join( sites ) )
         taskDict[taskNumber]['TaskObject'] = ''
         continue
       else:
         sitesString = ', '.join( sites )
-        self.log.verbose( 'Setting Site according to TargetSE: ', sitesString )
+        self.log.verbose( 'Setting Site: ', sitesString )
         oJob.setDestination( sitesString )
 
       self._handleInputs( oJob, paramsDict )
@@ -118,13 +117,13 @@ class LHCbWorkflowTasks( WorkflowTasks ):
       pass
 
     try:
-      seList = []
+      seList = ['Unknown']
       if paramsDict['TargetSE']:
         seList = fromChar( paramsDict['TargetSE'] )
     except KeyError:
       pass
 
-    if not seList:
+    if not seList or seList == ['Unknown']:
       return sites
 
     if not getSitesForSE:
