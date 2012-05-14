@@ -1,10 +1,8 @@
-############################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/API/__init__.py $
-############################################################
+# $HeadURL $
+''' LHCbDIRAC.AccountingSystem package
+'''
 
-"""
-   LHCbDIRAC.AccountingSystem package
+__RCSID__ = "$Id: $"
 
-"""
-
-__RCSID__ = "$Id: __init__.py 18700 2009-11-30 13:48:50Z paterson $"
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
