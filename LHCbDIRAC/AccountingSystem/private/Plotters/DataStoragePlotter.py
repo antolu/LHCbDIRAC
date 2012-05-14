@@ -1,42 +1,60 @@
+# $HeadURL $
+''' DataStoragePlotter
+
+'''
+
+from DIRAC                                                import S_OK, S_ERROR
+from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
+
+from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage  import DataStorage
+
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
-from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
-from DIRAC.Core.Utilities import Time
-
 class DataStoragePlotter( BaseReporter ):
+  '''
+    DataStoragePlotter as extension of BaseReporter
+  '''
 
-  _typeName = "DataStorage"
-  _typeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields ]
+  _typeName          = "DataStorage"
+  _typeKeyFields     = [ dF[0] for dF in DataStorage().definitionKeyFields ]
   _noSEtypeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields if dF[0] != 'StorageElement' ]
-  _noSEGrouping = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
+  _noSEGrouping      = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
   ###
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
+    
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'LogicalSize', 'entriesInBucket'
                                    ]
                    )
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
-                                reportRequest[ 'endTime' ],
-                                selectFields,
-                                reportRequest[ 'condDict' ],
-                                DataStoragePlotter._noSEGrouping,
-                                { 'convertToGranularity' : 'sum', 'checkNone' : True } )
+                                 reportRequest[ 'endTime' ],
+                                 selectFields,
+                                 reportRequest[ 'condDict' ],
+                                 DataStoragePlotter._noSEGrouping,
+                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
+    
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
-    baseDataDict, graphDataDict, maxValue, unitName = self._findSuitableUnit( dataDict,
-                                                                              self._getAccumulationMaxValue( dataDict ),
-                                                                              "bytes" )
-    return S_OK( { 'data' : baseDataDict, 'graphDataDict' : graphDataDict,
-                   'granularity' : granularity, 'unit' : unitName } )
+    
+    __accumulationMaxValue = self._getAccumulationMaxValue( dataDict )
+    
+    __suitableUnits = self._findSuitableUnit( dataDict, __accumulationMaxValue, "bytes" )
+     
+    baseDataDict, graphDataDict, __maxValue, unitName = __suitableUnits
+     
+    return S_OK( { 
+                   'data'          : baseDataDict, 
+                   'graphDataDict' : graphDataDict,
+                   'granularity'   : granularity, 
+                   'unit'          : unitName 
+                   } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
     metadata = { 'title' : "LFN space usage grouped by %s" % reportRequest[ 'grouping' ],
@@ -150,3 +168,6 @@ class DataStoragePlotter( BaseReporter ):
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
   ###
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
