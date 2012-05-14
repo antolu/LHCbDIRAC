@@ -5,13 +5,12 @@
 
 __RCSID__ = "$Id$"
 
-import os, time
-
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
 class StepAccounting( ModuleBase ):
   """ StepAccounting class
@@ -121,13 +120,7 @@ class StepAccounting( ModuleBase ):
 
     ########################################################################
     # Timing
-    exectime = 0
-    if self.step_commons.has_key( 'StartTime' ):
-      exectime = time.time() - self.step_commons['StartTime']
-    cputime = 0
-    if self.step_commons.has_key( 'StartStats' ):
-      stats = os.times()
-      cputime = stats[0] + stats[2] - self.step_commons['StartStats'][0] - self.step_commons['StartStats'][2]
+    exectime, cputime = getStepCPUTimes( self.step_commons )
     normcpu = cputime
     cpuNormFactor = gConfig.getValue ( "/LocalSite/CPUNomalizationFactor", 0.0 )
     if cpuNormFactor:

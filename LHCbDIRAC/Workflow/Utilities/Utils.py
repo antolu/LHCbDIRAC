@@ -2,6 +2,8 @@
 Collection of utilities function
 """
 
+import os, time
+
 from DIRAC.Core.Workflow.Step import StepDefinition
 from DIRAC.Core.Workflow.Module import ModuleDefinition
 from DIRAC.Core.Workflow.Parameter import Parameter
@@ -47,6 +49,26 @@ def addStepToWorkflow( workflow, stepDefinition, name ):
 
   workflow.addStep( stepDefinition )
   return workflow.createStepInstance( stepDefinition.getType(), name )
+
+#############################################################################
+
+def getStepCPUTimes( step_commons ):
+  """ CPU times of a step
+  """
+  exectime = 0
+  if step_commons.has_key( 'StartTime' ):
+    exectime = time.time() - step_commons['StartTime']
+
+  cputime = 0
+  if step_commons.has_key( 'StartStats' ):
+    #5-tuple: utime, stime, cutime, cstime, elapsed_time
+    stats = os.times()
+    cputimeNow = stats[ 0 ] + stats[ 1 ] + stats[ 2 ] + stats[ 3 ]
+    cputimeBefore = step_commons[ 'StartStats' ][ 0 ] + step_commons[ 'StartStats' ][ 1 ] \
+                  + step_commons[ 'StartStats' ][ 2 ] + step_commons[ 'StartStats' ][ 3 ]
+    cputime = cputimeNow - cputimeBefore
+
+  return exectime, cputime
 
 #############################################################################
 

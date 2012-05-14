@@ -16,6 +16,7 @@ from DIRAC.Resources.Catalog.PoolXMLFile import getGUID, getType
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummaryError
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
 class BookkeepingReport( ModuleBase ):
   """ BookkeepingReport class
@@ -249,7 +250,7 @@ class BookkeepingReport( ModuleBase ):
 ################################################################################
 
   def __generateTypedParams( self, jobNode ):
-    ''' TypedParameter looks like
+    """ TypedParameter looks like
         <TypedParameter Name="" Type="" Value="">
         
         List of possible TypedParameter names
@@ -276,18 +277,12 @@ class BookkeepingReport( ModuleBase ):
         - EventInputStat
         - StatisticsRequested
         - NumberOfEvents
-    '''
+    """
 
     typedParams = []
 
     # Timing
-    exectime = 0
-    if self.step_commons.has_key( 'StartTime' ):
-      exectime = time.time() - self.step_commons['StartTime']
-    cputime = 0
-    if self.step_commons.has_key( 'StartStats' ):
-      stats = os.times()
-      cputime = stats[ 0 ] + stats[ 2 ] - self.step_commons[ 'StartStats' ][ 0 ] - self.step_commons[ 'StartStats' ][ 2 ]
+    exectime, cputime = getStepCPUTimes( self.step_commons )
 
     typedParams.append( ( "CPUTIME", cputime ) )
     typedParams.append( ( "ExecTime", exectime ) )

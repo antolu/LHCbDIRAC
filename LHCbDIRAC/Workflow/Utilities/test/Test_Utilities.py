@@ -10,11 +10,11 @@ from DIRAC.Core.Workflow.Parameter import Parameter
 from mock import Mock
 from DIRAC.Core.Workflow.Workflow import *
 #from DIRAC.Interfaces.API.Job import Job
-from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition, makeRunList
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition, makeRunList, getStepCPUTimes
 
 #############################################################################
 
-class APITestCase( unittest.TestCase ):
+class UtilitiesTestCase( unittest.TestCase ):
   """ Base class
   """
   def setUp( self ):
@@ -22,7 +22,7 @@ class APITestCase( unittest.TestCase ):
 #    self.job = Job()
     pass
 
-class Success( APITestCase ):
+class UtilsSuccess( UtilitiesTestCase ):
 
 #  def test__getStepDefinition( self ):
 #    importLine = """
@@ -66,8 +66,14 @@ class Success( APITestCase ):
     res = makeRunList( "1234:1236,12340,12342,1520:1522" )
     self.assertEqual( res['Value'], ['1234', '1235', '1236', '12340', '12342', '1520', '1521', '1522'] )
 
+  def test_getStepCPUTimes( self ):
+    execT, cpuT = getStepCPUTimes( {} )
+    self.assertEqual( execT, 0 )
+    self.assertEqual( cpuT, 0 )
+    execT, cpuT = getStepCPUTimes( {'StartTime':0, 'StartStats': ( 0, 0, 0, 0, 0 )} )
+    print execT, cpuT
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( APITestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Success ) )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UtilsSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
