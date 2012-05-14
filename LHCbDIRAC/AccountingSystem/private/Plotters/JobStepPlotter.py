@@ -422,7 +422,7 @@ class JobStepPlotter( BaseReporter ):
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField(dataDict, 0)
     
-    dataDict, maxValue = self._divideByFactor( dataDict, granularity )
+    dataDict, __maxValue = self._divideByFactor( dataDict, granularity )
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict )
     
     __accumMaxVal = self._getAccumulationMaxValue( dataDict )
@@ -490,10 +490,10 @@ class JobStepPlotter( BaseReporter ):
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ]
                    )
     
-    starTime = reportRequest[ 'startTime' ]
+    startTime = reportRequest[ 'startTime' ]
     endTime  = reportRequest[ 'endTime' ]
     
-    retVal = self._getTimedData( starTime,
+    retVal = self._getTimedData( startTime,
                                  endTime,
                                  selectFields,
                                  reportRequest[ 'condDict' ],
@@ -556,7 +556,7 @@ class JobStepPlotter( BaseReporter ):
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
     
-    dataDict, maxValue = self._divideByFactor( dataDict, granularity )
+    dataDict, __maxValue = self._divideByFactor( dataDict, granularity )
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict )
     
     __accumMaxValue = self._getAccumulationMaxValue( dataDict )
