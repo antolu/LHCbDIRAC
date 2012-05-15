@@ -28,7 +28,7 @@ class DataStoragePlotter( BaseReporter ):
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
     '''
-    Reports about the LFN size and the catalog space to the accounting ( grouped
+    Reports about the LFN size and the catalog space from the accounting ( grouped
     by StorageElement ).
     '''
     
@@ -96,7 +96,7 @@ class DataStoragePlotter( BaseReporter ):
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
     '''
-    Reports about the LFN files and the catalog files to the accounting ( grouped
+    Reports about the LFN files and the catalog files from the accounting ( grouped
     by StorageElement ).
     '''
     
@@ -161,7 +161,7 @@ class DataStoragePlotter( BaseReporter ):
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
     '''
-    Reports about the PFN size and the physical space to the accounting.
+    Reports about the PFN size and the physical space from the accounting.
     '''
     
     _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
@@ -221,7 +221,7 @@ class DataStoragePlotter( BaseReporter ):
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
     '''
-    Reports about the PFN files and the physical files to the accounting.
+    Reports about the PFN files and the physical files from the accounting.
     '''
     
     _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )

@@ -25,6 +25,10 @@ class StoragePlotter( BaseReporter ):
   
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
+    '''
+    Reports about LFN size and catalog space from the accounting ( only grouped
+    by StorageElement ). 
+    '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -60,6 +64,9 @@ class StoragePlotter( BaseReporter ):
                   } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about LFN size and catalog space . 
+    '''
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]

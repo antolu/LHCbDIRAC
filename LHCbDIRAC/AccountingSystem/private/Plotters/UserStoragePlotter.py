@@ -26,7 +26,7 @@ class UserStoragePlotter( BaseReporter ):
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
     '''
-    Reports about the LFN size and the catalog space to the accounting. 
+    Reports about the LFN size and the catalog space from the accounting. 
     '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":
@@ -91,7 +91,7 @@ class UserStoragePlotter( BaseReporter ):
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
     '''
-    Reports about the LFN files and the catalog files to the accounting. 
+    Reports about the LFN files and the catalog files from the accounting. 
     '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":
@@ -158,7 +158,7 @@ class UserStoragePlotter( BaseReporter ):
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
     '''
-    Reports about the PFN size and the physical space to the accounting. 
+    Reports about the PFN size and the physical space from the accounting. 
     '''    
     
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
@@ -222,7 +222,7 @@ class UserStoragePlotter( BaseReporter ):
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
     '''
-    Reports about the PFN files and the physical files to the accounting. 
+    Reports about the PFN files and the physical files from the accounting. 
     '''
     
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
@@ -286,7 +286,7 @@ class UserStoragePlotter( BaseReporter ):
   _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
     '''
-    Reports about the PFN/LFN file ratio to the accounting ( only grouped by user ). 
+    Reports about the PFN/LFN file ratio from the accounting ( only grouped by user ). 
     '''
     
     if reportRequest[ 'grouping' ] == "User":
@@ -326,7 +326,7 @@ class UserStoragePlotter( BaseReporter ):
   _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
     '''
-    Reports about the PFN/LFN size ratio to the accounting ( only grouped by user ). 
+    Reports about the PFN/LFN size ratio from the accounting ( only grouped by user ). 
     '''
     
     if reportRequest[ 'grouping' ] == "User":
