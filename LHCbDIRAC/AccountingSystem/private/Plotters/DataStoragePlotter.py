@@ -27,6 +27,11 @@ class DataStoragePlotter( BaseReporter ):
 
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
+    '''
+    Reports about the LFN size and the catalog space to the accounting ( grouped
+    by StorageElement ).
+    '''
+    
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     
@@ -63,6 +68,9 @@ class DataStoragePlotter( BaseReporter ):
                    } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the LFN size and the catalog space.
+    '''
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -87,6 +95,11 @@ class DataStoragePlotter( BaseReporter ):
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
+    '''
+    Reports about the LFN files and the catalog files to the accounting ( grouped
+    by StorageElement ).
+    '''
+    
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     
@@ -121,6 +134,9 @@ class DataStoragePlotter( BaseReporter ):
                    } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the LFN files and the catalog files.
+    '''
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -144,6 +160,9 @@ class DataStoragePlotter( BaseReporter ):
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
+    '''
+    Reports about the PFN size and the physical space to the accounting.
+    '''
     
     _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectString + ", %s, %s, SUM(%s/%s)",
@@ -176,6 +195,9 @@ class DataStoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the PFN size and the physical space.
+    '''
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -198,6 +220,9 @@ class DataStoragePlotter( BaseReporter ):
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
+    '''
+    Reports about the PFN files and the physical files to the accounting.
+    '''
     
     _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectString + ", %s, %s, SUM(%s/%s)",
@@ -229,6 +254,9 @@ class DataStoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the PFN files and the physical files.
+    '''
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]

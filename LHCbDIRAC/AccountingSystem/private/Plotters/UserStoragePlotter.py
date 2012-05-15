@@ -364,6 +364,9 @@ class UserStoragePlotter( BaseReporter ):
   #  
 
   def __multiplicityReport( self, reportRequest, logicalField, physicalField ):
+    '''
+    Calculates the ratio between PFN and LFN.
+    '''
     
     #Step 1 get the total LFNs for each bucket
     selectFields = ( "%s, %s, %s, SUM(%s)/SUM(%s)",
