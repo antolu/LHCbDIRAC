@@ -18,8 +18,10 @@ class JobStepPlotter( BaseReporter ):
   _typeName      = "JobStep"
   _typeKeyFields = [ dF[0] for dF in JobStep().definitionKeyFields ]
 
-################################################################################
-## CPU Efficiency
+  ##############################################################################
+  #
+  # CPU Efficiency
+  #
 
   _reportCPUEfficiencyName = "CPU efficiency"
   def _reportCPUEfficiency( self, reportRequest ):
@@ -85,8 +87,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self._generateQualityPlot( filename, plotInfo[ 'data' ], metadata )
 
-################################################################################
-## CPU Usage
+  ############################################################################## 
+  #
+  # CPU Usage
+  #
 
   _reportCPUUsageName = "CPU time"
   def _reportCPUUsage( self, reportRequest ):
@@ -102,8 +106,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Pie CPU Time
+  ##############################################################################
+  #
+  # Pie CPU Time
+  #
 
   _reportPieCPUTimeName = 'Pie plot of CPU time'
   def _reportPieCPUTime( self, reportRequest ): 
@@ -117,8 +123,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Cumulative CPU Time
+  ##############################################################################
+  #
+  # Cumulative CPU Time
+  #
 
   _reportCumulativeCPUTimeName = "Cumulative CPU time"
   def _reportCumulativeCPUTime( self, reportRequest ):
@@ -134,8 +142,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Norm CPU Time
+  ##############################################################################
+  #
+  # Norm CPU Time
+  #
 
   _reportNormCPUTimeName = "NormCPU time"
   def _reportNormCPUTime( self, reportRequest ):
@@ -151,8 +161,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Cumulative Norm CPU Time
+  ##############################################################################
+  #
+  # Cumulative Norm CPU Time
+  #
 
   _reportCumulativeNormCPUTimeName = "Cumulative normalized CPU time"
   def _reportCumulativeNormCPUTime( self, reportRequest ):
@@ -168,8 +180,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Pie Norm CPU Time
+  ##############################################################################
+  #
+  # Pie Norm CPU Time
+  #
 
   _reportPieNormCPUTimeName = 'Pie plot of NormCPU time'
   def _reportPieNormCPUTime( self, reportRequest ):
@@ -183,8 +197,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Input Data
+  ##############################################################################
+  #
+  # Input Data
+  #
 
   _reportInputDataName = "Input Data"
   def _reportInputData( self, reportRequest ):
@@ -200,8 +216,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Cumulative Input Data
+  ##############################################################################
+  #
+  # Cumulative Input Data
+  #
 
   _reportCumulativeInputDataName = "Cumulative Input Data"
   def _reportCumulativeInputData( self, reportRequest ):
@@ -217,8 +235,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Pie Input Data
+  ##############################################################################
+  #
+  # Pie Input Data
+  #
 
   _reportPieInputDataName = 'Pie plot of Input Data'
   def _reportPieInputData( self, reportRequest ):
@@ -232,8 +252,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Output Data
+  ##############################################################################
+  #
+  # Output Data
+  #
 
   _reportOutputDataName = "Output Data"
   def _reportOutputData( self, reportRequest ):
@@ -249,8 +271,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Cumulative Output Data
+  ##############################################################################
+  #
+  # Cumulative Output Data
+  #
 
   _reportCumulativeOutputDataName = "Cumulative OutputData"
   def _reportCumulativeOutputData( self, reportRequest ):
@@ -266,8 +290,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
 
-################################################################################
-## Pie Output Data
+  ##############################################################################
+  #
+  # Pie Output Data
+  #
 
   _reportPieOutputDataName = 'Pie plot of Output Data'
   def _reportPieOutputData( self, reportRequest ):
@@ -281,8 +307,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Input Events
+  ##############################################################################
+  #
+  # Input Events
+  #
 
   _reportInputEventsName = "Input Events"
   def _reportInputEvents( self, reportRequest ):
@@ -295,8 +323,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotNumberOfField( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Cumulative Input Events
+  ##############################################################################
+  #
+  # Cumulative Input Events
+  #
 
   _reportCumulativeInputEventsName = "Cumulative Input Events"
   def _reportCumulativeInputEvents( self, reportRequest ):
@@ -309,8 +339,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotCumulativeNumberOfField( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Pie Input Events
+  ##############################################################################
+  #
+  # Pie Input Events
+  #
 
   _reportPieInputEventsName = 'Pie plot of Input Events'
   def _reportPieInputEvents( self, reportRequest ):
@@ -323,8 +355,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Output Events
+  ##############################################################################
+  #
+  # Output Events
+  #
 
   _reportOutputEventsName = "Output Events"
   def _reportOutputEvents( self, reportRequest ):
@@ -337,8 +371,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotNumberOfField( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Cumulative Output Events
+  ##############################################################################
+  #
+  # Cumulative Output Events
+  #
 
   _reportCumulativeOutputEventsName = "Cumulative Output Events"
   def _reportCumulativeOutputEvents( self, reportRequest ):
@@ -351,8 +387,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotCumulativeNumberOfField( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Pie Output Events
+  ##############################################################################
+  #
+  # Pie Output Events
+  #
 
   _reportPieOutputEventsName = 'Pie plot of Output Events'
   def _reportPieOutputEvents( self, reportRequest ):
@@ -365,8 +403,10 @@ class JobStepPlotter( BaseReporter ):
     
     return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
 
-################################################################################
-## Input Events Per Output Events
+  ##############################################################################
+  #
+  # Input Events Per Output Events
+  #
 
   _reportInputEventsPerOutputEventsName = 'Input/Output Events'
   def _reportInputEventsPerOutputEvents( self, reportRequest ):
@@ -375,8 +415,10 @@ class JobStepPlotter( BaseReporter ):
   def _plotInputEventsPerOutputEvents( self, reportRequest, plotInfo, filename ):
     return self.__plot2D( reportRequest, plotInfo, filename, "Input/Output Events" )
 
-################################################################################
-## CPU Time Per Output Events
+  ##############################################################################
+  #
+  # CPU Time Per Output Events
+  #
 
   _reportCPUTimePerOutputEventsName = 'CPUTime/Output Events'
   def _reportCPUTimePerOutputEvents( self, reportRequest ):
@@ -385,8 +427,10 @@ class JobStepPlotter( BaseReporter ):
   def _plotCPUTimePerOutputEvents( self, reportRequest, plotInfo, filename ):
     return self.__plot2D( reportRequest, plotInfo, filename, "CPUTime/Output Events" )
 
-################################################################################
-## CPU Time Per Input Events
+  ##############################################################################
+  #
+  # CPU Time Per Input Events
+  #
 
   _reportCPUTimePerInputEventsName = 'CPUTime/Input Events'
   def _reportCPUTimePerInputEvents( self, reportRequest ):
@@ -395,8 +439,10 @@ class JobStepPlotter( BaseReporter ):
   def _plotCPUTimePerInputEvents( self, reportRequest, plotInfo, filename ):
     return self.__plot2D( reportRequest, plotInfo, filename, "CPUTime/Input Events" )
 
-################################################################################
-## HELPER methods
+  ##############################################################################
+  #
+  # HELPER methods
+  #
 
   def __reportNormPlot( self, reportRequest, field, unit ):
     

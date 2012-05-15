@@ -1,16 +1,27 @@
+# $HeadURL$
+''' UserStoragePlotter
+
+'''
+
+from DIRAC                                                import S_OK, S_ERROR
+from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
+
+from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage  import UserStorage
+
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage import UserStorage
-from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
-from DIRAC.Core.Utilities import Time
-
 class UserStoragePlotter( BaseReporter ):
+  '''
+    UserStoragePlotter as extension of BaseReporter
+  '''
 
-  _typeName = "UserStorage"
+  _typeName      = "UserStorage"
   _typeKeyFields = [ dF[0] for dF in UserStorage().definitionKeyFields ]
 
-  ###
+  ##############################################################################
+  #
+  # CPU Efficiency
+  #  
 
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):

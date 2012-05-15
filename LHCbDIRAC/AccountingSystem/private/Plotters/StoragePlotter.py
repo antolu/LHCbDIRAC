@@ -18,9 +18,11 @@ class StoragePlotter( BaseReporter ):
   _typeName      = "Storage"
   _typeKeyFields = [ dF[0] for dF in Storage().definitionKeyFields ]
 
-################################################################################
-## Catalog Space
-
+  ##############################################################################
+  #
+  # Catalog Space
+  #
+  
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
     
@@ -74,8 +76,10 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Catalog Files
+  ##############################################################################
+  #
+  # Catalog Files
+  #
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
@@ -131,8 +135,10 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Physical Space
+  ##############################################################################
+  #
+  # Physical Space
+  #
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
@@ -184,8 +190,10 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Physical Files
+  ##############################################################################
+  #
+  # Physical Files
+  #
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
@@ -238,8 +246,10 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## PFN vs LFN File Multiplicity
+  ##############################################################################
+  #
+  # PFN vs LFN File Multiplicity
+  #
 
   _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
@@ -266,8 +276,10 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## PFN vs LFN Size Multiplicity
+  ##############################################################################
+  #
+  # PFN vs LFN Size Multiplicity
+  #
 
   _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
@@ -294,8 +306,10 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Helper functions
+  ##############################################################################
+  #
+  # Helper functions
+  #
 
   def _multiplicityReport( self, reportRequest, logicalField, physicalField ):
     

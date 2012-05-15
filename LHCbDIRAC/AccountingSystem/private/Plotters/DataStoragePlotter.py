@@ -20,8 +20,10 @@ class DataStoragePlotter( BaseReporter ):
   _noSEtypeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields if dF[0] != 'StorageElement' ]
   _noSEGrouping      = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
-################################################################################
-## Catalog Space 
+  ##############################################################################
+  #
+  # Catalog Space
+  # 
 
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
@@ -78,8 +80,10 @@ class DataStoragePlotter( BaseReporter ):
     
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Catalog Files 
+  ##############################################################################
+  #
+  # Catalog Files 
+  #
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
@@ -133,8 +137,10 @@ class DataStoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Physical Space 
+  ##############################################################################
+  #
+  # Physical Space
+  # 
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
@@ -185,8 +191,10 @@ class DataStoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-################################################################################
-## Physical Files 
+  ##############################################################################
+  #
+  # Physical Files 
+  #
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
