@@ -25,6 +25,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
+    '''
+    Reports about the LFN size and the catalog space to the accounting. 
+    '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -49,7 +52,7 @@ class UserStoragePlotter( BaseReporter ):
     self.stripDataField( dataDict, 0 )
     
     accumMaxVal   = self._getAccumulationMaxValue( dataDict )
-    suitableUnits = self._findSuitableUnit( dataDict,accumMaxVal,"bytes" )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxVal, "bytes" )
     
     baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
     
@@ -61,7 +64,10 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
-    
+    '''
+    Plots about the LFN size and the catalog space. 
+    '''
+        
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
@@ -84,6 +90,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
+    '''
+    Reports about the LFN files and the catalog files to the accounting. 
+    '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -121,6 +130,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the LFN files and the catalog files. 
+    '''
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -145,6 +157,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
+    '''
+    Reports about the PFN size and the physical space to the accounting. 
+    '''    
     
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
@@ -179,6 +194,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the PFN size and the physical space. 
+    '''
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -203,6 +221,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
+    '''
+    Reports about the PFN files and the physical files to the accounting. 
+    '''
     
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
@@ -225,7 +246,7 @@ class UserStoragePlotter( BaseReporter ):
     self.stripDataField( dataDict, 0 )
     
     accumMaxVal   = self._getAccumulationMaxValue( dataDict )
-    suitableUnits = self._findSuitableUnit( dataDict,accumMaxVal,"files" )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxVal, "files" )
     
     baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
     
@@ -237,6 +258,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the PFN files and the physical files. 
+    '''
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -261,6 +285,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
+    '''
+    Reports about the PFN/LFN file ratio to the accounting ( only grouped by user ). 
+    '''
     
     if reportRequest[ 'grouping' ] == "User":
       return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
@@ -268,9 +295,12 @@ class UserStoragePlotter( BaseReporter ):
     _logicalField  = "LogicalFiles"
     _physicalField = "PhysicalFiles"
     
-    return self._multiplicityReport( reportRequest, _logicalField, _physicalField )
+    return self.__multiplicityReport( reportRequest, _logicalField, _physicalField )
 
   def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the PFN/LFN file ratio ( only grouped by user ). 
+    '''
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -295,6 +325,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
+    '''
+    Reports about the PFN/LFN size ratio to the accounting ( only grouped by user ). 
+    '''
     
     if reportRequest[ 'grouping' ] == "User":
       return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
@@ -302,9 +335,12 @@ class UserStoragePlotter( BaseReporter ):
     _logicalField  = "LogicalSize"
     _physicalField = "PhysicalSize"
     
-    return self._multiplicityReport( reportRequest, _logicalField, _physicalField )
+    return self.__multiplicityReport( reportRequest, _logicalField, _physicalField )
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
+    '''
+    Plots about the PFN/LFN size ratio ( only grouped by user ). 
+    '''
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -327,8 +363,7 @@ class UserStoragePlotter( BaseReporter ):
   # Helpers
   #  
 
-
-  def _multiplicityReport( self, reportRequest, logicalField, physicalField ):
+  def __multiplicityReport( self, reportRequest, logicalField, physicalField ):
     
     #Step 1 get the total LFNs for each bucket
     selectFields = ( "%s, %s, %s, SUM(%s)/SUM(%s)",
