@@ -128,7 +128,7 @@ class StoragePlotter( BaseReporter ):
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( granularity, startTime, endTime, plotInfo[ 'graphDataDict' ] )
+    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
 ################################################################################
