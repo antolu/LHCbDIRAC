@@ -1,13 +1,21 @@
+# $HeadURL$
+''' StoragePlotter
+
+'''
+
+from DIRAC                                                import S_OK, S_ERROR
+from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
+
+from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
+
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
-from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
-from DIRAC.Core.Utilities import Time
-
 class StoragePlotter( BaseReporter ):
-
-  _typeName = "Storage"
+  '''
+    StoragePlotter as extension of BaseReporter
+  '''
+  
+  _typeName      = "Storage"
   _typeKeyFields = [ dF[0] for dF in Storage().definitionKeyFields ]
 
   ###

@@ -1,4 +1,4 @@
-# $HeadURL $
+# $HeadURL: $
 ''' JobStepPlotter
 
 '''
@@ -8,7 +8,7 @@ from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 
 from LHCbDIRAC.AccountingSystem.Client.Types.JobStep      import JobStep
 
-__RCSID__ = "$Id: "
+__RCSID__ = "$Id: $"
 
 class JobStepPlotter( BaseReporter ):
   '''
