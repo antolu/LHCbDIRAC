@@ -414,10 +414,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     tasks = []
     for runID in sorted( runSEDict ):
       selectedSE = runSEDict[runID]
-      self.__logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, len( runFileDict[runID] ) ) )
+      lfns = [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2]
+      if not lfns:
+        continue
       if not selectedSE:
         self.__logWarn( "Run %d has no targetSE, skipped..." % runID )
         continue
+      self.__logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, len( lfns ) ) )
       if runUpdate[runID]:
         self.__logVerbose( "Assign run site for run %d: %s" % ( runID, selectedSE ) )
         # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
@@ -427,9 +430,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
       status = self.params['Status']
       self.params['Status'] = 'Flush'
-      lfns = [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2]
-      if not lfns:
-        continue
       res = self._groupBySize( lfns )
       self.params['Status'] = status
       if res['OK']:
