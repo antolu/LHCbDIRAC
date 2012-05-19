@@ -427,7 +427,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
       status = self.params['Status']
       self.params['Status'] = 'Flush'
-      res = self._groupBySize( [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2] )
+      lfns = [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2]
+      if not lfns:
+        continue
+      res = self._groupBySize( lfns )
       self.params['Status'] = status
       if res['OK']:
         for task in res['Value']:
