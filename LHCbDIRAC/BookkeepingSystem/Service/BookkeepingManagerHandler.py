@@ -355,16 +355,6 @@ class BookkeepingManagerHandler( RequestHandler ):
         body = 'You did not provided enough input parameters! \n the input parameters:%s \n and user %s' % (str(dict),res['username'])
         NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch')
       gLogger.error('Got you: '+str(dict))
-    elif len(dict) <= 3:
-      res = self.getRemoteCredentials()
-      if 'username' in res:
-        address = res['username']
-      if address != None:
-        address = 'zmathe@cern.ch,'+res['username']
-        subject = 'getFilesSummary method!'
-        body = 'You did not provided enough input parameters! \n the input parameters:%s \n and user %s' % (str(dict),res['username'])
-        NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch')
-      gLogger.error('Got you: '+str(dict))
     else:
       configName = dict.get('ConfigName', default)
       configVersion = dict.get('ConfigVersion', default)
@@ -377,6 +367,7 @@ class BookkeepingManagerHandler( RequestHandler ):
       runnb = dict.get('RunNumbers', dict.get('RunNumber', default))
       startrun = dict.get('StartRun', default)
       endrun = dict.get('EndRun', default)
+      visible = dict.get('Visible', 'Y')
 
       if 'EventTypeId' in dict:
         gLogger.verbose('The EventTypeId has to be replaced by EventType!')
@@ -384,7 +375,7 @@ class BookkeepingManagerHandler( RequestHandler ):
       if 'Quality' in dict:
         gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
-      retVal = dataMGMT_.getFilesSummary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun)
+      retVal = dataMGMT_.getFilesSummary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun, visible)
       if retVal['OK']:
         records = []
         parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
@@ -972,11 +963,6 @@ class BookkeepingManagerHandler( RequestHandler ):
   types_getProductionProcessedEvents = [IntType]
   def export_getProductionProcessedEvents(self, prodid):
     return dataMGMT_.getProductionProcessedEvents(prodid)
-
-  #############################################################################
-  types_getRunsWithAGivenDates = [DictType]
-  def export_getRunsWithAGivenDates(self, dict):
-    return self.export_getRunsForAGivenPeriod(dict)
 
   #############################################################################
   types_getRunsForAGivenPeriod = [DictType]

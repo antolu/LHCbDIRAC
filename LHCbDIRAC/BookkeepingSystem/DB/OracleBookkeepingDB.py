@@ -845,8 +845,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ''
 
     tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
-    if visible not in ['Y','N']:
-      return S_ERROR('The visible flag has to be Y or N! '+str(visible))
+    if visible not in ['Y', 'N']:
+      return S_ERROR('The visible flag has to be Y or N! ' + str(visible))
     else:
       condition += "and f.visibilityFlag='%s' " % (visible)
 
@@ -863,10 +863,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         return retVal
 
-    if evt != default and visible =='Y':
+    if evt != default and visible == 'Y':
       tables += ' ,prodview bview'
       condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (str(evt))
-    else:
+    elif evt != default and visible == 'N':
       condition += '  and j.production=prod.production and f.eventtypeid=%s ' % (str(evt))
 
     if production != default:
@@ -875,21 +875,21 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if runnb != default:
       condition += ' and j.runnumber=' + str(runnb)
 
-    if filetype != default and visible=='Y':
+    if filetype != default and visible == 'Y':
       if tables.find('bview') > -1:
         condition += " and bview.filetypeid=ftypes.filetypeid "
       if type(filetype) == types.ListType:
         values = ' and ftypes.name in ('
         for i in filetype:
-          values += " '%s'," %(i)
+          values += " '%s'," % (i)
         condition += values[:-1] + ')'
       else:
         condition += " and ftypes.name='%s' " % (str(filetype))
-    else:
+    elif filetype != default and visible == 'N':
       if type(filetype) == types.ListType:
         values = ' and ftypes.name in ('
         for i in filetype:
-          values += " '%s'," %(i)
+          values += " '%s'," % (i)
         condition += values[:-1] + ')'
       elif filetype != default:
         condition += " and ftypes.name='%s' " % (str(filetype))
@@ -2426,7 +2426,7 @@ and files.qualityid= dataquality.qualityid'
     else:
       return S_ERROR(retVal['Message'])
 
-    check = dict.get('CheckRunStatus', default)
+    check = dict.get('CheckRunStatus', False)
     if check:
       processedRuns = []
       notProcessedRuns = []
@@ -2439,10 +2439,8 @@ and files.qualityid= dataquality.qualityid'
           for file in files:
             name = file[0]
             retVal = self.getFileDescendents([name], 1, 0, True)
-            files = retVal['Value']
-            successful = files['Successful']
-            failed = files['Failed']
-            if len(successful[successful.keys()[0]]) == 0:
+            successful = retVal['Value']['Successful']
+            if len(successful) == 0:
               ok = False
           if ok:
             processedRuns += [i]
@@ -2839,10 +2837,15 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getFilesSummary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default, startrun=default, endrun=default):
+  def getFilesSummary(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default, startrun=default, endrun=default, visible='Y'):
 
     condition = ''
-    tables = ' jobs j, files f'
+    tables = 'files f, jobs j '
+    if visible not in ['Y', 'N']:
+      return S_ERROR('The visible flag has to be Y or N! ' + str(visible))
+    else:
+      condition += "and f.visibilityFlag='%s' " % (visible)
+
     if configName != default and configVersion != default:
       condition += " and j.configurationid=(select c.configurationid from configurations c  where c.configname='%s' and c.configversion='%s') " % (configName, configVersion)
     else:
@@ -2862,8 +2865,12 @@ and files.qualityid= dataquality.qualityid'
         return retVal
 
     econd = ''
-    if evt != default:
-      econd += " and bview.eventtypeid='%s'" % (str(evt))
+    tables2 = ''
+    if evt != default and visible == 'Y':
+      tables2 += ', prodview bview'
+      econd += " and bview.production=prod.production and bview.eventtypeid='%s'" % (str(evt))
+      condition += " and f.eventtypeid=%s" % (str(evt))
+    elif evt != default and visible == 'N':
       condition += " and f.eventtypeid=%s" % (str(evt))
 
     if production != default:
@@ -2878,14 +2885,16 @@ and files.qualityid= dataquality.qualityid'
       condition += " and %s )" % (cond[:-3])
 
     tables += ' ,filetypes ftypes '
-    tables2 = ''
     fcond = ''
-    if filetype != default:
-      tables2 = ' ,filetypes ftypes '
+    if filetype != default and visible == 'Y':
+      if tables2.find('bview') < 0:
+        tables2 += ', prodview bview'
+      tables2 += ' ,filetypes ftypes '
       condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
-      fcond += " and ftypes.Name='%s'" % (str(filetype))
+      fcond += " and bview.production=prod.production and ftypes.Name='%s'" % (str(filetype))
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
-
+    elif filetype != default and visible == 'N':
+      condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
 
     if quality != default:
       tables += ' , dataquality d'
@@ -2917,13 +2926,12 @@ and files.qualityid= dataquality.qualityid'
 
     if processing != default:
       if not re.search('^/', processing): processing = processing.replace(processing, '/%s' % processing)
-      condition += " and j.production in (select bview.production from productionscontainer prod, ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
+      condition += " and j.production in (select distinct prod.production from productionscontainer prod, ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
                      START WITH id in (select distinct id from processing where name='%s') \
                                            CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                         where v.path='%s') proc, prodview bview %s \
+                         where v.path='%s') proc %s \
                              where \
-                               prod.processingid=proc.id and \
-                               bview.production=prod.production \
+                               prod.processingid=proc.id  \
                                %s %s %s \
                 )" % (processing.split('/')[1], processing, tables2, fcond, econd, sim_dq_conditions)
 
@@ -2937,7 +2945,6 @@ and files.qualityid= dataquality.qualityid'
     j.jobid=f.jobid and \
     ftypes.filetypeid=f.filetypeid and \
     f.gotreplica='Yes' and \
-    f.visibilityflag='Y' and \
     ftypes.filetypeid=f.filetypeid  %s" % (tables, condition)
     return self.dbR_._query(command)
 
