@@ -42,7 +42,7 @@ class ProductionCleaningAgent( AgentModule ):
     """
     self.enableFlag = self.am_getOption( 'EnableFlag', 'True' )
     if not self.enableFlag == 'True':
-      self.log.info( 'ProductionCleaningAgent is disabled by configuration option %s/EnableFlag' % ( self.section ) )
+      self.log.info( 'ProductionCleaningAgent is disabled by configuration option EnableFlag' )
       return S_OK( 'Disabled via CS flag' )
 
     # Obtain the productions in Cleaning status and remove any mention of the jobs/files
