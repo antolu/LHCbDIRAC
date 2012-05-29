@@ -42,8 +42,9 @@ from DIRAC                                                     import S_OK, S_ER
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ       import *
 from DIRAC.Core.Base                                           import Script
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from   DIRAC.FrameworkSystem.Client.NotificationClient       import NotificationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
+from DIRAC.DataManagementSystem.Client.ReplicaManager          import ReplicaManager
+from   DIRAC.FrameworkSystem.Client.NotificationClient         import NotificationClient
 from DIRAC import gConfig
 import re, os, string, glob, shutil
 import subprocess
@@ -233,6 +234,7 @@ class MergingForDQAgent( AgentModule ):
     self.logFile = ''
 
     self.bkClient = BookkeepingClient()
+    self.rm = ReplicaManager()
 
     evtTypeId = int( self.evtTypeDict[self.thisEventType] )
 
@@ -315,7 +317,7 @@ class MergingForDQAgent( AgentModule ):
                     ID = self.bkClient.getProcessingPassId( bkDict_brunel[ 'ProcessingPass' ] )
                     q = self.bkClient.getRunAndProcessingPassDataQuality( run, ID['Value'] )
                     if q['OK']:
-                      gLogger.info( "Run %s has already been flagged skipping" )
+                      gLogger.info( "Run %s has already been flagged: Skipping"%run )
                       continue
                     
                     resProdId  = GetProductionId(run, p, e , self.bkClient)
@@ -324,10 +326,10 @@ class MergingForDQAgent( AgentModule ):
                       continue
                     lfns = BuildLFNs( bkDict_brunel, run ,resProdId['prodId'],self.addFlag)
                     #If the LFN is already in the BK it will be skipped
-                    res = self.bkClient.getFileMetadata( [lfns['DATA']] )
+                    res = self.rm.getCatalogReplicas( [lfns['DATA']], allStatus=True )
                     if res['Value']:
-                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
-                        gLogger.info( "%s already in the bookkeeping. Continue with the other runs." % str( lfns['DATA'] ) )
+                      if res['Value']['Successful']:
+                        gLogger.info( "%s with Replica. Continue with the other runs." % str( lfns['DATA'] ) )
                         continue
                     #log directory that will be uploaded 
                     logDir = self.homeDir + 'MERGEFORDQ_RUN_' + str( run )
