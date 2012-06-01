@@ -1,7 +1,3 @@
-########################################################################
-# $HeadURL$
-########################################################################
-
 """  The ProductionStatusAgent monitors productions for active requests
      and takes care to update their status. Initially this is just to handle
      simulation requests.
@@ -26,7 +22,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                     import S_OK, S_ERROR, gLogger
+from DIRAC                                                     import S_OK, gLogger
 from DIRAC.Core.Base.AgentModule                               import AgentModule
 from DIRAC.Core.DISET.RPCClient                                import RPCClient
 from DIRAC.Interfaces.API.Dirac                                import Dirac
@@ -36,29 +32,24 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 
-import string, time
+import time
 
 # A.T. import of Dirac API module forbids showing headers in the log
-gLogger.showHeaders(True)
+gLogger.showHeaders( True )
 
 AGENT_NAME = 'ProductionManagement/ProductionStatusAgent'
 
 class ProductionStatusAgent( AgentModule ):
+  """ Usual DIRAC agent
+  """
 
   #############################################################################
   def initialize( self ):
     """Sets default values.
     """
     self.am_setOption( 'PollingTime', 2 * 60 * 60 )
-
-    # This sets the Default Proxy to used as that defined under 
-    # /Operations/Shifter/ProductionManager
-    # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
-    #Agent parameters
-    self.updatedProductions = {}
-    self.updatedRequests = []
     return S_OK()
 
   #############################################################################
@@ -95,13 +86,10 @@ class ProductionStatusAgent( AgentModule ):
       progress = int( bkTotal * 100 / totalRequested )
       self.log.verbose( 'Request progress for ID %s is %s' % ( reqID, progress ) )
       if not progressSummary.has_key( reqID ):
-        self.log.error( 'Could not get production progress list for request %s:\n%s' % ( reqID, res ) )
+        self.log.error( 'Could not get production progress list for request %s' % reqID )
         continue
 
       prodProgress = progressSummary[reqID]
-      if len( prodProgress.keys() ) > 2:
-        self.log.error( 'More than 2 associated productions for request %s, ignoring from further consideration...' % reqID )
-        continue
       for prod, used in prodProgress.items():
         if bkTotal >= totalRequested:
           if used['Used']:
@@ -163,11 +151,11 @@ class ProductionStatusAgent( AgentModule ):
       if req in singleRequests:
         singleRequests.remove( req )
 
-    self.log.info( 'Single requests are: %s' % ( string.join( [str( i ) for i in singleRequests], ', ' ) ) )
+    self.log.info( 'Single requests are: %s' % ( ', '.join( [str( i ) for i in singleRequests] ) ) )
     for n, v in parentRequests.items():
-      self.log.info( 'Parent request %s has subrequests: %s' % ( n, string.join( [str( j ) for j in v], ', ' ) ) )
+      self.log.info( 'Parent request %s has subrequests: %s' % ( n, ', '.join( [str( j ) for j in v] ) ) )
 
-    self.log.info( 'The following productions are in ValidatedOutput status: %s' % ( string.join( [str( i ) for i in validatedOutput], ', ' ) ) )
+    self.log.info( 'The following productions are in ValidatedOutput status: %s' % ( ', '.join( [str( i ) for i in validatedOutput] ) ) )
 
     #All poductions achieving #BK events will be in prodValOutputs dictionary
     returnToActive = []
@@ -207,7 +195,7 @@ class ProductionStatusAgent( AgentModule ):
         for notDoneProd, notDoneReq in notDoneOutputs.items():
           if notDoneReq == subreq:
             notDoneProds.append( notDoneProd )
-      self.log.info( '==> Checking productions: %s for parent request %s' % ( string.join( [str( i ) for i in toCheck], ', ' ), req ) )
+      self.log.info( '==> Checking productions: %s for parent request %s' % ( ', '.join( [str( i ) for i in toCheck] ), req ) )
       for notDoneProd in notDoneProds:
         self.log.info( 'Production %s is part of parent request ID %s but does not have enough BK events' % ( notDoneProd, req ) )
         finished = False
@@ -223,7 +211,7 @@ class ProductionStatusAgent( AgentModule ):
         completedParents.append( req )
 
     if completedParents:
-      self.log.info( 'Completed parent requests to recheck BK events are: %s' % ( string.join( [str( i ) for i in completedParents], ', ' ) ) )
+      self.log.info( 'Completed parent requests to recheck BK events are: %s' % ( ', '.join( [str( i ) for i in completedParents] ) ) )
 
     for finishedReq in completedParents:
       if not parentRequests.has_key( finishedReq ):
@@ -246,7 +234,7 @@ class ProductionStatusAgent( AgentModule ):
 
     #Must return to active state the following Used productions (and associated MC prods)
     if returnToActive:
-      self.log.info( 'Final productions to be returned to Active status are: %s' % ( string.join( [str( i ) for i in returnToActive], ', ' ) ) )
+      self.log.info( 'Final productions to be returned to Active status are: %s' % ( ', '.join( [str( i ) for i in returnToActive] ) ) )
 
     mcReturnToActive = []
     for prod in returnToActive:
@@ -257,7 +245,7 @@ class ProductionStatusAgent( AgentModule ):
               mcReturnToActive.append( prodID )
 
     if mcReturnToActive:
-      self.log.info( 'Final MC productions to be returned to active are: %s' % ( string.join( [str( i ) for i in mcReturnToActive], ', ' ) ) )
+      self.log.info( 'Final MC productions to be returned to active are: %s' % ( ', '.join( [str( i ) for i in mcReturnToActive] ) ) )
 
     for prodID in returnToActive:
       self.updateProductionStatus( prodID, 'ValidatedOutput', 'Active' )
@@ -280,7 +268,7 @@ class ProductionStatusAgent( AgentModule ):
       self.log.info( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
 
     if self.updatedRequests:
-      self.log.info( 'Requests updated to Done status: %s' % ( string.join( [str( i ) for i in self.updatedRequests], ', ' ) ) )
+      self.log.info( 'Requests updated to Done status: %s' % ( ', '.join( [str( i ) for i in self.updatedRequests] ) ) )
     self.mailProdManager()
     return S_OK()
 
@@ -320,8 +308,8 @@ class ProductionStatusAgent( AgentModule ):
     for n, v in self.updatedProductions.items():
       msg.append( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
     msg.append( '\nRequests updated to Done status this cycle:\n' )
-    msg.append( string.join( [str( i ) for i in self.updatedRequests], ', ' ) )
-    res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, string.join( msg, '\n' ), 'vladimir.romanovsky@cern.ch', localAttempt = False )
+    msg.append( ', '.join( [str( i ) for i in self.updatedRequests] ) )
+    res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ), 'vladimir.romanovsky@cern.ch', localAttempt = False )
     if not res['OK']:
       self.log.error( res )
     else:
