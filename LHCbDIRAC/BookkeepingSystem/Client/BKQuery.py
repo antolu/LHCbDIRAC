@@ -35,6 +35,7 @@ class BKQuery():
     return str( self.bkQueryDict )
 
   def buildBKQuery( self, bkPath='', bkQueryDict={}, prods=[], runs=[], fileTypes=[], visible=True ):
+    #print bkPath, bkQueryDict, prods, runs, fileTypes, visible
     self.bkQueryDict = {}
     if not bkPath and not prods and not runs and not bkQueryDict:
       return {}
@@ -65,7 +66,6 @@ class BKQuery():
           bkFields = ( "Runs", "ProcessingPass", "EventTypeId", "FileType" )
         elif url[0] not in ( 'sim', 'daq', 'cond' ):
           print 'Invalid BK path:', bkPath
-          self.bkQueryDict = {}
           return self.bkQueryDict
         bkPath = url[1]
       if bkPath[0] != '/':
@@ -150,7 +150,6 @@ class BKQuery():
             bkQuery['EndRun'] = int( runs[1] )
         except:
           print runs, 'is an invalid run range'
-          self.bkQueryDict = {}
           return self.bkQueryDict
       else:
         if 'StartRun' in bkQuery: bkQuery.pop( 'StartRun' )
@@ -162,7 +161,6 @@ class BKQuery():
         bkQuery.setdefault( 'ProductionID', [] ).extend( [int( prod ) for prod in prods] )
       except:
         print prods, 'invalid as production list'
-        self.bkQueryDict = {}
         return self.bkQueryDict
 
     # Set the file type(s) taking into account excludes file types
@@ -171,6 +169,7 @@ class BKQuery():
       bkQuery.pop( 'FileType' )
     self.bkQueryDict = bkQuery.copy()
     fileType = self.__fileType( fileTypes )
+    #print fileType
     if fileType:
       bkQuery['FileType'] = fileType
 
@@ -188,6 +187,7 @@ class BKQuery():
     # Set conditions
     #print "Before setConditions",self.bkQueryDict
     self.setConditions( bkQuery.get( 'ConditionDescription', bkQuery.get( 'DataTakingConditions', bkQuery.get( 'SimulationConditions' ) ) ) )
+    #print self.bkQueryDict
     return self.bkQueryDict
 
   def setOption( self, key, val ):
@@ -235,6 +235,8 @@ class BKQuery():
     if eventTypes:
       if type( eventTypes ) == type( '' ):
         eventTypes = eventTypes.split( ',' )
+      elif type( eventTypes ) != type( [] ):
+        eventTypes = [eventTypes]
       try:
         eventTypes = [str( int( et ) ) for et in eventTypes]
       except:
@@ -254,7 +256,7 @@ class BKQuery():
     if type( fileTypes ) != type( [] ):
       fileTypes = [fileTypes]
     self.exceptFileTypes += fileTypes
-    self.setFileType( [t for t in self.getFileTypeList() if t not in self.exceptFileTypes] )
+    self.setFileType( [t for t in self.getFileTypeList() if t not in fileTypes] )
 
   def getQueryDict( self ):
     return self.bkQueryDict
@@ -319,9 +321,10 @@ class BKQuery():
       else:
         expandedTypes.append( fileType )
     # Remove exceptFileTypes only if not explicitly required
-    #print allRequested,expandedTypes,self.exceptFileTypes
+    #print allRequested, expandedTypes, self.exceptFileTypes
     if allRequested or not [t for t in self.exceptFileTypes if t in expandedTypes]:
       expandedTypes = [t for t in expandedTypes if t not in self.exceptFileTypes and t in self.bkFileTypes]
+    #print expandedTypes
     if len( expandedTypes ) == 1 and not returnList:
       return expandedTypes[0]
     else:
@@ -350,6 +353,9 @@ class BKQuery():
         res = self.bk.getFilesWithGivenDataSets( BKQuery( self.bkQueryDict ).setOption( 'FileType', exceptFiles ) )
         if res['OK']:
           lfnsExcept = [lfn for lfn in res['Value'] if lfn in lfns]
+        else:
+          print "Error in BK query:", res['Message']
+          lfnsExcept = []
         if lfnsExcept:
           print "***** WARNING ***** Found %d files in BK query that will be excluded (file type in %s)!" % ( len( lfnsExcept ), str( exceptFiles ) )
           print "                    If creating a transformation, set '--FileType ALL'"
