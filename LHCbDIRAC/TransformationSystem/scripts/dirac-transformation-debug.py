@@ -5,29 +5,31 @@ __RCSID__ = "$Id$"
 import sys
 
 def getFilesForRun( id, runID, status=None, lfnList=None ):
-    selectDict = {'TransformationID':id}
-    if runID:
-        selectDict["RunNumber"] = runID
-    if status:
-        selectDict['Status'] = status
-    if lfnList:
-        selectDict['LFN'] = lfnList
-    #print selectDict
-    res = transClient.getTransformationFiles( selectDict )
-    #print res
-    if res['OK']:
-        return res['Value']
-    return []
+  #print id, runID, status, lfnList
+  selectDict = {'TransformationID':id}
+  if runID:
+      selectDict["RunNumber"] = runID
+  if status:
+      selectDict['Status'] = status
+  if lfnList:
+      selectDict['LFN'] = lfnList
+  #print selectDict
+  res = transClient.getTransformationFiles( selectDict )
+  if res['OK']:
+      return res['Value']
+  else:
+    print "Error getting TransformationFiles:", res['Message']
+  return []
 
 def filesProcessed( id, runID ):
-    filesList = getFilesForRun( id, runID, None )
-    files = 0
-    processed = 0
-    for fileDict in filesList:
-        files += 1
-        if fileDict['Status'] == "Processed":
-            processed += 1
-    return ( files, processed )
+  filesList = getFilesForRun( id, runID, None )
+  files = 0
+  processed = 0
+  for fileDict in filesList:
+      files += 1
+      if fileDict['Status'] == "Processed":
+          processed += 1
+  return ( files, processed )
 
 #====================================
 verbose = False
