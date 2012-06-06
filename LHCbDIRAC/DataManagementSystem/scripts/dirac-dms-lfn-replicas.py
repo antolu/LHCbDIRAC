@@ -31,7 +31,7 @@ if __name__ == "__main__":
   for lfn in lfns:
     try:
       f = open( lfn, 'r' )
-      lfnList += [l.split( 'LFN:' )[-1].strip().split()[0] for l in f.read().splitlines()]
+      lfnList += [l.split( 'LFN:' )[-1].strip().split()[0].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
       f.close()
     except:
       lfnList.append( lfn )
