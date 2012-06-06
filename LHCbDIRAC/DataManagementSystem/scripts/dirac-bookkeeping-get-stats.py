@@ -44,15 +44,30 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
+  transClient = TransformationClient()
 
   for prod in prodList:
-    bkQuery.setOption( 'Production', prod )
-    print "For BK query:", bkQuery
+    if prod:
+      res = transClient.getTransformation( prod, extraParams=False )
+      if not res['OK']: continue
+      prodName = res['Value']['TransformationName']
+      bkQuery.setOption( 'Production', prod )
+      print "For production %d, %s (query %s)" % ( prod, prodName, bkQuery )
+    else:
+      print "For BK query:", bkQuery
     queryDict = bkQuery.getQueryDict()
-    if 'Visible' in queryDict and 'StartRun' not in queryDict and 'EndRun' not in queryDict:
-      res = bk.getFilesSummary( queryDict )
+    if not len( queryDict ):
+      print "Invalid query", queryDict
+      DIRAC.exit( 1 )
+    if queryDict.get( 'Visible', 'No' ) == 'Yes':
+      if 'Visible' in queryDict: queryDict.pop( 'Visible' )
+      query = queryDict.copy()
+      if len( query ) <= 3:
+        query.update( {'1':1, '2':2, '3':3 } )
+      res = bk.getFilesSummary( query )
       if not res['OK']:
-        print "Error getting statistics from BK"
+        print "Error getting statistics from BK", res['Message']
         DIRAC.exit( 0 )
       nbRecords = res['Value']['TotalRecords']
       records = res['Value']['Records']
@@ -84,11 +99,14 @@ if __name__ == "__main__":
     for paramValues in records:
       for name, value in zip( paramNames, paramValues ):
         if name == 'NbofFiles':
+          nfiles = value
           print '%s:%s' % ( 'Nb of Files'.ljust( tab ), intWithQuotes( value ) )
         elif name == 'NumberOfEvents':
+          nevts = value
           print '%s:%s' % ( 'Nb of Events'.ljust( tab ), intWithQuotes( value ) )
         elif name == 'FileSize':
           size = value
+          sizePerEvt = '(%.1f kB per evt)' % ( size / nevts / 1000. ) if nevts else ''
           if size:
             for unit in sizeUnits:
               if size < 1000.:
@@ -97,7 +115,7 @@ if __name__ == "__main__":
           else:
             size = 0
             unit = ''
-          print '%s:%.3f %s' % ( 'Total size'.ljust( tab ), size, unit )
+          print '%s:%.3f %s %s' % ( 'Total size'.ljust( tab ), size, unit, sizePerEvt )
         elif name == 'Luminosity':
           lumi = value
           if lumi:
@@ -109,3 +127,7 @@ if __name__ == "__main__":
             lumi = 0
             unit = ''
           print '%s:%.3f %s' % ( 'Luminosity'.ljust( tab ), lumi, unit )
+    if lumi:
+      filesPerLumi = nfiles / lumi
+      print "%s:%.1f" % ( ( 'Files per %s' % unit ).ljust( tab ), filesPerLumi )
+    print ""
