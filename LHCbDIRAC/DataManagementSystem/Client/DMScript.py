@@ -180,8 +180,7 @@ class DMScript():
   def setLFNsFromFile( self, arg ):
     try:
       f = open( arg, 'r' )
-      lines = f.read().splitlines()
-      lfns = [l.split( 'LFN:' )[-1].strip().split()[0] for l in lines]
+      lfns = [l.split( 'LFN:' )[-1].strip().split()[-1].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
       self.options['LFNs'] = lfns
       f.close()
     except:
