@@ -93,6 +93,9 @@ for id in idList:
       if int( run ) >= startRun and int( run ) <= endRun:
           runs.append( run )
   bkQuery = BKQuery( res['Value'], runs=runs, visible=False )
+  if not bkQuery.getQueryDict():
+    print "Invalid query", bkquery
+    DIRAC.exit( 1 )
   bkQuery.setOption( 'ReplicaFlag', 'All' )
   print "Executing BK query:"
   if runList:
@@ -127,7 +130,7 @@ for id in idList:
   sys.stdout.write( '.'*len( lfnChunks ) )
   sys.stdout.flush()
   for lfnChunk in lfnChunks:
-    res = bk.getFileDescendents( lfnChunk, depth = 1, production = id )
+    res = bk.getFileDescendents( lfnChunk, depth=1, production=id )
     if res['OK']:
       descChunk = res['Value']['Successful']
     else:
