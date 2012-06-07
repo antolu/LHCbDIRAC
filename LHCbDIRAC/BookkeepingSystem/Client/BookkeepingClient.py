@@ -16,7 +16,7 @@ from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from DIRAC.Core.Utilities            import DEncode
-import types, cPickle, os, tempfile
+import types, cPickle, os, tempfile, time
 
 
 __RCSID__ = "$Id$"
@@ -27,10 +27,18 @@ class BookkeepingClient:
     self.rpcClient = rpcClient
 
   def __getServer(self, timeout=3600):
+    retVal = None
     if self.rpcClient:
-      return self.rpcClient
+      retVal = self.rpcClient
     else:
-      return RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
+      retVal = RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
+
+    if not retVal.ping()['OK']:
+      wait = 10
+      while not retVal.ping()['OK'] and wait <= 60:
+        time.sleep(wait)
+        wait += 10
+    return retVal
 
   #############################################################################
   def echo(self, string):
