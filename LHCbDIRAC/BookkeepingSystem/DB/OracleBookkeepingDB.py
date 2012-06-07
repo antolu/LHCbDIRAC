@@ -1454,10 +1454,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
               else:
                 for record in res['Value']:
                   if checkreplica and (record[2] == 'No'):
-                    self.getFileDescendentsHelper(record[0], files, depth, production, counter - 1, checkreplica)
+                    self.getFileDescendentsHelper(record[0], files, depth, production, counter, checkreplica)
                     continue
                   if production and (int(record[3]) != int(production)):
-                    self.getFileDescendentsHelper(record[0], files, depth, production, counter - 1, checkreplica)
+                    self.getFileDescendentsHelper(record[0], files, depth, production, counter, checkreplica)
                     continue
                   files += [record[0]]
                   self.getFileDescendentsHelper(record[0], files, depth, production, counter, checkreplica)
