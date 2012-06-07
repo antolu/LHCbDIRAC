@@ -59,11 +59,11 @@ if fromProd:
   runList = []
   # Get the list of Active runs in that production list
   for prod in fromProd:
-      res = transClient.getTransformationRuns( {'TransformationID': prod } )
-      if not res['OK']:
-          print "Runs not found for transformation", prod
-      else:
-          runList += [str( run['RunNumber'] ) for run in res['Value'] if run['Status'] in ( 'Active', 'Flush' )]
+    res = transClient.getTransformationRuns( {'TransformationID': prod } )
+    if not res['OK']:
+      print "Runs not found for transformation", prod
+    else:
+      runList += [str( run['RunNumber'] ) for run in res['Value'] if run['Status'] in ( 'Active', 'Flush' )]
   print "Active runs in productions %s:" % str( fromProd ), runList
 
 runList.sort()
@@ -72,10 +72,16 @@ for id in idList:
   if resetExtension:
     extension = ''
   print "Processing production", id
+  res = transClient.getTransformation( id )
+  if not res['OK']:
+    print "Couldn't find transformation", id
+    continue
+  else:
+    transType = res['Value']['Type']
   res = transClient.getBookkeepingQueryForTransformation( id )
   if res['OK'] and res['Value']:
     print "Production BKQuery:", res['Value']
-    if not extension:
+    if not extension and transType == 'Merge':
       resetExtension = True
       extension = res['Value'].get( 'FileType', '' ).lower()
       print 'Extension set to', extension
@@ -90,8 +96,8 @@ for id in idList:
   endRun = int( query.get( 'EndRun', sys.maxint ) )
   runs = []
   for run in runList:
-      if int( run ) >= startRun and int( run ) <= endRun:
-          runs.append( run )
+    if int( run ) >= startRun and int( run ) <= endRun:
+      runs.append( run )
   bkQuery = BKQuery( res['Value'], runs=runs, visible=False )
   if not bkQuery.getQueryDict():
     print "Invalid query", bkquery
@@ -103,9 +109,9 @@ for id in idList:
   startTime = time.time()
   lfns = bkQuery.getLFNs( printOutput=False )
   if runList:
-      runStr = ', runs %s' % str( runs )
+    runStr = ', runs %s' % str( runs )
   else:
-      runStr = ''
+    runStr = ''
   print "Input dataset for production %d%s: %d files (executed in %.3f s)" % ( id, runStr, len( lfns ), time.time() - startTime )
   # Now get the transformation files
   selectDict = { 'TransformationID': id}
@@ -130,7 +136,7 @@ for id in idList:
   sys.stdout.write( '.'*len( lfnChunks ) )
   sys.stdout.flush()
   for lfnChunk in lfnChunks:
-    res = bk.getFileDescendents( lfnChunk, depth=1, production=id )
+    res = bk.getFileDescendents( lfnChunk, depth=1, production=id, checkreplica=False )
     if res['OK']:
       descChunk = res['Value']['Successful']
     else:
@@ -145,8 +151,8 @@ for id in idList:
       files += descendants[lfn]
     res = bk.getFileMetadata( files )
     if not res['OK']:
-        print "Error getting the metadata"
-        continue
+      print "Error getting the metadata"
+      continue
     metadata.update( res['Value'] )
     sys.stdout.write( "\b \b" )
     sys.stdout.flush()
@@ -192,7 +198,7 @@ for id in idList:
         fileList = res['Value']
     else:
         fileList = {}
-    print "\nThe following %d files have no descendants in production %d" % ( len( lfnsWithoutDescendants ), id )
+    print "\n%d files have no descendants with replicas in production %d" % ( len( lfnsWithoutDescendants ), id )
     lfnsToAdd = []
     for lfn in lfnsWithoutDescendants:
       status = [fileDict['Status'] for fileDict in fileList if fileDict['LFN'] == lfn]
@@ -201,7 +207,6 @@ for id in idList:
       else:
           status = 'Not in transformation files'
           lfnsToAdd.append( lfn )
-      print lfn, status
     if lfnsToAdd:
       if not fixIt:
         print "==> Files can be added with option --FixIt\n"
