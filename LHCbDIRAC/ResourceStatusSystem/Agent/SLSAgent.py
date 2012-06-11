@@ -6,15 +6,13 @@ from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from DIRAC.Core.Base.DB import DB
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
+from DIRAC.ResourceStatusSystem.Utilities                   import CS
 #from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
-
-from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
 
 import xml.dom, xml.sax
 import time, string
 import urlparse, urllib
-import sys, os, re, subprocess, pwd
+import sys, os
 
 import lfc2, lcg_util
 
