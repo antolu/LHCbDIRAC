@@ -912,6 +912,18 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getFilesForGUID(guid)
 
+  #############################################################################
+  def getRunsGroupedByDataTaking(self):
+    """
+    It returns all the run numbers grouped by the data taking description.
+    """
+    server = self.__getServer()
+    return server.getRunsGroupedByDataTaking()
+
+
+
+
+
 
   # The following method names are changed in the Bookkeeping client.
 
@@ -1245,3 +1257,5 @@ class BookkeepingClient:
     self.__errorReport("The 'getAvailableTcks' method is obsolete and it will be removed from the next release. Please use the 'getTCKs'!")
     server = self.__getServer()
     return server.getTCKs(dict)
+
+

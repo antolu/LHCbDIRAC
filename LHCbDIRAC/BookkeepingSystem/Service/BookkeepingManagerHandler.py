@@ -1346,3 +1346,9 @@ class BookkeepingManagerHandler( RequestHandler ):
   types_getFilesForGUID = [StringType]
   def export_getFilesForGUID(self, guid):
     return dataMGMT_.getFilesForGUID(guid)
+
+  #############################################################################
+  types_getRunsGroupedByDataTaking = []
+  def export_getRunsGroupedByDataTaking(self):
+    return dataMGMT_.getRunsGroupedByDataTaking()
+

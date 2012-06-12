@@ -492,3 +492,6 @@ class IBookkeepingDB(object):
   #############################################################################
   def getFilesForGUID(self, guid):
     gLogger.error('This method is not implemented!')
+
+  def getRunsGroupedByDataTaking(self):
+    gLogger.error('This method is not implemented!')

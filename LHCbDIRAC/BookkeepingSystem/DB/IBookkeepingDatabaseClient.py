@@ -494,3 +494,7 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def setFileDataQuality(self, lfns, flag):
     return self.getManager().setFileDataQuality(lfns, flag)
+
+  #############################################################################
+  def getRunsGroupedByDataTaking(self):
+    return self.getManager().getRunsGroupedByDataTaking()
