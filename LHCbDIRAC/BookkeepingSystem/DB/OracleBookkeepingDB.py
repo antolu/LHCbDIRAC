@@ -3652,7 +3652,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getRunsGroupedByDataTaking(self):
     result = S_ERROR()
-    command = " select d.description, r.runnumber from prodrunview r, prodview p, data_taking_conditions d where d.daqperiodid=p.daqperiodid and p.production=r.production and r.production<0 group by d.description, r.runnumber"
+    command = " select d.description, r.runnumber from prodrunview r, prodview p, data_taking_conditions d where d.daqperiodid=p.daqperiodid and p.production=r.production and r.production<0 group by d.description,  r.runnumber order by r.runnumber"
     retVal = self.dbR_._query(command)
     values = {}
     if retVal['OK']:
