@@ -354,7 +354,7 @@ class UploadOutputData( ModuleBase ):
     prodID = prodID.lstrip( '0' )
     self.log.info( 'Will check BK descendents for input data of job prior to uploading outputs' )
     start = time.time()
-    result = bkClient.getFileDescendents( inputData, depth = 9, production = int( prodID ), checkreplica = True )
+    result = bkClient.getFileDescendents( inputData, depth = 1, production = int( prodID ), checkreplica = False )
     timing = time.time() - start
     self.log.info( 'BK Descendents Lookup Time: %.2f seconds ' % ( timing ) )
     if not result['OK']:
