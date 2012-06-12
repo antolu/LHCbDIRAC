@@ -23,27 +23,7 @@ class ClientTestCase( unittest.TestCase ):
     pass
 
 class TaskManagerSuccess( ClientTestCase ):
-  def test_prepareTransformationTasks( self ):
-    pass
-
-  def test__handleDestination( self ):
-    res = self.l_wft._handleDestination( {'Site':'', 'TargetSE':''} )
-    self.assertEqual( res, ['ANY'] )
-    res = self.l_wft._handleDestination( {'Site':'ANY', 'TargetSE':''} )
-    self.assertEqual( res, ['ANY'] )
-    res = self.l_wft._handleDestination( {'TargetSE':'Unknown'} )
-    self.assertEqual( res, ['ANY'] )
-    res = self.l_wft._handleDestination( {'Site':'Site1, Site2', 'TargetSE':''} )
-    self.assertEqual( res, ['Site1', 'Site2'] )
-    res = self.l_wft._handleDestination( {'Site':'Site1, Site2', 'TargetSE':'pippo'}, getSitesForSE )
-    self.assertEqual( res, ['Site2'] )
-    res = self.l_wft._handleDestination( {'Site':'Site1, Site2', 'TargetSE':'pippo, pluto'}, getSitesForSE )
-    self.assertEqual( res, [] )
-    res = self.l_wft._handleDestination( {'Site':'Site1, Site2, Site3', 'TargetSE':'pippo, pluto'}, getSitesForSE )
-    self.assertEqual( res, ['Site3'] )
-    res = self.l_wft._handleDestination( {'Site':'ANY', 'TargetSE':'pippo, pluto'}, getSitesForSE )
-    self.assertEqual( res, ['Site3'] )
-
+  pass
 
 
 if __name__ == '__main__':
