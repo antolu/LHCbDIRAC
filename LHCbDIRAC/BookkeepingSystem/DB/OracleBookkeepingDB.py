@@ -3652,17 +3652,28 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getRunsGroupedByDataTaking(self):
     result = S_ERROR()
-    command = " select d.description, r.runnumber from prodrunview r, prodview p, data_taking_conditions d where d.daqperiodid=p.daqperiodid and p.production=r.production and r.production<0 group by d.description,  r.runnumber order by r.runnumber"
+    command = " select d.description, r.runnumber, r.production from prodrunview r, prodview p, data_taking_conditions d where d.daqperiodid=p.daqperiodid and p.production=r.production  group by d.description,  r.runnumber, r.production order by r.runnumber"
     retVal = self.dbR_._query(command)
     values = {}
     if retVal['OK']:
       for i in retVal['Value']:
         rnb = i[1]
         desc = i[0]
+        prod = i[2]
         if desc in values:
-          values[desc] += [rnb]
+          if rnb in values[desc]:
+            if prod > 0:
+              values[desc][rnb] += [prod]
+          else:
+            if prod > 0:
+              values[desc].update({rnb:[prod]})
+            else:
+              values[desc].update({rnb:[]})
         else:
-          values[desc] = [rnb]
+          if prod > 0:
+            values[desc]= {rnb:[prod]}
+          else:
+            values[desc]= {rnb:[]}
       result = S_OK(values)
     else:
       result = retVal
