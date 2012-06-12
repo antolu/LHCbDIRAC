@@ -226,10 +226,18 @@ class ModulesTestCase( unittest.TestCase ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst',
                      'ccc.charm.mdst', 'prova.txt', 'foo.txt', 'BAR.txt', 'FooBAR.ext.txt',
                      'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2',
-                     'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py']:
+                     'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py',
+                     '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK',
+                     ]:
       try:
         os.remove( fileProd )
       except OSError:
+        continue
+
+    for directory in ['./job', 'job']:
+      try:
+        shutil.rmtree( directory )
+      except:
         continue
 
 #############################################################################
@@ -759,21 +767,30 @@ class UploadLogFileSuccess( ModulesTestCase ):
   def test_execute( self ):
 
     #no errors, no input data
+#    for wf_commons in copy.deepcopy( self.wf_commons ):
+#      for step_commons in self.step_commons:
+#        self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+#                                           self.workflowStatus, self.stepStatus,
+#                                           wf_commons, step_commons,
+#                                           self.step_number, self.step_id,
+#                                           self.rm_mock, self.ft_mock,
+#                                           self.bkc_mock )['OK'] )
+
+    #putStorageDirectory returns False
+    rm_mock = copy.deepcopy( self.rm_mock )
+    rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
+    ft_mock = copy.deepcopy( self.ft_mock )
+    from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+    ft_mock.getRequestObject.return_value = {'OK': True, 'Value': RequestContainer()}
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           self.rm_mock, self.ft_mock,
+                                           rm_mock, ft_mock,
                                            self.bkc_mock )['OK'] )
-
-    #putStorageDirectory returns False
-    rm_mock = copy.deepcopy( self.rm_mock )
-    rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
-    for wf_commons in copy.deepcopy( self.wf_commons ):
-      for step_commons in self.step_commons:
-        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
+#        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
 
 ##############################################################################
