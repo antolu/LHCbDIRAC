@@ -342,8 +342,8 @@ if strippEnabled:
                              optionsFormat = stripOF )
 
   production.addFinalizationStep( ['UploadOutputData',
-                                   'FailoverRequest',
-                                   'UploadLogFile'] )
+                                   'UploadLogFile',
+                                   'FailoverRequest'] )
   production.setProdGroup( prodGroup )
   production.setProdPriority( stripp_priority )
   production.setJobFileGroupSize( strippFilesPerJob )
@@ -488,13 +488,13 @@ if mergingEnabled:
     mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     if mergeRemoveInputsFlag:
       mergeProd.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
                                       'RemoveInputData',
-                                      'UploadLogFile'] )
+                                      'UploadLogFile',
+                                      'FailoverRequest'] )
     else:
       mergeProd.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
-                                      'UploadLogFile'] )
+                                      'UploadLogFile',
+                                      'FailoverRequest'] )
 
     mergeProd.setInputBKSelection( mergeBKQuery )
     mergeProd.setProdGroup( prodGroup )

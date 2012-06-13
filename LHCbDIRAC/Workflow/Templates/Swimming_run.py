@@ -406,8 +406,8 @@ if swimmEnabled:
 
 
   production.addFinalizationStep( ['UploadOutputData',
-                                   'FailoverRequest',
-                                   'UploadLogFile'] )
+                                   'UploadLogFile',
+                                   'FailoverRequest'] )
   production.setProdGroup( prodGroup )
   production.setProdPriority( swimm_priority )
   production.setJobFileGroupSize( swimmFilesPerJob )
@@ -514,9 +514,9 @@ if swimmEnabled:
 
 
     DVProduction.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
                                       'RemoveInputData',
-                                      'UploadLogFile'] )
+                                      'UploadLogFile',
+                                      'FailoverRequest'] )
     DVProduction.setProdGroup( prodGroup )
     DVProduction.setProdPriority( swimm_priority )
     DVProduction.setJobFileGroupSize( swimmFilesPerJob_DV )
@@ -674,13 +674,13 @@ if mergingEnabled:
 
     if mergeRemoveInputsFlag:
       mergeProd.addFinalizationStep( ['UploadOutputData',
-                                     'FailoverRequest',
                                      'RemoveInputData',
-                                     'UploadLogFile'] )
+                                     'UploadLogFile',
+                                     'FailoverRequest'] )
     else:
       mergeProd.addFinalizationStep( ['UploadOutputData',
-                                     'FailoverRequest',
-                                     'UploadLogFile'] )
+                                      'UploadLogFile',
+                                      'FailoverRequest'] )
     mergeProd.setInputBKSelection( mergeBKQuery )
     mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     mergeProd.setProdGroup( prodGroup )

@@ -777,8 +777,8 @@ else:
   gLogger.info( prodDescription )
   MCProd.setWorkflowDescription( prodDescription )
   MCProd.addFinalizationStep( ['UploadOutputData',
-                               'FailoverRequest',
-                               'UploadLogFile'] )
+                               'UploadLogFile',
+                               'FailoverRequest'] )
   MCProd.setJobParameters( { 'CPUTime': cpu } )
 
   MCProd.setProdGroup( '{{pDsc}}' )
@@ -879,9 +879,9 @@ else:
 
   selectionProd.setInputBKSelection( inputBKQuery )
   selectionProd.addFinalizationStep( ['UploadOutputData',
-                                      'FailoverRequest',
                                       'RemoveInputData',
-                                      'UploadLogFile'] )
+                                      'UploadLogFile',
+                                      'FailoverRequest'] )
   selectionProd.setJobParameters( {"InputDataPolicy": 'protocol' } )
 
   selectionProd.setJobFileGroupSize( selectionGroupSize )
@@ -968,9 +968,9 @@ else:
 
   mergingProd.setInputBKSelection( inputBKQuery )
   mergingProd.addFinalizationStep( ['UploadOutputData',
-                                    'FailoverRequest',
                                     'RemoveInputData',
-                                    'UploadLogFile'] )
+                                    'UploadLogFile',
+                                    'FailoverRequest'] )
   mergingProd.setJobParameters( {"InputDataPolicy": mergingIDP } )
 
   mergingProd.setJobFileGroupSize( mergingGroupSize )

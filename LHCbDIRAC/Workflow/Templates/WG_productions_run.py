@@ -700,13 +700,13 @@ if mergingEnabled:
 
     if mergeRemoveInputsFlag:
       mergeProd.addFinalizationStep( ['UploadOutputData',
-                                     'FailoverRequest',
                                      'RemoveInputData',
-                                     'UploadLogFile'] )
+                                     'UploadLogFile',
+                                     'FailoverRequest'] )
     else:
       mergeProd.addFinalizationStep( ['UploadOutputData',
-                                     'FailoverRequest',
-                                     'UploadLogFile'] )
+                                     'UploadLogFile',
+                                     'FailoverRequest'] )
 
     mergeProd.setInputBKSelection( mergeBKQuery )
     mergeProd.setInputDataPolicy( mergeIDPolicy )
@@ -850,13 +850,13 @@ if step4Enabled:
 
     if mergeRemoveInputsFlag:
       step4_Prod.addFinalizationStep( ['UploadOutputData',
-                                     'FailoverRequest',
-                                     'RemoveInputData',
-                                     'UploadLogFile'] )
+                                       'RemoveInputData',
+                                       'UploadLogFile',
+                                       'FailoverRequest'] )
     else:
       step4_Prod.addFinalizationStep( ['UploadOutputData',
-                                     'FailoverRequest',
-                                     'UploadLogFile'] )
+                                       'UploadLogFile',
+                                       'FailoverRequest'] )
 
     step4_Prod.setInputBKSelection( step4_BKQuery )
     step4_Prod.setInputDataPolicy( step4_IDPolicy )

@@ -273,8 +273,8 @@ if "{{p2Ver}}":
                             stepPass = '{{p2Pass}}', optionsFormat = davinciOF )
 
 production.addFinalizationStep( ['UploadOutputData',
-                                 'FailoverRequest',
-                                 'UploadLogFile'] )
+                                 'UploadLogFile',
+                                 'FailoverRequest'] )
 production.setProdGroup( prodGroup )
 production.setProdPriority( recoPriority )
 production.setProdPlugin( recoPlugin )
