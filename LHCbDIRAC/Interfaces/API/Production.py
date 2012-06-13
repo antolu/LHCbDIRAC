@@ -8,20 +8,17 @@
     - Uses getOutputLFNs() function to add production output directory parameter
 """
 
-import string
-import shutil
+import shutil, re, os, time
 
-from DIRAC                                               import gConfig
+from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Workflow.Workflow                        import *
-from DIRAC.Core.Utilities.List                           import removeEmptyElements, uniqueElements
+from DIRAC.Core.Workflow.Workflow import Workflow, fromXMLString
+from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
-from LHCbDIRAC.Core.Utilities.ProductionData             import preSubmissionLFNs
-from LHCbDIRAC.Workflow.Utilities.Utils                  import getStepDefinition
+from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
+from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 
 __RCSID__ = "$Id$"
-
-COMPONENT_NAME = 'LHCbSystem/Client/Production'
 
 class Production():
 
@@ -58,22 +55,18 @@ class Production():
 
     self.opsHelper = Operations()
 
-    self.prodVersion            = __RCSID__
-    self.csSection              = 'Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
+    self.prodVersion = __RCSID__
+    self.csSection = 'Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
     self.LHCbJob.gaudiStepCount = 0
 
-    #inOutputSandbox = gConfig.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ), ['std.out', 'std.err', '*.log'] )
-    inOutputSandbox = self.opsHelper.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ), ['std.out', 'std.err', '*.log'] )
+    inOutputSandbox = self.opsHelper.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ),
+                                               ['std.out', 'std.err', '*.log'] )
     self.LHCbJob.setOutputSandbox( inOutputSandbox )
 
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
-#    defaultHistName    = '@{STEP_ID}_@{applicationName}_Hist.root'
-    #self.histogramName = gConfig.getValue( '%s/HistogramName' % ( self.csSection ), defaultHistName )
     self.histogramName = self.opsHelper.getValue( '%s/HistogramName' % self.csSection, defaultHistName )
-    self.histogramSE   = self.opsHelper.getValue( '%s/HistogramSE' % self.csSection, 'CERN-HIST' )
-    self.systemConfig  = self.opsHelper.getValue( '%s/SystemConfig' % self.csSection, 'ANY' )
-    #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'x86_64-slc5-gcc43-opt')
-    #self.systemConfig = gConfig.getValue('%s/SystemConfig' %(self.csSection),'slc4_ia32_gcc34')
+    self.histogramSE = self.opsHelper.getValue( '%s/HistogramSE' % self.csSection, 'CERN-HIST' )
+    self.systemConfig = self.opsHelper.getValue( '%s/SystemConfig' % self.csSection, 'ANY' )
     self.defaultProdID = '12345'
     self.defaultProdJobID = '67890'
     self.ioDict = {}
@@ -115,7 +108,6 @@ class Production():
     self._setParameter( 'JOB_ID', 'string', self.defaultProdJobID.zfill( 8 ), 'ProductionJobID' )
     self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
     self._setParameter( 'Priority', 'JDL', '1', 'Priority' )
-#    self._setParameter( 'emailAddress', 'string', gConfig.getValue( '/Operations/EMail/JobFailures', 'lhcb-datacrash@cern.ch' ), 'CrashEmailAddress' )
     self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
     self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
@@ -146,7 +138,6 @@ class Production():
   def _setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
-    #proposedParam = gConfig.getValue( '%s/%s' % ( self.csSection, name ), '' )
     proposedParam = self.opsHelper.getValue( '%s/%s' % ( self.csSection, name ), '' )
     if proposedParam:
       self.LHCbJob.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
@@ -188,7 +179,7 @@ class Production():
       if not re.search( ';', extraPackages ):
         extraPackages = [extraPackages]
       else:
-        extraPackages = string.split( extraPackages, ';' )
+        extraPackages = extraPackages.split( ';' )
     if optionsFile:
       if not re.search( ';', optionsFile ):
         optionsFile = [optionsFile]
@@ -225,8 +216,8 @@ class Production():
 
     optionsLine = ''
     if extraOpts:
-      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      optionsLine = string.join( extraOpts, ';' )
+      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
+      optionsLine = ';'.join( extraOpts )
 
     if not outputSE:
       outputSE = 'Tier1-RDST'
@@ -259,8 +250,8 @@ class Production():
 
     optionsLine = ''
     if extraOpts:
-      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      optionsLine = string.join( extraOpts, ';' )
+      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
+      optionsLine = ';'.join( extraOpts )
 
     if not outputSE:
       outputSE = 'Tier1-RDST'
@@ -314,8 +305,8 @@ class Production():
 
     optionsLine = ''
     if extraOpts:
-      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      optionsLine = string.join( extraOpts, ';' )
+      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
+      optionsLine = ';'.join( extraOpts )
 
     firstEventNumber = 0
 
@@ -372,8 +363,8 @@ class Production():
 
     optionsLine = ''
     if extraOpts:
-      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      optionsLine = string.join( extraOpts, ';' )
+      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
+      optionsLine = ';'.join( extraOpts )
 
 #    if appType.lower() == 'davincihist':
 #      appType = 'dst'
@@ -410,8 +401,8 @@ class Production():
 
     optionsLine = ''
     if extraOpts:
-      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      optionsLine = string.join( extraOpts, ';' )
+      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
+      optionsLine = ';'.join( extraOpts )
 
     self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
@@ -445,8 +436,8 @@ class Production():
 
     optionsLine = ''
     if extraOpts:
-      extraOpts = removeEmptyElements( string.split( extraOpts, '\n' ) )
-      optionsLine = string.join( extraOpts, ';' )
+      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
+      optionsLine = ';'.join( extraOpts )
 
     self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
@@ -528,17 +519,10 @@ class Production():
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
-#      modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
-#                                                                                    'AnalyseLogFile',
-#                                                                                    'AnalyseXMLSummary',
-#                                                                                    'ErrorLogging',
-#                                                                                    'BookkeepingReport',
-#                                                                                    'StepAccounting'
-#                                                                                    ] )
-      gaudiModules   = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
-      gaudiPath       = '%s/GaudiStep_Modules' % self.csSection
-      modulesNameList = self.opsHelper.getValue( gaudiPath, gaudiModules )      
+      gaudiModules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
+      gaudiPath = '%s/GaudiStep_Modules' % self.csSection
+      modulesNameList = self.opsHelper.getValue( gaudiPath, gaudiModules )
       #pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
@@ -579,11 +563,12 @@ class Production():
 
     #lower the appType if not creating a template
     if type( appType ) == str and appType and not re.search( '{{', appType ):
-      appType = string.lower( appType )
+      appType = appType.lower()
     if outputAppendName:
-      appType = string.lower( '%s.%s' % ( outputAppendName, appType ) )
+      appType = '%s.%s' % ( outputAppendName, appType )
+      appType = appType.lower()
     if type( optionsFile ) == type( [] ):
-      optionsFile = string.join( optionsFile, ';' )
+      optionsFile = ';'.join( optionsFile )
     optionsFile = optionsFile.replace( ' ', '' )
 
     valuesToSet = [
@@ -607,7 +592,7 @@ class Production():
 
     if extraPackages:
       if type( extraPackages ) == type( [] ):
-        extraPackages = string.join( extraPackages, ';' )
+        extraPackages = ';'.join( extraPackages )
       if 'ProdConf' not in extraPackages:
         extraPackages = extraPackages + ';ProdConf'
       extraPackages = extraPackages.replace( ' ', '' )
@@ -623,7 +608,7 @@ class Production():
       if re.search( '{{', inputDataType ):
         valuesToSet.append( [ 'inputDataType', inputDataType ] )
       else:
-        valuesToSet.append( [ 'inputDataType', string.upper( inputDataType ) ] )
+        valuesToSet.append( [ 'inputDataType', inputDataType.upper() ] )
 
     for pName, value in valuesToSet:
       gaudiStepInstance.setValue( pName, value )
@@ -698,7 +683,7 @@ class Production():
     stepIDInternal = 'Step%s' % ( self.LHCbJob.gaudiStepCount - 1 )
     bkOptionsFile = optionsFile
     if re.search( '@{eventType}', optionsFile ):
-      bkOptionsFile = string.replace( optionsFile, '@{eventType}', str( eventType ) )
+      bkOptionsFile = optionsFile.replace( '@{eventType}', str( eventType ) )
 
     stepBKInfo = {'ApplicationName':appName,
                   'ApplicationVersion':appVersion,
@@ -731,7 +716,7 @@ class Production():
       apps = apps.split( ';' )
       apps.append( nameVersion )
       apps = uniqueElements( removeEmptyElements( apps ) )
-      apps = string.join( apps, ';' )
+      apps = ';'.join( apps )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
@@ -745,17 +730,16 @@ class Production():
   #############################################################################
 
   def addFinalizationStep( self, modulesList = [] ):
+    """ Add the finalization step (some defaults are inserted)
+    """
 
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
       if not modulesList:
-#        modulesNameList = gConfig.getValue( '%s/FinalizationStep_Modules' % self.csSection, ['UploadOutputData',
-#                                                                                             'FailoverRequest',
-#                                                                                             'UploadLogFile'] )
         finalizationPath = '%s/FinalizationStep_Modules' % self.csSection
-        finalizationMods = [ 'UploadOutputData', 'FailoverRequest', 'UploadLogFile' ]
-        modulesNameList  = self.opsHelper.getValue( finalizationPath, finalizationMods )
-        
+        finalizationMods = [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ]
+        modulesNameList = self.opsHelper.getValue( finalizationPath, finalizationMods )
+
       else:
         modulesNameList = modulesList
 
@@ -933,8 +917,8 @@ class Production():
     for f in fileTypes:
       bkPaths.append( '%s/%s' % ( bkOutputPath, f ) )
     parameters['BKPaths'] = bkPaths
-    info.append( '\nBK Browsing Paths:\n%s' % ( string.join( bkPaths, '\n' ) ) )
-    infoString = string.join( info, '\n' )
+    info.append( '\nBK Browsing Paths:\n%s' % ( '\n'.join( bkPaths ) ) )
+    infoString = '\n'.join( info )
     parameters['DetailedInfo'] = infoString
 
     self.LHCbJob.log.verbose( 'Parameters that will be added: %s' % parameters )
@@ -1226,7 +1210,7 @@ class Production():
       if os.path.exists( '%s.py' % tName ):
         shutil.move( '%s.py' % tName, '%s.py.backup' % tName )
       fopen = open( '%s.py' % tName, 'w' )
-      fopen.write( string.join( transLines, '\n' ) + '\n' )
+      fopen.write( '\n'.join( transLines ) + '\n' )
       fopen.close()
       return S_OK()
 
@@ -1262,7 +1246,7 @@ class Production():
     infoString = []
     infoString.append( 'Replication transformation %s was created for %s\nWith plugin %s' % ( transID, groupDescription, plugin ) )
     infoString.append( '\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' % ( inputProd, fileType ) )
-    infoString = string.join( infoString, '\n' )
+    infoString = '\n'.join( infoString )
     result = self.setProdParameter( transID, 'DetailedInfo', infoString )
     if not result['OK']:
       self.LHCbJob.log.error( 'Could not set Transformation DetailedInfo parameter for %s with result %s' % ( transID, result ) )
@@ -1284,7 +1268,7 @@ class Production():
       bkLines.append( 'bkClient = BookkeepingClient()' )
       bkLines.append( 'bkDict = %s' % bkDict )
       bkLines.append( 'print bkClient.addProduction(bkDict)' )
-      fopen.write( string.join( bkLines, '\n' ) + '\n' )
+      fopen.write( '\n'.join( bkLines ) + '\n' )
       fopen.close()
       return S_OK( bkName )
     self.LHCbJob.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
@@ -1325,7 +1309,7 @@ class Production():
     """
 
     if type( pvalue ) == type( [] ):
-      pvalue = string.join( pvalue, '\n' )
+      pvalue = '\n'.join( pvalue )
 
     if type( pvalue ) == type( 2 ):
       pvalue = str( pvalue )
@@ -1360,7 +1344,7 @@ class Production():
     if printOutput:
       for n, v in result['Value'].items():
         if not n.lower() == 'body':
-          print '=' * len( n ), '\n', n, '\n', '='*len( n )
+          print '=' * len( n ), '\n', n, '\n', '=' * len( n )
           print v
         else:
           print '*Omitted Body from printout*'
@@ -1373,12 +1357,12 @@ class Production():
     """Output data related parameters.
     """
     if type( fileMask ) == type( [] ):
-      fileMask = string.join( fileMask, ';' )
+      fileMask = ';'.join( fileMask )
     self._setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
 
     if stepMask:
       if type( stepMask ) == type( [] ):
-        stepMask = string.join( stepMask, ';' )
+        stepMask = ';'.join( stepMask )
     self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
 
   #############################################################################
@@ -1411,16 +1395,6 @@ class Production():
     tier1s = []
     from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
     sites = getSites()
-
-    # fix for bug in RSS 
-#    if not sites['OK']:
-#      return S_ERROR( 'Can\'t get sites list' )
-#    for site in sites['Value']:
-#      tier = getSiteTier( site )
-#      if not tier['OK']:
-#        return S_ERROR( 'Can\'t get site %s tier' % site )
-#      if tier['Value'] in ( ['0'], ['1'] ):
-#        tier1s.append( site )
 
     for site in sites:
       tier = getSiteTier( site )
