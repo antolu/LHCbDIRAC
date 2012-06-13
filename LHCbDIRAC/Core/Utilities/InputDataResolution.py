@@ -11,7 +11,8 @@
 __RCSID__ = "$Id$"
 
 import DIRAC
-from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC                                                          import S_OK, S_ERROR, gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations            import Operations
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 
@@ -148,8 +149,8 @@ class InputDataResolution:
       self.log.info( 'Job has a specific policy setting: %s' % ( ', '.join( policy ) ) )
     else:
       self.log.verbose( 'Attempting to resolve input data policy for site %s' % site )
-      inputDataPolicy = gConfig.getOptionsDict( '/Operations/InputDataPolicy' )
-      if not inputDataPolicy:
+      inputDataPolicy = Operations().getOptionsDict( 'InputDataPolicy' )
+      if not inputDataPolicy['OK']:
         return S_ERROR( 'Could not resolve InputDataPolicy from /Operations/InputDataPolicy' )
 
       options = inputDataPolicy['Value']
