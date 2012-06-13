@@ -17,7 +17,7 @@ gLogger = gLogger.getSubLogger( 'ProductionData' )
 
 #############################################################################
 
-def constructProductionLFNs( paramDict, bkClient = None ):
+def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
   """ Used for local testing of a workflow, a temporary measure until
       LFN construction is tidied.  This works using the workflow commons for
       on the fly construction.
@@ -56,19 +56,9 @@ def constructProductionLFNs( paramDict, bkClient = None ):
     #Strip output data according to file mask
     fileTupleListMasked = _applyMask( wfMask, fileTupleList )
 
-  #  lfnRoot = ''
-  #  debugRoot = ''
-  #  if inputData:
-  #    gLogger.verbose( 'Making LFN_ROOT for job with inputdata: %s' % ( inputData ) )
-  #    lfnRoot = _getLFNRoot( inputData, wfConfigName )
-  #    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
-  #  else:
-  #    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
-  #    gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
-  #    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion )
-    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion, bkClient )
+    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion, bkClient, quick = quick )
     gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
-    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion, bkClient )
+    debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion, bkClient, quick = quick )
 
     gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
     if not lfnRoot:
@@ -101,7 +91,7 @@ def constructProductionLFNs( paramDict, bkClient = None ):
                                             str( productionID ).zfill( 8 ) ) )
 
     #Get log file path - unique for all modules
-    logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', wfConfigName, str( productionID ).zfill( 8 ), log = True )
+    logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', str( productionID ).zfill( 8 ), log = True )
     logFilePath = ['%s/%s' % ( logPath, str( jobID ).zfill( 8 ) )]
     logTargetPath = ['%s/%s_%s.tar' % ( logPath, str( productionID ).zfill( 8 ), str( jobID ).zfill( 8 ) )]
     #[ aside, why does makeProductionPath not append the jobID itself ????
@@ -144,7 +134,7 @@ def _applyMask( mask, dataTuplesList ):
 
 #############################################################################
 
-def getLogPath( paramDict, bkClient = None ):
+def getLogPath( paramDict, bkClient = None, quick = True ):
   """ Can construct log file paths even if job fails e.g. no output files available.
   """
   try:
@@ -159,15 +149,10 @@ def getLogPath( paramDict, bkClient = None ):
     wfConfigVersion = paramDict['configVersion']
 
     gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s' % ( wfConfigName, wfConfigVersion ) )
-  #  lfnRoot = ''
-  #  if inputData:
-  #    lfnRoot = _getLFNRoot( inputData, wfType )
-  #  else:
-  #    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion )
-    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion, bkClient )
+    lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion, bkClient, quick = quick )
 
     #Get log file path - unique for all modules
-    logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', wfConfigName, str( productionID ).zfill( 8 ), log = True )
+    logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', str( productionID ).zfill( 8 ), log = True )
     logFilePath = ['%s/%s' % ( logPath, str( jobID ).zfill( 8 ) )]
     logTargetPath = ['%s/%s_%s.tar' % ( logPath, str( productionID ).zfill( 8 ), str( jobID ).zfill( 8 ) )]
 
@@ -251,9 +236,9 @@ def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2' ):
 
 #############################################################################
 
-def _makeProductionPath( jobID, lfnROOT, typeName, mode, prodstring, log = False ):
+def _makeProductionPath( jobID, lfnROOT, typeName, prodstring, log = False ):
   """ Constructs the path in the logical name space where the output
-      data for the given production will go. In
+      data for the given production will go.
   """
   result = lfnROOT + '/' + typeName.upper() + '/' + prodstring + '/'
   if log:
@@ -289,36 +274,44 @@ def _makeProductionLFN( jobID, lfnROOT, filetuple, prodstring ):
 
 #############################################################################
 
-def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None ):
+def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None, quick = False ):
   """
   return the root path of a given lfn
 
   eg : /lhcb/data/CCRC08/00009909 = getLFNRoot(/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst)
   eg : /lhcb/MC/<year>/  = getLFNRoot(None)
   """
-  if not bkClient:
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-    bkClient = BookkeepingClient()
-
-  dataTypes = bkClient.getFileTypes( {} )
-  if not dataTypes['OK']:
-    raise Exception, dataTypes['Message']
-  dataTypes = [x[0] for x in dataTypes['Value']['Records']]
-  gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( ', '.join( dataTypes ) ) )
   LFN_ROOT = ''
-  gLogger.verbose( 'wf lfn: %s, namespace: %s, configVersion: %s' % ( lfn, namespace, configVersion ) )
+
   if not lfn:
     LFN_ROOT = '/lhcb/%s/%s' % ( namespace, configVersion )
     gLogger.verbose( 'LFN_ROOT will be %s' % ( LFN_ROOT ) )
     return LFN_ROOT
 
   lfn = [fname.replace( ' ', '' ).replace( 'LFN:', '' ) for fname in lfn.split( ';' )]
-  lfnroot = lfn[0].split( '/' )
-  for part in lfnroot:
-    if not part in dataTypes:
+  lfnroot = [part for part in lfn[0].split( '/' ) if part]
+
+  if quick:
+    for part in lfnroot[0:4]:
       LFN_ROOT += '/%s' % ( part )
-    else:
-      break
+
+  else:
+    if not bkClient:
+      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+      bkClient = BookkeepingClient()
+
+    dataTypes = bkClient.getFileTypes( {} )
+    if not dataTypes['OK']:
+      raise Exception, dataTypes['Message']
+    dataTypes = [x[0] for x in dataTypes['Value']['Records']]
+    gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( ', '.join( dataTypes ) ) )
+    gLogger.verbose( 'wf lfn: %s, namespace: %s, configVersion: %s' % ( lfn, namespace, configVersion ) )
+
+    for part in lfnroot:
+      if not part in dataTypes:
+        LFN_ROOT += '/%s' % ( part )
+      else:
+        break
 
   if re.search( '//', LFN_ROOT ):
     LFN_ROOT = LFN_ROOT.replace( '//', '/' )

@@ -4,7 +4,7 @@ import unittest, itertools, os
 
 from mock import Mock
 
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs, _makeProductionLFN, _applyMask, getLogPath
+from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
@@ -22,7 +22,7 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                                             {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
                                                                            'getFileTypes', ( {'': ''}, ) ),
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
-                                                             'Records': [['SDST'], ['PID.MDST'], ['GEN'],
+                                                             'Records': [['SDST'], ['PID.MDST'], ['GEN'], ['DST'],
                                                                          ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
     self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
                                                          'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
@@ -380,6 +380,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
       self.assert_( res['OK'] )
       self.assertEqual( res['Value'], resL )
 
+      resWithBkk = constructProductionLFNs( paramDict, self.bkClientMock, quick = False )
+
+      self.assert_( resWithBkk['OK'] )
+      self.assertEqual( resWithBkk['Value'], resL )
 
   #################################################
 
@@ -446,11 +450,25 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                    'configVersion':'Collision11',
                    'JobType':'MCSimulation'}
 
+    resWithBkk = getLogPath( wkf_commons, self.bkClientMock, quick = False )
+
+    self.assertEqual( resWithBkk, {'OK': True,
+                           'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
+                                     'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
+
     res = getLogPath( wkf_commons, self.bkClientMock )
 
     self.assertEqual( res, {'OK': True,
                            'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
                                      'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
+
+
+  def test__getLFNRoot( self ):
+    res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = self.bkClientMock )
+    self.assertEqual( res, '/lhcb/data/CCRC08/00009909' )
+
+    res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = self.bkClientMock, quick = True )
+    self.assertEqual( res, '/lhcb/data/CCRC08/00009909' )
 
 
 class InputDataResolutionSuccess( UtilitiesTestCase ):
