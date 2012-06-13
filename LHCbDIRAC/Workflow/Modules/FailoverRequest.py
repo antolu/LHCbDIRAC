@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ Create and send a combined request for any pending operations at
     the end of a job:
       fileReport (for the transformation)
@@ -93,17 +90,17 @@ class FailoverRequest( ModuleBase ):
 
       result = self.fileReport.commit()
       if not result['OK']:
-        self.log.error( 'Failed to report file status to TransformationDB, request will be generated', result['Message'] )
+        self.log.error( 'Failed to report file status to TransformationDB, trying again before populating request with file report information' )
         result = self.fileReport.generateRequest()
         if not result['OK']:
-          self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result ) )
+          self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result['Value'] ) )
         else:
-          self.log.info( 'Populating request with file report information' )
-          result = self.request.update( result['Value'] )
+          if result['Value'] is None:
+            self.log.info( 'Files correctly reported to TransformationDB' )
+          else:
+            result = self.request.update( result['Value'] )
       else:
         self.log.info( 'Status of files have been properly updated in the TransformationDB' )
-
-
 
       # Must ensure that the local job report instance is used to report the final status
       # in case of failure and a subsequent failover operation
