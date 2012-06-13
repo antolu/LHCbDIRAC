@@ -103,6 +103,7 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
             modified = True
             work_done = True
           else:
+            gMonitor.addMark( "Failed", 1 )
             gLogger.error( "Failed to upload log file: ", res['Message'] )
         else:
           gLogger.info( "Sub-request %s is status '%s' and  not to be executed." % ( ind, subRequestAttributes['Status'] ) )
@@ -120,72 +121,3 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
         result = self.finalizeRequest( requestName, jobID, self.local )
 
     return S_OK()
-
-#  def uploadLogsForJob( self, jobID, targetSE, lfn ):
-#    """ Upload log files for a given job
-#    """
-#    res = self.rm.replicate( lfn, targetSE )
-#    if not res['OK']:
-#      return res
-
-
-#    workDir = self.workDir + '/' + str( jobID )
-#    if os.path.exists( workDir ):
-#      shutil.rmtree( workDir )
-#    os.makedirs( workDir )
-#
-#    # 1. Output sandbox
-#    sandboxClient = SandboxStoreClient()
-#    result = sandboxClient.downloadSandboxForJob( jobID, 'Output', workDir )
-#    if not result['OK']:
-#      if result['Message'].find( 'No Output sandbox registered for job' ) == -1:
-#        shutil.rmtree( workDir )
-#        return result
-#    if os.path.exists( workDir + '/std.out' ):
-#      os.rename( workDir + '/std.out', workDir + '/jobstd.out' )
-#    if os.path.exists( workDir + '/std.err' ):
-#      os.rename( workDir + '/std.err', workDir + '/jobstd.err' )
-#
-#    # 2. Job Logging history
-#    loggingClient = RPCClient( 'WorkloadManagement/JobMonitoring' )
-#    result = loggingClient.getJobLoggingInfo( jobID )
-#    if not result['OK']:
-#      shutil.rmtree( workDir )
-#      return result
-#
-#    logfile = open( workDir + '/jobLoggingInfo', 'w' )
-#    loggingTupleList = result['Value']
-#    headers = ( 'Status', 'MinorStatus', 'ApplicationStatus', 'DateTime', 'Source' )
-#
-#    line = ''.join( [ x.ljust( 30 ) for x in headers] )
-#    logfile.write( line + '\n' )
-#
-#    for i in loggingTupleList:
-#      line = ''.join( [ x.ljust( 30 ) for x in list( i )] )
-#      logfile.write( line + '\n' )
-#
-#    logfile.close()
-#
-#    # 3. Job Parameters
-#    monitoringClient = RPCClient( 'WorkloadManagement/JobMonitoring' )
-#    result = monitoringClient.getJobParameters( jobID )
-#    if not result['OK']:
-#      shutil.rmtree( workDir )
-#      return result
-#
-#    parDict = result['Value']
-#    parfile = open( workDir + '/jobParameters', 'w' )
-#    for name, value in parDict.items():
-#      parfile.write( name.ljust( 25 ) + ': ' + value + '\n' )
-#    parfile.close()
-#
-#    # 4. Upload files
-#    files = os.listdir( workDir )
-#    for f in files:
-#      result = self.rm.put( path + '/' + f, workDir + '/' + f, targetSE )
-#      if not result['OK']:
-#        shutil.rmtree( workDir )
-#        return result
-#
-#    shutil.rmtree( workDir )
-#    return S_OK()
