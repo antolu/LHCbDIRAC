@@ -172,7 +172,7 @@ def browseBK( bkQuery, ses, scaleFactor ):
           elif se == 'LFN':
             site = 'LFN'
           else:
-            res = getSitesForSE( se, gridName = 'LCG' )
+            res = getSitesForSE( se, gridName='LCG' )
             if res['OK'] and len( res['Value'] ) > 0:
               site = res['Value'][0]
             else: continue
@@ -224,7 +224,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
 
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
 
   from DIRAC import gConfig
   from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -262,16 +262,18 @@ if __name__ == "__main__":
 
   # Create a bkQuery looking at all files
   if bkBrowse:
-    bkQuery = dmScript.getBKQuery( visible = False )
+    bkQuery = dmScript.getBKQuery( visible=False )
     browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
   dirs = dmScript.getOption( 'Directory' )
   prods = None
-  fileTypes = None
+  fileTypes = dmScript.getOption( 'FileType' )
+  if type( fileTypes ) != type( [] ):
+    fileTypes = [fileTypes]
   if not dirs:
     dirs = ['']
-    bkQuery = dmScript.getBKQuery( visible = False )
+    bkQuery = dmScript.getBKQuery( visible=False )
     if bkQuery.getQueryDict():
       print "BK query:", bkQuery
       prods = bkQuery.getBKProductions()
