@@ -678,7 +678,7 @@ if mergingEnabled:
     if mergeApp.lower() == 'davinci':
       mergeProd.addDaVinciStep( mergeVersion, 'merge', mergeOptions, extraPackages = mergeEP, eventType = eventType,
                                 inputDataType = mergeStream.lower(), extraOpts = mergeEO, numberOfEvents = evtsPerJob,
-                                inputProduction = strippProdID, inputData = mergeInputDataList, outputSE = mergedStreamSE,
+                                inputData = mergeInputDataList, outputSE = mergedStreamSE,
                                 stepID = mergeStep, stepName = mergeName, stepVisible = mergeVisibility, stepPass = mergePass,
                                 optionsFormat = mergeOF )
     elif mergeApp.lower() == 'lhcb':
@@ -709,7 +709,6 @@ if mergingEnabled:
                                      'FailoverRequest'] )
 
     mergeProd.setInputBKSelection( mergeBKQuery )
-    mergeProd.setInputDataPolicy( mergeIDPolicy )
     mergeProd.setProdGroup( prodGroup )
     mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     mergeProd.setJobFileGroupSize( mergeFileSize )
@@ -823,7 +822,7 @@ if step4Enabled:
     step4_Prod.setWorkflowName( '%s_%s_%s' % ( step4_Stream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
-      step4_Prod.setSystemConfig( sysConfig )
+      step4_Prod.setJobParameters( { 'SystemConfig': sysConfig } )
 
     step4_Prod.setWorkflowDescription( 'Stream merging workflow for %s files from input production %s' % ( step4_Stream, strippProdID ) )
     step4_Prod.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
@@ -834,7 +833,7 @@ if step4Enabled:
     if step4_App.lower() == 'davinci':
       step4_Prod.addDaVinciStep( step4_Version, 'step4_', step4_Options, extraPackages = step4_EP, eventType = eventType,
                                  inputDataType = step4_Stream.lower(), numberOfEvents = evtsPerJob,
-                                 inputProduction = strippProdID, inputData = step4_InputDataList, outputSE = step4_StreamSE,
+                                 inputData = step4_InputDataList, outputSE = step4_StreamSE,
                                  condDBTag = step4_CDb, ddDBTag = step4_DDDb, DQTag = step4_DQ,
                                  stepID = step4_Step, stepName = step4_Name, stepVisible = step4_Visibility, stepPass = step4_Pass,
                                  optionsFormat = step4_OF )
@@ -859,7 +858,7 @@ if step4Enabled:
                                        'FailoverRequest'] )
 
     step4_Prod.setInputBKSelection( step4_BKQuery )
-    step4_Prod.setInputDataPolicy( step4_IDPolicy )
+    step4_Prod.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     step4_Prod.setProdGroup( prodGroup )
     step4_Prod.setProdPriority( mergePriority )
     step4_Prod.setJobFileGroupSize( mergeFileSize )
