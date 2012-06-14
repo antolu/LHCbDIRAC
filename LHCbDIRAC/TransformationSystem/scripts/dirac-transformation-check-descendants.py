@@ -47,6 +47,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                       import BKQ
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import BookkeepingClient
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks, sortList
 from DIRAC.DataManagementSystem.Client.ReplicaManager                     import ReplicaManager
+from DIRAC import gLogger
 import time
 
 transClient = TransformationClient()
@@ -68,7 +69,9 @@ if fromProd:
 
 runList.sort()
 resetExtension = False
+separator = ''
 for id in idList:
+  print separator
   if resetExtension:
     extension = ''
   print "Processing production", id
@@ -102,7 +105,6 @@ for id in idList:
   if not bkQuery.getQueryDict():
     print "Invalid query", bkquery
     DIRAC.exit( 1 )
-  bkQuery.setOption( 'ReplicaFlag', 'All' )
   print "Executing BK query:"
   if runList:
     print bkQuery
@@ -127,14 +129,11 @@ for id in idList:
   descendants = {}
   metadata = {}
   nbDescendants = {}
-  nbNoReplicas = 0
-  nbNoAndReplicas = 0
   chunkSize = 200
   sys.stdout.write( "Now checking descendants (one dot per %d files) : " % chunkSize )
+  sys.stdout.flush()
   startTime = time.time()
   lfnChunks = breakListIntoChunks( lfns, chunkSize )
-  sys.stdout.write( '.'*len( lfnChunks ) )
-  sys.stdout.flush()
   for lfnChunk in lfnChunks:
     res = bk.getFileDescendents( lfnChunk, depth=1, production=id, checkreplica=False )
     if res['OK']:
@@ -154,62 +153,95 @@ for id in idList:
       print "Error getting the metadata"
       continue
     metadata.update( res['Value'] )
-    sys.stdout.write( "\b \b" )
+    sys.stdout.write( '.' )
     sys.stdout.flush()
+  print "\nDescendants checked in %.3f s" % ( time.time() - startTime )
 
+  startTime = time.time()
   print ""
   noReplicas = {}
+  multiDescendants = {}
   status = {}
+  missingReplicaFlag = []
+  withReplicaFlag = []
   for lfn in descendants:
-      stat = [f['Status'] for f in transFiles if f['LFN'] == lfn]
-      if stat:
-        status[lfn] = stat[0]
-      else:
-        status[lfn] = ''
-      noReplicas[lfn] = [d for d in descendants[lfn] if metadata.get( d, {} ).get( 'GotReplica', 'No' ) != 'Yes']
-      descendants[lfn] = [d for d in descendants[lfn] if metadata.get( d, {} ).get( 'GotReplica', 'No' ) == 'Yes']
-      if noReplicas[lfn]:
-          res = rm.getReplicas( noReplicas[lfn] )
-          if res['OK']:
-              replicas = res['Value']['Successful']
-              if replicas:
-                  for rep in replicas:
-                      print rep, "doesn't have the replica flag while it has %d replicas" % len( replicas[rep] )
-                      noReplicas[lfn].remove( rep )
-                      descendants[lfn].append( rep )
-                  res = bk.addFiles( replicas.keys() )
-                  if res['OK']:
-                      print "Successfully added replica flag to %d files" % len( replicas )
+    stat = [f['Status'] for f in transFiles if f['LFN'] == lfn]
+    if stat:
+      status[lfn] = stat[0]
+    else:
+      status[lfn] = ''
+    if len( descendants[lfn] ) > 1:
+      multiDescendants[lfn] = descendants[lfn]
+    noReplicas[lfn] = [d for d in descendants[lfn] if metadata.get( d, {} ).get( 'GotReplica', 'No' ) != 'Yes']
+    descendants[lfn] = [d for d in descendants[lfn] if metadata.get( d, {} ).get( 'GotReplica', 'No' ) == 'Yes']
+    missingReplicaFlag += noReplicas[lfn]
+    withReplicaFlag += descendants[lfn]
+  if missingReplicaFlag:
+    replicas = []
+    if len( withReplicaFlag ) > len( missingReplicaFlag ):
+      print "Checking LFC for %d files without replica  flag" % len( missingReplicaFlag )
+      res = rm.getReplicas( missingReplicaFlag )
+      if res['OK']:
+        replicas = res['Value']['Successful']
+    else:
+      dirs = []
+      for lfn in missingReplicaFlag:
+        dir = os.path.dirname( lfn )
+        if dir not in dirs:
+          dirs.append( dir )
+      dirs.sort()
+      print "Checking LFC for %d directories containing files without replica flag" % len( dirs )
+      gLogger.setLevel( 'FATAL' )
+      res = rm.getFilesFromDirectory( dirs )
+      gLogger.setLevel( 'WARNING' )
+      if not res['OK']:
+        print "Error getting files from directories %s:" % dirs, res['Message']
+        continue
+      if res['Value']:
+        res = rm.getReplicas( res['Value'] )
+        if res['OK']:
+          replicas = res['Value']['Successful']
+    for lfn in [lfn for lfn in noReplicas if noReplicas[lfn]]:
+      reps = [ r for r in noReplicas[lfn] if r in replicas]
+      if reps:
+        for rep in reps:
+          print rep, "doesn't have the replica flag while it has %d replicas" % len( replicas[rep] )
+          noReplicas[lfn].remove( rep )
+          descendants[lfn].append( rep )
+        res = bk.addFiles( reps )
+        if res['OK']:
+          print "Successfully added replica flag to %d files" % len( replicas )
 
-  lfnsWithoutDescendants = [lfn for lfn in lfns if not descendants[lfn]]
+
+  lfnsWithoutDescendants = [lfn for lfn in lfns if not descendants.get( lfn ) and not noReplicas.get( lfn )]
   lfnsNotProcessed = [lfn for lfn in status if status[lfn] != 'Processed' and descendants[lfn]]
   for lfn in descendants:
     nb = len( descendants[lfn] )
     nbDescendants[nb] = nbDescendants.setdefault( nb, 0 ) + 1
-  for lfn in [lfn for lfn in noReplicas if noReplicas[lfn]]:
-      if descendants[lfn]:
-          nbNoAndReplicas += 1
-      else:
-          nbNoReplicas += 1
-  print "Descendants checked in %.3f s" % ( time.time() - startTime )
+  nbNoAndReplicas = len( [lfn for lfn in noReplicas if noReplicas[lfn] and descendants[lfn]] )
+  nbNoReplicas = len( [lfn for lfn in noReplicas if noReplicas[lfn] and not descendants[lfn]] )
+
+  print "Replicas checked in %.3f s" % ( time.time() - startTime )
+
+  if multiDescendants:
+    print '\n%d file(s) with more than one descendant:' % len( multiDescendants )
+    for lfn in multiDescendants:
+      print '\t%s: %s' % ( lfn, multiDescendants[lfn] )
+
   if len( lfnsWithoutDescendants ):
-    res = transClient.getTransformationFiles( {'TransformationID':id, 'LFN':lfnsWithoutDescendants} )
-    if res['OK']:
-        fileList = res['Value']
-    else:
-        fileList = {}
-    print "\n%d files have no descendants with replicas in production %d" % ( len( lfnsWithoutDescendants ), id )
+    print "\n%d files have no descendants in production %d" % ( len( lfnsWithoutDescendants ), id )
     lfnsToAdd = []
+    lfnsStatus = {}
     for lfn in lfnsWithoutDescendants:
-      status = [fileDict['Status'] for fileDict in fileList if fileDict['LFN'] == lfn]
-      if status:
-          status = status[0]
+      status = [fileDict['Status'] for fileDict in transFiles if fileDict['LFN'] == lfn]
+      if not status:
+        lfnsToAdd.append( lfn )
       else:
-          status = 'Not in transformation files'
-          lfnsToAdd.append( lfn )
+        lfnsStatus[lfn] = status
     if lfnsToAdd:
       if not fixIt:
         print "==> Files can be added with option --FixIt\n"
+        print lfnsToAdd
       else:
         nbFiles = 0
         res = transClient.addFilesToTransformation( id, lfnsToAdd )
@@ -229,19 +261,17 @@ for id in idList:
                 if res['OK']:
                   nbFiles += len( runFiles[runID] )
         print "%d files successfully added to production %d" % ( nbFiles, id )
-
+    if lfnsStatus:
+      print "%d files have no descendants but are in the transformation table" % len( lfnsStatus )
+      for lfn, status in lfnsStatus.items():
+        print '\t%s : %s' % ( lfn, status )
   else:
     print "All files have descendants in production %d" % id
 
   if len( lfnsNotProcessed ):
-    res = transClient.getTransformationFiles( {'TransformationID':id, 'LFN':lfnsNotProcessed} )
-    if res['OK']:
-        fileList = res['Value']
-    else:
-        fileList = {}
-    print "\nThe following %d files have descendants but are not Processed in production %d" % ( len( lfnsNotProcessed ), id )
+    print "\nThe following %d files have descendants but don't have status 'Processed' in production %d" % ( len( lfnsNotProcessed ), id )
     for lfn in lfnsNotProcessed:
-      status = [fileDict['Status'] for fileDict in fileList if fileDict['LFN'] == lfn]
+      status = [fileDict['Status'] for fileDict in transFiles if fileDict['LFN'] == lfn]
       if status:
           status = status[0]
       else:
@@ -258,15 +288,15 @@ for id in idList:
       prStr += " setting the %d files as Processed in production %d" % ( len( lfnsNotProcessed ), id )
       print prStr
   else:
-    print "All files with descendants are set Processed in production %d" % id
+    print "All files with descendants have status 'Processed' in production %d" % id
 
 
-  print "Number of files for number of descendants:"
+  print "Number of files per number of descendants with replicas:"
   for nb in sortList( nbDescendants ):
-      print "%2d : %d" % ( nb, nbDescendants[nb] )
+      print "%2d descendants: %d files" % ( nb, nbDescendants[nb] )
   if nbNoReplicas:
       print "%2d files have descendants with no replicas" % nbNoReplicas
   if nbNoAndReplicas:
       print "%2d files have descendants with and without replicas" % nbNoAndReplicas
 
-  print '=' * 50 + '\n'
+  separator = '=' * 50 + '\n'
