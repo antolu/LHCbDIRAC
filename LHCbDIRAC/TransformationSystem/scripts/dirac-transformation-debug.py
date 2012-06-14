@@ -395,8 +395,8 @@ for id in idList:
                                         print "Task is failed: %d files reset Unused" % len( lfns )
                                 else:
                                     print "Task is failed: %d files could be reset Unused: use --KickRequest option" % len( lfns )
-                            if taskCompleted and task['ExternalStatus'] != 'Done':
-                                prString = "Task %s is completed: no %s files" % ( requestName, statComment )
+                            if taskCompleted and ( task['ExternalStatus'] != 'Done' or status == 'Assigned' ):
+                                prString = "Task %s is completed: no %s replicas" % ( requestName, statComment )
                                 if kickRequests:
                                   if requestName:
                                     res = reqClient.setRequestStatus( requestName, 'Done' )
