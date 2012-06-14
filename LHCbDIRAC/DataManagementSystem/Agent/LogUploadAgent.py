@@ -95,7 +95,9 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
         lfn = subRequestFiles[0]['LFN']
         gLogger.info( "Processing sub-request %s with execution order %d" % ( ind, subExecutionOrder ) )
         if subStatus == 'Waiting' and subExecutionOrder <= currentOrder:
-          res = self.rm.replicate( lfn, targetSE )
+          destination = '/'.join( lfn.split( '/' )[0:-1] ) + \
+          '/' + ( os.path.basename( lfn ) ).split( '_' )[1].split( '.' )[0]
+          res = self.rm.replicate( lfn, targetSE, destPath = destination )
           if res['OK']:
             gLogger.info( "Successfully uploaded %s to %s for job %s." % ( lfn, targetSE, jobID ) )
             oRequest.setSubRequestStatus( ind, 'logupload', 'Done' )
