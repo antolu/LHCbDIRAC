@@ -9,6 +9,8 @@ import os, datetime, pickle, Queue, time, threading
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
 from DIRAC.TransformationSystem.Agent.TransformationAgent              import TransformationAgent as DIRACTransformationAgent
 from DIRAC.TransformationSystem.Agent.TransformationAgent              import AGENT_NAME
+from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 
 class TransformationAgent( DIRACTransformationAgent ):
   def initialize( self ):
@@ -24,6 +26,8 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.transInQueue = []
     self.lock = threading.Lock()
     self.__readCache()
+    self.rm = ReplicaManager()
+    self.transClient = TransformationClient()
     # Validity of the cache in days
     self.replicaCacheValidity = 2
     self.log.debug( "*************************************************" )
@@ -171,10 +175,17 @@ class TransformationAgent( DIRACTransformationAgent ):
       if lock: self.lock.release()
 
   def __generatePluginObject( self, plugin ):
-    res = DIRACTransformationAgent.__generatePluginObject( self, plugin )
-    if not res['OK']:
-      return res
-    oplugin = res['Value']
+    try:
+      plugModule = __import__( self.pluginLocation, globals(), locals(), ['TransformationPlugin'] )
+    except Exception, x:
+      gLogger.exception( "%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME, '', x )
+      return S_ERROR()
+    try:
+      evalString = "plugModule.TransformationPlugin('%s', replicaManager=self.rm, transClient=self.transClient)" % plugin
+      oplugin = eval( evalString )
+    except Exception, x:
+      gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
+      return S_ERROR()
     oplugin.setDirectory( self.workDirectory )
     oplugin.setCallback( self.pluginCallback )
     if self.debug:
