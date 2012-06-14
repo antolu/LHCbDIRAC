@@ -589,16 +589,6 @@ if outputFileMask:
 if validationFlag:
   configName = 'validation'
 
-#defaultEvtOpts = gConfig.getValue( '/Operations/Gauss/EvtOpts', '$DECFILESROOT/options/{{eventType}}.opts' )
-#if not defaultEvtOpts in gaussOptions:
-#  gaussOptions += ';%s' % defaultEvtOpts
-
-#defaultGenOpts = gConfig.getValue( '/Operations/Gauss/Gen{{Generator}}Opts', '$LBBCVEGPYROOT/options/{{Generator}}.py' )
-#if not defaultGenOpts in gaussOptions:
-#  gaussOptions += ';%s' % defaultGenOpts
-
-
-
 if merging:
   prodDescription = prodDescription + ' + Merging'
 
