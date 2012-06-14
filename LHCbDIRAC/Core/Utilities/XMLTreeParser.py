@@ -1,8 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   XMLTreeParser.py
-########################################################################
-
 """Generic XMLParser used to convert a XML file into more
    pythonic style. A tree ox XMLNodes.
 """
@@ -75,10 +70,10 @@ class XMLTreeParser:
 
   def __getAttributesDict( self, attributes ):
     """ get the attributes in a dictionnary """
-    dictionnary = {}
+    dictionary = {}
     for attr in attributes.attributes.values():
-      dictionnary[ attr.name.encode( 'ascii' ) ] = attr.value.encode( 'ascii' )
-    return dictionnary
+      dictionary[ attr.name.encode( 'ascii' ) ] = attr.value.encode( 'ascii' )
+    return dictionary
 
   def __handleTextElement( self, textElement ):
     """ treat the Text element """

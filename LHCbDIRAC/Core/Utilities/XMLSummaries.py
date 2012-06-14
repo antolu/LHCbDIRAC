@@ -4,7 +4,7 @@
 __RCSID__ = "$Id$"
 
 import os
-from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC import S_OK, S_ERROR
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
 
@@ -30,7 +30,7 @@ class XMLSummary:
     """
 
     if not log:
-#      from DIRAC import gLogger
+      from DIRAC import gLogger
       self.log = gLogger.getSubLogger( 'XMLSummary' )
     else:
       self.log = log
