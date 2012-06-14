@@ -93,7 +93,7 @@ if __name__ == "__main__":
       if res['Value']:
         res = rm.getReplicas( res['Value'] )
         if res['OK']:
-          existingLFNs = res['Value']['Successful']
+          existingLFNs = res['Value']['Successful'].keys()
 
 
     print ""
