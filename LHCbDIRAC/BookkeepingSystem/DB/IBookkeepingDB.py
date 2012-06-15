@@ -76,7 +76,7 @@ class IBookkeepingDB(object):
     gLogger.error('This method is not implemented!')
 
   #############################################################################
-  def getProductions(self, configName, configVersion, conddescription, processing, evt):
+  def getProductions(self, configName, configVersion, conddescription, processing, evt, visible):
     gLogger.error('This method is not implemented!')
 
   #############################################################################

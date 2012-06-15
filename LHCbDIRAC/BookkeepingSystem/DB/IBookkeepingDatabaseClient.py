@@ -76,8 +76,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProcessingPass(configName, configVersion, conddescription, runnumber, prod, evt, path)
 
   #############################################################################
-  def getProductions(self, configName, configVersion, conddescription, processing, evt):
-    return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt)
+  def getProductions(self, configName, configVersion, conddescription, processing, evt, visible):
+    return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt, visible)
 
   #############################################################################
   def getFileTypes(self, configName, configVersion, conddescription, processing, evt, runnb, production):

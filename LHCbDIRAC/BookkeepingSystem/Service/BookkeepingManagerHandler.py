@@ -250,11 +250,11 @@ class BookkeepingManagerHandler( RequestHandler ):
     conddescription = dict.get('ConditionDescription', default)
     processing = dict.get('ProcessingPass', default)
     evt = dict.get('EventType', dict.get('EventTypeId', default))
-
+    visible = dict.get('Visible','Y')
     if 'EventTypeId' in dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
-    retVal = dataMGMT_.getProductions(configName, configVersion, conddescription, processing, evt)
+    retVal = dataMGMT_.getProductions(configName, configVersion, conddescription, processing, evt, visible)
     if retVal['OK']:
       records = []
       parameters = ['Production/RunNumber']

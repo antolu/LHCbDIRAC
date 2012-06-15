@@ -751,36 +751,73 @@ class OracleBookkeepingDB(IBookkeepingDB):
       return retVal
 
   #############################################################################
-  def getProductions(self, configName=default, configVersion=default, conddescription=default, processing=default, evt=default):
+  def getProductions(self, configName=default, configVersion=default, conddescription=default, processing=default, evt=default, visible='Y'):
 
-    condition = ''
-    if configName != default:
-      condition += " and bview.configname='%s'" % (configName)
-    if configVersion != default:
-      condition += " and bview.configversion='%s'" % (configVersion)
+    command = ''
+    if visible == 'Y':
+      condition = ''
+      if configName != default:
+        condition += " and bview.configname='%s'" % (configName)
+      if configVersion != default:
+        condition += " and bview.configversion='%s'" % (configVersion)
 
-    if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'pcont')
-      if retVal['OK']:
-        condition += retVal['Value']
+      if conddescription != default:
+        retVal = self._getConditionString(conddescription, 'pcont')
+        if retVal['OK']:
+          condition += retVal['Value']
+        else:
+          return retVal
+
+      if evt != default:
+        condition += ' and bview.eventtypeid=%d' % (int(evt))
+
+      if processing != default:
+        command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from \
+                   productionscontainer pcont,prodview bview \
+                   where pcont.processingid in \
+                      (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                             FROM processing v   START WITH id in (select distinct id from processing where name='" + str(processing.split('/')[1]) + "') \
+                                                CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                       where v.path='" + processing + "') \
+                    and bview.production=pcont.production " + condition
       else:
-        return retVal
-
-    if evt != default:
-      condition += ' and bview.eventtypeid=' + str(evt)
-
-    if processing != default:
-      command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from \
-                 productionscontainer pcont,prodview bview \
-                 where pcont.processingid in \
-                    (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                           FROM processing v   START WITH id in (select distinct id from processing where name='" + str(processing.split('/')[1]) + "') \
-                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                     where v.path='" + processing + "') \
-                  and bview.production=pcont.production " + condition
+        command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from productionscontainer pcont,prodview bview where \
+                   bview.production=pcont.production " + condition
     else:
-      command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from productionscontainer pcont,prodview bview where \
-                 bview.production=pcont.production " + condition
+      condition = ''
+      tables = ''
+      if configName != default:
+        condition += " and c.configname='%s'" % (configName)
+      if configVersion != default:
+        condition += " and c.configversion='%s'" % (configVersion)
+      if condition.find('and c.') >= 0:
+        tables += ',configurations c, jobs j'
+        condition += ' and j.configurationid=c.configurationid '
+
+      if conddescription != default:
+        retVal = self._getConditionString(conddescription, 'pcont')
+        if retVal['OK']:
+          condition += retVal['Value']
+        else:
+          return retVal
+
+      if evt != default:
+        tables += 'files f'
+        condition += ' and f.eventtypeid=%d and j.jobid=f.jobid' % (int(evt))
+        if tables.find('jobs') < 0:
+          tables += ',jobs j'
+
+      if processing != default:
+        command = "select distinct j.production from \
+                   productionscontainer pcont %s \
+                   where pcont.processingid in \
+                      (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                             FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                                CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                       where v.path='%s') \
+                    and j.production=pcont.production %s" % (tables, str(processing.split('/')[1]), processing, condition)
+      else:
+        command = "select distinct j.production from productionscontainer pcont %s where  pcont.production=j.production %s " % (condition)
     return self.dbR_._query(command)
 
   #############################################################################
@@ -3331,9 +3368,9 @@ and files.qualityid= dataquality.qualityid'
 
     if prod != default:
       if condition == '':
-        condition += " prodview.production=%d" % (prod)
+        condition += " prodview.production=%d" % (int(prod))
       else:
-        condition += " and prodview.production=%d" % (prod)
+        condition += " and prodview.production=%d" % (int(prod))
 
     command = ' select distinct prodview.eventtypeid, prodview.description from  prodview where ' + condition
     retVal = self.dbR_._query(command)
@@ -3671,9 +3708,9 @@ and files.qualityid= dataquality.qualityid'
               values[desc].update({rnb:[]})
         else:
           if prod > 0:
-            values[desc]= {rnb:[prod]}
+            values[desc] = {rnb:[prod]}
           else:
-            values[desc]= {rnb:[]}
+            values[desc] = {rnb:[]}
       result = S_OK(values)
     else:
       result = retVal
