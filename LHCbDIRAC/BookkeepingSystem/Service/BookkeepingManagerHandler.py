@@ -310,6 +310,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     quality = dict.get('DataQuality', dict.get('Quality', default))
     runnb = dict.get('RunNumber', default)
     visible = dict.get('Visible','Y')
+    replicaFlag = dict.get('ReplicaFlag', default)
 
     if 'EventTypeId' in dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
@@ -317,7 +318,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if 'Quality' in dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
-    retVal = dataMGMT_.getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible)
+    retVal = dataMGMT_.getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible, replicaFlag)
     if retVal['OK']:
       records = []
       parameters = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'Name', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',

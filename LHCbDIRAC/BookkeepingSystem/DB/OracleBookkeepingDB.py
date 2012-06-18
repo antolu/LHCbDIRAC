@@ -752,9 +752,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
 
   #############################################################################
   def getProductions(self, configName=default, configVersion=default, conddescription=default, processing=default, evt=default, visible='Y'):
-
+    #### MUST BE REIMPLEMNETED!!!!!!
+    ####
+    ####
     command = ''
-    if visible == 'Y':
+    if visible.upper().find('Y') >= 0:
       condition = ''
       if configName != default:
         condition += " and bview.configname='%s'" % (configName)
@@ -801,8 +803,14 @@ class OracleBookkeepingDB(IBookkeepingDB):
         else:
           return retVal
 
+      if visible.upper().find('A') < 0:
+        if tables.find('files') < 0:
+          tables += ',files f'
+        condition += " and f.jobid=j.jobid and f.visibilityflag='N' "
+
       if evt != default:
-        tables += 'files f'
+        if tables.find('files') < 0:
+          tables += ',files f'
         condition += ' and f.eventtypeid=%d and j.jobid=f.jobid' % (int(evt))
         if tables.find('jobs') < 0:
           tables += ',jobs j'
@@ -878,7 +886,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbR_._query(command)
 
   #############################################################################
-  def getFilesWithMetadata(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default, visible='Y'):
+  def getFilesWithMetadata(self, configName, configVersion, conddescription=default, processing=default, evt=default, production=default, filetype=default, quality=default, runnb=default, visible='Y', replicaflag=default):
     condition = ''
 
     tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
@@ -904,7 +912,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       tables += ' ,prodview bview'
       condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (str(evt))
     elif evt != default and visible == 'N':
-      condition += '  and j.production=prod.production and f.eventtypeid=%s ' % (str(evt))
+      condition += '  and f.eventtypeid=%s ' % (str(evt))
 
     if production != default:
       condition += ' and j.production=' + str(production)
@@ -931,9 +939,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
       elif filetype != default:
         condition += " and ftypes.name='%s' " % (str(filetype))
 
+    if replicaflag != default:
+      condition += " and f.gotreplica='%s'" % (replicaflag)
+
     if quality != default:
       if type(quality) == types.StringType:
-        command = "select QualityId from dataquality where dataqualityflag='" + str(quality) + "'"
+        command = "select QualityId from dataquality where dataqualityflag='%s'" % (quality)
         res = self.dbR_._query(command)
         if not res['OK']:
           gLogger.error('Data quality problem:', res['Message'])
@@ -978,8 +989,8 @@ class OracleBookkeepingDB(IBookkeepingDB):
     j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s  where \
     j.jobid=f.jobid and \
     d.qualityid=f.qualityid and \
-    f.gotreplica='Yes' and \
     ftypes.filetypeid=f.filetypeid and \
+    j.production=prod.production and \
     j.configurationid=c.configurationid %s" % (tables, condition)
     return self.dbR_._query(command)
 
