@@ -632,16 +632,9 @@ if mergingEnabled:
                     'ProductionID'             : mergeInput,
                     'FileType'                 : mergeStream
                     }
-      #below should be integrated in the ProductionOptions utility
-#    if mergeApp.lower() == 'davinci':
-#      dvExtraOptions = "from Configurables import RecordStream;"
-#      dvExtraOptions += "FileRecords = RecordStream(\"FileRecords\");"
-#      dvExtraOptions += "FileRecords.Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\""
-
     ###########################################
     # Create the merging production
     ###########################################
-
 
     mergeProd = Production()
     mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )

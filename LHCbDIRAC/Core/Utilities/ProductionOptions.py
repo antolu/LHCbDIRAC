@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ Production options is a utility to return options for projects based on
     current LHCb software versions.  This is used by the production API to
     create production workflows but also provides lists of options files for
@@ -9,134 +6,14 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
-
-import re
+from DIRAC import S_OK, gLogger
 
 gLogger = gLogger.getSubLogger( 'ProductionOptions' )
 
 #############################################################################
-def getOptions( appName, outputFileType, extraOpts = None, inputType = None,
-                histogram = '@{applicationName}_@{STEP_ID}_Hist.root',
-                condDB = '@{CondDBTag}', ddDB = '@{DDDBTag}', production = True ):
-  """ Simple function to create the default options for a given project name.
 
-      Assumes CondDB tags and event max are required.
-  """
-  options = []
-
-  #To resolve MC / Upgrade case
-  if condDB.lower() == 'global':
-    condDB = '@{CondDBTag}'
-  if ddDB.lower() == 'global':
-    ddDB = '@{DDDBTag}'
-
-  #General options
-  options.append( "from Configurables import LHCbApp" )
-  options.append( "LHCbApp().XMLSummary='@{XMLSummary}'" )
-  dddbOpt = "LHCbApp().DDDBtag = \"%s\"" % ( ddDB )
-  conddbOpt = "LHCbApp().CondDBtag = \"%s\"" % ( condDB )
-
-  evtOpt = "ApplicationMgr().EvtMax = @{numberOfEvents}"
-#  options.append("MessageSvc().Format = '%u % F%18W%S%7W%R%T %0W%M';MessageSvc().timeFormat = '%Y-%m-%d %H:%M:%S UTC'")
-  options.append( "HistogramPersistencySvc().OutputFile = \"%s\"" % ( histogram ) )
-  if appName.lower() == 'gauss':
-    options.append( "OutputStream(\"GaussTape\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-  elif appName.lower() == 'boole':
-    if outputFileType.lower() == 'mdf':
-      options.append( "OutputStream(\"RawWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' SVC=\'LHCb::RawDataCnvSvc\' OPT=\'RECREATE\'\"" )
-      options.append( "OutputStream(\"RawWriter\").OutputLevel = INFO" )
-    elif outputFileType.lower() == 'xdigi':
-      #no explicit output type like Brunel for Boole...
-      options.append( 'from Configurables import Boole' )
-      options.append( 'Boole().DigiType = "Extended"' )
-      options.append( "OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-    else:
-      options.append( "OutputStream(\"DigiWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-  elif appName.lower() == 'brunel':
-    options.append( "Brunel().NoWarnings = True" )
-    options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-    options.append( "from Configurables import Brunel" )
-    if outputFileType.lower() == 'xdst':
-      options.append( "Brunel().OutputType = 'XDST'" )
-    elif outputFileType.lower() == 'dst':
-      options.append( "Brunel().OutputType = 'DST'" )
-    elif outputFileType.lower() == 'rdst':
-      options.append( "Brunel().OutputType = 'RDST'" )
-    elif outputFileType.lower() == 'sdst':
-      options.append( "Brunel().OutputType = 'SDST'" )
-#    options.append("from Configurables import RecInit")
-#    options.append('RecInit("Brunel").PrintFreq = 100')
-
-  elif appName.lower() == 'davinci':
-    options.append( 'from DaVinci.Configuration import *' )
-    #DaVinci AppConfig options persistently override the EvtMax...
-    options.append( 'DaVinci().EvtMax=@{numberOfEvents}' )
-    #for the stripping some options override the above Gaudi level setting
-    options.append( "DaVinci().HistogramFile = \"%s\"" % ( histogram ) )
-    # If we want to generate an FETC for the first step of the stripping workflow
-    if outputFileType.lower() == 'fetc' or outputFileType.lower() == 'setc':
-      options.append( "DaVinci().ETCFile = \"@{outputData}\"" )
-    elif outputFileType.lower() == 'dst' and inputType not in ['sdst', 'dst']: #e.g. not stripping
-      options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-    elif outputFileType.lower() == 'mdst':
-      options.append( 'from Configurables import MicroDSTWriter' )
-      options.append( 'MicroDSTWriter("BetaSMicroDST").OutputFileSuffix  = \'@{STEP_ID}\'' )
-    elif outputFileType.lower() == 'fmdst':
-      options.append( 'from KaliCalo.Configuration import KaliPi0Conf' )
-      options.append( 'KaliPi0Conf(FemtoDST = \'@{outputData}\', PrintFreq = 10000, OutputLevel = ERROR)' )
-    elif outputFileType.lower() == 'davincihist':
-      options.append( 'from Configurables import InputCopyStream' )
-      options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
-      options.append( 'DaVinci().MoniSequence.append(InputCopyStream())' )
-    elif outputFileType.lower() == 'merge':
-      options.append( 'from Configurables import InputCopyStream' )
-      options.append( 'InputCopyStream().Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'REC\'\"' )
-    elif ( re.match( '[a-z,A-Z,0-9.]*dst', outputFileType.lower() ) or outputFileType.lower() == 'stripping' ) and inputType in ['sdst', 'dst']: #e.g. stripping
-      options.append( 'from Configurables import SelDSTWriter' )
-      options.append( 'SelDSTWriter("MyDSTWriter").OutputFileSuffix = \'@{STEP_ID}\'' )
-    elif re.match( '[a-z,A-Z,0-9,.]*dst', outputFileType.lower() ) and re.match( '[a-z,A-Z,0-9.]*dst', inputType.lower() ): #for WG
-      options.append( "OutputStream(\"DstWriter\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"" )
-
-
-  elif appName.lower() == 'merge':
-    options.append( 'from Configurables import LbAppInit' )
-    options.append( 'MyAlg = LbAppInit()' )
-    options.append( "ApplicationMgr().TopAlg += [ MyAlg ]" )
-    options.append( "from Configurables import LHCbApp" )
-    options.append( 'OutputStream(\"InputCopyStream\").Output = \"DATAFILE=\'PFN:@{outputData}\' TYP=\'POOL_ROOTTREE\' OPT=\'RECREATE\'\"' )
-
-    if outputFileType.lower() == 'fmdst':
-      options.append( 'EventSelector().PrintFreq = 1000' )
-
-    return options
-
-  elif appName.lower() == 'moore':
-    options.append( 'from Configurables import Moore' )
-    options.append( 'Moore().outputFile = \'@{outputData}\'' )
-    #Note this is the only case where the DB Tags are overwritten
-    dddbOpt = "Moore().DDDBtag = \"%s\"" % ( ddDB )
-    conddbOpt = "Moore().CondDBtag = \"%s\"" % ( condDB )
-
-  else:
-    gLogger.warn( 'No specific options found for project %s' % appName )
-
-  postConfig = 'def forceOptions():\n  MessageSvc().Format = "%u % F%18W%S%7W%R%T %0W%M"\n  MessageSvc().timeFormat = "%Y-%m-%d %H:%M:%S UTC"\nappendPostConfigAction(forceOptions)'
-
-  if extraOpts:
-    options.append( extraOpts )
-
-  if production:
-    options.append( dddbOpt )
-    options.append( conddbOpt )
-    options.append( evtOpt )
-
-  options.append( postConfig )
-  return options
-
-#############################################################################
-
-def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOptions = '', runNumber = 0, firstEventNumber = 1, jobType = '' ):
+def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOptions = '',
+                      runNumber = 0, firstEventNumber = 1, jobType = '' ):
   """ Return the standard options for a Gaudi application project to be used at run time
       by the workflow modules.  The input data options field is a python list (output of
       getInputDataOptions() below). The runNumber and firstEventNumber only apply in the Gauss case
@@ -187,82 +64,5 @@ def getDataOptions( applicationName, inputDataList, inputDataType, poolXMLCatalo
   poolOpt = """\nFileCatalog().Catalogs= ["xmlcatalog_file:%s"]\n""" % ( poolXMLCatalogName )
   options.append( poolOpt )
   return S_OK( options )
-
-#############################################################################
-def getEventSelectorInput( inputDataList, inputDataType ):
-  """ Returns the correctly formatted event selector options for accessing input
-      data using Gaudi applications.
-  """
-  inputDataFiles = []
-  for lfn in inputDataList:
-    lfn = lfn.replace( 'LFN:', '' ).replace( 'lfn:', '' )
-    if inputDataType == "MDF":
-      inputDataFiles.append( """ "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ % ( lfn ) )
-    elif inputDataType in ( "ETC", "SETC", "FETC" ):
-      inputDataFiles.append( """ "COLLECTION='TagCreator/EventTuple' DATAFILE='LFN:%s' TYP='POOL_ROOT' SEL='(StrippingGlobal==1)' OPT='READ'", """ % ( lfn ) )
-    elif inputDataType == 'RDST':
-      if re.search( 'rdst$', lfn ):
-        inputDataFiles.append( """ "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % ( lfn ) )
-      else:
-        gLogger.info( 'Ignoring file %s for step with input data type %s' % ( lfn, inputDataType ) )
-    else:
-      inputDataFiles.append( """ "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % ( lfn ) )
-
-  inputDataOpt = '\n'.join( inputDataFiles )[:-2]
-  return S_OK( inputDataOpt )
-
-#############################################################################
-def printOptions( project = '', printOutput = True ):
-  #FIXME: totally unused up to now
-  """ A simple method to print all currently used project options in a nicely
-      formatted way.  This also allows to restrict printing to options for a
-      given project if desired. The list of projects is:
-      Gauss, Boole, Brunel, DaVinci and Merge (case insensitive).
-  """
-  appDict = {}
-  appDict[ 'Gauss' ] = [ 'sim;None'                                      ]
-  appDict[ 'Boole' ] = [ 'mdf;sim', 'digi;sim'                          ]
-  appDict[ 'Brunel' ] = [ 'dst;digi', 'rdst;mdf', 'dst;fetc', 'xdst;digi' ]
-  appDict[ 'DaVinci' ] = [ 'dst;rdst', 'dst;dst', 'fetc;rdst'             ]
-  appDict[ 'Merge' ] = [ 'dst;dst'                                       ]
-
-  apps = appDict.keys()
-  apps.sort()
-
-  for i in apps:
-    if project.lower() == i.lower():
-      project = i
-
-  if appDict.has_key( project ):
-    apps = [project]
-
-  for app in apps:
-    dataFlows = appDict[app]
-    for data in dataFlows:
-      appType = data.split( ';' )[0]
-      inputFileType = data.split( ';' )[1]
-      print '\n========> %s ( %s -> %s )' % ( app, inputFileType.upper(), appType.upper() )
-      opts = getOptions( app, appType, inputType = inputFileType )
-      for opt in opts:
-        print opt
-
-#############################################################################
-def getTestOptions( projectName ):
-  """ Under development. Function to retrieve arbitrary working options for running a test job. Not
-      all processing cases are supported, this is intended only to return working options
-      for a simple test job as a computing exercise only.
-  """
-  testOpts = {}
-  testOpts[ 'gauss' ] = '$GAUSSROOT/tests/options/testGauss-gen-10evts-defaults.py'
-  testOpts[ 'boole' ] = '$BOOLEROOT/tests/options/testBoole-defaults.py'
-  testOpts[ 'brunel' ] = '$BRUNELROOT/tests/options/testBrunel-defaults.py'
-  testOpts[ 'davinci' ] = '$DAVINCIROOT/options/DaVinci-MC09.py'
-
-  apps = testOpts.keys()
-
-  if not projectName.lower() in apps:
-    return S_ERROR( 'Could not find test options for project %s' % projectName )
-
-  return S_OK( testOpts[projectName.lower()] )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
