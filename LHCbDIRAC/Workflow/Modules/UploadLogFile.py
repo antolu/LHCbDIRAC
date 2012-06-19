@@ -307,9 +307,10 @@ class UploadLogFile( ModuleBase ):
     """ Set a request to upload job log files from the output sandbox
     """
     self.log.info( 'Setting log upload request for %s at %s' % ( logFileLFN, targetSE ) )
+    lastOperationOnFile = self.request._getLastOrder( logFileLFN )
     res = self.request.addSubRequest( {'Attributes':{'Operation':'uploadLogFiles',
                                                       'TargetSE':targetSE,
-                                                      'ExecutionOrder':0}},
+                                                      'ExecutionOrder':lastOperationOnFile + 1}},
                                          'logupload' )
     if not res['OK']:
       return res
@@ -322,7 +323,7 @@ class UploadLogFile( ModuleBase ):
     self.log.info( 'Setting log removal request for %s' % ( logFileLFN ) )
     result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
                                                        'TargetSE':uploadedSE,
-                                                       'ExecutionOrder':1}},
+                                                       'ExecutionOrder':lastOperationOnFile + 2}},
                                          'removal' )
     if not result['OK']:
       return res
