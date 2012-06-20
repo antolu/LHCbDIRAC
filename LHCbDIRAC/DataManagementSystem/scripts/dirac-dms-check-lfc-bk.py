@@ -67,7 +67,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
   fixIt = False
   switches = Script.getUnprocessedSwitches()
   for opt, val in switches:
@@ -76,11 +76,18 @@ if __name__ == "__main__":
 
   directories = dmScript.getOption( "Directory", [] )
   lfns = dmScript.getOption( "LFNs", [] )
-
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BKQuery  import BKQuery
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
   rm = ReplicaManager()
+  bk = BookkeepingClient()
+
+  bkQueries = [dmScript.getBKQuery( visible=False )]
+  for lfn in sorted( lfns ):
+    if not lfn.startswith( '/lhcb' ):
+      bkQueries.append( BKQuery( lfn, visible=False ) )
+      lfns.remove( lfn )
 
   if lfns:
     checkLFC2BK( lfns, fixIt )
@@ -91,23 +98,26 @@ if __name__ == "__main__":
     lfns = res['Value']
     checkLFC2BK( lfns, fixIt )
 
-  bkQuery = dmScript.getBKQuery( visible = False )
-  if bkQuery.getQueryDict():
-    bk = BookkeepingClient()
-    lfns = bkQuery.getLFNs()
-    print len( lfns ), 'files found in BK'
-    success = 0
-    missingLFNs = []
-    for chunk in breakListIntoChunks( lfns, 500 ):
-      res = rm.getCatalogExists( chunk )
-      if res['OK']:
-        success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
-        missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
-    print '\t%d are in the LFC, %d are not' % ( success, len( missingLFNs ) )
-    if fixIt and missingLFNs:
-      print "Attempting to remove GotReplica for %d files:" % len( missingLFNs )
-      res = bk.removeFiles( missingLFNs )
-      if res['OK']:
-        print "\tReplica flag successfully removed in BK"
+  for bkQuery in bkQueries:
+    print "For BK path:", bkQuery.getPath()
+    if bkQuery.getQueryDict():
+      lfns = bkQuery.getLFNs()
+      if not lfns:
+        print "No files found in BK"
+        continue
+      print len( lfns ), 'files found in BK'
+      success = 0
+      missingLFNs = []
+      for chunk in breakListIntoChunks( lfns, 500 ):
+        res = rm.getCatalogExists( chunk )
+        if res['OK']:
+          success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
+          missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
+      print '\t%d are in the LFC, %d are not' % ( success, len( missingLFNs ) )
+      if fixIt and missingLFNs:
+        print "Attempting to remove GotReplica for %d files:" % len( missingLFNs )
+        res = bk.removeFiles( missingLFNs )
+        if res['OK']:
+          print "\tReplica flag successfully removed in BK"
 
 

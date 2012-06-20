@@ -14,9 +14,6 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
   import time
 
-  removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
-  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares", 'FakeReplication' )
-
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
   test = False
@@ -40,12 +37,7 @@ if __name__ == "__main__":
   prods = pluginScript.getOption( 'Productions' )
   requestID = pluginScript.getOption( 'RequestID' )
   fileType = pluginScript.getOption( 'FileType' )
-  pluginParams = pluginScript.getOption( 'Parameters', {} )
-  for key in pluginScript.getOptions():
-      if key.endswith( "SE" ) or key.endswith( "SEs" ):
-        pluginParams[key] = pluginScript.getOption( key )
-  nbCopies = pluginScript.getOption( 'Replicas' )
-  groupSize = pluginScript.getOption( 'GroupSize' )
+  pluginParams = pluginScript.getPluginParameters()
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -72,9 +64,9 @@ if __name__ == "__main__":
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
   transType = None
-  if plugin in removalPlugins:
+  if plugin in pluginScript.getRemovalPlugins():
     transType = "Removal"
-  elif plugin in replicationPlugins:
+  elif plugin in pluginScript.getReplicationPlugin():
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"
@@ -137,12 +129,6 @@ if __name__ == "__main__":
     else:
       transBody = "removal;replicaRemoval"
     transformation.setBody( transBody )
-
-  # Add parameters
-  if nbCopies != None:
-    pluginParams['NumberOfReplicas'] = nbCopies
-  if groupSize != None and 'GroupSize' not in pluginParams:
-    pluginParams['GroupSize'] = groupSize
 
   if pluginParams:
     for key, val in pluginParams.items():
