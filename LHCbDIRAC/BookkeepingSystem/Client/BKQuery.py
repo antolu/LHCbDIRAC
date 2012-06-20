@@ -247,8 +247,8 @@ class BKQuery():
     self.setOption( 'EventType', eventTypes )
     return self.setOption( 'EventTypeId', eventTypes )
 
-  def setVisible( self, visible=True ):
-    if visible:
+  def setVisible( self, visible=None ):
+    if visible == True or ( type( visible ) == type( '' ) and visible[0].lower() == 'y' ):
       visible = 'Yes'
     return self.setOption( 'Visible', visible )
 
@@ -503,19 +503,22 @@ class BKQuery():
       return sortList( prodList )
     res = self.bk.getProductions( BKQuery( self.bkQueryDict ).setVisible( visible ) )
     if not res['OK']:
+      gLogger.error( 'Error getting productions from BK', res['Message'] )
       return []
+    from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+    transClient = TransformationClient()
     if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
       fileTypes = self.getFileTypeList()
       prodList = [prod for p in res['Value']['Records'] for prod in p if self.__getProdStatus( prod ) not in ( 'Cleaned', 'Deleted' )]
       #print '\n',self.bkQueryDict,'\nVisible:',visible,prodList
       pList = []
       if fileTypes:
-        from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-        transClient = TransformationClient()
         for prod in prodList:
           res = transClient.getBookkeepingQueryForTransformation( prod )
           if res['OK'] and res['Value']['FileType'] in fileTypes:
-              pList.append( prod )
+            if type( prod ) != type( [] ):
+              prod = [prod]
+            pList += [p for p in prod if p not in pList]
       if not pList:
         pList = prodList
     else:
@@ -524,7 +527,7 @@ class BKQuery():
       startRun = int( self.bkQueryDict.get( 'StartRun', 0 ) )
       endRun = int( self.bkQueryDict.get( 'EndRun', sys.maxint ) )
       pList = [run for run in pList if run >= startRun and run <= endRun]
-    return sortList( pList )
+    return sorted( pList )
 
   def getBKConditions( self ):
     conditions = self.bkQueryDict.get( 'ConditionDescription' )
