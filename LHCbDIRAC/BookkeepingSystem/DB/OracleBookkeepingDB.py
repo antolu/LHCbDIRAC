@@ -890,10 +890,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ''
 
     tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
-    if visible not in ['Y', 'N']:
-      return S_ERROR('The visible flag has to be Y or N! ' + str(visible))
-    else:
-      condition += "and f.visibilityFlag='%s' " % (visible)
+    if visible.upper().find('A') < 0:
+      if visible.upper().find('Y') >= 0:
+        condition += "and f.visibilityFlag='Y' "
+      elif visible.upper().find('N') >= 0:
+        condition += "and f.visibilityFlag='N' "
 
     if configName != default:
       condition += " and c.configname='%s' " % (configName)
@@ -908,10 +909,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
       else:
         return retVal
 
-    if evt != default and visible == 'Y':
+    if evt != default and visible.upper().find('Y') >= 0:
       tables += ' ,prodview bview'
       condition += '  and j.production=bview.production and bview.production=prod.production and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (str(evt))
-    elif evt != default and visible == 'N':
+    elif evt != default and visible.upper().find('N') >= 0:
       condition += '  and f.eventtypeid=%s ' % (str(evt))
 
     if production != default:
@@ -920,7 +921,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     if runnb != default:
       condition += ' and j.runnumber=' + str(runnb)
 
-    if filetype != default and visible == 'Y':
+    if filetype != default and visible.upper().find('Y') >= 0:
       if tables.find('bview') > -1:
         condition += " and bview.filetypeid=ftypes.filetypeid "
       if type(filetype) == types.ListType:
@@ -930,7 +931,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         condition += values[:-1] + ')'
       else:
         condition += " and ftypes.name='%s' " % (str(filetype))
-    elif filetype != default and visible == 'N':
+    elif filetype != default and visible.upper('N') >= 0:
       if type(filetype) == types.ListType:
         values = ' and ftypes.name in ('
         for i in filetype:
@@ -2701,9 +2702,11 @@ and files.qualityid= dataquality.qualityid'
     if replicaFlag in ['Yes', 'No']:
       condition += ' and f.gotreplica=\'' + replicaFlag + '\''
 
-    visibleFlags = {'Yes':'Y', 'No':'N'}
-    if visible != default and visible in visibleFlags:
-      condition += " and f.visibilityflag='%s'" % (visibleFlags[visible])
+    if visible.upper().find('A') < 0:
+      if visible.upper().find('Y') >= 0:
+        condition += " and f.visibilityflag='Y'"
+      elif visible.upper().find('N') >= 0:
+        condition += " and f.visibilityflag='N'"
 
     if simdesc != default:
       condition += " and prod.simid=sim.simid and j.production=prod.production and \
@@ -2889,10 +2892,11 @@ and files.qualityid= dataquality.qualityid'
 
     condition = ''
     tables = 'files f, jobs j '
-    if visible not in ['Y', 'N']:
-      return S_ERROR('The visible flag has to be Y or N! ' + str(visible))
-    else:
-      condition += "and f.visibilityFlag='%s' " % (visible)
+    if visible.upper().find('A') < 0:
+      if visible.upper().find('Y')  >= 0:
+        condition += "and f.visibilityFlag='Y' "
+      elif visible.upper().find('N')  >= 0:
+        condition += "and f.visibilityFlag='N' "
 
     if configName != default and configVersion != default:
       condition += " and j.configurationid=(select c.configurationid from configurations c  where c.configname='%s' and c.configversion='%s') " % (configName, configVersion)
@@ -2914,11 +2918,11 @@ and files.qualityid= dataquality.qualityid'
 
     econd = ''
     tables2 = ''
-    if evt != default and visible == 'Y':
+    if evt != default and visible.upper().find('Y') >= 0:
       tables2 += ', prodview bview'
       econd += " and bview.production=prod.production and bview.eventtypeid='%s'" % (str(evt))
       condition += " and f.eventtypeid=%s" % (str(evt))
-    elif evt != default and visible == 'N':
+    elif evt != default and visible.upper().find('N') >= 0:
       condition += " and f.eventtypeid=%s" % (str(evt))
 
     if production != default:
@@ -2934,14 +2938,14 @@ and files.qualityid= dataquality.qualityid'
 
     tables += ' ,filetypes ftypes '
     fcond = ''
-    if filetype != default and visible == 'Y':
+    if filetype != default and visible.upper().find('Y') >= 0:
       if tables2.find('bview') < 0:
         tables2 += ', prodview bview'
       tables2 += ' ,filetypes ftypes '
       condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
       fcond += " and bview.production=prod.production and ftypes.Name='%s'" % (str(filetype))
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
-    elif filetype != default and visible == 'N':
+    elif filetype != default and visible.upper().find('N') >= 0:
       condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
 
     if quality != default:
