@@ -57,10 +57,10 @@ class fakeClient:
     else:
       return self.transClient.getTransformationRuns( condDict )
 
-  def getTransformationFiles( self, condDict = None ):
-    if condDict['TransformationID'] == self.transID and self.asIfProd:
+  def getTransformationFiles( self, condDict=None ):
+    if condDict.get( 'TransformationID' ) == self.transID and self.asIfProd:
       condDict['TransformationID'] = self.asIfProd
-    if condDict['TransformationID'] == self.transID:
+    if condDict.get( 'TransformationID' ) == self.transID:
       transFiles = []
       if 'Status' in condDict and 'Unused' not in condDict['Status']:
         return DIRAC.S_OK( transFiles )
@@ -74,9 +74,9 @@ class fakeClient:
           transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
       return DIRAC.S_OK( transFiles )
     else:
-      return self.transClient.getTransformationFiles( condDict = condDict )
+      return self.transClient.getTransformationFiles( condDict=condDict )
 
-  def getTransformationFilesCount( self, transID, field, selection = None ):
+  def getTransformationFilesCount( self, transID, field, selection=None ):
     if transID == self.transID or selection['TransformationID'] == self.transID:
       if field != 'Status':
         return DIRAC.S_ERROR( 'Not implemented for field ' + field )
@@ -92,7 +92,7 @@ class fakeClient:
       counters['Total'] = counters['Unused']
       return DIRAC.S_OK( counters )
     else:
-      return self.transClient.getTransformationFilesCount( transID, field, selection = selection )
+      return self.transClient.getTransformationFilesCount( transID, field, selection=selection )
 
   def getTransformationRunStats( self, transIDs ):
     counters = {}
@@ -175,9 +175,6 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
 
-  removalPlugins = ( "DestroyDataset", "DeleteDataset", "DeleteReplicas" )
-  replicationPlugins = ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset", "RAWShares", 'FakeReplication' )
-
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
 
@@ -190,7 +187,7 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
 
   asIfProd = None
   allFiles = False
@@ -209,16 +206,7 @@ if __name__ == "__main__":
   #print pluginScript.getOptions()
   plugin = pluginScript.getOption( 'Plugin' )
   requestID = pluginScript.getOption( 'RequestID', 0 )
-  pluginParams = pluginScript.getOption( 'Parameters', {} )
-  for key in pluginScript.getOptions():
-      if key.endswith( "SE" ) or key.endswith( "SEs" ):
-        pluginParams[key] = pluginScript.getOption( key )
-  nbCopies = pluginScript.getOption( 'Replicas' )
-  groupSize = pluginScript.getOption( 'GroupSize', 5 )
-  if float(int(groupSize)) == float(groupSize):
-    groupSize = int(groupSize)
-  else:
-    groupSize = float(groupSize)
+  pluginParams = pluginScript.getPluginParameters()
   #print pluginParams
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
@@ -228,9 +216,9 @@ if __name__ == "__main__":
   # Create the transformation
   transformation = Transformation()
   transType = None
-  if plugin in removalPlugins:
+  if plugin in pluginScript.getRemovalPlugins():
     transType = "Removal"
-  elif plugin in replicationPlugins:
+  elif plugin in pluginScript.getReplicationPlugins():
     transType = "Replication"
   else:
     transType = "Processing"
@@ -238,9 +226,9 @@ if __name__ == "__main__":
   transformation.setType( transType )
 
   visible = True
-  if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.getOption( 'Productions' ) or plugin not in removalPlugins + replicationPlugins:
+  if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.getOption( 'Productions' ) or transType == 'Processing':
     visible = False
-  bkQuery = pluginScript.getBKQuery( visible = visible )
+  bkQuery = pluginScript.getBKQuery( visible=visible )
   if noRepFiles and not plugin:
     bkQuery.setOption( 'ReplicaFlag', "All" )
   bkQueryDict = bkQuery.getQueryDict()
@@ -252,11 +240,6 @@ if __name__ == "__main__":
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
     requestID = reqID
-
-
-  # Add parameters
-  if nbCopies != None:
-    pluginParams['NumberOfReplicas'] = nbCopies
 
   if pluginParams:
     for key, val in pluginParams.items():
@@ -276,7 +259,7 @@ if __name__ == "__main__":
     print "RequestID:", requestID
   # get the list of files from BK
   print "Getting the files from BK"
-  lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
+  lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
   if len( lfns ) == 0:
     print "No files found in BK...Exiting now"
     DIRAC.exit( 0 )
@@ -285,7 +268,7 @@ if __name__ == "__main__":
     print "No plugin to be tested..."
     DIRAC.exit( 0 )
 
-  print "\nNow testing the plugin %s" % plugin
+  print "\nNow testing %s the plugin %s" % ( transType, plugin )
   transformation.setPlugin( plugin )
   transformation.setBkQuery( bkQueryDict )
 
@@ -294,11 +277,9 @@ if __name__ == "__main__":
   transID = -9999
   pluginParams['TransformationID'] = transID
   pluginParams['Status'] = "Active"
-  if not pluginParams.has_key( "GroupSize" ) and groupSize:
-    pluginParams['GroupSize'] = groupSize
   # Create a fake transformation client
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
-  oplugin = TransformationPlugin( plugin, transClient = fakeClient, debug = debugPlugin )
+  oplugin = TransformationPlugin( plugin, transClient=fakeClient, debug=debugPlugin )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...

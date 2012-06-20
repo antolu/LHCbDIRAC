@@ -43,6 +43,8 @@ class PluginScript( DMScript ):
     Script.registerSwitch( "g:", "GroupSize=", "   GroupSize parameter for merging (GB) or nb of files" , self.setGroupSize )
     Script.registerSwitch( "", "Parameters=", "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}", self.setParameters )
     Script.registerSwitch( "", "RequestID=", "   Sets the request ID (default 0)", self.setRequestID )
+    Script.registerSwitch( "", "ProcessingPasses=", "   List of processing passes for the DeleteReplicasWhenProcessed plugin", self.setProcessingPasses )
+    Script.registerSwitch( "", "Period=", "   minimal period at which a plugin is executed (if instrumented)", self.setPeriod )
 
   def setPlugin( self, val ):
     self.options['Plugin'] = val
@@ -56,8 +58,15 @@ class PluginScript( DMScript ):
     self.options['Replicas'] = val
     return DIRAC.S_OK()
 
-  def setGroupSize ( self, val ):
-    self.options['GroupSize'] = float( val )
+  def setGroupSize ( self, groupSize ):
+    try:
+      if float( int( groupSize ) ) == float( groupSize ):
+        groupSize = int( groupSize )
+      else:
+        groupSize = float( groupSize )
+      self.options['GroupSize'] = groupSize
+    except:
+      pass
     return DIRAC.S_OK()
 
   def setParameters ( self, val ):
@@ -68,3 +77,38 @@ class PluginScript( DMScript ):
     self.options['RequestID'] = val
     return DIRAC.S_OK()
 
+  def setProcessingPasses( self, val ):
+    self.options['ProcessingPasses'] = val.split( ',' )
+    return DIRAC.S_OK()
+
+  def setPeriod( self, val ):
+    self.options['Period'] = val
+    return DIRAC.S_OK()
+
+  def getPluginParameters( self ):
+    from DIRAC import gConfig
+    if 'Parameters' in self.options:
+      params = eval( self.options( 'Parameters' ) )
+    else:
+      params = {}
+    pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period' )
+    print self.options
+    for key in [k for k in self.options if k in pluginParams]:
+      params[key] = self.options[key]
+    for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
+      ses = self.options[key]
+      seList = []
+      for se in ses:
+        seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
+        if seConfig != se:
+          seList += [se.strip() for se in seConfig.split( ',' )]
+        else:
+          seList.append( se )
+      params[key] = seList
+    return params
+
+  def getRemovalPlugins( self ):
+    return ( "DestroyDataset", "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed' )
+  def getReplicationPlugins( self ):
+    return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset",
+             "RAWShares", 'FakeReplication', 'ReplicateToLocalSE' )

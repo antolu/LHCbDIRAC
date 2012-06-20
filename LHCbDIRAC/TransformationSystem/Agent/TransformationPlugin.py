@@ -33,6 +33,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.cachedLFNSize = {}
     self.cachedNbRAWFiles = {}
     self.cachedRunLfns = {}
+    self.cachedProductions = {}
     self.cacheFile = ''
     self.freeSpace = {}
     self.startTime = time.time()
@@ -414,13 +415,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     tasks = []
     for runID in sorted( runSEDict ):
       selectedSE = runSEDict[runID]
-      lfns = [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2]
-      if not lfns:
-        continue
+      self.__logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, len( runFileDict[runID] ) ) )
       if not selectedSE:
         self.__logWarn( "Run %d has no targetSE, skipped..." % runID )
         continue
-      self.__logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, len( lfns ) ) )
       if runUpdate[runID]:
         self.__logVerbose( "Assign run site for run %d: %s" % ( runID, selectedSE ) )
         # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
@@ -430,6 +428,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
       status = self.params['Status']
       self.params['Status'] = 'Flush'
+      lfns = [lfn for lfn in runFileDict[runID] if len( self.data[lfn] ) >= 2]
+      if not lfns:
+        continue
       res = self._groupBySize( lfns )
       self.params['Status'] = status
       if res['OK']:
@@ -538,8 +539,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.cachedLFNAncestors = pickle.load( f )
         self.cachedNbRAWFiles = pickle.load( f )
         self.cachedLFNSize = pickle.load( f )
+        self.cachedRunLfns = pickle.load( f )
         try:
-          self.cachedRunLfns = pickle.load( f )
+          self.cachedProductions = pickle.load( f )
         except:
           pass
         f.close()
@@ -557,6 +559,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         pickle.dump( self.cachedNbRAWFiles, f )
         pickle.dump( self.cachedLFNSize, f )
         pickle.dump( self.cachedRunLfns, f )
+        pickle.dump( self.cachedProductions, f )
         f.close()
         self.__logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
@@ -1210,7 +1213,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return ll
     return s
 
-  def __closerSEs( self, existingSEs, targetSEs ):
+  def __closerSEs( self, existingSEs, targetSEs, local=False ):
     """
     Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
     """
@@ -1221,7 +1224,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       existingSites = [self._getSiteForSE( se )['Value'] for se in existingSEs]
       closeSEs = [se for se in targetSEs if self._getSiteForSE( se )['Value'] in existingSites]
       otherSEs = [se for se in targetSEs if se not in closeSEs]
-      targetSEs = randomize( closeSEs ) + randomize( otherSEs )
+      targetSEs = randomize( closeSEs )
+      if not local:
+        targetSEs += randomize( otherSEs )
     return targetSEs + sameSEs
 
   def _ReplicateDataset( self ):
@@ -1392,6 +1397,108 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         self.__logInfo( "Found %s files that don't need any replica deletion" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+
+    return S_OK( self.__createTasks( storageElementGroups ) )
+
+  def _DeleteReplicasWhenProcessed( self ):
+    # This plugin considers files and checks whether they were processed for a list of processing passes
+    # For files that were processed, it sets replica removal tasks from a set of SEs
+    from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                       import BKQuery
+    import os, datetime
+
+    listSEs = self.__getPluginParam( 'FromSEs', None )
+    processingPasses = self.__getPluginParam( 'ProcessingPasses', None )
+    period = self.__getPluginParam( 'Period', 6 )
+    cacheLifeTime = self.__getPluginParam( 'CacheLifeTime', 24 )
+
+    transID = self.params['TransformationID']
+    self.__readCacheFile( transID )
+
+    if not listSEs:
+      self.__logInfo( "No SEs selected" )
+      return S_OK( [] )
+    if not processingPasses:
+      self.__logInfo( "No processing pass(es)" )
+      return S_OK( [] )
+
+    now = datetime.datetime.utcnow()
+    if self.cachedProductions and ( now - self.cachedProductions['CacheTime'] ) < datetime.timedelta( hours=cacheLifeTime ):
+      if ( now - self.cachedProductions['LastCall_%s' % transID] ) < datetime.timedelta( hours=period ):
+        self.__logInfo( "Skip this loop (less than %s hours since last call)" % period )
+        return S_OK( [] )
+      productions = self.cachedProductions
+    else:
+      self.__logVerbose( "Cache cleared after %d hours" % cacheLifeTime )
+      productions = {}
+      res = self.transClient.getBookkeepingQueryForTransformation( transID )
+      if not res['OK']:
+        self.__logError( "Failed to get BK query for transformation", res['Message'] )
+        return S_OK( [] )
+      bkQuery = BKQuery( res['Value'] )
+      self.__logVerbose( "BKQuery: %s" % bkQuery )
+      transProcPass = bkQuery.getProcessingPass()
+      bkQuery.setFileType( None )
+      for procPass in processingPasses:
+        bkQuery.setProcessingPass( os.path.join( transProcPass, procPass ) )
+        # Temporary work around for getting Stripping production from merging (parent should be set to False)
+        bkQuery.setEventType( None )
+        prods = bkQuery.getBKProductions( visible='ALL' )
+        self.__logVerbose( "For procPass %s, found productions %s" % ( procPass, prods ) )
+        productions[procPass] = [int( p ) for p in prods]
+      self.cachedProductions = productions
+      self.cachedProductions['CacheTime'] = now
+
+    self.cachedProductions['LastCall_%s' % transID] = now
+    replicaGroups = self._getFileGroups( self.data )
+    storageElementGroups = {}
+    for replicaSE, lfns in replicaGroups.items():
+      replicaSE = replicaSE.split( ',' )
+      targetSEs = [se for se in listSEs if se in replicaSE]
+      if not targetSEs:
+        self.__logVerbose( "%s storage elements not in required list" % replicaSE )
+        continue
+      res = self.transClient.getTransformationFiles( {'LFN': lfns} )
+      if not res['OK']:
+        self.__logError( "Failed to get transformation files for %d files" % len( lfns ) )
+        continue
+      lfnsNotProcessed = {}
+      for trDict in res['Value']:
+        status = trDict['Status']
+        transID = int( trDict['TransformationID'] )
+        lfn = trDict['LFN']
+        lfnsNotProcessed.setdefault( lfn, processingPasses )
+        if status == 'Processed':
+          for procPass in lfnsNotProcessed[lfn]:
+            if transID in productions[procPass]:
+              lfnsNotProcessed[lfn].remove( procPass )
+              break
+      lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
+      if lfnsProcessed:
+        stringTargetSEs = ','.join( sortList( targetSEs ) )
+        storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
+
+    self.__writeCacheFile()
+    return S_OK( self.__createTasks( storageElementGroups ) )
+
+  def _ReplicateToLocalSE( self ):
+    transID = self.params['TransformationID']
+    destSEs = self.__getPluginParam( 'DestinationSEs', [] )
+
+    replicaGroups = self._getFileGroups( self.data )
+    storageElementGroups = {}
+
+    for replicaSE, lfns in replicaGroups.items():
+      replicaSE = replicaSE.split( ',' )
+      if [se for se in replicaSE if se in destSEs]:
+        self.__logInfo( "Found %d files that are already present in the destination SEs (status set)" % len( lfns ) )
+        res = self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+        continue
+      targetSEs = [se for se in destSEs if se not in replicaSE]
+      candidateSEs = self.__closerSEs( replicaSE, targetSEs, local=True )
+      if candidateSEs:
+        storageElementGroups.setdefault( candidateSEs[0], [] ).extend( lfns )
+      else:
+        self.__logWarn( "Could not find a close SE for %d files" % len( lfns ) )
 
     return S_OK( self.__createTasks( storageElementGroups ) )
 
