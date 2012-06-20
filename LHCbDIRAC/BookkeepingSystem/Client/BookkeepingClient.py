@@ -32,12 +32,6 @@ class BookkeepingClient:
       retVal = self.rpcClient
     else:
       retVal = RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
-
-    if not retVal.ping()['OK']:
-      wait = 10
-      while not retVal.ping()['OK'] and wait <= 60:
-        time.sleep(wait)
-        wait += 10
     return retVal
 
   #############################################################################
