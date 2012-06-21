@@ -219,7 +219,7 @@ class ProductionRequestDB(DB):
       return result
     outValues = result['Value']
     for i,x in enumerate(outValues):
-      if x == 'None' or str(x) == '':
+      if x == 'None' or str(x) == '' or x == '"None"':
         outValues[i] = 'NULL'
     return S_OK(outValues)
 
