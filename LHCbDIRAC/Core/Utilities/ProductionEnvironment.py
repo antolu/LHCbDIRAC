@@ -21,7 +21,7 @@ groupLogin = 'LbLogin.sh'
 projectEnv = 'SetupProject.sh'
 defaultCatalogName = 'pool_xml_catalog.xml'
 opsH = Operations()
-timeout = opsH.getValue( 'oEnvironmentScripts/Default', 600 )
+timeout = opsH.getValue( 'EnvironmentScripts/Default', 600 )
 siteSpecificTimeout = opsH.getValue( 'EnvironmentScripts/%s' % ( DIRAC.siteName() ), 0 )
 if siteSpecificTimeout:
   gLogger.info( 'Using timeout of %ss for site %s, overrides global default of %ss' % ( siteSpecificTimeout,
