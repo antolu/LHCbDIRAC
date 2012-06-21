@@ -1488,7 +1488,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
 
     for replicaSE, lfns in replicaGroups.items():
-      replicaSE = replicaSE.split( ',' )
+      replicaSE = [se for se in replicaSE.split( ',' ) if not self.__isFailover( se ) and not self.__isArchive( se )]
+      if not replicaSE:
+        continue
       if [se for se in replicaSE if se in destSEs]:
         self.__logInfo( "Found %d files that are already present in the destination SEs (status set)" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
