@@ -190,16 +190,19 @@ class BookkeepingWatchAgent( AgentModule ):
               if not result['OK']:
                 self.__logWarn( "Failed to add lfns to transformation", result['Message'], transID = transID )
               else:
-                printFailed = [self.__logWarn( "Failed to add %s to transformation" % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
+                printFailed = [self.__logWarn( "Failed to add %s to transformation\
+                " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
                 addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].items() if status == 'Added']
                 if addedLfns:
-                  self.__logInfo( "Added %d files to transformation, now including run information" % len( addedLfns ) , transID = transID )
+                  self.__logInfo( "Added %d files to transformation, \
+                  now including run information" % len( addedLfns ) , transID = transID )
                   for runID, lfns in runDict.items():
                     lfns = [lfn for lfn in lfns if lfn in addedLfns]
                     self.__logVerbose( "Associating %d files to run %d" % ( len( lfns ), runID ), transID = transID )
                     res = self.transClient.addTransformationRunFiles( transID, runID, lfns )
                     if not res['OK']:
-                      self.__logWarn( "Failed to associate %d files to run %d" % ( len( lfns ), runID ), res['Message'], transID = transID )
+                      self.__logWarn( "Failed to associate %d files \
+                      to run %d" % ( len( lfns ), runID ), res['Message'], transID = transID )
 
               # Add the run metadata
               runsList = runDict.keys()
@@ -227,7 +230,8 @@ class BookkeepingWatchAgent( AgentModule ):
     return S_OK()
 
   def finalize( self ):
-
+    """ Gracious finalization
+    """
     if self.bkQueriesInCheck:
       self.__logInfo( "Wait for queue to get empty before terminating the agent (%d tasks)" % len( self.bkQueriesInCheck ) )
       while self.bkQueriesInCheck:

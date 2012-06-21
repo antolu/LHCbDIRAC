@@ -13,6 +13,8 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 COMPONENT_NAME = 'Transformation'
 
 class Transformation( DIRACTransformation ):
+  """ class - mostly for DM prods
+  """
 
   #############################################################################
 
