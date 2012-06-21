@@ -1547,7 +1547,6 @@ class LHCB_BKKDBManager( BaseESManager ):
     rootFormat = True
     filesandformats = {}
     if savePfn: # we have to decide the file type version. This variable contains the file type version, if it is empty I check in the bkk
-      print savePfn
       lfn = savePfn.keys()[0]
       for i in savePfn:
         if savePfn[i]['pfntype'].upper() == 'ROOT_ALL':
@@ -1559,6 +1558,8 @@ class LHCB_BKKDBManager( BaseESManager ):
         records = retVal['Value']
         for i in records:
           filesandformats[i] = records[i]
+        if 'ROOT_All' in filesandformats.values():
+          rootFormat = False
       else:
         return S_ERROR(retVal)
 
@@ -1592,6 +1593,11 @@ class LHCB_BKKDBManager( BaseESManager ):
       else:
         s += '\n])\n'
     else:
+      if not fileType:
+        fileType = file['FileType']
+        if file['FileType'] != fileType:
+          print "All files don't have the same type, impossible to write jobOptions"
+          return 1
     # Now write the event selector option
       if pythonOpts:
           s += "\nfrom Gaudi.Configuration import * \n"
