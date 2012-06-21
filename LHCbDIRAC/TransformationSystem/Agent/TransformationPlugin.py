@@ -864,13 +864,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       params = res['Value']
       token = params['SpaceToken']
       if token == 'LHCb-Tape':
-        freeSpace = 1.
+        freeSpace = 1000.
         self.freeSpace[se] = {'freeSpace' : freeSpace}
         return freeSpace
       res = self._getSiteForSE( se )
-      if res['OK']:
+      if res['OK'] or not res['Value']:
         site = res['Value'].split( '.' )[1]
-    if not res['OK']:
+    if not res['OK'] or not site:
       self.__logError( 'Unable to determine site or space token for SE %s:' % se, res['Message'] )
       return 0
 
@@ -1245,7 +1245,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       targetSEs = randomize( closeSEs )
       if not local:
         targetSEs += randomize( otherSEs )
-    return targetSEs + sameSEs
+    return ( targetSEs + sameSEs ) if not local else targetSEs
 
   def _ReplicateDataset( self ):
     destSEs = self.__getPluginParam( 'DestinationSEs', [] )
@@ -1504,6 +1504,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ReplicateToLocalSE( self ):
     transID = self.params['TransformationID']
     destSEs = self.__getPluginParam( 'DestinationSEs', [] )
+    watermark = self.__getPluginParam( 'MinFreeSpace', 30 )
 
     replicaGroups = self._getFileGroups( self.data )
     storageElementGroups = {}
@@ -1519,7 +1520,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       targetSEs = [se for se in destSEs if se not in replicaSE]
       candidateSEs = self.__closerSEs( replicaSE, targetSEs, local=True )
       if candidateSEs:
-        storageElementGroups.setdefault( candidateSEs[0], [] ).extend( lfns )
+        freeSpace = self.__getStorageFreeSpace( candidateSEs )
+        shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
+        if shortSEs:
+          self.__logVerbose( "No enough space (%s TB) found at %s" % ( watermark, ','.join( shortSEs ) ) )
+        candidateSEs = [se for se in candidateSEs if se not in shortSEs]
+        if candidateSEs:
+          storageElementGroups.setdefault( candidateSEs[0], [] ).extend( lfns )
       else:
         self.__logWarn( "Could not find a close SE for %d files" % len( lfns ) )
 
