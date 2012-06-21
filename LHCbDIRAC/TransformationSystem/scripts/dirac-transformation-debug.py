@@ -46,9 +46,10 @@ runList = None
 kickRequests = False
 justStats = False
 fixIt = False
+allTasks = False
 from DIRAC.Core.Base import Script
 
-infoList = ["Files", "Runs", "Tasks", 'Jobs']
+infoList = ["Files", "Runs", "Tasks", 'Jobs', 'Alltasks']
 statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MaxReset"]
 Script.registerSwitch( 'i:', 'Info=', "Specify what to print out from %s" % str( infoList ) )
 Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
@@ -86,6 +87,8 @@ for switch in switches:
                 byTasks = True
             elif val == "Jobs":
                 byJobs = True
+            elif val == "Alltasks":
+                allTasks = True
     elif opt == 'status':
         if val not in statusList:
             print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
@@ -117,6 +120,9 @@ if lfnList:
     byFiles = True
 if dumpFiles:
     byFiles = True
+
+if allTasks:
+  byTasks = True
 
 args = Script.getPositionalArgs()
 
@@ -273,12 +279,20 @@ for id in idList:
             print prString + '\n'
             filesToBeFixed = []
             for fileDict in filesList:
+              if not allTasks:
                 taskID = fileDict['TaskID']
                 taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
-                if byFiles and not taskList:
-                    print "LFN:", fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
-                if fileDict['RunNumber'] == 0 and fileDict['LFN'].find( '/MC' ) < 0:
-                  filesToBeFixed.append( fileDict['LFN'] )
+              else:
+                res = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks', ['TaskID'], {'TransformationID': id, 'FileID' : fileDict['FileID']} )
+                if not res['OK']:
+                  print "Error when getting tasks for file %s" % fileDict['LFN']
+                else:
+                  for taskID in res['Value']['TaskID']:
+                    taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
+              if byFiles and not taskList:
+                  print "LFN:", fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
+              if fileDict['RunNumber'] == 0 and fileDict['LFN'].find( '/MC' ) < 0:
+                filesToBeFixed.append( fileDict['LFN'] )
             if filesToBeFixed:
               if not fixIt:
                 print '%d files have run number 0, use --FixIt to get this fixed' % len( filesToBeFixed )
