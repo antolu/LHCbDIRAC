@@ -12,10 +12,11 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient              import Bo
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient    import ResourceManagementClient
 from DIRAC.Resources.Storage.StorageElement                            import StorageElement
-import time, types, datetime
+import time, types, datetime, os
 
 from DIRAC.TransformationSystem.Agent.TransformationPlugin             import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus                  import ResourceStatus
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 
 class TransformationPlugin( DIRACTransformationPlugin ):
@@ -102,6 +103,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         # Here one should check descendants of children
         self.__logVerbose( "No input files have already been processed" )
+
+  def _getShares( self, type, normalise=False ):
+    optionPath = 'Shares/%s' % type
+    res = Operations().getOptionsDict( optionPath )
+    if not res['OK']:
+      res = gConfig.getOptionsDict( os.path.join( '/Resources', optionPath ) )
+    if not res['OK']:
+      return res
+    if not res['Value']:
+      return S_ERROR( "/Resources/Shares/%s option contains no shares" % type )
+    shares = res['Value']
+    for site, value in shares.items():
+      shares[site] = float( value )
+    if normalise:
+      shares = self._normaliseShares( shares )
+    if not shares:
+      return S_ERROR( "No non-zero shares defined" )
+    return S_OK( shares )
 
   def _RAWShares( self ):
     """
@@ -1005,7 +1024,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       valueType = None
     # First look at a generic value...
-    from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
     optionPath = "TransformationPlugins/%s" % ( name )
     value = Operations().getValue( optionPath, None )
     self.__logVerbose( "Default plugin param %s: '%s'" % ( optionPath, value ) )
@@ -1451,13 +1469,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.cachedProductions['LastCall_%s' % transID] = now
     replicaGroups = self._getFileGroups( self.data )
     storageElementGroups = {}
-    for replicaSE, lfns in replicaGroups.items():
-      replicaSE = replicaSE.split( ',' )
+    for replicaSEs, lfns in replicaGroups.items():
+      replicaSE = replicaSEs.split( ',' )
       targetSEs = [se for se in listSEs if se in replicaSE]
       if not targetSEs:
         self.__logVerbose( "%s storage elements not in required list" % replicaSE )
         continue
-      res = self.transClient.getTransformationFiles( {'LFN': lfns} )
+      res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':'Processed'} )
       if not res['OK']:
         self.__logError( "Failed to get transformation files for %d files" % len( lfns ) )
         continue
@@ -1467,13 +1485,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         transID = int( trDict['TransformationID'] )
         lfn = trDict['LFN']
         lfnsNotProcessed.setdefault( lfn, processingPasses )
-        if status == 'Processed':
-          for procPass in lfnsNotProcessed[lfn]:
-            if transID in productions[procPass]:
-              lfnsNotProcessed[lfn].remove( procPass )
-              break
+        for procPass in lfnsNotProcessed[lfn]:
+          if transID in productions[procPass]:
+            lfnsNotProcessed[lfn].remove( procPass )
+            break
       lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
+      lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
+      if lfnsNotProcessed:
+        self.__logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), replicaSEs ) )
       if lfnsProcessed:
+        self.__logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), replicaSEs ) )
         stringTargetSEs = ','.join( sortList( targetSEs ) )
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
 
