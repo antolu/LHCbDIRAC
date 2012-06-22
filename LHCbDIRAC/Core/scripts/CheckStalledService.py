@@ -23,7 +23,8 @@ pollingtime = 60
 diracAdmin = DiracAdmin()
 mailadress = 'lhcb-grid-shifter-oncall@cern.ch'
 subject = 'CheckStalled'
-msg = 'List of Services / agents which could be stalled \n\n'
+host = os.uname()[1]
+msg = 'List of Services / agents which could be stalled on ' + host + ' \n\n'
 
 
 def write_log( mesg ):
@@ -60,17 +61,19 @@ for dirname in fd:
     lastupdate = fromString( lastLineList[0] + ' ' + lastLineList[1] )
   except:
     write_log( '    EXCEPT : ' + dirname )
+    write_log( '   last line is ' + str( lastLineList ) )
 
-  if int( pollingtime ) < 59:
-    pollingtime = 120
+  if isinstance( pollingtime, int ):
+    if int( pollingtime ) < 59:
+      pollingtime = 120
 
-  interval = timeInterval( lastupdate, second * int( pollingtime ) )
-  if not interval.includes( now ):
-    write_log( "    the PollingTime is : " + str( pollingtime ) + " s" )
-    write_log( '    last update for ' + dirname + ' was : ' + str( lastupdate ) )
-    write_log( '    Polling Time is ' + str( pollingtime ) + ' s' )
-    write_log( '    last known status' + result + '\n' )
-    write_log( '   Last line is : \n' + lastLine )
+    interval = timeInterval( lastupdate, second * int( pollingtime ) )
+    if not interval.includes( now ):
+      write_log( "    the PollingTime is : " + str( pollingtime ) + " s" )
+      write_log( '    last update for ' + dirname + ' was : ' + str( lastupdate ) )
+      write_log( '    Polling Time is ' + str( pollingtime ) + ' s' )
+      write_log( '    last known status' + result + '\n' )
+      write_log( '   Last line is : \n' + lastLine )
 
 res = diracAdmin.sendMail( mailadress, subject, msg, fromAddress = 'joel.closier@cern.ch' )
 if not res[ 'OK' ]:
