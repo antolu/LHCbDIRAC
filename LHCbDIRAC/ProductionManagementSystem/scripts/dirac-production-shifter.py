@@ -227,7 +227,7 @@ def printSelection( parsedInput, mergeAction, noFiles, sortKey ):
   
   printNow()
   
-def printResults( requests, mergeAction ):  
+def printResults( request, mergeAction ):  
   '''
     Given a dictionary with requests, it prints the content on a human readable way.
     If mergeAction is given and different than None, it can omit all merge
