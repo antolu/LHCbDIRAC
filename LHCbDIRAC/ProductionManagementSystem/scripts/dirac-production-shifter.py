@@ -333,7 +333,7 @@ if __name__ == "__main__":
   # Print summary per request
   for _request in _requests:
     
-    _requestID = request[ 'requestID' ]
+    _requestID = _request[ 'requestID' ]
     
     _transformations = getTransformations( transformationClient, _requestID, _noFiles )
     _request[ 'transformations' ] = _transformations   
