@@ -10,7 +10,11 @@ from DIRAC.Core.Utilities.ThreadPool import ThreadPool
 from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationAgent as DIRACTransformationAgent
 from DIRAC.TransformationSystem.Agent.TransformationAgent import AGENT_NAME
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 class TransformationAgent( DIRACTransformationAgent ):
   """ Extends base class
@@ -33,6 +37,9 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.__readCache()
     self.rm = ReplicaManager()
     self.transClient = TransformationClient()
+    self.resourceStatus = ResourceStatus()
+    self.bkk = BookkeepingClient()
+    self.rmClient = ResourceManagementClient()
     # Validity of the cache in days
     self.replicaCacheValidity = 2
     self.log.debug( "*************************************************" )
@@ -209,7 +216,10 @@ class TransformationAgent( DIRACTransformationAgent ):
     try:
       oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
                                                                replicaManager = self.rm,
-                                                               transClient = self.transClient )
+                                                               transClient = self.transClient,
+                                                               bkkClient = self.bkk,
+                                                               rmClient = self.rmClient,
+                                                               rss = self.resourceStatus )
     except Exception, x:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()

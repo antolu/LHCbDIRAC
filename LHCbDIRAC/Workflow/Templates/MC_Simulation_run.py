@@ -12,7 +12,6 @@ __RCSID__ = "$Id$"
 #################################################################################
 # Some import statements and standard DIRAC script preamble
 #################################################################################
-import string
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
@@ -238,7 +237,7 @@ if MC5 or MC4 or MC3 or MC2 or MC1:
   else:
     gaussType = gaussOutputList[0]
 
-  MCOutput = gaussType
+  mcOutput = gaussType
 
 
 if MC5 or MC4 or MC3 or MC2:
@@ -283,7 +282,7 @@ if MC5 or MC4 or MC3 or MC2:
   else:
     booleType = booleOutputList[0]
 
-  MCOutput = booleType
+  mcOutput = booleType
 
 if MC5 or MC4 or MC3:
 
@@ -324,7 +323,7 @@ if MC5 or MC4 or MC3:
     else:
       mooreType = mooreOutputList[0]
 
-    MCOutput = mooreType
+    mcOutput = mooreType
 
   elif threeSteps == 'Brunel':
     prodDescription = prodDescription + '->Brunel'
@@ -363,7 +362,7 @@ if MC5 or MC4 or MC3:
     else:
       brunelType = brunelOutputList[0]
 
-    MCOutput = brunelType
+    mcOutput = brunelType
 
   else:
     gLogger.error( 'threeSteps = %d', threeSteps )
@@ -408,7 +407,7 @@ if MC5 or MC4:
     else:
       brunelType = brunelOutputList[0]
 
-    MCOutput = brunelType
+    mcOutput = brunelType
 
   elif fourSteps == 'DaVinci':
     prodDescription = prodDescription + '->DaVinci'
@@ -447,7 +446,7 @@ if MC5 or MC4:
     else:
       davinciType = davinciOutputList[0]
 
-    MCOutput = davinciType
+    mcOutput = davinciType
 
   else:
     gLogger.error( 'fourSteps = %d', fourSteps )
@@ -491,7 +490,7 @@ if MC5:
   else:
     davinciType = davinciOutputList[0]
 
-  MCOutput = davinciType
+  mcOutput = davinciType
 
 
 if selection:
@@ -584,7 +583,7 @@ if selection:
 
 if outputFileMask:
   maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
-  outputFileMask = string.join( maskList, ';' )
+  outputFileMask = ';'.join( maskList )
 
 if validationFlag:
   configName = 'validation'
@@ -701,22 +700,22 @@ if not MCEnabled:
   gLogger.info( 'No MC requested...?' )
 else:
 
-  MCProd = Production()
+  mcProd = Production()
 
   if sysConfig:
-    MCProd.setJobParameters( { 'SystemConfig': sysConfig } )
+    mcProd.setJobParameters( { 'SystemConfig': sysConfig } )
 
-  MCProd.setProdType( 'MCSimulation' )
+  mcProd.setProdType( 'MCSimulation' )
   wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
 
-  MCProd.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
-  MCProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
-  MCProd.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
-  MCProd.setSimulationEvents( events, eventNumberTotal )
+  mcProd.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
+  mcProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
+  mcProd.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
+  mcProd.setSimulationEvents( events, eventNumberTotal )
 
   if MC5 or MC4 or MC3 or MC2 or MC1:
 
-    MCProd.addGaussStep( gaussVersion, '{{Generator}}', events, gaussOptions, eventType = '{{eventType}}',
+    mcProd.addGaussStep( gaussVersion, '{{Generator}}', events, gaussOptions, eventType = '{{eventType}}',
                          extraPackages = gaussEP, condDBTag = gaussCDb, ddDBTag = gaussDDDb,
                          outputSE = defaultOutputSE, appType = gaussType, extraOpts = gaussExtraOptions,
                          stepID = gaussStep, stepName = gaussName, stepVisible = gaussVisibility,
@@ -724,7 +723,7 @@ else:
 
   if MC5 or MC4 or MC3 or MC2:
 
-    MCProd.addBooleStep( booleVersion, booleType, booleOptions, extraPackages = booleEP,
+    mcProd.addBooleStep( booleVersion, booleType, booleOptions, extraPackages = booleEP,
                          condDBTag = booleCDb, ddDBTag = booleDDDb, outputSE = defaultOutputSE,
                          stepID = booleStep, stepName = booleName, stepVisible = booleVisibility,
                          stepPass = boolePP, optionsFormat = booleOF )
@@ -732,13 +731,13 @@ else:
   if MC5 or MC4 or MC3:
 
     if threeSteps == 'Moore':
-      MCProd.addMooreStep( mooreVersion, mooreType, mooreOptions, extraPackages = mooreEP, inputDataType = mooreInputType,
+      mcProd.addMooreStep( mooreVersion, mooreType, mooreOptions, extraPackages = mooreEP, inputDataType = mooreInputType,
                            condDBTag = mooreCDb, ddDBTag = mooreDDDb, outputSE = defaultOutputSE,
                            stepID = mooreStep, stepName = mooreName, stepVisible = mooreVisibility,
                            stepPass = moorePP, optionsFormat = mooreOF )
 
     elif threeSteps == 'Brunel':
-      MCProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
+      mcProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
                              outputSE = brunelDataSE, condDBTag = brunelCDb, ddDBTag = brunelDDDb, extraOpts = brunelExtraOptions,
                              stepID = brunelStep, stepName = brunelName, stepVisible = brunelVisibility,
                              stepPass = brunelPP, optionsFormat = brunelOF )
@@ -746,49 +745,49 @@ else:
   if MC5 or MC4:
 
     if fourSteps == 'Brunel':
-      MCProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
+      mcProd.addBrunelStep( brunelVersion, brunelType, brunelOptions, extraPackages = brunelEP, inputDataType = brunelInputType,
                             outputSE = brunelDataSE, condDBTag = brunelCDb, ddDBTag = brunelDDDb, extraOpts = brunelExtraOptions,
                             stepID = brunelStep, stepName = brunelName, stepVisible = brunelVisibility,
                             stepPass = brunelPP, optionsFormat = brunelOF )
     if fourSteps == 'DaVinci':
-      MCProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
+      mcProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
                              dataType = 'MC', extraOpts = daVinciExtraOptions,
                              outputSE = daVinciDataSE, condDBTag = davinciCDb, ddDBTag = davinciDDDb,
                              stepID = davinciStep, stepName = davinciName, stepVisible = davinciVisibility,
                              stepPass = davinciPP, optionsFormat = davinciOF )
 
   if MC5:
-    MCProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
+    mcProd.addDaVinciStep( davinciVersion, davinciType, davinciOptions, extraPackages = davinciEP, inputDataType = davinciInputType,
                            dataType = 'MC', extraOpts = daVinciExtraOptions,
                            outputSE = daVinciDataSE, condDBTag = davinciCDb, ddDBTag = davinciDDDb,
                            stepID = davinciStep, stepName = davinciName, stepVisible = davinciVisibility,
                            stepPass = davinciPP, optionsFormat = davinciOF )
 
   gLogger.info( prodDescription )
-  MCProd.setWorkflowDescription( prodDescription )
-  MCProd.addFinalizationStep( ['UploadOutputData',
+  mcProd.setWorkflowDescription( prodDescription )
+  mcProd.addFinalizationStep( ['UploadOutputData',
                                'UploadLogFile',
                                'FailoverRequest'] )
-  MCProd.setJobParameters( { 'CPUTime': cpu } )
+  mcProd.setJobParameters( { 'CPUTime': cpu } )
 
-  MCProd.setProdGroup( '{{pDsc}}' )
-  MCProd.setProdPriority( priority )
+  mcProd.setProdGroup( '{{pDsc}}' )
+  mcProd.setProdPriority( priority )
   if outputsCERN:
-    MCProd.setOutputMode( 'Any' )
+    mcProd.setOutputMode( 'Any' )
   else:
-    MCProd.setOutputMode( 'Local' )
-  MCProd.setFileMask( outputFileMask )
+    mcProd.setOutputMode( 'Local' )
+  mcProd.setFileMask( outputFileMask )
 
   if targetSite:
-    MCProd.setTargetSite( targetSite )
+    mcProd.setTargetSite( targetSite )
 
   if banTier1s:
-    MCProd.banTier1s()
+    mcProd.banTier1s()
 
   if publishFlag == False and testFlag:
     gLogger.info( 'MC test will be launched locally with number of events set to %s.' % ( events ) )
     try:
-      result = MCProd.runLocal()
+      result = mcProd.runLocal()
       if result['OK']:
         gLogger.info( 'Template finished successfully' )
         DIRAC.exit( 0 )
@@ -796,10 +795,10 @@ else:
         gLogger.error( 'Something wrong with execution!' )
         DIRAC.exit( 2 )
     except Exception, x:
-      gLogger.error( 'MCProd test failed with exception:\n%s' % ( x ) )
+      gLogger.error( 'mcProd test failed with exception:\n%s' % ( x ) )
       DIRAC.exit( 2 )
 
-  result = MCProd.create( publish = publishFlag,
+  result = mcProd.create( publish = publishFlag,
                           requestID = int( requestID ),
                           reqUsed = simulationTracking,
                           transformation = False,
@@ -808,7 +807,7 @@ else:
                           )
 
   if not result['OK']:
-    gLogger.error( 'Error during MCProd creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
+    gLogger.error( 'Error during mcProd creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
     DIRAC.exit( 2 )
 
   if publishFlag:
@@ -829,7 +828,8 @@ else:
 
   else:
     prodID = 1
-    gLogger.info( 'MC production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+    gLogger.info( 'MC production creation completed but not published (publishFlag was %s). \
+    Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 
@@ -853,7 +853,10 @@ else:
     selectionProd.setJobParameters( {"SystemConfig": sysConfig } )
 
   selectionProd.setProdType( 'DataStripping' )
-  selectionName = 'Request_{{ID}}_%sSelection_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( selectionInputType, evtType, prodID, mergingGroupSize )
+  selectionName = 'Request_{{ID}}_%sSelection_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( selectionInputType,
+                                                                                         evtType,
+                                                                                         prodID,
+                                                                                         mergingGroupSize )
   selectionProd.setWorkflowName( '%s_%s' % ( selectionName, appendName ) )
   selectionProd.setWorkflowDescription( 'MC workflow selection from a previous production.' )
   selectionProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
@@ -906,7 +909,8 @@ else:
 
   else:
     prodID = 1
-    gLogger.info( 'Selection production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+    gLogger.info( 'Selection production creation completed but not published (publishFlag was %s). \
+    Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 #################################################################################
@@ -935,7 +939,10 @@ else:
     mergingProd.setJobParameters( {"SystemConfig": sysConfig } )
 
   mergingProd.setProdType( 'Merge' )
-  mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( mergingInputType, evtType, prodID, mergingGroupSize )
+  mergingName = 'Request_{{ID}}_%sMerging_{{pDsc}}_EventType%s_Prod%s_Files%sGB' % ( mergingInputType,
+                                                                                     evtType,
+                                                                                     prodID,
+                                                                                     mergingGroupSize )
   mergingProd.setWorkflowName( '%s_%s' % ( mergingName, appendName ) )
   mergingProd.setWorkflowDescription( 'MC workflow for merging outputs from a previous production.' )
   mergingProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
@@ -947,8 +954,8 @@ else:
                               stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
                               stepPass = mergingPP, optionsFormat = mergingOF )
   elif mergingApp.lower() == 'davinci':
-    mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP, eventType = '{{eventType}}',
-                                inputDataType = mergingInputType, inputData = '',
+    mergingProd.addDaVinciStep( mergingVersion, 'merge', mergingOptions, extraPackages = mergingEP,
+                                eventType = '{{eventType}}', inputDataType = mergingInputType, inputData = '',
                                 condDBTag = mergingCDb, ddDBTag = mergingDDDb, outputSE = mergedDataSE,
                                 stepID = mergingStep, stepName = mergingName, stepVisible = mergingVisibility,
                                 stepPass = mergingPP, optionsFormat = mergingOF )
@@ -1009,7 +1016,8 @@ else:
 
   else:
     prodID = 1
-    gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+    gLogger.info( 'Merging production creation completed but not published (publishFlag was %s). \
+    Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 
@@ -1024,7 +1032,7 @@ if not replicationFlag:
 else:
   replicatedType = ''
   if MCEnabled:
-    replicatedType = MCOutput
+    replicatedType = mcOutput
   if selection:
     replicatedType = selectionOutputType
   if merging:
@@ -1037,10 +1045,13 @@ else:
 
   transformation = Transformation()
   transformation.setType( 'Replication' )
-  transformation.setTransformationName( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
+  transformation.setTransformationName( 'ReplicationForProd' + str( prodID ) \
+                                        + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
   transformation.setTransformationGroup( '{{pDsc}}' )
-  transformation.setDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
-  transformation.setLongDescription( 'ReplicationForProd' + str( prodID ) + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
+  transformation.setDescription( 'ReplicationForProd' + str( prodID ) \
+                                 + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
+  transformation.setLongDescription( 'ReplicationForProd' + str( prodID ) \
+                                     + '-Request' + '{{pDsc}}' + '-FileType=' + replicatedType + appendName )
   transformation.setPlugin( replicationPlugin )
   transformation.setBkQuery( transBKQuery )
   transformation.setAdditionalParam( 'TransformationFamily', parentReq )
@@ -1066,7 +1077,8 @@ else:
 
   else:
     prodID = 1
-    gLogger.info( 'Replication production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+    gLogger.info( 'Replication production creation completed but not published (publishFlag was %s). \
+    Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
 
 

@@ -16,7 +16,6 @@ __RCSID__ = "$Id$"
 # Some import statements and standard DIRAC script preamble
 #################################################################################
 
-import re
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
@@ -27,7 +26,7 @@ from DIRAC import gLogger
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 gLogger = gLogger.getSubLogger( 'RealData_Merging_run.py' )
-BKClient = BookkeepingClient()
+bkClient = BookkeepingClient()
 
 #################################################################################
 # Below here is the production API script with notes
@@ -46,7 +45,7 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True to create validation productions#False}}'
 
 # workflow params for all productions
-sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#x86_64-slc5-gcc46-opt}}'
+sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 express = '{{express#GENERAL: Set True for EXPRESS (Run at CERN, saving only HIST)#False}}'
 
 #reco params
@@ -82,7 +81,7 @@ express = eval( express )
 
 dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'
-BKfileType = '{{inFileType}}'
+bkFileType = '{{inFileType}}'
 eventType = '{{eventType}}'
 recoEvtsPerJob = '-1'
 
@@ -99,7 +98,7 @@ else:
 
 inputDataList = []
 
-BKscriptFlag = False
+bkScriptFlag = False
 
 recoIDPolicy = 'download'
 
@@ -113,7 +112,7 @@ if not publishFlag:
     recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
-  BKscriptFlag = True
+  bkScriptFlag = True
 
 if testFlag:
   outBkConfigName = 'certification'
@@ -124,7 +123,7 @@ if testFlag:
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagUp'
   processingPass = 'Real Data'
-  BKfileType = 'RAW'
+  bkFileType = 'RAW'
   if express:
     eventType = '91000000'
   else:
@@ -145,7 +144,7 @@ recoDQFlag = recoDQFlag.replace( ',', ';;;' ).replace( ' ', '' )
 recoInputBKQuery = {
                     'DataTakingConditions'     : dataTakingCond,
                     'ProcessingPass'           : processingPass,
-                    'FileType'                 : BKfileType,
+                    'FileType'                 : bkFileType,
                     'EventType'                : eventType,
                     'ConfigName'               : bkConfigName,
                     'ConfigVersion'            : bkConfigVersion,
@@ -177,14 +176,15 @@ if threeSteps:
 # Create the reconstruction production
 #################################################################################
 
-production = Production( BKKClientIn = BKClient )
+production = Production( BKKClientIn = bkClient )
 
 if sysConfig:
   production.setJobParameters( { 'SystemConfig': sysConfig } )
 
 production.setJobParameters( {'CPUTime': recoCPU } )
 production.setProdType( recoType )
-wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) ) #Rest can be taken from the details in the monitoring
+wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) )
+#Rest can be taken from the details in the monitoring
 if express:
   production.setWorkflowName( 'EXPRESS_%s_%s' % ( wkfName, appendName ) )
 else:
@@ -196,12 +196,12 @@ production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
 
 brunelOptions = "{{p1Opt}}"
 
-brunelOutput = BKClient.getStepOutputFiles( int( '{{p1Step}}' ) )
+brunelOutput = bkClient.getStepOutputFiles( int( '{{p1Step}}' ) )
 if not brunelOutput['OK']:
   gLogger.error( 'Error getting res from BKK: %s', brunelOutput['Message'] )
   DIRAC.exit( 2 )
 
-brunelOF = BKClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
+brunelOF = bkClient.getAvailableSteps( {'StepId':int( '{{p1Step}}' )} )['Value']['Records'][0][12]
 
 histograms = False
 brunelOutput = [x[0].lower() for x in brunelOutput['Value']['Records']]
@@ -232,7 +232,7 @@ if "{{p2Ver}}":
 
   daVinciOptions = "{{p2Opt}}"
 
-  daVinciInput = BKClient.getStepInputFiles( int( '{{p2Step}}' ) )
+  daVinciInput = bkClient.getStepInputFiles( int( '{{p2Step}}' ) )
   if not daVinciInput['OK']:
     gLogger.error( 'Error getting res from BKK: %s', daVinciInput['Message'] )
     DIRAC.exit( 2 )
@@ -243,7 +243,7 @@ if "{{p2Ver}}":
     gLogger.error( 'Brunel output (%s) is different from DaVinci input (%s)' % ( brunelOutput, daVinciInput ) )
     DIRAC.exit( 2 )
 
-  daVinciOutput = BKClient.getStepOutputFiles( int( '{{p2Step}}' ) )
+  daVinciOutput = bkClient.getStepOutputFiles( int( '{{p2Step}}' ) )
   if not daVinciOutput['OK']:
     gLogger.error( 'Error getting res from BKK: %s', daVinciOutput['Message'] )
     DIRAC.exit( 2 )
@@ -253,7 +253,7 @@ if "{{p2Ver}}":
   if 'davincihist' in daVinciOutput:
     histograms = True
 
-  davinciOF = BKClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
+  davinciOF = bkClient.getAvailableSteps( {'StepId':int( '{{p2Step}}' )} )['Value']['Records'][0][12]
   if not davinciOF:
     davinciOF = 'DQ'
 
@@ -313,7 +313,7 @@ result = production.create(
                            bkQuery = recoInputBKQuery,
                            groupSize = recoFilesPerJob, #useless
                            derivedProduction = int( recoAncestorProd ),
-                           bkScript = BKscriptFlag,
+                           bkScript = bkScriptFlag,
                            requestID = currentReqID,
                            reqUsed = 1,
                            transformation = recoTransFlag
@@ -341,7 +341,8 @@ if publishFlag:
 
 else:
   recoProdID = 1
-  gLogger.info( 'Reconstruction production creation completed but not published (publishFlag was %s). Setting ID = %s (useless, just for the test)' % ( publishFlag, recoProdID ) )
+  gLogger.info( 'Reconstruction production creation completed but not published (publishFlag was %s). \
+  Setting ID = %s (useless, just for the test)' % ( publishFlag, recoProdID ) )
 
 #################################################################################
 # End of the template.
