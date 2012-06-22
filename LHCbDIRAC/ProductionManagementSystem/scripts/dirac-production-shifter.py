@@ -61,7 +61,8 @@ def doParse():
                           '  simCondition (string): csv conditions, being None by default',
                           '  proPath (string): csv paths, being None by default',
                           '  eventType (string): csv events, being None by default',
-                          '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,SimCondition,ProPath,EventType]',
+                          '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,\
+                             SimCondition,ProPath,EventType]',
                           '  groupMerge: group merge productions in one line',
                           '  omitMerge: omit merge productions on summary',
                           '  noFiles: do not report file status\n'] ) )
@@ -309,10 +310,8 @@ def printNow():
   sys.stdout.flush()
                                         
 if __name__ == "__main__":
-  '''
-    Main function. Parses command line, get requests, their transformations and
-    prints summary.
-  '''
+  # Main function. Parses command line, get requests, their transformations and
+  # prints summary.
 
   # Get input from command line
   _parsedInput, _mergeAction, _noFiles, _sortKey = doParse() 
@@ -322,7 +321,7 @@ if __name__ == "__main__":
 
   # Get requests with given filters
   _requests = getRequests( _parsedInput, _sortKey )
-  if requests is None:
+  if _requests is None:
     DIRACExit( 2 )
   
   # Print small information 
@@ -332,16 +331,16 @@ if __name__ == "__main__":
   transformationClient = RPCClient( 'Transformation/TransformationManager' )
   
   # Print summary per request
-  for request in _requests:
+  for _request in _requests:
     
-    requestID = request[ 'requestID' ]
+    _requestID = request[ 'requestID' ]
     
-    transformations = getTransformations( transformationClient, requestID, noFiles )
-    request[ 'transformations' ] = transformations   
+    _transformations = getTransformations( transformationClient, _requestID, _noFiles )
+    _request[ 'transformations' ] = _transformations   
   
     #request = requests[ requestID ]
   
-    printResults( request, _mergeAction )
+    printResults( _request, _mergeAction )
   
   # And that's all folks.
   DIRACExit(0)
