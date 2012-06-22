@@ -16,7 +16,8 @@
   - simCondition  : simulation condition(s) ( e.g. Beam4000GeV-VeloClosed-MagDown )
   - proPath       : proPath(s) ( e.g. Reco13 )
   - eventType     : eventType(s) ( e.g. 90000000 ) 
-  - sort          : sort requests using the keywords [RequestID,RequestState,RequestType,SimCondition,ProPath,EventType]
+  - sort          : sort requests using the keywords [RequestID,RequestState,RequestType,
+                    SimCondition,ProPath,EventType]
   - groupMerge    : group all merge productions in one line
   - omitMerge     : omit all merge production
   - noFiles       : do not request file information
@@ -234,8 +235,6 @@ def printResults( request, mergeAction ):
     transformations from the summary or group all them together in one line if 
     the value is group.
   '''
-  
-  #for request in requests.items():
  
   msgTuple = ( request[ 'requestID' ], request[ 'requestState' ], request[ 'requestType' ][:4], 
                request[ 'proPath' ], request[ 'simCondition' ], request[ 'eventType' ] )
@@ -316,24 +315,24 @@ if __name__ == "__main__":
   '''
 
   # Get input from command line
-  parsedInput, mergeAction, noFiles, sortKey = doParse() 
+  _parsedInput, _mergeAction, _noFiles, _sortKey = doParse() 
  
   # Print summary header
-  printSelection( parsedInput, mergeAction, noFiles, sortKey )
+  printSelection( _parsedInput, _mergeAction, _noFiles, _sortKey )
 
   # Get requests with given filters
-  requests = getRequests( parsedInput, sortKey )
+  _requests = getRequests( _parsedInput, _sortKey )
   if requests is None:
     DIRACExit( 2 )
   
   # Print small information 
-  printRequestsInfo( requests )
+  printRequestsInfo( _requests )
   
   # Initialized here to avoid multiple initializations due to the for-loop
   transformationClient = RPCClient( 'Transformation/TransformationManager' )
   
   # Print summary per request
-  for request in requests:
+  for request in _requests:
     
     requestID = request[ 'requestID' ]
     
@@ -342,7 +341,7 @@ if __name__ == "__main__":
   
     #request = requests[ requestID ]
   
-    printResults( request, mergeAction )
+    printResults( request, _mergeAction )
   
   # And that's all folks.
   DIRACExit(0)
