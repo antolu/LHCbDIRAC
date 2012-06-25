@@ -1,9 +1,8 @@
 ########################################################################
 # $HeadURL:  $
 ########################################################################
-
-from PyQt4.QtCore  import *
-from PyQt4.QtGui   import *
+from PyQt4.QtCore  import SIGNAL, Qt
+from PyQt4.QtGui   import QWidget, QDialog
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_AddBookmarks           import Ui_AddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAddBookmarks  import ControlerAddBookmarks
@@ -45,12 +44,12 @@ class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
     return str(self.pathlineEdit.text())
 
   #############################################################################
-  def setTitle(self, str):
-    self.titlelineEdit.setText(str)
+  def setTitle(self, string):
+    self.titlelineEdit.setText(string)
 
   #############################################################################
-  def setPath(self, str):
-    self.pathlineEdit.setText(str)
+  def setPath(self, string):
+    self.pathlineEdit.setText(string)
 
   #############################################################################
   def waitCursor(self):

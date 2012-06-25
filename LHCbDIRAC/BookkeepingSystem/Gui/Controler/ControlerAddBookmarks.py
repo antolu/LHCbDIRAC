@@ -10,8 +10,6 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import 
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-import sys
-
 #############################################################################
 class ControlerAddBookmarks(ControlerAbstract):
 

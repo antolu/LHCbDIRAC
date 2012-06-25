@@ -3,8 +3,7 @@
 ########################################################################
 
 
-from PyQt4.QtCore  import *
-from PyQt4.QtGui   import *
+from PyQt4.QtGui   import QWidget
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_TableWidget     import Ui_TableWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTable  import ControlerTable

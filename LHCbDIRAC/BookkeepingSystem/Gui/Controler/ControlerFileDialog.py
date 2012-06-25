@@ -11,10 +11,10 @@ from LHCbDIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget                import LogFileWidget
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
-
-from PyQt4.QtGui                                                     import *
+from PyQt4.QtGui                                                     import QMessageBox, QApplication
 
 import sys
+
 #############################################################################
 class ControlerFileDialog(ControlerAbstract):
 
@@ -100,11 +100,11 @@ class ControlerFileDialog(ControlerAbstract):
           lfns[i] = model[i]
       else:
         files = self.getWidget().getLFNs()
-        for file in files:
-          lfns[file] = model[file]
+        for i in files:
+          lfns[i] = model[i]
 
       message = Message({'action':'createCatalog','fileName':fileName,'lfns':lfns,'selection':sel,'dataset':self.getDataSet()})
-      feedback = self.getParent().messageFromChild(self, message)
+      self.getParent().messageFromChild(self, message)
     elif message.action() == 'applyFilter':
       values = message['items']
       self.getWidget().applyListFilter(values)
@@ -137,8 +137,8 @@ class ControlerFileDialog(ControlerAbstract):
         lfns[i] = model[i]
     else:
       files = self.getWidget().getLFNs()
-      for file in files:
-        lfns[file] = model[file]
+      for i in files:
+        lfns[i] = model[i]
 
     message = Message({'action':'GetFileName'})
     fileName = self.getParent().messageFromChild(self, message)
@@ -244,9 +244,7 @@ class ControlerFileDialog(ControlerAbstract):
 
   #############################################################################
   def countNumberOfFiles(self, items):
-    nbfiles = 0;
-    for f in items:
-      nbfiles += 1
+    nbfiles = len(items)
     return nbfiles
 
   #############################################################################
@@ -374,7 +372,7 @@ class ControlerFileDialog(ControlerAbstract):
   def next(self):
     path = self.getWidget().getPath()
     message = Message({'action':'getLimitedFiles','path':path})
-    feedback = self.getParent().messageFromChild(self, message)
+    self.getParent().messageFromChild(self, message)
 
   #############################################################################
   def tckChanged(self, i):
@@ -391,20 +389,20 @@ class ControlerFileDialog(ControlerAbstract):
   #############################################################################
   def copy(self):
     clipboard = QApplication.clipboard()
-    model = self.getWidget().getModel()
+    self.getWidget().getModel()
     text = ''
     if len(self.__selectedFiles) >= 1:
       for i in self.__selectedFiles:
         text += i+"\n"
     else:
       files = self.getWidget().getLFNs()
-      for file in files:
+      for i in files:
         text += i+"\n"
     clipboard.setText(text)
 
   #############################################################################
-  def setDataSet(self, dict):
-    self.__dataSet = dict
+  def setDataSet(self, in_dict):
+    self.__dataSet = in_dict
 
   #############################################################################
   def getDataSet(self):

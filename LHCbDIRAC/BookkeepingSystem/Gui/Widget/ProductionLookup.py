@@ -1,8 +1,8 @@
 ########################################################################
 # $Id$
 ########################################################################
-from PyQt4.QtGui                                                              import *
-from PyQt4.QtCore                                                             import *
+from PyQt4.QtGui                                                              import QDialog, QAbstractItemView
+from PyQt4.QtCore                                                             import SIGNAL
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_ProductionLookup               import Ui_ProductionLookup
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionListModel               import ProductionListModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup

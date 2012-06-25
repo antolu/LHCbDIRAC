@@ -1,8 +1,8 @@
 ########################################################################
 # $Id$
 ########################################################################
-from PyQt4.QtGui                                                              import *
-from PyQt4.QtCore                                                             import *
+from PyQt4.QtGui                                                              import QDialog, QHBoxLayout, QTabWidget
+from PyQt4.QtCore                                                             import SIGNAL
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_ProcessingPassDialog           import Ui_ProcessingPassDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                        import TableModel

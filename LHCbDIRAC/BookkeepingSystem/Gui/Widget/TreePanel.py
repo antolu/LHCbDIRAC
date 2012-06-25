@@ -2,12 +2,12 @@
 # $Id$
 ########################################################################
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4.QtCore import SIGNAL, QString, Qt
+from PyQt4.QtGui import QTreeWidget, QIcon, QStyle, QAbstractItemView, QPixmap, QCursor, QMenu, QAction
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item              import Item
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
-import LHCbDIRAC, types, os
+
 
 try:
     _fromUtf8 = QString.fromUtf8
@@ -112,7 +112,7 @@ class TreePanel(QTreeWidget):
     #self.clear()
 
     #self.disconnect(self, QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
-     #               self.updateDomElement)
+    #               self.updateDomElement)
 
     children = item.getChildren()
 

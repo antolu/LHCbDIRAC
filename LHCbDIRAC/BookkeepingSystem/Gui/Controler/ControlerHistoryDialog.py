@@ -11,20 +11,17 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryNavigationCommand     import 
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
-from PyQt4.QtGui                                                     import *
-
-import sys
-#############################################################################  
+#############################################################################
 class ControlerHistoryDialog(ControlerAbstract):
-  
-  #############################################################################  
+
+  #############################################################################
   def __init__(self, widget, parent):
     super(ControlerHistoryDialog, self).__init__(widget, parent)
     self.__selectedFiles = []
     self.__comands = []
     self.__current = 0
-      
-  #############################################################################  
+
+  #############################################################################
   def messageFromParent(self, message):
     if message.action() =='list':
       values = message['items']
@@ -39,31 +36,31 @@ class ControlerHistoryDialog(ControlerAbstract):
           self.__comands += [hcommand]
           self.__current += 1
           hcommand.execute()
-        
+
     elif message.action() == 'showJobInfos':
       values = message['items']
       headers = ['Name','Value']
       data = []
-      value = []
+
       for i in values.keys():
         d = values[i]
         if d == None:
           d = ''
         data += [ [i,d] ]
-        
+
       self.getWidget().filltable(headers, data, self.getWidget().getJobTableView())
       self.getWidget().show()
-      
+
     else:
       gLogger.error('Unkown message')
       return S_ERROR('Unkown message')
-    
-  
-  #############################################################################  
+
+
+  #############################################################################
   def messageFromChild(self, sender, message):
       return self.getParent().messageFromChild(self, message)
-  
-  #############################################################################  
+
+  #############################################################################
   def selection(self, selected, deselected):
     if selected:
       for i in selected.indexes():
@@ -77,16 +74,16 @@ class ControlerHistoryDialog(ControlerAbstract):
         values = feedback['items']
         headers = ['Name','Value']
         data = []
-        value = []
+
         for i in values.keys():
           d = values[i]
           if d == None:
             d = ''
           data += [ [i,d] ]
-          
+
         self.getWidget().filltable(headers, data, self.getWidget().getJobTableView())
         self.getWidget().setNextButtonState(enable = True)
-      
+
     if deselected:
       row = deselected.indexes()[0].row()
       for i in deselected.indexes():
@@ -94,13 +91,13 @@ class ControlerHistoryDialog(ControlerAbstract):
         data = i.model().arraydata[row][0]
         if data in self.__selectedFiles:
           self.__selectedFiles.remove(data)
-          
-  #############################################################################  
+
+  #############################################################################
   def close(self):
     self.__current = 0
     self.__comands = []
     self.getWidget().close()
-  
+
   #############################################################################
   def next(self):
     self.getWidget().setBackButtonSatate(enable = True)
@@ -116,25 +113,25 @@ class ControlerHistoryDialog(ControlerAbstract):
         data= values['Records']
         if len(data) == 0:
           self.getWidget().showError('This is the last file!')
-        else:          
+        else:
           tm = self.getWidget().filltable(headers, data, self.getWidget().getFilesTableView())
           hcommand = HistoryNavigationCommand(self.getWidget(), self.getWidget().getFilesTableView(), tm)
           self.__comands += [hcommand]
           hcommand.execute()
       else:
         hcommand = self.__comands[self.__current - 1]
-        hcommand.execute()          
+        hcommand.execute()
     else:
       self.getWidget().showError('Please select a file!')
-    
-  
+
+
   #############################################################################
   def back(self):
     self.__current -= 1
     hcommand = self.__comands[self.__current - 1 ]
     hcommand.execute()
     self.getWidget().setNextButtonState(enable = True)
-    if self.__current == 1: 
+    if self.__current == 1:
       self.getWidget().setBackButtonSatate(enable = False)
-      
-    
+
+

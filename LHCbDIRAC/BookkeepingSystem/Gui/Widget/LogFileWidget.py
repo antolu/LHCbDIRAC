@@ -5,8 +5,6 @@
 __RCSID__ = "$Id$"
 
 
-import sys
-
 from PyQt4                                                                  import QtCore, QtGui
 from Ui_HttpWidget                                                          import Ui_HttpWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerLogInfo          import ControlerLogInfo

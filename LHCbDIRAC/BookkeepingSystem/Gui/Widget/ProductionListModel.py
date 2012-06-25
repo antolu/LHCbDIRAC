@@ -1,8 +1,6 @@
 ########################################################################
 # $Id$
 ########################################################################
-from PyQt4.QtGui                                                          import *
-from PyQt4.QtCore                                                         import *
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import ListModel
 
 

@@ -2,8 +2,8 @@
 # $Id$
 ########################################################################
 
-from PyQt4.QtCore  import *
-from PyQt4.QtGui   import *
+from PyQt4.QtCore  import SIGNAL, Qt
+from PyQt4.QtGui   import QWidget, QHeaderView
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_TreeWidget              import Ui_TreeWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import ControlerTree

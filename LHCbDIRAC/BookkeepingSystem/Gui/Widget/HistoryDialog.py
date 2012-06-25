@@ -2,8 +2,8 @@
 # $Id$
 ########################################################################
 
-from PyQt4.QtGui                                import *
-from PyQt4.QtCore                               import *
+from PyQt4.QtGui                                import QDialog, QMessageBox, QAbstractItemView
+from PyQt4.QtCore                               import SIGNAL
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_HistoryDialog           import Ui_HistoryDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                 import TableModel
@@ -117,6 +117,3 @@ class HistoryDialog(QDialog, Ui_HistoryDialog):
     #tableViewObject().clear()
     self.__model = {}
 
-  #############################################################################
-  def showError(self, message):
-    QMessageBox.critical(self, "ERROR", message,QMessageBox.Ok)

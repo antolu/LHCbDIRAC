@@ -8,12 +8,12 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                 import LHCB_BKKDBClient
 from LHCbDIRAC.BookkeepingSystem.Gui.ProgressBar.ProgressThread          import ProgressThread
-from DIRAC.Interfaces.API.Dirac                                      import Dirac
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
+from DIRAC.Interfaces.API.Dirac                                          import Dirac
+from DIRAC                                                               import gLogger, S_OK, S_ERROR
 
 import sys
 
-from PyQt4.QtGui                                                     import *
+from PyQt4.QtGui                                                         import QMessageBox
 
 __RCSID__ = "$Id$"
 
@@ -130,15 +130,15 @@ class ControlerMain(ControlerAbstract):
           fileName = self.__fileName
           lfns = message['lfns']
           f = open(fileName,'w')
-          for file in lfns:
-            f.write(file+'\n')
+          for lfn in lfns:
+            f.write(lfn+'\n')
           sys.exit(0)
         else:
           fileName = message['fileName']
           lfns = message['lfns']
           f = open(fileName,'w')
-          for file in lfns:
-            f.write(file+'\n')
+          for lfn in lfns:
+            f.write(lfn+'\n')
         return True
 
       elif message.action() == 'JobInfo':
@@ -219,7 +219,6 @@ class ControlerMain(ControlerAbstract):
             return message
       elif message.action() == 'procDescription':
         desc = message['groupdesc']
-        passdesc = ''
         retVal = self.__bkClient.getProcessingPassSteps({'StepName':desc})
         if not retVal['OK']:
           gLogger.error(retVal['Message'])
@@ -278,8 +277,8 @@ class ControlerMain(ControlerAbstract):
 
       elif message.action() == 'BookmarksPrefices':
         param = self.__bkClient.getCurrentParameter()
-        type = self.__bkClient.getQueriesTypes()
-        prefix = param +'+' + type
+        querytype = self.__bkClient.getQueriesTypes()
+        prefix = param +'+' + querytype
         return S_OK(prefix)
       else:
         gLogger.error('Unknown message!',str(message.action())+str(message))

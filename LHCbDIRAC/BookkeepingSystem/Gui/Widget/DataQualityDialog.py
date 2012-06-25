@@ -1,8 +1,8 @@
 ########################################################################
 # $Id: $
 ########################################################################
-from PyQt4.QtGui                                                              import *
-from PyQt4.QtCore                                                             import *
+from PyQt4.QtGui                                                              import QCheckBox, QDialog, QApplication
+from PyQt4.QtCore                                                             import SIGNAL
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_DataQualityDialog              import Ui_DataQualityDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerDataQualityDialog     import ControlerDataQualityDialog

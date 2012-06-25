@@ -6,9 +6,9 @@
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from DIRAC                                                               import gLogger, S_OK, S_ERROR
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
+from PyQt4.QtGui   import QMessageBox
+from PyQt4.QtCore  import Qt
 import types
 __RCSID__ = "$Id$"
 
@@ -126,7 +126,7 @@ class ControlerTree(ControlerAbstract):
 
         if node.has_key('showFiles'):
           message = Message({'action':'waitCursor','type':None})
-          feeddback = self.getParent().messageFromChild(self, message)
+          self.getParent().messageFromChild(self, message)
 
           message = Message({'action':'getNbEventsAndFiles','node':path})
           feedback = self.getParent().messageFromChild(self, message)
@@ -138,7 +138,7 @@ class ControlerTree(ControlerAbstract):
           #show={'Number of files':feedback['TotalRecords'],'Nuber of Events':feedback['Extras']['Number of Events']}
           self.getWidget().getTree().addLeaf(show, parentItem)
           message = Message({'action':'arrowCursor','type':None})
-          feeddback = self.getParent().messageFromChild(self, message)
+          self.getParent().messageFromChild(self, message)
         else:
           message = Message({'action':'expande','node':path})
           feedback = self.getParent().messageFromChild(self, message)
@@ -147,15 +147,13 @@ class ControlerTree(ControlerAbstract):
               child = feedback['items'].child(0)
               if not child['expandable']:
                 message = Message({'action':'waitCursor','type':None})
-                feeddback = self.getParent().messageFromChild(self, message)
+                self.getParent().messageFromChild(self, message)
                 controlers = self.getChildren()
                 ct = controlers['FileDialog']
                 message = Message({'action':'list','items':feedback['items'], 'StartItem':0,'MaxItem':self.getPageSize()})
-                #res = ct.messageFromParent(message)
-                res = True
-                if res :
-                  message = Message({'action':'arrowCursor','type':None})
-                  feeddback = self.getParent().messageFromChild(self, message)
+                ct.messageFromParent(message)
+                message = Message({'action':'arrowCursor','type':None})
+                self.getParent().messageFromChild(self, message)
               else:
                 self.getWidget().getTree().showTree(feedback['items'], parentItem)
 
@@ -163,7 +161,6 @@ class ControlerTree(ControlerAbstract):
 
   #############################################################################
   def _on_item_clicked(self,parentItem):
-    node = parentItem.getUserObject()
     parentnode = parentItem.parent()
     if parentnode != None:
       parent = parentnode.getUserObject()

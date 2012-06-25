@@ -3,8 +3,8 @@
 ########################################################################
 
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui  import *
+from PyQt4.QtCore import SIGNAL, SLOT, Qt
+from PyQt4.QtGui  import QMainWindow
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_MainWidget                 import Ui_MainWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerMain              import ControlerMain

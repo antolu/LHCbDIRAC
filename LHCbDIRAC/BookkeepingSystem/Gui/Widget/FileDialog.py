@@ -2,8 +2,8 @@
 # $Id$
 ########################################################################
 
-from PyQt4.QtGui                                import *
-from PyQt4.QtCore                               import *
+from PyQt4.QtGui                                import QDialog, QMenu, QAction, QSortFilterProxyModel, QMessageBox, QAbstractItemView, QFileDialog, QCursor
+from PyQt4.QtCore                               import SIGNAL, Qt, QDir, QVariant
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_FileDialog           import Ui_FileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
@@ -161,29 +161,28 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################
   def showData(self, data):
     self.waitCursor()
-    noheader = ['name','expandable','level','fullpath', 'GeometryVersion','WorkerNode', 'FileType','EvtTypeId', 'Generator']
+
     tabledata =[]
-    #print data
-             #['Name','EventStat', 'FileSize','CreationDate', 'JobStart', 'JobEnd','WorkerNode','FileType', 'EvtTypeId','RunNumber','FillNumber','FullStat', 'DataQuality', 'EventInputStat']
+
     header = ['FileName', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
     'EventInputStat', 'TotalLuminosity', 'Luminosity', 'InstLuminosity', 'TCK']
     data.update(self.__model)
     keys = data.keys()
     keys.sort()
     for item in keys:
-      file = data[item]
+      lfn = data[item]
       d = []
       '''
-      for info in file:
+      for info in lfn:
         if info not in noheader:
           header += [info]
-          value = file[info]
+          value = lfn[info]
           if value == None:
             value = ''
           d += [value]
       '''
       for info in header:
-          value = file[info]
+          value = lfn[info]
           if value == None:
             value = ''
           d += [value]
@@ -292,29 +291,29 @@ class FileDialog(QDialog, Ui_FileDialog):
     self.__popUp.popup(QCursor.pos())
 
   #############################################################################
-  def showSelection(self, dict):
+  def showSelection(self, in_dict):
 
 
-    if dict.has_key('ConfigName'):
-      self.configname.setText(dict["ConfigName"])
+    if in_dict.has_key('ConfigName'):
+      self.configname.setText(in_dict["ConfigName"])
 
-    if dict.has_key('ConfigVersion'):
-      self.configversion.setText(dict["ConfigVersion"])
+    if in_dict.has_key('ConfigVersion'):
+      self.configversion.setText(in_dict["ConfigVersion"])
 
-    if dict.has_key('ConditionDescription'):
-      self.simulation.setText(dict["ConditionDescription"])
+    if in_dict.has_key('ConditionDescription'):
+      self.simulation.setText(in_dict["ConditionDescription"])
 
-    if dict.has_key('ProcessingPass'):
-      self.processing.setText(dict["ProcessingPass"])
+    if in_dict.has_key('ProcessingPass'):
+      self.processing.setText(in_dict["ProcessingPass"])
 
-    if dict.has_key('EventTypeId'):
-      self.eventtype.setText(dict["EventTypeId"])
+    if in_dict.has_key('EventTypeId'):
+      self.eventtype.setText(in_dict["EventTypeId"])
 
-    if dict.has_key('Production'):
+    if in_dict.has_key('Production'):
       self.production.setText('')
 
-    if dict.has_key('FileType'):
-      self.filetype.setText(dict["FileType"])
+    if in_dict.has_key('FileType'):
+      self.filetype.setText(in_dict["FileType"])
 
     self.progrnameandversion.setText('')
 
@@ -342,35 +341,35 @@ class FileDialog(QDialog, Ui_FileDialog):
       self.__proxy.clear()
       self.__proxy.invalidateFilter()
       if self.tckcombo.count() > 1:
-        filter = '\\b'
+        filterCondition = '\\b'
         cond = '('
         for i in range(self.tckcombo.count()):
           cond += self.tckcombo.itemText(i)
           cond +='|'
         cond=cond[:-1]
-        filter += cond +')\\b'
+        filterCondition += cond +')\\b'
         self.__proxy.setFilterKeyColumn(15)
-        self.__proxy.setFilterRegExp(filter)
+        self.__proxy.setFilterRegExp(filterCondition)
         for row in xrange(self.__proxy.rowCount()):
           self.tableView.setRowHeight(row, 18)
 
     else:
       self.__proxy.setFilterKeyColumn(15)
-      filter = '%s'%(data)
-      self.__proxy.setFilterRegExp(filter)
+      filterCondition = '%s'%(data)
+      self.__proxy.setFilterRegExp(filterCondition)
       for row in xrange(self.__proxy.rowCount()):
         self.tableView.setRowHeight(row, 18)
 
   def applyListFilter(self, data):
-      filter = '\\b'
+      filterCondition = '\\b'
       cond = '('
       for i in data:
         cond += i
         cond +='|'
       cond=cond[:-1]
-      filter += cond +')\\b'
+      filterCondition += cond +')\\b'
       self.__proxy.setFilterKeyColumn(15)
-      self.__proxy.setFilterRegExp(filter)
+      self.__proxy.setFilterRegExp(filterCondition)
       for row in xrange(self.__proxy.rowCount()):
         self.tableView.setRowHeight(row, 18)
 

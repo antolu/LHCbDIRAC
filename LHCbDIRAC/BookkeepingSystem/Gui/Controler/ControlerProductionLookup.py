@@ -7,7 +7,8 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 
-from PyQt4.QtGui                                                     import *
+from PyQt4.QtGui                                                         import QMessageBox
+
 __RCSID__ = "$Id$"
 
 #############################################################################

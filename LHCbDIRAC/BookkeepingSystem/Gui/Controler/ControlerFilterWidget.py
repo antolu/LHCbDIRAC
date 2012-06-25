@@ -7,7 +7,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
 
-from PyQt4.QtGui                                                     import *
+from PyQt4.QtGui                                                         import QMessageBox
 __RCSID__ = "$Id: $"
 
 #############################################################################
@@ -56,6 +56,6 @@ class ControlerFilterWidget(ControlerAbstract):
 
   #############################################################################
   def allPressed(self):
-    list = self.getWidget().getModel().getAllData()
-    message = Message({'action':'applyFilter','items':list})
+    flist = self.getWidget().getModel().getAllData()
+    message = Message({'action':'applyFilter','items':flist})
     self.getParent().messageFromChild(self, message)

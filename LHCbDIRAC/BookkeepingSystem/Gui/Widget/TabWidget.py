@@ -2,8 +2,8 @@
 # $Id$
 ########################################################################
 
-from PyQt4.QtGui                                                    import *
-from PyQt4.QtCore                                                   import *
+from PyQt4.QtGui                                                    import QWidget, QGridLayout, QTableView, QMenu, QAction, QCursor, QApplication
+from PyQt4.QtCore                                                   import SIGNAL, Qt
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 
@@ -39,7 +39,7 @@ class TabWidget(QWidget):
     tableView.setContextMenuPolicy(Qt.CustomContextMenu)
     self.connect(tableView, SIGNAL('customContextMenuRequested(QPoint)'), self.popUpMenu)
 
-       # set the table model
+    # set the table model
     tm = TableModel(tabledata, header, self)
 
     tableView.setModel(tm)

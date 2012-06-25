@@ -1,10 +1,7 @@
 ########################################################################
 # $Id: $
 ########################################################################
-from PyQt4.QtGui                                                          import *
-from PyQt4.QtCore                                                         import *
-
-import types
+from PyQt4.QtCore                                                         import Qt, QVariant, QAbstractListModel,QModelIndex, QAbstractTableModel
 
 __RCSID__ = "$Id: $"
 

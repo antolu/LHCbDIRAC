@@ -2,8 +2,8 @@
 # $Id$
 ########################################################################
 
-from PyQt4.QtGui                                import *
-from PyQt4.QtCore                               import *
+from PyQt4.QtGui                                import QDialog
+from PyQt4.QtCore                               import SIGNAL
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_InfoDialog           import Ui_InfoDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog

@@ -2,8 +2,8 @@
 #$HeadURL:  $
 ########################################################################
 
-from PyQt4.QtCore  import *
-from PyQt4.QtGui   import *
+from PyQt4.QtCore  import SIGNAL, Qt
+from PyQt4.QtGui   import QAbstractItemView, QWidget
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_BookmarksWidget                            import Ui_BookmarksWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerBookmarks                   import ControlerBookmarks
