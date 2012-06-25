@@ -18,11 +18,12 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def __init__( self, transID = 0 ):
-    """ Just params setting. 
+  def __init__( self, transID=0 ):
+    """ Just params setting.
         transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
     """
-    DIRACTransformation.__init__( self, transID = transID, transClient = TransformationClient() )
+
+    DIRACTransformation.__init__( self, transID=transID, transClient=TransformationClient() )
 
     self.supportedPlugins += ['RAWShares', 'AtomicRun']
     self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast', 'FakeReplication']
@@ -31,6 +32,7 @@ class Transformation( DIRACTransformation ):
                               'ByRunSize', 'ByRunSizeWithFlush', 'ByRunFileType', 'ByRunFileTypeWithFlush']
     self.supportedPlugins += ['ByRunFileTypeSize', 'ByRunFileTypeSizeWithFlush', 'ByRunEventType',
                               'ByRunEventTypeWithFlush', 'ByRunEventTypeSize', 'ByRunEventTypeSizeWithFlush']
+    self.supportedPlugins += ['ReplicateToLocalSE', 'DeleteReplicasWhenProcessed']
     if not  self.paramValues.has_key( 'BkQuery' ):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key( 'BkQueryID' ):
@@ -38,7 +40,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def generateBkQuery( self, test = False, printOutput = False ):
+  def generateBkQuery( self, test=False, printOutput=False ):
     """ Returns a BK query, users are supposed to fill in values
     """
     parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
@@ -47,7 +49,7 @@ class Transformation( DIRACTransformation ):
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
       default = parameterDefaults.get( parameter, 'All' )
-      res = self._promptUser( "Please enter %s" % parameter, choices = [], default = default )
+      res = self._promptUser( "Please enter %s" % parameter, choices=[], default=default )
       if not res['OK']:
         return res
       if res['Value'] != default:
@@ -57,12 +59,12 @@ class Transformation( DIRACTransformation ):
     if ( queryDict.has_key( 'SimulationConditions' ) ) and ( queryDict.has_key( 'DataTakingConditions' ) ):
       return S_ERROR( "SimulationConditions and DataTakingConditions can not be defined simultaneously" )
     if test:
-      self.testBkQuery( queryDict, printOutput = printOutput )
+      self.testBkQuery( queryDict, printOutput=printOutput )
     return S_OK( queryDict )
 
   #############################################################################
 
-  def testBkQuery( self, bkQuery, printOutput = False, bkClient = None ):
+  def testBkQuery( self, bkQuery, printOutput=False, bkClient=None ):
     """ just pretty print of the result of a BK Query
     """
 
@@ -80,7 +82,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def setBkQuery( self, queryDict, test = False ):
+  def setBkQuery( self, queryDict, test=False ):
     """ set a BKK Query
     """
     if test:
@@ -100,12 +102,12 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def getBkQuery( self, printOutput = False ):
+  def getBkQuery( self, printOutput=False ):
     """ get a BKK Query
     """
     if self.paramValues['BkQuery']:
       return S_OK( self.paramValues['BkQuery'] )
-    res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput = printOutput )
+    res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput=printOutput )
     if not res['OK']:
       return res
     self.item_called = 'BkQuery'
@@ -133,7 +135,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def addTransformation( self, addFiles = True, printOutput = False ):
+  def addTransformation( self, addFiles=True, printOutput=False ):
     """ Add a transformation, using TransformationClient()
     """
     res = self._checkCreation()
@@ -156,14 +158,14 @@ class Transformation( DIRACTransformation ):
                                               self.paramValues['Plugin'],
                                               self.paramValues['AgentType'],
                                               self.paramValues['FileMask'],
-                                              transformationGroup = self.paramValues['TransformationGroup'],
-                                              groupSize = self.paramValues['GroupSize'],
-                                              inheritedFrom = self.paramValues['InheritedFrom'],
-                                              body = self.paramValues['Body'],
-                                              maxTasks = self.paramValues['MaxNumberOfTasks'],
-                                              eventsPerTask = self.paramValues['EventsPerTask'],
-                                              addFiles = addFiles,
-                                              bkQuery = self.paramValues['BkQuery'] )
+                                              transformationGroup=self.paramValues['TransformationGroup'],
+                                              groupSize=self.paramValues['GroupSize'],
+                                              inheritedFrom=self.paramValues['InheritedFrom'],
+                                              body=self.paramValues['Body'],
+                                              maxTasks=self.paramValues['MaxNumberOfTasks'],
+                                              eventsPerTask=self.paramValues['EventsPerTask'],
+                                              addFiles=addFiles,
+                                              bkQuery=self.paramValues['BkQuery'] )
     if not res['OK']:
       if printOutput:
         self._prettyPrint( res )
@@ -271,3 +273,8 @@ class Transformation( DIRACTransformation ):
   def _checkByRunEventTypeSizeWithFlushPlugin( self ):
     return S_OK()
 
+  def _checkReplicateToLocalSE( self ):
+    return S_OK()
+
+  def _checkDeleteReplicasWhenProcessed( self ):
+    return S_OK()
