@@ -31,7 +31,7 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors=True )
+  Script.parseCommandLine( ignoreErrors = True )
 
   plugin = pluginScript.getOption( 'Plugin' )
   prods = pluginScript.getOption( 'Productions' )
@@ -66,7 +66,7 @@ if __name__ == "__main__":
   transType = None
   if plugin in pluginScript.getRemovalPlugins():
     transType = "Removal"
-  elif plugin in pluginScript.getReplicationPlugin():
+  elif plugin in pluginScript.getReplicationPlugins():
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"
@@ -81,7 +81,7 @@ if __name__ == "__main__":
   visible = True
   if plugin == "DestroyDataset" or prods:
     visible = False
-  bkQuery = pluginScript.getBKQuery( visible=visible )
+  bkQuery = pluginScript.getBKQuery( visible = visible )
   transBKQuery = bkQuery.getQueryDict()
   if not transBKQuery:
     print "No BK query was given..."
@@ -155,7 +155,7 @@ if __name__ == "__main__":
   if transBKQuery:
     print "Executing the BK query..."
     startTime = time.time()
-    lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
+    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
     bkTime = time.time() - startTime
     nfiles = len( lfns )
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
