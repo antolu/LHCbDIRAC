@@ -116,7 +116,7 @@ if __name__ == "__main__":
     transName += '-' + queryPath
 
   if requestID:
-    transName += '-Request%d' % ( requestID )
+    transName += '-Request%s' % ( requestID )
   transformation.setTransformationName( transName )
   transformation.setTransformationGroup( transGroup )
   transformation.setDescription( longName )
