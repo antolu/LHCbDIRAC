@@ -220,8 +220,8 @@ class Production():
       optionsLine = ';'.join( extraOpts )
 
     if not outputSE:
-      outputSE = 'Tier1-RDST'
-      self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      raise ValueError, 'Missing OutputSE of Gauss Step'
+    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
                                    optionsLine, eventType, extraPackages, outputSE, '', 'None',
@@ -254,8 +254,8 @@ class Production():
       optionsLine = ';'.join( extraOpts )
 
     if not outputSE:
-      outputSE = 'Tier1-RDST'
-      self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      raise ValueError, 'Missing OutputSE of Boole Step'
+    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     if extraOutputFile:
       self.LHCbJob.log.verbose( 'Adding output file to Boole step %s' % extraOutputFile )
@@ -275,33 +275,13 @@ class Production():
                     extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                     stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep and getOptions.
-        appType is rdst / dst / xdst / sdst
-        inputDataType is mdf / digi
-        enough to set one of the above
+    """ Wraps around addGaudiStep
     """
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
-    if appType.lower() in ['rdst', 'sdst']:
-      if not outputSE:
-        outputSE = 'Tier1-RDST'
-        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-    else:
-      if not appType.lower() in ['dst', 'xdst']:
-        raise TypeError, 'Application type not recognised'
-      if inputDataType.lower() == 'digi':
-        if not outputSE:
-          outputSE = 'Tier1_MC-DST'
-          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-      elif inputDataType.lower() == 'fetc':
-        #Must rely on data type for fetc only
-        if not outputSE:
-          if dataType.lower() == 'mc':
-            outputSE = 'Tier1_MC-DST'
-            self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-          else:
-            outputSE = 'Tier1-DST' #for real data master dst
-            self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+    if not outputSE:
+      raise ValueError, 'Missing OutputSE of Brunel Step'
+    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     optionsLine = ''
     if extraOpts:
@@ -326,40 +306,16 @@ class Production():
                      condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                      extraOutput = [],
                      stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep and getOptions.
-        appType is  dst / dst / setc / fetc / merge / undefined at the moment ;)
-        inputDataType is dst / rdst / fetc / sdst 
+    """ Wraps around addGaudiStep
     """
 
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 0
 
-    if inputDataType.lower() == 'dst':
-      if not dataType:
-        raise TypeError, 'Must clarify MC / DATA for DST->DST processing'
-      if not outputSE:
-        if dataType.upper() == 'MC':
-          outputSE = 'Tier1_MC-DST'
-          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-        else:
-          outputSE = 'Tier1-DST'
-          self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-    else:
-      dataType = 'DATA'
-      if not outputSE:
-        outputSE = 'Tier1-DST'
-        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    if appType.lower() in ['merge']: #,'mdst']:
-      if not outputSE:
-        outputSE = 'Tier1-DST'
-        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    if appType.lower() in ['setc', 'mdst']:
-      if not outputSE:
-        outputSE = 'Tier1-DST'
-        self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+    if not outputSE:
+      raise ValueError, 'Missing OutputSE of DaVinci Step'
+    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     optionsLine = ''
     if extraOpts:
@@ -373,9 +329,9 @@ class Production():
       appType = inputDataType.lower()
 
     self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
-                       extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
-                       stepID, stepName, stepVisible, stepPass, optionsFormat )
+                        extraPackages, outputSE, inputData, inputDataType, histograms,
+                        firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
+                        stepID, stepName, stepVisible, stepPass, optionsFormat )
 
   #############################################################################
 
@@ -393,10 +349,7 @@ class Production():
     firstEventNumber = 0
 
     if not outputSE:
-      outputSE = 'Tier1_MC-DST'
-      if inputDataType.lower() == 'digi':
-        outputSE = 'Tier1-RDST' #convention for intermediate outputs that are not saved by default
-
+      raise ValueError, 'Missing OutputSE of Moore Step'
     self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     optionsLine = ''
@@ -431,8 +384,8 @@ class Production():
     #optionsFile = ''
     appType = inputDataType
     if not outputSE:
-      outputSE = 'Tier1_MC-DST'
-      self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
+      raise ValueError, 'Missing OutputSE of LHCb Step'
+    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
 
     optionsLine = ''
     if extraOpts:
