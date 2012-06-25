@@ -204,10 +204,9 @@ class Production():
 
   def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
                    extraPackages = '', outputSE = None, histograms = False, extraOpts = '', optionsFormat = '',
-                   appType = 'sim', condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
+                   appType = '', condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
-        appType can be sim / gen 
     """
 
     eventType = self.__getEventType( eventType )
@@ -234,19 +233,15 @@ class Production():
 
   def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
                    outputSE = None, histograms = False, inputData = 'previousStep', optionsFormat = '',
-                   extraOpts = '', extraOutputFile = [],
+                   extraOpts = '', extraOutputFile = [], inputDataType = '',
                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
     """ Wraps around addGaudiStep and getOptions.
-        appType is mdf / digi / xdigi
-        currently assumes input data type is sim
     """
     eventType = self.__getEventType( eventType )
     self.__checkArguments( extraPackages, optionsFile )
     firstEventNumber = 0
     numberOfEvents = '-1'
-    inputDataType = 'sim'
-    inputData = 'previousStep'
 
     optionsLine = ''
     if extraOpts:
@@ -271,7 +266,7 @@ class Production():
   #############################################################################
 
   def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                    inputData = 'previousStep', inputDataType = 'mdf', outputSE = None, histograms = False,
+                    inputData = 'previousStep', inputDataType = '', outputSE = None, histograms = False,
                     extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                     stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
@@ -301,7 +296,7 @@ class Production():
   #############################################################################
 
   def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                     inputData = 'previousStep', inputDataType = 'rdst', outputSE = None, histograms = False,
+                     inputData = 'previousStep', inputDataType = '', outputSE = None, histograms = False,
                      extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
                      condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                      extraOutput = [],
@@ -336,7 +331,7 @@ class Production():
   #############################################################################
 
   def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                   inputData = 'previousStep', inputDataType = 'raw', outputSE = None, histograms = False,
+                   inputData = 'previousStep', inputDataType = '', outputSE = None, histograms = False,
                    extraOpts = '', numberOfEvents = '-1', optionsFormat = '',
                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
                    outputAppendName = '',
@@ -369,7 +364,7 @@ class Production():
 
   def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts',
                    eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
-                   inputDataType = 'dst', outputSE = None, extraOpts = '', numberOfEvents = '-1',
+                   inputDataType = '', outputSE = None, extraOpts = '', numberOfEvents = '-1',
                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global', optionsFormat = '',
                    dataType = 'MC', extraOutput = [],
                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):

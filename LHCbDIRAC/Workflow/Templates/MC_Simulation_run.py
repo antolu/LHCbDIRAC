@@ -723,7 +723,7 @@ else:
 
   if MC5 or MC4 or MC3 or MC2:
 
-    mcProd.addBooleStep( booleVersion, booleType, booleOptions, extraPackages = booleEP,
+    mcProd.addBooleStep( booleVersion, booleType, booleOptions, extraPackages = booleEP, inputDataType = booleInputType,
                          condDBTag = booleCDb, ddDBTag = booleDDDb, outputSE = defaultOutputSE,
                          stepID = booleStep, stepName = booleName, stepVisible = booleVisibility,
                          stepPass = boolePP, optionsFormat = booleOF )
