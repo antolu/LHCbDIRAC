@@ -76,7 +76,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
 
   #############################################################################
-  def getAvailableSteps(self, dict={}):
+  def getAvailableSteps(self, in_dict={}):
     """
     I never implemented this kind of method in my life. I have to start some time!
     """
@@ -88,10 +88,10 @@ class OracleBookkeepingDB(IBookkeepingDB):
     condition = ''
     tables = 'steps s, steps r, runtimeprojects rr '
     resut = S_ERROR()
-    if len(dict) > 0:
-      infiletypes = dict.get('InputFileTypes', default)
-      outfiletypes = dict.get('OutputFileTypes', default)
-      matching = dict.get('Equal', 'YES')
+    if len(in_dict) > 0:
+      infiletypes = in_dict.get('InputFileTypes', default)
+      outfiletypes = in_dict.get('OutputFileTypes', default)
+      matching = in_dict.get('Equal', 'YES')
 
       if (type(matching) == types.BooleanType):
         if matching:
@@ -102,7 +102,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
         return S_ERROR ('Wrong Equal value!')
 
       if infiletypes != default or outfiletypes != default:
-        sort = dict.get('Sort', default)
+        sort = in_dict.get('Sort', default)
         if sort != default:
           condition += 'Order by '
           order = sort.get('Order', 'Asc')
@@ -138,15 +138,15 @@ class OracleBookkeepingDB(IBookkeepingDB):
         command = "select * from table(BOOKKEEPINGORACLEDB.getStepsForFiletypes(%s, %s, '%s')) s %s" % (inp,out, matching.upper(), condition)
         retVal = self.dbR_._query(command)
       else:
-        startDate = dict.get('StartDate', default)
+        startDate = in_dict.get('StartDate', default)
         if startDate != default:
           condition += " and s.inserttimestamps >= TO_TIMESTAMP (' %s ' ,'YYYY-MM-DD HH24:MI:SS')" % (startDate)
 
-        stepId = dict.get('StepId', default)
+        stepId = in_dict.get('StepId', default)
         if stepId != default:
           condition += ' and s.stepid= %s' % (str(stepId))
 
-        stepName = dict.get('StepName', default)
+        stepName = in_dict.get('StepName', default)
         if stepName != default:
           if type(stepName) == types.StringType:
             condition += " and s.stepname='%s'" % (stepName)
@@ -156,7 +156,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.stepname='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        appName = dict.get('ApplicationName', default)
+        appName = in_dict.get('ApplicationName', default)
         if appName != default:
           if type(appName) == types.StringType:
             condition += " and s.applicationName='%s'" % (appName)
@@ -166,7 +166,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.applicationName='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        appVersion = dict.get('ApplicationVersion', default)
+        appVersion = in_dict.get('ApplicationVersion', default)
         if appVersion != default:
           if type(appVersion) == types.StringType:
             condition += " and s.applicationversion='%s'" % (appVersion)
@@ -176,7 +176,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.applicationversion='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        optFile = dict.get('OptionFiles', default)
+        optFile = in_dict.get('OptionFiles', default)
         if optFile != default:
           if type(optFile) == types.StringType:
             condition += " and s.optionfiles='%s'" % (optFile)
@@ -186,7 +186,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.optionfiles='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        dddb = dict.get('DDDB', default)
+        dddb = in_dict.get('DDDB', default)
         if dddb != default:
           if type(dddb) == types.StringType:
             condition += " and s.dddb='%s'" % (dddb)
@@ -196,7 +196,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.dddb='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        conddb = dict.get('CONDDB', default)
+        conddb = in_dict.get('CONDDB', default)
         if conddb != default:
           if type(conddb) == types.StringType:
             condition += " and s.conddb='%s'" % (conddb)
@@ -206,7 +206,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.conddb='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        extraP = dict.get('ExtraPackages', default)
+        extraP = in_dict.get('ExtraPackages', default)
         if extraP != default:
           if type(extraP) == types.StringType:
             condition += " and s.extrapackages='%s'" % (extraP)
@@ -216,7 +216,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.extrapackages='%s' or " % (i)
             condition += values + ')'
 
-        visible = dict.get('Visible', default)
+        visible = in_dict.get('Visible', default)
         if visible != default:
           if type(visible) == types.StringType:
             condition += " and s.visible='%s'" % (visible)
@@ -226,7 +226,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.visible='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        procPass = dict.get('ProcessingPass', default)
+        procPass = in_dict.get('ProcessingPass', default)
         if procPass != default:
           if type(procPass) == types.StringType:
             condition += " and s.processingpass='%s'" % (procPass)
@@ -236,7 +236,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.processingpass='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        usable = dict.get('Usable', default)
+        usable = in_dict.get('Usable', default)
         if usable != default:
           if type(usable) == types.StringType:
             condition += " and s.usable='%s'" % (usable)
@@ -246,11 +246,11 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.usable='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        runtimeProject = dict.get('RuntimeProjects', default)
+        runtimeProject = in_dict.get('RuntimeProjects', default)
         if runtimeProject != default:
           condition += " and s.runtimeProject=%d" % (runtimeProject)
 
-        dqtag = dict.get('DQTag', default)
+        dqtag = in_dict.get('DQTag', default)
         if dqtag != default:
           if type(dqtag) == types.StringType:
             condition += " and s.dqtag='%s'" % (dqtag)
@@ -260,7 +260,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += "  s.dqtag='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        optsf = dict.get('OptionsFormat', default)
+        optsf = in_dict.get('OptionsFormat', default)
         if optsf != default:
           if type(optsf) == types.StringType:
             condition += " and s.optionsFormat='%s'" % (optsf)
@@ -270,13 +270,13 @@ class OracleBookkeepingDB(IBookkeepingDB):
               values += " s.optionsFormat='%s' or " % (i)
             condition += values[:-3] + ')'
 
-        start = dict.get('StartItem', default)
-        max = dict.get('MaxItem', default)
+        start = in_dict.get('StartItem', default)
+        max = in_dict.get('MaxItem', default)
 
         if start != default and max != default:
           paging = True
 
-        sort = dict.get('Sort', default)
+        sort = in_dict.get('Sort', default)
         if sort != default:
           condition += 'Order by '
           order = sort.get('Order', 'Asc')
@@ -343,12 +343,12 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
 
   #############################################################################
-  def getRuntimeProjects(self, dict):
+  def getRuntimeProjects(self, in_dict):
     result = S_ERROR()
     condition = ''
     selection = 's.stepid,stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,CONDDB, s.extrapackages,s.Visible, s.ProcessingPass, s.Usable'
     tables = 'steps s, runtimeprojects rp'
-    stepId = dict.get('StepId', default)
+    stepId = in_dict.get('StepId', default)
     if stepId != default:
       condition += " rp.stepid=%d" % (stepId)
       command = " select %s from %s where s.stepid=rp.runtimeprojectid and %s" % (selection, tables, condition)
@@ -433,7 +433,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertFileTypes', LongType, [ftype, desc, fileType])
 
   #############################################################################
-  def insertStep(self, dict):
+  def insertStep(self, in_dict):
     ### Dictionary format: {'Step': {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '', 'ApplicationVersion': 'v29r1', 'ext-comp-1273': 'CHARM.MDST (Charm micro dst)', 'ExtraPackages': '', 'StepName': 'davinci prb2', 'ProcessingPass': 'WG-Coool', 'ext-comp-1264': 'CHARM.DST (Charm stream)', 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': ''}, 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}],'RuntimeProjects':[{StepId:13878}]}
     result = S_ERROR()
     values = ''
@@ -446,7 +446,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       sid = retVal['Value'][0][0]
 
     selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,extrapackages,visible, processingpass, usable, DQTag, optionsformat '
-    inFileTypes = dict.get('InputFileTypes', default)
+    inFileTypes = in_dict.get('InputFileTypes', default)
     if inFileTypes != default:
       inFileTypes = sorted(inFileTypes, key=lambda k: k['FileType'])
       values = ',filetypesARRAY('
@@ -456,7 +456,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       values = values[:-1]
       values += ')'
 
-    outFileTypes = dict.get('OutputFileTypes', default)
+    outFileTypes = in_dict.get('OutputFileTypes', default)
     if outFileTypes != default:
       outFileTypes = sorted(outFileTypes, key=lambda k: k['FileType'])
       values += ' , filetypesARRAY('
@@ -466,7 +466,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       values = values[:-1]
       values += ')'
 
-    step = dict.get('Step', default)
+    step = in_dict.get('Step', default)
     if step != default:
       command = selection + ")values(%d" % (sid)
       command += ",'%s'" % (step.get('StepName', 'NULL'))
@@ -484,7 +484,7 @@ class OracleBookkeepingDB(IBookkeepingDB):
       command += values + ")"
       retVal = self.dbW_._query(command)
       if retVal['OK']:
-        r_project = dict.get('RuntimeProjects', step.get('RuntimeProjects', default))
+        r_project = in_dict.get('RuntimeProjects', step.get('RuntimeProjects', default))
         if r_project != default:
           for i in r_project:
             rid = i['StepId']
@@ -525,44 +525,44 @@ class OracleBookkeepingDB(IBookkeepingDB):
     return result
 
   #############################################################################
-  def updateStep(self, dict):
+  def updateStep(self, in_dict):
     #input data {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '13860', 'ApplicationVersion': 'v29r1', 'ExtraPackages': '', 'StepName': 'davinci prb3', 'ProcessingPass': 'WG-Coool-new', 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}], 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': '', 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'RuntimeProjects':[{'StepId':13879}]}
     result = S_ERROR()
     ok = True
-    rProjects = dict.get('RuntimeProjects', default)
+    rProjects = in_dict.get('RuntimeProjects', default)
     if rProjects != default:
       if len(rProjects) > 0:
         for i in rProjects:
-          if 'StepId' not in dict:
+          if 'StepId' not in in_dict:
             result = S_ERROR('The runtime project can not changed, because the StepId is missing!')
             ok = False
           else:
-            retVal = self.updateRuntimeProject(dict['StepId'], i['StepId'])
+            retVal = self.updateRuntimeProject(in_dict['StepId'], i['StepId'])
             if not retVal['OK']:
               result = retVal
               ok = False
             else:
-              dict.pop('RuntimeProjects')
+              in_dict.pop('RuntimeProjects')
       else:
-        retVal = self.removeRuntimeProject(dict['StepId'])
+        retVal = self.removeRuntimeProject(in_dict['StepId'])
         if not retVal['OK']:
           result = retVal
           ok = False
         else:
-          dict.pop('RuntimeProjects')
+          in_dict.pop('RuntimeProjects')
 
     if ok:
-      stepid = dict.get('StepId', default)
+      stepid = in_dict.get('StepId', default)
       if stepid != default:
         condition = " where stepid=%s" % (str(stepid))
         command = 'update steps set '
-        for i in dict:
-          if type(dict[i]) == types.StringType:
-            command += " %s='%s'," % (i, str(dict[i]))
+        for i in in_dict:
+          if type(in_dict[i]) == types.StringType:
+            command += " %s='%s'," % (i, str(in_dict[i]))
           else:
-            if len(dict[i]) > 0:
+            if len(in_dict[i]) > 0:
               values = 'filetypesARRAY('
-              ftypes = dict[i]
+              ftypes = in_dict[i]
               ftypes = sorted(ftypes, key=lambda k: k['FileType'])
               for j in ftypes:
                 f = j.get('FileType', default)
@@ -2442,11 +2442,11 @@ and files.qualityid= dataquality.qualityid'
     return self.dbR_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getProcessedEvents', LongType, [prodid])
 
   #############################################################################
-  def getRunsForAGivenPeriod(self, dict):
+  def getRunsForAGivenPeriod(self, in_dict):
     condition = ''
-    startDate = dict.get('StartDate', default)
-    endDate = dict.get('EndDate', default)
-    allowOutside = dict.get('AllowOutsideRuns', default)
+    startDate = in_dict.get('StartDate', default)
+    endDate = in_dict.get('EndDate', default)
+    allowOutside = in_dict.get('AllowOutsideRuns', default)
 
     if allowOutside != default:
       if startDate == default and endDate == default:
@@ -2475,7 +2475,7 @@ and files.qualityid= dataquality.qualityid'
     else:
       return S_ERROR(retVal['Message'])
 
-    check = dict.get('CheckRunStatus', False)
+    check = in_dict.get('CheckRunStatus', False)
     if check:
       processedRuns = []
       notProcessedRuns = []
@@ -2501,12 +2501,12 @@ and files.qualityid= dataquality.qualityid'
     return S_ERROR()
 
   #############################################################################
-  def getProductionsFromView(self, dict):
+  def getProductionsFromView(self, in_dict):
 
-    run = dict.get('RunNumber', dict.get('Runnumber', default))
-    proc = dict.get('ProcessingPass', dict.get('ProcPass', default))
+    run = in_dict.get('RunNumber', in_dict.get('Runnumber', default))
+    proc = in_dict.get('ProcessingPass', in_dict.get('ProcPass', default))
     result = S_ERROR()
-    if 'Runnumber' in dict:
+    if 'Runnumber' in in_dict:
       gLogger.verbose('The Runnumber has changed to RunNumber!')
 
     if run != default:

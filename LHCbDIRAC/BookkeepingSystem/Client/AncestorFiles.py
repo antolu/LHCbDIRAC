@@ -17,7 +17,7 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient      import BookkeepingClient
 
-import time, string
+import string
 
 #############################################################################
 def getFileAncestors( inputData, ancestorDepth ):

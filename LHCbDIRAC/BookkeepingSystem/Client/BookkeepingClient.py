@@ -3,7 +3,7 @@
 ########################################################################
 
 """
-dict = {'EventTypeId': 93000000,
+in_dict = {'EventTypeId': 93000000,
         'ConfigVersion': 'Collision10',
         'ProcessingPass': '/Real Data',
         'ConfigName': 'LHCb',
@@ -51,21 +51,21 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getAvailableSteps(self, dict={}):
+  def getAvailableSteps(self, in_dict={}):
     """
-    It returns all the available steps which corresponds to a given conditions. The dict contains the following conditions: StartDate, StepId, InputFileTypes, OutputFileTypes,
+    It returns all the available steps which corresponds to a given conditions. The in_dict contains the following conditions: StartDate, StepId, InputFileTypes, OutputFileTypes,
     ApplicationName, ApplicationVersion, OptionFiles, DDDB, CONDDB, ExtraPackages, Visible, ProcessingPass, Usable, RuntimeProjects, DQTag, OptionsFormat, StartItem, MaxItem
     """
     server = self.__getServer()
-    return server.getAvailableSteps(dict)
+    return server.getAvailableSteps(in_dict)
 
   #############################################################################
-  def getRuntimeProjects(self, dict={}):
+  def getRuntimeProjects(self, in_dict={}):
     """
-    It returns a runtime project for a given step. The input parameter is a dictionary which has only one key StepId
+    It returns a runtime project for a given step. The input parameter is a in_dictionary which has only one key StepId
     """
     server = self.__getServer()
-    return server.getRuntimeProjects(dict)
+    return server.getRuntimeProjects(in_dict)
 
   #############################################################################
   def getAvailableFileTypes(self):
@@ -97,13 +97,13 @@ class BookkeepingClient:
     return server.insertFileTypes(ftype, desc, fileType)
 
   #############################################################################
-  def insertStep(self, dict):
+  def insertStep(self, in_dict):
     """
     It used to insert a step to the Bookkeeping Metadata Catalogue. The imput parameter is a dictionary which contains the steps attributes.
     For example: Dictionary format: {'Step': {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': '', 'ApplicationVersion': 'v29r1', 'ext-comp-1273': 'CHARM.MDST (Charm micro dst)', 'ExtraPackages': '', 'StepName': 'davinci prb2', 'ProcessingPass': 'WG-Coool', 'ext-comp-1264': 'CHARM.DST (Charm stream)', 'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': ''}, 'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}], 'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}],'RuntimeProjects':[{StepId:13878}]}
     """
     server = self.__getServer()
-    return server.insertStep(dict)
+    return server.insertStep(in_dict)
 
   #############################################################################
   def deleteStep(self, stepid):
@@ -114,12 +114,12 @@ class BookkeepingClient:
     return server.deleteStep(int(stepid))
 
   #############################################################################
-  def updateStep(self, dict):
+  def updateStep(self, in_dict):
     """
     It is used to modify the step attributes.
     """
     server = self.__getServer()
-    return server.updateStep(dict)
+    return server.updateStep(in_dict)
 
   #############################################################################
   def getStepInputFiles(self, StepId):
@@ -162,27 +162,27 @@ class BookkeepingClient:
     return server.getAvailableConfigNames()
 
   #############################################################################
-  def getConfigVersions(self, dict):
+  def getConfigVersions(self, in_dict):
     """
     It returns all the available configuration version for a given condition.
     Input parameter is a dictionary which has the following key: 'ConfigName'
-    For example: dict = {'ConfigName':'MC'}
+    For example: in_dict = {'ConfigName':'MC'}
     """
     server = self.__getServer()
-    return server.getConfigVersions(dict)
+    return server.getConfigVersions(in_dict)
 
   #############################################################################
-  def getConditions(self, dict):
+  def getConditions(self, in_dict):
     """
     It returns all the available conditions for a given conditions.
     Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'EventType'
-    For example: dict = {'ConfigName':'MC','ConfigVersion':'MC10'}
+    For example: in_dict = {'ConfigName':'MC','ConfigVersion':'MC10'}
     """
     server = self.__getServer()
-    return server.getConditions(dict)
+    return server.getConditions(in_dict)
 
   #############################################################################
-  def getProcessingPass(self, dict, path='/'):
+  def getProcessingPass(self, in_dict, path='/'):
     """
     It returns the processing pass for a given conditions.
     Input parameter is a dictionary and a path (string) which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription','Production', 'RunNumber', 'EventType'
@@ -190,7 +190,7 @@ class BookkeepingClient:
     Note: it returns a list with two dictionary. First dictionary contains the processing passes while the second dictionary contains the event types.
     """
     server = self.__getServer()
-    return server.getProcessingPass(dict, path)
+    return server.getProcessingPass(in_dict, path)
 
   #############################################################################
   def getProcessingPassId(self, fullpath):
@@ -201,32 +201,32 @@ class BookkeepingClient:
     return server.getProcessingPassId(fullpath)
 
   #############################################################################
-  def getProductions(self, dict):
+  def getProductions(self, in_dict):
     """
     It returns the productions for a given conditions.
     Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass'
     """
     server = self.__getServer()
-    return server.getProductions(dict)
+    return server.getProductions(in_dict)
 
   #############################################################################
-  def getFileTypes(self, dict):
+  def getFileTypes(self, in_dict):
     """
     It returns the file types for a given conditions.
     Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass','Production','RunNumber'
     """
     server = self.__getServer()
-    return server.getFileTypes(dict)
+    return server.getFileTypes(in_dict)
 
   #############################################################################
-  def getFilesWithMetadata(self, dict):
+  def getFilesWithMetadata(self, in_dict):
     """
     It returns the files for a given conditions.
     Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass','Production','RunNumber', 'FileType', DataQuality
     """
     result = S_ERROR()
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
-    s = cPickle.dumps(dict)
+    s = cPickle.dumps(in_dict)
     file = tempfile.NamedTemporaryFile()
     params = str(s)
     retVal = bkk.receiveFile(file.name, params)
@@ -239,21 +239,21 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getFilesSummary(self, dict):
+  def getFilesSummary(self, in_dict):
     """
     It returns sumary for a given data set.
     Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass','Production','RunNumber', 'FileType', DataQuality
     """
     server = self.__getServer()
-    return server.getFilesSummary(dict)
+    return server.getFilesSummary(in_dict)
 
   #############################################################################
-  def getLimitedFiles(self, dict):
+  def getLimitedFiles(self, in_dict):
     """
     It returns a chunk of files. This method is equivalent to the getFiles.
     """
     server = self.__getServer()
-    return server.getLimitedFiles(dict)
+    return server.getLimitedFiles(in_dict)
 
   #############################################################################
   def getAvailableDataQuality(self):
@@ -297,12 +297,12 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getJobInformation(self, dict):
+  def getJobInformation(self, in_dict):
     """
     It returns the job metadata information for a given lfn produced by this job.
     """
     server = self.__getServer()
-    result = server.getJobInformation(dict)
+    result = server.getJobInformation(in_dict)
     return result
 
   #############################################################################
@@ -519,17 +519,17 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getRunInformation(self, dict):
+  def getRunInformation(self, in_dict):
     """
     It returns run information and statistics.
     """
     server = self.__getServer()
-    if 'Fields' not in dict:
-      dict['Fields'] = ['ConfigName', 'ConfigVersion', 'JobStart', 'JobEnd', 'TCK', 'FillNumber', 'ProcessingPass', 'ConditionDescription', 'CONDDB', 'DDDB']
-    if 'Statistics' in dict and len(dict['Statistics']) == 0:
-      dict['Statistics']=['NbOfFiles','EventStat', 'FileSize', 'FullStat', 'Luminosity', 'InstLumonosity', 'EventType']
+    if 'Fields' not in in_dict:
+      in_dict['Fields'] = ['ConfigName', 'ConfigVersion', 'JobStart', 'JobEnd', 'TCK', 'FillNumber', 'ProcessingPass', 'ConditionDescription', 'CONDDB', 'DDDB']
+    if 'Statistics' in in_dict and len(in_dict['Statistics']) == 0:
+      in_dict['Statistics']=['NbOfFiles','EventStat', 'FileSize', 'FullStat', 'Luminosity', 'InstLumonosity', 'EventType']
 
-    result = server.getRunInformation(dict)
+    result = server.getRunInformation(in_dict)
     return result
 
   #############################################################################
@@ -558,12 +558,12 @@ class BookkeepingClient:
     return server.updateEventType(long(evid), desc, primary)
 
   #############################################################################
-  def getProductionSummary(self, dict):
+  def getProductionSummary(self, in_dict):
     """
     It can used to count the number of events for a given dataset.
     """
     server = self.__getServer()
-    result = server.getProductionSummary(dict)
+    result = server.getProductionSummary(in_dict)
     return result
 
 
@@ -650,7 +650,7 @@ class BookkeepingClient:
     return server.getProductionProcessedEvents(int(prodid))
 
   #############################################################################
-  def getRunsForAGivenPeriod(self, dict):
+  def getRunsForAGivenPeriod(self, in_dict):
     """
     It returns the available runs between a period.
     Input parameters:
@@ -660,20 +660,20 @@ class BookkeepingClient:
     CheckRunStatus: if it is true, it check the run is processed or not processed.
     """
     server = self.__getServer()
-    return server.getRunsForAGivenPeriod(dict)
+    return server.getRunsForAGivenPeriod(in_dict)
 
   #############################################################################
-  def getRuns(self, dict):
+  def getRuns(self, in_dict):
     """
     It returns the runs for a given configuration name and version.
     Input parameters:
 
     """
     server = self.__getServer()
-    return server.getRuns(dict)
+    return server.getRuns(in_dict)
 
   #############################################################################
-  def getProductionsFromView(self, dict):
+  def getProductionsFromView(self, in_dict):
     """
     It returns the productions from the bookkeeping view for a given processing pass and run number.
     Input parameters:
@@ -681,7 +681,7 @@ class BookkeepingClient:
     ProcessingPass
     """
     server = self.__getServer()
-    return server.getProductionsFromView(dict)
+    return server.getProductionsFromView(in_dict)
 
   #############################################################################
   def getRunFilesDataQuality(self, runs):
@@ -784,7 +784,7 @@ class BookkeepingClient:
     return server.getVisibleFilesWithMetadata(values)
 
   #############################################################################
-  def addProduction(self, dict):
+  def addProduction(self, in_dict):
     """
     It is used to register a production to the bkk.
     Input parameters:
@@ -795,41 +795,41 @@ class BookkeepingClient:
     InputProductionTotalProcessingPass: it is a path of the input data processing pass
     """
     server = self.__getServer()
-    return server.addProduction(dict)
+    return server.addProduction(in_dict)
 
   #############################################################################
-  def getEventTypes(self, dict):
+  def getEventTypes(self, in_dict):
     """
     It returns the available event types for a given configuration name and configuration version.
     Input parameters:
     ConfigName, ConfigVersion, Production
     """
     server = self.__getServer()
-    return server.getEventTypes(dict)
+    return server.getEventTypes(in_dict)
 
   #############################################################################
-  def getProcessingPassSteps(self, dict):
+  def getProcessingPassSteps(self, in_dict):
     """
     It returns the steps for a given stepname processing pass ands production.
     """
     server = self.__getServer()
-    return server.getProcessingPassSteps(dict)
+    return server.getProcessingPassSteps(in_dict)
 
   #############################################################################
-  def getProductionProcessingPassSteps(self, dict):
+  def getProductionProcessingPassSteps(self, in_dict):
     """
     it returns the steps for a given production.
     """
     server = self.__getServer()
-    return server.getProductionProcessingPassSteps(dict)
+    return server.getProductionProcessingPassSteps(in_dict)
 
   #############################################################################
-  def getProductionOutputFileTypes(self, dict):
+  def getProductionOutputFileTypes(self, in_dict):
     """
     It returns the output file types which produced by a given production.
     """
     server = self.__getServer()
-    return server.getProductionOutputFileTypes(dict)
+    return server.getProductionOutputFileTypes(in_dict)
 
   #############################################################################
   def getRunWithProcessingPassAndDataQuality(self, procpass, flag='ALL'):
@@ -848,20 +848,20 @@ class BookkeepingClient:
     return server.getRunNbAndTck(lfn)
 
   #############################################################################
-  def getRunAndProcessingPass(self, dict):
+  def getRunAndProcessingPass(self, in_dict):
     """
     It returns all the processing pass and run number for a given run.
     """
     server = self.__getServer()
-    return server.getRunAndProcessingPass(dict)
+    return server.getRunAndProcessingPass(in_dict)
 
   #############################################################################
-  def getNbOfRawFiles(self, dict):
+  def getNbOfRawFiles(self, in_dict):
     """
     It counts the raw files for a given run and (or) event type.
     """
     server = self.__getServer()
-    return server.getNbOfRawFiles(dict)
+    return server.getNbOfRawFiles(in_dict)
 
   #############################################################################
   def getFileTypeVersion(self, lfn):
@@ -875,20 +875,20 @@ class BookkeepingClient:
       return server.getFileTypeVersion(lfn)
 
   #############################################################################
-  def getTCKs(self, dict):
+  def getTCKs(self, in_dict):
     """
     It returns the tcks for a given data set.
     """
     server = self.__getServer()
-    return server.getTCKs(dict)
+    return server.getTCKs(in_dict)
 
   #############################################################################
-  def getStepsMetadata(self, dict):
+  def getStepsMetadata(self, in_dict):
     """
     It returns the step(s) which is produced  a given dataset.
     """
     server = self.__getServer()
-    return server.getStepsMetadata(dict)
+    return server.getStepsMetadata(in_dict)
 
   #############################################################################
   def getDirectoryMetadata(self, lfn):
@@ -946,9 +946,9 @@ class BookkeepingClient:
     return self.setFileDataQuality(lfns, flag)
 
   #############################################################################
-  def getFilesSumary(self, dict):
+  def getFilesSumary(self, in_dict):
     self.__errorReport("The 'getFilesSumary' method is obsolete and it will be removed from the next release. Please use the getFilesSummary!")
-    return self.getFilesSummary(dict)
+    return self.getFilesSummary(in_dict)
 
   #############################################################################
   def getAvailableRunNumbers(self):
@@ -1155,16 +1155,16 @@ class BookkeepingClient:
     return server.getProductionProcessedEvents(int(prodid))
 
   #############################################################################
-  def getRunsWithAGivenDates(self, dict):
+  def getRunsWithAGivenDates(self, in_dict):
     self.__errorReport("The 'getRunsWithAGivenDates' method is obsolete and it will be removed from the next release. Please use the 'getRunsForAGivenPeriod'!")
     server = self.__getServer()
-    return server.getRunsForAGivenPeriod(dict)
+    return server.getRunsForAGivenPeriod(in_dict)
 
   #############################################################################
-  def getProductiosWithAGivenRunAndProcessing(self, dict):
+  def getProductiosWithAGivenRunAndProcessing(self, in_dict):
     self.__errorReport("The 'getProductiosWithAGivenRunAndProcessing' method is obsolete and it will be removed from the next release. Please use the 'getProductionsFromView'!")
     server = self.__getServer()
-    return server.getProductionsFromView(dict)
+    return server.getProductionsFromView(in_dict)
 
   #############################################################################
   def getDataQualityForRuns(self, runs):
@@ -1197,9 +1197,9 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getFiles(self, dict):
+  def getFiles(self, in_dict):
     self.__errorReport("The 'getFiles' method is obsolete and it will be removed from the next release. Please use the 'getFilesWithMetadata'!")
-    return self.getFilesWithMetadata(dict)
+    return self.getFilesWithMetadata(in_dict)
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, values):
@@ -1208,16 +1208,16 @@ class BookkeepingClient:
     return server.getVisibleFilesWithMetadata(values)
 
   #############################################################################
-  def getStandardEventTypes(self, dict):
+  def getStandardEventTypes(self, in_dict):
     self.__errorReport("The 'getStandardEventTypes' method is obsolete and it will be removed from the next release. Please use the 'getEventTypes'!")
     server = self.__getServer()
-    return server.getEventTypes(dict)
+    return server.getEventTypes(in_dict)
 
    #############################################################################
-  def getProductionOutputFiles(self, dict):
+  def getProductionOutputFiles(self, in_dict):
     self.__errorReport("The 'getProductionOutputFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionOutputFileTypes'!")
     server = self.__getServer()
-    return server.getProductionOutputFileTypes(dict)
+    return server.getProductionOutputFileTypes(in_dict)
 
   #############################################################################
   def getRunQuality(self, procpass, flag='ALL'):
@@ -1226,16 +1226,16 @@ class BookkeepingClient:
     return server.getRunWithProcessingPassAndDataQuality(procpass, flag)
 
   #############################################################################
-  def getRunProcPass(self, dict):
+  def getRunProcPass(self, in_dict):
     self.__errorReport("The 'getRunProcPass' method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPass'!")
     server = self.__getServer()
-    return server.getRunAndProcessingPass(dict)
+    return server.getRunAndProcessingPass(in_dict)
 
   #############################################################################
-  def getRunNbFiles(self, dict):
+  def getRunNbFiles(self, in_dict):
     self.__errorReport("The 'getRunNbFiles' method is obsolete and it will be removed from the next release. Please use the 'getNbOfRawFiles'!")
     server = self.__getServer()
-    return server.getNbOfRawFiles(dict)
+    return server.getNbOfRawFiles(in_dict)
 
   #############################################################################
   def getTypeVersion(self, lfn):
@@ -1247,9 +1247,9 @@ class BookkeepingClient:
       return server.getFileTypeVersion(lfn)
 
    #############################################################################
-  def getAvailableTcks(self, dict):
+  def getAvailableTcks(self, in_dict):
     self.__errorReport("The 'getAvailableTcks' method is obsolete and it will be removed from the next release. Please use the 'getTCKs'!")
     server = self.__getServer()
-    return server.getTCKs(dict)
+    return server.getTCKs(in_dict)
 
 

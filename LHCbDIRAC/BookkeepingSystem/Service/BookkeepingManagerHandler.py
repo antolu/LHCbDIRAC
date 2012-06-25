@@ -10,18 +10,17 @@ __RCSID__ = "$Id$"
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                         import BookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
 
-from types                                                                        import *
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                                      import gConfig
 from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
 from DIRAC.Core.Utilities.Shifter                                                 import setupShifterProxyInEnv
 from DIRAC.Core.Utilities                                                         import DEncode
-import time,sys,os
+
 import cPickle
 
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
-
+from types import DictType, IntType, StringType, ListType, LongType, BooleanType
 dataMGMT_ = None
 
 reader_ = None
@@ -80,13 +79,13 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getAvailableSteps = [DictType]
-  def export_getAvailableSteps(self, dict={}):
-    return dataMGMT_.getAvailableSteps(dict)
+  def export_getAvailableSteps(self, in_dict={}):
+    return dataMGMT_.getAvailableSteps(in_dict)
 
   #############################################################################
   types_getRuntimeProjects = [DictType]
-  def export_getRuntimeProjects(self, dict={}):
-    return dataMGMT_.getRuntimeProjects(dict)
+  def export_getRuntimeProjects(self, in_dict={}):
+    return dataMGMT_.getRuntimeProjects(in_dict)
 
   #############################################################################
   types_getStepInputFiles = [IntType]
@@ -140,8 +139,8 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_insertStep = [DictType]
-  def export_insertStep(self, dict):
-    return dataMGMT_.insertStep(dict)
+  def export_insertStep(self, in_dict):
+    return dataMGMT_.insertStep(in_dict)
 
   #############################################################################
   types_deleteStep = [IntType]
@@ -150,8 +149,8 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_updateStep = [DictType]
-  def export_updateStep(self, dict):
-    return dataMGMT_.updateStep(dict)
+  def export_updateStep(self, in_dict):
+    return dataMGMT_.updateStep(in_dict)
 
   ##############################################################################
   types_getAvailableConfigNames = []
@@ -168,9 +167,9 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getConfigVersions = [DictType]
-  def export_getConfigVersions(self, dict):
+  def export_getConfigVersions(self, in_dict):
     result = S_ERROR()
-    configName = dict.get('ConfigName', default)
+    configName = in_dict.get('ConfigName', default)
     retVal = dataMGMT_.getConfigVersions(configName)
     if retVal['OK']:
       records = []
@@ -184,14 +183,14 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getConditions = [DictType]
-  def export_getConditions(self, dict):
+  def export_getConditions(self, in_dict):
     result = S_ERROR()
     ok = True
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
 
-    if 'EventTypeId' in dict:
+    if 'EventTypeId' in in_dict:
       gLogger.verbose('EventTypeId will be not accepted! Please change it to EventType')
 
     retVal = dataMGMT_.getConditions(configName, configVersion, evt)
@@ -221,20 +220,20 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getProcessingPass = [DictType, StringType]
-  def export_getProcessingPass(self, dict, path):
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    conddescription = dict.get('ConditionDescription', default)
-    prod = dict.get('Production', default)
-    runnb = dict.get('RunNumber', default)
-    evt = dict.get('EventType',dict.get('EventTypeId', default))
+  def export_getProcessingPass(self, in_dict, path):
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    prod = in_dict.get('Production', default)
+    runnb = in_dict.get('RunNumber', default)
+    evt = in_dict.get('EventType',in_dict.get('EventTypeId', default))
     return dataMGMT_.getProcessingPass(configName, configVersion, conddescription, runnb, prod, evt, path)
 
   ############################################################################
   types_getStandardProcessingPass = [DictType, StringType]
-  def export_getStandardProcessingPass(self, dict, path):
+  def export_getStandardProcessingPass(self, in_dict, path):
     result = S_ERROR()
-    retVal = self.export_getProcessingPass(dict, path)
+    retVal = self.export_getProcessingPass(in_dict, path)
     if retVal['OK']:
       result = S_OK(retVal['Value'])
     else:
@@ -243,15 +242,15 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getProductions = [DictType]
-  def export_getProductions(self, dict):
+  def export_getProductions(self, in_dict):
     result = S_ERROR()
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    conddescription = dict.get('ConditionDescription', default)
-    processing = dict.get('ProcessingPass', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
-    visible = dict.get('Visible','Y')
-    if 'EventTypeId' in dict:
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    processing = in_dict.get('ProcessingPass', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+    visible = in_dict.get('Visible','Y')
+    if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     retVal = dataMGMT_.getProductions(configName, configVersion, conddescription, processing, evt, visible)
@@ -267,17 +266,17 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getFileTypes = [DictType]
-  def export_getFileTypes(self, dict):
+  def export_getFileTypes(self, in_dict):
     result = S_ERROR()
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    conddescription = dict.get('ConditionDescription', default)
-    processing = dict.get('ProcessingPass', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
-    production = dict.get('Production', default)
-    runnb = dict.get('RunNumber', default)
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    processing = in_dict.get('ProcessingPass', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+    production = in_dict.get('Production', default)
+    runnb = in_dict.get('RunNumber', default)
 
-    if 'EventTypeId' in dict:
+    if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     retVal = dataMGMT_.getFileTypes(configName, configVersion, conddescription, processing, evt, runnb, production)
@@ -293,29 +292,29 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getStandardEventTypes = [DictType]
-  def export_getStandardEventTypes(self, dict):
-    self.export_getEventTypes(dict)
+  def export_getStandardEventTypes(self, in_dict):
+    self.export_getEventTypes(in_dict)
 
   #############################################################################
   def transfer_toClient(self, parameters, token, fileHelper):
     result = S_OK()
-    dict = cPickle.loads(parameters)
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    conddescription = dict.get('ConditionDescription', default)
-    processing = dict.get('ProcessingPass', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
-    production = dict.get('Production', default)
-    filetype = dict.get('FileType', default)
-    quality = dict.get('DataQuality', dict.get('Quality', default))
-    runnb = dict.get('RunNumber', default)
-    visible = dict.get('Visible','Y')
-    replicaFlag = dict.get('ReplicaFlag', default)
+    in_dict = cPickle.loads(parameters)
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    processing = in_dict.get('ProcessingPass', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+    production = in_dict.get('Production', default)
+    filetype = in_dict.get('FileType', default)
+    quality = in_dict.get('DataQuality', in_dict.get('Quality', default))
+    runnb = in_dict.get('RunNumber', default)
+    visible = in_dict.get('Visible','Y')
+    replicaFlag = in_dict.get('ReplicaFlag', default)
 
-    if 'EventTypeId' in dict:
+    if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
-    if 'Quality' in dict:
+    if 'Quality' in in_dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     retVal = dataMGMT_.getFilesWithMetadata(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, visible, replicaFlag)
@@ -329,7 +328,7 @@ class BookkeepingManagerHandler( RequestHandler ):
       fileString = cPickle.dumps(retVal, protocol=2)
       retVal = fileHelper.stringToNetwork(fileString)
       if retVal['OK']:
-        gLogger.info('Sent file %s of size %d' % (str(dict), len(fileString)))
+        gLogger.info('Sent file %s of size %d' % (str(in_dict), len(fileString)))
       else:
         result = retVal
     else:
@@ -338,42 +337,42 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getFilesSumary = [DictType]
-  def export_getFilesSumary(self, dict):
-    return self.export_getFilesSummary(dict)
+  def export_getFilesSumary(self, in_dict):
+    return self.export_getFilesSummary(in_dict)
 
   #############################################################################
   types_getFilesSummary = [DictType]
-  def export_getFilesSummary(self, dict):
-    gLogger.debug('Input:'+str(dict))
+  def export_getFilesSummary(self, in_dict):
+    gLogger.debug('Input:'+str(in_dict))
     result = S_ERROR()
-    if len(dict) == 0:
+    if len(in_dict) == 0:
       res = self.getRemoteCredentials()
       if 'username' in res:
         address = res['username']
       if address != None:
         address = 'zmathe@cern.ch,'+res['username']
         subject = 'getFilesSummary method!'
-        body = 'You did not provided enough input parameters! \n the input parameters:%s \n and user %s' % (str(dict),res['username'])
+        body = 'You did not provided enough input parameters! \n the input parameters:%s \n and user %s' % (str(in_dict),res['username'])
         NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch')
-      gLogger.error('Got you: '+str(dict))
+      gLogger.error('Got you: '+str(in_dict))
     else:
-      configName = dict.get('ConfigName', default)
-      configVersion = dict.get('ConfigVersion', default)
-      conddescription = dict.get('ConditionDescription', default)
-      processing = dict.get('ProcessingPass', default)
-      evt = dict.get('EventType', dict.get('EventTypeId', default))
-      production = dict.get('Production', default)
-      filetype = dict.get('FileType', default)
-      quality = dict.get('DataQuality', dict.get('Quality', default))
-      runnb = dict.get('RunNumbers', dict.get('RunNumber', default))
-      startrun = dict.get('StartRun', default)
-      endrun = dict.get('EndRun', default)
-      visible = dict.get('Visible', 'Y')
+      configName = in_dict.get('ConfigName', default)
+      configVersion = in_dict.get('ConfigVersion', default)
+      conddescription = in_dict.get('ConditionDescription', default)
+      processing = in_dict.get('ProcessingPass', default)
+      evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+      production = in_dict.get('Production', default)
+      filetype = in_dict.get('FileType', default)
+      quality = in_dict.get('DataQuality', in_dict.get('Quality', default))
+      runnb = in_dict.get('RunNumbers', in_dict.get('RunNumber', default))
+      startrun = in_dict.get('StartRun', default)
+      endrun = in_dict.get('EndRun', default)
+      visible = in_dict.get('Visible', 'Y')
 
-      if 'EventTypeId' in dict:
+      if 'EventTypeId' in in_dict:
         gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
-      if 'Quality' in dict:
+      if 'Quality' in in_dict:
         gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
       retVal = dataMGMT_.getFilesSummary(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, startrun, endrun, visible)
@@ -389,28 +388,28 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getLimitedFiles = [DictType]
-  def export_getLimitedFiles(self, dict):
+  def export_getLimitedFiles(self, in_dict):
 
     result = S_ERROR()
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    conddescription = dict.get('ConditionDescription', default)
-    processing = dict.get('ProcessingPass', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
-    production = dict.get('Production', default)
-    filetype = dict.get('FileType', default)
-    quality = dict.get('DataQuality', dict.get('Quality', default))
-    runnb = dict.get('RunNumbers', dict.get('RunNumber', default))
-    start = dict.get('StartItem', 0)
-    max = dict.get('MaxItem', 10)
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    processing = in_dict.get('ProcessingPass', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+    production = in_dict.get('Production', default)
+    filetype = in_dict.get('FileType', default)
+    quality = in_dict.get('DataQuality', in_dict.get('Quality', default))
+    runnb = in_dict.get('RunNumbers', in_dict.get('RunNumber', default))
+    start = in_dict.get('StartItem', 0)
+    MaxValue = in_dict.get('MaxItem', 10)
 
-    if 'EventTypeId' in dict:
+    if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
-    if 'Quality' in dict:
+    if 'Quality' in in_dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
-    retVal = dataMGMT_.getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, start, max)
+    retVal = dataMGMT_.getLimitedFiles(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb, start, MaxValue)
     if retVal['OK']:
       records = []
       parameters = ['Name', 'EventStat', 'FileSize', 'CreationDate', 'JobStart', 'JobEnd', 'WorkerNode', 'FileType', 'EventTypeId', 'RunNumber', 'FillNumber', 'FullStat', 'DataqualityFlag',
@@ -454,8 +453,8 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getJobInformation = [DictType]
-  def export_getJobInformation(self, dict):
-    return dataMGMT_.getJobInformation(dict)
+  def export_getJobInformation(self, in_dict):
+    return dataMGMT_.getJobInformation(in_dict)
 
   #############################################################################
   types_getRunNumber = [StringType]
@@ -636,8 +635,8 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_checkFileTypeAndVersion = [StringType, StringType]
-  def export_checkFileTypeAndVersion(self, type, version):
-    return dataMGMT_.checkFileTypeAndVersion(type, version)
+  def export_checkFileTypeAndVersion(self, ftype, version):
+    return dataMGMT_.checkFileTypeAndVersion(ftype, version)
 
   #############################################################################
   types_checkEventType = [LongType]
@@ -764,33 +763,33 @@ class BookkeepingManagerHandler( RequestHandler ):
   types_addFiles = [ListType]
   def export_addFiles(self, lfns):
     result = {}
-    for file in lfns:
-      res = dataMGMT_.addReplica(file)
+    for lfn in lfns:
+      res = dataMGMT_.addReplica(lfn)
       if not res['OK']:
-        result[file] = res['Message']
+        result[lfn] = res['Message']
     return S_OK(result)
 
   #############################################################################
   types_removeFiles = [ListType]
   def export_removeFiles(self, lfns):
     result = {}
-    for file in lfns:
-      res = dataMGMT_.removeReplica(file)
+    for lfn in lfns:
+      res = dataMGMT_.removeReplica(lfn)
       if not res['OK']:
-        result[file] = res['Message']
+        result[lfn] = res['Message']
     return S_OK(result)
 
   #############################################################################
   types_getProductionSummary = [DictType]
-  def export_getProductionSummary(self, dict):
+  def export_getProductionSummary(self, in_dict):
 
-    cName = dict.get('ConfigName', default)
-    cVersion = dict.get('ConfigVersion', default)
-    production = dict.get('Production', default)
-    simdesc = dict.get('ConditionDescription', default)
-    pgroup = dict.get('ProcessingPass', default)
-    ftype = dict.get('FileType', default)
-    evttype = dict.get('EventType', default)
+    cName = in_dict.get('ConfigName', default)
+    cVersion = in_dict.get('ConfigVersion', default)
+    production = in_dict.get('Production', default)
+    simdesc = in_dict.get('ConditionDescription', default)
+    pgroup = in_dict.get('ProcessingPass', default)
+    ftype = in_dict.get('FileType', default)
+    evttype = in_dict.get('EventType', default)
     retVal = dataMGMT_.getProductionSummary(cName, cVersion, simdesc, pgroup, production, ftype, evttype)
 
     return retVal
@@ -806,7 +805,6 @@ class BookkeepingManagerHandler( RequestHandler ):
 
     nbjobs = None
     nbOfFiles = None
-    sizeofFiles = None
     nbOfEvents = None
     steps = None
     prodinfos = None
@@ -967,18 +965,18 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getRunsForAGivenPeriod = [DictType]
-  def export_getRunsForAGivenPeriod(self, dict):
-    return dataMGMT_.getRunsForAGivenPeriod(dict)
+  def export_getRunsForAGivenPeriod(self, in_dict):
+    return dataMGMT_.getRunsForAGivenPeriod(in_dict)
 
   #############################################################################
   types_getProductiosWithAGivenRunAndProcessing = [DictType]
-  def export_getProductiosWithAGivenRunAndProcessing(self, dict):
-    return self.export_getProductionsFromView(dict)
+  def export_getProductiosWithAGivenRunAndProcessing(self, in_dict):
+    return self.export_getProductionsFromView(in_dict)
 
   #############################################################################
   types_getProductionsFromView = [DictType]
-  def export_getProductionsFromView(self, dict):
-    return dataMGMT_.getProductionsFromView(dict)
+  def export_getProductionsFromView(self, in_dict):
+    return dataMGMT_.getProductionsFromView(in_dict)
 
   #############################################################################
   types_getDataQualityForRuns = [ListType]
@@ -1174,38 +1172,38 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getEventTypes = [DictType]
-  def export_getEventTypes(self, dict):
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    production = dict.get('Production', default)
+  def export_getEventTypes(self, in_dict):
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    production = in_dict.get('Production', default)
     return  dataMGMT_.getEventTypes(configName, configVersion, production)
 
   #############################################################################
   types_getProcessingPassSteps = [DictType]
-  def export_getProcessingPassSteps(self, dict):
-    stepname = dict.get('StepName', default)
-    cond = dict.get('ConditionDescription', default)
-    procpass = dict.get('ProcessingPass', default)
+  def export_getProcessingPassSteps(self, in_dict):
+    stepname = in_dict.get('StepName', default)
+    cond = in_dict.get('ConditionDescription', default)
+    procpass = in_dict.get('ProcessingPass', default)
 
     return dataMGMT_.getProcessingPassSteps(procpass, cond, stepname)
 
   #############################################################################
   types_getProductionProcessingPassSteps = [DictType]
-  def export_getProductionProcessingPassSteps(self, dict):
-    if 'Production' in dict:
-      return dataMGMT_.getProductionProcessingPassSteps(dict['Production'])
+  def export_getProductionProcessingPassSteps(self, in_dict):
+    if 'Production' in in_dict:
+      return dataMGMT_.getProductionProcessingPassSteps(in_dict['Production'])
     else:
       return S_ERROR('The Production dictionary key is missing!!!')
 
   #############################################################################
   types_getProductionOutputFiles = [DictType]
-  def export_getProductionOutputFiles(self, dict):
-    return self.export_getProductionOutputFileTypes(dict)
+  def export_getProductionOutputFiles(self, in_dict):
+    return self.export_getProductionOutputFileTypes(in_dict)
 
   #############################################################################
   types_getProductionOutputFileTypes = [DictType]
-  def export_getProductionOutputFileTypes(self, dict):
-    production = dict.get('Production', default)
+  def export_getProductionOutputFileTypes(self, in_dict):
+    production = in_dict.get('Production', default)
     if production != default:
       return dataMGMT_.getProductionOutputFileTypes(production)
     else:
@@ -1223,10 +1221,10 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getRuns = [DictType]
-  def export_getRuns(self, dict):
+  def export_getRuns(self, in_dict):
     result = S_ERROR()
-    cName = dict.get('ConfigName', default)
-    cVersion = dict.get('ConfigVersion', default)
+    cName = in_dict.get('ConfigName', default)
+    cVersion = in_dict.get('ConfigVersion', default)
     if cName != default and cVersion != default:
       result = dataMGMT_.getRuns(cName, cVersion)
     else:
@@ -1235,13 +1233,13 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getRunProcPass = [DictType]
-  def export_getRunProcPass(self, dict):
-    return self.export_getRunAndProcessingPass(dict)
+  def export_getRunProcPass(self, in_dict):
+    return self.export_getRunAndProcessingPass(in_dict)
 
   #############################################################################
   types_getRunAndProcessingPass = [DictType]
-  def export_getRunAndProcessingPass(self, dict):
-    run = dict.get('RunNumber', default)
+  def export_getRunAndProcessingPass(self, in_dict):
+    run = in_dict.get('RunNumber', default)
     result = S_ERROR()
     if run != default:
       result = dataMGMT_.getRunAndProcessingPass(run)
@@ -1256,15 +1254,15 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getRunNbFiles = [DictType]
-  def export_getRunNbFiles(self, dict):
-    return self.export_getNbOfRawFiles(dict)
+  def export_getRunNbFiles(self, in_dict):
+    return self.export_getNbOfRawFiles(in_dict)
 
   #############################################################################
   types_getNbOfRawFiles = [DictType]
-  def export_getNbOfRawFiles(self, dict):
+  def export_getNbOfRawFiles(self, in_dict):
 
-    runnb = dict.get('RunNumber', default)
-    evt = dict.get('EventTypeId', default)
+    runnb = in_dict.get('RunNumber', default)
+    evt = in_dict.get('EventTypeId', default)
     result = S_ERROR()
     if runnb == default and evt == default:
       result = S_ERROR('Run number or event type must be given!')
@@ -1289,18 +1287,18 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getTCKs = [DictType]
-  def export_getTCKs(self, dict):
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion',default)
-    conddescription = dict.get('ConditionDescription',default)
-    processing = dict.get('ProcessingPass',default)
-    evt = dict.get('EventTypeId',default)
-    production = dict.get('Production',default)
-    filetype = dict.get('FileType',default)
-    quality = dict.get('DataQuality',dict.get('Quality',default))
-    runnb = dict.get('RunNumber',default)
+  def export_getTCKs(self, in_dict):
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion',default)
+    conddescription = in_dict.get('ConditionDescription',default)
+    processing = in_dict.get('ProcessingPass',default)
+    evt = in_dict.get('EventTypeId',default)
+    production = in_dict.get('Production',default)
+    filetype = in_dict.get('FileType',default)
+    quality = in_dict.get('DataQuality',in_dict.get('Quality',default))
+    runnb = in_dict.get('RunNumber',default)
     result = S_ERROR()
-    if 'Quality' in  dict:
+    if 'Quality' in  in_dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     retVal = dataMGMT_.getTCKs(configName, configVersion, conddescription, processing, evt, production, filetype, quality, runnb)
@@ -1315,25 +1313,25 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getAvailableTcks = [DictType]
-  def export_getAvailableTcks(self, dict):
-    return self.export_getTCKs(dict)
+  def export_getAvailableTcks(self, in_dict):
+    return self.export_getTCKs(in_dict)
 
   #############################################################################
   types_getStepsMetadata = [DictType]
-  def export_getStepsMetadata(self, dict):
-    configName = dict.get('ConfigName', default)
-    configVersion = dict.get('ConfigVersion', default)
-    cond = dict.get('ConditionDescription', default)
-    procpass = dict.get('ProcessingPass', default)
-    evt = dict.get('EventType', dict.get('EventTypeId', default))
-    production = dict.get('Production', default)
-    filetype = dict.get('FileType', default)
-    runnb = dict.get('RunNumber', default)
+  def export_getStepsMetadata(self, in_dict):
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    cond = in_dict.get('ConditionDescription', default)
+    procpass = in_dict.get('ProcessingPass', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+    production = in_dict.get('Production', default)
+    filetype = in_dict.get('FileType', default)
+    runnb = in_dict.get('RunNumber', default)
 
-    if 'EventTypeId' in dict:
+    if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
-    if 'Quality' in dict:
+    if 'Quality' in in_dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
 
     return dataMGMT_.getStepsMetadata(configName, configVersion, cond, procpass, evt, production, filetype, runnb)
