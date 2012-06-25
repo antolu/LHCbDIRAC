@@ -273,8 +273,8 @@ class Transformation( DIRACTransformation ):
   def _checkByRunEventTypeSizeWithFlushPlugin( self ):
     return S_OK()
 
-  def _checkReplicateToLocalSE( self ):
+  def _checkReplicateToLocalSEPlugin( self ):
     return S_OK()
 
-  def _checkDeleteReplicasWhenProcessed( self ):
+  def _checkDeleteReplicasWhenProcessedPlugin( self ):
     return S_OK()
