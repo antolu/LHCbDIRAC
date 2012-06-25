@@ -21,7 +21,6 @@ if __name__ == "__main__":
   force = False
   invisible = False
 
-
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
@@ -61,7 +60,6 @@ if __name__ == "__main__":
     Script.showHelp()
     DIRAC.exit( 0 )
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
-  from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
   transType = None
   if plugin in pluginScript.getRemovalPlugins():
