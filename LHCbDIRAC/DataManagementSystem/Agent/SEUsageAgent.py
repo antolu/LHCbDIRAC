@@ -15,7 +15,7 @@ from types import *
 
 from DIRAC import gLogger, gMonitor, S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations 
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 from DIRAC.DataManagementSystem.Agent.NamespaceBrowser import NamespaceBrowser
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
@@ -42,7 +42,7 @@ class SEUsageAgent( AgentModule ):
       self.__storageUsage = RPCClient( 'DataManagement/StorageUsage' )
 
     self.__replicaManager = ReplicaManager()
-    
+
     ## operations helper
     self.__opHelper = Operations()
 
@@ -318,7 +318,7 @@ class SEUsageAgent( AgentModule ):
 
 
     rootConfigPath = 'DataConsistency'
-    res = self.__opHelper.getOptionsDict(  "%s/%s" % ( rootConfigPath, site ) )
+    res = self.__opHelper.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
     #res = gConfig.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
     if not res[ 'OK' ]:
       gLogger.error( "could not get configuration for site %s : %s " % ( site, res['Message'] ) )
@@ -542,7 +542,7 @@ class SEUsageAgent( AgentModule ):
           filePath = res[ 'Value' ]
         gLogger.debug( "filePath: %s" % filePath )
         if not filePath:
-          gLogger.info( "SEUsageAgent: it was not possible to get the LFN for PFN=%s, skip this line" % PFNfilePath )
+          gLogger.info( "SEUsageAgent: it was not possible to get the LFN for PFN=%s, skip this line" % filePath )
           continue
 
         gLogger.debug( "splitLine: %s " % splitLine )
@@ -760,7 +760,7 @@ class SEUsageAgent( AgentModule ):
   def downloadFiles( self, originFileNames, originURL, targetPath ):
     """ Downloads a list of files from originURL locally to targetPath """
     if type( originFileNames ) != type( [] ):
-      gLogge.error( "first argument for downloadFiles method should be a list! " )
+      gLogger.error( "first argument for downloadFiles method should be a list! " )
       return False
 
     for file in originFileNames:

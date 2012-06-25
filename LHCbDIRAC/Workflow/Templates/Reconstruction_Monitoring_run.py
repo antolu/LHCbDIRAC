@@ -46,7 +46,6 @@ validationFlag = '{{validationFlag#GENERAL: Set True to create validation produc
 
 # workflow params for all productions
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-express = '{{express#GENERAL: Set True for EXPRESS (Run at CERN, saving only HIST)#False}}'
 
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO: priority#2}}'
@@ -77,7 +76,6 @@ recoTransFlag = eval( recoTransFlag )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 validationFlag = eval( validationFlag )
-express = eval( express )
 
 dataTakingCond = '{{simDesc}}'
 processingPass = '{{inProPass}}'
@@ -103,13 +101,11 @@ bkScriptFlag = False
 recoIDPolicy = 'download'
 
 if not publishFlag:
-  if express:
-    recoTestData = 'LFN:/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/87667/087667_0000000017.raw'
-  else:
-    #this is 1380Gev MagUp
-    #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
-    #this is collision11
-    recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
+  #this is 1380Gev MagUp
+  #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
+  #this is collision11
+  recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
+
   inputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
   bkScriptFlag = True
@@ -124,10 +120,7 @@ if testFlag:
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagUp'
   processingPass = 'Real Data'
   bkFileType = 'RAW'
-  if express:
-    eventType = '91000000'
-  else:
-    eventType = '90000000'
+  eventType = '90000000'
   recoDQFlag = 'ALL'
 else:
   outBkConfigName = bkConfigName
@@ -185,10 +178,7 @@ production.setJobParameters( {'CPUTime': recoCPU } )
 production.setProdType( recoType )
 wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) )
 #Rest can be taken from the details in the monitoring
-if express:
-  production.setWorkflowName( 'EXPRESS_%s_%s' % ( wkfName, appendName ) )
-else:
-  production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
+production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
 production.setWorkflowDescription( "%sRealdataFULLreconstructionproduction." % ( prodGroup.replace( ' ', '' ) ) )
 production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
 production.setInputBKSelection( recoInputBKQuery )
@@ -279,14 +269,7 @@ production.setProdGroup( prodGroup )
 production.setProdPriority( recoPriority )
 production.setProdPlugin( recoPlugin )
 production.setJobParameters( { 'InputDataPolicy': recoIDPolicy } )
-if express:
-  gLogger.info( 'EXPRESS: Forcing destination site LCG.CERN.ch for production' )
-  production.setTargetSite( 'LCG.CERN.ch' )
-  gLogger.info( 'EXPRESS: Saving only histograms' )
-  production.setFileMask( 'HIST' )
-else:
-  gLogger.info( 'FULL: Saving only SDST and HIST' )
-  production.setFileMask( ['SDST', 'HIST'] )
+production.setFileMask( [brunelOutput, 'HIST'] )
 production.setJobFileGroupSize( recoFilesPerJob )
 
 #################################################################################
