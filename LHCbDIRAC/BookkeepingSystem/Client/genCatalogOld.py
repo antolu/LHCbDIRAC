@@ -69,50 +69,57 @@ import threading, traceback
 
 
 class StringFile:
-  def __init__( self ):
-      self.str = ''
+  """Simple class for manipulate a string"""
+  def __init__(self):
+    """ constructor"""
+    self.str = ''
 
-  def write( self, *msg ):
+  def write(self, *msg):
+    """write"""
     for fild in msg:
       self.str = self.str + fild
 
-  def read( self ):
+  def read(self):
+    """read"""
     return self.str
 
 
-class Retriever( threading.Thread ):
-  def __init__( self, srv, fids, strict, depth ):
+class Retriever(threading.Thread):
+  """...."""
+  def __init__(self, srv, fids, strict, depth):
+    """....."""
     self.srv = srv
     self.fids = fids
     self.strict = strict
     self.result = ''
     self.depth = depth
-    threading.Thread.__init__( self )
+    threading.Thread.__init__(self)
 
-  def run( self ):
+  def run(self):
+    """...."""
     print 'Contacting catalog server at ', self.srv.url, '...'
-    if ( self.depth == 1 ):
-      reps = self.srv.server.replicas( self.fids.keys() )
+    if (self.depth == 1):
+      reps = self.srv.server.replicas(self.fids.keys())
     else:
-      reps = self.srv.server.replicasWithHistory( self.fids.keys(), self.depth )
+      reps = self.srv.server.replicasWithHistory(self.fids.keys(), self.depth)
     if reps['Status'] == 'OK':
       reps = reps['Result']
     else:
-      print "ERROR: The following error was found \n" + str( reps['Message'] )
+      print "ERROR: The following error was found \n" + str(reps['Message'])
       return
     #print 'Reps=', reps
     deferred = []
     for r in reps:
-      if ( len( r[0] ) > 0 ):
-        if ( not self.fids.has_key( r[2] ) ):
-          deferred.append( r[2] )
+      if (len(r[0]) > 0):
+        if (not self.fids.has_key(r[2])):
+          deferred.append(r[2])
           self.fids[r[2]] = {}
           self.fids[r[2]]['replicas'] = {}
-          if ( r[1][:4] == 'DIGI' ):
+          if (r[1][:4] == 'DIGI'):
             self.fids[r[2]]['type'] = 'POOL_ROOT'
-          elif ( r[1][:3] == 'SIM' ):
+          elif (r[1][:3] == 'SIM'):
             self.fids[r[2]]['type'] = 'POOL_ROOT'
-          elif ( r[1][:3] == 'DST' ):
+          elif (r[1][:3] == 'DST'):
             self.fids[r[2]]['type'] = 'POOL_ROOT'
           else:
             self.fids[r[2]]['type'] = r[1]
@@ -121,32 +128,32 @@ class Retriever( threading.Thread ):
       else:
         self.srv.incomplete['Global'] = 1
         self.srv.incomplete['MissingLFNs'] = self.fids.keys()
-    if( self.depth > 1 ):
+    if(self.depth > 1):
       print '.... added deferred sources:', deferred
 
     self.result = ''
     for f, ff in self.fids.items():
       try:
         if self.strict:
-          self.result = self.result + self.srv.catalogEntry( ff['replicas'], f, ff['type'], ff['guid'], 'FromCatalog' )
-          if not len( ff['guid'] ) or not len( ff['replicas'].keys() ):
+          self.result = self.result + self.srv.catalogEntry(ff['replicas'], f, ff['type'], ff['guid'], 'FromCatalog')
+          if not len(ff['guid']) or not len(ff['replicas'].keys()):
               print 'Processing error: file ', f, ' was not found in the LFC database.'
-              self.srv.incomplete['MissingLFNs'].append( f )
+              self.srv.incomplete['MissingLFNs'].append(f)
               self.srv.incomplete['Global'] = 1
         else:
-          if len( ff['guid'] ) and len( ff['replicas'].keys() ):
-            self.result = self.result + self.srv.catalogEntry( ff['replicas'], f, ff['type'], ff['guid'], 'FromCatalog' )
+          if len(ff['guid']) and len(ff['replicas'].keys()):
+            self.result = self.result + self.srv.catalogEntry(ff['replicas'], f, ff['type'], ff['guid'], 'FromCatalog')
           else:
             print 'WARNING: file ', f, ' was not found in the LFC database.'
             self.srv.incomplete['MissingLFNs'].append(f)
       except KeyError, X:
         if self.strict:
             print 'Processing error: file ', f, ' was not found in the LFC database.'
-            self.srv.incomplete['MissingLFNs'].append( f )
+            self.srv.incomplete['MissingLFNs'].append(f)
             self.srv.incomplete['Global'] = 1
         else:
           print 'WARNING: file ', f, ' was not found in the LFC database.'
-          self.srv.incomplete['MissingLFNs'].append( f )
+          self.srv.incomplete['MissingLFNs'].append(f)
     self.fids = None
     self.done = 1
 
@@ -157,7 +164,7 @@ class Element:
      @author M.Frank
 
   """
-  def __init__( self, name, attributes ):
+  def __init__(self, name, attributes):
     """
         Element constructor
         @author M.Frank
@@ -171,28 +178,28 @@ class Element:
     # The element's child element list (sequence)
     self.children = []
 
-  def AddChild( self, element ):
+  def AddChild(self, element):
     """
         Add a reference to a child element
         @author M.Frank
     """
-    self.children.append( element )
+    self.children.append(element)
 
-  def getAttribute( self, key ):
+  def getAttribute(self, key):
     """
         Get an attribute value
         @author M.Frank
     """
-    return self.attributes.get( key )
+    return self.attributes.get(key)
 
-  def getData( self ):
+  def getData(self):
     """
         Get the cdata
         @author M.Frank
     """
     return self.cdata
 
-  def getElements( self, name = '' ):
+  def getElements(self, name=''):
     """
         Get a list of child elements
         @author M.Frank
@@ -205,59 +212,59 @@ class Element:
         elements = []
         for element in self.children:
             if element.name == name:
-                elements.append( element )
+                elements.append(element)
         return elements
 
-class Xml2Obj( xmllib.XMLParser ):
+class Xml2Obj(xmllib.XMLParser):
   """
       XML to Object converter
       @author M.Frank
   """
-  def __init__( self ):
-    xmllib.XMLParser.__init__( self )
+  def __init__(self):
+    xmllib.XMLParser.__init__(self)
     self.root = None
     self.nodeStack = []
 
-  def encode( self, data ):
+  def encode(self, data):
     return data
 
-  def Parse( self, data ):
+  def Parse(self, data):
     """
         Parse the XML File
         @author M.Frank
     """
-    self.feed( data )
+    self.feed(data)
     return self.root
 
-  def handle_data( self, data ):
-    self.handle_cdata( data )
+  def handle_data(self, data):
+    self.handle_cdata(data)
 
-  def handle_cdata( self, data ):
+  def handle_cdata(self, data):
     'SAX character data event handler'
     import string
-    if string.strip( data ):
-        data = self.encode( data )
+    if string.strip(data):
+        data = self.encode(data)
         element = self.nodeStack[-1]
         element.cdata = element.cdata + data
         return
 
-  def unknown_starttag( self, name, attributes ):
+  def unknown_starttag(self, name, attributes):
     """
         SAX start element even handler
         Internal -- handle starttag, return length or -1 if not terminated
         @author M.Frank
     """
     # Instantiate an Element object
-    element = Element( self.encode( name ), attributes )
+    element = Element(self.encode(name), attributes)
     # Push element onto the stack and make it a child of parent
-    if len( self.nodeStack ) > 0:
+    if len(self.nodeStack) > 0:
         parent = self.nodeStack[-1]
-        parent.AddChild( element )
+        parent.AddChild(element)
     else:
         self.root = element
-    self.nodeStack.append( element )
+    self.nodeStack.append(element)
 
-  def unknown_endtag( self, data ):
+  def unknown_endtag(self, data):
     """
         SAX end element event handler
         Internal -- handle starttag, return length or -1 if not terminated
@@ -267,11 +274,13 @@ class Xml2Obj( xmllib.XMLParser ):
 
 
 class JobOptionParser:
-  def __init__( self ):
+  """...."""
+  def __init__(self):
+    """....."""
     self.rawIncludeFiles = []
     self.rawInputFiles = []
 
-  def ParseFile( self, file, params ):
+  def ParseFile(self, file, params):
       """
       Parse the file looking for 'include' statement and input file
       as specified by params.
@@ -286,61 +295,61 @@ class JobOptionParser:
           ex = ex + i + '|'
       ex = ex[:-1] + ')'
       try:
-          f = open( file, 'r' )
-          while( 1 ):
+          f = open(file, 'r')
+          while(1):
               l = f.readline()
               if not l:
                   break
-              mo = re.match( '\s*//', l )
+              mo = re.match('\s*//', l)
               if mo != None:
                   continue #jump the commented line
-              mo = re.match( '\s*#include\s', l )
+              mo = re.match('\s*#include\s', l)
               if mo != None:
-                  self.rawIncludeFiles.append( l )
+                  self.rawIncludeFiles.append(l)
                   continue
 
-              mo = re.match( ex + '\s*(=|(\+=))', l )
+              mo = re.match(ex + '\s*(=|(\+=))', l)
               if mo != None:
                   input = ''
-                  mo2 = re.search( '}', l )
-                  while( mo2 == None ):#read up to }
-                      mo3 = l.replace( ' ', '' )
-                      if len( mo3 ) > 3 and not ( mo3[:2] == '//' or mo3[:3] == ',//' ):
+                  mo2 = re.search('}', l)
+                  while(mo2 == None):#read up to }
+                      mo3 = l.replace(' ', '')
+                      if len(mo3) > 3 and not (mo3[:2] == '//' or mo3[:3] == ',//'):
                         input = input + l
                       l = f.readline()
                       if not l:
                           print 'ERROR: Unexpected end of file'
-                          sys.exit( 1 )
-                      mo2 = re.search( '}', l )
+                          sys.exit(1)
+                      mo2 = re.search('}', l)
                   else:
                     input = input + l
-                    self.rawInputFiles.append( input )
+                    self.rawInputFiles.append(input)
 
           f.close()
       except IOError, e:
           print 'ERROR: ', e
 
-  def ParseInput( self, input ):
+  def ParseInput(self, input):
       """
       parse the string enclosed between the " to find the file name and the type of file.
 
       @author C.Cioffi
       """
       result = ['', '']
-      mo = re.search( '[dD][aA][tT].*?=\s*\'(.*?)\'', input )
+      mo = re.search('[dD][aA][tT].*?=\s*\'(.*?)\'', input)
       if mo != None:
-          result[0] = mo.group( 1 )
+          result[0] = mo.group(1)
       else:
           return None
-      mo = re.search( '[Tt][Yy][Pp].*?=\s*\'(.*?)\'', input )
+      mo = re.search('[Tt][Yy][Pp].*?=\s*\'(.*?)\'', input)
       if mo != None:
-          result[1] = mo.group( 1 )
+          result[1] = mo.group(1)
       else:
           return None
       return result
 
 
-  def Parse( self, fileName, goodInputs ):
+  def Parse(self, fileName, goodInputs):
       """
         @author C.Cioffi
       """
@@ -350,20 +359,20 @@ class JobOptionParser:
       inputFiles = []
       output = []
 
-      self.ParseFile( fileName, goodInputs )
+      self.ParseFile(fileName, goodInputs)
       #loop on all the include statement to find the input files
-      while( 1 ):
+      while(1):
 
           if self.rawIncludeFiles:
               include = self.rawIncludeFiles.pop()
-              mo = re.search( '".*"', include )
+              mo = re.search('".*"', include)
 
               if mo != None:
-                  file = mo.group( 0 )#exstract the file path
-                  dirs = string.split( file[1:-1], os.sep )# the [1:-1] remove the " from
-                  dirs = string.split( file[1:-1], '/' )# the [1:-1] remove the " from
+                  file = mo.group(0)#exstract the file path
+                  dirs = string.split(file[1:-1], os.sep)# the [1:-1] remove the " from
+                  dirs = string.split(file[1:-1], '/')# the [1:-1] remove the " from
                                                       # the string
-                  for i in range( len( dirs ) ):#parsing the file path to replace the
+                  for i in range(len(dirs)):#parsing the file path to replace the
                                             #the enviroment variable if any
                       if dirs[i] != '':
                           if dirs[i][0] == '$':
@@ -372,7 +381,7 @@ class JobOptionParser:
                                   replacement = os.environ[dirs[i][1:]]
                               except KeyError:
                                   print 'ERROR: in the included file', file, ' the environment variable ', dirs[i], 'is not defined!!!'
-                                  sys.exit( 1 )
+                                  sys.exit(1)
                               dirs[i] = replacement
                               newpath = ''
                               for i in dirs:
@@ -380,117 +389,117 @@ class JobOptionParser:
 
               else:
                   print "ERROR include statement:", include, 'not valide'
-                  sys.exit( 1 )
-              self.ParseFile( newpath[:-1], goodInputs )
+                  sys.exit(1)
+              self.ParseFile(newpath[:-1], goodInputs)
           else:
               break
 
       #at this point rawInputFiles contain all the line containing the right input statement as
       #specified by goodInputs
       for i in self.rawInputFiles:
-          rawInputs = string.split( i, '\n' )
+          rawInputs = string.split(i, '\n')
           for j in rawInputs:
-              mo = re.search( '".*"', j )#extract the string enclosed by "
-              if( mo != None ):
-                  inputFiles.append( mo.group( 0 ) )
+              mo = re.search('".*"', j)#extract the string enclosed by "
+              if(mo != None):
+                  inputFiles.append(mo.group(0))
 
       for i in inputFiles:
-          result = self.ParseInput( i )
-          if( result != None ):
-              output.append( result )
+          result = self.ParseInput(i)
+          if(result != None):
+              output.append(result)
       return output
 
 
 class Bookkeeping:
   """
   """
-  def __init__( self, url ):
+  def __init__(self, url):
     import xmlrpclib
     xmlrpclib.ExpatParser = None
     self.url = url
-    self.server = xmlrpclib.Server( url )
+    self.server = xmlrpclib.Server(url)
     self.incomplete = {'Global': 0, 'MissingLFNs':[]}
     self.catalog = ''
 
-  def __getPFNs( self, cat ):
+  def __getPFNs(self, cat):
     pfns = []
     parser = Xml2Obj()
-    element = parser.Parse( cat )
+    element = parser.Parse(cat)
     tree = {}
-    self.analyse( element, tree )
+    self.analyse(element, tree)
     for guid in tree.keys():
       f = tree[guid]
       for p in f['physical']:
-          pfns.append( p['name'] )
+          pfns.append(p['name'])
     return pfns
 
-  def __getLFNs( self, cat ):
+  def __getLFNs(self, cat):
     lfns = []
     parser = Xml2Obj()
-    element = parser.Parse( cat )
+    element = parser.Parse(cat)
     tree = {}
-    self.analyse( element, tree )
+    self.analyse(element, tree)
     for guid in tree.keys():
       f = tree[guid]
       for p in f['logical']:
-          lfns.append( p )
+          lfns.append(p)
     return lfns
 
 
-  def supportedSites( self ):
+  def supportedSites(self):
     return self.server.supportedSites()
 
-  def supportedProtocols( self ):
+  def supportedProtocols(self):
     return self.server.supportedProtocols()
 
-  def SEsProtocols( self ):
+  def SEsProtocols(self):
     return self.server.SEsProtocols()
 
-  def getAncestors( self, LFNs, depth = 1 ):
-    return self.server.inputs( LFNs, depth )
+  def getAncestors(self, LFNs, depth=1):
+    return self.server.inputs(LFNs, depth)
 
-  def printCatalog( self, msg ):
+  def printCatalog(self, msg):
     self.catalog = self.catalog + msg
 
-  def startCatalog( self, msg ):
+  def startCatalog(self, msg):
     self.catalog = msg
 
-  def endCatalog( self, msg ):
+  def endCatalog(self, msg):
     self.catalog = self.catalog + msg
     return self.catalog
 
 
-  def analyse( self, e, dic ):
+  def analyse(self, e, dic):
     if e.name == 'File':
       id = e.attributes['ID']
       dic[id] = {}
       for i in e.children:
         if i.name == 'logical':
           dic[id][i.name] = []
-          self.analyse( i, dic[id][i.name] )
+          self.analyse(i, dic[id][i.name])
         if i.name == 'physical':
           dic[id][i.name] = []
-          self.analyse( i, dic[id][i.name] )
+          self.analyse(i, dic[id][i.name])
       return
     elif e.name == 'physical':
       for i in e.children:
-        self.analyse( i, dic )
+        self.analyse(i, dic)
       return
     elif e.name == 'logical':
       for i in e.children:
-        self.analyse( i, dic )
+        self.analyse(i, dic)
       return
     elif e.name == 'pfn':
-      dic.append( e.attributes )
+      dic.append(e.attributes)
       return
     elif e.name == 'lfn':
-      dic.append( e.attributes['name'] )
+      dic.append(e.attributes['name'])
       return
     for i in e.children:
-      self.analyse( i, dic )
+      self.analyse(i, dic)
     return
 
-  def catalogEntry( self, replicas, fname, filetype, guid, guid_typ ):
+  def catalogEntry(self, replicas, fname, filetype, guid, guid_typ):
     res = ''
     res = res + '  <File ID="' + guid + '" guid="' + guid_typ + '">\n'
     res = res + '    <physical>\n'
@@ -503,13 +512,13 @@ class Bookkeeping:
     res = res + '  </File>\n'
     return res
 
-  def siteCatalog( self, cat, site, strict, protocol, card ):
-    SEs = self.server.sitesTOses( [site] )
+  def siteCatalog(self, cat, site, strict, protocol, card):
+    SEs = self.server.sitesTOses([site])
     SEsProtocols = self.server.SEsProtocols()
     parser = Xml2Obj()
-    element = parser.Parse( cat )
+    element = parser.Parse(cat)
     tree = {}
-    self.analyse( element, tree )
+    self.analyse(element, tree)
     job_opts = 'EventSelector.Input   = {\n'
     datafile = ''
     datafiles = ''
@@ -517,7 +526,7 @@ class Bookkeeping:
     ent = ent + '<!-- POOL XML file catalog: Edited By Gaudi Bookkeeping tools -->\n\n'
     ent = ent + '<!DOCTYPE POOLFILECATALOG SYSTEM "InMemory">\n\n'
     ent = ent + '<POOLFILECATALOG>\n'
-    self.startCatalog( ent )
+    self.startCatalog(ent)
     self.incomplete[site] = self.incomplete['Global']
     use = 0
     for guid in tree.keys():
@@ -527,8 +536,8 @@ class Bookkeeping:
       datafile = ''
       for p in f['physical']:
         if p['site'] in SEs and protocol in SEsProtocols[p['site']]:
-          prot_pfn = self.server.getPfnForProtocol( p['site'], p['name'], protocol )
-          if( prot_pfn['Status'] == 'OK' )and( len( prot_pfn['Result'] ) > 0 ):
+          prot_pfn = self.server.getPfnForProtocol(p['site'], p['name'], protocol)
+          if(prot_pfn['Status'] == 'OK')and(len(prot_pfn['Result']) > 0):
             if protocol == 'srm':
               pfn = 'gfal:' + prot_pfn['Result'][p['name']]
               datafile = '"DATAFILE=\'' + pfn + '\'  TYP=\'' + p['filetype'] + '\'  OPT=\'READ\'",\n'
@@ -544,14 +553,14 @@ class Bookkeeping:
           else:
             pfn = ""
           filetype = p['filetype']
-          if ( filetype[:9] == 'POOL_ROOT' ):
+          if (filetype[:9] == 'POOL_ROOT'):
             filetype = 'ROOT_All'
           res = res + '  <pfn name="' + pfn + '" filetype="' + filetype + '"/>\n'
 
-        elif ( p['site'] in SEs and protocol not in SEsProtocols[p['site']] and strict ):
+        elif (p['site'] in SEs and protocol not in SEsProtocols[p['site']] and strict):
           print "Protocol \"" + protocol + "\" not valid for file " + f['logical'][0]
-          print "valid protocols are " + str( SEsProtocols[p['site']] )
-          self.incomplete['MissingLFNs'].append( f['logical'][0] )
+          print "valid protocols are " + str(SEsProtocols[p['site']])
+          self.incomplete['MissingLFNs'].append(f['logical'][0])
           #self.incomplete[site] = 1
 
 
@@ -562,26 +571,26 @@ class Bookkeeping:
       res = res + ' </logical>\n</File>\n'
       datafiles = datafiles + datafile
       if use:
-        self.printCatalog( res )
+        self.printCatalog(res)
       else:
         if strict:
           self.incomplete[site] = 1
           print 'Processing error: file ', f['logical'][0] , ' is missing'
-          self.incomplete['MissingLFNs'].append( f )
+          self.incomplete['MissingLFNs'].append(f)
         else:
           print 'WARNING: file ', f['logical'][0] , ' is missing'
-          self.incomplete['MissingLFNs'].append( f )
+          self.incomplete['MissingLFNs'].append(f)
 
-    if ( not self.incomplete[site] ) and card and ( use or not strict ):
+    if (not self.incomplete[site]) and card and (use or not strict):
       try:
-        card_file = open( card, 'w' )
-        card_file.write( job_opts + datafiles[:-2] + '};' )
+        card_file = open(card, 'w')
+        card_file.write(job_opts + datafiles[:-2] + '};')
         card_file.close()
       except Exception, x:
         print "ERROR while writing the file " + card
-        print str( x )
+        print str(x)
 
-    self.endCatalog( '</POOLFILECATALOG>\n' )
+    self.endCatalog('</POOLFILECATALOG>\n')
     return self.catalog
 
   """def gaudiCatalogBkk(self, files, strict, depth=1):
@@ -633,8 +642,8 @@ class Bookkeeping:
     catalog = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     catalog = catalog + '<!-- GaudiPoolCatalog: Edited By Gaudi Bookkeeping tools -->\n'
     catalog = catalog + '<GaudiPoolCatalog>\n'
-    self.startCatalog( catalog )
-    length = len( files )
+    self.startCatalog(catalog)
+    length = len(files)
     count = 0
     prev = None
     threaded = 0
@@ -650,29 +659,29 @@ class Bookkeeping:
       """
       fids[ff] = {'type':'ROOT_ALL', 'replicas':{}, 'guid':''}
       count = count + 1
-      if ( (count % 500) == 0 or count == length ):
+      if ((count % 500) == 0 or count == length):
         start2 = time.time()
         if threaded:
-          t = Retriever( self, fids, strict, depth )
+          t = Retriever(self, fids, strict, depth)
           fids = {}
           t.start()
-          if ( prev is not None ):
+          if (prev is not None):
             tt = prev
             prev = t
             tt.join()
-            self.printCatalog( tt.result )
-          if ( count == length ):
+            self.printCatalog(tt.result)
+          if (count == length):
             t.join()
-            self.printCatalog( t.result )
+            self.printCatalog(t.result)
           else:
             prev = t
         else:
-          t = Retriever( self, fids, strict, depth )
+          t = Retriever(self, fids, strict, depth)
           t.run()
-          self.printCatalog( t.result )
+          self.printCatalog(t.result)
           fids = {}
         #print '... processed %6d files in %7.2f seconds' % (count , time.time()-start2)
-    self.endCatalog( '</GaudiPoolCatalog>\n' )
+    self.endCatalog('</GaudiPoolCatalog>\n')
     #print ' processing took %7.2f seconds.' % (time.time()-start)
     return self.catalog
 
@@ -684,8 +693,8 @@ class Bookkeeping:
     catalog = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     catalog = catalog + '<!-- GaudiPoolCatalog: Edited By Gaudi Bookkeeping tools -->\n'
     catalog = catalog + '<GaudiPoolCatalog>\n'
-    self.startCatalog( catalog )
-    length = len( files )
+    self.startCatalog(catalog)
+    length = len(files)
     count = 0
     prev = None
     threaded = 0
@@ -707,29 +716,29 @@ class Bookkeeping:
         continue
       fids[fname] = {'type':ff[1], 'replicas':{}, 'guid':''}
       count = count + 1
-      if ( (count % 500) == 0 or count == length ):
+      if ((count % 500) == 0 or count == length):
         start2 = time.time()
         if threaded:
-          t = Retriever( self, fids, strict, depth )
+          t = Retriever(self, fids, strict, depth)
           fids = {}
           t.start()
-          if ( prev is not None ):
+          if (prev is not None):
             tt = prev
             prev = t
             tt.join()
-            self.printCatalog( tt.result )
-          if ( count == length ):
+            self.printCatalog(tt.result)
+          if (count == length):
             t.join()
-            self.printCatalog( t.result )
+            self.printCatalog(t.result)
           else:
             prev = t
         else:
-          t = Retriever( self, fids, strict, depth )
+          t = Retriever(self, fids, strict, depth)
           t.run()
-          self.printCatalog( t.result )
+          self.printCatalog(t.result)
           fids = {}
         #print '... processed %6d files in %7.2f seconds' % (count , time.time()-start2)
-    self.endCatalog( '</GaudiPoolCatalog>\n' )
+    self.endCatalog('</GaudiPoolCatalog>\n')
     #print ' processing took %7.2f seconds.' % (time.time()-start)
     return self.catalog
 
@@ -750,105 +759,105 @@ def help() :
 _url_ = 'http://lhcbbk.cern.ch:8110/RPC/FileCatalog'
 
 
-def S_ERROR( sMessage = '' ):
+def S_ERROR(sMessage=''):
   return { 'Status':'Error', 'OK' : 0, 'Message' : sMessage  }
 
-def S_OK( sValue = None, sPname = 'Value' ):
+def S_OK(sValue=None, sPname='Value'):
   dResult = { 'Status': 'OK', 'OK' : 1 }
   if sValue is not None:
     dResult[ sPname ] = sValue
   return dResult
 
-def S_WARNING( sMessage = '' ):
+def S_WARNING(sMessage=''):
   return { 'Status':'Warning', 'OK' : 1, 'Message' : sMessage  }
 
-def setURL( url ):
+def setURL(url):
   global _url_
   _url_ = url
 
-def getAncestors( LFNs, depth = 1 ):
+def getAncestors(LFNs, depth=1):
   print 'contacting ' + _url_
   try:
-    obj = Bookkeeping( _url_ )
+    obj = Bookkeeping(_url_)
     result = S_OK()
-    result['PFNs'] = obj.getFileAncestors( LFNs, depth )
+    result['PFNs'] = obj.getFileAncestors(LFNs, depth)
     return result
-  except Exception,x:
-    sf=StringFile()
+  except Exception, x:
+    sf = StringFile()
     traceback.print_exc(file=sf)
-    err_msg=S_ERROR(sf.read())
-    err_msg['call']='\n command:  getAncestors('+str(LFNs)+','+str(depth)+')'
+    err_msg = S_ERROR(sf.read())
+    err_msg['call'] = '\n command:  getAncestors(' + str(LFNs) + ',' + str(depth) + ')'
     return err_msg
 
 
-def genCatalog( LFNs, outputFilename, depth = 1, site = None, protocol = None ):
+def genCatalog(LFNs, outputFilename, depth=1, site=None, protocol=None):
   print 'contacting ' + _url_
   try:
-    obj = Bookkeeping( _url_ )
+    obj = Bookkeeping(_url_)
     ancestorsLFNs = LFNs
     if depth > 1:
-      res = obj.getFileAncestors( LFNs, depth )
+      res = obj.getFileAncestors(LFNs, depth)
       if res['Status'] == 'OK':
         ancestorsLFNs = res['PFNs']
       else:
         return res
-    if ( site == None and protocol != None ) or ( site != None and protocol == None ):
-      return S_ERROR( "Both site and protocol must be != None. Got site=" + str( site ) + "; protocol=" + str( protocol ) )
+    if (site == None and protocol != None) or (site != None and protocol == None):
+      return S_ERROR("Both site and protocol must be != None. Got site=" + str(site) + "; protocol=" + str(protocol))
     if site == None:
-      cat = obj.gaudiCatalogFromLFNs( LFNs, 0, 1 )
-      cat_file = open( outputFilename, "w" )
+      cat = obj.gaudiCatalogFromLFNs(LFNs, 0, 1)
+      cat_file = open(outputFilename, "w")
       print >> cat_file, cat
       cat_file.close()
       #print obj.incomplete['MissingLFNs'],len(obj.incomplete['MissingLFNs']),'\n',ancestorsLFNs,len(ancestorsLFNs)
-      if len( obj.incomplete['MissingLFNs'] ) > 0:
-        if len( obj.incomplete['MissingLFNs'] ) == len( ancestorsLFNs ):
-          return S_ERROR( "PFNs not found" )
+      if len(obj.incomplete['MissingLFNs']) > 0:
+        if len(obj.incomplete['MissingLFNs']) == len(ancestorsLFNs):
+          return S_ERROR("PFNs not found")
         else:
-          result = S_WARNING( "Some PFNs have not been found" )
+          result = S_WARNING("Some PFNs have not been found")
           result['PFNs'] = obj.incomplete['MissingLFNs']
           return result
       else:
         return S_OK()
     else:
       result = None
-      cat = obj.gaudiCatalogFromLFNs( LFNs, 0, 1 )
+      cat = obj.gaudiCatalogFromLFNs(LFNs, 0, 1)
       #print obj.incomplete['MissingLFNs'],len(obj.incomplete['MissingLFNs']),'\n',ancestorsLFNs,len(ancestorsLFNs)
-      if len( obj.incomplete['MissingLFNs'] ) > 0:
-        if len( obj.incomplete['MissingLFNs'] ) == len( ancestorsLFNs ):
-          return S_ERROR( "PFNs not found" )
+      if len(obj.incomplete['MissingLFNs']) > 0:
+        if len(obj.incomplete['MissingLFNs']) == len(ancestorsLFNs):
+          return S_ERROR("PFNs not found")
         else:
-          result = S_WARNING( "Some PFNs have not been found" )
+          result = S_WARNING("Some PFNs have not been found")
           result['PFNs'] = obj.incomplete['MissingLFNs']
 
-      catPool = obj.siteCatalog( cat, site, 0, protocol, 0 )
-      cat_file = open( outputFilename, "w" )
+      catPool = obj.siteCatalog(cat, site, 0, protocol, 0)
+      cat_file = open(outputFilename, "w")
       print >> cat_file, catPool
       cat_file.close()
       #print obj.incomplete['MissingLFNs'],len(obj.incomplete['MissingLFNs']),'\n',ancestorsLFNs,len(ancestorsLFNs)
-      if len( obj.incomplete['MissingLFNs'] ) > 0:
-        if len( obj.incomplete['MissingLFNs'] ) == len( ancestorsLFNs ):
-          return S_ERROR( "PFNs not found" )
+      if len(obj.incomplete['MissingLFNs']) > 0:
+        if len(obj.incomplete['MissingLFNs']) == len(ancestorsLFNs):
+          return S_ERROR("PFNs not found")
         else:
           if result is None:
-            result = S_WARNING( "Some PFNs have not been found" )
+            result = S_WARNING("Some PFNs have not been found")
             result['PFNs'] = obj.incomplete['MissingLFNs']
           else:
-            result['PFNs'].append( obj.incomplete['MissingLFNs'] )
+            result['PFNs'].append(obj.incomplete['MissingLFNs'])
           return result
       else:
         return S_OK()
   except Exception, x:
-    print '==========', str( x )
+    print '==========', str(x)
     sf = StringFile()
-    traceback.print_exc( file = sf )
-    err_msg = S_ERROR( sf.read() )
-    err_msg['call'] = 'genCatalog(' + str( LFNs ) + ',' + str( outputFilename ) + ',' + str( depth ) + ',' + str( site ) + ',' + str( protocol ) + ')'
+    traceback.print_exc(file=sf)
+    err_msg = S_ERROR(sf.read())
+    err_msg['call'] = 'genCatalog(' + str(LFNs) + ',' + str(outputFilename) + ',' + str(depth) + ',' + str(site) + ',' + str(protocol) + ')'
     return err_msg
 #########################################
 
 
 
-def execute( args ) :
+def execute(args) :
   import getopt
   url = 'http://lhcbbk.cern.ch:8111/RPC/FileCatalog'
   #url = 'http://lxplus060.cern.ch:8000'
@@ -870,40 +879,40 @@ def execute( args ) :
   #----Ontain the list of files to process------------
   for a in args:
     if a[0] != '-' :
-      files.append( a )
+      files.append(a)
     else :
-      options = args[args.index( a ):]
+      options = args[args.index(a):]
       break
 
   #----Process options--------------------------------
   try:
-    opts, args = getopt.getopt( options, 'ibqhSNZ:o:c:d:p:s:g:u:pr:P:C:I:U:D:PC', \
-    ['info', 'help', 'options=', 'component=', 'gaudi=', 'pool=', 'quick', 'bkk', 'site=', 'strict', 'nostrict', 'depth=', 'url=', 'Protocol=', 'card='] )
+    opts, args = getopt.getopt(options, 'ibqhSNZ:o:c:d:p:s:g:u:pr:P:C:I:U:D:PC', \
+    ['info', 'help', 'options=', 'component=', 'gaudi=', 'pool=', 'quick', 'bkk', 'site=', 'strict', 'nostrict', 'depth=', 'url=', 'Protocol=', 'card='])
   except getopt.GetoptError:
     return usage()
 
   #print opts, args
   for o, a in opts:
-    if o in ( '-h', '--help' ):
+    if o in ('-h', '--help'):
       help()
       return 0
-    if o in ( '-i', '--info' ):
+    if o in ('-i', '--info'):
       info = 1
-    if o in ( '-o', '--options' ):
-      files.append( a )
-    if o in ( '-C', '--component' ):
-      components.append( a )
-    if o in ( '-c', '--card' ):
+    if o in ('-o', '--options'):
+      files.append(a)
+    if o in ('-C', '--component'):
+      components.append(a)
+    if o in ('-c', '--card'):
       card = a
-    if o in ( '-d', '--depth' ):
-      depth = int( a )
-    if o in ( '-p', '--pool' ):
+    if o in ('-d', '--depth'):
+      depth = int(a)
+    if o in ('-p', '--pool'):
       pool = a
-    if o in ( '-g', '--gaudi' ):
+    if o in ('-g', '--gaudi'):
       gaudi = a
-    if o in ( '-s', '--site' ):
+    if o in ('-s', '--site'):
       site = a
-    if o in ( '-u', '--url' ):
+    if o in ('-u', '--url'):
       url = a
     #if o in ('-q', '--quick'):
     #  quick = 1
@@ -911,29 +920,29 @@ def execute( args ) :
     #  quick = 0
     #if o in ('-S', '--strict'):
     #  strict = 1
-    if o in ( '-N', '--nostrict' ):
+    if o in ('-N', '--nostrict'):
       strict = 0
-    if o in ( '-P', '--Protocol' ):
+    if o in ('-P', '--Protocol'):
       protocol = a
 
   #---Check existance of input files--------------------
   if files:
     for f in files :
-      if not os.path.exists( f ) :
+      if not os.path.exists(f) :
         print 'options file "' + f + '" not found'
         return usage()
   if gaudi and not files:
-    if not os.path.exists( gaudi ) :
+    if not os.path.exists(gaudi) :
       print 'Gaudi catalog file "' + gaudi + '" not found'
       return usage()
 
   #else :
   #  print 'No input file specified'
   #  return usage()
-  if ( len( components ) == 0 ):
-    components.append( 'EventSelector.Input' )
+  if (len(components) == 0):
+    components.append('EventSelector.Input')
 
-  obj = Bookkeeping( url )
+  obj = Bookkeeping(url)
   #---Check the correctness of the POOL raled options
   if pool or info or card:
     sup_site = obj.supportedSites()
@@ -942,11 +951,11 @@ def execute( args ) :
         seTOprot = obj.SEsProtocols()
   if pool or card:
     if site and protocol:
-      if sup_site.has_key( site ):
-        if sup_prot.has_key( site ):
-          if not ( protocol in sup_prot[site] ):
+      if sup_site.has_key(site):
+        if sup_prot.has_key(site):
+          if not (protocol in sup_prot[site]):
             print "The protocol \"" + protocol + "\" is not valid for the site " + site
-            print "Valid protocols could be: " + str( sup_prot[site] )
+            print "Valid protocols could be: " + str(sup_prot[site])
             return
         else:
           print "No protocol is defined for the site " + site
@@ -957,7 +966,7 @@ def execute( args ) :
 
       else:
         print "The site is not recognize as a valid site"
-        print "Valid sites are: " + str( sup_site.keys() )
+        print "Valid sites are: " + str(sup_site.keys())
         return
     else:
       if card:
@@ -972,18 +981,18 @@ def execute( args ) :
   cat = None
   for f in files :
     parser = JobOptionParser()
-    in_files = parser.Parse( f, components )
+    in_files = parser.Parse(f, components)
     for ff in in_files:
-      all_files.append( ff )
-  if ( len( all_files ) > 0 ):
+      all_files.append(ff)
+  if (len(all_files) > 0):
     #if quick:
-    cat = obj.gaudiCatalog( all_files, strict, depth )
+    cat = obj.gaudiCatalog(all_files, strict, depth)
     #else:
     #  cat = obj.gaudiCatalogBkk(all_files, strict, depth)
-    if ( gaudi and not obj.incomplete['Global'] ):
-      if( string.upper( gaudi[-4:] ) != '.XML' ):
+    if (gaudi and not obj.incomplete['Global']):
+      if(string.upper(gaudi[-4:]) != '.XML'):
         gaudi = gaudi + '.xml'
-      cat_file = open( gaudi, "w" )
+      cat_file = open(gaudi, "w")
       print >> cat_file, cat
       cat_file.close()
       print 'Wrote Gaudi catalog file:', gaudi
@@ -996,18 +1005,18 @@ def execute( args ) :
       print '| To disable such behavior use the -N option.                         |'
       print '+---------------------------------------------------------------------+'
       return 0
-  elif ( gaudi ):
-    cat = open( gaudi, 'r' ).read()
+  elif (gaudi):
+    cat = open(gaudi, 'r').read()
   #print cat,'\n\n',pool,site,protocol,
-  if ( ( pool or card ) and site and cat and protocol ):
-    if( card is not None ) and ( string.upper( card[-5:] ) != '.OPTS' ):
+  if ((pool or card) and site and cat and protocol):
+    if(card is not None) and (string.upper(card[-5:]) != '.OPTS'):
       card = card + '.opts'
-    cat = obj.siteCatalog( cat, site, strict, protocol, card )
-    if ( not obj.incomplete[site] ):
+    cat = obj.siteCatalog(cat, site, strict, protocol, card)
+    if (not obj.incomplete[site]):
       if pool:
-        if( string.upper( pool[-4:] ) != '.XML' ):
+        if(string.upper(pool[-4:]) != '.XML'):
           pool = pool + '.xml'
-        cat_file = open( pool, "w" )
+        cat_file = open(pool, "w")
         print >> cat_file, cat
         cat_file.close()
       if pool:
@@ -1018,11 +1027,11 @@ def execute( args ) :
           print 'Please add to your options file the following line:'
           print 'PoolDbCacheSvc.Catalog = { "xmlcatalog_file:' + pool + '" }';
 
-    elif ( obj.incomplete[site] ):
+    elif (obj.incomplete[site]):
       blnk = '|  Your Gaudi job is going to FAIL at site:                           |'
       print '+---------------------------------------------------------------------+'
       print '|  You are going to analyse non-existing or not valid datafiles.      |'
-      print blnk[:44] + site + blnk[44 + len( site ):]
+      print blnk[:44] + site + blnk[44 + len(site):]
       print '| Catalog procesing ABORTED.                                          |'
       print '|                                                                     |'
       print '| The system by default check that all files are found and            |'
@@ -1030,19 +1039,20 @@ def execute( args ) :
       print '| To disable such behavior use the -N option.                         |'
       print '+---------------------------------------------------------------------+'
       return 0
-  elif ( pool and cat and ( site is None or protocol is None ) ):
+  elif (pool and cat and (site is None or protocol is None)):
         print "Warning: -p option must be used in conjuct with -s and -P options"
         print 'Try "genCatalog --help" for more information.'
-  if ( info ):
+  if (info):
     space = '                        '
     print '\n                INFO\n'
-    print 'Site' + space[len( 'Site' ):] + 'SEs\n'
+    print 'Site' + space[len('Site'):] + 'SEs\n'
     for site, se in sup_site.items():
-      print site, space[len( site ):], se
-    print '\nSE' + space[len( 'SE' ):] + 'Protocol(s)\n'
+      print site, space[len(site):], se
+    print '\nSE' + space[len('SE'):] + 'Protocol(s)\n'
     for se, pro in seTOprot.items():
-      print se, space[len( se ):], pro
+      print se, space[len(se):], pro
   return 1
 
 if __name__ == "__main__":
-  execute( sys.argv[1:] )
+  execute(sys.argv[1:])
+

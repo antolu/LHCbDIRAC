@@ -11,22 +11,23 @@ in_dict = {'EventTypeId': 93000000,
         'Production':7421
          }
 """
-import DIRAC
-from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                           import S_OK, S_ERROR, gLogger
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-from DIRAC.Core.Utilities            import DEncode
-import types, cPickle, os, tempfile, time
+
+import types, cPickle, tempfile
 
 
 __RCSID__ = "$Id$"
 
 class BookkeepingClient:
+  """ This class expose the methods of the Bookkeeping Service"""
 
   def __init__(self, rpcClient=None):
     self.rpcClient = rpcClient
 
   def __getServer(self, timeout=3600):
+    """It returns the access protocol to the Bookkeeping service"""
     retVal = None
     if self.rpcClient:
       retVal = self.rpcClient
@@ -36,6 +37,7 @@ class BookkeepingClient:
 
   #############################################################################
   def echo(self, string):
+    """It print the string"""
     server = self.__getServer()
     res = server.echo(string)
     print res
@@ -122,12 +124,12 @@ class BookkeepingClient:
     return server.updateStep(in_dict)
 
   #############################################################################
-  def getStepInputFiles(self, StepId):
+  def getStepInputFiles(self, stepId):
     """
     It returns the input files for a given step.
     """
     server = self.__getServer()
-    return server.getStepInputFiles(int(StepId))
+    return server.getStepInputFiles(int(stepId))
 
   #############################################################################
   def setStepInputFiles(self, stepid, files):
@@ -146,12 +148,12 @@ class BookkeepingClient:
     return server.setStepOutputFiles(stepid, files)
 
   #############################################################################
-  def getStepOutputFiles(self, StepId):
+  def getStepOutputFiles(self, stepId):
     """
     It returns the output file types for a given Step.
     """
     server = self.__getServer()
-    return server.getStepOutputFiles(int(StepId))
+    return server.getStepOutputFiles(int(stepId))
 
   #############################################################################
   def getAvailableConfigNames(self):
@@ -227,14 +229,14 @@ class BookkeepingClient:
     result = S_ERROR()
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
     s = cPickle.dumps(in_dict)
-    file = tempfile.NamedTemporaryFile()
+    file_name = tempfile.NamedTemporaryFile()
     params = str(s)
-    retVal = bkk.receiveFile(file.name, params)
+    retVal = bkk.receiveFile(file_name.name, params)
     if not retVal['OK']:
       result = retVal
     else:
-      value = cPickle.load(open(file.name))
-      file.close()
+      value = cPickle.load(open(file_name.name))
+      file_name.close()
       result = S_OK(value)
     return result
 
@@ -291,6 +293,7 @@ class BookkeepingClient:
 
   ########################################REVIEW#####################################
   def getMoreProductionInformations(self, prodid):
+    """It returns inforation about a production"""
     #DELETE !!!!!!!!!
     server = self.__getServer()
     result = server.getMoreProductionInformations(prodid)
@@ -324,7 +327,7 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getProductionFiles(self, prod, fileType, replica = 'ALL'):
+  def getProductionFiles(self, prod, fileType, replica='ALL'):
     """
     It returns files and their metadata for a given production, file type and replica.
     """
@@ -442,12 +445,14 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def insertSimConditions(self, simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings):
+  def insertSimConditions(self, simdesc, beamCond, beamEnergy, generator,
+                          magneticField, detectorCond, luminosity, g4settings):
     """
     It inserts a simulation condition to the Bookkeeping Metadata catalogue.
     """
     server = self.__getServer()
-    result = server.insertSimConditions( simdesc, BeamCond, BeamEnergy, Generator, MagneticField, DetectorCond, Luminosity, G4settings )
+    result = server.insertSimConditions(simdesc, beamCond, beamEnergy, generator,
+                                         magneticField, detectorCond, luminosity, g4settings)
     return result
 
   #############################################################################
@@ -493,12 +498,12 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getProductionFilesForWeb(self, prod, ftype, SortDict, StartItem, Maxitems):
+  def getProductionFilesForWeb(self, prod, ftype, sortDict, startItem, maxitems):
     """
     It returns files and their metadata information for a given production.
     """
     server = self.__getServer()
-    result = server.getProductionFilesForWeb(int(prod), ftype, SortDict, long(StartItem), long(Maxitems))
+    result = server.getProductionFilesForWeb(int(prod), ftype, sortDict, long(startItem), long(maxitems))
     return result
 
   #############################################################################
@@ -525,9 +530,11 @@ class BookkeepingClient:
     """
     server = self.__getServer()
     if 'Fields' not in in_dict:
-      in_dict['Fields'] = ['ConfigName', 'ConfigVersion', 'JobStart', 'JobEnd', 'TCK', 'FillNumber', 'ProcessingPass', 'ConditionDescription', 'CONDDB', 'DDDB']
+      in_dict['Fields'] = ['ConfigName', 'ConfigVersion', 'JobStart', 'JobEnd', 'TCK',
+                           'FillNumber', 'ProcessingPass', 'ConditionDescription', 'CONDDB', 'DDDB']
     if 'Statistics' in in_dict and len(in_dict['Statistics']) == 0:
-      in_dict['Statistics']=['NbOfFiles','EventStat', 'FileSize', 'FullStat', 'Luminosity', 'InstLumonosity', 'EventType']
+      in_dict['Statistics'] = ['NbOfFiles', 'EventStat', 'FileSize', 'FullStat',
+                             'Luminosity', 'InstLumonosity', 'EventType']
 
     result = server.getRunInformation(in_dict)
     return result
@@ -923,66 +930,90 @@ class BookkeepingClient:
 
   #############################################################################
   def __errorReport(self, errMsg):
+    """Temporary method. It prints an error message"""
 
-    s=  '                 WARNING                         \n'
-    s+= '                                                 \n'
-    s+= errMsg
-    gLogger.error(s)
+    errorString = '                 WARNING                         \n'
+    errorString += '                                                 \n'
+    errorString += errMsg
+    gLogger.error(errorString)
+    return None
 
   #############################################################################
   def getProductionInformation(self, prodid):
-    self.__errorReport("The 'getProductionInformation' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    """Temporary method"""
+    self.__errorReport("The 'getProductionInformation' method will be removed. \
+    If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.getProductionInformation(long(prodid))
 
   #############################################################################
   def sendBookkeeping(self, name, xml):
-    self.__errorReport("The 'sendBookkeeping' method is obsolete and it will be removed from the next LHCbDirac release. Please use the sendXMLBookkeepingReport!")
+    """Temporary method"""
+    self.__errorReport("The 'sendBookkeeping' method is obsolete and it will be removed\
+     from the next LHCbDirac release. Please use the sendXMLBookkeepingReport!")
     return self.sendXMLBookkeepingReport(xml)
 
   #############################################################################
   def setQuality(self, lfns, flag):
-    self.__errorReport("The 'setQuality' method is obsolete and it will be removed from the next LHCbDirac release. Please use the 'setFileDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'setQuality' method is obsolete and it will be removed\
+     from the next LHCbDirac release. Please use the 'setFileDataQuality'!")
     return self.setFileDataQuality(lfns, flag)
 
   #############################################################################
   def getFilesSumary(self, in_dict):
-    self.__errorReport("The 'getFilesSumary' method is obsolete and it will be removed from the next release. Please use the getFilesSummary!")
+    """Temporary method"""
+    self.__errorReport("The 'getFilesSumary' method is obsolete and it will be removed\
+     from the next release. Please use the getFilesSummary!")
     return self.getFilesSummary(in_dict)
 
   #############################################################################
   def getAvailableRunNumbers(self):
-    self.__errorReport("The 'getAvailableRunNumbers' method is obsolete and it will be removed from the next release. Please use the 'getAvailableRuns'!")
+    """Temporary method"""
+    self.__errorReport("The 'getAvailableRunNumbers' method is obsolete and it will be \
+    removed from the next release. Please use the 'getAvailableRuns'!")
     return self.getAvailableRuns()
 
   #############################################################################
   def getInputAndOutputJobFiles(self, jobids):
-    self.__errorReport("The 'getInputAndOutputJobFiles' method is obsolete and it will be removed from the next release. Please use the 'getJobInputAndOutputJobFiles'!")
+    """Temporary method"""
+    self.__errorReport("The 'getInputAndOutputJobFiles' method is obsolete and it will be removed \
+    from the next release. Please use the 'getJobInputAndOutputJobFiles'!")
     return self.getJobInputAndOutputJobFiles(jobids)
 
   #############################################################################
   def setRunQualityWithProcessing(self, runNB, procpass, flag):
-    self.__errorReport("The 'setRunQualityWithProcessing' method is obsolete and it will be removed from the next release. Please use the 'setRunAndProcessingPassDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'setRunQualityWithProcessing' method is obsolete and it will be removed\
+     from the next release. Please use the 'setRunAndProcessingPassDataQuality'!")
     return self.setRunAndProcessingPassDataQuality(runNB, procpass, flag)
 
   #############################################################################
   def setQualityRun(self, runNb, flag):
-    self.__errorReport("The 'setQualityRun' method is obsolete and it will be removed from the next release. Please use the 'setRunDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'setQualityRun' method is obsolete and it will be removed \
+    from the next release. Please use the 'setRunDataQuality'!")
     return self.setRunDataQuality(runNb, flag)
 
   #############################################################################
   def setQualityProduction(self, prod, flag):
-    self.__errorReport("The 'setQualityProduction' method is obsolete and it will be removed from the next release. Please use the 'setProductionDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'setQualityProduction' method is obsolete and it will be removed\
+     from the next release. Please use the 'setProductionDataQuality'!")
     return self.setProductionDataQuality(prod, flag)
 
   #############################################################################
   def getLFNsByProduction(self, prodid):
-    self.__errorReport("The 'getLFNsByProduction' method is obsolete and it will be removed from the next release. Please use the 'getProductionFiles'!")
-    return self.getProductionFiles(prodid, 'ALL','ALL')
+    """Temporary method"""
+    self.__errorReport("The 'getLFNsByProduction' method is obsolete and it will be\
+     removed from the next release. Please use the 'getProductionFiles'!")
+    return self.getProductionFiles(prodid, 'ALL', 'ALL')
 
   #############################################################################
   def getAncestors(self, lfns, depth=1):
-    self.__errorReport("The 'getAncestors' method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
+    """Temporary method"""
+    self.__errorReport("The 'getAncestors' method is obsolete and it will be removed \
+    from the next release. Please use the 'getFileAncestors'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -1001,7 +1032,9 @@ class BookkeepingClient:
 
   #############################################################################
   def getAllAncestorsWithFileMetaData(self, lfns, depth=1):
-    self.__errorReport("The 'getAllAncestorsWithFileMetaData' method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
+    """Temporary method"""
+    self.__errorReport("The 'getAllAncestorsWithFileMetaData' method is obsolete and it will be removed\
+     from the next release. Please use the 'getFileAncestors'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -1012,7 +1045,9 @@ class BookkeepingClient:
 
   #############################################################################
   def getAllAncestors(self, lfns, depth=1):
-    self.__errorReport("The 'getAllAncestors' method is obsolete and it will be removed from the next release. Please use the 'getFileAncestors'!")
+    """Temporary method"""
+    self.__errorReport("The 'getAllAncestors' method is obsolete and it will be removed \
+    from the next release. Please use the 'getFileAncestors'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -1031,7 +1066,9 @@ class BookkeepingClient:
 
   #############################################################################
   def getDescendents(self, lfns, depth=0):
-    self.__errorReport("The 'getDescendents' method is obsolete and it will be removed from the next release. Please use the 'getFileDescendents'!")
+    """Temporary method"""
+    self.__errorReport("The 'getDescendents' method is obsolete and \
+    it will be removed from the next release. Please use the 'getFileDescendents'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -1042,7 +1079,9 @@ class BookkeepingClient:
 
   #############################################################################
   def getAllDescendents(self, lfns, depth=0, production=0, checkreplica=False):
-    self.__errorReport("The 'getAllDescendents' method is obsolete and it will be removed from the next release. Please use the 'getFileDescendents'!")
+    """Temporary method"""
+    self.__errorReport("The 'getAllDescendents' method is obsolete and it will be removed \
+    from the next release. Please use the 'getFileDescendents'!")
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
@@ -1053,141 +1092,184 @@ class BookkeepingClient:
 
   #############################################################################
   def checkfile(self, fileName):
-    self.__errorReport("The 'checkfile' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    """Temporary method"""
+    self.__errorReport("The 'checkfile' method will be removed. If you would like to use it, \
+    please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     result = server.checkfile(fileName)
     return result
 
   #############################################################################
-  def checkFileTypeAndVersion(self, type, version):
-    self.__errorReport("The 'checkFileTypeAndVersion' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+  def checkFileTypeAndVersion(self, filetype, version):
+    """Temporary method"""
+    self.__errorReport("The 'checkFileTypeAndVersion' method will be removed. If you would like to use it,\
+     please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
-    result = server.checkFileTypeAndVersion(type, version)
+    result = server.checkFileTypeAndVersion(filetype, version)
     return result
 
   #############################################################################
   def checkEventType(self, eventTypeId):
-    self.__errorReport("The 'checkEventType' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    """Temporary method"""
+    self.__errorReport("The 'checkEventType' method will be removed. If you would like to use it, \
+    please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     result = server.checkEventType(long(eventTypeId))
     return result
 
   #############################################################################
   def removeReplica(self, fileName):
-    self.__errorReport("The 'removeReplica' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    """Temporary method"""
+    self.__errorReport("The 'removeReplica' method will be removed. If you would like to use it, \
+    please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.removeReplica(fileName)
 
   #############################################################################
   def addReplica(self, fileName):
-    self.__errorReport("The 'addReplica' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    """Temporary method"""
+    self.__errorReport("The 'addReplica' method will be removed. If you would like to use it, \
+    please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.addReplica(fileName)
 
   #############################################################################
   def getFilesInformations(self, lfns):
-    self.__errorReport("The 'getFilesInformations' method is obsolete and it will be removed from the next release. Please use the 'getFileMetadata'!")
+    """Temporary method"""
+    self.__errorReport("The 'getFilesInformations' method is obsolete and it will be removed\
+     from the next release. Please use the 'getFileMetadata'!")
     server = self.__getServer()
     return server.getFileMetadata(lfns)
 
   #############################################################################
   def getFileMetaDataForUsers(self, lfns):
-    self.__errorReport("The 'getFileMetaDataForUsers' method is obsolete and it will be removed from the next release. Please use the 'getFileMetaDataForWeb'!")
+    """Temporary method"""
+    self.__errorReport("The 'getFileMetaDataForUsers' method is obsolete and it will be removed from\
+     the next release. Please use the 'getFileMetaDataForWeb'!")
     server = self.__getServer()
     result = server.getFileMetaDataForWeb(lfns)
     return result
 
   ############################################################################
   def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
-    self.__errorReport("The 'getProductionFilesForUsers' method is obsolete and it will be removed from the next release. Please use the 'getProductionFilesForWeb'!")
+    """Temporary method"""
+    self.__errorReport("The 'getProductionFilesForUsers' method is obsolete and it will be removed\
+     from the next release. Please use the 'getProductionFilesForWeb'!")
     server = self.__getServer()
     result = server.getProductionFilesForWeb(int(prod), ftype, SortDict, long(StartItem), long(Maxitems))
     return result
 
   #############################################################################
   def getLogfile(self, lfn):
-    self.__errorReport("The 'getLogfile' method is obsolete and it will be removed from the next release. Please use the 'getFileCreationLog'!")
+    """Temporary method"""
+    self.__errorReport("The 'getLogfile' method is obsolete and it will be removed from\
+     the next release. Please use the 'getFileCreationLog'!")
     server = self.__getServer()
     result = server.getFileCreationLog(lfn)
     return result
 
   #############################################################################
   def addEventType(self, evid, desc, primary):
-    self.__errorReport("The 'addEventType' method is obsolete and it will be removed from the next release. Please use the 'insertEventType'!")
+    """Temporary method"""
+    self.__errorReport("The 'addEventType' method is obsolete and it will be removed \
+    from the next release. Please use the 'insertEventType'!")
     server = self.__getServer()
     return server.insertEventType(long(evid), desc, primary)
 
   #############################################################################
   def getProductionInformations_new(self, prodid):
-    self.__errorReport("The 'getProductionInformations_new' method is obsolete and it will be removed from the next release. Please use the 'getProductionInformations'!")
+    """Temporary method"""
+    self.__errorReport("The 'getProductionInformations_new' method is obsolete and it will be removed\
+     from the next release. Please use the 'getProductionInformations'!")
     server = self.__getServer()
     result = server.getProductionInformations(long(prodid))
     return result
 
   #############################################################################
   def getJobsNb(self, prodid):
-    self.__errorReport("The 'getJobsNb' method is obsolete and it will be removed from the next release. Please use the 'getProductionNbOfJobs'!")
+    """Temporary method"""
+    self.__errorReport("The 'getJobsNb' method is obsolete and it will be removed from\
+     the next release. Please use the 'getProductionNbOfJobs'!")
     server = self.__getServer()
     return server.getProductionNbOfJobs(long(prodid))
 
   #############################################################################
   def getNumberOfEvents(self, prodid):
+    """Temporary method"""
     self.__errorReport("The 'getNumberOfEvents' method is obsolete and it will be removed from the next release. Please use the 'getNumberOfEvents'!")
     server = self.__getServer()
     return server.getProductionNbOfEvents(long(prodid))
 
   #############################################################################
   def getSizeOfFiles(self, prodid):
-    self.__errorReport("The 'getSizeOfFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionSizeOfFiles'!")
+    """Temporary method"""
+    self.__errorReport("The 'getSizeOfFiles' method is obsolete and it will be removed \
+    from the next release. Please use the 'getProductionSizeOfFiles'!")
     server = self.__getServer()
     return server.getProductionSizeOfFiles(long(prodid))
 
   #############################################################################
   def getNbOfFiles(self, prodid):
-    self.__errorReport("The 'getNbOfFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionNbOfFiles'!")
+    """Temporary method"""
+    self.__errorReport("The 'getNbOfFiles' method is obsolete and it will be removed\
+     from the next release. Please use the 'getProductionNbOfFiles'!")
     server = self.__getServer()
     return server.getProductionNbOfFiles(long(prodid))
 
   #############################################################################
   def getProcessedEvents(self, prodid):
-    self.__errorReport("The 'getProcessedEvents' method is obsolete and it will be removed from the next release. Please use the 'getProductionProcessedEvents'!")
+    """Temporary method"""
+    self.__errorReport("The 'getProcessedEvents' method is obsolete and it will be removed\
+     from the next release. Please use the 'getProductionProcessedEvents'!")
     server = self.__getServer()
     return server.getProductionProcessedEvents(int(prodid))
 
   #############################################################################
   def getRunsWithAGivenDates(self, in_dict):
-    self.__errorReport("The 'getRunsWithAGivenDates' method is obsolete and it will be removed from the next release. Please use the 'getRunsForAGivenPeriod'!")
+    """Temporary method"""
+    self.__errorReport("The 'getRunsWithAGivenDates' method is obsolete and it will be removed \
+    from the next release. Please use the 'getRunsForAGivenPeriod'!")
     server = self.__getServer()
     return server.getRunsForAGivenPeriod(in_dict)
 
   #############################################################################
   def getProductiosWithAGivenRunAndProcessing(self, in_dict):
-    self.__errorReport("The 'getProductiosWithAGivenRunAndProcessing' method is obsolete and it will be removed from the next release. Please use the 'getProductionsFromView'!")
+    """Temporary method"""
+    self.__errorReport("The 'getProductiosWithAGivenRunAndProcessing' method is obsolete and \
+    it will be removed from the next release. Please use the 'getProductionsFromView'!")
     server = self.__getServer()
     return server.getProductionsFromView(in_dict)
 
   #############################################################################
   def getDataQualityForRuns(self, runs):
-    self.__errorReport("The 'getDataQualityForRuns' method is obsolete and it will be removed from the next release. Please use the 'getRunFilesDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'getDataQualityForRuns' method is obsolete and it will be removed\
+     from the next release. Please use the 'getRunFilesDataQuality'!")
     server = self.__getServer()
     return server.getRunFilesDataQuality(runs)
 
   #############################################################################
   def getRunFlag(self, runnb, processing):
-    self.__errorReport("The 'getRunFlag' method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPassDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'getRunFlag' method is obsolete and it will be removed from the next release.\
+     Please use the 'getRunAndProcessingPassDataQuality'!")
     server = self.__getServer()
     result = server.getRunAndProcessingPassDataQuality(long(runnb), long(processing))
     return result
 
   #############################################################################
   def getProductionProcessingPassID(self, prodid):
-    self.__errorReport("The 'getProductionProcessingPassID' method will be removed. If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
+    """Temporary method"""
+    self.__errorReport("The 'getProductionProcessingPassID' method will be removed.\
+     If you would like to use it, please write a mail to LHCb bookkeeping <lhcb-bookkeeping@cern.ch>")
     server = self.__getServer()
     return server.getProductionProcessingPassID(long(prodid))
 
   ############################################################################
   def getProductionStatus(self, productionid=None, lfns=[]):
-    self.__errorReport("The 'getProductionStatus' method is obsolete and it will be removed from the next release. Please use the 'getProductionFilesStatus'!")
+    """Temporary method"""
+    self.__errorReport("The 'getProductionStatus' method is obsolete and it will be removed \
+    from the next release. Please use the 'getProductionFilesStatus'!")
     server = self.__getServer()
     result = None
     if productionid != None:
@@ -1198,57 +1280,75 @@ class BookkeepingClient:
 
   #############################################################################
   def getFiles(self, in_dict):
-    self.__errorReport("The 'getFiles' method is obsolete and it will be removed from the next release. Please use the 'getFilesWithMetadata'!")
+    """Temporary method"""
+    self.__errorReport("The 'getFiles' method is obsolete and it will be removed\
+     from the next release. Please use the 'getFilesWithMetadata'!")
     return self.getFilesWithMetadata(in_dict)
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, values):
-    self.__errorReport("The 'getFilesWithGivenDataSetsForUsers' method is obsolete and it will be removed from the next release. Please use the 'getVisibleFilesWithMetadata'!")
+    """Temporary method"""
+    self.__errorReport("The 'getFilesWithGivenDataSetsForUsers' method is obsolete and it will be removed\
+     from the next release. Please use the 'getVisibleFilesWithMetadata'!")
     server = self.__getServer()
     return server.getVisibleFilesWithMetadata(values)
 
   #############################################################################
   def getStandardEventTypes(self, in_dict):
-    self.__errorReport("The 'getStandardEventTypes' method is obsolete and it will be removed from the next release. Please use the 'getEventTypes'!")
+    """Temporary method"""
+    self.__errorReport("The 'getStandardEventTypes' method is obsolete and it will be removed from\
+     the next release. Please use the 'getEventTypes'!")
     server = self.__getServer()
     return server.getEventTypes(in_dict)
 
-   #############################################################################
+  #############################################################################
   def getProductionOutputFiles(self, in_dict):
-    self.__errorReport("The 'getProductionOutputFiles' method is obsolete and it will be removed from the next release. Please use the 'getProductionOutputFileTypes'!")
+    """Temporary method"""
+    self.__errorReport("The 'getProductionOutputFiles' method is obsolete and it will be removed\
+     from the next release. Please use the 'getProductionOutputFileTypes'!")
     server = self.__getServer()
     return server.getProductionOutputFileTypes(in_dict)
 
   #############################################################################
   def getRunQuality(self, procpass, flag='ALL'):
-    self.__errorReport("The 'getRunQuality' method is obsolete and it will be removed from the next release. Please use the 'getRunWithProcessingPassAndDataQuality'!")
+    """Temporary method"""
+    self.__errorReport("The 'getRunQuality' method is obsolete and it will be removed from \
+    the next release. Please use the 'getRunWithProcessingPassAndDataQuality'!")
     server = self.__getServer()
     return server.getRunWithProcessingPassAndDataQuality(procpass, flag)
 
   #############################################################################
   def getRunProcPass(self, in_dict):
-    self.__errorReport("The 'getRunProcPass' method is obsolete and it will be removed from the next release. Please use the 'getRunAndProcessingPass'!")
+    """Temporary method"""
+    self.__errorReport("The 'getRunProcPass' method is obsolete and it will be removed\
+     from the next release. Please use the 'getRunAndProcessingPass'!")
     server = self.__getServer()
     return server.getRunAndProcessingPass(in_dict)
 
   #############################################################################
   def getRunNbFiles(self, in_dict):
-    self.__errorReport("The 'getRunNbFiles' method is obsolete and it will be removed from the next release. Please use the 'getNbOfRawFiles'!")
+    """Temporary method"""
+    self.__errorReport("The 'getRunNbFiles' method is obsolete and it will be removed\
+     from the next release. Please use the 'getNbOfRawFiles'!")
     server = self.__getServer()
     return server.getNbOfRawFiles(in_dict)
 
   #############################################################################
   def getTypeVersion(self, lfn):
-    self.__errorReport("The 'getTypeVersion' method is obsolete and it will be removed from the next release. Please use the 'getFileTypeVersion'!")
+    """Temporary method"""
+    self.__errorReport("The 'getTypeVersion' method is obsolete and it will be removed \
+    from the next release. Please use the 'getFileTypeVersion'!")
     server = self.__getServer()
     if type(lfn) == types.StringType:
       return server.getFileTypeVersion([lfn])
     else:
       return server.getFileTypeVersion(lfn)
 
-   #############################################################################
+  #############################################################################
   def getAvailableTcks(self, in_dict):
-    self.__errorReport("The 'getAvailableTcks' method is obsolete and it will be removed from the next release. Please use the 'getTCKs'!")
+    """Temporary method"""
+    self.__errorReport("The 'getAvailableTcks' method is obsolete and it\
+    will be removed from the next release. Please use the 'getTCKs'!")
     server = self.__getServer()
     return server.getTCKs(in_dict)
 

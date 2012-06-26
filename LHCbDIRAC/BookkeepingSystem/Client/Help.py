@@ -4,19 +4,21 @@
 """
 Help class
 """
-from DIRAC                                                               import gLogger, S_OK, S_ERROR
+from DIRAC                                                               import gLogger, S_OK
 
 __RCSID__ = "$Id$"
 
 #############################################################################
 class Help:
-
+  """ Class for help"""
   #############################################################################
   def __init__( self ):
+    """ constructor"""
     pass
 
   #############################################################################
   def helpConfig( self, treeLevels ):
+    """ configure the help"""
     if treeLevels == -1:
       print "-------------------------------------"
       print "| Please use the following comand:   |"
@@ -49,10 +51,11 @@ class Help:
       print "| For example:                                                                                                 |"
       print "| client.list('/CFG_DC06 phys-v3-lumi5/EVT_10000010/PROD_1933/FTY_RDST Brunel v30r17')                         |"
       print "----------------------------------------------------------------------------------------------------------------"
-
+    return S_OK()
 
   #############################################################################
   def helpProcessing( self, treeLevels ):
+    """ help """
     if treeLevels == -1:
       print "-------------------------------------"
       print "| Please use the following comand:   |"
@@ -88,4 +91,5 @@ class Help:
 
   #############################################################################
   def helpEventType( self, treeLevels ):
+    """ ...."""
     gLogger.warn( "Not Implemented!" )
