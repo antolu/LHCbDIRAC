@@ -258,7 +258,7 @@ if "{{p2Ver}}":
     daVinciOutput = daVinciOutput[0]
 
   production.addDaVinciStep( "{{p2Ver}}", daVinciOutput, daVinciOptions, extraPackages = '{{p2EP}}',
-                            inputDataType = daVinciInput.lower(), histograms = histograms,
+                            inputDataType = daVinciInput.lower(), histograms = histograms, outputSE = 'Tier1-DST',
                             stepID = '{{p2Step}}', stepName = '{{p2Name}}', stepVisible = '{{p2Vis}}',
                             stepPass = '{{p2Pass}}', optionsFormat = davinciOF )
 
