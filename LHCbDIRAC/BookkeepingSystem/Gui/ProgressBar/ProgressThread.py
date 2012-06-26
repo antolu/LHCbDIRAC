@@ -23,14 +23,14 @@ class ProgressThread(QThread):
   def run(self):
     """Run a thread"""
     i = 0
-    progressDialog = QProgressDialog(QString(), QString(),0,100)
+    progressDialog = QProgressDialog(QString(), QString(), 0, 100)
     #progressDialog.setLabelText(self.__message)
     #progressDialog.setWindowTitle("Wait...")
     #progressDialog.setRange(0, 10000)
     #print 'Max',progressDialog.maximum()
     sleepingTime = 0
     #gLogger.info('Thread run')
-    while ( not self.__stoped):
+    while (not self.__stoped):
       i = i + 1
       if i == progressDialog.maximum():
         sleepingTime = 1
