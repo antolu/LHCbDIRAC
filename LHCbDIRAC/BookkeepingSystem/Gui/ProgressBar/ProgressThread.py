@@ -11,14 +11,17 @@ import time
 __RCSID__ = "$Id$"
 
 class ProgressThread(QThread):
+  """" ProgressThread class"""
   def __init__(self, stop, message='', parent=None):
-        QThread.__init__(self, parent)
-        self.__stoped = stop
-        self.__message = message
-        #gLogger.info('Constructor')
+    """The constructor initialize the QThread."""
+    QThread.__init__(self, parent)
+    self.__stoped = stop
+    self.__message = message
+      #gLogger.info('Constructor')
 
 
   def run(self):
+    """Run a thread"""
     i = 0
     progressDialog = QProgressDialog(QString(), QString(),0,100)
     #progressDialog.setLabelText(self.__message)
@@ -41,6 +44,7 @@ class ProgressThread(QThread):
     #gLogger.info('Thread run end')
 
   def stop(self):
+    """Stop a thread"""
     #gLogger.info('Thread stoped')
     self.__stoped = True
 
