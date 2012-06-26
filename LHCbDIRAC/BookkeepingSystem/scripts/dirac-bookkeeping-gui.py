@@ -20,10 +20,9 @@ Script.parseCommandLine( ignoreErrors = True )
 from DIRAC.Core.Security.ProxyInfo                             import getProxyInfo
 from DIRAC.Core.Security.CS                                    import getDNForUsername
 from DIRAC                                                     import gLogger
-import DIRAC
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QApplication
+
 
 import sys
 
