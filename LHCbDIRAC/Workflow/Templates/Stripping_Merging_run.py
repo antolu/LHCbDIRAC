@@ -39,7 +39,7 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True to create validation productions#False}}'
 
 # workflow params for all productions
-sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#x86_64-slc5-gcc46-opt}}'
+sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt#ANY}}'
 
 # workflow params for all productions
 destination = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
@@ -54,7 +54,7 @@ strippCPU = '{{StrippMaxCPUTime#PROD-Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#2}}'
 strippTransFlag = '{{StrippTransformation#PROD-Stripping: distribute output data True/False (False if merging)#False}}'
-unmergedStreamSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-DST}}'
+unmergedStreamSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 strippAncestorProd = '{{StrippAncestorProd#PROD-Stripping: ancestor production if any#0}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#download}}'
 strippEOpts = '{{strippEO#PROD-Stripping: extra options#}}'
@@ -220,11 +220,11 @@ else:
 if testFlag:
   outBkConfigName = 'certification'
   outBkConfigVersion = 'test'
-  startRun = '75336'
-  endRun = '75340'
+  startRun = '0'
+  endRun = '0'
   recoCPU = '100000'
-  dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
-  processingPass = 'Reco08/Stripping12b'
+  dataTakingCond = 'Beam3500GeV-VeloClosed-MagUp'
+  processingPass = 'Real Data/Reco12'
   strippFileType = 'SDST'
   eventType = '90000000'
 else:
