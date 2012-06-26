@@ -1444,6 +1444,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     cacheLifeTime = self.__getPluginParam( 'CacheLifeTime', 24 )
 
     transID = self.params['TransformationID']
+    transStatus = self.params['Status']
     self.__readCacheFile( transID )
 
     if not listSEs:
@@ -1464,11 +1465,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             cacheOK = False
             break
       if cacheOK:
-        if ( now - self.cachedProductions['LastCall_%s' % transID] ) < datetime.timedelta( hours=period ):
+        if transStatus != 'Flush' and ( now - self.cachedProductions['LastCall_%s' % transID] ) < datetime.timedelta( hours=period ):
           self.__logInfo( "Skip this loop (less than %s hours since last call)" % period )
           return S_OK( [] )
       else:
-        self.__logVerbose( "Cache not set or cleared after %d hours" % cacheLifeTime )
+        self.__logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
         productions = {}
         res = self.transClient.getBookkeepingQueryForTransformation( transID )
         if not res['OK']:
@@ -1522,8 +1523,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.__logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), replicaSEs ) )
           stringTargetSEs = ','.join( sorted( targetSEs ) )
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
+      if not storageElementGroups:
+        return S_OK( [] )
     except:
-      pass
+      error = 'Exception while executing the plugin'
+      self.__logError( error )
+      return S_ERROR( error )
     finally:
       self.__writeCacheFile()
       if self.pluginCallback:
