@@ -1437,10 +1437,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # This plugin considers files and checks whether they were processed for a list of processing passes
     # For files that were processed, it sets replica removal tasks from a set of SEs
     from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                       import BKQuery
-    import os, datetime
 
-    listSEs = self.__getPluginParam( 'FromSEs', None )
-    processingPasses = self.__getPluginParam( 'ProcessingPasses', None )
+    listSEs = self.__getPluginParam( 'FromSEs', [] )
+    processingPasses = self.__getPluginParam( 'ProcessingPasses', [] )
     period = self.__getPluginParam( 'Period', 6 )
     cacheLifeTime = self.__getPluginParam( 'CacheLifeTime', 24 )
 
@@ -1453,67 +1452,82 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not processingPasses:
       self.__logInfo( "No processing pass(es)" )
       return S_OK( [] )
-
-    now = datetime.datetime.utcnow()
-    if self.cachedProductions and ( now - self.cachedProductions['CacheTime'] ) < datetime.timedelta( hours=cacheLifeTime ):
-      if ( now - self.cachedProductions['LastCall_%s' % transID] ) < datetime.timedelta( hours=period ):
-        self.__logInfo( "Skip this loop (less than %s hours since last call)" % period )
-        return S_OK( [] )
-      productions = self.cachedProductions
-    else:
-      self.__logVerbose( "Cache cleared after %d hours" % cacheLifeTime )
-      productions = {}
-      res = self.transClient.getBookkeepingQueryForTransformation( transID )
-      if not res['OK']:
-        self.__logError( "Failed to get BK query for transformation", res['Message'] )
-        return S_OK( [] )
-      bkQuery = BKQuery( res['Value'] )
-      self.__logVerbose( "BKQuery: %s" % bkQuery )
-      transProcPass = bkQuery.getProcessingPass()
-      bkQuery.setFileType( None )
-      for procPass in processingPasses:
-        bkQuery.setProcessingPass( os.path.join( transProcPass, procPass ) )
-        # Temporary work around for getting Stripping production from merging (parent should be set to False)
-        bkQuery.setEventType( None )
-        prods = bkQuery.getBKProductions( visible='ALL' )
-        self.__logVerbose( "For procPass %s, found productions %s" % ( procPass, prods ) )
-        productions[procPass] = [int( p ) for p in prods]
-      self.cachedProductions = productions
-      self.cachedProductions['CacheTime'] = now
-
-    self.cachedProductions['LastCall_%s' % transID] = now
-    replicaGroups = self._getFileGroups( self.data )
-    storageElementGroups = {}
-    for replicaSEs, lfns in replicaGroups.items():
-      replicaSE = replicaSEs.split( ',' )
-      targetSEs = [se for se in listSEs if se in replicaSE]
-      if not targetSEs:
-        self.__logVerbose( "%s storage elements not in required list" % replicaSE )
-        continue
-      res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':'Processed'} )
-      if not res['OK']:
-        self.__logError( "Failed to get transformation files for %d files" % len( lfns ) )
-        continue
-      lfnsNotProcessed = {}
-      for trDict in res['Value']:
-#        status = trDict['Status']
-        transID = int( trDict['TransformationID'] )
-        lfn = trDict['LFN']
-        lfnsNotProcessed.setdefault( lfn, processingPasses )
-        for procPass in lfnsNotProcessed[lfn]:
-          if transID in productions[procPass]:
-            lfnsNotProcessed[lfn].remove( procPass )
+    try:
+      now = datetime.datetime.utcnow()
+      cacheOK = False
+      if self.cachedProductions and ( now - self.cachedProductions['CacheTime'] ) < datetime.timedelta( hours=cacheLifeTime ):
+        productions = self.cachedProductions
+        # If we haven't found productions for one of the processing passes, retry
+        cacheOK = True
+        for procPass in processingPasses:
+          if not productions.get( procPass ):
+            cacheOK = False
             break
-      lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
-      lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
-      if lfnsNotProcessed:
-        self.__logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), replicaSEs ) )
-      if lfnsProcessed:
-        self.__logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), replicaSEs ) )
-        stringTargetSEs = ','.join( sorted( targetSEs ) )
-        storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
+      if cacheOK:
+        if ( now - self.cachedProductions['LastCall_%s' % transID] ) < datetime.timedelta( hours=period ):
+          self.__logInfo( "Skip this loop (less than %s hours since last call)" % period )
+          return S_OK( [] )
+      else:
+        self.__logVerbose( "Cache not set or cleared after %d hours" % cacheLifeTime )
+        productions = {}
+        res = self.transClient.getBookkeepingQueryForTransformation( transID )
+        if not res['OK']:
+          self.__logError( "Failed to get BK query for transformation", res['Message'] )
+          return S_OK( [] )
+        bkQuery = BKQuery( res['Value'] )
+        self.__logVerbose( "BKQuery: %s" % bkQuery )
+        transProcPass = bkQuery.getProcessingPass()
+        bkQuery.setFileType( None )
+        for procPass in processingPasses:
+          bkQuery.setProcessingPass( os.path.join( transProcPass, procPass ) )
+          # Temporary work around for getting Stripping production from merging (parent should be set to False)
+          bkQuery.setEventType( None )
+          prods = bkQuery.getBKProductions( visible='ALL' )
+          if not prods:
+            self.__logVerbose( "For procPass %s, found no productions, wait next time" % ( procPass ) )
+            return S_OK( [] )
+          self.__logVerbose( "For procPass %s, found productions %s" % ( procPass, prods ) )
+          productions[procPass] = [int( p ) for p in prods]
+        self.cachedProductions = productions
+        self.cachedProductions['CacheTime'] = now
 
-    self.__writeCacheFile()
+      self.cachedProductions['LastCall_%s' % transID] = now
+      replicaGroups = self._getFileGroups( self.data )
+      storageElementGroups = {}
+      for replicaSEs, lfns in replicaGroups.items():
+        replicaSE = replicaSEs.split( ',' )
+        targetSEs = [se for se in listSEs if se in replicaSE]
+        if not targetSEs:
+          self.__logVerbose( "%s storage elements not in required list" % replicaSE )
+          continue
+        res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':'Processed'} )
+        if not res['OK']:
+          self.__logError( "Failed to get transformation files for %d files" % len( lfns ) )
+          continue
+        lfnsNotProcessed = {}
+        for trDict in res['Value']:
+  #        status = trDict['Status']
+          trans = int( trDict['TransformationID'] )
+          lfn = trDict['LFN']
+          lfnsNotProcessed.setdefault( lfn, processingPasses )
+          for procPass in lfnsNotProcessed[lfn]:
+            if trans in productions[procPass]:
+              lfnsNotProcessed[lfn].remove( procPass )
+              break
+        lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
+        lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
+        if lfnsNotProcessed:
+          self.__logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), replicaSEs ) )
+        if lfnsProcessed:
+          self.__logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), replicaSEs ) )
+          stringTargetSEs = ','.join( sorted( targetSEs ) )
+          storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
+    except:
+      pass
+    finally:
+      self.__writeCacheFile()
+      if self.pluginCallback:
+        self.pluginCallback( transID, invalidateCache=True )
     return S_OK( self.__createTasks( storageElementGroups ) )
 
   def _ReplicateToLocalSE( self ):
