@@ -183,7 +183,9 @@ class Transformation( DIRACTransformation ):
     for paramName, paramValue in self.paramValues.items():
       if not self.paramTypes.has_key( paramName ):
         if not paramName in ['BkQueryID', 'BkQuery']:
-          res = self.transClient.setTransformationParameter( transID, paramName, paramValue )
+          #print paramName, type( paramValue ), paramValue
+          # Use str(paramValue) as a temporary fix???
+          res = self.transClient.setTransformationParameter( transID, paramName, str( paramValue ) )
           if not res['OK']:
             gLogger.error( "Failed to add parameter", "%s %s" % ( paramName, res['Message'] ) )
             gLogger.info( "To add this parameter later please execute the following." )

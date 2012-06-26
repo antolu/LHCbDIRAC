@@ -92,7 +92,7 @@ class PluginScript( DMScript ):
     else:
       params = {}
     pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period' )
-    print self.options
+    #print self.options
     for key in [k for k in self.options if k in pluginParams]:
       params[key] = self.options[key]
     for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
@@ -102,6 +102,7 @@ class PluginScript( DMScript ):
         seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
         if seConfig != se:
           seList += [se.strip() for se in seConfig.split( ',' )]
+          #print seList
         else:
           seList.append( se )
       params[key] = seList
