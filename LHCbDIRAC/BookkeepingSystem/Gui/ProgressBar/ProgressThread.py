@@ -1,9 +1,10 @@
+"""This module can be used as a progress bar."""
 ########################################################################
 # $Id$
 ########################################################################
 
-from PyQt4.QtCore                                                                 import *
-from PyQt4.QtGui                                                                  import *
+from PyQt4.QtCore                                                                 import QThread, QString
+from PyQt4.QtGui                                                                  import QProgressDialog
 #from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 import time
 
@@ -15,7 +16,7 @@ class ProgressThread(QThread):
         self.__stoped = stop
         self.__message = message
         #gLogger.info('Constructor')
-                  
+
 
   def run(self):
     i = 0
@@ -38,7 +39,7 @@ class ProgressThread(QThread):
       time.sleep(sleepingTime)
     self.__stoped = False
     #gLogger.info('Thread run end')
-    
+
   def stop(self):
     #gLogger.info('Thread stoped')
     self.__stoped = True
