@@ -1,11 +1,8 @@
-############################################################
-# $HeadURL$
-############################################################
+# $HeadURL $
+'''  LHCbDIRAC.ResourceStatusSystem package
+'''
 
-"""
-   LHCbDIRAC.SAMSystem.Agent package
+__RCSID__  = '$Id$'
 
-   This contains the LHCb testing suite for SAM.
-"""
-
-__RCSID__ = "$Id$"
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
