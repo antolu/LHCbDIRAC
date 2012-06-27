@@ -1225,25 +1225,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 #    return activeSE
 
   def __getListFromString( self, s ):
-    # Avoid using eval()... painful
     if type( s ) == types.StringType:
-      if s == "[]" or s == '':
-        return []
-      if s[0] == '[' and s[-1] == ']':
-        s = s[1:-1]
-      l = s.split( ',' )
-      ll = []
-      for a in l:
-        a = a.strip()
-        if not a:
-          ll.append( a )
-        elif a[0] == "'" and a[-1] == "'":
-          ll.append( a[1:-1] )
-        elif a[0] == '"' and a[-1] == '"':
-          ll.append( a[1:-1] )
-        else:
-          ll.append( a )
-      return ll
+      try:
+        import ast
+        return ast.literal_eval( s )
+      except:
+        pass
     return s
 
   def __closerSEs( self, existingSEs, targetSEs, local=False ):
@@ -1498,7 +1485,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for replicaSEs, lfns in replicaGroups.items():
         replicaSE = replicaSEs.split( ',' )
         targetSEs = [se for se in listSEs if se in replicaSE]
-        if not targetSEs:
+        if False and not targetSEs:
           self.__logVerbose( "%s storage elements not in required list" % replicaSE )
           continue
         res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':'Processed'} )
@@ -1507,16 +1494,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
         lfnsNotProcessed = {}
         for trDict in res['Value']:
-  #        status = trDict['Status']
           trans = int( trDict['TransformationID'] )
           lfn = trDict['LFN']
-          lfnsNotProcessed.setdefault( lfn, processingPasses )
+          lfnsNotProcessed.setdefault( lfn, list( processingPasses ) )
           for procPass in lfnsNotProcessed[lfn]:
             if trans in productions[procPass]:
               lfnsNotProcessed[lfn].remove( procPass )
               break
         lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
         lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
+        #print lfnsProcessed, lfnsNotProcessed
         if lfnsNotProcessed:
           self.__logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), replicaSEs ) )
         if lfnsProcessed:
