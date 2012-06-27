@@ -1,28 +1,29 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' LHCb SoftwareInstallation SAM Test Module
 
-""" LHCb SoftwareInstallation SAM Test Module
+  Corresponds to SAM test CE-lhcb-install, utilizes the SoftwareManagementAgent
+  to perform the installation of LHCb software in site shared areas. Deprecated
+  software is also removed during this phase.
 
-    Corresponds to SAM test CE-lhcb-install, utilizes the SoftwareManagementAgent
-    to perform the installation of LHCb software in site shared areas. Deprecated
-    software is also removed during this phase.
+'''
 
-"""
-
-__RCSID__ = "$Id$"
+import os
+import re
+import shutil
+import sys
+import urllib
 
 import DIRAC
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, InstallApplication, RemoveApplication, CreateSharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-import os, sys, re, shutil, urllib
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, InstallApplication, RemoveApplication, CreateSharedArea
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
+
+__RCSID__ = "$Id$"
 
 SAM_TEST_NAME = 'CE-lhcb-install'
-SAM_LOG_FILE = 'sam-install.log'
+SAM_LOG_FILE  = 'sam-install.log'
 
 class SoftwareInstallation( ModuleBaseSAM ):
   """ SoftwareInstallation SAM class """
@@ -31,23 +32,22 @@ class SoftwareInstallation( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
+    self.version  = __RCSID__
+    self.runinfo  = {}
+    self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.log = gLogger.getSubLogger( "SoftwareInstallation" )
-    self.result = S_ERROR()
+    self.log      = gLogger.getSubLogger( "SoftwareInstallation" )
+    self.result   = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
-    self.enable = True
-    self.purgeSharedArea = False
+    self.enable            = True
+    self.purgeSharedArea   = False
     self.installProjectURL = None
 
-  #############################################################################
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -74,7 +74,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.log.verbose( 'Install project URL set to %s' % ( self.installProjectURL ) )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the SoftwareInstallation module.
     """
@@ -262,7 +261,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.setApplicationStatus( '%s Successful' % self.testName )
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
-  #############################################################################
   def __deleteSharedArea( self, sharedArea ):
     """Remove all files in shared area.
     """
@@ -284,7 +282,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.writeToLog( 'Shared area %s successfully purged' % ( sharedArea ) )
     return S_OK()
 
-  #############################################################################
   def __changePermissions( self, sharedArea ):
     """Change permissions for pool SGM account case in python.
     """
@@ -325,4 +322,5 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.writeToLog( 'Permissions in shared area %s updated successfully' % ( sharedArea ) )
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

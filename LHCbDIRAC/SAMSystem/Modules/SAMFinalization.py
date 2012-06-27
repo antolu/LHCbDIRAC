@@ -1,57 +1,57 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' LHCb SAM Job Finalization Module
 
-""" LHCb SAM Job Finalization Module
+  Removes the lock on the shared area (assuming the lock was placed
+  there during the LockSharedArea test). Publishes test results to
+  SAM DB and creates summary web page.  Uploads the logs to the LogSE.
+'''
 
-    Removes the lock on the shared area (assuming the lock was placed
-    there during the LockSharedArea test). Publishes test results to
-    SAM DB and creates summary web page.  Uploads the logs to the LogSE.
-
-"""
-
-__RCSID__ = "$Id$"
-
+import glob
+import os
+import re
+import shutil
+import sys
+import time
 
 import DIRAC
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Subprocess import pythonCall
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+
+from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Utilities.Subprocess                     import pythonCall
+from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 
 import LHCbDIRAC
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
 
-import os, sys, re, glob, shutil, time
+__RCSID__ = '$Id$'
 
 SAM_TEST_NAME = 'CE-lhcb-sam-publish'
-SAM_LOG_FILE = 'sam-publish.log'
+SAM_LOG_FILE  = 'sam-publish.log'
 SAM_LOCK_NAME = 'DIRAC-SAM-Test-Lock'
 
 class SAMFinalization( ModuleBaseSAM ):
   """ SAM Finalization class """
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
-    self.lockFile = SAM_LOCK_NAME
-    self.diracSetup = gConfig.getValue( '/DIRAC/Setup', 'None' )
-    self.log = gLogger.getSubLogger( "SAMFinalization" )
-    self.result = S_ERROR()
-    self.opsH = Operations()
-    self.diracLogo = self.opsH.getValue( 'SAM/LogoURL', 'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
-    self.samVO = self.opsH.getValue( 'SAM/VO', 'lhcb' )
+    self.version     = __RCSID__
+    self.runinfo     = {}
+    self.logFile     = SAM_LOG_FILE
+    self.testName    = SAM_TEST_NAME
+    self.lockFile    = SAM_LOCK_NAME
+    self.diracSetup  = gConfig.getValue( '/DIRAC/Setup', 'None' )
+    self.log         = gLogger.getSubLogger( "SAMFinalization" )
+    self.result      = S_ERROR()
+    self.opsH        = Operations()
+    self.diracLogo   = self.opsH.getValue( 'SAM/LogoURL', 
+                                           'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
+    self.samVO       = self.opsH.getValue( 'SAM/VO', 'lhcb' )
     self.samLogFiles = self.opsH.getValue( 'SAM/LogFiles', [] )
-    self.logURL = 'http://lhcb-logs.cern.ch/storage/'
-    self.siteRoot = os.path.dirname( os.path.realpath( LHCbDIRAC.__path__[0] ) )
+    self.logURL      = 'http://lhcb-logs.cern.ch/storage/'
+    self.siteRoot    = os.path.dirname( os.path.realpath( LHCbDIRAC.__path__[0] ) )
 #    self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/sam.tar.gz' % ( self.siteRoot )
     self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/stomp.zip' % ( self.siteRoot )
 #    self.samPublishScript = 'sam/bin/same-publish-tuples'
@@ -61,11 +61,10 @@ class SAMFinalization( ModuleBaseSAM ):
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
-    self.enable = True
+    self.enable             = True
     self.publishResultsFlag = False
-    self.uploadLogsFlag = False
+    self.uploadLogsFlag     = False
 
-  #############################################################################
   def _resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -92,7 +91,6 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log.verbose( 'Upload logs flag set to %s' % self.uploadLogsFlag )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the SAMFinalization module.
     """
@@ -159,7 +157,6 @@ class SAMFinalization( ModuleBaseSAM ):
     else:
       return self.finalize( 'Failure During Execution', 'Status Error (= 50)', 'error' )
 
-  #############################################################################
   def __removeLockFile( self, sharedArea ):
     """Method to remove the lock placed in the shared area if the earlier test was
        successful.
@@ -187,7 +184,6 @@ class SAMFinalization( ModuleBaseSAM ):
 
     return S_OK( 'Lock removed' )
 
-  #############################################################################
   def __getSAMStatus( self, testStatus ):
     """ Returns SAM status string for test summary.
     """
@@ -198,7 +194,6 @@ class SAMFinalization( ModuleBaseSAM ):
         statusString = status
     return statusString
 
-  #############################################################################
   def __getSoftwareReport( self, lfnPath, samResults, samLogs ):
     """Returns the list of software installed at the site organized by platform.
        If the test status is not successful, returns a link to the install test
@@ -290,7 +285,6 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log.debug( table )
     return table
 
-  #############################################################################
   def __getTestSummary( self, lfnPath, samResults, samLogs ):
     """Returns a test summary as an html table.
     """
@@ -321,7 +315,6 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log.debug( table )
     return table
 
-  #############################################################################
   def __publishSAMResultsNagios( self, samNode, samResults, samLogs ):
     """Prepares SAM publishing files and reports results to the SAM DB.
     """
@@ -379,14 +372,12 @@ EOT
 
     return S_OK()
 
-  #############################################################################
   def __getLFNPathString( self, samNode ):
     """Returns LFN path string according to SAM convention.
     """
     date = time.strftime( '%Y-%m-%d' )
     return '/%s/test/sam/%s/%s/%s' % ( self.samVO, samNode, date, self.jobID )
 
-  #############################################################################
   def __uploadSAMLogs( self, samNode ):
     """Saves SAM log files to the log SE.
     """
@@ -425,7 +416,6 @@ EOT
     self.setJobParameter( 'Log URL', logReference )
     return S_OK()
 
-  #############################################################################
   def __getSAMClient( self ):
     """Locates the shipped SAM client tarball and unpacks it in the job working
        directory if the publishing and enable flags are set to True.
@@ -494,4 +484,5 @@ EOT
 
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -1,49 +1,53 @@
-""" LHCb SoftwareReport SAM Test Module
+# $HeadURL$
+''' LHCb SoftwareReport SAM Test Module
 
-    Corresponds to SAM test CE-lhcb-softreport, utilizes the SoftwareManagementAgent
-    to report the installation of LHCb software in site shared areas.
+  Corresponds to SAM test CE-lhcb-softreport, utilizes the SoftwareManagementAgent
+  to report the installation of LHCb software in site shared areas.
 
-"""
+'''
 
-__RCSID__ = "$Id$"
-
-import string, os, sys, re, shutil, urllib
+import os
+import shutil
+import string
+import sys
+import re
+import urllib
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
-SAM_TEST_NAME = 'CE-lhcb-softreport'
-SAM_LOG_FILE = 'sam-softreport.log'
-InstallProject = 'install_project.py'
+__RCSID__ = "$Id$"
+
+SAM_TEST_NAME     = 'CE-lhcb-softreport'
+SAM_LOG_FILE      = 'sam-softreport.log'
+InstallProject    = 'install_project.py'
 InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class SoftwareReport( ModuleBaseSAM ):
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
+    self.version  = __RCSID__
+    self.runinfo  = {}
+    self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.site = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
-    self.log = gLogger.getSubLogger( "SoftwareReport" )
-    self.result = S_ERROR()
+    self.site     = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
+    self.log      = gLogger.getSubLogger( "SoftwareReport" )
+    self.result   = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
-    self.enable = True
+    self.enable            = True
     self.installProjectURL = None
 
-  #############################################################################
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -63,7 +67,6 @@ class SoftwareReport( ModuleBaseSAM ):
     self.log.verbose( 'Install project URL set to %s' % ( self.installProjectURL ) )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the SoftwareReport module.
     """
@@ -218,7 +221,6 @@ class SoftwareReport( ModuleBaseSAM ):
     self.setApplicationStatus( '%s Successful' % self.testName )
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
-  #############################################################################
   def getSoftwareReport( self, softwareDict ):
     """Returns the list of software installed at the site organized by platform.
        If the test status is not successful, returns a link to the install test
@@ -263,9 +265,6 @@ class SoftwareReport( ModuleBaseSAM ):
 """
     self.log.debug( table )
     return table
-
-
-
 
 def CheckPackage( self, app, config, area ):
   """
@@ -391,16 +390,17 @@ def CheckSharedArea( self, area ):
     self.log.debug( 'Error reported with ok status for install_project check:\n%s' % ret['Value'][2] )
 
   for line in ret['Value'][1].split( '\n' ):
-      if line.find( 'remove' ) != -1:
-          line = line.split()
-          if software_remove.has_key( line[1] ):
-            current = software_remove[line[1]]
-            current.append( line[3] )
-            software_remove[line[1]] = current
-          else:
-            software_remove[line[1]] = [line[3]]
+    if line.find( 'remove' ) != -1:
+      line = line.split()
+      if software_remove.has_key( line[1] ):
+        current = software_remove[line[1]]
+        current.append( line[3] )
+        software_remove[line[1]] = current
+      else:
+        software_remove[line[1]] = [line[3]]
   self.log.info( 'Applications that could be remove' )
   self.log.info( software_remove )
   return S_OK( software_remove )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

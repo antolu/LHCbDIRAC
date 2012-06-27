@@ -1,30 +1,35 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' ModuleBaseSAM 
+  
+  Base class for LHCb SAM workflow modules. Defines several
+  common utility methods.
+'''
 
-""" ModuleBaseSAM - base class for LHCb SAM workflow modules. Defines several
-    common utility methods
+import os
+import time
 
-"""
+import DIRAC
+
+from DIRAC                           import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities.Subprocess import shellCall
 
 __RCSID__ = "$Id$"
 
-import DIRAC
-from DIRAC  import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Subprocess import shellCall
-
-import os, time
-
 class ModuleBaseSAM( object ):
 
-  #############################################################################
   def __init__( self ):
     """ Initialize some common SAM parameters.
     """
-    self.samStatus = {'ok':'10', 'info':'20', 'notice':'30', 'warning':'40', 'error':'50', 'critical':'60', 'maintenance':'100'}
+    self.samStatus = {
+                       'ok'          : '10', 
+                       'info'        : '20', 
+                       'notice'      : '30', 
+                       'warning'     : '40', 
+                       'error'       : '50', 
+                       'critical'    : '60', 
+                       'maintenance' : '100'
+                      }
 
-  #############################################################################
   def setApplicationStatus( self, status ):
     """Wraps around setJobApplicationStatus of state update client
     """
@@ -47,7 +52,6 @@ class ModuleBaseSAM( object ):
 
     return jobStatus
 
-  #############################################################################
   def getRunInfo( self ):
     """ print the basic information about CE, Host, DN, proxy, mapping
         return a dictionnary with the RUN INFO to be used later if needed
@@ -86,8 +90,6 @@ class ModuleBaseSAM( object ):
 
     return runInfo
 
-
-  #############################################################################
   def getSAMNode( self ):
     """In case CE isn't defined in the local config file, try to get it through
        broker info calls.
@@ -116,7 +118,6 @@ class ModuleBaseSAM( object ):
 
     return S_OK( ce )
 
-  #############################################################################
   def setJobParameter( self, name, value ):
     """Wraps around setJobParameter of state update client
     """
@@ -136,7 +137,6 @@ class ModuleBaseSAM( object ):
 
     return jobParam
 
-  #############################################################################
   def runCommand( self, message, cmd, check = False ):
     """Wrapper around shellCall to return S_OK(stdout) or S_ERROR(message) and
        produce the SAM log files with messages and outputs. The check flag set to True
@@ -195,7 +195,6 @@ class ModuleBaseSAM( object ):
     else:
       return S_OK( stdout )
 
-  #############################################################################
   def getMessageString( self, message, header = False ):
     """Return a nicely formatted string for the SAM logs.
     """
@@ -221,7 +220,6 @@ class ModuleBaseSAM( object ):
       message = '%s\n%s\n%s\n' % ( border, message, border )
     return message
 
-  #############################################################################
   def setSAMLogFile( self ):
     """Simple function to store the SAM log file name and test name in the
        workflow parameters.
@@ -238,7 +236,6 @@ class ModuleBaseSAM( object ):
     self.workflow_commons['SAMLogs'][self.testName] = self.logFile
     return S_OK()
 
-  #############################################################################
   def writeToLog( self, message ):
     """Write to the log file with a printed message.
     """
@@ -253,7 +250,6 @@ class ModuleBaseSAM( object ):
     fopen.close()
     return S_OK()
 
-  #############################################################################
   def finalize( self, message, result, samResult ):
     """Finalize properly by setting the appropriate result at the step level
        in the workflow, errorDict is an S_ERROR() from a command that failed.
@@ -292,4 +288,5 @@ class ModuleBaseSAM( object ):
     else:
       return S_ERROR( message )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

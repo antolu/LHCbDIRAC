@@ -1,35 +1,30 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' LHCb Site Queues SAM Test Module
 
-""" LHCb Site Queues SAM Test Module
-
-    Corresponds to SAM test CE-lhcb-queues.
-"""
-
-__RCSID__ = "$Id$"
-
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger
+  Corresponds to SAM test CE-lhcb-queues.
+'''
 
 import os
 
+from DIRAC                                     import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+
+__RCSID__ = "$Id$"
+
 SAM_TEST_NAME = 'CE-lhcb-queues'
-SAM_LOG_FILE = 'sam-queues.log'
+SAM_LOG_FILE  = 'sam-queues.log'
 
 class SiteQueues( ModuleBaseSAM ):
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.logFile = SAM_LOG_FILE
+    self.version  = __RCSID__
+    self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.log = gLogger.getSubLogger( "SiteQueues" )
-    self.result = S_ERROR()
+    self.log      = gLogger.getSubLogger( "SiteQueues" )
+    self.result   = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
@@ -38,7 +33,6 @@ class SiteQueues( ModuleBaseSAM ):
     #Workflow parameters for the test
     self.enable = True
 
-  #############################################################################
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -51,7 +45,6 @@ class SiteQueues( ModuleBaseSAM ):
     self.log.verbose( 'Enable flag is set to %s' % self.enable )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the SiteQueues module.
     """
@@ -220,4 +213,5 @@ if ( i == tot ){ \
     self.setApplicationStatus( '%s Successful' % self.testName )
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

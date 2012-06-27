@@ -1,32 +1,29 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' LHCb TestApplications SAM Module
 
-""" LHCb TestApplications SAM Module
+  Corresponds to SAM tests CE-lhcb-job-*. The tests are defined in CS
+  path /Operations/SAM/TestApplications/<TEST NAME> = <APP NAME>.<APP VERSION>
+'''
 
-    Corresponds to SAM tests CE-lhcb-job-*. The tests are defined in CS
-    path /Operations/SAM/TestApplications/<TEST NAME> = <APP NAME>.<APP VERSION>
-
-"""
-
-__RCSID__ = "$Id$"
+import os
+import shutil
+import sys
 
 import DIRAC
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
-from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
-from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-
+from DIRAC                      import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Interfaces.API.Dirac import Dirac
 
-import os, sys, shutil
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import SharedArea
+from LHCbDIRAC.Core.Utilities.DetectOS                     import NativeMachine
+from LHCbDIRAC.Interfaces.API.LHCbJob                      import LHCbJob
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM             import ModuleBaseSAM
+
+__RCSID__ = "$Id$"
 
 SAM_TEST_NAME = '' #Defined in the workflow
-SAM_LOG_FILE = ''  #Defined using workflow parameters
-natOS = NativeMachine()
+SAM_LOG_FILE  = ''  #Defined using workflow parameters
+natOS         = NativeMachine()
 
 class TestApplications( ModuleBaseSAM ):
   """ Test Application sSAM class """
@@ -35,21 +32,21 @@ class TestApplications( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.logFile = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
+    self.version         = __RCSID__
+    self.logFile         = SAM_LOG_FILE
+    self.testName        = SAM_TEST_NAME
 #    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
     self.appSystemConfig = natOS.CMTSupportedConfig()[0]
-    self.log = gLogger.getSubLogger( "TestApplications" )
-    self.result = S_ERROR()
+    self.log             = gLogger.getSubLogger( "TestApplications" )
+    self.result          = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
-    self.enable = True
-    self.samTestName = ''
+    self.enable         = True
+    self.samTestName    = ''
     self.appNameVersion = ''
     self.appNameOptions = ''
 
@@ -57,7 +54,6 @@ class TestApplications( ModuleBaseSAM ):
     gConfig.setOptionValue( '/LocalSite/DisableLocalJobDirectory', '1' )
     gConfig.setOptionValue( '/LocalSite/DisableLocalModeCallback', '1' )
 
-  #############################################################################
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -84,7 +80,6 @@ class TestApplications( ModuleBaseSAM ):
     self.log.verbose( 'Log file name is: %s' % self.logFile )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the TestApplications module.
     """
@@ -135,7 +130,6 @@ class TestApplications( ModuleBaseSAM ):
     self.setApplicationStatus( '%s Successful' % self.testName )
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
-  #############################################################################
   def __getOptions( self, appName, appVersion, appOptions ):
     """Method to set the correct options for the LHCb project that will be executed.
        By convention the inputs / outputs are the system configuration + file extension.
@@ -188,7 +182,6 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
     fopen.close()
     return S_OK( [localOpts, newOpts] )
 
-  #############################################################################
   def __runApplication( self, appName, appVersion, options ):
     """Method to run a test job locally.
     """
@@ -214,4 +207,5 @@ OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE'
       return S_ERROR( str( x ) )
     return result
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

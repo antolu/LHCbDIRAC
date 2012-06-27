@@ -1,38 +1,38 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' LHCb System Configuration SAM Test Module
 
-""" LHCb System Configuration SAM Test Module
+  Corresponds to SAM test CE-lhcb-os.
+'''
 
-    Corresponds to SAM test CE-lhcb-os.
-"""
+import glob
+import os
+import re
+import string
+
+import DIRAC
+
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-import DIRAC
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-
-import string, os, re, glob
-
 SAM_TEST_NAME = 'CE-lhcb-os'
-SAM_LOG_FILE = 'sam-os.log'
+SAM_LOG_FILE  = 'sam-os.log'
 
 class SystemConfiguration( ModuleBaseSAM ):
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
+    self.version  = __RCSID__
+    self.runinfo  = {}
+    self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.log = gLogger.getSubLogger( "SystemConfiguration" )
-    self.result = S_ERROR()
+    self.log      = gLogger.getSubLogger( "SystemConfiguration" )
+    self.result   = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
@@ -41,7 +41,6 @@ class SystemConfiguration( ModuleBaseSAM ):
     #Workflow parameters for the test
     self.enable = True
 
-  #############################################################################
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -54,7 +53,6 @@ class SystemConfiguration( ModuleBaseSAM ):
     self.log.verbose( 'Enable flag is set to %s' % self.enable )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the SystemConfiguration module.
     """
@@ -161,7 +159,6 @@ class SystemConfiguration( ModuleBaseSAM ):
     self.setApplicationStatus( '%s Successful' % self.testName )
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
-  #############################################################################
   def __checkMapping( self, proxy, map_name ):
     """Return warning if the mapping is not the one expected..
     """
@@ -185,8 +182,6 @@ class SystemConfiguration( ModuleBaseSAM ):
       self.log.warn( 'potentiel problem in the mapping' )
       return S_ERROR( 'potentiel problem in the mapping' )
 
-
-  #############################################################################
   def __deleteSharedAreaFiles( self, sharedArea, filePattern ):
     """Remove all files in shared area.
     """
@@ -214,4 +209,5 @@ class SystemConfiguration( ModuleBaseSAM ):
     self.writeToLog( 'Shared area %s successfully purged of %s files' % ( sharedArea, filePattern ) )
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

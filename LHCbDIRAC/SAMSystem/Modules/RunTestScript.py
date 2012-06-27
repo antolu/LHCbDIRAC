@@ -1,46 +1,42 @@
-########################################################################
 # $HeadURL$
-# Author : Stuart Paterson
-########################################################################
+''' LHCb RunTestScript SAM Test Module
+'''
 
-""" LHCb RunTestScript SAM Test Module
-"""
+import os
+import sys
+
+from DIRAC import S_OK, S_ERROR, gLogger
+
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from DIRAC import S_OK, S_ERROR, gLogger
-
-import os, sys
-
 SAM_TEST_NAME = 'CE-lhcb-test-script'
-SAM_LOG_FILE = 'sam-run-test-script.log'
+SAM_LOG_FILE  = 'sam-run-test-script.log'
 SAM_LOCK_NAME = 'DIRAC-SAM-Test-Script'
 
 class RunTestScript( ModuleBaseSAM ):
 
-  #############################################################################
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
+    self.version  = __RCSID__
+    self.runinfo  = {}
+    self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.log = gLogger.getSubLogger( "RunTestScript" )
-    self.result = S_ERROR()
+    self.log      = gLogger.getSubLogger( "RunTestScript" )
+    self.result   = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
-    self.enable = True
+    self.enable     = True
     self.scriptName = ''
 
-  #############################################################################
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
@@ -62,7 +58,6 @@ class RunTestScript( ModuleBaseSAM ):
     self.log.verbose( 'Script name is set to %s' % self.scriptName )
     return S_OK()
 
-  #############################################################################
   def execute( self ):
     """The main execution method of the RunTestScript module.
     """
@@ -95,4 +90,5 @@ class RunTestScript( ModuleBaseSAM ):
     self.setApplicationStatus( '%s Successful' % self.testName )
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
