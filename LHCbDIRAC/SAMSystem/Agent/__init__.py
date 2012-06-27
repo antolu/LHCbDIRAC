@@ -1,5 +1,5 @@
 # $HeadURL$
-'''  LHCbDIRAC.ResourceStatusSystem package
+'''  LHCbDIRAC.SAMSystem.Agent package
 '''
 
 __RCSID__  = '$Id$'
