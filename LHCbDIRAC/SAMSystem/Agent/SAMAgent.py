@@ -1,26 +1,19 @@
-########################################################################
-# $HeadURL$
-########################################################################
+# $HeadURL  $
+'''  SAM Agent submits SAM jobs
+'''
 
-__RCSID__ = "$Id$"
+import time
 
-"""  SAM Agent submits SAM jobs
-"""
-
-from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC                       import gConfig, gLogger, gMonitor, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.DISET.RPCClient  import RPCClient
+from DIRAC.Core.Utilities        import List
+from DIRAC.Interfaces.API.Dirac  import Dirac
+
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
-from DIRAC.Core.Utilities import shellCall
-from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Core.Utilities import List
-
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC  import gMonitor
-
-import os, time
-
-AGENT_NAME = "SAM/SAMAgent"
+__RCSID__  = "$Id$"
+AGENT_NAME = 'SAM/SAMAgent'
 
 class SAMAgent( AgentModule ):
 
@@ -88,7 +81,7 @@ class SAMAgent( AgentModule ):
     gLogger.info( "Clear SAM jobs for last %d day(s)" % days )
     dirac = Dirac()
 
-    testName = 'CE-lhcb-availability'
+    #testName = 'CE-lhcb-availability'
 
     sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
 
@@ -98,7 +91,7 @@ class SAMAgent( AgentModule ):
     conditions['JobGroup'] = 'SAM'
 
     days_ago = time.gmtime( time.time() - 60 * 60 * 24 * days )
-    Date = '%s-%s-%s' % ( days_ago[0], str( days_ago[1] ).zfill( 2 ), str( days_ago[2] ).zfill( 2 ) )
+    date = '%s-%s-%s' % ( days_ago[0], str( days_ago[1] ).zfill( 2 ), str( days_ago[2] ).zfill( 2 ) )
 
     for site in sites:
 
@@ -109,7 +102,7 @@ class SAMAgent( AgentModule ):
       conditions['Site'] = site
       monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
 
-      result = monitoring.getJobs( conditions, Date )
+      result = monitoring.getJobs( conditions, date )
       if not result['OK']:
         gLogger.warn( "Error get Jobs for Site %s" % ( site ), result['Message'] )
         continue
@@ -168,3 +161,6 @@ class SAMAgent( AgentModule ):
       gLogger.verbose( "CE status:", "%s %d" % ( ce, status ) )
 
     return S_OK()
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

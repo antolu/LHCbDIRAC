@@ -1,39 +1,35 @@
-########################################################################
-# $HeadURL$
-########################################################################
+# $HeadURL  $
+'''  SAM Agent submits SAM jobs
+'''
 
-__RCSID__ = "$Id$"
+import os
+import time
 
-"""  SAM Agent submits SAM jobs
-"""
-
-from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC                       import gConfig, gLogger, gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.DISET.RPCClient  import RPCClient
+from DIRAC.Core.Utilities        import List, shellCall
+from DIRAC.Interfaces.API.Dirac  import Dirac
+
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
-from DIRAC.Core.Utilities import shellCall
-from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Core.Utilities import List
-
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC  import gMonitor
-
-import os, time
-
-AGENT_NAME = "SAM/NAGIOSAgent"
+__RCSID__  = "$Id$"
+AGENT_NAME = 'SAM/NAGIOSAgent'
 
 class SAMPublisher:
 
   def __init__( self ):
+    
     self.Script = None
     self.samPublishClient = os.getenv( 'DIRAC', '/opt/dirac/pro' ) + '/LHCbDIRAC/SAMSystem/Distribution/nagios.tgz'
 
   def install( self, dest = None ):
+    
     cmd = 'tar -zxvf %s' % ( self.samPublishClient )
     if dest:
       gLogger.info( "Publisher", "Try to install in %s " % ( dest ) )
       if not os.path.isdir( dest ):
-        return S_ERROR( "Publisher", "No such directory: %s" % ( dest ) )
+        return S_ERROR( "Publisher: No such directory: %s" % ( dest ) )
       cmd += " --directory %s" % ( dest )
     res = shellCall( 0, cmd )
     if not res['OK']:
@@ -159,7 +155,6 @@ class NAGIOSAgent( AgentModule ):
     samPub = self.samPub
     testName = 'CE-lhcb-availability'
 
-
     sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
 
     allces = []
@@ -241,6 +236,7 @@ class NAGIOSAgent( AgentModule ):
       if not res['OK']:
         gLogger.warn( "SAM publisher error for CE %s" % ce, res['Message'] )
 
-
-
     return S_OK()
+  
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
