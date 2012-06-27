@@ -5,7 +5,6 @@ BKQuery is a class that decodes BK paths, queries the BK at a high level
 __RCSID__ = "$Id: BKQuery.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 import os, sys
-import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List                                         import sortList
 
@@ -34,7 +33,7 @@ class BKQuery():
   def __str__( self ):
     return str( self.bkQueryDict )
 
-  def buildBKQuery( self, bkPath='', bkQueryDict={}, prods=[], runs=[], fileTypes=[], visible=True ):
+  def buildBKQuery( self, bkPath='', bkQueryDict={}, prods=[], runs=None, fileTypes=[], visible=True ):
     #print bkPath, bkQueryDict, prods, runs, fileTypes, visible
     self.bkQueryDict = {}
     if not bkPath and not prods and not runs and not bkQueryDict:
@@ -152,8 +151,10 @@ class BKQuery():
           print runs, 'is an invalid run range'
           return self.bkQueryDict
       else:
-        if 'StartRun' in bkQuery: bkQuery.pop( 'StartRun' )
-        if 'EndRun' in bkQuery: bkQuery.pop( 'EndRun' )
+        if 'StartRun' in bkQuery:
+          bkQuery.pop( 'StartRun' )
+        if 'EndRun' in bkQuery:
+          bkQuery.pop( 'EndRun' )
 
     ###### Query given as a list of production ######
     if prods and str( prods[0] ).upper() != 'ALL':
@@ -296,7 +297,7 @@ class BKQuery():
   def __fileType( self, fileType=None, returnList=False ):
     #print "Call __fileType:", self, fileType
     if not fileType:
-        return []
+      return []
     self.__getAllBKFileTypes()
     if type( fileType ) == type( [] ):
       fileTypes = fileType
@@ -378,7 +379,7 @@ class BKQuery():
   def getLFNSize( self, visible=None ):
     if visible == None:
       visible = self.isVisible()
-    res = self.bk.getFilesWithGivenDataSets( BKQuery( self.bkQueryDict, visible=visible ).setOptions( 'FileSize', True ) )
+    res = self.bk.getFilesWithGivenDataSets( BKQuery( self.bkQueryDict, visible=visible ).setOption( 'FileSize', True ) )
     if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
       lfnSize = res['Value'][0]
     else:
@@ -442,18 +443,18 @@ class BKQuery():
       print "\n%d files (%.1f TB) in directories:" % ( len( lfns ), lfnSize )
       dirs = {}
       for lfn in lfns:
-        dir = os.path.dirname( lfn )
-        dirs[dir] = dirs.setdefault( dir, 0 ) + 1
+        directory = os.path.dirname( lfn )
+        dirs[directory] = dirs.setdefault( directory, 0 ) + 1
       dirSorted = dirs.keys()
       dirSorted.sort()
-      for dir in dirSorted:
-        print dir, dirs[dir], "files"
+      for directory in dirSorted:
+        print directory, dirs[directory], "files"
       if printSEUsage:
         rpc = RPCClient( 'DataManagement/StorageUsage' )
         totalUsage = {}
         totalSize = 0
-        for dir in dirs.keys():
-          res = rpc.getStorageSummary( dir, '', '', [] )
+        for directory in dirs.keys():
+          res = rpc.getStorageSummary( directory, '', '', [] )
           if res['OK']:
             for se in [se for se in res['Value'].keys() if not se.endswith( "-ARCHIVE" )]:
               if not totalUsage.has_key( se ):
@@ -475,9 +476,9 @@ class BKQuery():
     lfns = self.getLFNs( printSEUsage=True, printOutput=printOutput, visible=visible )
     dirs = []
     for lfn in lfns:
-      dir = os.path.dirname( lfn )
-      if dir not in dirs:
-        dirs.append( dir )
+      directory = os.path.dirname( lfn )
+      if directory not in dirs:
+        dirs.append( directory )
     dirs.sort()
     return dirs
 
@@ -510,7 +511,7 @@ class BKQuery():
     if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
       fileTypes = self.getFileTypeList()
       prodList = [prod for p in res['Value']['Records'] for prod in p if self.__getProdStatus( prod ) not in ( 'Cleaned', 'Deleted' )]
-      #print '\n',self.bkQueryDict,'\nVisible:',visible,prodList
+      #print '\n', self.bkQueryDict, '\nVisible:', visible, prodList
       pList = []
       if fileTypes:
         for prod in prodList:
