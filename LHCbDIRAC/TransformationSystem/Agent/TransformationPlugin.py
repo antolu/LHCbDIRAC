@@ -1485,7 +1485,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for replicaSEs, lfns in replicaGroups.items():
         replicaSE = replicaSEs.split( ',' )
         targetSEs = [se for se in listSEs if se in replicaSE]
-        if False and not targetSEs:
+        if not targetSEs:
           self.__logVerbose( "%s storage elements not in required list" % replicaSE )
           continue
         res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':'Processed'} )
