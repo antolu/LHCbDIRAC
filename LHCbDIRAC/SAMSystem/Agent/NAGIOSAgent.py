@@ -1,5 +1,5 @@
 # $HeadURL$
-'''  SAM Agent submits SAM jobs
+''' SAM Agent submits SAM jobs
 '''
 
 import os

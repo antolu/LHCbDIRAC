@@ -1,5 +1,5 @@
 # $HeadURL$
-'''  LHCbDIRAC.SAMSystem.Client package
+''' LHCbDIRAC.SAMSystem.Client package
 '''
 
 __RCSID__  = '$Id$'

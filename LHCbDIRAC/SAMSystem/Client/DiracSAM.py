@@ -1,28 +1,19 @@
-########################################################################
 # $HeadURL$
-# File :   DiracSAM.py
-# Author : Stuart Paterson
-########################################################################
-
-"""LHCb SAM Dirac Class
+''' LHCb SAM Dirac Class
 
    The Dirac SAM class inherits generic VO functionality from the Dirac API base class.
+'''
 
-"""
-
-__RCSID__ = "$Id$"
-
-import string
-from DIRAC.Interfaces.API.Dirac import Dirac, gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.Core.Utilities.SiteCEMapping import getCESiteMapping
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Utilities.SiteCEMapping                  import getCESiteMapping
+from DIRAC.Interfaces.API.Dirac                          import Dirac, gLogger, S_OK, S_ERROR
 
 from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob import LHCbSAMJob
-#from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+
+__RCSID__ = '$Id$'
 
 class DiracSAM( Dirac ):
 
-  #############################################################################
   def __init__( self ):
     """Instantiates the Workflow object and some default parameters.
     """
@@ -33,7 +24,6 @@ class DiracSAM( Dirac ):
     self.samRole = opsH.getValue( 'SAM/DefaultRole', 'lhcb_admin' )
     self.log = gLogger.getSubLogger( "DiracSAM" )
 
-  #############################################################################
   def submitAllSAMJobs( self, softwareEnableFlag = True, scriptName = '' ):
     """Submit SAM tests to all possible CEs as defined in the CS.
     """
@@ -41,7 +31,7 @@ class DiracSAM( Dirac ):
     if not result['OK']:
       return result
     ceSiteMapping = {}
-    self.log.verbose( 'Banned SAM sites are: %s' % ( string.join( self.bannedSites, ', ' ) ) )
+    self.log.verbose( 'Banned SAM sites are: %s' % ( ', '.join( self.bannedSites ) ) )
     for ce, site in result['Value'].items():
       if not site in self.bannedSites:
         ceSiteMapping[ce] = site
@@ -54,7 +44,6 @@ class DiracSAM( Dirac ):
 
     return S_OK()
 
-  #############################################################################
   def submitAllSAMTestJobs( self, softwareEnableFlag = True, publishFlag = False, scriptName = '' ):
     """Submit SAM tests to all possible CEs as defined in the CS.
     """
@@ -62,7 +51,7 @@ class DiracSAM( Dirac ):
     if not result['OK']:
       return result
     ceSiteMapping = {}
-    self.log.verbose( 'Banned SAM sites are: %s' % ( string.join( self.bannedSites, ', ' ) ) )
+    self.log.verbose( 'Banned SAM sites are: %s' % ( ', '.join( self.bannedSites ) ) )
     for ce, site in result['Value'].items():
       if not site in self.bannedSites:
         ceSiteMapping[ce] = site
@@ -75,8 +64,10 @@ class DiracSAM( Dirac ):
 
     return S_OK()
 
-  #############################################################################
-  def submitSAMJob( self, ce, removeLock = False, deleteSharedArea = False, logFlag = True, publishFlag = True, mode = 'wms', enable = True, softwareEnable = True, reportEnable = True, install_project = None, script = '' ):
+  def submitSAMJob( self, ce, removeLock = False, deleteSharedArea = False, 
+                    logFlag = True, publishFlag = True, mode = 'wms', enable = True, 
+                    softwareEnable = True, reportEnable = True, install_project = None, 
+                    script = '' ):
     """Submit a SAM test job to an individual CE.
     """
     job = None
@@ -96,7 +87,8 @@ class DiracSAM( Dirac ):
 #        return S_ERROR('Enable flag is disabled but software flag is enabled')
       if install_project:
         self.log.verbose( 'Optional install_project URL is set to %s' % ( install_project ) )
-      job.installSoftware( forceDeletion = deleteSharedArea, enableFlag = softwareEnable, installProjectURL = install_project )
+      job.installSoftware( forceDeletion = deleteSharedArea, enableFlag = softwareEnable, 
+                           installProjectURL = install_project )
       job.reportSoftware( enableFlag = reportEnable, installProjectURL = install_project )
       job.testApplications( enableFlag = enable )
       if script:
@@ -114,7 +106,6 @@ class DiracSAM( Dirac ):
 
     return self.submit( job, mode )
 
-  #############################################################################
   def _promptUser( self, message ):
     """Internal function to prompt user before submitting all SAM test jobs.
     """
@@ -122,7 +113,7 @@ class DiracSAM( Dirac ):
     response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
     responses = ['yes', 'y', 'n', 'no']
     if not response.strip() or response == '\n':
-      self.log.info( 'Possible responses are: %s' % ( string.join( responses, ', ' ) ) )
+      self.log.info( 'Possible responses are: %s' % ( ', '.join( responses ) ) )
       response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
 
     if not response.strip().lower() in responses:
@@ -134,4 +125,5 @@ class DiracSAM( Dirac ):
     else:
       return S_ERROR( response )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
