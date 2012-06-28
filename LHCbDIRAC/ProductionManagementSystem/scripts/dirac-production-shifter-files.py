@@ -55,7 +55,8 @@ def doParse():
                           '  simCondition (string): csv conditions, being None by default',
                           '  proPath (string): csv paths, being None by default',
                           '  eventType (string): csv events, being None by default',
-                          '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,SimCondition,ProPath,EventType]',
+                          '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,\
+                                               SimCondition,ProPath,EventType]',
                           '  groupMerge: group merge productions in one line',
                           '  omitMerge: omit merge productions on summary\n'] ) )
     
@@ -144,7 +145,6 @@ def getTransformations( transClient, requestID ):
   transformations = transformations[ 'Value' ]
  
   parsedTransformations = {}
-  sortedTasks           = {}
 
   for transformation in transformations:
 
@@ -217,40 +217,39 @@ def getFiles( transClient, transformationID ):
   return filesDict, badFiles 
 
 def getTasks( transClient, transformationID ):
+  '''
+    Given a transformation, get all tasks. Will be used to find which jobs belong
+    to a file.
+  '''
 
-  TASKS = {}
+  tasks = {}
 
   reqs      = transClient.getTransformationTasks( { 'TransformationID' : transformationID } )
 
   if not reqs['OK']:
-    print '      .. some error happened .. production %s, tasks ' % ( TransformationID )
-    return TASKS
+    print '      .. some error happened .. production %s, tasks ' % ( transformationID )
+    return tasks
 
   reqs = reqs['Value']
 
   for task in reqs:
-
-    TaskID         = task[ 'TaskID' ]
-    RunNumber      = task[ 'RunNumber' ]
-    ExternalID     = task[ 'ExternalID' ]
-    TargetSE       = task[ 'TargetSE' ]
-    LastUpdateTime = task[ 'LastUpdateTime' ]
-    CreationTime   = task[ 'CreationTime' ]
-    ExternalStatus = task[ 'ExternalStatus' ]
   
-    #PRODUCTIONS[ TransformationID ][ 'Tasks' ].append( TaskID )
-    TASKS[ TaskID ] = {
-                       'RunNumber'      : RunNumber,
-                       'ExternalID'     : ExternalID,
-                       'TargetSE'       : TargetSE,
-                       'LastUpdateTime' : LastUpdateTime,
-                       'CreationTime'   : CreationTime,                  
-                       'ExternalStatus' : ExternalStatus
-                      }  
+    tasks[ task[ 'TaskID' ] ] = {
+                                 'RunNumber'      : task[ 'RunNumber' ],
+                                 'ExternalID'     : task[ 'ExternalID' ],
+                                 'TargetSE'       : task[ 'TargetSE' ],
+                                 'LastUpdateTime' : task[ 'LastUpdateTime' ],
+                                 'CreationTime'   : task[ 'CreationTime' ],                  
+                                 'ExternalStatus' : task[ 'ExternalStatus' ]
+                                 }  
 
-  return TASKS
+  return tasks
 
 def getJobs( transClient, transformationID, fileID, tasks ):
+  '''
+    Gets all jobs for a file in a transformation. In fact, it gets the tasks
+    which are mapped to jobs later on.
+  '''
   
   jobs = []
   _jobs = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks',
@@ -381,11 +380,9 @@ def printNow():
   sys.stdout.flush()                
                                         
 if __name__ == "__main__":
-  '''
-    Main function. Parses command line, get requests, their transformations and
-    prints summary.
-  '''
-
+  # Main function. Parses command line, get requests, their transformations and
+  # prints summary.
+  
   # Get input from command line
   _parsedInput, _sortKey = doParse() 
  
@@ -402,8 +399,6 @@ if __name__ == "__main__":
   
   # Initialized here to avoid multiple initializations due to the for-loop
   transformationClient = RPCClient( 'Transformation/TransformationManager' )
-  
-  tasks = {}
   
   # Print summary per request
   for _request in _requests:
