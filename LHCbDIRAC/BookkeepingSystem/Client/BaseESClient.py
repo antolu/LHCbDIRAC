@@ -7,20 +7,18 @@
 """
 
 from DIRAC                                                                   import S_ERROR
-from LHCbDIRAC.BookkeepingSystem.Client.IEntitySystemClient                  import IEntitySystemClient
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
 __RCSID__ = "$Id$"
 
 #############################################################################
-class BaseESClient(IEntitySystemClient):
+class BaseESClient:
   """ Basic client"""
 
   #############################################################################
   def __init__(self, esManager=BaseESManager(), path="/"):
     """ The Entity manager must be initialized which will be used to manipulate the databaase."""
-    super(BaseESClient, self).__init__()
     self.__ESManager = esManager
     result = self.getManager().getAbsolutePath(path)
     if result['OK']:

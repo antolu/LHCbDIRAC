@@ -116,13 +116,14 @@ class OracleDB:
         break
 
   def __checkQueueSize(self, maxQueueSize):
+    """the size of the internal queue is limited"""
 
     if maxQueueSize <= 0:
       raise Exception('OracleDB.__init__: maxQueueSize must positive')
     try:
       test = maxQueueSize - 1
     except:
-      raise Exception('OracleDB.__init__: wrong type for maxQueueSize')
+      raise Exception('OracleDB.__init__: wrong type for maxQueueSize'+str(test))
 
 
   def _except(self, methodName, x, err):
@@ -140,13 +141,6 @@ class OracleDB:
     except Exception, x:
       self.logger.debug('%s: %s' % (methodName, err), str(x))
       return S_ERROR('%s: (%s)' % (err, str(x)))
-
-
-  def __checkFields(self, inFields, inValues):
-
-    if len(inFields) != len(inValues):
-      return S_ERROR('Missmatch between inFields and inValues.')
-    return S_OK()
 
 
   def _connect(self):
@@ -170,6 +164,16 @@ class OracleDB:
     except Exception, x:
       return self._except('_connect', x, 'Could not connect to DB.')
 
+
+  def query(self, cmd, conn=False):
+    """
+    execute Oracle query command
+    return S_OK structure with fetchall result as tuple
+    it returns an empty tuple if no matching rows are found
+    return S_ERROR upon error
+    """
+
+    return self._query(cmd, conn)
 
   def _query(self, cmd, conn=False):
     """
@@ -220,7 +224,7 @@ class OracleDB:
     return retDict
 
   def executeStoredProcedure(self, packageName, parameters, output=True, array=None, conn=False):
-
+    """executes a stored procedure"""
     self.logger.debug('_query:', packageName + "(" + str(parameters) + ")")
 
     retDict = self.__getConnection(conn=conn)
@@ -241,7 +245,9 @@ class OracleDB:
           parameters += [result]
         elif type(array[0]) == types.ListType:
           for i in array:
-            if type(i) == types.BooleanType or type(i) == types.StringType or type(i) == types.IntType or type(i) == types.LongType:
+            if type(i) == types.BooleanType or\
+            type(i) == types.StringType or\
+            type(i) == types.IntType or type(i) == types.LongType:
               parameters += [i]
             elif len(i) > 0:
               if type(i[0]) == types.StringType:
@@ -276,8 +282,8 @@ class OracleDB:
 
     try:
       cursor.close()
-    except Exception:
-      pass
+    except Exception,  ex:
+      self._except('__getConnection:', ex, 'Failed to close a connection')
     if not conn:
       self.__putConnection(connection)
 
@@ -285,6 +291,7 @@ class OracleDB:
 
 
   def executeStoredFunctions(self, packageName, returnType, parameters=None, conn=False):
+    """executs a stored function"""
     if parameters == None:
       parameters = []
     retDict = self.__getConnection(conn=conn)
@@ -304,8 +311,8 @@ class OracleDB:
 
     try:
       cursor.close()
-    except Exception:
-      pass
+    except Exception, ex:
+      self._except('__getConnection:', ex, 'Failed to close a connection')
     if not conn:
       self.__putConnection(connection)
     return retDict
@@ -334,8 +341,8 @@ class OracleDB:
       self.logger.debug('__putConnection: Full Queue')
       try:
         connection.close()
-      except Exception:
-        pass
+      except Exception, x:
+        self._except('__putConnection', x, 'Failed to put Connection in Queue')
     except Exception, x:
       self._except('__putConnection', x, 'Failed to put Connection in Queue')
 

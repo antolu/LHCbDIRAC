@@ -1,11 +1,11 @@
+"""
+reimplementation of the dictionary
+"""
 ########################################################################
 # $Id$
 ########################################################################
-
-"""
-"""
-from DIRAC                                                               import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.BookkeepingSystem.Client                               import IndentMaker
+from DIRAC                                                               import gLogger
+from LHCbDIRAC.BookkeepingSystem.Client                                  import IndentMaker
 from UserDict                                                            import UserDict
 
 import types
@@ -16,43 +16,51 @@ VERBOSE = True
 __RCSID__ = "$Id$"
 #############################################################################
 class odict( UserDict ):
-
+  """user defined dictionary"""
   #############################################################################
   def __init__( self, dict = None ):
+    """initialize"""
     self._keys = []
     UserDict.__init__( self, dict )
 
   #############################################################################
   def __delitem__( self, key ):
+    """delete"""
     UserDict.__delitem__( self, key )
     self._keys.remove( key )
 
   #############################################################################
   def __setitem__( self, key, item ):
+    """set"""
     UserDict.__setitem__( self, key, item )
     if key not in self._keys: self._keys.append( key )
 
   #############################################################################
   def clear( self ):
+    """clear"""
     UserDict.clear( self )
     self._keys = []
 
   #############################################################################
   def copy( self ):
+    """copy"""
     dict = UserDict.copy( self )
     dict._keys = self._keys[:]
     return dict
 
   #############################################################################
   def items( self ):
+    """items"""
     return zip( self._keys, self.values() )
 
   #############################################################################
   def keys( self ):
+    """keys"""
     return self._keys
 
   #############################################################################
   def popitem( self ):
+    """popitem"""
     try:
       key = self._keys[-1]
     except IndexError:
@@ -65,26 +73,32 @@ class odict( UserDict ):
 
   #############################################################################
   def setdefault( self, key, failobj = None ):
+    """default value"""
     UserDict.setdefault( self, key, failobj )
-    if key not in self._keys: self._keys.append( key )
+    if key not in self._keys:
+      self._keys.append( key )
 
   #############################################################################
   def update( self, dict ):
+    """update"""
     UserDict.update( self, dict )
     for key in dict.keys():
-      if key not in self._keys: self._keys.append( key )
+      if key not in self._keys:
+        self._keys.append( key )
 
   #############################################################################
   def values( self ):
+    """values"""
     return map( self.get, self._keys )
 
 
 
 ############################################################################
 class Entity( dict ):
-
+  """Entity class"""
   #############################################################################
   def __init__( self, properties = {} ):
+    """initialize an Entity"""
     #odict.__init__(self)
     if isinstance( properties, types.ListType ):
       for key in properties:
@@ -107,7 +121,7 @@ class Entity( dict ):
       s  = "{"
       keys = self.keys()
       for key in keys:
-        #if key == 'fullpath':    
+        #if key == 'fullpath':
           s += "\n " + str(key) + " : "
           value = self[key]
 
@@ -117,46 +131,49 @@ class Entity( dict ):
             #childrenString += str(Entity(child)) + "\n"
           else:
              s +=  str(value)
-          s += "\n}"                
-     #        s = IndentMaker.prepend(s, "_______")                
+          s += "\n}"
+     #        s = IndentMaker.prepend(s, "_______")
     return s
   """
   def __repr__( self ):
+    """print """
     if len( self ) == 0 :
-        s = "{\n " + str( None ) + "\n}"
+      string = "{\n " + str( None ) + "\n}"
     else:
-        s = "{"
-        keys = self.keys()
-        if 'fullpath' in keys:
-          s += '\n' + 'fullpath: ' + str( self['fullpath'] )
-        if VERBOSE:
-          for key in keys:
-            if key != 'name' and key != 'level' and key != 'fullpath' and key != 'expandable' and key != 'selection' and key != 'method' and key != 'showFiles':
-              s += "\n " + str( key ) + " : "
-              value = self[key]
-              # some entities do not have this key. Ignore then.
-              try:
-                  if key in self['not2show']:
-                      s += '-- not shown --'
-                      continue
-              except:
-                  pass
-              if isinstance( value, types.DictType ):
-                  value = Entity( value )
-                  s += "\n" + IndentMaker.prepend( str( value ), ( len( str( key ) ) + 3 ) * " " )
-              #childrenString += str(Entity(child)) + "\n"
-              else:
-                  s += str( value )
-        else:
-          for key in keys:
-            if key != 'name' and key != 'fullpath' and  key == 'FileName':
-              value = self[key]
-              if isinstance( value, types.DictType ):
-                  value = Entity( value )
-                  s += "\n" + IndentMaker.prepend( str( value ), ( len( str( key ) ) + 3 ) * " " )
-              else:
-                s += str( value )
+      string = "{"
+      keys = self.keys()
+      if 'fullpath' in keys:
+        string += '\n' + 'fullpath: ' + str( self['fullpath'] )
+      if VERBOSE:
+        for key in keys:
+          if key != 'name' and key != 'level' and key != 'fullpath' \
+          and key != 'expandable' and key != 'selection'\
+          and key != 'method' and key != 'showFiles':
+            string += "\n " + str( key ) + " : "
+            value = self[key]
+            # some entities do not have this key. Ignore then.
+            try:
+              if key in self['not2show']:
+                string += '-- not shown --'
+                continue
+            except Exception, ex:
+              pass
+            if isinstance( value, types.DictType ):
+              value = Entity( value )
+              string += "\n" + IndentMaker.prepend( str( value ), ( len( str( key ) ) + 3 ) * " " )
+            #childrenString += str(Entity(child)) + "\n"
+            else:
+              string += str( value )
+      else:
+        for key in keys:
+          if key != 'name' and key != 'fullpath' and  key == 'FileName':
+            value = self[key]
+            if isinstance( value, types.DictType ):
+              value = Entity( value )
+              string += "\n" + IndentMaker.prepend( str( value ), ( len( str( key ) ) + 3 ) * " " )
+            else:
+              string += str( value )
 
-        s += "\n}"
-  #        s = IndentMaker.prepend(s, "_______")
-    return s
+      string += "\n}"
+  #        string = IndentMaker.prepend(string, "_______")
+    return string

@@ -1,8 +1,8 @@
 ########################################################################
 # $Id$
 ########################################################################
-
 """
+Its ident the debug message
 """
 
 __RCSID__ = "$Id$"
@@ -12,9 +12,10 @@ DEFAULT = "___"
 
 
 #############################################################################
-def _createIndentedString( str, indent ):
-  str = str.strip( '\n' )
-  tokens = str.split( "\n" )
+def _createIndentedString(string, indent):
+  """create string"""
+  string = string.strip('\n')
+  tokens = string.split("\n")
   newstr = ""
   for token in tokens[0:-1]:
     newstr += indent + token + "\n"
@@ -22,22 +23,25 @@ def _createIndentedString( str, indent ):
   return newstr
 
 #############################################################################
-def prepend( str, indent = DEFAULT ):
-  return _createIndentedString( str, indent )
+def prepend(string, indent=DEFAULT):
+  """ add string"""
+  return _createIndentedString(string, indent)
 
 #############################################################################
-def append( value, suffix ):
-  lines = value.split( '\n' )
+def append(value, suffix):
+  """append...."""
+  lines = value.split('\n')
   maxLine = 0
   for line in lines:
-    length = len( line )
+    length = len(line)
     if length > maxLine:
       maxLine = length
-  s = ''
-  format = '%-' + str( maxLine ) + 's'
+  string = ''
+  formats = '%-' + str(maxLine) + string
   for line in lines:
-    s += format % line
-    s += ' ' + suffix + ' \n'
-  return s.strip( '\n' )
+    string += formats % line
+    string += ' ' + suffix + ' \n'
+  return string.strip('\n')
 
 #############################################################################
+
