@@ -45,6 +45,7 @@ def doParse():
   Script.registerSwitch( 'p:', 'proPath='      , 'proPath(s)' )
   Script.registerSwitch( 'e:', 'eventType='    , 'eventType(s)' )
   Script.registerSwitch( 'z:', 'sort='         , 'sort requests' )
+  Script.registerSwitch( 'n', 'silent'         , 'less verbose mode' )
 
   # Set script help message
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -73,6 +74,7 @@ def doParse():
             }
   
   sortKey = 'RequestID'
+  silent  = False
   
   for switch in Script.getUnprocessedSwitches():
     
@@ -90,8 +92,10 @@ def doParse():
       params[ 'EventType' ] = switch[ 1 ]  
     elif switch[ 0 ].lower() in ( 'z', 'sort' ):
       sortKey = switch[ 1 ]
+    elif switch[ 0 ].lower() in ( 'n', 'silent' ):
+      silent = True
     
-  return params, sortKey
+  return params, sortKey, silent
   
 def getRequests( parsedInput, sortKey ):
   '''
@@ -132,7 +136,7 @@ def getRequests( parsedInput, sortKey ):
                           )
   return parsedRequests
   
-def getTransformations( transClient, requestID ):
+def getTransformations( transClient, requestID, silent ):
   '''
     Given a requestID, returns all its transformations.
   '''
@@ -156,11 +160,10 @@ def getTransformations( transClient, requestID ):
       print 'ERROR !!!!!!!!!!!!!!'
       print transformationID     
 
-    if badFiles:
+    if badFiles and not silent:
       tasks = getTasks( transClient, transformationID )
       
       for _bF in badFiles:
-        #print _bF[ 'FileID' ]
         _bF[ 'jobs' ] = getJobs( transClient, transformationID, _bF[ 'FileID' ], tasks )
 
     parsedTransformations[ transformationID ] = {
@@ -266,10 +269,6 @@ def getJobs( transClient, transformationID, fileID, tasks ):
   for task in foundTasks:
 
     jobs.append( tasks[ task ] )  
-
-
-    #statusMsgs[file['Status']].append( taskMsg )
-    #print taskMsg
   
   return jobs     
   
@@ -344,6 +343,8 @@ def printResults( request ):
       _msg1 = ( _badFile['FileID'], _badFile[ 'LFN' ], _badFile[ 'ErrorCount' ], _badFile[ 'Status' ] )
       msgBuffer.append('      * file ( ID %s ) %s with ErrorCount %s is %s' % _msg1 )    
       
+      if not 'job' in _badFile:
+        continue
       for job in _badFile[ 'jobs' ]:
         
         jobID    = job[ 'ExternalID' ]
@@ -384,7 +385,7 @@ if __name__ == "__main__":
   # prints summary.
   
   # Get input from command line
-  _parsedInput, _sortKey = doParse() 
+  _parsedInput, _sortKey, _silent = doParse() 
  
   # Print summary header
   printSelection( _parsedInput, _sortKey )
@@ -405,7 +406,7 @@ if __name__ == "__main__":
     
     _requestID = _request[ 'requestID' ]
     
-    _transformations = getTransformations( transformationClient, _requestID )
+    _transformations = getTransformations( transformationClient, _requestID, _silent )
     _request[ 'transformations' ] = _transformations   
   
     #request = requests[ requestID ]
