@@ -16,7 +16,8 @@
   - simCondition  : simulation condition(s) ( e.g. Beam4000GeV-VeloClosed-MagDown )
   - proPath       : proPath(s) ( e.g. Reco13 )
   - eventType     : eventType(s) ( e.g. 90000000 ) 
-  - sort          : sort requests using the keywords [RequestID,RequestState,RequestType,SimCondition,ProPath,EventType]
+  - sort          : sort requests using the keywords [RequestID,RequestState,RequestType,
+                    SimCondition,ProPath,EventType]
   
 '''
 
@@ -101,6 +102,9 @@ def getRequests( parsedInput, sortKey ):
   for key, value in parsedInput.items():
     if value is None:
       del parsedInput[ key ]    
+  
+  if 'RequestID' in parsedInput:
+    parsedInput = { 'RequestID' : parsedInput[ 'RequestID' ] }
       
   requests = reqClient.getProductionRequestList_v2( 0L, 'RequestID', 'DESC', 0L, 0L, parsedInput )
   if not requests[ 'OK' ]:
@@ -140,12 +144,24 @@ def getTransformations( transClient, requestID ):
   transformations = transformations[ 'Value' ]
  
   parsedTransformations = {}
+  sortedTasks           = {}
 
   for transformation in transformations:
 
     transformationID    = transformation[ 'TransformationID' ]
     
-    transformationFiles, badFiles = getFiles( transClient, transformationID )  
+    try:
+      transformationFiles, badFiles = getFiles( transClient, transformationID )
+    except ValueError:
+      print 'ERROR !!!!!!!!!!!!!!'
+      print transformationID     
+
+    if badFiles:
+      tasks = getTasks( transClient, transformationID )
+      
+      for _bF in badFiles:
+        #print _bF[ 'FileID' ]
+        _bF[ 'jobs' ] = getJobs( transClient, transformationID, _bF[ 'FileID' ], tasks )
 
     parsedTransformations[ transformationID ] = {
       
@@ -154,9 +170,9 @@ def getTransformations( transClient, requestID ):
       'transformationFiles'  : transformationFiles,
       'badFiles'             : badFiles
     }   
-
+    
   return parsedTransformations
-  
+ 
 def getFiles( transClient, transformationID ):
   '''
     Given a transformationID, returns the status of their files.
@@ -189,16 +205,74 @@ def getFiles( transClient, transformationID ):
   
   if states:
     
-    badFiles = getBadFiles( transClient, transformationID, states ) 
+    _badFiles = transClient.getTransformationFiles( { 
+                                                    'TransformationID' : transformationID,
+                                                    'Status'           : states 
+                                                    } )
+    if _badFiles[ 'OK' ]:
+      badFiles = _badFiles[ 'Value' ]
+    else:
+      print _badFiles[ 'Message' ]  
 
-  return filesDict, badFiles  
+  return filesDict, badFiles 
 
-def getBadFiles( transClient, transformationID, states ):
+def getTasks( transClient, transformationID ):
+
+  TASKS = {}
+
+  reqs      = transClient.getTransformationTasks( { 'TransformationID' : transformationID } )
+
+  if not reqs['OK']:
+    print '      .. some error happened .. production %s, tasks ' % ( TransformationID )
+    return TASKS
+
+  reqs = reqs['Value']
+
+  for task in reqs:
+
+    TaskID         = task[ 'TaskID' ]
+    RunNumber      = task[ 'RunNumber' ]
+    ExternalID     = task[ 'ExternalID' ]
+    TargetSE       = task[ 'TargetSE' ]
+    LastUpdateTime = task[ 'LastUpdateTime' ]
+    CreationTime   = task[ 'CreationTime' ]
+    ExternalStatus = task[ 'ExternalStatus' ]
   
-  badFiles = transClient.getTransformationFiles( { 'TransformationID' : transformationID,
-                                                   'States'           : states } )
-  return badFiles
+    #PRODUCTIONS[ TransformationID ][ 'Tasks' ].append( TaskID )
+    TASKS[ TaskID ] = {
+                       'RunNumber'      : RunNumber,
+                       'ExternalID'     : ExternalID,
+                       'TargetSE'       : TargetSE,
+                       'LastUpdateTime' : LastUpdateTime,
+                       'CreationTime'   : CreationTime,                  
+                       'ExternalStatus' : ExternalStatus
+                      }  
+
+  return TASKS
+
+def getJobs( transClient, transformationID, fileID, tasks ):
   
+  jobs = []
+  _jobs = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks',
+                                                      [ 'TransformationID', 'FileID', 'TaskID' ],
+                                                      {
+                                                        'TransformationID' : transformationID,
+                                                        'FileID'           : fileID } )
+  
+  if not _jobs[ 'OK' ]:
+    print _jobs[ 'Message' ]
+    return []
+    
+  foundTasks = _jobs[ 'Value' ][ 'TaskID' ]
+  for task in foundTasks:
+
+    jobs.append( tasks[ task ] )  
+
+
+    #statusMsgs[file['Status']].append( taskMsg )
+    #print taskMsg
+  
+  return jobs     
   
 def printSelection( parsedInput, sortKey ):
   '''
@@ -244,8 +318,6 @@ def printResults( request ):
   msgLock   = False  
     
   msgBuffer.append( '  o %d [%s][ %s/%s ][ %s/%s ]' % msgTuple )
-    
-  groupedMerge = [ 0, 0, 0 ]
   
   for transformationID, transformation in request[ 'transformations' ].items():
       
@@ -268,9 +340,23 @@ def printResults( request ):
       msgLock = True  
       msgBuffer.append( '      %s %s' % msgTuple )
     
-    for badFile in transformation[ 'badFiles']:
+    for _badFile in transformation[ 'badFiles' ]:
       
-      msgBuffer.append('      * file ( ID %s ) %s is MaxReset' % ( file['FileID'], file[ 'LFN' ] ))       
+      _msg1 = ( _badFile['FileID'], _badFile[ 'LFN' ], _badFile[ 'ErrorCount' ], _badFile[ 'Status' ] )
+      msgBuffer.append('      * file ( ID %s ) %s with ErrorCount %s is %s' % _msg1 )    
+      
+      for job in _badFile[ 'jobs' ]:
+        
+        jobID    = job[ 'ExternalID' ]
+        status   = job[ 'ExternalStatus' ]
+        se       = job[ 'TargetSE' ]
+        creation = job[ 'CreationTime' ]
+        updated  = job[ 'LastUpdateTime' ]
+        
+        _jobMsg = ( jobID, status, se, creation, updated )
+        jobMsg = '           - Job ID %s with status %s at %s, created %s & updated %s' % _jobMsg     
+
+        msgBuffer.append( jobMsg )
 
   if msgLock:
     for msg in msgBuffer:
@@ -292,7 +378,7 @@ def printNow():
     if flushed.
   '''
   
-  sys.stdout.flush()
+  sys.stdout.flush()                
                                         
 if __name__ == "__main__":
   '''
@@ -308,7 +394,7 @@ if __name__ == "__main__":
 
   # Get requests with given filters
   _requests = getRequests( _parsedInput, _sortKey )
-  if requests is None:
+  if _requests is None:
     DIRACExit( 2 )
   
   # Print small information 
@@ -317,10 +403,12 @@ if __name__ == "__main__":
   # Initialized here to avoid multiple initializations due to the for-loop
   transformationClient = RPCClient( 'Transformation/TransformationManager' )
   
+  tasks = {}
+  
   # Print summary per request
   for _request in _requests:
     
-    _requestID = request[ 'requestID' ]
+    _requestID = _request[ 'requestID' ]
     
     _transformations = getTransformations( transformationClient, _requestID )
     _request[ 'transformations' ] = _transformations   
@@ -333,4 +421,4 @@ if __name__ == "__main__":
   DIRACExit(0)
   
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
