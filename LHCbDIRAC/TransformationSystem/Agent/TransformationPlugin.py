@@ -1208,29 +1208,27 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           activeSE.append( se )
 
     return activeSE
-#    try:
-#      from DIRAC.ResourceStatusSystem.Client                                 import ResourceStatus
-#      res = ResourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
-#      if res[ 'OK' ]:
-#        activeSE = [se for se, access in res['Value'].items() if access.get( 'Write' ) in ( 'Active', 'Bad' )]
-#      else:
-#        self.__logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
-#    except:
-#      for se in selist:
-#        res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
-#        if res['OK'] and res['Value'] == 'Active':
-#          activeSE.append( se )
-#
-#
-#    return activeSE
 
   def __getListFromString( self, s ):
+    # Avoid using eval()... painful
     if type( s ) == types.StringType:
-      try:
-        import ast
-        return ast.literal_eval( s )
-      except:
-        pass
+      if s == "[]" or s == '':
+        return []
+      if s[0] == '[' and s[-1] == ']':
+        s = s[1:-1]
+      l = s.split( ',' )
+      ll = []
+      for a in l:
+        a = a.strip()
+        if not a:
+          ll.append( a )
+        elif a[0] == "'" and a[-1] == "'":
+          ll.append( a[1:-1] )
+        elif a[0] == '"' and a[-1] == '"':
+          ll.append( a[1:-1] )
+        else:
+          ll.append( a )
+      return ll
     return s
 
   def __closerSEs( self, existingSEs, targetSEs, local=False ):
@@ -1505,9 +1503,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
         #print lfnsProcessed, lfnsNotProcessed
         if lfnsNotProcessed:
-          self.__logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), replicaSEs ) )
+          self.__logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), targetSEs ) )
         if lfnsProcessed:
-          self.__logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), replicaSEs ) )
+          self.__logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), targetSEs ) )
           stringTargetSEs = ','.join( sorted( targetSEs ) )
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
