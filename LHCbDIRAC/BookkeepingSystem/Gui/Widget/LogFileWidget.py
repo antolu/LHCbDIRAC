@@ -18,7 +18,7 @@ class LogFileWidget(QtGui.QDialog):
   """
   def __init__(self, parent=None):
     """initialize the widget"""
-    LogFileWidget.__init__(self, parent)
+    QtGui.QDialog.__init__(self, parent)
     self.ui = Ui_HttpWidget()
     self.ui.setupUi(self)
 
