@@ -1,3 +1,6 @@
+"""
+Controller of the Production lookup widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -13,16 +16,20 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerProductionLookup(ControlerAbstract):
-
+  """
+  ControlerProductionLookup class
+  """
   #############################################################################
   def __init__(self, widget, parent):
-    super(ControlerProductionLookup, self).__init__(widget, parent)
+    """initialize the controller"""
+    ControlerAbstract.__init__(self, widget, parent)
     self.__model = None
     self.__list = []
 
   #############################################################################
   def messageFromParent(self, message):
-    if message.action()=='list':
+    """handles the messages sent by the parent controller"""
+    if message.action() == 'list':
       self.__list = []
       self.__model = message['items']
       widget = self.getWidget()
@@ -35,7 +42,7 @@ class ControlerProductionLookup(ControlerAbstract):
       widget.setModel(self.__list)
       widget.show()
     else:
-      print 'Unknown message!',message.action()
+      print 'Unknown message!', message.action()
 
   #############################################################################
   def messageFromChild(self, sender, message):
@@ -43,6 +50,7 @@ class ControlerProductionLookup(ControlerAbstract):
 
   #############################################################################
   def close(self):
+    """handles the close action"""
     widget = self.getWidget()
     indexes = widget.getListView().selectedIndexes()
     selected = []
@@ -56,30 +64,36 @@ class ControlerProductionLookup(ControlerAbstract):
           if str(i) in self.__model.getChildren().keys():
             selected += [self.__model.getChildren()[str(i)]]
       if len(selected) != 0:
-        message = Message({'action':'showOneProduction','paths':selected})
+        message = Message({'action':'showOneProduction', 'paths':selected})
         self.getParent().messageFromChild(self, message)
     else:
-      QMessageBox.information(self.getWidget(), "More information...", "Please select a production or run number!",QMessageBox.Ok)
+      QMessageBox.information(self.getWidget(),
+                              "More information...",
+                              "Please select a production or run number!",
+                              QMessageBox.Ok)
     widget.close()
 
   #############################################################################
   def cancel(self):
+    """handles the cancel button action"""
     self.getWidget().getListView().reset()
     self.getWidget().close()
 
 
   def all(self):
+    """handles the all button action"""
     widget = self.getWidget()
     data = widget.getModel().getAllData()
-    parent = Item({'fullpath':'/'},None)
+    parent = Item({'fullpath':'/'}, None)
     for i in data:
       parent.addItem(self.__model.getChildren()[i])
-    message = Message({'action':'showAllProduction','items':parent})
+    message = Message({'action':'showAllProduction', 'items':parent})
     self.getParent().messageFromChild(self, message)
     self.getWidget().close()
 
   #############################################################################
   def textChanged(self):
+    """handles the action created by the text editor"""
     widget = self.getWidget()
     pattern = str(widget.getLineEdit().text())
     new_list = [item for item in self.__list if item.find(pattern) == 0]

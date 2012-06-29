@@ -1,3 +1,6 @@
+"""
+Controller of the Log widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -9,19 +12,22 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerLogInfo(ControlerAbstract):
-
+  """
+  ControlerLogInfo class
+  """
   #############################################################################
   def __init__(self, widget, parent):
-    super(ControlerLogInfo, self).__init__(widget, parent)
+    ControlerAbstract.__init__(self, widget, parent)
 
   #############################################################################
   def messageFromParent(self, message):
-    if message.action()=='showLog':
+    """handles the messages sent by the parent controller"""
+    if message.action() == 'showLog':
       fileName = message['fileName']
       self.getWidget().setUrlUsingStorage(fileName)
       self.getWidget().show()
     else:
-      print 'Unknown message!',message.action(),message
+      print 'Unknown message!', message.action(), message
 
   #############################################################################
   def messageFromChild(self, sender, message):
@@ -29,7 +35,9 @@ class ControlerLogInfo(ControlerAbstract):
 
   #############################################################################
   def close(self):
+    """handle the close action"""
     #self.getWidget().hide()
     self.getWidget().close()
 
   #############################################################################
+

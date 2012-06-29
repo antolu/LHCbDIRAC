@@ -1,3 +1,6 @@
+"""
+Controller of the history dialog window
+"""
 ########################################################################
 # $HeadURL$
 ########################################################################
@@ -9,24 +12,28 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryNavigationCommand     import HistoryNavigationCommand
 
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
+from DIRAC                                                           import gLogger, S_ERROR
 
 #############################################################################
 class ControlerHistoryDialog(ControlerAbstract):
-
+  """
+  ControlerHistoryDialog class
+  """
   #############################################################################
   def __init__(self, widget, parent):
-    super(ControlerHistoryDialog, self).__init__(widget, parent)
+    """initialize the constructor"""
+    ControlerAbstract.__init__(self, widget, parent)
     self.__selectedFiles = []
     self.__comands = []
     self.__current = 0
 
   #############################################################################
   def messageFromParent(self, message):
-    if message.action() =='list':
+    """handles the messages sent by the parent"""
+    if message.action() == 'list':
       values = message['items']
-      headers= values['ParameterNames']
-      data= values['Records']
+      headers = values['ParameterNames']
+      data = values['Records']
       if len(data) == 0:
         self.getWidget().showError('This is the last file!')
       else:
@@ -39,14 +46,14 @@ class ControlerHistoryDialog(ControlerAbstract):
 
     elif message.action() == 'showJobInfos':
       values = message['items']
-      headers = ['Name','Value']
+      headers = ['Name', 'Value']
       data = []
 
       for i in values.keys():
-        d = values[i]
-        if d == None:
-          d = ''
-        data += [ [i,d] ]
+        j = values[i]
+        if j == None:
+          j = ''
+        data += [ [i, j] ]
 
       self.getWidget().filltable(headers, data, self.getWidget().getJobTableView())
       self.getWidget().show()
@@ -58,31 +65,33 @@ class ControlerHistoryDialog(ControlerAbstract):
 
   #############################################################################
   def messageFromChild(self, sender, message):
-      return self.getParent().messageFromChild(self, message)
+    """pass the messages to the parent which are sent by the children"""
+    return self.getParent().messageFromChild(self, message)
 
   #############################################################################
   def selection(self, selected, deselected):
+    """handles the selected data"""
     if selected:
       for i in selected.indexes():
         row = i.row()
         data = i.model().arraydata[row][1]
         if data not in self.__selectedFiles:
           self.__selectedFiles = [data]
-      message = Message({'action':'JobInfo','fileName':self.__selectedFiles[0]})
+      message = Message({'action':'JobInfo', 'fileName':self.__selectedFiles[0]})
       feedback = self.getParent().messageFromChild(self, message)
       if feedback.action() == 'showJobInfos':
         values = feedback['items']
-        headers = ['Name','Value']
+        headers = ['Name', 'Value']
         data = []
 
         for i in values.keys():
-          d = values[i]
-          if d == None:
-            d = ''
-          data += [ [i,d] ]
+          j = values[i]
+          if j == None:
+            j = ''
+          data += [ [i, j] ]
 
         self.getWidget().filltable(headers, data, self.getWidget().getJobTableView())
-        self.getWidget().setNextButtonState(enable = True)
+        self.getWidget().setNextButtonState(enable=True)
 
     if deselected:
       row = deselected.indexes()[0].row()
@@ -94,23 +103,25 @@ class ControlerHistoryDialog(ControlerAbstract):
 
   #############################################################################
   def close(self):
+    """handles the close button action"""
     self.__current = 0
     self.__comands = []
     self.getWidget().close()
 
   #############################################################################
   def next(self):
-    self.getWidget().setBackButtonSatate(enable = True)
-    if len(self.__comands)  == self.__current:
-      self.getWidget().setNextButtonState(enable = False)
+    """handles the next button action"""
+    self.getWidget().setBackButtonSatate(enable=True)
+    if len(self.__comands) == self.__current:
+      self.getWidget().setNextButtonState(enable=False)
     if len(self.__selectedFiles) > 0:
       self.__current += 1
       if len(self.__comands) < self.__current:
-        message = Message({'action':'getAnccestors','files':self.__selectedFiles[0]})
+        message = Message({'action':'getAnccestors', 'files':self.__selectedFiles[0]})
         feedback = self.getParent().messageFromChild(self, message)
         values = feedback['files']
-        headers= values['ParameterNames']
-        data= values['Records']
+        headers = values['ParameterNames']
+        data = values['Records']
         if len(data) == 0:
           self.getWidget().showError('This is the last file!')
         else:
@@ -127,11 +138,12 @@ class ControlerHistoryDialog(ControlerAbstract):
 
   #############################################################################
   def back(self):
+    """handles the back button action"""
     self.__current -= 1
     hcommand = self.__comands[self.__current - 1 ]
     hcommand.execute()
-    self.getWidget().setNextButtonState(enable = True)
+    self.getWidget().setNextButtonState(enable=True)
     if self.__current == 1:
-      self.getWidget().setBackButtonSatate(enable = False)
+      self.getWidget().setBackButtonSatate(enable=False)
 
 

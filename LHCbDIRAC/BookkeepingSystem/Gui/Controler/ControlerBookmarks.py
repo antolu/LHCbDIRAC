@@ -1,3 +1,6 @@
+"""
+Controlls the Bookmarks widget
+"""
 ########################################################################
 # $HeadURL:  $
 ########################################################################
@@ -15,10 +18,13 @@ from DIRAC                                                               import 
 
 #############################################################################
 class ControlerBookmarks(ControlerAbstract):
-
+  """
+  ControlerBookmarks class
+  """
   #############################################################################
   def __init__(self, widget, parent):
-    super(ControlerBookmarks, self).__init__(widget, parent)
+    """initialize the controller"""
+    ControlerAbstract.__init__(self, widget, parent)
     self.__selectedFiles = []
     '''
 sim+adv//
@@ -31,6 +37,7 @@ run
 
   #############################################################################
   def messageFromParent(self, message):
+    """handles the messages sent by parent"""
     if message.action() == 'showValues':
       controlers = self.getChildren()
       ct = controlers['AddBookmarks']
@@ -41,9 +48,10 @@ run
 
   #############################################################################
   def messageFromChild(self, sender, message):
-    if message.action()=='addBookmarks':
+    """handles the messages sent from its children"""
+    if message.action() == 'addBookmarks':
       bookmarks = message['bookmark']
-      retVal  = self.__addBookmark(bookmarks['Path'], bookmarks['Title'])
+      retVal = self.__addBookmark(bookmarks['Path'], bookmarks['Title'])
       if retVal['OK']:
         self.filltable()
       else:
@@ -54,7 +62,8 @@ run
     return S_ERROR('Unkown message')
 
   def filltable(self):
-    header = ['Title','Path']
+    """used to fill a table widget"""
+    header = ['Title', 'Path']
     tabledata = []
     retVal = self.__getBookmarks()
     if retVal['OK']:
@@ -64,36 +73,39 @@ run
       if len(tabledata) > 0:
         self.getWidget().filltable(header, tabledata)
       else:
-        tabledata = [['','']]
+        tabledata = [['', '']]
         self.getWidget().filltable(header, tabledata)
     else:
-      gLogger.info('You do not have yet bookmarks for the bookkeeping !',retVal['Message'])
-
+      gLogger.info('You do not have yet bookmarks for the bookkeeping !', retVal['Message'])
 
   #############################################################################
   def __getBookmarks(self):
+    """returns the bookkmarks"""
     self.getWidget().waitCursor()
-    upc = UserProfileClient( "Bookkeeping", RPCClient )
-    bookmarks = upc.retrieveVar( "Bookmarks" )
+    upc = UserProfileClient("Bookkeeping", RPCClient)
+    bookmarks = upc.retrieveVar("Bookmarks")
     self.getWidget().arrowCursor()
     return bookmarks
     #return S_ERROR('FIGYELEM!!!')
 
   #############################################################################
-  def __addBookmark(self,path,title):
+  def __addBookmark(self, path, title):
+    """adds a bookmark"""
     self.getWidget().waitCursor()
-    upc = UserProfileClient( "Bookkeeping", RPCClient )
-    result = upc.retrieveVar( "Bookmarks" )
+    upc = UserProfileClient("Bookkeeping", RPCClient)
+    result = upc.retrieveVar("Bookmarks")
     if result["OK"]:
       data = result["Value"]
     else:
       data = {}
     if title in data:
-      QMessageBox.critical(self.getWidget(), "Error","The bookmark with the title \"" + title + "\" is already exists",QMessageBox.Ok)
+      QMessageBox.critical(self.getWidget(),
+                           "Error", "The bookmark with the title \"" + title + "\" is already exists",
+                           QMessageBox.Ok)
       return S_ERROR("The bookmark with the title \"" + title + "\" is already exists")
     else:
       data[title] = path
-    result = upc.storeVar( "Bookmarks", data )
+    result = upc.storeVar("Bookmarks", data)
     self.getWidget().arrowCursor()
     if result["OK"]:
       return self.__getBookmarks()
@@ -101,10 +113,11 @@ run
       return S_ERROR(result["Message"])
 
   #############################################################################
-  def __delBookmark(self,path,title):
+  def __delBookmark(self, path, title):
+    """deletes a bookmark"""
     self.getWidget().waitCursor()
-    upc = UserProfileClient( "Bookkeeping", RPCClient )
-    result = upc.retrieveVar( "Bookmarks" )
+    upc = UserProfileClient("Bookkeeping", RPCClient)
+    result = upc.retrieveVar("Bookmarks")
     if result["OK"]:
       data = result["Value"]
     else:
@@ -112,19 +125,20 @@ run
     if title in data:
       del data[title]
     else:
-      QMessageBox.critical(self.getWidget(), "Error","Can't delete not existing bookmark: \"" + title + "\"",QMessageBox.Ok)
+      QMessageBox.critical(self.getWidget(),
+                           "Error", "Can't delete not existing bookmark: \"" + title + "\"",
+                           QMessageBox.Ok)
       return S_ERROR("Can't delete not existing bookmark: \"" + title + "\"")
-    result = upc.storeVar( "Bookmarks", data )
+    result = upc.storeVar("Bookmarks", data)
     self.getWidget().arrowCursor()
     if result["OK"]:
       return self.__getBookmarks()
     else:
       return S_ERROR(result["Message"])
 
-
-
   #############################################################################
   def removeBookmarks(self):
+    """handles the remove bookmarks"""
     row = self.getWidget().getSelectedRow()
     retVal = self.__delBookmark(row['Path'], row['Title'])
     if not retVal['OK']:
@@ -134,6 +148,7 @@ run
 
   #############################################################################
   def addBookmarks(self):
+    """handles the addBookmarks action"""
     controlers = self.getChildren()
     ct = controlers['AddBookmarks']
     message = Message({'action':'showWidget'})
@@ -141,13 +156,14 @@ run
 
   #############################################################################
   def selection(self, selected, deselected):
+    """handle the selections"""
     if selected:
       for i in selected.indexes():
         row = i.row()
         data = i.model().arraydata[row][1]
         if data not in self.__selectedFiles:
           self.__selectedFiles = [data]
-          message = Message({'action':'openPathLocation','Path':data})
+          message = Message({'action':'openPathLocation', 'Path':data})
           self.getParent().messageFromChild(self, message)
     if deselected:
       row = deselected.indexes()[0].row()
@@ -158,4 +174,6 @@ run
           self.__selectedFiles.remove(data)
 
   def doubleclick(self, item):
-    gLogger('Not implemented!')
+    """handles the double clicks"""
+    pass
+

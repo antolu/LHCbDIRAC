@@ -424,10 +424,10 @@ class OracleBookkeepingDB:
     return self.dbW_.query(command)
 
   #############################################################################
-  def getStepOutputFiles(self, StepId):
+  def getStepOutputFiles(self, stepId):
     """returns the output file for a given step"""
     command = 'select outputfiletypes.name,outputfiletypes.visible from steps, \
-    table(steps.outputfiletypes) outputfiletypes where  steps.stepid=' + str(StepId)
+    table(steps.outputfiletypes) outputfiletypes where  steps.stepid=' + str(stepId)
     return self.dbR_.query(command)
 
   #############################################################################
@@ -1121,7 +1121,8 @@ class OracleBookkeepingDB:
   #############################################################################
   def getRunProcessingPass(self, runnumber):
     """returns the processing pass for a given run"""
-    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getProductionProcessingPass', StringType, [-1 * runnumber])
+    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getProductionProcessingPass',
+                                            StringType, [-1 * runnumber])
 
   #############################################################################
   def getProductionProcessingPassID(self, prodid):
@@ -1428,7 +1429,8 @@ class OracleBookkeepingDB:
       retVal = self._getDataQualityId(flag)
       if retVal['OK']:
         flag = retVal['Value']
-        result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertRunquality', [runNB, flag, processingid], False)
+        result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertRunquality',
+                                                  [runNB, flag, processingid], False)
       else:
         result = retVal
     else:
@@ -1704,7 +1706,8 @@ class OracleBookkeepingDB:
   #############################################################################
   def checkFileTypeAndVersion(self, filetype, version): #fileTypeAndFileTypeVersion(self, type, version):
     """checks the the format and the version"""
-    result = self.dbR_.executeStoredFunctions('BOOKKEEPINGORACLEDB.checkFileTypeAndVersion', LongType, [filetype, version])
+    result = self.dbR_.executeStoredFunctions('BOOKKEEPINGORACLEDB.checkFileTypeAndVersion',
+                                               LongType, [filetype, version])
     return result
 
   #############################################################################
@@ -2367,7 +2370,7 @@ class OracleBookkeepingDB:
       if not retVal['OK']:
         result = retVal
       elif len(retVal['Value']) == 0:
-          result = S_ERROR('Log file is not exist!')
+        result = S_ERROR('Log file is not exist!')
       else:
         result = S_OK(retVal['Value'][0][0])
     return result
@@ -3003,7 +3006,8 @@ and files.qualityid= dataquality.qualityid'
         return S_ERROR('The TCK should be a list or a string')
 
     if procPass != default:
-      if not re.search('^/', procPass): procPass = procPass.replace(procPass, '/%s' % procPass)
+      if not re.search('^/', procPass):
+        procPass = procPass.replace(procPass, '/%s' % procPass)
       condition += " and j.production in (select bview.production from productionscontainer prod,\
        ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
                      START WITH id in (select distinct id from processing where name='%s') \

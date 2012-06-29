@@ -1,3 +1,6 @@
+"""
+It controlls the bookmarks widget
+"""
 ########################################################################
 # $HeadURL:  $
 ########################################################################
@@ -8,18 +11,20 @@ __RCSID__ = "$Id: $"
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
+from DIRAC                                                               import gLogger, S_OK, S_ERROR
 
 #############################################################################
 class ControlerAddBookmarks(ControlerAbstract):
-
+  """class"""
   #############################################################################
   def __init__(self, widget, parent):
-    super(ControlerAddBookmarks, self).__init__(widget, parent)
+    """initialize the controller"""
+    ControlerAbstract.__init__(self, widget, parent)
 
   #############################################################################
   def messageFromParent(self, message):
-    if message.action()=='showWidget':
+    """handles the messages sent from the parent"""
+    if message.action() == 'showWidget':
       self.getWidget().show()
       return S_OK()
     elif message.action() == 'showValues':
@@ -35,16 +40,18 @@ class ControlerAddBookmarks(ControlerAbstract):
 
   #############################################################################
   def messageFromChild(self, sender, message):
+    """handles the messages sent from its children"""
     gLogger.error('Unkown message')
     return S_ERROR('Unkown message')
 
   #############################################################################
   def okButton(self):
+    """handles the action when the ok button pressed"""
     self.getWidget().waitCursor()
     title = self.getWidget().getTitle()
     path = self.getWidget().getPath()
     if len(path.split(':/')) > 0:
-      message = Message({'action':'addBookmarks','bookmark':{'Title':title,'Path':path}})
+      message = Message({'action':'addBookmarks', 'bookmark':{'Title':title, 'Path':path}})
       feedback = self.getParent().messageFromChild(self, message)
       if not feedback['OK']:
         gLogger.error(feedback['Message'])
@@ -55,4 +62,5 @@ class ControlerAddBookmarks(ControlerAbstract):
     self.getWidget().arrowCursor()
   #############################################################################
   def cancelButton(self):
+    """handles the action when the close button pressed"""
     self.getWidget().close()
