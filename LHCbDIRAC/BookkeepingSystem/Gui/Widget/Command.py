@@ -1,20 +1,24 @@
+"""
+Interfcae of the history browser command
+"""
 ########################################################################
 # $Id$
 ########################################################################
 
-from DIRAC                                                           import gLogger, S_OK, S_ERROR
 
 __RCSID__ = "$Id$"
 
 ########################################################################
 class Command:
-  
+  """Command inteface"""
   def __init__(self):
     pass
   ########################################################################
   def execute(self):
-    gLogger.error('Can not use this method from this class')
-  
+    """must be reimplemented"""
+    pass
+
   ########################################################################
   def unexecute(self):
-    gLogger.error('Can not use this method from this class')
+    """must be reimplemented"""
+    pass

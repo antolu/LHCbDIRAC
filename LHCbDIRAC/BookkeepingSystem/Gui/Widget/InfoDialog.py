@@ -1,3 +1,6 @@
+"""
+This widget used to view a key/value pair dataset
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -12,31 +15,37 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class InfoDialog(QDialog, Ui_InfoDialog):
-
+  """
+  InfoDialog class
+  """
   #############################################################################
-  def __init__(self, parent = None):
+  def __init__(self, parent=None):
+    """initialize the widget"""
     QDialog.__init__(self, parent)
+    Ui_InfoDialog.__init__(self)
     self.setupUi(self)
     self.__controler = ControlerInfoDialog(self, parent.getControler())
     self.connect(self.pushButton, SIGNAL("clicked()"), self.__controler.close)
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def showData(self, data):
-    noheader = ['name','expandable','level','fullpath']
-    tabledata =[]
-    header = ['Name','Value']
+    """hows the data"""
+    noheader = ['name', 'expandable', 'level', 'fullpath']
+    tabledata = []
+    header = ['Name', 'Value']
 
     for item in data.keys():
       if item not in noheader:
         if data[item] == None:
-          d = ''
+          i = ''
         else:
-          d= data[item]
-        tabledata += [ [item, d] ]
+          i = data[item]
+        tabledata += [ [item, i] ]
 
     if len(tabledata) > 0:
       self.filltable(header, tabledata)
@@ -44,21 +53,22 @@ class InfoDialog(QDialog, Ui_InfoDialog):
 
   #############################################################################
   def showDictionary(self, data):
-    header = ['FileName','Ancestor1','Ancestor2','Ancestor3','Ancestor4','Ancestor5','Ancestor6']
+    """shows the dictionary content"""
+    header = ['FileName', 'Ancestor1', 'Ancestor2', 'Ancestor3', 'Ancestor4', 'Ancestor5', 'Ancestor6']
     keys = data.keys()
     keys.sort()
     tabledata = []
     for i in keys:
-      d = data[i]
-      if len(d) == 0:
-        tabledata += [ [i,'','','','','','']]
+      j = data[i]
+      if len(j) == 0:
+        tabledata += [ [i, '', '', '', '', '', '']]
       else:
-        tmp = ['','','','','','','']
-        j = 1
+        tmp = ['', '', '', '', '', '', '']
+        k = 1
         tmp[0] = i
-        for an in d:
-          tmp[j] = an
-          j += 1
+        for an in j:
+          tmp[k] = an
+          k += 1
         tabledata += [tmp]
     if len(tabledata) > 0:
       self.filltable(header, tabledata)
@@ -66,7 +76,7 @@ class InfoDialog(QDialog, Ui_InfoDialog):
 
   #############################################################################
   def filltable(self, header, tabledata):
-
+    """fills the table"""
     # set the table model
     tm = TableModel(tabledata, header, self)
     self.tableView.setModel(tm)

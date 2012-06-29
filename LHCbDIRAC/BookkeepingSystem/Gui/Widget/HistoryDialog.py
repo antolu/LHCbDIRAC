@@ -1,3 +1,6 @@
+"""
+History widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -14,10 +17,14 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class HistoryDialog(QDialog, Ui_HistoryDialog):
-
+  """
+  HistoryDialog class
+  """
   #############################################################################
-  def __init__(self, parent = None):
+  def __init__(self, parent=None):
+    """initialize the widget"""
     QDialog.__init__(self, parent)
+    Ui_HistoryDialog.__init__(self)
     self.setupUi(self)
     self.__controler = ControlerHistoryDialog(self, parent.getControler())
     self.connect(self.nextButton, SIGNAL("clicked()"), self.__controler.next)
@@ -29,46 +36,56 @@ class HistoryDialog(QDialog, Ui_HistoryDialog):
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def setModel(self, model):
+    """sets the model"""
     self.__model = model
 
   def updateModel(self, model):
+    """changes the model"""
     self.__model.update(model)
 
   #############################################################################
   def getModel(self):
+    """returns the model"""
     return self.__model
 
   #############################################################################
   def showError(self, message):
-    QMessageBox.critical(self, "ERROR", message,QMessageBox.Ok)
+    """shows the error"""
+    QMessageBox.critical(self, "ERROR", message, QMessageBox.Ok)
 
   #############################################################################
   def getFilesTableView(self):
+    """returns the table widget"""
     return self.filesTableView
 
   #############################################################################
   def getJobTableView(self):
+    """returns the job table view"""
     return self.jobTableView
 
   #############################################################################
   def setTableModel(self, tableViewObject, tableModel):
+    """sets the model of the table"""
     tableViewObject.setModel(tableModel)
 
   #############################################################################
-  def setNextButtonState(self, enable = True):
+  def setNextButtonState(self, enable=True):
+    """enables the next button"""
     self.nextButton.setEnabled(enable)
 
   #############################################################################
-  def setBackButtonSatate(self,enable = True):
+  def setBackButtonSatate(self, enable=True):
+    """enables the back button"""
     self.backButton.setEnabled(enable)
 
   #############################################################################
   def filltable(self, header, tabledata, tableViewObject):
-
+    """fills the table"""
     # set the table model
     tm = TableModel(tabledata, header, self)
 
@@ -106,7 +123,7 @@ class HistoryDialog(QDialog, Ui_HistoryDialog):
     # set row height
     #nrows = len(tabledata)
     #for row in xrange(nrows):
-     #   tableViewObject.setRowHeight(row, 18)
+    #   tableViewObject.setRowHeight(row, 18)
     # enable sorting
     # this doesn't work
     #tv.setSortingEnabled(True)
@@ -114,6 +131,7 @@ class HistoryDialog(QDialog, Ui_HistoryDialog):
 
   #############################################################################
   def clearTable(self):
+    """clear the table"""
     #tableViewObject().clear()
     self.__model = {}
 

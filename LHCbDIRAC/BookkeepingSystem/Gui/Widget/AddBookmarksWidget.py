@@ -1,3 +1,6 @@
+"""
+AddBookmarks widget
+"""
 ########################################################################
 # $HeadURL:  $
 ########################################################################
@@ -6,14 +9,15 @@ from PyQt4.QtGui   import QWidget, QDialog
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_AddBookmarks           import Ui_AddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAddBookmarks  import ControlerAddBookmarks
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                       import Item
 
 __RCSID__ = " $"
 
 
 #############################################################################
 class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
-
+  """
+  AddBookmarksWidget class
+  """
   #############################################################################
   def __init__(self, parent = None):
     """
@@ -22,6 +26,7 @@ class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
     @param parent parent widget (QWidget)
     """
     QWidget.__init__(self, parent)
+    Ui_AddBookmarks.__init__(self)
     self.setupUi(self)
 
     self.__controler = ControlerAddBookmarks(self, parent.getControler())
@@ -33,28 +38,35 @@ class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def getTitle(self):
+    """returns the title"""
     return str(self.titlelineEdit.text())
 
   #############################################################################
   def getPath(self):
+    """returns the path"""
     return str(self.pathlineEdit.text())
 
   #############################################################################
   def setTitle(self, string):
+    """sets the title"""
     self.titlelineEdit.setText(string)
 
   #############################################################################
   def setPath(self, string):
+    """sets the path"""
     self.pathlineEdit.setText(string)
 
   #############################################################################
   def waitCursor(self):
+    """wait cursor"""
     self.setCursor(Qt.WaitCursor)
 
   #############################################################################
   def arrowCursor(self):
+    """normal cursor"""
     self.setCursor(Qt.ArrowCursor)

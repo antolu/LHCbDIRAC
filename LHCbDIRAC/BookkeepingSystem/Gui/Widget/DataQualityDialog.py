@@ -1,3 +1,6 @@
+"""
+Datat quality widget
+"""
 ########################################################################
 # $Id: $
 ########################################################################
@@ -11,10 +14,14 @@ __RCSID__ = "$ $"
 
 #############################################################################
 class DataQualityDialog(QDialog, Ui_DataQualityDialog):
-
+  """
+  DataQualityDialog class
+  """
   #############################################################################
-  def __init__(self, parent = None):
+  def __init__(self, parent=None):
+    """initialize the widget"""
     QDialog.__init__(self, parent)
+    Ui_DataQualityDialog.__init__(self)
     self.setupUi(self)
     self.__controler = ControlerDataQualityDialog(self, parent.getControler())
 
@@ -39,7 +46,7 @@ class DataQualityDialog(QDialog, Ui_DataQualityDialog):
     for i in values:
       self.__checkboses.append(QCheckBox(self.groupBox))
       self.__checkboses[j].setObjectName("checkBox")
-      self.dataQualityLayout.addWidget(self.__checkboses[j],j + 1,0,1,1)
+      self.dataQualityLayout.addWidget(self.__checkboses[j], j + 1, 0, 1, 1)
       self.__checkboses[j].setText(QApplication.translate("DataQualityDialog", i, None, QApplication.UnicodeUTF8))
       self.__checkboses[j].setChecked(values[i])
       j += 1

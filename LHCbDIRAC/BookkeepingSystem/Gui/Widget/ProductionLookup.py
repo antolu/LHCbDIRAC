@@ -1,3 +1,6 @@
+"""
+Production Lookup
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -11,10 +14,13 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class ProductionLookup(QDialog, Ui_ProductionLookup):
-
+  """
+  ProductionLookup class
+  """
   #############################################################################
   def __init__(self, data = None, parent = None):
     QDialog.__init__(self, parent)
+    Ui_ProductionLookup.__init__(self)
     self.setupUi(self)
     self.__model = ProductionListModel(data, self)
 
@@ -32,21 +38,26 @@ class ProductionLookup(QDialog, Ui_ProductionLookup):
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def setModel(self, data):
+    """sets the model"""
     self.__model.setData(data)
     self.listView.setModel(self.__model)
 
   #############################################################################
   def getListView(self):
+    """returns the list view"""
     return self.listView
 
   #############################################################################
   def getLineEdit(self):
+    """returns the lineedit widget"""
     return self.lineEdit
 
   #############################################################################
   def getModel(self):
+    """returns the model"""
     return self.__model

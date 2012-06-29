@@ -1,3 +1,6 @@
+"""
+Implementation of the ListModel
+"""
 ########################################################################
 # $Id: $
 ########################################################################
@@ -8,6 +11,11 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import Li
 __RCSID__ = "$Id: $"
 
 class FilterListModel(ListModel):
+  """
+  FilterListModel class
+  """
   #############################################################################
   def __init__(self, parent=None, *args):
-      ListModel.__init__(self, parent, *args)
+    """initialize the model"""
+    ListModel.__init__(self, parent, *args)
+

@@ -1,3 +1,6 @@
+"""
+Filter widget
+"""
 ########################################################################
 # $Id: $
 ########################################################################
@@ -12,16 +15,21 @@ __RCSID__ = "$Id: $"
 
 #############################################################################
 class FilterWidget(QWidget, Ui_FilterWidget):
-
+  """
+  FilterWidget class
+  """
   #############################################################################
   def __init__(self, parent=None):
     QWidget.__init__(self, parent)
+    Ui_FilterWidget.__init__(self)
     self.setupUi(self)
     self.__model = FilterListModel(self)
     self.listView.setSelectionMode(QAbstractItemView.ExtendedSelection)
     self.listView.setSelectionBehavior(QAbstractItemView.SelectRows)
+    self.__controler = None
 
   def setupControler(self, parent):
+    """initialize the controllers"""
     self.__controler = ControlerFilterWidget(self, parent.getControler())
     self.connect(self.okButton, SIGNAL("clicked()"), self.__controler.okPressed)
     self.connect(self.allButton, SIGNAL("clicked()"), self.__controler.allPressed)
@@ -32,22 +40,27 @@ class FilterWidget(QWidget, Ui_FilterWidget):
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def setModel(self, data):
+    """sets the model of the widget"""
     self.__model.setData(data)
     self.listView.setModel(self.__model)
 
   #############################################################################
   def getListView(self):
+    """returns the list"""
     return self.listView
 
   #############################################################################
   def getLineEdit(self):
+    """returns the text box"""
     return self.lineEdit
 
   #############################################################################
   def getModel(self):
+    """returns the model"""
     return self.__model
 

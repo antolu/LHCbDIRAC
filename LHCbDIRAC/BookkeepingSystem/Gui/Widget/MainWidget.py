@@ -1,3 +1,6 @@
+"""
+Main bookkeeping widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -8,9 +11,6 @@ from PyQt4.QtGui  import QMainWindow
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_MainWidget                 import Ui_MainWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerMain              import ControlerMain
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                           import Item
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                        import Message
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient                  import LHCB_BKKDBClient
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.DataQualityDialog             import DataQualityDialog
 
@@ -20,11 +20,14 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class MainWidget(QMainWindow, Ui_MainWidget):
-
+  """
+  MainWidget class
+  """
   #############################################################################
-  def __init__(self, fileName, savepath = None, parent = None):
+  def __init__(self, fileName, savepath=None, parent=None):
     super(MainWidget, self).__init__()
-
+    QMainWindow.__init__(self, parent)
+    Ui_MainWidget.__init__(self)
     """
     Constructor
 
@@ -33,7 +36,6 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     """
     #self.__bkClient = LHCB_BKKDBClient()
     self.__controler = ControlerMain(self, None)
-    QMainWindow.__init__(self, parent)
     self.setupUi(self)
 
     self.__controler.addChild('TreeWidget', self.tree.getControler())
@@ -45,7 +47,7 @@ class MainWidget(QMainWindow, Ui_MainWidget):
     self.__dataQuality = DataQualityDialog(self)
     self.__controler.addChild('DataQuality', self.__dataQuality.getControler())
 
-    self.__productionLookup = ProductionLookup(data = None, parent = self)
+    self.__productionLookup = ProductionLookup(data=None, parent=self)
     self.__controler.addChild('ProductionLookup', self.__productionLookup.getControler())
 
     self.__controler.setFileName(fileName)
@@ -57,6 +59,7 @@ class MainWidget(QMainWindow, Ui_MainWidget):
 
   #############################################################################
   def getControler(self):
+    """returs the controller"""
     return self.__controler
 
   #############################################################################
@@ -75,9 +78,11 @@ class MainWidget(QMainWindow, Ui_MainWidget):
 
   #############################################################################
   def waitCursor(self):
+    """shows the wait cursor"""
     self.setCursor(Qt.WaitCursor)
 
   #############################################################################
   def arrowCursor(self):
+    """shows the normal cursor"""
     self.setCursor(Qt.ArrowCursor)
 

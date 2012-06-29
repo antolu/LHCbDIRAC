@@ -1,34 +1,45 @@
+"""
+Tab widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
 
-from PyQt4.QtGui                                                    import QWidget, QGridLayout, QTableView, QMenu, QAction, QCursor, QApplication
+from PyQt4.QtGui                                                    import  QWidget, QGridLayout, \
+                                                                            QTableView, QMenu, QAction,\
+                                                                            QCursor, QApplication
 from PyQt4.QtCore                                                   import SIGNAL, Qt
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 
-from DIRAC                                                          import gLogger, S_OK, S_ERROR
+from DIRAC                                                          import gLogger
 
 __RCSID__ = "$Id$"
 
 #############################################################################
 class TabWidget(QWidget):
-
+  """
+  TabWidget class
+  """
   #############################################################################
-  def __init__(self, data, parent = None):
+  def __init__(self, data, parent=None):
+    """initialize the widget"""
     QWidget.__init__(self, parent)
 
     self.__data = data
     self.__tabs = []
+    self.__copyAction = None
+    self.__popUp = None
 
   #############################################################################
-  def createTable(self, header, tabledata ):
+  def createTable(self, header, tabledata):
+    """creates a table"""
     gridlayout2 = QGridLayout(self)
     gridlayout2.setObjectName("gridlayout2")
 
     tableView = QTableView(self)
     tableView.setObjectName("tableView")
-    gridlayout2.addWidget(tableView,0,0,1,1)
+    gridlayout2.addWidget(tableView, 0, 0, 1, 1)
 
     self.__popUp = QMenu(tableView)
 
@@ -71,10 +82,11 @@ class TabWidget(QWidget):
     # set row height
     nrows = len(tabledata)
     for row in xrange(nrows):
-        tableView.setRowHeight(row, 18)
+      tableView.setRowHeight(row, 18)
 
   #############################################################################
   def getGroupDesc(self):
+    """retuns the description"""
     if self.__data == None:
       gLogger.error('Wrong tab!')
     else:
@@ -82,13 +94,15 @@ class TabWidget(QWidget):
 
   #############################################################################
   def popUpMenu(self):
+    """shows the popup menu"""
     self.__popUp.popup(QCursor.pos())
 
+  #############################################################################
   def copy(self):
-    #############################################################################
+    """ copy data to the clipboard"""
     text = ''
     for i in self.__data:
-      text += '%s \t %s \n'%(i[0],i[1])
+      text += '%s \t %s \n' % (i[0], i[1])
     clipboard = QApplication.clipboard()
     clipboard.setText(text)
 

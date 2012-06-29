@@ -1,3 +1,6 @@
+"""
+Log widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -10,9 +13,12 @@ from Ui_HttpWidget                                                          impo
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerLogInfo          import ControlerLogInfo
 
 class LogFileWidget(QtGui.QDialog):
-
+  """
+  LogFileWidget class
+  """
   def __init__(self, parent=None):
-    super(LogFileWidget, self).__init__(parent)
+    """initialize the widget"""
+    LogFileWidget.__init__(self, parent)
     self.ui = Ui_HttpWidget()
     self.ui.setupUi(self)
 
@@ -34,30 +40,33 @@ class LogFileWidget(QtGui.QDialog):
     self.ui.back.setEnabled(False)
     self.ui.next.setEnabled(False)
 
-    QtCore.QObject.connect(self.ui.back,QtCore.SIGNAL("clicked()"), self.back)
-    QtCore.QObject.connect(self.ui.next,QtCore.SIGNAL("clicked()"), self.next)
-    QtCore.QObject.connect(self.ui.url,QtCore.SIGNAL("returnPressed()"), self.url_changed)
-    QtCore.QObject.connect(self.ui.webView,QtCore.SIGNAL("linkClicked (const QUrl&)"), self.link_clicked)
-    QtCore.QObject.connect(self.ui.webView,QtCore.SIGNAL("urlChanged (const QUrl&)"), self.link_clicked)
-    QtCore.QObject.connect(self.ui.webView,QtCore.SIGNAL("loadProgress (int)"), self.load_progress)
-    QtCore.QObject.connect(self.ui.webView,QtCore.SIGNAL("titleChanged (const QString&)"), self.title_changed)
-    QtCore.QObject.connect(self.ui.reload,QtCore.SIGNAL("clicked()"), self.reload_page)
-    QtCore.QObject.connect(self.ui.stop,QtCore.SIGNAL("clicked()"), self.stop_page)
+    QtCore.QObject.connect(self.ui.back, QtCore.SIGNAL("clicked()"), self.back)
+    QtCore.QObject.connect(self.ui.next, QtCore.SIGNAL("clicked()"), self.next)
+    QtCore.QObject.connect(self.ui.url, QtCore.SIGNAL("returnPressed()"), self.url_changed)
+    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("linkClicked (const QUrl&)"), self.link_clicked)
+    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("urlChanged (const QUrl&)"), self.link_clicked)
+    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("loadProgress (int)"), self.load_progress)
+    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("titleChanged (const QString&)"), self.title_changed)
+    QtCore.QObject.connect(self.ui.reload, QtCore.SIGNAL("clicked()"), self.reload_page)
+    QtCore.QObject.connect(self.ui.stop, QtCore.SIGNAL("clicked()"), self.stop_page)
 
     QtCore.QMetaObject.connectSlotsByName(self)
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def setUrl(self, url):
+    """sets the URL"""
     self.ui.url.setText(url)
     self.reload_page()
 
   #############################################################################
   def setUrlUsingStorage(self, url):
-    newurl = 'http://lhcb-logs.cern.ch/storage'+url
+    """concatenate the URLs"""
+    newurl = 'http://lhcb-logs.cern.ch/storage' + url
     self.ui.url.setText(newurl)
     self.reload_page()
 

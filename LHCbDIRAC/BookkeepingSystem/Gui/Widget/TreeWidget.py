@@ -1,3 +1,6 @@
+"""
+Tree widget
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -10,7 +13,6 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTree           import Co
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import InfoDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
-from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                        import Item
 
 __RCSID__ = "$Id$"
 
@@ -18,9 +20,11 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class TreeWidget(QWidget, Ui_TreeWidget):
-
+  """
+  TreeWidget class
+  """
   #############################################################################
-  def __init__(self, parent = None):
+  def __init__(self, parent=None):
     """
     Constructor
 
@@ -28,6 +32,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     """
     self.__controler = None
     QWidget.__init__(self, parent)
+    Ui_TreeWidget.__init__(self)
     self.__parent = parent.parentWidget()
     self.setupUi(self)
     self.configNameRadioButton.setChecked(True)
@@ -49,7 +54,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     self.connect(self.advancedQuery, SIGNAL("clicked()"), self.__controler.advancedQuery)
 
     self.__dialog = ProcessingPassDialog(self)
-    self.__controler.addChild('ProcessingPassDialog',self.__dialog.getControler())
+    self.__controler.addChild('ProcessingPassDialog', self.__dialog.getControler())
 
     self.__infodialog = InfoDialog(self)
     self.__controler.addChild('InfoDialog', self.__infodialog.getControler())
@@ -61,47 +66,52 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     flags |= Qt.WindowMaximizeButtonHint
     self.__fileDialog.setWindowFlags(flags)
 
-    self.__controler.addChild('FileDialog',self.__fileDialog.getControler())
+    self.__controler.addChild('FileDialog', self.__fileDialog.getControler())
     self.Bookmarks.setupControler(self)
     self.__controler.addChild('Bookmarks', self.Bookmarks.getControler())
 
     #self.__dialog.show()
     #self.__dialog.hide()
-    '''
-    self.__bkClient = LHCB_BKKDBClient()
-    item = self.__bkClient.get()
-    items=Item(item,None)
-    path = item['Value']['fullpath']
-    for entity in self.__bkClient.list(path):
-      childItem = Item(entity,items)
-      items.addItem(childItem)
-    self.tree.showTree(items)
-    '''
+
+#    self.__bkClient = LHCB_BKKDBClient()
+#    item = self.__bkClient.get()
+#    items=Item(item,None)
+#    path = item['Value']['fullpath']
+#    for entity in self.__bkClient.list(path):
+#      childItem = Item(entity,items)
+#      items.addItem(childItem)
+#    self.tree.showTree(items)
+
     self.tree.header().setResizeMode(1, QHeaderView.ResizeToContents)
     self.tree.header().setResizeMode(0, QHeaderView.ResizeToContents)
 
 
   #############################################################################
   def showBookmarks(self):
+    """shows the bookmarks"""
     self.bookmarksButton.hide()
     self.closeButton.show()
     self.Bookmarks.show()
 
   def hidewidget(self):
+    """hides the bookmarks widget"""
     self.bookmarksButton.show()
     self.closeButton.hide()
     self.Bookmarks.hide()
 
   #############################################################################
   def getTree(self):
+    """returns the tree"""
     return self.tree
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def setAdvancedQueryValue(self):
+    """tick or un-tick the check box"""
     if self.advancedQuery.isChecked():
       self.advancedQuery.setChecked(False)
     else:
@@ -109,6 +119,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
   #############################################################################
   def setStandardQueryValue(self):
+    """tick or un-tick the check box"""
     if self.standardQuery.isChecked():
       self.standardQuery.setChecked(False)
     else:
@@ -116,18 +127,22 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
   #############################################################################
   def getPageSize(self):
+    """returns the page size"""
     return self.pageSize.text()
 
   #############################################################################
   def runLookupRadioButtonIsChecked(self):
+    """is the run lookup ticked"""
     return self.runLookup.isChecked()
 
   #############################################################################
   def productionLookupRadioButtonIsChecked(self):
+    """is the production lookup ticked"""
     return self.productionRadioButton.isChecked()
 
   #############################################################################
   def setSimRadioButton(self):
+    """tick or un-tick the check box"""
     if self.configNameRadioButton.isChecked():
       self.configNameRadioButton.setChecked(False)
     else:
@@ -135,6 +150,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
   #############################################################################
   def setEvtButton(self):
+    """tick or un-tick the check box"""
     if self.radioButton_2.isChecked():
       self.radioButton_2.setChecked(False)
     else:
@@ -142,6 +158,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
   #############################################################################
   def setProdButton(self):
+    """tick or un-tick the check box"""
     if self.productionRadioButton.isChecked():
       self.productionRadioButton.setChecked(False)
     else:
@@ -149,6 +166,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
   #############################################################################
   def setRunButton(self):
+    """tick or un-tick the check box"""
     if self.runLookup.isChecked():
       self.runLookup.setChecked(False)
     else:
@@ -156,4 +174,6 @@ class TreeWidget(QWidget, Ui_TreeWidget):
 
   #############################################################################
   def headerItem(self):
+    """returns the elements of the header"""
     return self.tree.headerItem()
+

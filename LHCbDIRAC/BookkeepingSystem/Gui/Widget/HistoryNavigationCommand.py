@@ -1,8 +1,9 @@
+"""
+history navigation command
+"""
 ########################################################################
 # $Id$
 ########################################################################
-
-from DIRAC                                                               import gLogger, S_OK, S_ERROR
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
 __RCSID__ = "$Id$"
@@ -10,18 +11,21 @@ __RCSID__ = "$Id$"
 
 ########################################################################
 class HistoryNavigationCommand(Command):
-  
+  """
+  HistoryNavigationCommand class
+  """
   ########################################################################
   def __init__(self, widget, tableView, tableModel):
+    """iniztialize the concrete command"""
     Command.__init__(self)
     self.__tableView = tableView
     self.__historyWidget = widget
     self.__tableModel = tableModel
-  
+
   ########################################################################
   def execute(self):
+    """executes the command"""
     self.__historyWidget.setTableModel(self.__tableView, self.__tableModel)
     self.__historyWidget.show()
     self.__historyWidget.repaint()
     self.__tableView.repaint()
-  

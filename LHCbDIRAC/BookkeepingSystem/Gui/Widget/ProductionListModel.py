@@ -1,3 +1,6 @@
+"""
+Production list model
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -7,8 +10,12 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import Li
 __RCSID__ = "$Id$"
 
 class ProductionListModel(ListModel):
+  """
+  ProductionListModel class
+  """
   #############################################################################
   def __init__(self, datain = None, parent=None, *args):
-      if datain != None:
-       datain = datain.getChildren()
+    if datain != None:
+      datain = datain.getChildren()
       ListModel.__init__(self,datain, parent, *args)
+

@@ -1,3 +1,6 @@
+"""
+Table widget used by most widgets
+"""
 ########################################################################
 # $Id$
 ########################################################################
@@ -12,35 +15,44 @@ __RCSID__ = "$Id$"
 
 #############################################################################
 class TableWidget(QWidget, Ui_TableWidget):
-
-  def __init__(self, parent = None):
+  """
+  TableWidget class
+  """
+  def __init__(self, parent=None):
     """
     Constructor
 
     @param parent parent widget (QWidget)
     """
     QWidget.__init__(self, parent)
+    Ui_TableWidget.__init__(self)
     self.setupUi(self)
     self.__controler = ControlerTable(self, parent.parentWidget().getControler())
 
   #############################################################################
   def clear(self):
+    """clear the table"""
     self.tableWidget.clear()
 
   #############################################################################
   def setColumnCount(self, number):
+    """sets the number of columns"""
     self.tableWidget.setColumnCount(number)
 
   #############################################################################
   def setRowCount(self, row):
+    """sets the number of rows"""
     self.tableWidget.setRowCount(row)
 
   #############################################################################
   def setupControler(self, controler):
-    print 'table widget'
+    """sets the controller"""
+    pass
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
+
