@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-########################################################################
 
 """
    Get statistics on number of replicas for a given directory or production
@@ -10,7 +7,7 @@
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
-import os, sys
+import sys
 
 def orderSEs( listSEs ):
   listSEs = sortList( listSEs )
@@ -19,7 +16,6 @@ def orderSEs( listSEs ):
   return orderedSEs
 
 import DIRAC
-from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 if __name__ == "__main__":
@@ -33,10 +29,10 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.registerSwitch( "S:", "Size", "   Get the LFN size [No]" )
-  Script.registerSwitch( '', 'Invisible', '   Show invisible files also [No]' )
+  Script.registerSwitch( '', 'InvisibleFiles', '   Show invisible files also [No]' )
   Script.registerSwitch( '', 'PrintNoReplicas', '   Print list of files without a replica [No]' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   getSize = False
   visible = True
@@ -44,12 +40,11 @@ if __name__ == "__main__":
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
-    elif switch[0] == 'Invisible':
+    elif switch[0] == 'InvisibleFiles':
       visible = False
     elif switch[0] == 'PrintNoReplicas':
       prNoReplicas = True
 
-  import DIRAC
   from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -69,7 +64,7 @@ if __name__ == "__main__":
         continue
       lfnReplicas.update( res['Value'] )
   else:
-    bkQuery = dmScript.getBKQuery( visible=visible )
+    bkQuery = dmScript.getBKQuery( visible = visible )
     print "Executing BK query:", bkQuery
     lfns = bkQuery.getLFNs()
     if lfns:
@@ -165,7 +160,7 @@ if __name__ == "__main__":
   for se in orderSEs( repSEs.keys() ):
     if se.endswith( "-FAILOVER" ): continue
     if not se.endswith( "-ARCHIVE" ):
-      res = getSitesForSE( se, gridName='LCG' )
+      res = getSitesForSE( se, gridName = 'LCG' )
       if res['OK']:
         try:
           site = res['Value'][0]
