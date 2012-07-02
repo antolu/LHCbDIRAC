@@ -76,6 +76,19 @@ class ModulesTestCase( unittest.TestCase ):
                                                                      ['SIM'], ['BD2JPSIKS.MDST'],
                                                                      ['BU2JPSIK.DST'], ['BUBDBSSELECTION.DST'],
                                                                      ['LAMBDA.DST'], ['BSMUMUBLIND.DST'], ['HADRONIC.DST']]}}
+    self.bkc_mock.getFileMetadata.return_value = {'OK': True,
+                                                  'Value': {'foo': {'ADLER32': None,
+                                                                    'FileType': 'SDST',
+                                                                    'FullStat': None,
+                                                                    'GotReplica': 'Yes',
+                                                                    'RunNumber': 93718},
+                                                            'bar': {'ADLER32': None,
+                                                                    'FileType': 'SDST',
+                                                                    'FullStat': None,
+                                                                    'GotReplica': 'Yes',
+                                                                    'RunNumber': 93720}},
+                                                  'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )
+                                                  }
 
     self.nc_mock = Mock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
@@ -369,10 +382,17 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 #                                        self.step_number, self.step_id,
 #                                        Mock() )['OK'] )
 
-  #################################################
+  def test__determineOutputFileType( self ):
+    self.ga.stepInputData = ['foo', 'bar']
+    self.ga.stepOutputsType = ['SDST', 'HIST']
+    self.ga.jobType = 'merge'
+    outft = self.ga._determineOutputFileType( self.bkc_mock )
+    self.assertEqual( outft, ['SDST'] )
+    self.ga.jobType = 'reco'
+    outft = self.ga._determineOutputFileType( self.bkc_mock )
+    self.assertEqual( outft, ['SDST'] )
 
   def test__findOutputs( self ):
-
     open( 'aaa.Bhadron.dst', 'w' ).close()
     open( 'bbb.Calibration.dst', 'w' ).close()
     open( 'ccc.charm.mdst', 'w' ).close()

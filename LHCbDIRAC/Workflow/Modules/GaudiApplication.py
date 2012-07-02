@@ -93,7 +93,7 @@ class GaudiApplication( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_id = None, step_number = None,
-               projectEnvironment = None ):
+               projectEnvironment = None, bkkClient = None ):
     """ The main execution method of GaudiApplication.
     """
 
@@ -190,9 +190,8 @@ class GaudiApplication( ModuleBase ):
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
 
-        stepOutTypes = copy.deepcopy( self.stepOutputsType )
-        if 'HIST' in stepOutTypes:
-          stepOutTypes.remove( 'HIST' )
+        stepOutTypes = self._determineOutputFileType( bkkClient )
+
         optionsDict['OutputFileTypes'] = stepOutTypes
 
         optionsDict['XMLSummaryFile'] = self.XMLSummary
@@ -424,6 +423,36 @@ class GaudiApplication( ModuleBase ):
 
     return ( finalOutputs, bkFileTypes )
 
+  #############################################################################
+
+  def _determineOutputFileType( self, bkkClient = None ):
+    """ Determines the correct output file type.
+        For merging jobs the output has to be the same as the input.
+        For the others, we use what is in the step definition, removing 'HIST' when present
+    """
+    if self.jobType.lower() == 'merge':
+      if not bkkClient:
+        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+        bkkClient = BookkeepingClient()
+      res = bkkClient.getFileMetadata( self.stepInputData )
+      if not res['OK']:
+        return res
+      outputTypes = []
+      for mdDict in res['Value'].values():
+        if mdDict['FileType'] not in outputTypes:
+          outputTypes.append( mdDict['FileType'] )
+      if len( outputTypes ) != 1:
+        raise ValueError, "Not all input files have the same type"
+      outputType = outputTypes[0].upper()
+      if outputType not in self.stepOutputsType:
+        raise RuntimeError, "Could not find the output type desired"
+      stepOutTypes = [outputType]
+    else:
+      stepOutTypes = copy.deepcopy( self.stepOutputsType )
+      if 'HIST' in stepOutTypes:
+        stepOutTypes.remove( 'HIST' )
+
+    return stepOutTypes
 
   #############################################################################
 
@@ -448,5 +477,6 @@ class GaudiApplication( ModuleBase ):
         self.log.error( "Application Log file not defined" )
       if fd == 1:
         self.stdError += message
+
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
