@@ -25,7 +25,7 @@ if len( ids ) < 1:
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 cl = BookkeepingClient()
-retVal = cl.getRunFilesDataQuality( ids )
+retVal = cl.getRunFilesDataQuality( int(ids) )
 if retVal['OK']:
   print "-----------------------------------"
   print "Run Number".ljust( 20 ) + "Flag".ljust( 10 )

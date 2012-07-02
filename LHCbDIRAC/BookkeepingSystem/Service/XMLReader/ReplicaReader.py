@@ -1,10 +1,10 @@
+"""
+It stores the replica
+"""
 ########################################################################
 # $Id$
 ########################################################################
 
-"""
-
-"""
 
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.Replica      import Replica
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.ReplicaParam import ReplicaParam
@@ -13,16 +13,16 @@ from DIRAC                                                        import gLogger
 __RCSID__ = "$Id$"
 
 class ReplicaReader:
-
+  """
+  ReplicaReader class
+  """
   #############################################################################
   def __init__( self ):
     pass
 
   #############################################################################
   def readReplica( self, doc, filename ):
-    """
-
-    """
+    """reads the replica information"""
     gLogger.info( "Reading Replica from" + str( filename ) )
     replica = Replica()
     replica.setFileName( filename ) #full path
@@ -32,9 +32,9 @@ class ReplicaReader:
     for node in replicaElements:
       param = ReplicaParam()
 
-      file = node.getAttributeNode( 'File' )
-      if file != None:
-        param.setFile( file.value.encode( 'ascii' ) )
+      outputfile = node.getAttributeNode( 'File' )
+      if outputfile != None:
+        param.setFile( outputfile.value.encode( 'ascii' ) )
       else:
         gLogger.warn( "Missing the <file> tag in replica xml file!" )
 

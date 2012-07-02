@@ -1,23 +1,35 @@
+"""
+It interprets the XML reports and make a job, file, or replica object
+"""
+
 ########################################################################
 # $Id$
 ########################################################################
 
-"""
-
-"""
-
-from xml.dom.minidom                                                                       import parse, parseString
+from xml.dom.minidom                                                                    import parse, parseString
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader                            import JobReader
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
-from DIRAC.ConfigurationSystem.Client.Config                                               import gConfig
-from DIRAC                                                                                 import gLogger, S_OK, S_ERROR
+from DIRAC                                                                              import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
-#from DIRAC.BookkeepingSystem.Client.BookkeepingClient                                  import BookkeepingClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager                                      import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam                        import FileParam
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters                    import JobParameters
-from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                      import *
-import os, sys, datetime, re
+from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam                  import FileParam
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters              import JobParameters
+from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                import  BeamEnergyCondition, \
+                                                                                          VeloCondition, \
+                                                                                          MagneticFieldCondition, \
+                                                                                          EcalCondition, \
+                                                                                          HcalCondition, \
+                                                                                          HltCondition, \
+                                                                                          ItCondition, \
+                                                                                          LoCondition, \
+                                                                                          MuonCondition, \
+                                                                                          OtCondition, \
+                                                                                          Rich1Condition, \
+                                                                                          Rich2Condition, \
+                                                                                          Spd_prsCondition, \
+                                                                                          TtCondition, \
+                                                                                          VeloPosition,\
+                                                                                          Context
 
 __RCSID__ = "$Id$"
 
@@ -26,10 +38,12 @@ dataManager_ = BookkeepingDatabaseClient()
 #dataManager_ = BookkeepingClient()
 
 class XMLFilesReaderManager:
-
+  """
+  XMLFilesReaderManager class
+  """
   #############################################################################
   def __init__(self):
-
+    """initialize the member of class"""
     self.jobReader_ = JobReader()
     self.replicaReader_ = ReplicaReader()
 
@@ -38,9 +52,7 @@ class XMLFilesReaderManager:
 
   #############################################################################
   def readFile(self, filename):
-    """
-
-    """
+    """reads an file content which format is XML"""
     try:
       stream = open(filename)
       doc = parse(stream)
@@ -48,29 +60,29 @@ class XMLFilesReaderManager:
 
 
       docType = doc.doctype #job or replica
-      type = docType.name.encode('ascii')
+      xmltype = docType.name.encode('ascii')
     except Exception, ex:
       gLogger.error("XML reading error", filename)
       return S_ERROR(ex)
 
-    return type, doc, filename
+    return xmltype, doc, filename
 
   #############################################################################
   def readXMLfromString(self, xmlString):
-
+    """read the xml string"""
     try:
       doc = parseString(xmlString)
 
       docType = doc.doctype #job or replica
-      type = docType.name.encode('ascii')
+      xmltype = docType.name.encode('ascii')
 
-      if type == 'Replicas':
+      if xmltype == 'Replicas':
         replica = self.replicaReader_.readReplica(doc, "IN Memory")
         result = self.processReplicas(replica)
         del replica
         return result
       else:
-        if type == 'Job':
+        if xmltype == 'Job':
           job = self.jobReader_.readJob(doc, "IN Memory")
           result = self.processJob(job)
           del job
@@ -83,57 +95,59 @@ class XMLFilesReaderManager:
 
 
   #############################################################################
-  def processJob(self, job, errorReport=False):
-    """
-
-    """
+  def processJob(self, job):
+    """interprets the xml content"""
     gLogger.info("Start Processing")
-
-    deleteFileName = job.getFileName()
 
     ##checking
     inputFiles = job.getJobInputFiles()
-    for file in inputFiles:
-      name = file.getFileName()
+    for lfn in inputFiles:
+      name = lfn.getFileName()
       result = dataManager_.checkfile(name)
       if result['OK']:
         fileID = long(result['Value'][0][0])
-        file.setFileID(fileID)
+        lfn.setFileID(fileID)
       else:
-        return S_ERROR('The file ' + name + ' not exist in the BKK database!!')
+        errorMessage = "The file %s does not exist in the BKK database!!" % name
+        return S_ERROR(errorMessage)
 
     outputFiles = job.getJobOutputFiles()
     dqvalue = None
-    for file in outputFiles:
-      name = file.getFileName()
+    for outputfile in outputFiles:
+      name = outputfile.getFileName()
       result = dataManager_.checkfile(name)
       if result['OK'] and not job.exists('RunNumber'):
-        return S_OK("The file " + str(name) + " already exists.")
+        errorMessage = "The file %s is already exists." % name
+        return S_OK(errorMessage)
 
-      typeName = file.getFileType()
-      typeVersion = file.getFileVersion()
+      typeName = outputfile.getFileType()
+      typeVersion = outputfile.getFileVersion()
       result = dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
       if not result['OK']:
-        return S_ERROR("The type " + str(typeName) + ", version " + str(typeVersion) + "is missing.\n")
+        errorMessage = "The type:%s, version:%s is missing." % (str(typeName),
+                                                                str(typeVersion))
+        return S_ERROR(errorMessage)
       else:
         typeID = long(result['Value'])
-        file.setTypeID(typeID)
+        outputfile.setTypeID(typeID)
 
-      if job.getParam('JobType') and job.getParam('JobType').getValue() == 'DQHISTOMERGING': #all the merged histogram files have to be visible
+      if job.getParam('JobType') and \
+         job.getParam('JobType').getValue() == 'DQHISTOMERGING': #all the merged histogram files have to be visible
         newFileParams = FileParam()
         newFileParams.setParamName('VisibilityFlag')
         newFileParams.setParamValue('Y')
-        file.addFileParam(newFileParams)
+        outputfile.addFileParam(newFileParams)
         gLogger.debug('The Merged histograms visibility flag has to be Y!')
 
-      params = file.getFileParams()
+      params = outputfile.getFileParams()
       evtExists = False
-      runExists = False
+
       for param in params:
         paramName = param.getParamName()
 
         if paramName == "EventStat":
-          if param.getParamValue() == '' and file.getFileType() in ['BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'BOOLEHIST']:
+          if param.getParamValue() == '' and \
+             outputfile.getFileType() in ['BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'BOOLEHIST']:
             param.setParamValue(None) # default value
           elif param.getParamValue() == '':
             return S_ERROR('EventStat value is null')
@@ -151,7 +165,8 @@ class XMLFilesReaderManager:
           value = long(param.getParamValue())
           result = dataManager_.checkEventType(value)
           if not result['OK']:
-            return S_ERROR("The event type " + str(value) + " is missing.\n")
+            errorMessage = "The event type %s is missing!" % (str(value))
+            return S_ERROR(errorMessage)
 
         gLogger.debug('EventTypeId checking!')
         if paramName == "EventTypeId":
@@ -160,10 +175,11 @@ class XMLFilesReaderManager:
             value = long(param.getParamValue())
             result = dataManager_.checkEventType(value)
             if not result['OK']:
-              return S_ERROR("The event type " + str(value) + " is missing.\n")
+              errorMessage = "The event type %s is missing!" % (str(value))
+              return S_ERROR(errorMessage)
             evtExists = True
 
-      if not evtExists and file.getFileType() not in ['LOG']:
+      if not evtExists and outputfile.getFileType() not in ['LOG']:
         inputFiles = job.getJobInputFiles()
         if len(inputFiles) > 0:
           fileName = inputFiles[0].getFileName()
@@ -171,14 +187,14 @@ class XMLFilesReaderManager:
           if res['OK']:
             value = res['Value']
             if value[fileName].has_key('EventTypeId'):
-              if file.exists('EventTypeId'):
-                param = file.getParam('EventTypeId')
+              if outputfile.exists('EventTypeId'):
+                param = outputfile.getParam('EventTypeId')
                 param.setParamValue(str(value[fileName]['EventTypeId']))
               else:
                 newFileParams = FileParam()
                 newFileParams.setParamName('EventTypeId')
                 newFileParams.setParamValue(str(value[fileName]['EventTypeId']))
-                file.addFileParam(newFileParams)
+                outputfile.addFileParam(newFileParams)
           else:
             return S_ERROR(res['Message'])
         elif job.getOutputFileParam('EventTypeId') != None:
@@ -186,9 +202,9 @@ class XMLFilesReaderManager:
           newFileParams = FileParam()
           newFileParams.setParamName('EventTypeId')
           newFileParams.setParamValue(param.getParamValue())
-          file.addFileParam(newFileParams)
+          outputfile.addFileParam(newFileParams)
         else:
-          return S_ERROR('I can not fill the EventTypeId because there is no input files!')
+          return S_ERROR('It can not fill the EventTypeId because there is no input files!')
 
       infiles = job.getJobInputFiles()
       if not job.exists('RunNumber') and len(infiles) > 0:
@@ -278,9 +294,9 @@ class XMLFilesReaderManager:
 
     currentEventInputStat = job.getParam('EventInputStat')
     if currentEventInputStat != None:
-        if long(currentEventInputStat.getValue()) != long(evtinput):
-          gLogger.error('EventInputStat is not equal' + str(currentEventInputStat.getValue()) + '  ' + str(evtinput))
-        currentEventInputStat.setValue(evtinput)
+      if long(currentEventInputStat.getValue()) != long(evtinput):
+        gLogger.error('EventInputStat is not equal' + str(currentEventInputStat.getValue()) + '  ' + str(evtinput))
+      currentEventInputStat.setValue(evtinput)
     elif not job.exists('EventInputStat') and len(inputfiles) > 0:
       newJobParams = JobParameters()
       newJobParams.setName('EventInputStat')
@@ -288,12 +304,13 @@ class XMLFilesReaderManager:
       job.addJobParams(newJobParams)
 
     outputFiles = job.getJobOutputFiles()
-    for file in outputFiles:
-      if file.getFileType() not in ['LOG'] and sumLuminosity > 0 and not file.exists('Luminosity'):
+    for outputfile in outputFiles:
+      if outputfile.getFileType() not in ['LOG'] and \
+         sumLuminosity > 0 and not outputfile.exists('Luminosity'):
         newFileParams = FileParam()
         newFileParams.setParamName('Luminosity')
         newFileParams.setParamValue(sumLuminosity)
-        file.addFileParam(newFileParams)
+        outputfile.addFileParam(newFileParams)
 
       ################
 
@@ -309,16 +326,21 @@ class XMLFilesReaderManager:
     result = self.__insertJob(job)
 
     if not result['OK']:
-      return S_ERROR("Unable to create Job : " + str(config.getConfigName()) + ", " + str(config.getConfigVersion()) + ", " + str(config.getDate()) + ".\n" + 'Error: ' + str(result['Message']))
+      errorMessage = "Unable to create Job : %s , %s, %s .\n Error: %s" % (str(config.getConfigName()),
+                                                                           str(config.getConfigVersion()),
+                                                                           str(config.getDate()),
+                                                                           str(result['Message']))
+      return S_ERROR(errorMessage)
     else:
       jobID = long(result['Value'])
       job.setJobId(jobID)
     inputFiles = job.getJobInputFiles()
-    for file in inputFiles:
-      result = dataManager_.insertInputFile(job.getJobId(), file.getFileID())
+    for inputfile in inputFiles:
+      result = dataManager_.insertInputFile(job.getJobId(), inputfile.getFileID())
       if not result['OK']:
         dataManager_.deleteJob(job.getJobId())
-        return S_ERROR("Unable to add " + str(file.getFileName()))
+        errorMessage = "Unable to add %s " % (str(inputfile.getFileName()))
+        return S_ERROR(errorMessage)
 
 
     outputFiles = job.getJobOutputFiles()
@@ -327,54 +349,54 @@ class XMLFilesReaderManager:
     if not retVal['OK']:
       return retVal
     outputFileTypes = retVal['Value']
-    for file in outputFiles:
+    for outputfile in outputFiles:
       if dqvalue != None:
         newFileParams = FileParam()
         newFileParams.setParamName('QualityId')
         newFileParams.setParamValue(dqvalue)
-        file.addFileParam(newFileParams)
+        outputfile.addFileParam(newFileParams)
       if not job.exists('RunNumber'): #if it is MC
         newFileParams = FileParam()
         newFileParams.setParamName('QualityId')
         newFileParams.setParamValue('OK')
-        file.addFileParam(newFileParams)
-      ftype = file.getFileType()
+        outputfile.addFileParam(newFileParams)
+      ftype = outputfile.getFileType()
       if outputFileTypes.has_key(ftype):
         vFileParams = FileParam()
         vFileParams.setParamName('VisibilityFlag')
         vFileParams.setParamValue(outputFileTypes[ftype])
-        file.addFileParam(vFileParams)
+        outputfile.addFileParam(vFileParams)
         gLogger.debug('The visibility flag is:' + outputFileTypes[ftype])
 
       result = self.__insertOutputFiles(job, file)
       if not result['OK']:
         dataManager_.deleteInputFiles(job.getJobId())
         dataManager_.deleteJob(job.getJobId())
-        return S_ERROR("Unable to create file " + str(file.getFileName()) + "!" + "ERROR: " + result["Message"])
+        errorMessage = "Unable to create file %s ! ERROR: %s" % (str(outputfile.getFileName()),
+                                                                 result["Message"])
+        return S_ERROR(errorMessage)
       else:
-        id = long(result['Value'])
-        file.setFileID(id)
+        fileid = long(result['Value'])
+        outputfile.setFileID(fileid)
 
-      replicas = file.getReplicas()
+      replicas = outputfile.getReplicas()
       for replica in replicas:
         params = replica.getaprams()
         for param in params: # just one param exist in params list, because JobReader only one param add to Replica
           name = param.getName()
-          location = param.getLocation()
-        result = dataManager_.updateReplicaRow(file.getFileID(), 'No')  #, name, location)
+        result = dataManager_.updateReplicaRow(outputfile.getFileID(), 'No')  #, name, location)
         if not result['OK']:
-          return S_ERROR("Unable to create Replica " + str(name) + ".\n")
+          errorMessage = "Unable to create Replica %s !" % (str(name))
+          return S_ERROR(errorMessage)
 
     gLogger.info("End Processing!")
 
     return S_OK()
 
   def __insertJob(self, job):
-
+    """Inserts the job to the database"""
     config = job.getJobConfiguration()
 
-    jobsimcondtitions = job.getSimulationCond()
-    simulations = {}
     production = None
 
     condParams = job.getDataTakingCond()
@@ -387,8 +409,14 @@ class XMLFilesReaderManager:
       config.setConfigVersion(ver)
       gLogger.debug(str(datataking))
       context = Context(datataking, config.getConfigName())
-      conditions = [BeamEnergyCondition(), VeloCondition(), MagneticFieldCondition(), EcalCondition(), HcalCondition(), HltCondition(), ItCondition(), LoCondition(), \
-              MuonCondition(), OtCondition(), Rich1Condition(), Rich2Condition(), Spd_prsCondition(), TtCondition(), VeloPosition()]
+      conditions = [BeamEnergyCondition(), VeloCondition(),
+                    MagneticFieldCondition(), EcalCondition(),
+                    HcalCondition(), HltCondition(),
+                    ItCondition(), LoCondition(),
+                    MuonCondition(), OtCondition(),
+                    Rich1Condition(), Rich2Condition(),
+                     Spd_prsCondition(), TtCondition(),
+                     VeloPosition()]
       for condition in conditions:
         condition.interpret(context)
 
@@ -407,14 +435,16 @@ class XMLFilesReaderManager:
           if not res['OK']:
             return S_ERROR("DATA TAKING Problem:" + str(res['Message']))
           else:
-            dataTackingPeriodDesc = datataking['Description'] # The new data taking condition inserted. The name should be the generated name.
+            dataTackingPeriodDesc = datataking['Description']
+            # The new data taking condition inserted. The name should be the generated name.
       else:
         # Note we allow to insert data quality tags when only the description is different.
         res = dataManager_.insertDataTakingCond(datataking)
         if not res['OK']:
           return S_ERROR("DATA TAKING Problem:" + str(res['Message']))
         else:
-          dataTackingPeriodDesc = datataking['Description'] # The new data taking condition inserted. The name should be the generated name.
+          dataTackingPeriodDesc = datataking['Description']
+          # The new data taking condition inserted. The name should be the generated name.
 
       #insert processing pass
       programName = None
@@ -448,13 +478,21 @@ class XMLFilesReaderManager:
 
       if not retVal['OK']:
         return S_ERROR(retVal['Message'])
-      steps = {'Steps':[{'StepId':retVal['Value'][0], 'StepName':retVal['Value'][1], 'ProcessingPass':retVal['Value'][1], 'Visible':'Y'}]}
+      steps = {'Steps':
+               [{'StepId':retVal['Value'][0],
+                 'StepName':retVal['Value'][1],
+                 'ProcessingPass':retVal['Value'][1],
+                 'Visible':'Y'}]}
       gLogger.debug('Pass_indexid', steps)
       gLogger.debug('Data taking', dataTackingPeriodDesc)
       gLogger.debug('production', production)
 
 
-      res = dataManager_.addProduction(production, simcond=None, daq=dataTackingPeriodDesc, steps=steps['Steps'], inputproc='')
+      res = dataManager_.addProduction(production,
+                                       simcond=None,
+                                       daq=dataTackingPeriodDesc,
+                                       steps=steps['Steps'],
+                                       inputproc='')
 
       if res['OK']:
         gLogger.info("New processing pass has been created!")
@@ -482,7 +520,9 @@ class XMLFilesReaderManager:
     else:
       value = res['Value']
       if value[0][0] == 0:
-        gLogger.warn('Missing processing pass and simulation conditions!(Please fill it!) Production=', str(attrList['Production']))
+        errorMessage = "Missing processing pass and simulation conditions!\
+        (Please fill it!) Production=%s" % (str(attrList['Production']))
+        gLogger.warn(errorMessage)
 
 
     if attrList['JobStart'] == None:
@@ -503,26 +543,24 @@ class XMLFilesReaderManager:
     return res
 
   #############################################################################
-  def __insertOutputFiles(self, job, file):
-
-    attrList = {  'FileName':file.getFileName(), \
-                  'FileTypeId':file.getTypeID(), \
+  def __insertOutputFiles(self, job, outputfile):
+    """insert the files produced by a job"""
+    attrList = {  'FileName':outputfile.getFileName(), \
+                  'FileTypeId':outputfile.getTypeID(), \
                   'JobId':job.getJobId()}
 
 
-    fileParams = file.getFileParams()
+    fileParams = outputfile.getFileParams()
     for param in fileParams:
       attrList[str(param.getParamName())] = param.getParamValue()
     res = dataManager_.insertOutputFile(attrList)
     return res
 
   #############################################################################
-  def processReplicas(self, replica, errorReport=False):
-    """
-
-    """
-    file = replica.getFileName()
-    gLogger.info("Processing replicas: " + str(file))
+  def processReplicas(self, replica):
+    """process the replica registration request"""
+    outputfile = replica.getFileName()
+    gLogger.info("Processing replicas: " + str(outputfile))
     fileID = -1
 
     params = replica.getaprams()
@@ -530,16 +568,14 @@ class XMLFilesReaderManager:
 
     replicaFileName = ""
     for param in params:
-      name = param.getName()
       replicaFileName = param.getFile()
       location = param.getLocation()
       delete = param.getAction() == "Delete"
 
       result = dataManager_.checkfile(replicaFileName)
-
       if not result['OK']:
-        message = "No replica can be ";
-        if (delete):
+        message = "No replica can be "
+        if delete:
           message += "removed"
         else:
           message += "added"
@@ -549,16 +585,14 @@ class XMLFilesReaderManager:
         fileID = long(result['Value'][0][0])
         gLogger.info(fileID)
 
-      if (delete):
+      if delete:
         result = self.replicaManager_.getReplicas(replicaFileName)
-        list = result['Value']
-        replicaList = list['Successful']
+        replicaList = result['Value']['Successful']
         if len(replicaList) == 0:
           result = dataManager_.updateReplicaRow(fileID, "No")
           if not result['OK']:
             gLogger.warn("Unable to set the Got_Replica flag for " + str(replicaFileName))
             return S_ERROR("Unable to set the Got_Replica flag for " + str(replicaFileName))
-
       else:
         result = dataManager_.updateReplicaRow(fileID, "Yes")
         if not result['OK']:
