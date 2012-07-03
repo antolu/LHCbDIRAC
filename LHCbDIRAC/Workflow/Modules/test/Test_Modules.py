@@ -1,6 +1,5 @@
 import unittest, itertools, os, copy, shutil
 
-#import DIRAC.ResourceStatusSystem.test.fake_Logger
 from mock import Mock
 
 from DIRAC import gLogger
