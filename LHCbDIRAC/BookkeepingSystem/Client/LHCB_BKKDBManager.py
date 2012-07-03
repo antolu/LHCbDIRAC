@@ -107,7 +107,8 @@ class LHCB_BKKDBManager(BaseESManager):
     self.treeLevels_ = level
 
   #############################################################################
-  def setVerbose(self, value):
+  @staticmethod
+  def setVerbose(value):
     """information printed"""
     objects.VERBOSE = value
 
@@ -341,19 +342,21 @@ class LHCB_BKKDBManager(BaseESManager):
     else:
       return None
 
-  def __createPath(self, processedPath, name):
+  @staticmethod
+  def __createPath(processedPath, name):
     """ create a path"""
     path = ''
     for i in processedPath:
-      s = '/' + i[0] + '_' + i[1]
-      path += s
+      string = '/' + i[0] + '_' + i[1]
+      path += string
 
     path += '/' + name[0] + '_' + name[1]
     return path
 
 
   #############################################################################
-  def clevelHeader_0(self, path, levels, processedPath):
+  @staticmethod
+  def clevelHeader_0(path, levels, processedPath):
     """configuration tree (first tree)"""
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug ("Configurations names:")
@@ -378,7 +381,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def clevelHeader_1(self, path, levels, processedPath):
+  @staticmethod
+  def clevelHeader_1(path, levels, processedPath):
     """ second level"""
     gLogger.debug("listing configversions")
     in_dict = {'ConfigName': processedPath[0]}
@@ -406,7 +410,8 @@ class LHCB_BKKDBManager(BaseESManager):
 
 
   #############################################################################
-  def clevelHeader_2(self, path, levels, processedPath):
+  @staticmethod
+  def clevelHeader_2(path, levels, processedPath):
     """third"""
     gLogger.debug("listing Simulation Conditions!")
     in_dict = {'ConfigName': processedPath[0],
@@ -461,7 +466,8 @@ class LHCB_BKKDBManager(BaseESManager):
 
 
   #############################################################################
-  def clevelHeader_3(self, path, levels, processedPath):
+  @staticmethod
+  def clevelHeader_3(path, levels, processedPath):
     """fourth level"""
     gLogger.debug("listing processing pass")
     in_dict = {'ConfigName': processedPath[0],
@@ -507,7 +513,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def clevelHeader_4(self, path, levels, processedPath, procpass):
+  @staticmethod
+  def clevelHeader_4(path, levels, processedPath, procpass):
     """ 5th level"""
     gLogger.debug("listing event types")
     retVal = procpass.split('/')[1:]
@@ -728,7 +735,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def elevelHeader_3(self, path, levels, processedPath):
+  @staticmethod
+  def elevelHeader_3(path, levels, processedPath):
     """event type based tree node"""
     gLogger.debug("listing simulation conditions")
 
@@ -785,7 +793,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def elevelHeader_4(self, path, levels, processedPath):
+  @staticmethod
+  def elevelHeader_4(path, levels, processedPath):
     """prepare the 5th query"""
     gLogger.debug("listing processing pass")
 
@@ -955,7 +964,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def plevelHeader_0(self, path, levels, processedPath):
+  @staticmethod
+  def plevelHeader_0(path, levels, processedPath):
     """prepare production lookup tree node"""
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug ("productions:")
@@ -981,7 +991,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def plevelHeader_2(self, path, levels, processedPath):
+  @staticmethod
+  def plevelHeader_2(path, levels, processedPath):
     """prepare the tree node"""
     gLogger.debug("listing eventtype")
 
@@ -1020,7 +1031,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def plevelHeader_3(self, path, levels, processedPath):
+  @staticmethod
+  def plevelHeader_3(path, levels, processedPath):
     """prepare tree node"""
     gLogger.debug("listing file types")
     in_dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1]}
@@ -1047,7 +1059,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def plevelHeader_4(self, path, levels, processedPath):
+  @staticmethod
+  def plevelHeader_4(path, levels, processedPath):
     """prepare the tree node"""
     gLogger.debug("listing file types")
     in_dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
@@ -1085,7 +1098,8 @@ class LHCB_BKKDBManager(BaseESManager):
 
     return entityList
 
-  def rlevelHeader_0(self, path, levels, processedPath):
+  @staticmethod
+  def rlevelHeader_0(path, levels, processedPath):
     """prepare run lookup node"""
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug ("Runs:")
@@ -1111,7 +1125,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def rlevelHeader_2(self, path, levels, processedPath):
+  @staticmethod
+  def rlevelHeader_2(path, levels, processedPath):
     """prepare tree node"""
     gLogger.debug("listing processing pass")
     in_dict = {'RunNumber':processedPath[0]}
@@ -1153,7 +1168,8 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def rlevelHeader_3(self, path, levels, processedPath, procpass):
+  @staticmethod
+  def rlevelHeader_3(path, levels, processedPath, procpass):
     """prepare node of the run lookup tree"""
     gLogger.debug("listing eventtypes")
     retVal = procpass.split('/')[1:]
@@ -1187,7 +1203,8 @@ class LHCB_BKKDBManager(BaseESManager):
 
 
   #############################################################################
-  def rlevelHeader_4(self, path, levels, processedPath, procpass):
+  @staticmethod
+  def rlevelHeader_4(path, levels, processedPath, procpass):
     """prepare tree"""
     gLogger.debug("listing file types")
     retVal = procpass.split('/')[1:]
@@ -1206,7 +1223,8 @@ class LHCB_BKKDBManager(BaseESManager):
 
 
   #############################################################################
-  def _getEntityFromPath(self, presentPath, newPathElement, level, leveldescription=None, selection=None, method=None):
+  @staticmethod
+  def _getEntityFromPath(presentPath, newPathElement, level, leveldescription=None, selection=None, method=None):
     """create a entity"""
     if isinstance(newPathElement, types.DictType):
       # this must be a file
@@ -1252,7 +1270,12 @@ class LHCB_BKKDBManager(BaseESManager):
     return entity
 
   #############################################################################
-  def _getSpecificEntityFromPath(self, presentPath, value, newPathElement, level, description=None, leveldescription=None, selection=None, method=None):
+  @staticmethod
+  def _getSpecificEntityFromPath(presentPath, value,
+                                 newPathElement, level,
+                                 description=None,
+                                 leveldescription=None,
+                                 selection=None, method=None):
     """crate a specific entity"""
     if isinstance(value, types.DictType):
       entity = objects.Entity(value)
@@ -1333,7 +1356,7 @@ class LHCB_BKKDBManager(BaseESManager):
     path = self.getAbsolutePath(path)['Value']
     entity = self._getEntity(path)
     if entity.__class__ == types.NoneType:
-      gLogger.error(path + " doesn't exist!");
+      gLogger.error(path + " doesn't exist!")
       #raise ValueError, "Invalid path %s" % path
     return S_OK(entity)
 
@@ -1344,9 +1367,9 @@ class LHCB_BKKDBManager(BaseESManager):
       entity = self.__entityCache[path][0]
       gLogger.debug("getting " + str(path) + " from the cache")
       return entity
-    except:
+    except Exception, ex:
       # not cached so far
-      gLogger.debug(str(path) + " not in cache. Fetching...")
+      gLogger.debug(str(path) + " not in cache. Fetching..."+ex)
 
     # Second try
 
@@ -1354,15 +1377,16 @@ class LHCB_BKKDBManager(BaseESManager):
       gLogger.debug("getting " + str(path) + " eventually from the cache")
       entity = self.__entityCache[path][0]
       return entity
-    except:
+    except Exception, ex:
       # still not in the cache... wrong path
-      gLogger.warn(str(path) + " seems to be a wrong path");
+      gLogger.warn(str(path) + " seems to be a wrong path"+ex)
       return None
 
     return entity
 
   #############################################################################
-  def getNumberOfEvents(self, files):
+  @staticmethod
+  def getNumberOfEvents(files):
     """statistics"""
     esum = 0
     for lfn in files:
@@ -1401,7 +1425,9 @@ class LHCB_BKKDBManager(BaseESManager):
       return self._getLimitedFilesRuns(selectionDict, sortDict, startItem, maxitems)
 
   #############################################################################
-  def _getDataSetTree1(self, selectionDict): # it is the configname configversion(default) query.The input parameter is a path and it constructs the dictionary.
+  def _getDataSetTree1(self, selectionDict):
+    # it is the configname configversion(default) query.
+    #The input parameter is a path and it constructs the dictionary.
     """input dictionary"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
@@ -1438,8 +1464,8 @@ class LHCB_BKKDBManager(BaseESManager):
     """input dictionary of the event type tree"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
-    r = procpass.split('/')[1:]
-    for i in r:
+    retVal = procpass.split('/')[1:]
+    for i in retVal:
       processedPath.remove(i)
 
     if self.advancedQuery_:
@@ -1486,8 +1512,8 @@ class LHCB_BKKDBManager(BaseESManager):
     """input dictionary"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
-    r = procpass.split('/')[1:]
-    for i in r:
+    retVal = procpass.split('/')[1:]
+    for i in retVal:
       processedPath.remove(i)
 
     in_dict = {'RunNumber':processedPath[0],
@@ -1657,21 +1683,24 @@ class LHCB_BKKDBManager(BaseESManager):
       pythonOpts = savedType == 'py'
     else:
       fd = open(optionsFile, 'w')
-      n, ext = os.path.splitext(optionsFile)
+      ext = os.path.splitext(optionsFile)
       pythonOpts = ext == '.py'
 
     string = ''
     if pythonOpts:
-        comment = "#-- "
+      comment = "#-- "
     else:
-        comment = "//-- "
+      comment = "//-- "
 
     string += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
     string += comment + "Contains event types : \n"
     types = evtTypes.keys()
     types.sort()
     for filetype in types:
-        string += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (filetype, evtTypes[filetype][0], evtTypes[filetype][1], evtTypes[filetype][2])
+      string += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (filetype,
+                                                                            evtTypes[filetype][0],
+                                                                            evtTypes[filetype][1],
+                                                                            evtTypes[filetype][2])
 
     if dataset:
       string += "\n\n%s Extra information about the data processing phases:\n" % (comment)

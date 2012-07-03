@@ -4,7 +4,7 @@ Filter widget
 ########################################################################
 # $Id: $
 ########################################################################
-from PyQt4.QtGui                                                              import QWidget,QAbstractItemView
+from PyQt4.QtGui                                                              import QWidget, QAbstractItemView
 from PyQt4.QtCore                                                             import SIGNAL
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_FilterWidget                import Ui_FilterWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FilterListModel                import FilterListModel

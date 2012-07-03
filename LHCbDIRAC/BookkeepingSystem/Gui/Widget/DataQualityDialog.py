@@ -31,15 +31,17 @@ class DataQualityDialog(QDialog, Ui_DataQualityDialog):
 
   #############################################################################
   def getControler(self):
+    """returns the controller"""
     return self.__controler
 
   #############################################################################
   def getCheckBoses(self):
+    """returns the check boxes"""
     return self.__checkboses
 
   #############################################################################
   def addDataQulity(self, values):
-
+    """adds the data quality"""
     self.__checkboses = []
     j = 0
 

@@ -16,7 +16,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.LogFileWidget           import LogFi
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AdvancedSave            import AdvancedSave
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import ControlerFileDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
-
+from DIRAC                                                          import gLogger
 
 __RCSID__ = "$Id$"
 
@@ -92,6 +92,7 @@ class FileDialog(QDialog, Ui_FileDialog):
   #############################################################################
   def closeEvent (self, event):
     """handles the close action"""
+    gLogger.debug(event)
     self.getControler().close()
 
   #############################################################################

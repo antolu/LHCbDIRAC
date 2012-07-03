@@ -107,7 +107,7 @@ class InfoDialog(QDialog, Ui_InfoDialog):
     # set row height
     nrows = len(tabledata)
     for row in xrange(nrows):
-        self.tableView.setRowHeight(row, 18)
+      self.tableView.setRowHeight(row, 18)
 
     # enable sorting
     # this doesn't work

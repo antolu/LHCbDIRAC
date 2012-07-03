@@ -96,7 +96,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         return newpath
 
   #############################################################################
-  def help_ls(self):
+  @staticmethod
+  def help_ls():
     """provides help"""
     print "Usage: ls [OPTION]... [FILE]..."
     print "List information about the FILEs (the current directory by default)."
@@ -106,7 +107,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     print 'Note: You can do paging using the | more'
     print 'For example: ls | more'
 
-  def help_cd(self):
+  @staticmethod
+  def help_cd():
     """help cd command"""
     print " cd <dir>"
     print "cd .."
@@ -152,8 +154,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   def do_list(self, path):
     """list commamd"""
-    print 'Not implemented!!!'
-    return "Not Implemented!!!"
+    pass
 
   #############################################################################
   def do_save(self, command):
@@ -223,7 +224,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     self.do_cd('/')
 
   #############################################################################
-  def help_use(self):
+  @staticmethod
+  def help_use():
     """hel of use command"""
     print 'Usage:'
     print 'use type'.rjust(10)
@@ -232,7 +234,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     print ' '.rjust(10)+"use 'Event type'"
 
   #############################################################################
-  def help_queries(self):
+  @staticmethod
+  def help_queries():
     """help of queries command"""
     print "This method shows the available query types!"
     print "You can choose a query type using the 'use' command  "
@@ -245,7 +248,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     self.do_cd('/')
 
   #############################################################################
-  def help_advanceQuery(self):
+  @staticmethod
+  def help_advanceQuery():
     """help"""
     print "It allows to see more level of the Bookkeeping Tree"
 
@@ -256,7 +260,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     self.do_cd('/')
 
   #############################################################################
-  def help_standardQuery(self):
+  @staticmethod
+  def help_standardQuery():
     """help"""
     print "Using this command we only can see the important level of the Bookkeeping Tree"
 
@@ -274,7 +279,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     print "More information: 'help setDataQualityFlags'"
 
   #############################################################################
-  def help_dataQuality(self):
+  @staticmethod
+  def help_dataQuality():
     """help"""
     print 'This command shows the available data quality flags.'
     print 'To change the data quality flag use the setDataQualityFlags command'
@@ -351,14 +357,16 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         print " The '%s' does not found" % (command)
 
   #############################################################################
-  def help_setDataQualityFlags(self):
+  @staticmethod
+  def help_setDataQualityFlags():
     """help"""
     print 'This command allows to use differnt data quality flags.'
     print 'For example:'
     print ' '.ljust(10)+'setDataQualityFlags OK UNCHECKED'
 
   #############################################################################
-  def help_EOF(self):
+  @staticmethod
+  def help_EOF():
     """quit"""
     print "Quits the program"
 

@@ -51,7 +51,8 @@ class JobReader:
     return job
 
   #############################################################################
-  def __readJobConfigurations(self, doc, job):
+  @staticmethod
+  def __readJobConfigurations(doc, job):
     """reads and stores the job configurations"""
 
     conf = JobConfiguration()
@@ -85,7 +86,8 @@ class JobReader:
     job.setJobConfiguration(conf)
 
   #############################################################################
-  def __readJobOptions(self, doc, job):
+  @staticmethod
+  def __readJobOptions(doc, job):
     """reads and stores the job option"""
     jobOptions = doc.getElementsByTagName('JobOption')
     for node in jobOptions:
@@ -111,7 +113,8 @@ class JobReader:
       job.addJobOptions(options)
 
   #############################################################################
-  def __readJobTypeParameters(self, doc, job):
+  @staticmethod
+  def __readJobTypeParameters(doc, job):
     """reads and stores the job parameters"""
 
     jobTypeParameters = doc.getElementsByTagName('TypedParameter')
@@ -139,7 +142,8 @@ class JobReader:
       job.addJobParams(parameters)
 
   ########################################################################
-  def __readJobInputFiles(self, doc, job):
+  @staticmethod
+  def __readJobInputFiles(doc, job):
     """reads and stores the input files of a job"""
     jobInputFile = doc.getElementsByTagName('InputFile')
     for node in jobInputFile:
@@ -153,7 +157,8 @@ class JobReader:
       job.addJobInputFiles(inputFile)
 
   ########################################################################
-  def __readJobOutputFiles(self, doc, job):
+  @staticmethod
+  def __readJobOutputFiles(doc, job):
     """reads the jobs output files"""
     jobOutputFiles = doc.getElementsByTagName('OutputFile')
     for node in jobOutputFiles:
@@ -247,7 +252,8 @@ class JobReader:
       job.addJobOutputFiles(outputFile)
 
   ########################################################################
-  def __readJobSimulationConditions(self, doc, job):
+  @staticmethod
+  def __readJobSimulationConditions(doc, job):
     """reads and stores the job simulation condition"""
     gLogger.info("Read Simulation Conditions")
     simcond = doc.getElementsByTagName('SimulationCondition')
@@ -267,7 +273,8 @@ class JobReader:
           job.addSimulationCond(simParam)
 
   ########################################################################
-  def __readJobDataTakingConditions(self, doc, job):
+  @staticmethod
+  def __readJobDataTakingConditions(doc, job):
     """reads and stores the job data taking conditions"""
     gLogger.info("Read DataTaking Conditions")
     daqcond = doc.getElementsByTagName('DataTakingConditions')

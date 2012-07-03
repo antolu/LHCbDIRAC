@@ -17,7 +17,8 @@ class Help:
     pass
 
   #############################################################################
-  def helpConfig(self, treeLevels):
+  @staticmethod
+  def helpConfig(treeLevels):
     """ configure the help"""
     if treeLevels == -1:
       print "-------------------------------------"
@@ -54,7 +55,8 @@ class Help:
     return S_OK()
 
   #############################################################################
-  def helpProcessing( self, treeLevels ):
+  @staticmethod
+  def helpProcessing(treeLevels ):
     """ help """
     if treeLevels == -1:
       print "-------------------------------------"
@@ -90,6 +92,7 @@ class Help:
       print "-----------------------------------------------------------------"
 
   #############################################################################
-  def helpEventType( self, treeLevels ):
+  @staticmethod
+  def helpEventType(treeLevels ):
     """ ...."""
     gLogger.warn( "Not Implemented!" )

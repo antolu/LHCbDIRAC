@@ -53,7 +53,7 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getAvailableSteps(self, in_dict={}):
+  def getAvailableSteps(self, in_dict):
     """
     It returns all the available steps which corresponds to a given conditions. The in_dict contains the following conditions: StartDate, StepId, InputFileTypes, OutputFileTypes,
     ApplicationName, ApplicationVersion, OptionFiles, DDDB, CONDDB, ExtraPackages, Visible, ProcessingPass, Usable, RuntimeProjects, DQTag, OptionsFormat, StartItem, MaxItem
@@ -62,7 +62,7 @@ class BookkeepingClient:
     return server.getAvailableSteps(in_dict)
 
   #############################################################################
-  def getRuntimeProjects(self, in_dict={}):
+  def getRuntimeProjects(self, in_dict):
     """
     It returns a runtime project for a given step. The input parameter is a in_dictionary which has only one key StepId
     """
@@ -221,16 +221,17 @@ class BookkeepingClient:
     return server.getFileTypes(in_dict)
 
   #############################################################################
-  def getFilesWithMetadata(self, in_dict):
+  @staticmethod
+  def getFilesWithMetadata(in_dict):
     """
     It returns the files for a given conditions.
     Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass','Production','RunNumber', 'FileType', DataQuality
     """
     result = S_ERROR()
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
-    s = cPickle.dumps(in_dict)
+    savedbuffer = cPickle.dumps(in_dict)
     file_name = tempfile.NamedTemporaryFile()
-    params = str(s)
+    params = str(savedbuffer)
     retVal = bkk.receiveFile(file_name.name, params)
     if not retVal['OK']:
       result = retVal
@@ -929,7 +930,8 @@ class BookkeepingClient:
   # The following method names are changed in the Bookkeeping client.
 
   #############################################################################
-  def __errorReport(self, errMsg):
+  @staticmethod
+  def __errorReport(errMsg):
     """Temporary method. It prints an error message"""
 
     errorString = '                 WARNING                         \n'
@@ -1151,12 +1153,12 @@ class BookkeepingClient:
     return result
 
   ############################################################################
-  def getProductionFilesForUsers(self, prod, ftype, SortDict, StartItem, Maxitems):
+  def getProductionFilesForUsers(self, prod, ftype, sortDict, startItem, maxitems):
     """Temporary method"""
     self.__errorReport("The 'getProductionFilesForUsers' method is obsolete and it will be removed\
      from the next release. Please use the 'getProductionFilesForWeb'!")
     server = self.__getServer()
-    result = server.getProductionFilesForWeb(int(prod), ftype, SortDict, long(StartItem), long(Maxitems))
+    result = server.getProductionFilesForWeb(int(prod), ftype, sortDict, long(startItem), long(maxitems))
     return result
 
   #############################################################################
@@ -1196,7 +1198,8 @@ class BookkeepingClient:
   #############################################################################
   def getNumberOfEvents(self, prodid):
     """Temporary method"""
-    self.__errorReport("The 'getNumberOfEvents' method is obsolete and it will be removed from the next release. Please use the 'getNumberOfEvents'!")
+    self.__errorReport("The 'getNumberOfEvents' method is obsolete and it will be\
+     removed from the next release. Please use the 'getNumberOfEvents'!")
     server = self.__getServer()
     return server.getProductionNbOfEvents(long(prodid))
 

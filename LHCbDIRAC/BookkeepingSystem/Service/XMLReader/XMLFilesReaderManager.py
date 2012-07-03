@@ -51,7 +51,8 @@ class XMLFilesReaderManager:
     self.replicaManager_ = ReplicaManager()
 
   #############################################################################
-  def readFile(self, filename):
+  @staticmethod
+  def readFile(filename):
     """reads an file content which format is XML"""
     try:
       stream = open(filename)
@@ -393,7 +394,8 @@ class XMLFilesReaderManager:
 
     return S_OK()
 
-  def __insertJob(self, job):
+  @staticmethod
+  def __insertJob(job):
     """Inserts the job to the database"""
     config = job.getJobConfiguration()
 
@@ -543,7 +545,8 @@ class XMLFilesReaderManager:
     return res
 
   #############################################################################
-  def __insertOutputFiles(self, job, outputfile):
+  @staticmethod
+  def __insertOutputFiles(job, outputfile):
     """insert the files produced by a job"""
     attrList = {  'FileName':outputfile.getFileName(), \
                   'FileTypeId':outputfile.getTypeID(), \

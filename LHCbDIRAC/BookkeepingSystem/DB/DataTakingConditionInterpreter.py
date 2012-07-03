@@ -4,7 +4,7 @@ __RCSID__ = "$Id$"
 #############################################################################
 class Context:
   """the data taking condition"""
-  def __init__(self, conditions, part='LHCb'):
+  def __init__(self, conditions= None, part='LHCb'):
     """initialize the variables"""
     self.__input = conditions
     self.__output = ''

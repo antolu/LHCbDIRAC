@@ -26,14 +26,14 @@ class ControlerBookmarks(ControlerAbstract):
     """initialize the controller"""
     ControlerAbstract.__init__(self, widget, parent)
     self.__selectedFiles = []
-    '''
-sim+adv//
-sim+std//
-evt+adv
-evt+std
-prd
-run
-'''
+
+#sim+adv//
+#sim+std//
+#evt+adv
+#evt+std
+#prd
+#run
+
 
   #############################################################################
   def messageFromParent(self, message):

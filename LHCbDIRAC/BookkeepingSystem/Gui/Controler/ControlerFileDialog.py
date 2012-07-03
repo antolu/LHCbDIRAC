@@ -88,7 +88,8 @@ class ControlerFileDialog(ControlerAbstract):
                               QMessageBox.Ok)
 
   #############################################################################
-  def makeTCKlist(self, data):
+  @staticmethod
+  def makeTCKlist(data):
     """make the list of tcks"""
     tcks = []
     for i in data:
@@ -245,7 +246,8 @@ class ControlerFileDialog(ControlerAbstract):
               self.updateSelectedLuminosity(self.__selectedFiles)
 
   #############################################################################
-  def countNumberOfEvents(self, items):
+  @staticmethod
+  def countNumberOfEvents(items):
     """counts the number of events"""
     eventnum = 0
     for item in items:
@@ -255,7 +257,8 @@ class ControlerFileDialog(ControlerAbstract):
     return eventnum
 
   #############################################################################
-  def countNumberOfEventInputStat(self, items):
+  @staticmethod
+  def countNumberOfEventInputStat(items):
     """counts the number of imput events"""
     eventinputstat = 0
     for item in items:
@@ -265,12 +268,14 @@ class ControlerFileDialog(ControlerAbstract):
     return eventinputstat
 
   #############################################################################
-  def countNumberOfFiles(self, items):
+  @staticmethod
+  def countNumberOfFiles(items):
     """returns the number of files"""
     return len(items)
 
   #############################################################################
-  def countTotalLuminosity(self, items):
+  @staticmethod
+  def countTotalLuminosity(items):
     """calculates the total luminosity"""
     luminosity = 0
     for item in items:
@@ -280,7 +285,8 @@ class ControlerFileDialog(ControlerAbstract):
     return luminosity
 
   #############################################################################
-  def countLuminosity(self, items):
+  @staticmethod
+  def countLuminosity(items):
     """calculates the luminosity"""
     luminosity = 0
     for item in items:
@@ -335,7 +341,8 @@ class ControlerFileDialog(ControlerAbstract):
     self.getWidget().showSelectedNumberOfFiles(len(files))
 
   #############################################################################
-  def getSizeOfFiles(self, items):
+  @staticmethod
+  def getSizeOfFiles(items):
     """returns the size of the files"""
     size = 0
     for item in items:

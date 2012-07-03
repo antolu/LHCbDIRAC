@@ -6,7 +6,7 @@
 ########################################################################
 """
   This tool updates event types
-    The "<File>" lists the event types on which to operate. 
+    The "<File>" lists the event types on which to operate.
     Each line must have the following format:
     EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"
 """

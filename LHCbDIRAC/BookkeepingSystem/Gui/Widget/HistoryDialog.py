@@ -69,7 +69,8 @@ class HistoryDialog(QDialog, Ui_HistoryDialog):
     return self.jobTableView
 
   #############################################################################
-  def setTableModel(self, tableViewObject, tableModel):
+  @staticmethod
+  def setTableModel(tableViewObject, tableModel):
     """sets the model of the table"""
     tableViewObject.setModel(tableModel)
 

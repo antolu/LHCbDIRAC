@@ -62,7 +62,8 @@ class OracleBookkeepingDB:
     self.dbR_ = OracleDB(self.dbUser, self.dbPass, self.dbHost)
 
   #############################################################################
-  def __isSpecialFileType(self, flist):
+  @staticmethod
+  def __isSpecialFileType(flist):
     """decide the type of a file"""
     result = False
     if ('RAW' in flist) or ('MDF' in flist):
@@ -1351,7 +1352,8 @@ class OracleBookkeepingDB:
   #############################################################################
   def getInputFiles(self, jobid):
     """returns the input files for a given jobid"""
-    command = ' select files.filename from inputfiles,files where files.fileid=inputfiles.fileid and inputfiles.jobid=' + str(jobid)
+    command = ' select files.filename from inputfiles,files where \
+    files.fileid=inputfiles.fileid and inputfiles.jobid=' + str(jobid)
     res = self.dbR_.query(command)
     return res
 
@@ -1900,7 +1902,8 @@ class OracleBookkeepingDB:
     return result
 
   #############################################################################
-  def deleteFiles(self, lfns):
+  @staticmethod
+  def deleteFiles(lfns):
     """deletes a file"""
     return S_ERROR('Not Implemented !!'+lfns)
 
@@ -2803,7 +2806,7 @@ and files.qualityid= dataquality.qualityid'
       pro += ')'
 
       condition += " and j.production=prod.production \
-                     and prod.processingid in %s" % (pro);
+                     and prod.processingid in %s" % (pro)
       tables += ',productionscontainer prod'
 
     if ftype != default:
@@ -3429,7 +3432,8 @@ and files.qualityid= dataquality.qualityid'
     return self.dbR_.query(command)
 
   #############################################################################
-  def __checkprocessingpass(self, opath, values):
+  @staticmethod
+  def __checkprocessingpass(opath, values):
     """checks the processing pass"""
     if len(opath) != len(values):
       return False

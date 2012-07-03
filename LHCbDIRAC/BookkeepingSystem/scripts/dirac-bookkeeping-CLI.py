@@ -1,3 +1,6 @@
+"""
+Bookkeeping Command line interface
+"""
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL:  $

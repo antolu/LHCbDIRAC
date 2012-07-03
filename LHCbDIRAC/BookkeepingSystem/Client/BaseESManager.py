@@ -31,7 +31,8 @@ class BaseESManager:
     return S_ERROR("Not Implemented!")
 
   #############################################################################
-  def getAbsolutePath(self, path):
+  @staticmethod
+  def getAbsolutePath(path):
     """absolute path"""
     # get current working directory if empty
     if path == "" or path == None:
@@ -51,8 +52,9 @@ class BaseESManager:
     return path
 
   #############################################################################
-  def get(self, path = ""):
+  @staticmethod
+  def get(path = ""):
     """the path element"""
-    gLogger.warn('not implemented')
+    gLogger.warn('not implemented'+path)
     return S_ERROR("Not implemented!")
 

@@ -53,7 +53,8 @@ class ProcessingPassDialog(QDialog, Ui_ProcessingPassDialog):
     return tabWidget
 
   #############################################################################
-  def createTabWidget(self, userObject):
+  @staticmethod
+  def createTabWidget(userObject):
     """create a tab widget"""
     tab = TabWidget(userObject)
     tab.setObjectName("tab")
