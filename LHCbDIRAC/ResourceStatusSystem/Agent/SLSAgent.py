@@ -123,7 +123,11 @@ class SpaceTokenOccupancyTest( TestBase ):
   def __init__( self, am ):
     super( SpaceTokenOccupancyTest, self ).__init__( am )
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
-    self.SEs = Operations().getSections( 'Shares/Disk' )[ 'Value' ]
+    ses = Operations().getSections( 'Shares/Disk' )[ 'Value' ]
+   
+    self.SEs = {}
+    for se in ses:
+      self.SEs[ se ] = Operations().getOptionsDict( 'Shares/Disk/%s' % se )[ 'Value' ] 
 
     try:
       os.makedirs( self.xmlPath )
