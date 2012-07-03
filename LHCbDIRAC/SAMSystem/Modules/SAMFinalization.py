@@ -18,6 +18,7 @@ import DIRAC
 from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Subprocess                     import pythonCall
+from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping         import getGOCSiteName
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 
 import LHCbDIRAC
@@ -46,7 +47,7 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log         = gLogger.getSubLogger( "SAMFinalization" )
     self.result      = S_ERROR()
     self.opsH        = Operations()
-    self.diracLogo   = self.opsH.getValue( 'SAM/LogoURL', 
+    self.diracLogo   = self.opsH.getValue( 'SAM/LogoURL',
                                            'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
     self.samVO       = self.opsH.getValue( 'SAM/VO', 'lhcb' )
     self.samLogFiles = self.opsH.getValue( 'SAM/LogFiles', [] )
@@ -129,7 +130,6 @@ class SAMFinalization( ModuleBaseSAM ):
 
     if not failed:
       self.setApplicationStatus( 'Starting %s Test' % self.testName )
-
 
     samNode = self.runinfo['CE']
     samLogs = {}
@@ -463,12 +463,30 @@ EOT
       if testStatus >= 50:
         metricStatus = 2
 
+      siteName       = DIRAC.siteName()
+      gocSiteName    = getGOCSiteName( siteName )
+      if not gocSiteName[ 'OK' ]:
+        return gocSiteName
+      gocSiteName = gocSiteName[ 'OK' ]
+      
+      _flavourPath = 'Resources/Sites/LCG/%s/CEs/%s/CEType' % ( siteName, gocSiteName )
+      serviceFlavour = gConfig.getValue( _flavourPath )
+      if serviceFlavour is None:
+        return S_ERROR( 'ServiceFlavour is None for %s' % _flavourPath )
+
       message = ""
       message += "hostName: %s\n" % ce
-      message += "metricName: org.lhcb.WN-%s-lhcb\n" % report['testName']
+      message += "serviceFlavour: %s\n" % serviceFlavour
+      message += "siteName: %d\n" % gocSiteName
       message += "metricStatus: %d\n" % metricStatus
-      message += "timestamp: %s\n" % timeStamp
+      message += "metricName: org.lhcb.WN-%s-lhcb\n" % report['testName']
       message += "summaryData: %s\n" % report['testSummary']
+      message += "gatheredAt: %s\n" % ce
+      message += "timestamp: %s\n" % timeStamp
+      message += "nagiosName: org.lhcb.WN-%s-lhcb\n" % report['testName']
+      message += "role: site\n"
+      message += "voName: lhcb\n"
+      message += "serviceType: org.lhcb.WN\n"
       message += "detailsData: %s\n" % report['testDetails']
       message += "EOT\n"
 
