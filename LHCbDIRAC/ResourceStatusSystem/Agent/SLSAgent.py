@@ -123,7 +123,7 @@ class SpaceTokenOccupancyTest( TestBase ):
   def __init__( self, am ):
     super( SpaceTokenOccupancyTest, self ).__init__( am )
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
-    self.SEs = CS.getSpaceTokenEndpoints()
+    self.SEs = Operations.getSections( 'Shares/Disk' )[ 'Value' ]
 
     try:
       os.makedirs( self.xmlPath )
@@ -629,18 +629,7 @@ class LFCTest( TestBase ):
       gLogger.error( 'Skipping tests, file not registered' )
       return S_ERROR( 'Error registering file' )
 
-#    counter = 0
-#
-#    for mirror in self.mirrors:
-#
-#      try:
-#        counter = self.runMirrorTest( lfn, mirror, counter )
-#        gLogger.info( '%s %s' % ( counter, mirror ) )
-#      except:
-#        gLogger.error( 'Exception on %s' % mirror )
-
     self.cleanMasterTest( lfn )
-
 
   def runMasterTest( self ):
 
@@ -724,47 +713,6 @@ class LFCTest( TestBase ):
       xmlfile.close()
 
     return lfn
-
-#  def runMirrorTest( self, lfn, mirror, counter ):
-#
-#    if counter > 19:
-#      counter = 18
-#
-#    while 1:
-#
-#      fullLfn = '%s%s' % ( '/grid', lfn )
-#      value = lfc2.lfc_access( fullLfn, 0 )
-#
-#      if value == 0 or counter == 20:
-#        break
-#
-#      counter += 0.5
-#      time.sleep( 0.5 )
-#
-#    availability = ( ( counter < 20 ) and 100 ) or 0
-#
-#    doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",
-#                              "serviceupdate",
-#                              None )
-#    doc.documentElement.setAttribute( "xmlns", "http://sls.cern.ch/SLS/XML/update" )
-#    doc.documentElement.setAttribute( "xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance' )
-#    doc.documentElement.setAttribute( "xsi:schemaLocation",
-#                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd" )
-#
-#    xml_append( doc, "id", "LHCb_LFC_%s" % mirror )
-#    xml_append( doc, "availability", availability )
-#    xml_append( doc, "validityduration", "PT2H" )
-#    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-#    xml_append( doc, "notes", "Either 0 or 100, 0 no basic operations performed, 100 all working." )
-#
-#    xmlfile = open( self.xmlPath + "LHCb_LFC_%s.xml" % mirror, "w" )
-#    try:
-#      xmlfile.write( doc.toxml() )
-#    finally:
-#      xmlfile.close()
-#
-#    return counter
-
 
   def cleanMasterTest( self, lfn ):
 
