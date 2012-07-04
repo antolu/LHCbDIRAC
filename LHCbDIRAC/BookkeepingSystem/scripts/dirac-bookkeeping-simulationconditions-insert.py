@@ -11,29 +11,36 @@ __RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
-Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
                                      'Usage:',
-                                     '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
-Script.parseCommandLine( ignoreErrors = True )
+                                     '  %s [option|cfgfile] ...' % Script.scriptName ]))
+Script.parseCommandLine(ignoreErrors=True)
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
 exitCode = 0
 
-desc = raw_input( "SimDescription: " )
-beamcond = raw_input( "BeamCond: " )
-beamEnergy = raw_input( "BeamEnergy: " )
-generator = raw_input( "Generator: " )
-magneticField = raw_input( "MagneticField: " )
-detectorCond = raw_input( "DetectorCond: " )
-luminosity = raw_input( "Luminosity: " )
-G4settings = raw_input( "G4settings: " )
+desc = raw_input("SimDescription: ")
+beamcond = raw_input("BeamCond: ")
+beamEnergy = raw_input("BeamEnergy: ")
+generator = raw_input("Generator: ")
+magneticField = raw_input("MagneticField: ")
+detectorCond = raw_input("DetectorCond: ")
+luminosity = raw_input("Luminosity: ")
+g4settings = raw_input("G4settings: ")
 print 'Do you want to add these new simulation conditions? (yes or no)'
-value = raw_input( 'Choice:' )
+value = raw_input('Choice:')
 choice = value.lower()
 if choice in ['yes', 'y']:
-  res = bk.insertSimConditions( desc, beamcond, beamEnergy, generator, magneticField, detectorCond, luminosity, G4settings )
+  res = bk.insertSimConditions(desc,
+                                beamcond,
+                                beamEnergy,
+                                generator,
+                                magneticField,
+                                detectorCond,
+                                luminosity,
+                                g4settings)
   if res['OK']:
     print 'The simulation conditions added successfully!'
   else:
@@ -45,4 +52,5 @@ else:
   print 'Unexpected choice:', value
   exitCode = 2
 
-DIRAC.exit( exitCode )
+DIRAC.exit(exitCode)
+

@@ -9,7 +9,6 @@
 """
 __RCSID__ = "$Id$"
 
-import sys, string, re
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -41,3 +40,4 @@ else:
   print 'Unexpected choice:', value
 
 DIRAC.exit(exitCode)
+

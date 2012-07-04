@@ -31,36 +31,36 @@ run = int(args[0])
 res = bk.getRunInformations(run)
 
 if res['OK']:
-    val = res['Value']
-    runstart = val.get('RunStart', 'Unknown')
-    runend = val.get('RunEnd', 'Unknown')
-    configname = val.get('Configuration Name', 'Unknown')
-    configversion = val.get('Configuration Version', 'Unknown')
-    fillnb = val.get('FillNumber', 'Unknown')
-    datataking = val.get('DataTakingDescription', 'Unknown')
-    processing = val.get('ProcessingPass', 'Unknown')
-    stream = val.get('Stream', 'Unknown')
-    fullstat = val.get('FullStat', 'Unknown')
-    nbofe = val.get('Number of events', 'Unknown')
-    nboff = val.get('Number of file', 'Unknown')
-    fsize = val.get('File size', 'Unknown')
+  val = res['Value']
+  runstart = val.get('RunStart', 'Unknown')
+  runend = val.get('RunEnd', 'Unknown')
+  configname = val.get('Configuration Name', 'Unknown')
+  configversion = val.get('Configuration Version', 'Unknown')
+  fillnb = val.get('FillNumber', 'Unknown')
+  datataking = val.get('DataTakingDescription', 'Unknown')
+  processing = val.get('ProcessingPass', 'Unknown')
+  stream = val.get('Stream', 'Unknown')
+  fullstat = val.get('FullStat', 'Unknown')
+  nbofe = val.get('Number of events', 'Unknown')
+  nboff = val.get('Number of file', 'Unknown')
+  fsize = val.get('File size', 'Unknown')
 
-    print "Run  Informations: "
-    print "Run Start:".ljust(50), str(runstart)
-    print "Run End:".ljust(50), str(runend)
-    print "  Configuration Name:".ljust(50), configname
-    print "  Configuration Version:".ljust(50), configversion
-    print "  FillNumber:".ljust(50), fillnb
-    print "  Data taking description: ".ljust(50), datataking
-    print "  Processing pass: ".ljust(50), processing
-    print "  Stream: ".ljust(50), stream
-    print "  FullStat: ".ljust(50) + str(fullstat).ljust(50) + " Total: ".ljust(10) + str(sum(fullstat))
-    print "  Number of events: ".ljust(50) + str(nbofe).ljust(50) + " Total:".ljust(10) + str(sum(nbofe))
-    print "  Number of file: ".ljust(50) + str(nboff).ljust(50) + " Total: ".ljust(10) + str(sum(nboff))
-    print "  File size: ".ljust(50) + str(fsize).ljust(50) + " Total: ".ljust(10) + str(sum(fsize))
+  print "Run  Informations: "
+  print "Run Start:".ljust(50), str(runstart)
+  print "Run End:".ljust(50), str(runend)
+  print "  Configuration Name:".ljust(50), configname
+  print "  Configuration Version:".ljust(50), configversion
+  print "  FillNumber:".ljust(50), fillnb
+  print "  Data taking description: ".ljust(50), datataking
+  print "  Processing pass: ".ljust(50), processing
+  print "  Stream: ".ljust(50), stream
+  print "  FullStat: ".ljust(50) + str(fullstat).ljust(50) + " Total: ".ljust(10) + str(sum(fullstat))
+  print "  Number of events: ".ljust(50) + str(nbofe).ljust(50) + " Total:".ljust(10) + str(sum(nbofe))
+  print "  Number of file: ".ljust(50) + str(nboff).ljust(50) + " Total: ".ljust(10) + str(sum(nboff))
+  print "  File size: ".ljust(50) + str(fsize).ljust(50) + " Total: ".ljust(10) + str(sum(fsize))
 
 else:
-    print "ERROR %s: %s" % (str(run), res['Message'])
-    exitCode = 2
+  print "ERROR %s: %s" % (str(run), res['Message'])
+  exitCode = 2
 DIRAC.exit(exitCode)
 

@@ -9,14 +9,13 @@
 """
 __RCSID__ = "$Id$"
 
-import sys, string, re
 import DIRAC
 from DIRAC.Core.Base                                               import Script
-from DIRAC.ConfigurationSystem.Client.Config                       import gConfig
-Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+
+Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
                                      'Usage:',
-                                     '  %s [option|cfgfile]' % Script.scriptName ] ) )
-Script.parseCommandLine( ignoreErrors = True )
+                                     '  %s [option|cfgfile]' % Script.scriptName ]))
+Script.parseCommandLine(ignoreErrors=True)
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
@@ -30,6 +29,7 @@ if res['OK']:
   dbresult = res['Value']
   print 'Filetypes:'
   for record in dbresult['Records']:
-    print str( record[0] ).ljust( 30 ) + str( record[1] )
+    print str(record[0]).ljust(30) + str(record[1])
 
-DIRAC.exit( exitCode )
+DIRAC.exit(exitCode)
+

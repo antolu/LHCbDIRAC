@@ -36,7 +36,7 @@ fileName = args[0]
 
 
 def process_event( eventline ):
-  wrongSyntax = 0
+  """process one event"""
   try:
     eventline.index( 'EVTTYPEID' )
     eventline.index( 'DESCRIPTION' )
@@ -59,11 +59,11 @@ def process_event( eventline ):
         else:
           result[ma.group( 'id' + str( i ) + '0' )] = ma.group( 'value' + str( i ) + '0' )
       else:
-       if ma.group( 'id' + str( i ) + '1' ) in result:
-         print '\nthe parameter ' + ma.group( 'id' + str( i ) + '1' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'
-         Script.showHelp()
-       else:
-         result[ma.group( 'id' + str( i ) + '1' )] = ma.group( 'value' + str( i ) + '1' )
+        if ma.group( 'id' + str( i ) + '1' ) in result:
+          print '\nthe parameter ' + ma.group( 'id' + str( i ) + '1' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'
+          Script.showHelp()
+        else:
+          result[ma.group( 'id' + str( i ) + '1' )] = ma.group( 'value' + str( i ) + '1' )
   return result
 
 try:

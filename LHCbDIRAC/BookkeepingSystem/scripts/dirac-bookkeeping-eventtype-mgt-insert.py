@@ -6,7 +6,7 @@
 ########################################################################
 """
   This tool inserts new event types.
-    The "<File>" lists the event types on which to operate. 
+    The "<File>" lists the event types on which to operate.
     Each line must have the following format:
     EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"
 """
@@ -36,7 +36,7 @@ exitCode = 0
 fileName = args[0]
 
 def process_event( eventline ):
-  wrongSyntax = 0
+  """process one event type"""
   try:
     eventline.index( 'EVTTYPEID' )
     eventline.index( 'DESCRIPTION' )
@@ -44,7 +44,6 @@ def process_event( eventline ):
   except ValueError:
     print '\nthe file syntax is wrong!!!\n' + eventline + '\n\n'
     Script.showHelp()
-  parameters = eventline.split( ',' )
   result = {}
   ma = re.match( "^ *?((?P<id00>EVTTYPEID) *?= *?(?P<value00>[0-9]+)|(?P<id01>DESCRIPTION|PRIMARY) *?= *?\"(?P<value01>.*?)\") *?, *?((?P<id10>EVTTYPEID) *?= *?(?P<value10>[0-9]+)|(?P<id11>DESCRIPTION|PRIMARY) *?= *?\"(?P<value11>.*?)\") *?, *?((?P<id20>EVTTYPEID) *?= *?(?P<value20>[0-9]+)|(?P<id21>DESCRIPTION|PRIMARY) *?= *?\"(?P<value21>.*?)\") *?$", eventline )
   if not ma:
@@ -59,11 +58,11 @@ def process_event( eventline ):
         else:
           result[ma.group( 'id' + str( i ) + '0' )] = ma.group( 'value' + str( i ) + '0' )
       else:
-       if ma.group( 'id' + str( i ) + '1' ) in result:
-         print '\nthe parameter ' + ma.group( 'id' + str( i ) + '1' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'
-         Script.showHelp()
-       else:
-         result[ma.group( 'id' + str( i ) + '1' )] = ma.group( 'value' + str( i ) + '1' )
+        if ma.group( 'id' + str( i ) + '1' ) in result:
+          print '\nthe parameter ' + ma.group( 'id' + str( i ) + '1' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'
+          Script.showHelp()
+        else:
+          result[ma.group( 'id' + str( i ) + '1' )] = ma.group( 'value' + str( i ) + '1' )
   return result
 
 try:

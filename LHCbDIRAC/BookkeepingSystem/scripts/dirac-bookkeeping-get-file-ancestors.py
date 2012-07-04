@@ -13,44 +13,44 @@ import DIRAC
 from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ... LFN|File [Level]' % Script.scriptName,
                                      'Arguments:',
                                      '  LFN:      Logical File Name',
                                      '  File:     Name of the file with a list of LFNs',
-                                     '  Level:    Number of levels to search (default: 1)' ] ) )
+                                     '  Level:    Number of levels to search (default: 1)' ]))
 
-Script.parseCommandLine( ignoreErrors = True )
+Script.parseCommandLine(ignoreErrors=True)
 args = Script.getPositionalArgs()
 
-if len( args ) == 1:
+if len(args) == 1:
   level = 2
-elif len( args ) == 2:
+elif len(args) == 2:
   try:
-    level = int( args[1] ) + 1
+    level = int(args[1]) + 1
   except:
     Script.showHelp()
 else:
   Script.showHelp()
 
-file = str( args[0] )
+filename = str(args[0])
 
 exitCode = 0
 
 lfns = []
 try:
-  files = open( file )
+  files = open(filename)
   for f in files:
     lfns += [f.strip()]
 except Exception, ex:
-  lfns = [file]
+  lfns = [filename]
 
 bk = BookkeepingClient()
-result = bk.getFileAncestors( lfns, level )
+result = bk.getFileAncestors(lfns, level)
 
 if not result['OK']:
-  print 'ERROR %s' % ( result['Message'] )
+  print 'ERROR %s' % (result['Message'])
   exitCode = 2
 else:
   values = result['Value']
@@ -62,4 +62,5 @@ else:
       print '                 ' + j['FileName']
   print 'Failed:', values['Failed']
 
-DIRAC.exit( exitCode )
+DIRAC.exit(exitCode)
+
