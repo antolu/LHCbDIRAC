@@ -9,15 +9,12 @@ class PopularityPlotter( BaseReporter ):
 
   _typeName = "Popularity"
   _typeKeyFields = [ dF[0] for dF in Popularity().definitionKeyFields ]
-  #_noSEtypeKeyFields = [ dF[0] for dF in Popularity().definitionKeyFields if dF[0] != 'StorageElement' ]
   _noSEtypeKeyFields = [ dF[0] for dF in Popularity().definitionKeyFields ]
   _noSEGrouping = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
   ###
   _reportDataUsageName = "Data Usage"
   def _reportDataUsage( self, reportRequest ):
-    #if reportRequest[ 'grouping' ] == "StorageElement":
-    #  return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'Usage', 'entriesInBucket'
@@ -52,8 +49,6 @@ class PopularityPlotter( BaseReporter ):
 
   _reportNormalizedDataUsageName = "Normalized Data Usage"
   def _reportNormalizedDataUsage( self, reportRequest ):
-    #if reportRequest[ 'grouping' ] == "StorageElement":
-    #  return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     selectFields = ( self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] ) + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'NormalizedUsage', 'entriesInBucket'
