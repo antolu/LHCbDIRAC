@@ -4,9 +4,9 @@ __RCSID__ = "$Id$"
 #############################################################################
 class Context:
   """the data taking condition"""
-  def __init__(self, conditions= None, part='LHCb'):
+  def __init__(self, cond, part='LHCb'):
     """initialize the variables"""
-    self.__input = conditions
+    self.__input = cond
     self.__output = ''
     self.__partition = part
 
@@ -41,166 +41,167 @@ class Conditions:
 
   def interpret(self, context):
     """interpret the context"""
-    if context.getInput().has_key(self.BeamCond()):
-      context.setOutput(self.Template(context.getInput()[self.BeamCond()]))
+    if context.getInput().has_key(self.beamCond()):
+      context.setOutput(self.template(context.getInput()[self.beamCond()]))
 
-    if context.getInput().has_key(self.Beamenergy()):
-      context.setOutput(self.Template(context.getInput()[self.Beamenergy()]))
+    if context.getInput().has_key(self.beamenergy()):
+      context.setOutput(self.template(context.getInput()[self.beamenergy()]))
 
-    if context.getInput().has_key(self.VeloCond()):
+    if context.getInput().has_key(self.veloCond()):
       if context.getParticionName().upper() == 'LHCB' or context.getParticionName().upper() == 'VELO':
-        context.setOutput(self.Template(context.getInput()[self.VeloCond()]))
+        context.setOutput(self.template(context.getInput()[self.veloCond()]))
 
-    if context.getInput().has_key(self.MagneticField()):
-      context.setOutput(self.Template(context.getInput()[self.MagneticField()]))
+    if context.getInput().has_key(self.magneticField()):
+      context.setOutput(self.template(context.getInput()[self.magneticField()]))
 
-    if context.getInput().has_key(self.Ecal()):
-      if context.getInput()[self.Ecal()] == self.getCondition():
+    if context.getInput().has_key(self.ecal()):
+      if context.getInput()[self.ecal()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Ecal()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.ecal()]))
 
 
-    if context.getInput().has_key(self.Hcal()):
-      if context.getInput()[self.Hcal()] == self.getCondition():
+    if context.getInput().has_key(self.hcal()):
+      if context.getInput()[self.hcal()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Hcal()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.hcal()]))
 
-    if context.getInput().has_key(self.Hlt()):
-      if context.getInput()[self.Hlt()] == self.getCondition():
+    if context.getInput().has_key(self.hlt()):
+      if context.getInput()[self.hlt()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Hlt()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.hlt()]))
 
-    if context.getInput().has_key(self.It()):
-      if context.getInput()[self.It()] == self.getCondition():
+    if context.getInput().has_key(self.it()):
+      if context.getInput()[self.it()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.It()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.it()]))
 
-    if context.getInput().has_key(self.Lo()):
-      if context.getInput()[self.Lo()] == self.getCondition():
+    if context.getInput().has_key(self.lo()):
+      if context.getInput()[self.lo()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Lo()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.lo()]))
 
-    if context.getInput().has_key(self.Muon()):
-      if context.getInput()[self.Muon()] == self.getCondition():
+    if context.getInput().has_key(self.muon()):
+      if context.getInput()[self.muon()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Muon()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.muon()]))
 
-    if context.getInput().has_key(self.Ot()):
-      if context.getInput()[self.Ot()] == self.getCondition():
+    if context.getInput().has_key(self.ot()):
+      if context.getInput()[self.ot()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Ot()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.ot()]))
 
-    if context.getInput().has_key(self.Rich1()):
-      if context.getInput()[self.Rich1()] == self.getCondition():
+    if context.getInput().has_key(self.rich1()):
+      if context.getInput()[self.rich1()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Rich1()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.rich1()]))
 
-    if context.getInput().has_key(self.Rich2()):
-      if context.getInput()[self.Rich2()] == self.getCondition():
+    if context.getInput().has_key(self.rich2()):
+      if context.getInput()[self.rich2()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Rich2()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.rich2()]))
 
-    if context.getInput().has_key(self.Spd_prs()):
-      if context.getInput()[self.Spd_prs()] == self.getCondition():
+    if context.getInput().has_key(self.spd_prs()):
+      if context.getInput()[self.spd_prs()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Spd_prs()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.spd_prs()]))
 
-    if context.getInput().has_key(self.Tt()):
-      if context.getInput()[self.Tt()] == self.getCondition():
+    if context.getInput().has_key(self.tt()):
+      if context.getInput()[self.tt()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Tt()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.tt()]))
 
-    if context.getInput().has_key(self.Velo()):
-      if context.getInput()[self.Velo()] == self.getCondition():
+    if context.getInput().has_key(self.velo()):
+      if context.getInput()[self.velo()] == self.getCondition():
         if context.getParticionName().upper() == 'LHCB':
-          self.Excl(context)
-          context.setOutput(self.Template(context.getInput()[self.Velo()]))
+          self.excl(context)
+          context.setOutput(self.template(context.getInput()[self.velo()]))
 
 
-  def BeamCond(self):
+  def beamCond(self):
     """define a condition"""
     pass
 
-  def Beamenergy(self):
+  def beamenergy(self):
     """define a condition"""
     pass
 
-  def Velo(self):
+  def velo(self):
     """define a condition"""
     pass
 
-  def MagneticField(self):
+  def magneticField(self):
     """define a condition"""
     pass
 
-  def Ecal(self):
+  def ecal(self):
     """define a condition"""
     pass
 
-  def Hcal(self):
+  def hcal(self):
     """define a condition"""
     pass
 
-  def Hlt(self):
+  def hlt(self):
     """define a condition"""
     pass
 
-  def It(self):
+  def it(self):
     """define a condition"""
     pass
 
-  def Lo(self):
+  def lo(self):
     """define a condition"""
     pass
 
-  def Muon(self):
+  def muon(self):
     """define a condition"""
     pass
 
-  def Ot(self):
+  def ot(self):
     """define a condition"""
     pass
 
-  def Rich1(self):
+  def rich1(self):
     """define a condition"""
     pass
 
-  def Rich2(self):
+  def rich2(self):
     """define a condition"""
     pass
 
-  def  Spd_prs(self):
+  def  spd_prs(self):
     """define a condition"""
     pass
 
-  def Tt(self):
+  def tt(self):
     """define a condition"""
     pass
 
-  def VeloCond(self):
+  def veloCond(self):
     """define a condition"""
     pass
 
-  def Template(self, value):
+  def template(self, value):
     """define a condition"""
     pass
 
-  def Template2(self, value):
+  def template2(self, value):
     """define a condition"""
     return ''
 
-  def Excl(self, context):
+  @staticmethod
+  def excl(context):
     """define a condition"""
     if context.getOutput().find('Excl') < 0:
       context.setOutput('Excl-')
@@ -208,22 +209,22 @@ class Conditions:
 #############################################################################
 class BeamCondition(Conditions):
   """condition class"""
-  def BeamCond(self):
+  def beamCond(self):
     """beamcondition"""
     return 'BeamCond'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     return value
 
 #############################################################################
 class BeamEnergyCondition(Conditions):
   """Energy """
-  def Beamenergy(self):
+  def beamenergy(self):
     """beam energy"""
     return 'BeamEnergy'
 
-  def Template(self, value):
+  def template(self, value):
     """Template method"""
     try:
       if value != None:
@@ -239,11 +240,11 @@ class BeamEnergyCondition(Conditions):
 #############################################################################
 class MagneticFieldCondition(Conditions):
   """magnetic field"""
-  def MagneticField(self):
+  def magneticField(self):
     """magfild"""
     return 'MagneticField'
 
-  def Template(self, value):
+  def template(self, value):
     """..."""
     if value.upper() == 'OFF':
       return 'MagOff-'
@@ -257,11 +258,11 @@ class MagneticFieldCondition(Conditions):
 #############################################################################
 class VeloPosition(Conditions):
   """Velo position class"""
-  def Velo(self):
+  def velo(self):
     """Open or Closed"""
     return 'VELO'
 
-  def Template(self, value):
+  def template(self, value):
     """tempalte method"""
     if value == self.getCondition():
       return 'VE-'
@@ -269,22 +270,22 @@ class VeloPosition(Conditions):
 #############################################################################
 class EcalCondition(Conditions):
   """ECAL class"""
-  def Ecal(self):
+  def ecal(self):
     """status of the subdetector"""
     return 'ECAL'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'EC-'
 #############################################################################
 class HcalCondition(Conditions):
   """HCAL class"""
-  def Hcal(self):
+  def hcal(self):
     """status of the subdetector"""
     return 'HCAL'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'HC-'
@@ -292,11 +293,11 @@ class HcalCondition(Conditions):
 #############################################################################
 class HltCondition(Conditions):
   """HLT class"""
-  def Hlt(self):
+  def Hhlt(self):
     """status of the subdetector"""
     return 'HLT'
 
-  def Template(self, value):
+  def template(self, value):
     """template methos"""
     if value == self.getCondition():
       return 'HL-'
@@ -304,11 +305,11 @@ class HltCondition(Conditions):
 #############################################################################
 class ItCondition(Conditions):
   """It class"""
-  def It(self):
+  def it(self):
     """status of the subdetector"""
     return 'IT'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'IT-'
@@ -316,11 +317,11 @@ class ItCondition(Conditions):
 #############################################################################
 class LoCondition(Conditions):
   """Lo class"""
-  def Lo(self):
+  def lo(self):
     """status of the subdetector"""
     return 'LO'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'LO-'
@@ -328,11 +329,11 @@ class LoCondition(Conditions):
 #############################################################################
 class MuonCondition(Conditions):
   """Muon class"""
-  def Muon(self):
+  def muon(self):
     """status of the subdetector"""
     return 'MUON'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'MU-'
@@ -340,11 +341,11 @@ class MuonCondition(Conditions):
 #############################################################################
 class OtCondition(Conditions):
   """Ot class"""
-  def Ot(self):
+  def ot(self):
     """status of the subdetector"""
     return 'OT'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'OT-'
@@ -352,11 +353,11 @@ class OtCondition(Conditions):
 #############################################################################
 class Rich1Condition(Conditions):
   """RICH1 class"""
-  def Rich1(self):
+  def rich1(self):
     """status of the subdetector"""
     return 'RICH1'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'R1-'
@@ -364,11 +365,11 @@ class Rich1Condition(Conditions):
 #############################################################################
 class Rich2Condition(Conditions):
   """RICH2 class"""
-  def Rich2(self):
+  def rich2(self):
     """status of the subdetector"""
     return 'RICH2'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'R2-'
@@ -376,11 +377,11 @@ class Rich2Condition(Conditions):
 #############################################################################
 class Spd_prsCondition(Conditions):
   """SPD class"""
-  def  Spd_prs(self):
+  def  spd_prs(self):
     """status of the subdetector"""
     return 'SPD_PRS'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'SP-'
@@ -388,11 +389,11 @@ class Spd_prsCondition(Conditions):
 #############################################################################
 class TtCondition(Conditions):
   """TT class"""
-  def Tt(self):
+  def tt(self):
     """status of the subdetector"""
     return 'TT'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value == self.getCondition():
       return 'TT-'
@@ -400,11 +401,11 @@ class TtCondition(Conditions):
 #############################################################################
 class VeloCondition(Conditions):
   """Velo class"""
-  def VeloCond(self):
+  def veloCond(self):
     """status of the subdetector"""
     return 'VeloPosition'
 
-  def Template(self, value):
+  def template(self, value):
     """template method"""
     if value.upper() == 'OPEN':
       return 'VeloOpen-'
