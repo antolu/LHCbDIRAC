@@ -19,21 +19,20 @@ __RCSID__ = "$Revision$"
 #'Done'
 #'Cancelled'
 
+import cPickle
 import string
 import time
-from DIRAC.Core.Base.DB import DB
-from DIRAC.ConfigurationSystem.Client.Config import gConfig
-from DIRAC  import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities import List
-from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.Core.DISET.RPCClient import RPCClient
-
 import threading
 import types
 
-import cPickle
+from DIRAC.Core.Base.DB                              import DB
+from DIRAC.ConfigurationSystem.Client.Config         import gConfig
+from DIRAC                                           import gLogger, S_OK, S_ERROR, gConfig
+from DIRAC.Core.Utilities                            import Time
+from DIRAC.Core.Utilities                            import List
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.ConfigurationSystem.Client                import PathFinder
+from DIRAC.Core.DISET.RPCClient                      import RPCClient
 
 def _getMailAddress(user):
   res = gConfig.getOptionsDict('/Registry/Users/%s' % user)
@@ -84,16 +83,16 @@ def _inform_people(rec,oldstate,state,author,inform):
     return
 
   footer = "\n\nNOTE: it is an automated notification."
-  footer+= " Don't reply please.\n"
-  footer+= "DIRAC Web portal: https://lhcbweb.pic.es/DIRAC/%s/" % \
+  footer += " Don't reply please.\n"
+  footer += "DIRAC Web portal: https://lhcbweb.pic.es/DIRAC/%s/" % \
            PathFinder.getDIRACSetup()
   ppath = '/Production/ProductionRequest/display\n\n'
 
-  ppath+= 'The request details:\n'
-  ppath+= '  Type: %s' % str(rec['RequestType'])
-  ppath+= '  Name: %s\n' % str(rec['RequestName'])
-  ppath+= '  Conditions: %s\n' % str(rec['SimCondition'])
-  ppath+= '  Processing pass: %s\n' % str(rec['ProPath'])
+  ppath += 'The request details:\n'
+  ppath += '  Type: %s' % str(rec['RequestType'])
+  ppath += '  Name: %s\n' % str(rec['RequestName'])
+  ppath += '  Conditions: %s\n' % str(rec['SimCondition'])
+  ppath += '  Processing pass: %s\n' % str(rec['ProPath'])
 
   gLogger.info(".... %s ...." %ppath)
 
@@ -107,21 +106,19 @@ def _inform_people(rec,oldstate,state,author,inform):
            'Since Bookkeeping expert could make changes in your request,',
            'you are asked to confirm it.'])
       else:
-        subj = "DIRAC: the state of Production Request %s is changed to '%s'"%\
-               (id,state)
+        subj = "DIRAC: the state of Production Request %s is changed to '%s'" % (id, state)
         body = '\n'.join(
           ['The state of your request is changed.',
            'This mail is for information only.'])
       notification = NotificationClient()
-      res = notification.sendMail(authorMail,subj,
+      res = notification.sendMail(authorMail, subj,
                                   body+footer+'lhcb_user'+ppath,
-                                  fromAddress,True)
+                                  fromAddress, True)
       if not res['OK']:
         gLogger.error("_inform_people: can't send email: %s" % res['Message'])
 
   if inform:
-    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'"%\
-           (rec['RequestType'],id,state)
+    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'" % (rec['RequestType'], id, state)
     body = '\n'.join(
       ['You have received this mail because you are'
        'in the subscription list for this request'])
@@ -133,9 +130,9 @@ def _inform_people(rec,oldstate,state,author,inform):
           eMail = _getMailAddress(author)
       if eMail:
         notification = NotificationClient()
-        res = notification.sendMail(eMail,subj,
+        res = notification.sendMail(eMail, subj,
                                     body+footer+'lhcb_user'+ppath,
-                                    fromAddress,True)
+                                    fromAddress, True)
         if not res['OK']:
           gLogger.error("_inform_people: can't send email: %s" % res['Message'])
 
@@ -145,7 +142,7 @@ def _inform_people(rec,oldstate,state,author,inform):
                       "You are informed as member of %s group"])
     groups = [ 'lhcb_prmgr' ]
   elif state == 'BK Check':
-    subj = "DIRAC: new %s Production Request %s" % (rec['RequestType'],id)
+    subj = "DIRAC: new %s Production Request %s" % (rec['RequestType'], id)
     body = '\n'.join(["New Production is requested and it has",
                       "customized Simulation Conditions.",
                       "As member of %s group, your are asked either",
@@ -156,7 +153,7 @@ def _inform_people(rec,oldstate,state,author,inform):
     groups = [ 'lhcb_bk' ]
 
   elif state == 'Submitted':
-    subj = "DIRAC: new %s Production Request %s" % (rec['RequestType'],id)
+    subj = "DIRAC: new %s Production Request %s" % (rec['RequestType'], id)
     body = '\n'.join(["New Production is requested",
                       "As member of %s group, your are asked either to sign",
                       "or to reject it.","",
@@ -164,7 +161,7 @@ def _inform_people(rec,oldstate,state,author,inform):
                       "done that, please ignore this mail."])
     groups = [ 'lhcb_ppg','lhcb_tech' ]
   elif state == 'PPG OK' and oldstate == 'Accepted':
-    subj = "DIRAC: returned Production Request %s" %id
+    subj = "DIRAC: returned Production Request %s" % id
     body = '\n'.join(["Production Request is returned by Production Manager.",
                       "As member of %s group, your are asked to correct and sign",
                       "or to reject it.","",
@@ -176,9 +173,9 @@ def _inform_people(rec,oldstate,state,author,inform):
   for group in groups:
     for man in _getMemberMails(group):
       notification = NotificationClient()
-      res = notification.sendMail(man,subj,
+      res = notification.sendMail(man, subj,
                                   body%group+footer+group+ppath,
-                                  fromAddress,True)
+                                  fromAddress, True)
       if not res['OK']:
         gLogger.error("_inform_people: can't send email: %s"%res['Message'])
   return
@@ -189,7 +186,7 @@ class ProductionRequestDB(DB):
   def __init__( self, maxQueueSize=10 ):
     """ Constructor
     """
-    DB.__init__(self,'ProductionRequestDB',
+    DB.__init__(self, 'ProductionRequestDB',
                 'ProductionManagement/ProductionRequestDB', maxQueueSize)
     self.lock = threading.Lock()
 
@@ -213,86 +210,86 @@ class ProductionRequestDB(DB):
 
 # !!! current _escapeValues is buggy !!! None and not using connection...
 # _insert use it, so I can't...
-  def _fixedEscapeValues(self,inValues):
+  def _fixedEscapeValues(self, inValues):
     result = self._escapeValues(inValues)
     if not result['OK']:
       return result
     outValues = result['Value']
-    for i,x in enumerate(outValues):
+    for i, x in enumerate(outValues):
       if x == 'None' or str(x) == '' or x == '"None"':
         outValues[i] = 'NULL'
     return S_OK(outValues)
 
-  def __prefixComments(self,update,old,user):
+  def __prefixComments(self, update, old, user):
     """ Add Log style prefix to the record like change """
     if not update:
       return update
     if not old:
-      old=''
+      old = ''
     if not update.startswith(old) and not update.endswith(old):
       return update
-    prefix = "Comment by %s on %s:\n" % (user,time.strftime("%b %d, %Y"))
+    prefix = "Comment by %s on %s:\n" % (user, time.strftime("%b %d, %Y"))
     if update.startswith(old):
       if old.rstrip():
-        old=old.rstrip()+'\n\n'
+        old = old.rstrip()+'\n\n'
       return old+prefix+update[len(old):].lstrip()
     return prefix+update.lstrip()
 
-  def __getRequestInfo(self,id,connection):
+  def __getRequestInfo(self, iD, connection):
     """ Retrive info fields from specified ID
         Used to get ParentID information.
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
     """
-    inFields  = [ 'RequestState','ParentID','MasterID','RequestAuthor','Inform' ]
+    inFields  = [ 'RequestState', 'ParentID', 'MasterID', 'RequestAuthor', 'Inform' ]
     result = self._query("SELECT %s " % ','.join(inFields) +
                          "FROM ProductionRequests " +
-                         "WHERE RequestID=%s;" % id, connection)
+                         "WHERE RequestID=%s;" % iD, connection)
     if not result['OK']:
       self.lock.release()
       return result
     if len(result['Value']) == 0:
       self.lock.release()
       return S_ERROR('Request does not exist')
-    return S_OK(dict(zip(inFields,result['Value'][0])))
+    return S_OK(dict(zip(inFields, result['Value'][0])))
 
-  def __getStateAndAuthor(self,id,connection):
+  def __getStateAndAuthor(self, iD, connection):
     """ Return state, Author and inform list of Master for id (or id's own if no parents)
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
     """
-    result = self.__getRequestInfo(id,connection)
+    result = self.__getRequestInfo(iD, connection)
     if not result['OK']:
       return result
     pinfo = result['Value']
     if not pinfo['MasterID']:
-      return S_OK([pinfo['RequestState'],pinfo['RequestAuthor'],pinfo['Inform']])
-    result = self.__getRequestInfo(pinfo['MasterID'],connection)
+      return S_OK([pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform']])
+    result = self.__getRequestInfo(pinfo['MasterID'], connection)
     if not result['OK']:
       return result
     pinfo = result['Value']
-    return S_OK([pinfo['RequestState'],pinfo['RequestAuthor'],pinfo['Inform']])
+    return S_OK([pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform']])
 
-  def __checkMaster(self,master,id,connection):
+  def __checkMaster(self, master, iD, connection):
     """ Return State of Master for id (or id's own if no parents)
         id and master must be checked before. It check that master can
         be reached with ParentID links.
         NOTE: it does self.lock.release() in case of errors
     """
     while True:
-      result = self.__getRequestInfo(id,connection)
+      result = self.__getRequestInfo(iD, connection)
       if not result['OK']:
         return result
       pinfo = result['Value']
-      if id == master:
+      if iD == master:
         return S_OK(pinfo['RequestState'])
       if pinfo['MasterID'] != master:
         self.lock.release()
         return S_ERROR('Wrong MasterID for this ParentID')
-      if not pinfo['ParentID'] or pinfo['ParentID'] == id:
+      if not pinfo['ParentID'] or pinfo['ParentID'] == iD:
         self.lock.release()
         return S_ERROR('Parent tree is broken. Please contact expert')
-      id = pinfo['ParentID']
+      iD = pinfo['ParentID']
 
   def createProductionRequest(self, requestDict, creds):
     """ Create new Production Request
@@ -301,7 +298,7 @@ class ProductionRequestDB(DB):
     if creds['Group'] == 'hosts':
       return S_ERROR('Authorization required')
 
-    rec = dict.fromkeys(self.requestFields[1:-9],None)
+    rec = dict.fromkeys(self.requestFields[1:-9], None)
     for x in requestDict:
       if x in rec and str(requestDict[x]) != '':
         rec[x] = requestDict[x] # set only known not empty fields
@@ -310,7 +307,7 @@ class ProductionRequestDB(DB):
         num = long(rec['NumberOfEvents'])
         if num > 0:
           rec['RealNumberOfEvents'] = num
-      except:
+      except ValueError:
         pass
     if not rec['MasterID']:
       rec['RequestPDG'] = ''
@@ -321,7 +318,7 @@ class ProductionRequestDB(DB):
       rec['RequestState'] = None
 
     if rec['RequestState']:
-      if not rec['RequestState'] in ['New','BK Check','Submitted']:
+      if not rec['RequestState'] in ['New', 'BK Check', 'Submitted']:
         return S_ERROR("The request can't be created in '%s' state" % rec['requestState'])
       if rec['RequestState'] != 'New':
         # !!! full information check must be here, but currently in the JS...
@@ -329,7 +326,7 @@ class ProductionRequestDB(DB):
         if not rec['EventType']:
           return S_ERROR("Please specify Event type/number or add subrequest(s)")
     if 'Comments' in rec:
-      rec['Comments'] = self.__prefixComments(rec['Comments'],'',creds['User'])
+      rec['Comments'] = self.__prefixComments(rec['Comments'], '', creds['User'])
     rec['IsModel'] = 0
 
     recl = [ rec[x] for x in self.requestFields[1:-9] ]
@@ -348,7 +345,7 @@ class ProductionRequestDB(DB):
     if rec['MasterID']: # have to check ParentID and MasterID consistency
       try:
         masterID = long(rec['MasterID'])
-      except Exception,e:
+      except ValueError:
         self.lock.release()
         return S_ERROR('MasterID is not a number')
       if not rec['ParentID']:
@@ -356,16 +353,16 @@ class ProductionRequestDB(DB):
         return S_ERROR('MasterID can not be without ParentID')
       try:
         parentID = long(rec['ParentID'])
-      except Exception,e:
+      except ValueError:
         self.lock.release()
         return S_ERROR('ParentID is not a number')
-      result = self.__checkMaster(masterID,parentID,connection)
+      result = self.__checkMaster(masterID, parentID, connection)
       if not result['OK']:
         return result
-      result = self.__getStateAndAuthor(masterID,connection)
+      result = self.__getStateAndAuthor(masterID, connection)
       if not result['OK']:
         return result
-      requestState,requestAuthor,requestInform = result['Value']
+      requestState, requestAuthor, _requestInform = result['Value']
       if requestState != 'New':
         self.lock.release()
         return S_ERROR("Requests can't be modified after submission")
@@ -375,21 +372,21 @@ class ProductionRequestDB(DB):
     elif rec['ParentID']:
       try:
         parentID = long(rec['ParentID'])
-      except Exception,e:
+      except ValueError:
         self.lock.release()
         return S_ERROR('ParentID is not a number')
-      result = self.__getStateAndAuthor(parentID,connection)
+      result = self.__getStateAndAuthor(parentID, connection)
       if not result['OK']:
         return result
 
-    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-9])
-    req+= " ) VALUES ( %s );" % ','.join(recls)
-    result = self._update(req,connection)
+    req = "INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-9])
+    req += " ) VALUES ( %s );" % ','.join(recls)
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
     req = "SELECT LAST_INSERT_ID();"
-    result = self._query(req,connection)
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -407,42 +404,42 @@ class ProductionRequestDB(DB):
     self.lock.release()
     if rec['RequestState'] in ['BK Check','Submitted']:
       rec['RequestID'] = requestID
-      _inform_people(rec,'',rec['RequestState'],creds['User'],rec['Inform'])
+      _inform_people(rec, '', rec['RequestState'], creds['User'], rec['Inform'])
     return S_OK(requestID)
 
-  def __addMonitoring(self,req,order):
+  def __addMonitoring(self, req, order):
     """ Append monitoring columns. Somehow tricky SQL.
         Most probable need optimizations, but ok for now.
     """
-    r ="SELECT t.*,MIN(rh.TimeStamp) AS crTime,"
-    r+="           MAX(rh.TimeStamp) AS upTime "
-    r+="FROM "
-    r+="(SELECT t.*,CAST(COALESCE(SUM(sr.RealNumberOfEvents),0)+"
-    r+="                COALESCE(t.RealNumberOfEvents,0) AS SIGNED)"
-    r+="           AS rqTotal "
-    r+=" FROM "
-    r+=" (SELECT t.*,CAST(COALESCE(SUM(t.bkSrTotal),0)+"
-    r+="                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
-    r+="  (SELECT t.*,CAST(LEAST(COALESCE(SUM(pp.BkEvents),0),"
-    r+="                   COALESCE(sr.RealNumberOfEvents,0)) AS SIGNED)"
-    r+="              AS bkSrTotal FROM "
-    r+="   (SELECT t.*, CAST(SUM(pp.BkEvents) AS SIGNED)"
-    r+="                AS bk FROM (%s) as t " % req
-    r+="    LEFT JOIN ProductionProgress as pp ON (pp.RequestID=t.RequestID "
-    r+="    AND pp.Used=1) GROUP BY t.RequestID) as t "
-    r+="   LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.MasterID "
-    r+="   LEFT JOIN ProductionProgress AS pp ON (sr.RequestID=pp.RequestID "
-    r+="   AND pp.Used=1) GROUP BY t.RequestID,sr.RequestID) AS t"
-    r+="  GROUP BY t.RequestID) AS t"
-    r+=" LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
-    r+=" GROUP BY t.RequestID) as t"
-    r+=" LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
-    r+=" GROUP BY t.RequestID"
-    return r+order
+    rQuery = "SELECT t.*,MIN(rh.TimeStamp) AS crTime,"
+    rQuery += "           MAX(rh.TimeStamp) AS upTime "
+    rQuery += "FROM "
+    rQuery += "(SELECT t.*,CAST(COALESCE(SUM(sr.RealNumberOfEvents),0)+"
+    rQuery += "                COALESCE(t.RealNumberOfEvents,0) AS SIGNED)"
+    rQuery += "           AS rqTotal "
+    rQuery += " FROM "
+    rQuery += " (SELECT t.*,CAST(COALESCE(SUM(t.bkSrTotal),0)+"
+    rQuery += "                  COALESCE(t.bk,0) AS SIGNED) AS bkTotal FROM "
+    rQuery += "  (SELECT t.*,CAST(LEAST(COALESCE(SUM(pp.BkEvents),0),"
+    rQuery += "                   COALESCE(sr.RealNumberOfEvents,0)) AS SIGNED)"
+    rQuery += "              AS bkSrTotal FROM "
+    rQuery += "   (SELECT t.*, CAST(SUM(pp.BkEvents) AS SIGNED)"
+    rQuery += "                AS bk FROM (%s) as t " % req
+    rQuery += "    LEFT JOIN ProductionProgress as pp ON (pp.RequestID=t.RequestID "
+    rQuery += "    AND pp.Used=1) GROUP BY t.RequestID) as t "
+    rQuery += "   LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.MasterID "
+    rQuery += "   LEFT JOIN ProductionProgress AS pp ON (sr.RequestID=pp.RequestID "
+    rQuery += "   AND pp.Used=1) GROUP BY t.RequestID,sr.RequestID) AS t"
+    rQuery += "  GROUP BY t.RequestID) AS t"
+    rQuery += " LEFT JOIN ProductionRequests as sr ON sr.MasterID=t.RequestID "
+    rQuery += " GROUP BY t.RequestID) as t"
+    rQuery += " LEFT JOIN RequestHistory as rh ON rh.RequestID=t.RequestID "
+    rQuery += " GROUP BY t.RequestID"
+    return rQuery + order
 
-  def getProductionRequest(self,requestIDList,subrequestsFor=0,
-                           sortBy='',sortOrder='ASC',
-                           offset=0,limit=0,filter={}):
+  def getProductionRequest(self, requestIDList, subrequestsFor=0,
+                           sortBy='', sortOrder='ASC',
+                           offset=0, limit=0, filter={}):
     """ Get the Production Request(s) details.
         If requestIDList is not empty, only productions
         from the list are retured. Otherwise
@@ -453,7 +450,7 @@ class ProductionRequestDB(DB):
     try: # test parameters
       for x in requestIDList:
         y = long(x)
-    except:
+    except ValueError:
       return S_ERROR("Bad parameters (all request IDs must be numbers)")
     try: # test filters
       sfilter = []
@@ -462,11 +459,11 @@ class ProductionRequestDB(DB):
           return S_ERROR("bad field in filter")
         val = str(filter[x])
         if val:
-          val="( "+','.join(['"'+y+'"' for y in val.split(',')])+") "
+          val = "( "+','.join(['"' + y + '"' for y in val.split(',')]) + ") "
           if x == "RequestID":
             # Collect also masters masters
             req = "SELECT RequestID,MasterID FROM ProductionRequests "
-            req+= "WHERE RequestID IN %s" % val
+            req += "WHERE RequestID IN %s" % val
             result = self._query(req)
             if not result['OK']:
               return result
@@ -478,10 +475,10 @@ class ProductionRequestDB(DB):
                 val.append(str(y[0]))
             if not val:
               return S_OK({'Rows':[], 'Total':0})
-            val="( "+','.join(val)+") "
-          sfilter.append(" t.%s IN %s " %(x,val))
-      sfilter=" AND ".join(sfilter)
-    except Exception,e:
+            val = "( " + ','.join(val) + ") "
+          sfilter.append(" t.%s IN %s " % (x, val))
+      sfilter = " AND ".join(sfilter)
+    except Exception, e:
       return S_ERROR("Bad filter content "+str(e))
 
     if sortBy:
@@ -492,34 +489,34 @@ class ProductionRequestDB(DB):
 
     fields = ','.join(['t.'+x for x in self.requestFields[:-9]])
     req = "SELECT %s,rt.State AS TestState,rt.Actual AS TestActual,COUNT(sr.RequestID) AS HasSubrequest " % fields
-    req+= "FROM ProductionRequests as t "
-    req+= "LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.ParentID "
-    req+= "LEFT JOIN RequestTest AS rt ON t.RequestID=rt.RequestID "
-    req+= "WHERE "
+    req += "FROM ProductionRequests as t "
+    req += "LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.ParentID "
+    req += "LEFT JOIN RequestTest AS rt ON t.RequestID=rt.RequestID "
+    req += "WHERE "
     if requestIDList:
       idlist = ','.join([str(x) for x in requestIDList])
       where = "t.RequestID IN (%s)" % idlist
     else:
       if subrequestsFor:
-        where ="t.ParentID=%s" % subrequestsFor
+        where = "t.ParentID=%s" % subrequestsFor
       elif sfilter:
         where = sfilter
       else:
-        where ="t.ParentID IS NULL"
-    req+=where
-    req+=" GROUP BY t.RequestID"
-    order=""
+        where = "t.ParentID IS NULL"
+    req += where
+    req += " GROUP BY t.RequestID"
+    order = ""
     if sortBy:
       # order have to be applyed twice: before LIMIT and at the end
-      order= " ORDER BY %s %s" % (sortBy,sortOrder)
+      order = " ORDER BY %s %s" % (sortBy, sortOrder)
       req += order
     if limit:
-      req += " LIMIT %s,%s" % (offset,limit)
-    result = self._query(self.__addMonitoring(req,order))
+      req += " LIMIT %s,%s" % (offset, limit)
+    result = self._query(self.__addMonitoring(req, order))
     if not result['OK']:
       return result
 
-    rows = [dict(zip(self.requestFields,row)) for row in result['Value']]
+    rows = [dict(zip(self.requestFields, row)) for row in result['Value']]
     total = len(rows)
     if limit:
       result = self._query("SELECT COUNT(*) FROM ProductionRequests AS t"+
@@ -529,18 +526,18 @@ class ProductionRequestDB(DB):
       total = result['Value'][0][0]
     return S_OK({'Rows':rows, 'Total':total})
 
-  def __checkUpdate(self,update,old,creds,connection):
+  def __checkUpdate(self, update, old, creds, connection):
     """ Check that update is possible.
         Return dict with values for _inform_people (with
         state=='' in  case notification is not required)
         NOTE: unlock in case of errors
     """
     requestID = old['RequestID']
-    result = self.__getStateAndAuthor(requestID,connection)
+    result = self.__getStateAndAuthor(requestID, connection)
     if not result['OK']:
       return result
-    requestState,requestAuthor,requestInform = result['Value']
-    rec=old.copy()
+    requestState, requestAuthor, requestInform = result['Value']
+    rec = old.copy()
     rec.update(update)
     inform = { 'rec':rec, 'state':'', 'author': str(requestAuthor),
                'oldstate': requestState, 'inform': requestInform }
@@ -578,7 +575,7 @@ class ProductionRequestDB(DB):
 
     # Check that a person can update in general (that also means he can
     # change at least comments)
-    if requestState in ['New','BK OK','Rejected']:
+    if requestState in ['New', 'BK OK', 'Rejected']:
       if requestAuthor != creds['User']:
         self.lock.release()
         return S_ERROR("Only author is allowed to modify unsubmitted request")
@@ -621,7 +618,7 @@ class ProductionRequestDB(DB):
     if old['MasterID']: # for subrequests it's simple
       if requestState == 'New':
         for x in update:
-          if not x in ['EventType','NumberOfEvents','RealNumberOfEvents','Comments']:
+          if not x in ['EventType', 'NumberOfEvents', 'RealNumberOfEvents', 'Comments']:
             self.lock.release()
             return S_ERROR("%s is not allowed in subrequests" % x)
           if x != 'Comments' and not update[x]:
@@ -651,111 +648,120 @@ class ProductionRequestDB(DB):
           return S_ERROR("Please specify Event type/number or add subrequest(s)")
       else:
         self.lock.release()
-        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+        _msgTuple = (requestState, update['RequestState'])
+        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
     elif requestState == 'Rejected':
-      if len(update)!=1 or update.get('RequestState','') != 'New':
+      if len(update) != 1 or update.get('RequestState','') != 'New':
         self.lock.release()
         return S_ERROR("Rejected requests must be resurrected before modifications")
     elif requestState == 'BK Check':
       for x in update:
-        if not x in ['RequestState','SimCondition','SimCondID','SimCondDetail','Comments','Inform','Extra']:
+        if not x in ['RequestState', 'SimCondition', 'SimCondID', 'SimCondDetail', 'Comments', 'Inform', 'Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during BK check" % x)
       if not 'RequestState' in update:
         return S_OK(inform)
       if not update['RequestState'] in ['BK OK','Rejected']:
         self.lock.release()
-        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
-      if update['RequestState'] == 'BK OK' and not update.get('SimCondID',old['SimCondID']):
+        _msgTuple = (requestState, update['RequestState'])
+        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
+      if update['RequestState'] == 'BK OK' and not update.get('SimCondID', old['SimCondID']):
         self.lock.release()
         return S_ERROR("Registered simulation conditions required to sign for BK OK")
     elif requestState == 'BK OK':
       for x in update:
-        if not x in ['RequestState','Comments','Inform','Extra']:
+        if not x in ['RequestState', 'Comments', 'Inform', 'Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified after BK check" % x)
       if not 'RequestState' in update:
         return S_OK(inform)
       if not update['RequestState'] in ['Submitted','Rejected']:
         self.lock.release()
-        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+        _msgTuple = (requestState, update['RequestState'])
+        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
     elif requestState == 'Submitted':
       if creds['Group'] == 'lhcb_ppg':
         for x in update:
-          if not x in ['RequestState','Comments','Inform','RequestPriority','Extra']:
+          if not x in ['RequestState', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
             self.lock.release()
             return S_ERROR("%s can't be modified during PPG signing" % x)
         if not 'RequestState' in update:
           return S_OK(inform)
         if update['RequestState'] == 'Accepted':
-          update['RequestState'] = 'PPG OK';
-        if not update['RequestState'] in ['PPG OK','Rejected']:
+          update['RequestState'] = 'PPG OK'
+        if not update['RequestState'] in ['PPG OK', 'Rejected']:
           self.lock.release()
-          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+          _msgTuple = (requestState, update['RequestState'])
+          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
       if creds['Group'] == 'lhcb_tech':
         for x in update:
-          if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail','Extra']:
+          if not x in ['RequestState', 'Comments', 'Inform', 'ProPath', 'ProID', 'ProDetail', 'Extra']:
             self.lock.release()
             return S_ERROR("%s can't be modified during Tech signing" % x)
         if not 'RequestState' in update:
           return S_OK(inform)
         if update['RequestState'] == 'Accepted':
-          update['RequestState'] = 'Tech OK';
+          update['RequestState'] = 'Tech OK'
         if not update['RequestState'] in ['Tech OK','Rejected']:
           self.lock.release()
-          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+          _msgTuple = (requestState, update['RequestState'])
+          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple)
 # AZ: removed from logic
 #        if update['RequestState'] == 'Tech OK' and not update.get('ProID',old['ProID']):
 #          self.lock.release()
 #          return S_ERROR("Registered processing pass is required to sign for Tech OK")
-    elif requestState in ['PPG OK','On-hold']:
+    elif requestState in ['PPG OK', 'On-hold']:
       for x in update:
-        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail','Extra']:
+        if not x in ['RequestState', 'Comments', 'Inform', 'ProPath', 'ProID', 'ProDetail', 'Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during Tech signing" % x)
       if not 'RequestState' in update:
         return S_OK(inform)
       if update['RequestState'] == 'Tech OK':
         update['RequestState'] = 'Accepted'
-      if not update['RequestState'] in ['Accepted','Rejected','On-hold']:
+      if not update['RequestState'] in ['Accepted', 'Rejected', 'On-hold']:
         self.lock.release()
-        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+        _msgTuple = (requestState, update['RequestState'])
+        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
 # AZ: removed from logic
 #      if update['RequestState'] == 'Accepted' and not update.get('ProID',old['ProID']):
 #        self.lock.release()
 #        return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState == 'Tech OK':
       for x in update:
-        if not x in ['RequestState','Comments','Inform','RequestPriority','Extra']:
+        if not x in ['RequestState', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during PPG signing" % x)
       if not 'RequestState' in update:
         return S_OK(inform)
       if update['RequestState'] == 'PPG OK':
         update['RequestState'] = 'Accepted'
-      if not update['RequestState'] in ['Accepted','Rejected']:
+      if not update['RequestState'] in ['Accepted', 'Rejected']:
         self.lock.release()
-        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+        _msgTuple = (requestState, update['RequestState'])
+        return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
     elif requestState in ['Accepted','Active']:
       for x in update:
-        if not x in ['RequestState','Comments','Inform','ProPath','ProID','ProDetail','Extra']:
+        if not x in ['RequestState', 'Comments', 'Inform', 'ProPath', 'ProID', 'ProDetail', 'Extra']:
           self.lock.release()
           return S_ERROR("%s can't be modified during the progress" % x)
       if not 'RequestState' in update:
         return S_OK(inform)
       if requestState == 'Accepted':
-        if not update['RequestState'] in ['Active','Cancelled','PPG OK']:
+        if not update['RequestState'] in ['Active', 'Cancelled', 'PPG OK']:
           self.lock.release()
-          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+          _msgTuple = (requestState, update['RequestState'])
+          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
       else:
         if not update['RequestState'] in ['Done','Cancelled']:
           self.lock.release()
-          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % (requestState,update['RequestState']))
+          _msgTuple = (requestState, update['RequestState'])
+          return S_ERROR("The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
     inform['state'] = update['RequestState']
     inform['rec'].update(update)
     return S_OK(inform)
 
-  def updateProductionRequest(self,requestID,requestDict,creds):
+  def updateProductionRequest(self, requestID, requestDict, creds):
     """ Update existing production request
         In states other than New only state and comments
         are changable.
@@ -763,7 +769,7 @@ class ProductionRequestDB(DB):
         TODO: RequestPDG change in ??? state
               Protect fields in subrequests
     """
-    fdict = dict.fromkeys(self.requestFields[4:-9],None)
+    fdict = dict.fromkeys(self.requestFields[4:-9], None)
     rec = {}
     for x in requestDict:
       if x in fdict:
@@ -782,9 +788,9 @@ class ProductionRequestDB(DB):
 
     fields = ','.join(['t.'+x for x in self.requestFields[:-9]])
     req = "SELECT %s " % fields
-    req+= "FROM ProductionRequests as t "
-    req+= "WHERE t.RequestID=%s" % requestID
-    result = self._query(req,connection)
+    req += "FROM ProductionRequests as t "
+    req += "WHERE t.RequestID=%s" % requestID
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -792,7 +798,7 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return S_ERROR('The request is no longer exist')
 
-    old = dict(zip(self.requestFields[:-9],result['Value'][0]))
+    old = dict(zip(self.requestFields[:-9], result['Value'][0]))
 
     update = {}     # Decide what to update (and if that is required)
     for x in rec:
@@ -810,15 +816,15 @@ class ProductionRequestDB(DB):
         num = long(rec['NumberOfEvents'])
         if num < 0:
           num = 0
-      except:
+      except ValueError:
         pass
       update['RealNumberOfEvents'] = str(num)
 
     if 'Comments' in update:
       update['Comments'] = self.__prefixComments(update['Comments'],
-                                                 old['Comments'],creds['User'])
+                                                 old['Comments'], creds['User'])
 
-    result = self.__checkUpdate(update,old,creds,connection)
+    result = self.__checkUpdate(update, old, creds, connection)
     if not result['OK']:
       return result
     inform = result['Value']
@@ -829,12 +835,12 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       self.lock.release()
       return result
-    updates = ','.join([x+'='+y for x,y in zip(recl_fields,result['Value'])])
+    updates = ','.join([x + '=' + y for x, y in zip(recl_fields, result['Value'])])
 
     req = "UPDATE ProductionRequests "
-    req+= "SET %s " % updates
-    req+= "WHERE RequestID=%s" % requestID
-    result = self._update(req,connection)
+    req += "SET %s " % updates
+    req += "WHERE RequestID=%s" % requestID
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -851,7 +857,7 @@ class ProductionRequestDB(DB):
     result = S_OK()
     gLogger.info(str(update))
     if 'EventType' in update or 'ProPath' in update or 'ProDetail' in update: 
-      result = self.__invalidateTests(requestID,connection)
+      result = self.__invalidateTests(requestID, connection)
       
     if result['OK']:
       self.lock.release()
@@ -859,28 +865,28 @@ class ProductionRequestDB(DB):
     _inform_people(**inform)
     return S_OK(requestID)
 
-  def __getSubrequestsList(self,id,master,connection):
+  def __getSubrequestsList(self, iD, master, connection):
     """ Return list of all subrequests for this request
         NOTE: it does self.lock.release() in case of errors
     """
     result = self._query("SELECT RequestID "+
                          "FROM ProductionRequests "+
-                         "WHERE ParentID=%s and MasterID=%s" % (id,master),
+                         "WHERE ParentID=%s and MasterID=%s" % (iD, master),
                          connection)
     if not result['OK']:
       self.lock.release()
       return result
-    sr=[]
+    sr = []
     for x in result['Value']:
       sr.append(x[0])
-      result = self.__getSubrequestsList(x[0],master,connection)
+      result = self.__getSubrequestsList(x[0], master, connection)
       if not result['OK']:
-        self.lock.release();
+        self.lock.release()
         return result
       sr += result['Value']
     return S_OK(sr)
 
-  def deleteProductionRequest(self,requestID,creds):
+  def deleteProductionRequest(self, requestID, creds):
     """ Delete existing production.
         Subrequests are deleted.
         Substructure is moved up in the tree.
@@ -888,19 +894,19 @@ class ProductionRequestDB(DB):
     """
     try:
       requestID = long(requestID)
-    except Exception,e:
+    except ValueError:
       return S_ERROR('RequestID is not a number')
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
     if not result['OK']:
       self.lock.release()
-      return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
+      return S_ERROR('Failed to get connection to MySQL: ' + result['Message'])
     connection = result['Value']
 
-    result = self.__getStateAndAuthor(requestID,connection)
+    result = self.__getStateAndAuthor(requestID, connection)
     if not result['OK']:
       return result
-    requestState,requestAuthor,requestInform = result['Value']
+    requestState, requestAuthor, _requestInform = result['Value']
     if creds['Group'] != 'diracAdmin':
       if requestAuthor != creds['User']:
         self.lock.release()
@@ -908,7 +914,7 @@ class ProductionRequestDB(DB):
       if requestState != 'New' and requestState != 'Rejected':
         self.lock.release()
         return S_ERROR('Can not remove request in processing')
-    result = self.__getRequestInfo(requestID,connection)
+    result = self.__getRequestInfo(requestID, connection)
     if not result['OK']:
       return result
     pinfo = result['Value']
@@ -938,9 +944,9 @@ class ProductionRequestDB(DB):
         self.lock.release()
         return result
       req = "DELETE FROM ProductionRequests "
-      req+= "WHERE MasterID=%s" % requestID
+      req += "WHERE MasterID=%s" % requestID
     else: # this request is subrequest
-      result = self.__getSubrequestsList(requestID,masterID,connection)
+      result = self.__getSubrequestsList(requestID, masterID, connection)
       if not result['OK']:
         return result
       rlist = result['Value']
@@ -953,51 +959,51 @@ class ProductionRequestDB(DB):
         return result
       if len(rlist):
         req = "DELETE FROM ProductionRequests "
-        req+= "WHERE RequestID in (%s)" % ','.join([str(x) for x in rlist])
+        req += "WHERE RequestID in (%s)" % ','.join([str(x) for x in rlist])
     if req:
-      result = self._update(req,connection)
+      result = self._update(req, connection)
       if not result['OK']:
         self.lock.release()
         return result
 
     # move substructure
     req = "UPDATE ProductionRequests SET ParentID=%s " % upperID
-    req+= "WHERE ParentID=%s" % requestID
-    result = self._update(req,connection)
+    req += "WHERE ParentID=%s" % requestID
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
 
     # finally delete us
     req = "DELETE FROM ProductionRequests "
-    req+= "WHERE RequestID=%s" % requestID
-    result = self._update(req,connection)
+    req += "WHERE RequestID=%s" % requestID
+    result = self._update(req, connection)
 
     self.lock.release()
 
     if not result['OK']:
-        return result
+      return result
     return S_OK(requestID)
 
-  def __getRequest(self,requestID,connection):
+  def __getRequest(self, requestID, connection):
     """ retrive complete request record.
         NOTE: unlock in case of errors
     """
     fields = ','.join(['t.'+x for x in self.requestFields[:-9]])
     req = "SELECT %s " % fields
-    req+= "FROM ProductionRequests as t "
-    req+= "WHERE t.RequestID=%s" % requestID
-    result = self._query(req,connection)
+    req += "FROM ProductionRequests as t "
+    req += "WHERE t.RequestID=%s" % requestID
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
     if not result['Value']:
       self.lock.release()
       return S_ERROR('The request is no longer exist')
-    rec = dict(zip(self.requestFields[:-9],result['Value'][0]))
+    rec = dict(zip(self.requestFields[:-9], result['Value'][0]))
     return S_OK(rec)
 
-  def __clearProcessingPass(self,rec):
+  def __clearProcessingPass(self, rec):
     """ clear processing pass section.
     """
     rec['ProID'] = None
@@ -1005,13 +1011,12 @@ class ProductionRequestDB(DB):
     nd = {}
     rec['ProDetail'] = cPickle.dumps(nd)
     
-  def __duplicateDeep(self,requestID,masterID,parentID,creds,connection,
-                      clearpp):
+  def __duplicateDeep(self, requestID, masterID, parentID, creds, connection, clearpp):
     """ recurcive duplication function.
         NOTE: unlock in case of errors
     """
 
-    result = self.__getRequest(requestID,connection)
+    result = self.__getRequest(requestID, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -1038,7 +1043,7 @@ class ProductionRequestDB(DB):
       num = long(rec['NumberOfEvents'])
       if num < 0:
         num = 0
-    except:
+    except ValueError:
       pass
     rec['RealNumberOfEvents'] = str(num)
 
@@ -1049,14 +1054,14 @@ class ProductionRequestDB(DB):
       return result
     recls = result['Value']
 
-    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-9])
-    req+= " ) VALUES ( %s );" % ','.join(recls)
-    result = self._update(req,connection)
+    req = "INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-9])
+    req += " ) VALUES ( %s );" % ','.join(recls)
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
     req = "SELECT LAST_INSERT_ID();"
-    result = self._query(req,connection)
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -1078,22 +1083,22 @@ class ProductionRequestDB(DB):
     parentID = newRequestID
 
     req = "SELECT RequestID "
-    req+= "FROM ProductionRequests as t "
-    req+= "WHERE t.ParentID=%s" % requestID
-    result = self._query(req,connection)
+    req += "FROM ProductionRequests as t "
+    req += "WHERE t.ParentID=%s" % requestID
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
     for chID in [row[0] for row in result['Value']]:
-      result = self.__duplicateDeep(chID,masterID,parentID,creds,
-                                    connection,False)
+      result = self.__duplicateDeep(chID, masterID, parentID, creds,
+                                    connection, False)
       if not result['OK']:
         return result
 
     return S_OK(long(newRequestID))
 
 
-  def duplicateProductionRequest(self,requestID,creds,clearpp):
+  def duplicateProductionRequest(self, requestID, creds, clearpp):
     """
     Duplicate production request with all it's subrequests
     (but without substructure). If that is subrequest,
@@ -1106,7 +1111,7 @@ class ProductionRequestDB(DB):
 
     try:
       requestID = long(requestID)
-    except Exception,e:
+    except ValueError:
       return S_ERROR('RequestID is not a number')
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
@@ -1115,7 +1120,7 @@ class ProductionRequestDB(DB):
       return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
     connection = result['Value']
 
-    result = self.__getRequestInfo(requestID,connection)
+    result = self.__getRequestInfo(requestID, connection)
     if not result['OK']:
       return result
     pinfo = result['Value']
@@ -1124,21 +1129,21 @@ class ProductionRequestDB(DB):
 
     if masterID:
       clearpp = False
-      result = self.__getStateAndAuthor(requestID,connection)
+      result = self.__getStateAndAuthor(requestID, connection)
       if not result['OK']:
         return result
-      requestState,requestAuthor,requestInform = result['Value']
+      requestState, requestAuthor, _requestInform = result['Value']
       if requestState != 'New' or requestAuthor != creds['User']:
         self.lock.release()
         return S_ERROR('Can not duplicate subrequest of request in progress')
 
-    result = self.__duplicateDeep(requestID,masterID,parentID,creds,
-                                  connection,clearpp)
+    result = self.__duplicateDeep(requestID, masterID, parentID, creds,
+                                  connection, clearpp)
     if result['OK']:
       self.lock.release()
     return result
 
-  def __checkAuthorizeSplit(self,requestState,creds):
+  def __checkAuthorizeSplit(self, requestState, creds):
     """
     Check that current user is allowed to split in specified state
     """
@@ -1151,35 +1156,35 @@ class ProductionRequestDB(DB):
       return S_OK()
     return S_ERROR('You are not allowed to split the request')
 
-  def __moveChildDeep(self,requestID,masterID,setParent,connection):
+  def __moveChildDeep(self, requestID, masterID, setParent, connection):
     """
     Update parent for this request if setParent is True
     and update master for this and all subrequests
     """
     if setParent:
-      updates="ParentID=%s,MasterID=%s" % (str(masterID),str(masterID))
+      updates = "ParentID=%s,MasterID=%s" % (str(masterID), str(masterID))
     req = "UPDATE ProductionRequests "
-    req+= "SET %s " % updates
-    req+= "WHERE RequestID=%s" % requestID
-    result = self._update(req,connection)
+    req += "SET %s " % updates
+    req += "WHERE RequestID=%s" % requestID
+    result = self._update(req, connection)
     if not result['OK']:
       return result
     req = "SELECT RequestID,MasterID "
-    req+= "FROM ProductionRequests as t "
-    req+= "WHERE t.ParentID=%s" % requestID
-    result = self._query(req,connection)
+    req += "FROM ProductionRequests as t "
+    req += "WHERE t.ParentID=%s" % requestID
+    result = self._query(req, connection)
     if not result['OK']:
       return result
     for ch in result['Value']:
       if ch[1]:
-        ret = self.__moveChildDeep(ch[0],masterID,False,connection)
+        ret = self.__moveChildDeep(ch[0], masterID, False, connection)
         if not ret['OK']:
-          gLogger.error("_moveChildDeep: can not move to %s: %s" % (str(masterID),ret['Message']))
+          gLogger.error("_moveChildDeep: can not move to %s: %s" % (str(masterID), ret['Message']))
         # !!! Failing that will leave both requests inconsistant !!!
         # But since we have only one subrequest level now, it will never happened
     return S_OK()
 
-  def splitProductionRequest(self,requestID,splitlist,creds):
+  def splitProductionRequest(self, requestID, splitlist, creds):
     """
     Fully duplicate master production request with its history
     and reassociate first level subrequests from splitlist
@@ -1189,14 +1194,14 @@ class ProductionRequestDB(DB):
     """
     try:
       requestID = long(requestID)
-    except Exception,e:
+    except ValueError:
       return S_ERROR('RequestID is not a number')
     if not splitlist:
       return S_ERROR('Split list is empty')
     isplitlist = []
     try:
       isplitlist = [ long(x) for x in splitlist ]
-    except Exception,e:
+    except ValueError:
       return S_ERROR('RequestID in split list is not a number')
     
     self.lock.acquire() # transaction begin ?? may be after connection ??
@@ -1206,7 +1211,7 @@ class ProductionRequestDB(DB):
       return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
     connection = result['Value']
 
-    result = self.__getRequest(requestID,connection)
+    result = self.__getRequest(requestID, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -1216,14 +1221,14 @@ class ProductionRequestDB(DB):
     if rec['MasterID']:
       self.lock.release()
       return S_ERROR('Can not duplicate subrequest of request in progress')
-    result = self.__checkAuthorizeSplit(rec['RequestState'],creds)
+    result = self.__checkAuthorizeSplit(rec['RequestState'], creds)
     if not result['OK']:
       self.lock.release()
       return result
     req = "SELECT RequestID,MasterID "
-    req+= "FROM ProductionRequests as t "
-    req+= "WHERE t.ParentID=%s" % requestID
-    result = self._query(req,connection)
+    req += "FROM ProductionRequests as t "
+    req += "WHERE t.ParentID=%s" % requestID
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -1248,14 +1253,14 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return result
     recls = result['Value']
-    req ="INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-9])
-    req+= " ) VALUES ( %s );" % ','.join(recls)
-    result = self._update(req,connection)
+    req = "INSERT INTO ProductionRequests ( "+','.join(self.requestFields[1:-9])
+    req += " ) VALUES ( %s );" % ','.join(recls)
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
     req = "SELECT LAST_INSERT_ID();"
-    result = self._query(req,connection)
+    result = self._query(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -1264,39 +1269,39 @@ class ProductionRequestDB(DB):
     # Move subrequests (!! Errors are not fatal !!)
     rsplitlist = []
     for x in fisplitlist:
-      if self.__moveChildDeep(x,newRequestID,True,connection)['OK']:
+      if self.__moveChildDeep(x, newRequestID, True, connection)['OK']:
         rsplitlist.append(x)
     # If nothing could be moved, remove the master
     if not rsplitlist:
-      req ="DELETE FROM ProductionRequests "
-      req+="WHERE RequestID=%s" % str(newRequestID)
-      result = self._update(req,connection)
+      req = "DELETE FROM ProductionRequests "
+      req += "WHERE RequestID=%s" % str(newRequestID)
+      result = self._update(req, connection)
       self.lock.release()
       return S_ERROR('Could not move subrequests')
 
     # Copy the history (failures are not fatal since
     # it is hard to revert the previous changes...)
     req = "SELECT * FROM RequestHistory WHERE RequestID=%s " % requestID
-    req+= "ORDER BY TimeStamp"
-    result = self._query(req,connection)
+    req += "ORDER BY TimeStamp"
+    result = self._query(req, connection)
     if not result['OK']:
-      gLogger.error("SplitProductionRequest: can not get history for %s: %s" % (str(requestID),result['Message']))
+      gLogger.error("SplitProductionRequest: can not get history for %s: %s" % (str(requestID), result['Message']))
     else:
       for x in result['Value']:
-        x=list(x)
-        x[0]= newRequestID
+        x = list(x)
+        x[0] = newRequestID
         ret = self._update("INSERT INTO RequestHistory ("+
                            ','.join(self.historyFields)+
                            ") VALUES ( %s,'%s','%s','%s')" % tuple([str(y) for y in x]),connection)
       if not ret['OK']:
-        gLogger.error("SplitProductionRequest: add history fail: %s",['Message'])
+        gLogger.error("SplitProductionRequest: add history fail: %s", ['Message'])
 
     self.lock.release()
     return S_OK(newRequestID)
 
-  progressFields = [ 'ProductionID','RequestID','Used','BkEvents' ]
+  progressFields = [ 'ProductionID', 'RequestID', 'Used', 'BkEvents' ]
 
-  def getProductionProgress(self,requestID):
+  def getProductionProgress(self, requestID):
     """ return the list of associated productions
         requestID must be Long and already checked
     """
@@ -1305,11 +1310,11 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       return result
 
-    rows = [dict(zip(self.progressFields,row)) for row in result['Value']]
+    rows = [dict(zip(self.progressFields, row)) for row in result['Value']]
     total = len(rows)
     return S_OK({'Rows':rows, 'Total':total})
 
-  def addProductionToRequest(self,pdict):
+  def addProductionToRequest(self, pdict):
     """ Associate production to request.
         Existence of request is checked first.
         TODO: check requestState
@@ -1317,7 +1322,7 @@ class ProductionRequestDB(DB):
     try:
       for x in self.progressFields:
         pdict[x] = long(pdict[x])
-    except:
+    except ValueError:
       return S_ERROR('Bad parameters')
 
     self.lock.acquire() # transaction begin ?? may be after connection ??
@@ -1327,56 +1332,56 @@ class ProductionRequestDB(DB):
       return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
     connection = result['Value']
 
-    result = self.__getStateAndAuthor(pdict['RequestID'],connection)
+    result = self.__getStateAndAuthor(pdict['RequestID'], connection)
     if not result['OK']:
       self.lock.release()
       return result
-    requestState,requestAuthor,requestInform = result['Value']
+    #requestState, requestAuthor, requestInform = result['Value']
 
-    req ="INSERT INTO ProductionProgress ( "
-    req+=','.join(self.progressFields)
-    req+=" ) VALUES ( "
-    req+=','.join([str(pdict[x]) for x in self.progressFields])
-    req+=" )"
-    result = self._update(req,connection)
+    req = "INSERT INTO ProductionProgress ( "
+    req += ','.join(self.progressFields)
+    req += " ) VALUES ( "
+    req += ','.join([str(pdict[x]) for x in self.progressFields])
+    req += " )"
+    result = self._update(req, connection)
     self.lock.release()
     if not result['OK']:
       return result
     return S_OK(pdict['ProductionID'])
 
-  def removeProductionFromRequest(self,productionID):
+  def removeProductionFromRequest(self, productionID):
     """ Deassociate production.
     """
-    req ="DELETE FROM ProductionProgress "
-    req+="WHERE ProductionID=%s" % str(productionID)
+    req = "DELETE FROM ProductionProgress "
+    req += "WHERE ProductionID=%s" % str(productionID)
     result = self._update(req)
     if not result['OK']:
       return result
     return S_OK(productionID)
 
-  def useProductionForRequest(self,productionID,used):
+  def useProductionForRequest(self, productionID, used):
     """ Deassociate production.
     """
     used = int(used)
-    req ="UPDATE ProductionProgress "
-    req+="SET Used=%s " % str(used)
-    req+="WHERE ProductionID=%s" % str(productionID)
+    req = "UPDATE ProductionProgress "
+    req += "SET Used=%s " % str(used)
+    req += "WHERE ProductionID=%s" % str(productionID)
     result = self._update(req)
     if not result['OK']:
       return result
     return S_OK(productionID)
 
-  def getRequestHistory(self,requestID):
+  def getRequestHistory(self, requestID):
     """ return the list of state changes for the requests
         requestID must be Long and already checked
     """
     req = "SELECT * FROM RequestHistory WHERE RequestID=%s " % requestID
-    req+= "ORDER BY TimeStamp"
+    req += "ORDER BY TimeStamp"
     result = self._query(req)
     if not result['OK']:
       return result
 
-    rows = [dict(zip(self.historyFields,row)) for row in result['Value']]
+    rows = [dict(zip(self.historyFields, row)) for row in result['Value']]
     total = len(rows)
     return S_OK({'Rows':rows, 'Total':total})
 
@@ -1386,7 +1391,7 @@ class ProductionRequestDB(DB):
     """
     req1 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
     req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
-    req2+= " OR MasterID in (%s)" % req1
+    req2 += " OR MasterID in (%s)" % req1
     req  = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
     req += "in (%s)" % req2
 
@@ -1396,14 +1401,14 @@ class ProductionRequestDB(DB):
     values = [row[0] for row in result['Value']]
     return S_OK(values)
 
-  def updateTrackedProductions(self,update):
+  def updateTrackedProductions(self, update):
     """ update tracked productions """
     # check parameters
     try:
       for x in update:
         x['ProductionID'] = long(x['ProductionID'])
-        x['BkEvents'] = long(x['BkEvents'])
-    except:
+        x['BkEvents']     = long(x['BkEvents'])
+    except ValueError:
       return S_ERROR('Bad parameters')
 
     for x in update:
@@ -1415,11 +1420,11 @@ class ProductionRequestDB(DB):
                      result['Message'])
     return S_OK('')
 
-  def __trackedInputSQL(self,fields):
+  def __trackedInputSQL(self, fields):
     req = "SELECT %s " % fields
-    req+= "FROM ProductionRequests as t WHERE"
-    req+= ' t.RequestState="Active"'
-    req+= ' AND NumberOfEvents<0 '
+    req += "FROM ProductionRequests as t WHERE"
+    req += ' t.RequestState="Active"'
+    req += ' AND NumberOfEvents<0 '
     return self._query(req)
 
   def getTrackedInput(self):
@@ -1433,42 +1438,42 @@ class ProductionRequestDB(DB):
       return result
     rec = []
     for x in result['Value']:
-      r = dict(zip(self.requestFields[:-9],x))
-      if r['SimCondDetail']:
-        r.update(cPickle.loads(r['SimCondDetail']))
+      res = dict(zip(self.requestFields[:-9], x))
+      if res['SimCondDetail']:
+        res.update(cPickle.loads(res['SimCondDetail']))
       else:
         continue
-      del r['SimCondDetail']
+      del res['SimCondDetail']
       try:
-        num = long(r['RealNumberOfEvents'])
-      except:
+        num = long(res['RealNumberOfEvents'])
+      except ValueError:
         num = 0
       if num > 0:
         continue
-      rec.append(r)
+      rec.append(res)
     return S_OK(rec)
 
-  def updateTrackedInput(self,update):
+  def updateTrackedInput(self, update):
     """ update real number of input events """
     # check parameters
     try:
       for x in update:
-        x['RequestID'] = long(x['RequestID'])
+        x['RequestID']          = long(x['RequestID'])
         x['RealNumberOfEvents'] = long(x['RealNumberOfEvents'])
-    except:
+    except ValueError:
       return S_ERROR('Bad parameters')
     result = self.__trackedInputSQL('RequestID')
     if not result['OK']:
       return result
-    allowed = dict.fromkeys([x[0] for x in result['Value']],None)
+    allowed = dict.fromkeys([x[0] for x in result['Value']], None)
     skiped = []
     for x in update:
       if not x['RequestID'] in allowed:
         skiped.append(x['RequestID'])
         continue
-      req ="UPDATE ProductionRequests "
-      req+="SET RealNumberOfEvents=%s " % str(x['RealNumberOfEvents'])
-      req+="WHERE RequestID=%s" % str(x['RequestID'])
+      req = "UPDATE ProductionRequests "
+      req += "SET RealNumberOfEvents=%s " % str(x['RealNumberOfEvents'])
+      req += "WHERE RequestID=%s" % str(x['RequestID'])
       result = self._update(req)
       if not result['OK']:
         skiped.append(x['RequestID'])
@@ -1477,13 +1482,13 @@ class ProductionRequestDB(DB):
                      ','.join(skiped))
     return S_OK('')
 
-  def getProductionList(self,requestID):
+  def getProductionList(self, requestID):
     """ return a list of all productions associated
         with the request or any its subrequest
     """
-    req1 = "SELECT RequestID FROM ProductionRequests WHERE MasterID=%s"%requestID 
+    req1 = "SELECT RequestID FROM ProductionRequests WHERE MasterID=%s" % requestID 
     req  = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
-    req += "in (%s) OR RequestID=%s" % (req1,requestID)
+    req += "in (%s) OR RequestID=%s" % (req1, requestID)
 
     result = self._query(req)
     if not result['OK']:
@@ -1494,24 +1499,29 @@ class ProductionRequestDB(DB):
     values = [row[0] for row in result['Value']]
     return S_OK(values)
 
-  def getAllSubRequestSummary(self,status='',type=''):
+  def getAllSubRequestSummary(self, status = '', type = ''):
     """ return a dictionary containing a summary for each subrequest
     """
     req = "SELECT RequestID,ParentID,RequestType,RequestState,NumberOfEvents FROM ProductionRequests"
     if status and type:
-      req = "%s WHERE RequestState = '%s' AND RequestType = '%s'" % (req,status,type)
+      req = "%s WHERE RequestState = '%s' AND RequestType = '%s'" % (req, status, type)
     elif status:
-      req = "%s WHERE RequestState = '%s'" % (req,status)
+      req = "%s WHERE RequestState = '%s'" % (req, status)
     elif type:
-      req = "%s WHERE RequestType = '%s'" % (req,type)
+      req = "%s WHERE RequestType = '%s'" % (req, type)
     res = self._query(req)
     if not res['OK']:
       return res
     sRequestInfo = {}
-    for sRequestID,parentID,type,status,reqEvents in res['Value']:
+    for sRequestID, parentID, type, status, reqEvents in res['Value']:
       if not parentID:
         parent = 0
-      sRequestInfo[sRequestID] = {'Master':parent, 'RequestType':type, 'Status':status, 'ReqEvents':reqEvents}
+      sRequestInfo[sRequestID] = {
+                                   'Master'      : parent, 
+                                   'RequestType' : type, 
+                                   'Status'      : status, 
+                                   'ReqEvents'   : reqEvents
+                                   }
     return S_OK(sRequestInfo)
     
   def getAllProductionProgress(self):
@@ -1532,30 +1542,31 @@ class ProductionRequestDB(DB):
     """ Return the dictionary with possible values for filter
     """
     opts = {}
-    for x,y in [ ('State','RequestState'),
-                 ('Type','RequestType'),
-                 ('Author','RequestAuthor'),
-                 ('EType','EventType') ] :
-      req = "SELECT DISTINCT %s FROM ProductionRequests " % y
-      req+= "WHERE %s IS NOT NULL " % y
-      req+= "ORDER BY %s" % y
-      res = self._query(req);
+    for key, value in [ ('State','RequestState'),
+                        ('Type','RequestType'),
+                        ('Author','RequestAuthor'),
+                        ('EType','EventType') ]:
+      
+      req = "SELECT DISTINCT %s FROM ProductionRequests " % value
+      req += "WHERE %s IS NOT NULL " % value
+      req += "ORDER BY %s" % value
+      res = self._query(req)
       if not res['OK']:
         return res
-      opts[x] = [row[0] for row in res['Value']]
-    return S_OK(opts);
+      opts[key] = [row[0] for row in res['Value']]
+    return S_OK(opts)
 
-  def __getTestIDs(self,id,connection):
-    result = self.__getSubrequestsList(id,id,connection)
+  def __getTestIDs(self, iD, connection):
+    result = self.__getSubrequestsList(iD, iD, connection)
     if not result['OK']:
       return result
     allid = result['Value']
     if not allid: # we either have subrequest tests or one test
-      allid = [ id ]
+      allid = [ iD ]
     allid = [str(x) for x in allid]
     return S_OK(allid)
 
-  def getTestList(self,id):
+  def getTestList(self, iD):
     """ Return list of all tests for this request and its subrequests
     """
     self.lock.acquire() # transaction begin ?? may be after connection ??
@@ -1564,42 +1575,42 @@ class ProductionRequestDB(DB):
       self.lock.release()
       return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
     connection = result['Value']
-    result = self.__getTestIDs(id,connection)
+    result = self.__getTestIDs(iD, connection)
     if not result['OK']:
       return result
     allid = result['Value']
     fields = ','.join(['rt.'+x for x in self.testFields[1:]])
     req = "SELECT t.RequestID,%s " % fields
-    req+= "FROM ProductionRequests as t "
-    req+= "LEFT JOIN RequestTest AS rt ON t.RequestID=rt.RequestID "
-    req+= "WHERE t.RequestID IN %s" % "( "+','.join(allid)+") "    
-    req+= "ORDER BY t.RequestID"
+    req += "FROM ProductionRequests as t "
+    req += "LEFT JOIN RequestTest AS rt ON t.RequestID=rt.RequestID "
+    req += "WHERE t.RequestID IN %s" % "( "+','.join(allid)+") "    
+    req += "ORDER BY t.RequestID"
     result = self._query(req)
     if not result['OK']:
       self.lock.release()
       return result
-    rows = [dict(zip(self.testFields,row)) for row in result['Value']]
-    total = len(rows)
+    rows = [dict(zip(self.testFields, row)) for row in result['Value']]
+    #total = len(rows)
     self.lock.release()
     return S_OK(rows)
 
-  def __invalidateTests(self,requestID,connection):
+  def __invalidateTests(self, requestID, connection):
     """ Invalidate tests for this request """
-    result = self.__getTestIDs(requestID,connection)
+    result = self.__getTestIDs(requestID, connection)
     if not result['OK']:
       return result
     allid = result['Value']
     req = "UPDATE RequestTest "
-    req+= "SET Actual=0 "
-    req+= "WHERE RequestID IN %s" % "( "+','.join(allid)+") "
-    result = self._update(req,connection)
+    req += "SET Actual=0 "
+    req += "WHERE RequestID IN %s" % "( "+','.join(allid)+") "
+    result = self._update(req, connection)
     if not result['OK']:
       gLogger.error(result['Message'])
       self.lock.release()
       return result
-    return S_OK();
+    return S_OK()
 
-  def getTests(self,state):
+  def getTests(self, state):
     """ Return the list of tests in specified state
     """
     self.lock.acquire() # transaction begin ?? may be after connection ??
@@ -1607,12 +1618,12 @@ class ProductionRequestDB(DB):
     if not result['OK']:
       self.lock.release()
       return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
-    connection = result['Value']
+    #connection = result['Value']
 
     req = "SELECT * "
-    req+= "FROM RequestTest "
-    req+= 'WHERE State="'+state+'" '
-    req+= "ORDER BY RequestID"
+    req += "FROM RequestTest "
+    req += 'WHERE State="'+state+'" '
+    req += "ORDER BY RequestID"
     result = self._query(req)
     if not result['OK']:
       self.lock.release()
@@ -1621,7 +1632,7 @@ class ProductionRequestDB(DB):
     self.lock.release()
     return S_OK(rows)
 
-  def __checkTest(self,id,creds,connection):
+  def __checkTest(self, iD, creds, connection):
     """ Check that test submission is authorized.
         NOTE: unlock in case of errors
     """
@@ -1630,17 +1641,17 @@ class ProductionRequestDB(DB):
       return S_ERROR('Authorization required')
 
 
-    result = self.__getStateAndAuthor(id,connection)
+    result = self.__getStateAndAuthor(iD, connection)
     if not result['OK']:
       return result
-    requestState,requestAuthor,requestInform = result['Value']
+    requestState, requestAuthor, _requestInform = result['Value']
 
     if creds['Group'] == 'diracAdmin':
       return S_OK()
 
     # Check that a person can update in general (that also means he can
     # change at least comments)
-    if requestState in ['New','BK OK','Rejected']:
+    if requestState in ['New', 'BK OK', 'Rejected']:
       if requestAuthor != creds['User']:
         self.lock.release()
         return S_ERROR("Only author is allowed to test unsubmitted request")
@@ -1679,12 +1690,12 @@ class ProductionRequestDB(DB):
     return S_OK()
 
 
-  def submitTest(self,creds,input,params,script,tpl):
+  def submitTest(self, creds, input, params, script, tpl):
     """ Save new test request into DB
     """
     try:
-      id = long(input['ID'])
-    except Exception,e:
+      iD = long(input['ID'])
+    except ValueError, e:
       return S_ERROR(str(e))
 
     self.lock.acquire() # transaction begin ?? may be after connection ??
@@ -1694,12 +1705,12 @@ class ProductionRequestDB(DB):
       return S_ERROR('Failed to get connection to MySQL: '+result['Message'])
     connection = result['Value']
 
-    result = self.__checkTest(id,creds,connection)
+    result = self.__checkTest(iD, creds, connection)
     if not result['OK']:
       return result
 
     rec = {
-      'RequestID' : id,
+      'RequestID' : iD,
       'State' : 'Waiting',
       'Actual' : 1,
       'Link' : '',
@@ -1720,21 +1731,21 @@ class ProductionRequestDB(DB):
     recls.append("NOW()")
 
     req = "SELECT * FROM RequestTest "
-    req+= "WHERE RequestID = %s" % str(id)
-    res = self._query(req);
+    req += "WHERE RequestID = %s" % str(iD)
+    res = self._query(req)
     if not res['OK']:
       return res
 
     if res['Value']: # Update
-      updates = ','.join([x+'='+y for x,y in zip(reck,recls)])
+      updates = ','.join([x + '=' + y for x, y in zip(reck, recls)])
       req = "UPDATE RequestTest "
-      req+= "SET %s " % updates
-      req+= "WHERE RequestID=%s" % str(id)
+      req += "SET %s " % updates
+      req += "WHERE RequestID=%s" % str(iD)
     else: # Insert
-      req ="INSERT INTO RequestTest ( "+','.join(reck)
-      req+= " ) VALUES ( %s );" % ','.join(recls)
+      req = "INSERT INTO RequestTest ( "+','.join(reck)
+      req += " ) VALUES ( %s );" % ','.join(recls)
 
-    result = self._update(req,connection)
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
@@ -1742,7 +1753,7 @@ class ProductionRequestDB(DB):
     self.lock.release()
     return S_OK()
 
-  def setTestResult(self,requestID,state,link):
+  def setTestResult(self, requestID, state, link):
     """ Set test result. NOTE: no security check!
     """
     self.lock.acquire() # transaction begin ?? may be after connection ??
@@ -1753,9 +1764,9 @@ class ProductionRequestDB(DB):
     connection = result['Value']
 
     req = "UPDATE RequestTest "
-    req+= 'SET state="%s",link="%s",time=NOW() ' % (state,link)
-    req+= "WHERE RequestID=%s" % requestID
-    result = self._update(req,connection)
+    req += 'SET state="%s",link="%s",time=NOW() ' % (state, link)
+    req += "WHERE RequestID=%s" % requestID
+    result = self._update(req, connection)
     if not result['OK']:
       self.lock.release()
       return result
