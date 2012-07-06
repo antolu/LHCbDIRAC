@@ -1,35 +1,35 @@
 # $HeadURL$
-
 """ Client for BookkeepingDB file catalog
 """
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.ConfigurationSystem.Client                               import PathFinder
-from DIRAC.Core.DISET.RPCClient                                     import RPCClient
-from DIRAC.Core.Utilities.List                                      import breakListIntoChunks, randomize
-from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
-import types, os
+import types
+
+from DIRAC                                     import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient                import RPCClient
+from DIRAC.Core.Utilities.List                 import breakListIntoChunks
+from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
 
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
   """
-  def __init__( self, url=False ):
+  def __init__( self, url = False ):
     """ Constructor of the Bookkeeping catalogue client
     """
     self.splitSize = 1000
-    self.name = 'BookkeepingDB'
-    self.valid = True
-    try:
-      if not url:
-        self.url = 'Bookkeeping/BookkeepingManager'
-      else:
-        self.url = url
-      gLogger.verbose( "BK catalog URLs: %s" % self.url )
-    except Exception, exceptionMessage:
-      gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.', '', exceptionMessage )
-      self.valid = False
+    self.name      = 'BookkeepingDB'
+    self.valid     = True
+#    try:
+    if not url:
+      self.url = 'Bookkeeping/BookkeepingManager'
+    else:
+      self.url = url
+    gLogger.verbose( "BK catalog URLs: %s" % self.url )
+#    except Exception, exceptionMessage:
+#      gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining 
+# Bookkeeping service URL.', '', exceptionMessage )
+#      self.valid = False
 
   def isOK( self ):
     return self.valid
@@ -39,7 +39,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     fileList = []
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       fileList.append( lfn )
     return self.__setHasReplicaFlag( fileList )
 
@@ -48,7 +48,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     fileList = []
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       fileList.append( lfn )
     return self.__setHasReplicaFlag( fileList )
 
@@ -78,7 +78,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
@@ -88,7 +88,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
@@ -98,7 +98,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
@@ -108,7 +108,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
@@ -118,7 +118,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
@@ -128,7 +128,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
@@ -138,7 +138,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     if not res['OK']:
       return res
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, _info in res['Value'].items():
       successful[lfn] = True
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
