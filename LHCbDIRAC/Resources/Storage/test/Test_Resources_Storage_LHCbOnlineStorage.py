@@ -95,6 +95,40 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( 2, res )
+
+  def test___checkArgumentFormat( self ):
+    ''' tests the outout of __checkArgumentFormat
+    '''
+    
+    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    
+    res = resource.__checkArgumentFormat( 'path' )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'path' ], res )
+    
+    res = resource.__checkArgumentFormat( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'path' ], res )
+    
+    res = resource.__checkArgumentFormat( [ 'path', 'path2' ] )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'path', 'path2' ], res )
+    
+    res = resource.__checkArgumentFormat( {} )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [], res )
+    
+    res = resource.__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'A', 'B' ], res )
+    
+    res = resource.__checkArgumentFormat( 1 )
+    self.assertEqual( False, res['OK'] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
