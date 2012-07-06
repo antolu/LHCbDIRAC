@@ -32,6 +32,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
 #      self.valid = False
 
   def isOK( self ):
+    '''
+      Returns valid
+    '''
     return self.valid
 
   def addFile( self, lfn ):
@@ -177,7 +180,13 @@ class BookkeepingDBClient( FileCatalogueBase ):
   # These are the internal methods used for actual interaction with the BK service
   #
 
-  def __checkArgumentFormat( self, path ):
+  @staticmethod
+  def __checkArgumentFormat( path ):
+    '''
+      If argument given is a string, returns false. If it is a list, all them
+      are converted into dictionary keys with false value. If a dictionary,
+      it returns it.
+    '''
     if type( path ) in types.StringTypes:
       urls = {path:False}
     elif type( path ) == types.ListType:
@@ -193,6 +202,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( urls )
 
   def __setHasReplicaFlag( self, lfns ):
+    '''
+      Set replica flags on BKK
+    '''
     server = RPCClient( self.url, timeout=120 )
     print "**** Set replica flag on", self.url
     successful = {}
@@ -212,6 +224,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def __unsetHasReplicaFlag( self, lfns ):
+    '''
+      Removes replica flags on BKK
+    '''
     server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
@@ -230,6 +245,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def __exists( self, lfns ):
+    '''
+      Checks if lfns exist
+    '''
     server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
@@ -245,6 +263,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def __getFileMetadata( self, lfns ):
+    '''
+      Returns lfns metadata
+    '''
     server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
