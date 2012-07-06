@@ -1,2 +1,8 @@
 # $HeadURL$
-__RCSID__ = "$Id$"
+''' LHCbDIRAC.ProductionManagementSystem.Agent package
+'''
+
+__RCSID__  = '$Id$'
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
