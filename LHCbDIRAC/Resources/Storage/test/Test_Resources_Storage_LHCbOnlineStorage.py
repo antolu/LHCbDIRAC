@@ -80,5 +80,21 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( 'spaceToken' , res['SpaceToken'] )
     self.assertEqual( 'wspath'     , res['WSUrl'] )
 
+  def test_getProtocolPfn( self ):
+    ''' tests the output of getProtocolPfn
+    '''
+    
+    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    
+    res = resource.getProtocolPfn( { 'FileName' : 1 }, None )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( 1, res )
+    
+    res = resource.getProtocolPfn( { 'FileName' : 2, 'A' : 1 }, 123 )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( 2, res )
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
