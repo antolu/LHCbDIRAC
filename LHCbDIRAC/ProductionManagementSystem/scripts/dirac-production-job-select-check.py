@@ -36,7 +36,7 @@ bk = BookkeepingClient()
 
 from DIRAC.Core.DISET.RPCClient                     import RPCClient
 
-prodClient = RPCClient( 'ProductionManagement/ProductionManager' )
+prodClient = RPCClient( 'Transformation/TransformationManager' )
 
 args = Script.getPositionalArgs()
 if args:

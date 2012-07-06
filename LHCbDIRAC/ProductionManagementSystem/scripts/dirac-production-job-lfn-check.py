@@ -41,7 +41,7 @@ from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
 rm = ReplicaManager()
 bk = BookkeepingClient()
-prodClient = RPCClient( 'ProductionManagement/ProductionManager' )
+prodClient = RPCClient( 'Transformation/TransformationManager' )
 
 for arg in args:
   try:
