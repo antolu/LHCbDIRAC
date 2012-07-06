@@ -1,11 +1,14 @@
+# $HeadURL$
 """ This is the LHCb Online storage """
 
-__RCSID__ = "$Id$"
+import types
+import xmlrpclib
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Storage.StorageBase        import StorageBase
-from stat                                       import *
-import types, xmlrpclib
+#from stat                                       import *
+
+__RCSID__ = "$Id$"
 
 class LHCbOnlineStorage( StorageBase ):
 
@@ -13,33 +16,33 @@ class LHCbOnlineStorage( StorageBase ):
     self.isok = True
 
     self.protocolName = 'LHCbOnline'
-    self.name = storageName
-    self.protocol = protocol
-    self.path = path
-    self.host = host
-    self.port = port
-    self.wspath = wspath
-    self.spaceToken = spaceToken
-    self.cwd = self.path
+    self.name         = storageName
+    self.protocol     = protocol
+    self.path         = path
+    self.host         = host
+    self.port         = port
+    self.wspath       = wspath
+    self.spaceToken   = spaceToken
+    self.cwd          = self.path
     apply( StorageBase.__init__, ( self, self.name, self.path ) )
 
     self.timeout = 100
-
+    
     serverString = "%s://%s:%s" % ( protocol, host, port )
-    self.server = xmlrpclib.Server( serverString )
+    self.server  = xmlrpclib.Server( serverString )
 
   def getParameters( self ):
     """ This gets all the storage specific parameters pass when instantiating the storage
     """
     parameterDict = {}
-    parameterDict['StorageName'] = self.name
+    parameterDict['StorageName']  = self.name
     parameterDict['ProtocolName'] = self.protocolName
-    parameterDict['Protocol'] = self.protocol
-    parameterDict['Host'] = self.host
-    parameterDict['Path'] = self.path
-    parameterDict['Port'] = self.port
-    parameterDict['SpaceToken'] = self.spaceToken
-    parameterDict['WSUrl'] = self.wspath
+    parameterDict['Protocol']     = self.protocol
+    parameterDict['Host']         = self.host
+    parameterDict['Path']         = self.path
+    parameterDict['Port']         = self.port
+    parameterDict['SpaceToken']   = self.spaceToken
+    parameterDict['WSUrl']        = self.wspath
     return S_OK( parameterDict )
 
   def getProtocolPfn( self, pfnDict, withPort ):
