@@ -2,28 +2,34 @@
 ########################################################################
 # $HeadURL:  $
 ########################################################################
-
 """
    Get statistics on productions related to a given processing pass
 """
 
-__RCSID__ = "$Id:  $"
-
-import os, sys, pickle, datetime, time
-
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from DIRAC import gLogger
-from LHCbDIRAC.Core.Utilities.HTML import *
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 import DIRAC
+
+import datetime
+import os
+import pickle
+import sys
+import time
+
+from DIRAC import gLogger
+
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                 import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.HTML                              import Table, TableCell, TableRow
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+__RCSID__ = "$Id:  $"
 
 class HTMLProgressTable:
   def __init__( self, processingPass ):
     self.table = Table()
     self.__titleRow( '' )
     self.table.rows.append( [TableCell( processingPass, attribs = {"colspan":self.HTMLColumns}, header = True )] )
-    self.table.rows.append( [TableCell( time.ctime( time.time() ), attribs = {"colspan":self.HTMLColumns}, align = 'center' )] )
+    self.table.rows.append( [TableCell( time.ctime( time.time() ), 
+                                        attribs = {"colspan":self.HTMLColumns}, align = 'center' )] )
 
   def getTable( self ):
     return self.table
@@ -45,8 +51,8 @@ class HTMLProgressTable:
   def __tableRow( self, info ):
     row = [ info.getName() ]
     infoStrings = info.getItemsAsString()
-    for s in infoStrings:
-      row.append( TableCell( s, align = 'right', char = '.' ) )
+    for infoString in infoStrings:
+      row.append( TableCell( infoString, align = 'right', char = '.' ) )
     return row
 
   def writeHTML( self, conditions, prodStats ):
@@ -101,7 +107,8 @@ class HTMLProgressTable:
     previousProdStats = previousProdStatsDict['ProdStats']
     titleRow = self.__titleRow( 'Progress' )
     self.table.rows.append( [TableCell( "", attribs = {"colspan":self.HTMLColumns} )] )
-    self.table.rows.append( [TableCell( 'Progress since %s' % previousTime, align = 'center', attribs = {"colspan":self.HTMLColumns} )] )
+    self.table.rows.append( [TableCell( 'Progress since %s' % previousTime, 
+                                        align = 'center', attribs = {"colspan":self.HTMLColumns} )] )
     self.table.rows += titleRow
     prodStats = self.__sumProdStats( summaryProdStats )
     prevProdStats = self.__sumProdStats( previousProdStats )
@@ -118,7 +125,8 @@ class HTMLProgressTable:
 class StatInfo:
   def __init__( self, name = '', info = {} ):
     self.name = name
-    self.items = ['BadFiles', 'BadRuns', 'BadLumi', 'OKFiles', 'OKRuns', 'OKLumi', 'Events', 'Files', 'Runs', 'Lumi', 'ratio,prev,Lumi', 'ratio,prev,OKLumi', 'ratio,raw,Lumi']
+    self.items = ['BadFiles', 'BadRuns', 'BadLumi', 'OKFiles', 'OKRuns', 'OKLumi', 'Events', 'Files', 
+                  'Runs', 'Lumi', 'ratio,prev,Lumi', 'ratio,prev,OKLumi','ratio,raw,Lumi']
     self.regularItems = [item for item in self.items if item.split( ',' )[0] != 'ratio']
     self.ratioItems = [item for item in self.items if item.split( ',' )[0] == 'ratio']
     self.titles = [ ['DQ Bad', ['Files', 'Runs', 'Lumi (pb-1)']],
@@ -319,7 +327,8 @@ class ProcessingProgress:
         stripList += prods
         mergeStripProds[prod] = [str( p ) for p in prods]
       else:
-        gLogger.verbose( "Could not find production or filetype %s in BKquery of production %d (%s)" % ( str( bkQuery.getFileTypeList() ), prod, str( prodBKDict ) ) )
+        _msgTuple = ( str( bkQuery.getFileTypeList() ), prod, str( prodBKDict ) )
+        gLogger.verbose( "Could not find production or filetype %s in BKquery of production %d (%s)" % _msgTuple )
     mergeList.sort( cmp = ( lambda p1, p2: int( mergeStripProds[p1][0] ) - int( mergeStripProds[p2][0] ) ) )
     gLogger.verbose( "Merging productions found: %s" % str( mergeList ) )
 
@@ -336,8 +345,8 @@ class ProcessingProgress:
       stripList.sort( cmp = ( lambda p1, p2: int( stripRunRanges[p1][0] - stripRunRanges[p2][1] ) ) )
     except:
       print "Error when sorting stripping productions:"
-      for p in stripList:
-        print p, stripRunRanges[p]
+      for prodStrip in stripList:
+        print prodStrip, stripRunRanges[prodStrip]
     gLogger.verbose( "Stripping productions found: %s" % str( stripList ) )
 
     # Get all runs corresponding to the run range used by the Reco productions
@@ -378,22 +387,27 @@ class ProcessingProgress:
     rawInfo = StatInfo( processingPass[1], info )
     prodStats.append( rawInfo )
     if printResult:
-       gLogger.info( "%s - All runs in Reco productions" % processingPass[1] )
-       for f in runInfo:
-         if runInfo[f]:
-           gLogger.info( "%s runs (%d): %s" % ( f, len( runInfo[f] ), str( runInfo[f] ) ) )
-       summStr = "%s files, " % rawInfo.getItemAsString( 'Files' )
-       summStr += "%s events in " % rawInfo.getItemAsString( 'Events' )
-       summStr += "%s runs, luminosity (pb-1):All=%s, Bad=%s, OK=%s" % ( rawInfo.getItemAsString( 'Runs' ),
-                                                                        rawInfo.getItemAsString( 'Lumi' ), rawInfo.getItemAsString( 'BadLumi' ), rawInfo.getItemAsString( 'OKLumi' ) )
-       gLogger.info( summStr )
+      gLogger.info( "%s - All runs in Reco productions" % processingPass[1] )
+      for fileInfo in runInfo:
+        if runInfo[fileInfo]:
+          gLogger.info( "%s runs (%d): %s" % ( fileInfo, len( runInfo[fileInfo] ), str( runInfo[fileInfo] ) ) )
+      summStr = "%s files, " % rawInfo.getItemAsString( 'Files' )
+      summStr += "%s events in " % rawInfo.getItemAsString( 'Events' )
+      summStr += "%s runs, luminosity (pb-1):All=%s, Bad=%s, OK=%s" % ( rawInfo.getItemAsString( 'Runs' ),
+                                                                        rawInfo.getItemAsString( 'Lumi' ), 
+                                                                        rawInfo.getItemAsString( 'BadLumi' ), 
+                                                                        rawInfo.getItemAsString( 'OKLumi' ) )
+      gLogger.info( summStr )
 
     # Create the info for the 3 sets of productions
     prodSets = []
     fileType = bkQuery.getFileTypeList()[0]
-    prodSets.append( {'Name': processingPass[2], 'FileType': "SDST", 'List':recoList, 'RunRange':recoRunRanges, 'MotherProds':None, 'AllReplicas':False } )
-    prodSets.append( {'Name': processingPass[3], 'FileType': fileType, 'List':stripList, 'RunRange':stripRunRanges, 'MotherProds':None, 'AllReplicas':True } )
-    prodSets.append( {'Name': "Merging (%s)" % fileType.split( '.' )[0], 'FileType': fileType, 'List':mergeList, 'RunRange':None, 'MotherProds':mergeStripProds, 'AllReplicas':False } )
+    prodSets.append( {'Name': processingPass[2], 'FileType': "SDST", 'List':recoList, 
+                      'RunRange':recoRunRanges, 'MotherProds':None, 'AllReplicas':False } )
+    prodSets.append( {'Name': processingPass[3], 'FileType': fileType, 'List':stripList, 
+                      'RunRange':stripRunRanges, 'MotherProds':None, 'AllReplicas':True } )
+    prodSets.append( {'Name': "Merging (%s)" % fileType.split( '.' )[0], 'FileType': fileType, 
+                      'List':mergeList, 'RunRange':None, 'MotherProds':mergeStripProds, 'AllReplicas':False } )
 
     prevInfo = rawInfo
     for prodSet in prodSets:
@@ -407,9 +421,9 @@ class ProcessingProgress:
     return prodStats
 
   def __sumProdInfo( self, info, totInfo ):
-    for c in info:
-      for f in info[c]:
-        totInfo[c][f] = totInfo.setdefault( c, {} ).setdefault( f, 0 ) + info[c][f]
+    for inf in info:
+      for inf2 in info[inf]:
+        totInfo[inf][inf2] = totInfo.setdefault( inf, {} ).setdefault( inf2, 0 ) + info[inf][inf2]
     return totInfo
 
   def _getProdInfo( self, prodSet, runList, printResult = False ):
@@ -422,8 +436,8 @@ class ProcessingProgress:
         continue
       runRange = prodSet['RunRange']
       if runRange and prod in runRange and runRange[prod][0] == 0 and runRange[prod][0] == 0:
-        for f in info['Runs']:
-          info['Runs'][f] = 0
+        for inf in info['Runs']:
+          info['Runs'][inf] = 0
       totInfo = self.__sumProdInfo( info, totInfo )
       if printResult:
         summStr = "%s production %d -" % ( prodSet['Name'], prod )
@@ -440,19 +454,21 @@ class ProcessingProgress:
         if motherProds and prod in motherProds:
           summStr += " from productions %s" % motherProds[prod]
         gLogger.info( summStr )
-        for f in runInfo:
-          if runInfo[f]:
-            gLogger.info( "%s runs (%d): %s" % ( f, len( runInfo[f] ), str( runInfo[f] ) ) )
+        for inf in runInfo:
+          if runInfo[inf]:
+            gLogger.info( "%s runs (%d): %s" % ( inf, len( runInfo[inf] ), str( runInfo[inf] ) ) )
         summStr = "%d files, " % info['Files']['']
         if info['Events']:
           summStr += "%d events in " % info['Events']['']
-        summStr += "%d runs, luminosity (pb-1): All=%.3f, Bad=%.3f, OK=%.3f" % ( info['Runs'][''], info['Lumi'][''], info['Lumi']['Bad'], info['Lumi']['OK'] )
+        _msgTuple = ( info['Runs'][''], info['Lumi'][''], info['Lumi']['Bad'], info['Lumi']['OK'] )  
+        summStr += "%d runs, luminosity (pb-1): All=%.3f, Bad=%.3f, OK=%.3f" % _msgTuple
         gLogger.info( summStr )
     return totInfo
 
   def outputResults( self, conditions, processingPass, prodStats ):
     outputString = ""
-    outputString += "\nProduction progress for %s %s %s %s %s\n" % ( conditions, ",", processingPass, "on", time.ctime( time.time() ) )
+    _msgTuple = ( conditions, ",", processingPass, "on", time.ctime( time.time() ) )
+    outputString += "\nProduction progress for %s %s %s %s %s\n" % _msgTuple
     if len( prodStats ) < 4:
       outputString += "No statistics found for this BK query"
       return outputString
@@ -465,7 +481,8 @@ class ProcessingProgress:
       outputString += "%d files, " % info.getItem( 'Files' )
       if info.getItem( 'Events' ):
         outputString += "%d events in " % info.getItem( 'Events' )
-      outputString += "%d runs, luminosity (pb-1): All=%.3f, Bad=%.3f, OK=%.3f\n" % ( info.getItem( 'Runs' ), info.getItem( 'Lumi' ), info.getItem( 'BadLumi' ), info.getItem( 'OKLumi' ) )
+      _msgTuple = (info.getItem('Runs'), info.getItem('Lumi'), info.getItem('BadLumi'), info.getItem('OKLumi'))  
+      outputString += "%d runs, luminosity (pb-1): All=%.3f, Bad=%.3f, OK=%.3f\n" % _msgTuple
       prevStats = prodStats[:i]
       prevStats.reverse()
       for prevInfo in prevStats:
@@ -473,11 +490,12 @@ class ProcessingProgress:
         if prevInfo.getItem( 'Runs' ) == 0:
           outputString += "From %s : - No runs...\n" % name
         else:
-          outputString += "From %s : %.1f%% files, " % ( name, 100. * info.getItem( 'Files' ) / prevInfo.getItem( 'Files' ) )
+          outputString += "From %s : %.1f%% files, " % ( name, 100. * info.getItem('Files') / prevInfo.getItem('Files'))
           if info.getItem( 'Events' ) and prevInfo.getItem( 'Events' ):
             outputString += "%.1f%% events\n" % ( 100. * info.getItem( 'Events' ) / prevInfo.getItem( 'Events' ) )
           outputString += "%.1f%% runs, %.1f%% luminosity\n" \
-                          % ( 100. * info.getItem( 'Runs' ) / prevInfo.getItem( 'Runs' ), 100. * info.getItem( 'Lumi' ) / prevInfo.getItem( 'Lumi' ) )
+                          % ( 100. * info.getItem( 'Runs' ) / prevInfo.getItem( 'Runs' ), 
+                              100. * info.getItem( 'Lumi' ) / prevInfo.getItem( 'Lumi' ) )
     return outputString
 
   def __getRunsDQFlag( self, runList, evtType ):
@@ -499,8 +517,8 @@ class ProcessingProgress:
 
   def _getStatsFromRuns( self, evtType, runList, recoDQFlags ):
     info = dict.fromkeys( ( 'Events', 'Runs', 'Files', 'Lumi' ), {} )
-    for c in info:
-      info[c] = dict.fromkeys( ( 'Bad', 'OK', '' ), 0 )
+    for inf in info:
+      info[inf] = dict.fromkeys( ( 'Bad', 'OK', '' ), 0 )
     now = datetime.datetime.utcnow()
     # Set to True to renew the cache
     clearCache = 'RAW' in self.clearCache
@@ -535,7 +553,8 @@ class ProcessingProgress:
           gLogger.error( "Unable to get run information for run %s" % str( run ) )
           continue
         dqFlag = runFlags[run]
-      self.cachedInfo[run] = { 'Time':cachedTime, 'Files':cachedFiles, 'EventStat': cachedEvents, 'Luminosity': cachedLumi, 'DQFlag':dqFlag }
+      self.cachedInfo[run] = { 'Time':cachedTime, 'Files':cachedFiles, 'EventStat': cachedEvents, 
+                              'Luminosity': cachedLumi, 'DQFlag':dqFlag }
       runsByDQFlag[dqFlag] = runsByDQFlag.setdefault( dqFlag, 0 ) + 1
       if dqFlag == "BAD":
         runInfo.setdefault( 'BAD', [] ).append( run )
@@ -550,24 +569,24 @@ class ProcessingProgress:
           flags.append( 'OK' )
       else:
         flags.append( 'Bad' )
-      for f in flags:
-        info['Runs'][f] += 1
-        info['Files'][f] += cachedFiles
-        info['Events'][f] += cachedEvents
-        info['Lumi'][f] += cachedLumi
+      for flag in flags:
+        info['Runs'][flag]   += 1
+        info['Files'][flag]  += cachedFiles
+        info['Events'][flag] += cachedEvents
+        info['Lumi'][flag]   += cachedLumi
 
     # Set lumi in pb-1
-    for f in info['Lumi']:
-      info['Lumi'][f] /= 1000000.
+    for lumi in info['Lumi']:
+      info['Lumi'][lumi] /= 1000000.
     gLogger.info( "Runs per flag:" )
     for key in runsByDQFlag:
       gLogger.info( "%s : %d" % ( key, runsByDQFlag[key] ) )
-    for f in runInfo:
-      runInfo[f].sort()
+    for inf in runInfo:
+      runInfo[inf].sort()
     return info, runInfo
 
   def __getLfnsMetadata( self, lfns ):
-    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
+    from DIRAC.Core.Utilities.List import breakListIntoChunks
     lfnDict = {}
     if len( lfns ):
       gLogger.verbose( "Getting metadata for %d files" % len( lfns ) )
@@ -581,8 +600,8 @@ class ProcessingProgress:
         metadata = res['Value']
         for lfn in lfnChunk:
           lfnDict[lfn] = {}
-          for m in ( 'EventStat', 'Luminosity', 'DQFlag', 'RunNumber' ):
-            lfnDict[lfn][m] = metadata[lfn][m]
+          for meta in ( 'EventStat', 'Luminosity', 'DQFlag', 'RunNumber' ):
+            lfnDict[lfn][meta] = metadata[lfn][meta]
     return lfnDict
 
   def _getStatsFromBK( self, prod, fileType, runList, allReplicas ):
@@ -627,12 +646,12 @@ class ProcessingProgress:
 
     # Now sum up all information for the files
     info = dict.fromkeys( ( 'Events', 'Runs', 'Files', 'Lumi' ), {} )
-    for c in info:
-      if c == 'Runs':
-        for f in ( 'Bad', 'OK', '' ):
-          info[c][f] = []
+    for inf in info:
+      if inf == 'Runs':
+        for state in ( 'Bad', 'OK', '' ):
+          info[inf][state] = []
       else:
-        info[c] = dict.fromkeys( ( 'Bad', 'OK', '' ), 0 )
+        info[inf] = dict.fromkeys( ( 'Bad', 'OK', '' ), 0 )
 
     for lfn in cachedLfns:
       lfnInfo = cachedLfns[lfn]
@@ -646,12 +665,12 @@ class ProcessingProgress:
           flags.append( 'Bad' )
         if dqFlag == 'OK':
           flags.append( 'OK' )
-        for f in flags:
-          if run not in info['Runs'][f]:
-            info['Runs'][f].append( run )
-          info['Files'][f] += 1
-          info['Events'][f] += lfnInfo['EventStat']
-          info['Lumi'][f] += lfnInfo['Luminosity']
+        for flag in flags:
+          if run not in info['Runs'][flag]:
+            info['Runs'][flag].append( run )
+          info['Files'][flag]  += 1
+          info['Events'][flag] += lfnInfo['EventStat']
+          info['Lumi'][flag]   += lfnInfo['Luminosity']
 
     runInfo = {}
     if 'BAD' in info['Runs']:
@@ -664,10 +683,10 @@ class ProcessingProgress:
       runInfo['Untagged'].sort()
     else:
       runInfo['Untagged'] = []
-    for f in info['Runs']:
-      info['Runs'][f] = len( info['Runs'][f] )
-    for f in info['Lumi']:
-      info['Lumi'][f] /= 1000000.
+    for fRun in info['Runs']:
+      info['Runs'][fRun] = len( info['Runs'][fRun] )
+    for fLumi in info['Lumi']:
+      info['Lumi'][fLumi] /= 1000000.
     return info, runInfo
 
   def getPreviousStats( self, processingPass ):
@@ -693,16 +712,18 @@ class ProcessingProgress:
     while not fileRead:
       try:
         with FileLock( self.prodStatFile ):
-          f = open( self.prodStatFile, 'r' )
-          cachedVersion = pickle.load( f )
+          lFile = open( self.prodStatFile, 'r' )
+          cachedVersion = pickle.load( lFile )
           startTime = time.time()
           if cachedVersion == self.cacheVersion:
-            self.cachedInfo = pickle.load( f )
-            gLogger.info( "Loaded cached information from %s in %.3f seconds" % ( self.prodStatFile, time.time() - startTime ) )
+            self.cachedInfo = pickle.load( lFile )
+            _msgTuple = ( self.prodStatFile, time.time() - startTime )
+            gLogger.info( "Loaded cached information from %s in %.3f seconds" % _msgTuple )
           else:
-            gLogger.info( "Incompatible versions of cache, reset information (%s, expect %s)" % ( cachedVersion, self.cacheVersion ) )
+            _msgTuple = ( cachedVersion, self.cacheVersion )
+            gLogger.info( "Incompatible versions of cache, reset information (%s, expect %s)" % _msgTuple )
             self.cachedInfo = {}
-          f.close()
+          lFile.close()
           fileRead = True
       except FileLockException, error:
         gLogger.error( "Lock exception: %s while reading pickle file %s" % ( error, self.prodStatFile ) )
@@ -714,21 +735,22 @@ class ProcessingProgress:
   def saveCache( self ):
     fileSaved = False
     while not fileSaved:
-      f = None
+      fOpen = None
       startTime = time.time()
       try:
         with FileLock( self.prodStatFile ) as lock:
-          f = open( self.prodStatFile, 'w' )
-          pickle.dump( self.cacheVersion, f )
-          pickle.dump( self.cachedInfo, f )
-          f.close()
-          gLogger.verbose( "Successfully wrote pickle file %s in %.3f seconds" % ( self.prodStatFile, time.time() - startTime ) )
+          fOpen = open( self.prodStatFile, 'w' )
+          pickle.dump( self.cacheVersion, fOpen )
+          pickle.dump( self.cachedInfo, fOpen )
+          fOpen.close()
+          _msgTuple = ( self.prodStatFile, time.time() - startTime )
+          gLogger.verbose( "Successfully wrote pickle file %s in %.3f seconds" % _msgTuple )
           fileSaved = True
       except KeyboardInterrupt:
         gLogger.info( "<CTRL-C> hit while saving cache file, retry..." )
         lock.release()
-        if f:
-          f.close()
+        if fOpen:
+          fOpen.close()
       except FileLockException, error:
         gLogger.error( "Lock exception: %s while writing pickle file %s" % ( error, self.prodStatFile ) )
       except:
@@ -738,75 +760,70 @@ class ProcessingProgress:
 import errno
 
 class FileLockException( Exception ):
-    pass
+  pass
 
 class FileLock( object ):
-    """ A file locking mechanism that has context-manager support so
-        you can use it in a with statement. This should be relatively cross
-        compatible as it doesn't rely on msvcrt or fcntl for the locking.
+  """ A file locking mechanism that has context-manager support so
+      you can use it in a with statement. This should be relatively cross
+      compatible as it doesn't rely on msvcrt or fcntl for the locking.
+  """
+
+  def __init__( self, file_name, timeout = 10, delay = .05 ):
+    """ Prepare the file locker. Specify the file to lock and optionally
+        the maximum timeout and the delay between each attempt to lock.
     """
+    self.is_locked = False
+    self.lockfile  = os.path.join( os.getcwd(), "%s.lock" % file_name )
+    self.file_name = file_name
+    self.timeout   = timeout
+    self.delay     = delay
 
-    def __init__( self, file_name, timeout = 10, delay = .05 ):
-        """ Prepare the file locker. Specify the file to lock and optionally
-            the maximum timeout and the delay between each attempt to lock.
-        """
-        self.is_locked = False
-        self.lockfile = os.path.join( os.getcwd(), "%s.lock" % file_name )
-        self.file_name = file_name
-        self.timeout = timeout
-        self.delay = delay
+  def acquire( self ):
+    """ Acquire the lock, if possible. If the lock is in use, it check again
+        every `wait` seconds. It does this until it either gets the lock or
+        exceeds `timeout` number of seconds, in which case it throws
+        an exception.
+    """
+    start_time = time.time()
+    while True:
+      try:
+        self.fd = os.open( self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR )
+        break
+      except OSError as e:
+        if e.errno != errno.EEXIST:
+          raise
+        if ( time.time() - start_time ) >= self.timeout:
+          raise FileLockException( "Timeout occured" )
+        time.sleep( self.delay )
+    self.is_locked = True
 
+  def release( self ):
+    """ Get rid of the lock by deleting the lockfile.
+        When working in a `with` statement, this gets automatically
+        called at the end.
+    """
+    if self.is_locked:
+      os.close( self.fd )
+      os.unlink( self.lockfile )
+      self.is_locked = False
 
-    def acquire( self ):
-        """ Acquire the lock, if possible. If the lock is in use, it check again
-            every `wait` seconds. It does this until it either gets the lock or
-            exceeds `timeout` number of seconds, in which case it throws
-            an exception.
-        """
-        start_time = time.time()
-        while True:
-            try:
-                self.fd = os.open( self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR )
-                break;
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
-                if ( time.time() - start_time ) >= self.timeout:
-                    raise FileLockException( "Timeout occured" )
-                time.sleep( self.delay )
-        self.is_locked = True
+  def __enter__( self ):
+    """ Activated when used in the with statement.
+        Should automatically acquire a lock to be used in the with block.
+    """
+    if not self.is_locked:
+      self.acquire()
+    return self
 
+  def __exit__( self, type, value, traceback ):
+    """ Activated at the end of the with statement.
+        It automatically releases the lock if it isn't locked.
+    """
+    if self.is_locked:
+      self.release()
 
-    def release( self ):
-        """ Get rid of the lock by deleting the lockfile.
-            When working in a `with` statement, this gets automatically
-            called at the end.
-        """
-        if self.is_locked:
-            os.close( self.fd )
-            os.unlink( self.lockfile )
-            self.is_locked = False
-
-
-    def __enter__( self ):
-        """ Activated when used in the with statement.
-            Should automatically acquire a lock to be used in the with block.
-        """
-        if not self.is_locked:
-            self.acquire()
-        return self
-
-
-    def __exit__( self, type, value, traceback ):
-        """ Activated at the end of the with statement.
-            It automatically releases the lock if it isn't locked.
-        """
-        if self.is_locked:
-            self.release()
-
-
-    def __del__( self ):
-        """ Make sure that the FileLock instance doesn't leave a lockfile
-            lying around.
-        """
-        self.release()
+  def __del__( self ):
+    """ Make sure that the FileLock instance doesn't leave a lockfile
+        lying around.
+    """
+    self.release()
