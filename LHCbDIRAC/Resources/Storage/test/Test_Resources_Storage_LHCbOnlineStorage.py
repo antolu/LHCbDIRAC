@@ -102,32 +102,32 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     
     resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
     
-    res = resource.__checkArgumentFormat( 'path' )
+    res = resource._LHCbOnlineStorage__checkArgumentFormat( 'path' )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( [ 'path' ], res )
     
-    res = resource.__checkArgumentFormat( [ 'path' ] )
+    res = resource._LHCbOnlineStorage__checkArgumentFormat( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( [ 'path' ], res )
     
-    res = resource.__checkArgumentFormat( [ 'path', 'path2' ] )
+    res = resource._LHCbOnlineStorage__checkArgumentFormat( [ 'path', 'path2' ] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( [ 'path', 'path2' ], res )
     
-    res = resource.__checkArgumentFormat( {} )
+    res = resource._LHCbOnlineStorage__checkArgumentFormat( {} )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( [], res )
     
-    res = resource.__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
+    res = resource._LHCbOnlineStorage__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( [ 'A', 'B' ], res )
     
-    res = resource.__checkArgumentFormat( 1 )
+    res = resource._LHCbOnlineStorage__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )
     
 ################################################################################
