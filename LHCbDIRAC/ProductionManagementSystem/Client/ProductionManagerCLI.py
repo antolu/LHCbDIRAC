@@ -35,7 +35,7 @@ class ProductionManagerCLI( TransformationCLI ):
   def __init__( self ):
     TransformationCLI.__init__( self )
     self.identSpace = 20
-    self.server = RPCClient( 'ProductionManagement/ProductionManager' )
+    self.server = RPCClient( 'Transformation/TransformationManager' )
     self.lfc = None
 
   #def stripDN(self, dn):
