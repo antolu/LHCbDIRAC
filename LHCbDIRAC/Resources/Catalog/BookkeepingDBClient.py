@@ -284,3 +284,6 @@ class BookkeepingDBClient( FileCatalogueBase ):
             successful[lfn] = res['Value'][lfn]
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -188,3 +188,6 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
               'Successful' : successful
               }
     return S_OK(resDict)
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

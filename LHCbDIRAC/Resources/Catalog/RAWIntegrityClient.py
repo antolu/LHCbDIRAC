@@ -24,6 +24,9 @@ class RAWIntegrityClient( FileCatalogueBase ):
       self.valid = False
 
   def isOK( self ):
+    '''
+      Returns valid
+    '''
     return self.valid
 
   def exists( self, lfn ):
@@ -67,7 +70,13 @@ class RAWIntegrityClient( FileCatalogueBase ):
                }
     return S_OK(resDict)
 
-  def __checkArgumentFormat( self, path ):
+  @staticmethod
+  def __checkArgumentFormat( path ):
+    '''
+      If argument given is a string, returns false. If it is a list, all them
+      are converted into dictionary keys with false value. If a dictionary,
+      it returns it.
+    '''     
     if type(path) in types.StringTypes:
       urls = {path:False}
     elif type(path) == types.ListType:
