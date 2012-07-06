@@ -3,7 +3,6 @@
     This exposes a single method to add files to the RAW IntegrityDB.
 """
 
-import DIRAC
 import types
 
 from DIRAC                                     import S_OK, S_ERROR, gLogger
