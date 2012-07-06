@@ -23,6 +23,9 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
       self.valid = False
 
   def isOK(self):
+    '''
+      Returns valid
+    '''
     return self.valid
 
   def exists(self, lfn):
@@ -131,7 +134,13 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
     server = RPCClient(self.url, timeout=120)
     return server.removeMigratingReplicas(replicaTuples)
 
-  def __checkArgumentFormat(self, path):
+  @staticmethod
+  def __checkArgumentFormat(path):
+    '''
+      If argument given is a string, returns false. If it is a list, all them
+      are converted into dictionary keys with false value. If a dictionary,
+      it returns it.
+    '''    
     if type(path) in types.StringTypes:
       urls = {path:False}
     elif type(path) == types.ListType:
