@@ -128,6 +128,27 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     res = catalog._RAWIntegrityClient__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )            
 
+  def test_exists(self):
+    ''' tests the output of exists
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.exists( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.exists( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
+    
+    res = catalog.exists( [ 'path1' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'path1' : False } }, res['Value'] )
+    
+    res = catalog.exists( { 'A' : 1, 'B' : 2 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : False, 'B' : False} }, res['Value'] )
+
   def test_addFile(self):
     ''' tests the output of addFile
     '''  
@@ -177,6 +198,28 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )
+
+  def test_getPathPermissions(self):
+    ''' tests the output of getPathPermissions
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.getPathPermissions( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.getPathPermissions( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
+    
+    res = catalog.getPathPermissions( [ 'path1' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'path1' : { 'Write' : True } } }, res['Value'] )
+    
+    res = catalog.getPathPermissions( { 'A' : 1, 'B' : 2 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : { 'Write' : True }, 
+                                                       'B' : { 'Write' : True }} }, res['Value'] )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
