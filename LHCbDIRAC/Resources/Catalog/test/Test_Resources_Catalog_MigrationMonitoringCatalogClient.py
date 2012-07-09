@@ -192,6 +192,39 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )
+
+  def test_removeFile(self):
+    ''' tests the output of removeFile
+    '''  
+    
+    catalog = self.testClass()
+    
+    res = catalog.removeFile( 1 )
+    self.assertEqual( False, res['OK'] )    
+    
+    res = catalog.removeFile( { 'lfn1' : 1 } )
+    self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.removeFile( { 'lfn1' : 1, 'lfn2' : 2 } )
+    self.assertEqual( { 'Successful' : { 'lfn1' : True, 'lfn2' : True }, 'Failed' : {} }, res['Value'] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.removeMigratingFiles.return_value = { 'OK' : False, 'Message' : 'Bo!' }    
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    catalog = self.testClass()
+    
+    res = catalog.removeFile( { 'lfn1' : 1 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'lfn1' : 'Bo!' } }, res['Value'] )
+    
+    res = catalog.removeFile( { 'lfn1' : 1, 'lfn2' : 2 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )
+
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
