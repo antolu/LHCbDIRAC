@@ -182,8 +182,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
       are converted into dictionary keys with false value. If a dictionary,
       it returns it.
     '''
+    #FIXME: why value is False ? Just a default ?
     if type( path ) in types.StringTypes:
-      urls = {path:False}
+      urls = { path:False }
     elif type( path ) == types.ListType:
       urls = {}
       for url in path:
