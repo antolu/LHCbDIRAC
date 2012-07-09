@@ -88,6 +88,11 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
     self.assertEqual( { 'path' : False }, res )
+
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( [] )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( {}, res )
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -111,6 +116,27 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )    
+
+  def test_exists(self):
+    ''' tests the output of exists
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.exists( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.exists( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
+    
+    res = catalog.exists( [ 'path1' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
+    
+    res = catalog.exists( { 'A' : 1, 'B' : 2 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : True, 'B' : True} }, res['Value'] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
