@@ -717,6 +717,34 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res['Value'] )  
 
+  def test_getFileMetadata(self):
+    ''' tests the output of getFileMetadata
+    '''
+    
+    catalog = self.testClass()
+
+    res = catalog.getFileMetadata( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.getFileMetadata( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.getFileMetadata( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.getFileMetadata( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] )
+
+    res = catalog.getFileMetadata( [ 'A', 'B', 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] ) 
+    
+    res = catalog.getFileMetadata( { 'A' : 2, 'C' : 3 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'Successful': {'A': 1}, 'Failed': {'C': 'File does not exist'}}, res['Value'] )
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
