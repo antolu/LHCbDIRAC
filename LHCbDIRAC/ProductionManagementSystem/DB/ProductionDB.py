@@ -1,5 +1,15 @@
 # $HeadURL$
 """ DIRAC ProductionDB class is a front-end to the LHCb production specific database """
+################################################################################
+#
+#                          CODE UNUSED !
+#                          CODE UNUSED ! 
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#
+################################################################################
 
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB                                             import DB
