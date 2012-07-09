@@ -160,7 +160,6 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     '''    
     
     resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
-    resource.server = mock.Mock()
     resource.server.endMigratingFile.return_value = ( 1, 0 )
     
     res = resource.removeFile( 1 )
@@ -186,6 +185,41 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
 
     resource.server.endMigratingFile.side_effect = Exception('Boom!')
     res = resource.removeFile( [ 'A', 'B' ] )
+    #FIXME: This should return S_ERROR !!    
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {}, res['Value']['Successful'] )    
+    self.assertEqual( ['A','B'], res['Value']['Failed'].keys() )
+
+  def test_retransferOnlineFile( self ):
+    ''' tests output of retransferOnlineFile
+    '''
+    
+    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource.server.errorMigratingFile.return_value = ( 1, 0 )
+    
+    res = resource.retransferOnlineFile( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.retransferOnlineFile( {} )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.retransferOnlineFile( [] )
+    self.assertEqual( False, res['OK'] )
+
+    res = resource.retransferOnlineFile( [ 'A', 'B' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'A':True,'B':True}, res['Value']['Successful'] )    
+    self.assertEqual( {}, res['Value']['Failed'] )
+
+    resource.server.endMigratingFile.side_effect = [ (1, 0), (0, 1) ]
+
+    res = resource.retransferOnlineFile( [ 'A', 'B' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'A':True}, res['Value']['Successful'] )    
+    self.assertEqual( ['B'], res['Value']['Failed'].keys() )
+
+    resource.server.endMigratingFile.side_effect = Exception('Boom!')
+    res = resource.retransferOnlineFile( [ 'A', 'B' ] )
     #FIXME: This should return S_ERROR !!    
     self.assertEqual( True, res['OK'] )
     self.assertEqual( {}, res['Value']['Successful'] )    
