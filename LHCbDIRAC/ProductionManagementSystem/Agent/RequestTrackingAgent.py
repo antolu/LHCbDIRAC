@@ -1,26 +1,21 @@
-########################################################################
-# $Header: /local/reps/dirac/DIRAC3/DIRAC/ProductionManagementSystem/Agent/RequestTrackingAgent.py,v 1.2 2009/02/11 13:21:59 atsareg Exp $
-########################################################################
-
-""" Production requests agent perform all periodic task with
+# $HeadURL$
+''' Production requests agent perform all periodic task with
     requests.
     Currently it update the number of Input Events for processing
     productions and the number of Output Events for all productions.
-"""
-
-__RCSID__ = "$Id$"
+'''
 
 from DIRAC.Core.Base.AgentModule    import AgentModule
 from DIRAC.Core.DISET.RPCClient     import RPCClient
-from DIRAC                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger
+from DIRAC                          import S_OK, S_ERROR, gLogger
 
-import os, time, string
+__RCSID__ = "$Id$"
 
-def bkProductionProgress(id,setup):
-  RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
-  return RPC.getProductionProcessedEvents(int(id))
+def bkProductionProgress(iD, setup):
+  RPC = RPCClient('Bookkeeping/BookkeepingManager', setup=setup)
+  return RPC.getProductionProcessedEvents(int(iD))
 
-def bkInputNumberOfEvents(r,setup):
+def bkInputNumberOfEvents(r, setup):
   """ Extrim dirty way... But I DO NOT KNOW OTHER !!! """
   try:
     v = {
@@ -39,9 +34,9 @@ def bkInputNumberOfEvents(r,setup):
       v['ProductionID'] = [int(x) for x in str(r['inProductionID']).split(',')]
     if 'inTCKs' in r and str(r['inTCKs']) != '':
       v['TCK'] = [str(x) for x in str(r['inTCKs']).split(',')]
-  except Exception,e:
+  except Exception, e:
     return S_ERROR("Can not parse the request: %s" % str(e))
-  RPC = RPCClient('Bookkeeping/BookkeepingManager',setup=setup)
+  RPC = RPCClient('Bookkeeping/BookkeepingManager', setup=setup)
   v['NbOfEvents'] = True
   result = RPC.getFilesWithGivenDataSets(v)
   if not result['OK']:
@@ -49,10 +44,10 @@ def bkInputNumberOfEvents(r,setup):
   if not result['Value'][0]:
     return S_OK(0)
   try:
-    sum = long(result['Value'][0])
-  except Exception,e:
+    sum_nr = long(result['Value'][0])
+  except Exception, e:
     return S_ERROR("Can not convert result from BK call: %s" % str(e))
-  return S_OK(sum)
+  return S_OK(sum_nr)
 
 AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
 
@@ -60,25 +55,25 @@ class RequestTrackingAgent(AgentModule):
 
   def initialize(self):
     """Sets defaults"""
-    self.pollingTime = self.am_getOption('PollingTime',1200)
-    self.setup       = self.am_getOption('Setup','')
+    self.pollingTime = self.am_getOption('PollingTime', 1200)
+    self.setup       = self.am_getOption('Setup', '')
     return S_OK()
 
   def getTrackedProductions(self):
     RPC   = RPCClient( "ProductionManagement/ProductionRequest", setup=self.setup )
-    return RPC.getTrackedProductions();
+    return RPC.getTrackedProductions()
 
-  def updateTrackedProductions(self,update):
+  def updateTrackedProductions(self, update):
     RPC   = RPCClient( "ProductionManagement/ProductionRequest", setup=self.setup )
-    return RPC.updateTrackedProductions(update);
+    return RPC.updateTrackedProductions(update)
 
   def getTrackedInput(self):
     RPC   = RPCClient( "ProductionManagement/ProductionRequest", setup=self.setup )
-    return RPC.getTrackedInput();
-
-  def updateTrackedInput(self,update):
+    return RPC.getTrackedInput()
+  
+  def updateTrackedInput(self, update):
     RPC   = RPCClient( "ProductionManagement/ProductionRequest", setup=self.setup )
-    return RPC.updateTrackedInput(update);
+    return RPC.updateTrackedInput(update)
 
   def execute(self):
     """The RequestTrackingAgent execution method.
@@ -89,7 +84,7 @@ class RequestTrackingAgent(AgentModule):
     update = []
     if result['OK']:
       for request in result['Value']:
-        result = bkInputNumberOfEvents(request,self.setup)
+        result = bkInputNumberOfEvents(request, self.setup)
         if result['OK']:
           update.append({'RequestID':request['RequestID'],
                          'RealNumberOfEvents':result['Value']})
@@ -107,10 +102,10 @@ class RequestTrackingAgent(AgentModule):
     update = []
     if result['OK']:
       for productionID in result['Value']:
-        result = bkProductionProgress(int(productionID),self.setup)
+        result = bkProductionProgress(int(productionID), self.setup)
         if result['OK']:
           if result['Value']:
-            update.append({'ProductionID':productionID,'BkEvents':result['Value']})
+            update.append({'ProductionID':productionID, 'BkEvents':result['Value']})
         else:
           gLogger.error('Progress of %s is not updated: %s' %
                         (productionID,result['Message']))
@@ -124,3 +119,6 @@ class RequestTrackingAgent(AgentModule):
 
     gLogger.info('Request Tracking execute is ended')
     return S_OK('Request Tracking information updated')
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
