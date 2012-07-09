@@ -64,7 +64,53 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     # Restore the module
     self.moduleTested.PathFinder.getServiceURL.return_value = 'cookiesURL'
     reload( self.moduleTested )
+    
+  def test_isOK(self):
+    ''' tests output of isOK method
+    '''  
+    catalog = self.testClass()
+    self.assertEqual( True, catalog.valid )
+    
+    res = catalog.isOK()
+    self.assertEqual( True, res )
+    
+    catalog.valid = 'Banzai !'
+    res = catalog.isOK()
+    self.assertEqual( 'Banzai !', res )
 
+  def test___checkArgumentFormat( self ):
+    ''' tests the output of __checkArgumentFormat
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( 'path' )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'path' ], res )
+    
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'path' ], res )
+    
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( [ 'path', 'path2' ] )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'path', 'path2' ], res )
+    
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( {} )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [], res )
+    
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
+    self.assertEqual( True, res['OK'] )
+    res = res[ 'Value' ]
+    self.assertEqual( [ 'A', 'B' ], res )
+    
+    res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( 1 )
+    self.assertEqual( False, res['OK'] )    
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
