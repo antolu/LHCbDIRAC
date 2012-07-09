@@ -87,27 +87,27 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( 'path' )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( [ 'path' ], res )
+    self.assertEqual( { 'path' : False }, res )
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( [ 'path' ], res )
+    self.assertEqual( { 'path' : False }, res )
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( [ 'path', 'path2' ] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( [ 'path', 'path2' ], res )
+    self.assertEqual( { 'path' : False, 'path2' : False }, res )
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( {} )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( [], res )
+    self.assertEqual( {}, res )
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( [ 'A', 'B' ], res )
+    self.assertEqual( { 'A' : 1, 'B' : 2 }, res )
     
     res = catalog._MigrationMonitoringCatalogClient__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )    

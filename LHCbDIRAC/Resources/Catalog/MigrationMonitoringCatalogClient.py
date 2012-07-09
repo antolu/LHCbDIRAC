@@ -141,7 +141,6 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
       are converted into dictionary keys with false value. If a dictionary,
       it returns it.
     '''    
-    #FIXME: this method is used cloned from other modules, put somewhere else and reuse it !
     if type(path) in types.StringTypes:
       urls = {path:False}
     elif type(path) == types.ListType:
