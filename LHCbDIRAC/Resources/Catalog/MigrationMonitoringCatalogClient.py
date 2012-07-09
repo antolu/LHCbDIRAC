@@ -15,8 +15,8 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
 
   def __init__(self):
     try:
-      self.url = PathFinder.getServiceURL('StorageManagement/MigrationMonitor')
-      self.valid = True
+      self.url   = PathFinder.getServiceURL( 'StorageManagement/MigrationMonitor' )
+      self.valid = True  
     except Exception, x:
       errStr = "MigrationMonitoringClient.__init__: Exception while generating server url."
       gLogger.exception(errStr, lException=x)
@@ -158,6 +158,7 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
   # These are dummy methods that are not used but should be there to complete the file catalog interface
   #
 
+  #FIXME: WTF ? Should not be butchered from the code ?
   def setReplicaStatus(self, lfn):
     return self.__dummyMethod(lfn)
 
