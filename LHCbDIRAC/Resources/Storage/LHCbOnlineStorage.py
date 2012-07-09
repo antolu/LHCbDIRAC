@@ -46,6 +46,7 @@ class LHCbOnlineStorage( StorageBase ):
     return S_OK( parameterDict )
 
   def getProtocolPfn( self, pfnDict, withPort ):
+    #FIXME: What the hell is this method doing ??
     """ From the pfn dict construct the SURL to be used
     """
 #    pfnDict['Path'] = ''
@@ -54,6 +55,7 @@ class LHCbOnlineStorage( StorageBase ):
     return S_OK( pfnDict['FileName'] )
 
   def getFileSize( self, path ):
+    #FIXME: What the hell is this method doing ??
     """ Get a fake file size
     """
     res = self.__checkArgumentFormat( path )
