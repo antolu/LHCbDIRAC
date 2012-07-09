@@ -161,7 +161,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     
     resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
     resource.server = mock.Mock()
-    resource.server.endMigratingFile.return_value( ( 1, 0 ) )
+    resource.server.endMigratingFile.return_value = [ ( 1, 0 ) ] 
     
     res = resource.removeFile( 1 )
     self.assertEqual( False, res['OK'] )
@@ -177,7 +177,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( {'A':True,'B':True}, res['Value']['Successful'] )    
     self.assertEqual( {}, res['Value']['Failed'] )
 
-    resource.server.endMigratingFile.side_effect( [ (1, 0), (0, 1) ]  )
+    resource.server.endMigratingFile.side_effect = [ (1, 0), (0, 1) ]
 
     res = resource.removeFile( [ 'A', 'B' ] )
     self.assertEqual( True, res['OK'] )
