@@ -132,7 +132,7 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     
     res = catalog.exists( [ 'path1' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'path1' : False } }, res['Value'] )
     
     res = catalog.exists( { 'A' : 1, 'B' : 2 } )
     self.assertEqual( True, res['OK'] )
