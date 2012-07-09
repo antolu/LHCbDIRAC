@@ -164,6 +164,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
       return res
     lfns = res['Value'].keys()
     res = self.__getFileMetadata( lfns )
+    #FIXME: this is an unreachable line !
     if not res['OK']:
       return res
     failed = res['Value']['Failed']
