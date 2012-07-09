@@ -311,5 +311,124 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )
 
+  def test___dummyMethod(self):
+    ''' test the output of __dummyMethod
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog._MigrationMonitoringCatalogClient__dummyMethod( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog._MigrationMonitoringCatalogClient__dummyMethod( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._MigrationMonitoringCatalogClient__dummyMethod( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+    
+  def test_setReplicaStatus(self):
+    ''' test the output of setReplicaStatus
+    '''
+
+    catalog = self.testClass()
+    
+    res = catalog.setReplicaStatus( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog.setReplicaStatus( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog.setReplicaStatus( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+
+  def test_setReplicaHost(self):
+    ''' test the output of setReplicaHost
+    '''
+
+    catalog = self.testClass()
+    
+    res = catalog.setReplicaHost( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog.setReplicaHost( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog.setReplicaHost( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+
+  def test_removeDirectory(self):
+    ''' test the output of removeDirectory
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.removeDirectory( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog.removeDirectory( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog.removeDirectory( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+
+  def test_createDirectory(self):
+    ''' test the output of createDirectory
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.createDirectory( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog.createDirectory( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog.createDirectory( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+
+  def test_removeLink(self):
+    ''' test the output of removeLink
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.removeLink( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog.removeLink( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog.removeLink( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+
+  def test_createLink(self):
+    ''' test the output of createLink
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.createLink( 1 )
+    self.assertEqual( False, res[ 'OK' ] )
+
+    res = catalog.createLink( [] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog.createLink( [ 'A', 'B' ] )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( { 'Successful': { 'A' : True, 'B' : True}, 'Failed' : {} }, res[ 'Value' ] )
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
