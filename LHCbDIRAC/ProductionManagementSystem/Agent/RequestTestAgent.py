@@ -1,20 +1,20 @@
-########################################################################
-# $Header:$
-########################################################################
-
-""" Production request test agent monitors testing database
+# $HeadURL$
+''' Production request test agent monitors testing database
     and perform the test locally.
-"""
+'''
 
-__RCSID__ = "$Id$"
+import cPickle
+import os
+import re
+import tempfile
+
+import DIRAC
 
 from DIRAC.Core.Base.AgentModule    import AgentModule
 from DIRAC.Core.DISET.RPCClient     import RPCClient
-from DIRAC                          import S_OK, S_ERROR, gConfig, gMonitor, gLogger
-import DIRAC
-import os, time, string
-import cPickle, re, tempfile
+from DIRAC                          import S_OK, S_ERROR, gLogger
 
+__RCSID__ = "$Id$"
 # AZ: Copy/paste from the controller... should be in a "library"
 
 class PrTpl(object):
@@ -59,11 +59,11 @@ class PrTpl(object):
     """ Return the dictionary with parameters defaults """
     return self.ddict
 
-  def apply(self,pdict):
+  def apply(self, pdict):
     """ Return template with substituted values from pdict """
     result = self.tpl
     for p in self.pdict:
-      value = str(pdict.get(p,''))
+      value = str(pdict.get(p, ''))
       if value:
         value = "\\g<1>" + value
       result = re.sub(self.__par_sub % p, value, result)
@@ -75,29 +75,29 @@ AGENT_NAME = 'ProductionManagement/RequestTestAgent'
 def runTest(script,data):
   """ Run the test """
   try:
-    f = tempfile.mkstemp()
-    os.write(f[0],data)
-    os.close(f[0])
+    fTmp = tempfile.mkstemp()
+    os.write(fTmp[0], data)
+    os.close(fTmp[0])
     fs= tempfile.mkstemp()
-    os.write(fs[0],script)
+    os.write(fs[0], script)
     os.close(fs[0])
-  except Exception,msg:
+  except Exception, msg:
     gLogger.error("In temporary files createion: "+str(msg))
     return S_ERROR(str(msg))
   setenv = "source /opt/dirac/bashrc"
-  cmd = "python %s %s" % (fs[1],f[1])
+  cmd = "python %s %s" % (fs[1], fTmp[1])
   try:
-    res = DIRAC.shellCall(1800,[ "/bin/bash -c '%s;%s'" \
-                                 % (setenv,cmd) ])
+    res = DIRAC.shellCall(1800, [ "/bin/bash -c '%s;%s'" \
+                                 % (setenv, cmd) ])
     if res['OK']:
       result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
     else:
       gLogger.error(res['Message'])
       result = res
-  except Exception,msg:
+  except Exception, msg:
     gLogger.error("During execution: "+str(msg))
     result = S_ERROR("Failed to execute: %s" % str(msg))
-  os.remove(f[1])
+  os.remove(fTmp[1])
   os.remove(fs[1])
   return result
 
@@ -105,17 +105,17 @@ class RequestTestAgent(AgentModule):
 
   def initialize(self):
     """Sets defaults"""
-    self.pollingTime = self.am_getOption('PollingTime',1200)
-    self.setup       = self.am_getOption('Setup','')
+    self.pollingTime = self.am_getOption('PollingTime', 1200)
+    self.setup       = self.am_getOption('Setup', '')
     return S_OK()
 
   def getTests2Run(self):
     RPC   = RPCClient( "ProductionManagement/ProductionRequest", setup=self.setup )
-    return RPC.getTests("Waiting");
+    return RPC.getTests("Waiting")
 
-  def testResult(self,id,state,link):
+  def testResult(self, iD, state, link):
     RPC   = RPCClient( "ProductionManagement/ProductionRequest", setup=self.setup )
-    return RPC.setTestResult(id,state,link);
+    return RPC.setTestResult(iD, state, link)
 
   def execute(self):
     """The RequestTestAgent execution method.
@@ -132,22 +132,22 @@ class RequestTestAgent(AgentModule):
         script = PrTpl(cPickle.loads(test['Script'])).apply(d)
         data = PrTpl(cPickle.loads(test['Template'])).apply(d)
         state = ''
-        result = self.testResult(test['RequestID'],"Run","")
+        result = self.testResult(test['RequestID'], "Run", "")
         if not result['OK']:
           gLogger.error('Failed to indicate test run: %s' % result['Message'])
-        result = runTest(script,data)
+        result = runTest(script, data)
         if result['OK']:
           sout = result['Value'].split('\n')
           if len(sout) > 2 and len(sout[-2]) < 32:
             state = sout[-2]
             link = sout[-3]
         if state and len(state.split(' ')) == 1 and state.find(':') == -1:
-          gLogger.info('Result: "%s" "%s"' % (state,link))
+          gLogger.info('Result: "%s" "%s"' % (state, link))
         else:
           gLogger.error('Bad script, trace: %s' % result['Value'])
           state = 'Failed'
           link = 'Bug in agent'
-        result = self.testResult(test['RequestID'],state,link)
+        result = self.testResult(test['RequestID'], state, link)
         if not result['OK']:
           gLogger.error('Failed to upload test result: %s' % result['Message'])
     else:
