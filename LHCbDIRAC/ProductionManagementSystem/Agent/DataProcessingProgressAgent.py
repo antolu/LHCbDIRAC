@@ -1,16 +1,19 @@
-__RCSID__ = "$Id: ProductionStatusAgent.py 36439 2011-03-23 08:53:13Z roma $"
+# $HeadURL:  $
+''' DataProcessingProgressAgent
+'''
 
-from DIRAC                                                     import S_OK, S_ERROR, gConfig, exit, gLogger
-from DIRAC.Core.Base.AgentModule                               import AgentModule
-from DIRAC.Core.DISET.RPCClient                                import RPCClient
-from DIRAC.Interfaces.API.Dirac                                import Dirac
-from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
-from DIRAC.Core.Utilities.List                                            import sortList
+import datetime
+import os
+import time
+import shutil
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from DIRAC                         import S_OK, gConfig, gLogger
+from DIRAC.Core.Base.AgentModule   import AgentModule
+from DIRAC.Core.Utilities.List     import sortList
+
 from LHCbDIRAC.ProductionManagementSystem.Client.ProcessingProgress import ProcessingProgress, HTMLProgressTable
 
-import os, string, time
+__RCSID__ = "$Id: ProductionStatusAgent.py 36439 2011-03-23 08:53:13Z roma $"
 
 AGENT_NAME = 'ProductionManagement/DataProcessingProgressAgent'
 
@@ -87,8 +90,8 @@ class DataProcessingProgressAgent( AgentModule ):
 
     for reportName in sortList( self.progressReports.keys() ):
       htmlTable = HTMLProgressTable( reportName.replace( '.', '/' ) )
-      l = len( reportName ) + 4
-      self.log.info( "\n%s\n* %s *\n%s" % ( l * '*', reportName, l * '*' ) )
+      reportLen = len( reportName ) + 4
+      self.log.info( "\n%s\n* %s *\n%s" % ( reportLen * '*', reportName, reportLen * '*' ) )
       report = self.progressReports[reportName]
       # Skip all by each "frequency" loop
       if report['Frequency'] == 0 or ( self.iterationNumber % report['Frequency'] ) != 0:
@@ -120,8 +123,8 @@ class DataProcessingProgressAgent( AgentModule ):
 
       if self.printResult:
         lines = printOutput.split( '\n' )
-        for l in lines:
-          self.log.info( l )
+        for line in lines:
+          self.log.info( line )
 
       if len( summaryProdStats ) > 1:
         htmlTable.writeHTMLSummary( summaryProdStats )
@@ -136,10 +139,10 @@ class DataProcessingProgressAgent( AgentModule ):
       self.previousProdStats[reportName] = { "Time":time.ctime( time.time() ), "ProdStats":summaryProdStats}
       self.statCollector.setPreviousStats( reportName, self.previousProdStats[reportName] )
       try:
-        f = open( outputHTML, 'w' )
-        f.write( "<head>\n<title>Progress of %s</title>\n</title>\n" % bkQuery.getProcessingPass() )
-        f.write( str( htmlTable.getTable() ) )
-        f.close()
+        fOpen = open( outputHTML, 'w' )
+        fOpen.write( "<head>\n<title>Progress of %s</title>\n</title>\n" % bkQuery.getProcessingPass() )
+        fOpen.write( str( htmlTable.getTable() ) )
+        fOpen.close()
         print "Successfully wrote HTML file", outputHTML
         self.uploadHTML( outputHTML )
       except:
@@ -147,13 +150,12 @@ class DataProcessingProgressAgent( AgentModule ):
 
     # Save the loop number
     self.iterationNumber += 1
-    f = open( self.cacheFile, 'w' )
-    f.write( str( self.iterationNumber ) )
-    f.close()
+    fOpen = open( self.cacheFile, 'w' )
+    fOpen.write( str( self.iterationNumber ) )
+    fOpen.close()
     return S_OK()
 
   def uploadHTML( self, htmlFile ):
-    import datetime, os, shutil
     if not self.uploadDirectory:
       return
     try:
@@ -188,3 +190,6 @@ class DataProcessingProgressAgent( AgentModule ):
       return res['Value']
     else:
       return []
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
