@@ -428,6 +428,34 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] )    
 
+  def test_addReplica(self):
+    ''' test the output of addReplica
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.addReplica( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.addReplica( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.addReplica( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.addReplica( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.addReplica( [ 'A' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res['Value'] )    
+    
+    res = catalog.addReplica( [ 'A', 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] ) 
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
