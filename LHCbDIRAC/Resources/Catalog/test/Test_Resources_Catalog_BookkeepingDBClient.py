@@ -400,7 +400,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     reload( self.moduleTested )          
 
   def test_addFile(self):
-    ''' test the output of addFile
+    ''' tests the output of addFile
     '''
     
     catalog = self.testClass()
@@ -429,7 +429,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] )    
 
   def test_addReplica(self):
-    ''' test the output of addReplica
+    ''' tests the output of addReplica
     '''
     
     catalog = self.testClass()
@@ -458,7 +458,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] ) 
 
   def test_removeFile(self):
-    ''' test the output of removeFile
+    ''' tests the output of removeFile
     '''
     
     catalog = self.testClass()
@@ -481,6 +481,37 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     res = catalog.removeFile( {'A': 1, 'B': 2, 'C' : 3 } )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : {}, 'Failed' : {'A': 1, 'B': 2} }, res['Value']  )
+
+    #FIXME: to be continued, but the method is quite tangled to be tested 
+    # on a rational way    
+
+  def test_removeReplica(self):
+    ''' tests the output of removeReplica
+    '''
     
+    catalog = self.testClass()
+
+    res = catalog.removeReplica( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.removeReplica( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.removeReplica( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.removeReplica( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.removeReplica( [ 'A', 'B', 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'path' : True, 'A' :True, 'B' : True }, 'Failed' : {} }, res['Value'] ) 
+    
+    res = catalog.removeReplica( { 'A' : 2, 'C' : 3 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'A' :1, 'C' : True }, 'Failed' : {} }, res['Value'] )
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
