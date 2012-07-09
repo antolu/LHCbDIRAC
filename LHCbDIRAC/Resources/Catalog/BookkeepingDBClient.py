@@ -83,6 +83,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return S_OK( resDict )
 
   def setReplicaStatus( self, lfn ):
+    #FIXME: the same method as removeReplica, setReplicaHost, removeDirectory
+    #createDirectory, removeLink... ??
     res = self.__checkArgumentFormat( lfn )
     if not res['OK']:
       return res
@@ -193,8 +195,6 @@ class BookkeepingDBClient( FileCatalogueBase ):
     elif type( path ) == types.DictType:
       urls = path
     else:
-      
-      
       errStr = "BookkeepingDBClient.__checkArgumentFormat: Supplied path is not of the correct format."
       gLogger.error( errStr )
       return S_ERROR( errStr )
