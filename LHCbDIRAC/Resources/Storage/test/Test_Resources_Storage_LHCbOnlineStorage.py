@@ -160,6 +160,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     '''    
     
     resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource.server = mock.Mock()
     resource.server.endMigratingFile.return_value( ( 1, 0 ) )
     
     res = resource.removeFile( 1 )
