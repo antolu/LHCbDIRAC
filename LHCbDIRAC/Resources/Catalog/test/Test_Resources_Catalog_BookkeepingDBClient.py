@@ -456,6 +456,31 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     res = catalog.addReplica( [ 'A', 'path' ] )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] ) 
+
+  def test_removeFile(self):
+    ''' test the output of removeFile
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.removeFile( 1 )
+    self.assertEqual( False, res['OK'] ) 
+    
+    res = catalog.removeFile( [] )
+    self.assertEqual( True, res['OK'] )       
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.removeFile( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.removeFile( [ 'A', 'B', 'C' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A': 1, 'B': 2} }, res['Value'] )
+
+    res = catalog.removeFile( {'A': 1, 'B': 2, 'C' : 3 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A': 1, 'B': 2} }, res['Value']  )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
