@@ -161,7 +161,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     
     resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
     resource.server = mock.Mock()
-    resource.server.endMigratingFile.return_value = [ ( 1, 0 ) ] 
+    resource.server.endMigratingFile.return_value = ( 1, 0 )
     
     res = resource.removeFile( 1 )
     self.assertEqual( False, res['OK'] )
@@ -189,7 +189,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     #FIXME: This should return S_ERROR !!    
     self.assertEqual( True, res['OK'] )
     self.assertEqual( {}, res['Value']['Successful'] )    
-    self.assertEqual( {}, res['Value']['Failed'] )
+    self.assertEqual( ['A','B'], res['Value']['Failed'].keys() )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
