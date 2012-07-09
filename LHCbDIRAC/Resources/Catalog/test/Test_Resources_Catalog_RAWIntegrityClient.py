@@ -22,19 +22,20 @@ class RAWIntegrityClient_TestCase( unittest.TestCase ):
     mock_pathFinder = mock.Mock()
     mock_pathFinder.getServiceURL.return_value = 'cookiesURL' 
     self.mock_pathFinder = mock_pathFinder
-#    
-#    mock_RPC = mock.Mock()
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.addFile.return_value    = { 'OK' : True }
 #    mock_RPC.addMigratingReplicas.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
 #    
-#    mock_RPCClient = mock.Mock()
-#    mock_RPCClient.return_value = mock_RPC
-#    self.mock_RPCClient = mock_RPCClient
-#    
+    mock_RPCClient              = mock.Mock()
+    mock_RPCClient.return_value = mock_RPC
+    self.mock_RPCClient         = mock_RPCClient
+    
     # Add mocks to moduleTested
     moduleTested.PathFinder = self.mock_pathFinder
-#    moduleTested.RPCClient  = self.mock_RPCClient
+    moduleTested.RPCClient  = self.mock_RPCClient
     
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.RAWIntegrityClient
@@ -126,6 +127,56 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     
     res = catalog._RAWIntegrityClient__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )            
+
+  def test_addFile(self):
+    ''' tests the output of addFile
+    '''  
+    
+    catalog = self.testClass()
+    
+    res = catalog.addFile( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    self.assertRaises( TypeError, catalog.addFile, '' )
+    self.assertRaises( TypeError, catalog.addFile, [ '' ] )        
+
+    fileDict = { 
+                 'PFN'      : 'pfn',
+                 'Size'     : '10',
+                 'SE'       : 'se',
+                 'GUID'     : 'guid',
+                 'Checksum' : 'checksum'
+               }
+            
+    self.assertRaises( TypeError, catalog.addFile, '' )            
+            
+    fileDict[ 'Size' ]  = '10' 
+                     
+    res = catalog.addFile( { 'lfn1' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'lfn1' : True, 'lfn2' : True }, 'Failed' : {} }, res['Value'] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.addFile.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    catalog = self.testClass()
+    
+    res = catalog.addFile( { 'lfn1' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'lfn1' : 'Bo!' } }, res['Value'] )
+    
+    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
+ 
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

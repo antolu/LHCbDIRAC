@@ -28,9 +28,9 @@ class MigrationMonitoringCatalogClient_TestCase( unittest.TestCase ):
     mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
     mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
     
-    mock_RPCClient = mock.Mock()
+    mock_RPCClient              = mock.Mock()
     mock_RPCClient.return_value = mock_RPC
-    self.mock_RPCClient = mock_RPCClient
+    self.mock_RPCClient         = mock_RPCClient
     
     # Add mocks to moduleTested
     moduleTested.PathFinder = self.mock_pathFinder
