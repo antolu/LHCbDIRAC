@@ -383,10 +383,51 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : { 'A' : 1 }, 'Failed' : { 'C' : 'File does not exist',
                                                                  'B' : 'Bo!'} }, res[ 'Value' ] )
+
+    mock_RPC = mock.Mock()
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : str , 'B' : '2' } }
     
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()    
+
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'B': '2'}, 'Failed' : {'A':str} }, res[ 'Value' ] )
+        
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )          
+
+  def test_addFile(self):
+    ''' test the output of addFile
+    '''
+    
+    catalog = self.testClass()
+    
+    res = catalog.addFile( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.addFile( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.addFile( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.addFile( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.addFile( [ 'A' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res['Value'] )    
+    
+    res = catalog.addFile( [ 'A', 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] )    
+
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
