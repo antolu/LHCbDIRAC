@@ -1,6 +1,16 @@
 # $HeadURL$
 """ Client plug-in for the Migration Monitoring DB.
 """
+################################################################################
+#
+#                          CODE UNUSED !
+#                          CODE UNUSED ! 
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#
+################################################################################
 
 import types
 

@@ -2,6 +2,16 @@
 """ Client plug-in for the RAWIntegrity catalogue.
     This exposes a single method to add files to the RAW IntegrityDB.
 """
+################################################################################
+#
+#                          CODE UNUSED !
+#                          CODE UNUSED ! 
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#                          CODE UNUSED !
+#
+################################################################################
 
 import types
 
