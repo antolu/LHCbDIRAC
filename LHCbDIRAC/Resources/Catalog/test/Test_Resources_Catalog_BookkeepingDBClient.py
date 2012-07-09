@@ -27,7 +27,8 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
     mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.exists.return_value          = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
-    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : { 'FileSize' : 1} , 
+                                                                       'B' : { 'FileSize' : 2} } }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
     
@@ -334,7 +335,8 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     
     res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A': {'FileSize': 1}, 'B': {'FileSize': 2}}, 
+                        'Failed' : {} }, res[ 'Value' ] )
         
     res = catalog._BookkeepingDBClient__getFileMetadata( ['C'] )
     self.assertEqual( True, res['OK'] )
@@ -740,11 +742,42 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.getFileMetadata( [ 'A', 'B', 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] ) 
+    self.assertEqual( { 'Successful' : {'A': {'FileSize': 1}, 'B': {'FileSize': 2}}, 
+                        'Failed' : {'path': 'File does not exist'} }, res['Value'] ) 
     
     res = catalog.getFileMetadata( { 'A' : 2, 'C' : 3 } )
     self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'Successful': {'A': {'FileSize': 1}}, 
+                       'Failed': {'C': 'File does not exist'}}, res['Value'] )
+
+  def test_getFileSize(self):
+    ''' tests the output of getFileSize
+    '''
+
+    catalog = self.testClass()
+
+    res = catalog.getFileSize( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.getFileSize( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.getFileSize( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.getFileSize( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] )
+
+    res = catalog.getFileSize( [ 'A', 'B', 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] ) 
+    
+    res = catalog.getFileSize( { 'A' : 2, 'C' : 3 } )
+    self.assertEqual( True, res['OK'] )
     self.assertEqual( {'Successful': {'A': 1}, 'Failed': {'C': 'File does not exist'}}, res['Value'] )
-        
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
