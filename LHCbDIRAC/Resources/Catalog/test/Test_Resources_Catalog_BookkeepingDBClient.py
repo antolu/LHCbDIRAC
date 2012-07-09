@@ -24,9 +24,10 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
 #    self.mock_pathFinder = mock_pathFinder
 #    
     mock_RPC = mock.Mock()
-    mock_RPC.addFiles.return_value    = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
-    mock_RPC.removeFiles.return_value = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
-    mock_RPC.exists.return_value      = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
+    mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
+    mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
+    mock_RPC.exists.return_value          = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
     
@@ -320,6 +321,72 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )        
+ 
+  def test__getFileMetadata(self):
+    ''' tests the output of __getFileMetadata
+    ''' 
+    
+    catalog = self.testClass()
+
+    res = catalog._BookkeepingDBClient__getFileMetadata( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res[ 'Value' ] )
+        
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['C'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'C' : 'File does not exist'} }, res[ 'Value' ] )    
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : '1' , 'B' : '2' } }
+    
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()    
+
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': '1', 'B': '2'}, 'Failed' : {} }, res[ 'Value' ] )
+        
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['C'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'C' : 'File does not exist'} }, res[ 'Value' ] )    
+
+    mock_RPC = mock.Mock()
+    mock_RPC.getFileMetadata.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+    
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()
+    
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 'Bo!' } }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 'Bo!', 'B' : 'Bo!'} }, res[ 'Value' ] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.getFileMetadata.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } }, 
+                                             { 'OK' : False, 'Message' : 'Bo!' } ]
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()
+    catalog.splitSize = 2
+    
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A','C','B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'A' : 1 }, 'Failed' : { 'C' : 'File does not exist',
+                                                                 'B' : 'Bo!'} }, res[ 'Value' ] )
+    
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )          
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
