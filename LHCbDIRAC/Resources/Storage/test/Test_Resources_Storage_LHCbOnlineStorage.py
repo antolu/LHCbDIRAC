@@ -155,5 +155,40 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( {'A':0,'B':0}, res['Value']['Successful'] )
     self.assertEqual( {}, res['Value']['Failed'] )
     
+  def test_removeFile( self ):
+    ''' tests the output of removeFile
+    '''    
+    
+    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource.server.endMigratingFile.return_value( 1, 0 )
+    
+    res = resource.removeFile( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.removeFile( {} )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.removeFile( [] )
+    self.assertEqual( False, res['OK'] )
+
+    res = resource.removeFile( [ 'A', 'B' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'A':True,'B':True}, res['Value']['Successful'] )    
+    self.assertEqual( {}, res['Value']['Failed'] )
+
+    resource.server.endMigratingFile.side_effect( [ (1, 0), (0, 1) ]  )
+
+    res = resource.removeFile( [ 'A', 'B' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'A':True}, res['Value']['Successful'] )    
+    self.assertEqual( ['B'], res['Value']['Failed'].keys() )
+
+    resource.server.endMigratingFile.side_effect = Exception('Boom!')
+    res = resource.removeFile( [ 'A', 'B' ] )
+    #FIXME: This should return S_ERROR !!    
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {}, res['Value']['Successful'] )    
+    self.assertEqual( {}, res['Value']['Failed'] )
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

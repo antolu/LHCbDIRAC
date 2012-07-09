@@ -124,6 +124,7 @@ class LHCbOnlineStorage( StorageBase ):
         errStr = "LHCbOnline.getFile: Exception while issuing removal to RunDB."
         gLogger.exception( errStr, lException = x )
         failed[pfn] = errStr
+        #FIXME: this should return S_ERROR !! 
     resDict = {'Failed':failed, 'Successful':successful}
     return S_OK( resDict )
 
