@@ -47,6 +47,7 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
     return S_OK(resDict)
 
   def addFile(self, lfn):
+    #FIXME: if lfn is string or non empty list, we will have an exception of TypeError !
     res = self.__checkArgumentFormat(lfn)
     if not res['OK']:
       return res
@@ -55,10 +56,11 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
     fileTuples = []
     fileInfo = res['Value']
     for lfn, info in fileInfo.items():
-      pfn = str(info['PFN'])
-      size = int(info['Size'])
-      se = str(info['SE'])
-      guid = str(info['GUID'])
+      pfn      = str(info['PFN'])
+      #FIXME: this can raise a TypeError
+      size     = int(info['Size'])
+      se       = str(info['SE'])
+      guid     = str(info['GUID'])
       checksum = str(info['Checksum'])
       fileTuples.append((lfn, pfn, size, se, guid, checksum))
     server = RPCClient(self.url, timeout=120)

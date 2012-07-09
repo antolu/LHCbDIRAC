@@ -24,8 +24,9 @@ class MigrationMonitoringCatalogClient_TestCase( unittest.TestCase ):
     self.mock_pathFinder = mock_pathFinder
     
     mock_RPC = mock.Mock()
-    mock_RPC.addMigratingReplicas.return_value = { 'OK' : True }
-    mock_RPC.removeMigratingFiles.return_value = { 'OK' : True }
+    mock_RPC.addMigratingReplicas.return_value    = { 'OK' : True }
+    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
+    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
     
     mock_RPCClient = mock.Mock()
     mock_RPCClient.return_value = mock_RPC
@@ -159,7 +160,7 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     
     self.assertRaises( TypeError, catalog.addFile, '' )
     self.assertRaises( TypeError, catalog.addFile, [ '' ] )        
-            
+
     fileDict = { 
                  'PFN'      : 'pfn',
                  'Size'     : '10',
@@ -167,7 +168,11 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
                  'GUID'     : 'guid',
                  'Checksum' : 'checksum'
                }
-    
+            
+    self.assertRaises( TypeError, catalog.addFile, '' )            
+            
+    fileDict[ 'Size' ]  = '10' 
+                     
     res = catalog.addFile( { 'lfn1' : fileDict } )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
@@ -189,6 +194,7 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
+ 
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )
@@ -221,10 +227,89 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
     res = catalog.removeFile( { 'lfn1' : 1, 'lfn2' : 2 } )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
+ 
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )
 
+  def test_addReplica(self):
+    ''' tests the output of addReplica
+    '''
     
+    catalog = self.testClass()
+    
+    res = catalog.addReplica( 1 )
+    self.assertEqual( False, res['OK'] ) 
+
+    self.assertRaises( TypeError, catalog.addReplica, '' )
+    self.assertRaises( TypeError, catalog.addReplica, [ '' ] )   
+
+    fileDict = { 
+                 'PFN'      : 'pfn',
+                 'SE'       : 'se',
+               }
+    
+    res = catalog.addReplica( { 'lfn1' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.addReplica( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'lfn1' : True, 'lfn2' : True }, 'Failed' : {} }, res['Value'] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.addMigratingReplicas.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    catalog = self.testClass()
+    
+    res = catalog.addReplica( { 'lfn1' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'lfn1' : 'Bo!' } }, res['Value'] )
+    
+    res = catalog.addReplica( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
+
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )
+
+  def test_removeReplica(self):
+    ''' tests the output of removeReplica
+    '''
+    
+    catalog = self.testClass()
+
+    res = catalog.removeReplica( 1 )
+    self.assertEqual( False, res['OK'] ) 
+
+    fileDict = { 
+                 'PFN'      : 'pfn',
+                 'SE'       : 'se',
+               }
+
+    res = catalog.removeReplica( { 'lfn1' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+
+    res = catalog.removeReplica( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+    self.assertEqual( True, res['OK'] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : False, 'Message' : 'Bo!' }    
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    catalog = self.testClass()
+
+    res = catalog.removeReplica( { 'lfn1' : fileDict } )
+    self.assertEqual( { 'OK' : False, 'Message' : 'Bo!' }, res )
+
+    res = catalog.removeReplica( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+    self.assertEqual( { 'OK' : False, 'Message' : 'Bo!' }, res )
+
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )
+
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
