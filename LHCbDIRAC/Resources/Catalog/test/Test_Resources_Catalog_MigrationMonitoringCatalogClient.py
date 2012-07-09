@@ -20,7 +20,7 @@ class MigrationMonitoringCatalogClient_TestCase( unittest.TestCase ):
     
     # Mock external libraries / modules not interesting for the unit test
     mock_pathFinder = mock.Mock()
-    mock_pathFinder.getServiceURL.return_value( 'cookiesURL' ) 
+    mock_pathFinder.getServiceURL.return_value = 'cookiesURL' 
     
     # Add mocks to moduleTested
     moduleTested.PathFinder = mock_pathFinder
