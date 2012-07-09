@@ -51,6 +51,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return self.__setHasReplicaFlag( fileList )
 
   def removeFile( self, path ):
+    #FIXME: who can be such short method soooo messy ???
     res = self.__checkArgumentFormat( path )
     if not res['OK']:
       return res
@@ -192,6 +193,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
     elif type( path ) == types.DictType:
       urls = path
     else:
+      
+      
       errStr = "BookkeepingDBClient.__checkArgumentFormat: Supplied path is not of the correct format."
       gLogger.error( errStr )
       return S_ERROR( errStr )
