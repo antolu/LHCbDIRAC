@@ -26,7 +26,8 @@ class LHCbOnlineStorage_TestCase( unittest.TestCase ):
     # Add mocks to moduleTested
     moduleTested.xmlrpclib = mock_xmlrpclib
     
-    self.testClass = moduleTested.LHCbOnlineStorage
+    self.moduleTested = moduleTested
+    self.testClass    = self.moduleTested.LHCbOnlineStorage
     
   def tearDown( self ):
     '''

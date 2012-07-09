@@ -31,6 +31,7 @@ class MigrationMonitoringCatalogClient( FileCatalogueBase ):
   def exists(self, lfn):
     """ LFN may be a string or list of strings
     """
+    #FIXME: What on the hell is this doing ?
     res = self.__checkArgumentFormat(lfn)
     if not res['OK']:
       return res
