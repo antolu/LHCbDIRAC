@@ -687,6 +687,36 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     res = catalog.createLink( { 'A' : 2, 'C' : 3 } )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : { 'A' :1, 'C' : True }, 'Failed' : {} }, res['Value'] )  
+
+  def test_exists(self):
+    ''' tests the output of exists
+    '''
+
+    catalog = self.testClass()
+
+    res = catalog.exists( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = catalog.exists( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.exists( {} )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    
+    res = catalog.exists( [ 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'A': 1, 'B': 2 }, 'Failed' : {} }, res['Value'] )
+
+    res = catalog.exists( [ 'A', 'B', 'path' ] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res['Value'] ) 
+    
+    res = catalog.exists( { 'A' : 2, 'C' : 3 } )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res['Value'] )  
+
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
