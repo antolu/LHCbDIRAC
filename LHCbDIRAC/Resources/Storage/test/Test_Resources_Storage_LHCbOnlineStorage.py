@@ -146,12 +146,14 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( False, res['OK'] )
     
     res = resource.getFileSize( [ 'A', 'B' ] )
-    self.assertEqual( {'A':0,'B':0}, res['OK']['Successful'] )    
-    self.assertEqual( {}, res['OK']['Failed'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'A':0,'B':0}, res['Value']['Successful'] )    
+    self.assertEqual( {}, res['Value']['Failed'] )
     
     res = resource.getFileSize( { 'A' : 1, 'B' : {}} )
-    self.assertEqual( {'A':0,'B':0}, res['OK']['Successful'] )
-    self.assertEqual( {}, res['OK']['Failed'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( {'A':0,'B':0}, res['Value']['Successful'] )
+    self.assertEqual( {}, res['Value']['Failed'] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
