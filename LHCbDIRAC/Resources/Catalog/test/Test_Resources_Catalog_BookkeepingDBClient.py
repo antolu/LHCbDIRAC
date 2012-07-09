@@ -26,6 +26,7 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
     mock_RPC = mock.Mock()
     mock_RPC.addFiles.return_value    = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.removeFiles.return_value = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
+    mock_RPC.exists.return_value      = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
     
@@ -257,6 +258,68 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )    
+
+  def test__exists(self):
+    ''' tests the output of __exists
+    '''    
+    
+    catalog = self.testClass()
+    
+    res = catalog._BookkeepingDBClient__exists( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__exists( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res[ 'Value' ] )
+        
+    res = catalog._BookkeepingDBClient__exists( ['C'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {'A': 1, 'B': 2}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.exists.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+    
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()
+
+    res = catalog._BookkeepingDBClient__exists( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__exists( ['A'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__exists( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__exists( ['C'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+
+    mock_RPC = mock.Mock()
+    mock_RPC.exists.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } }, 
+                                      { 'OK' : False, 'Message' : 'Bo!' } ]
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()
+    catalog.splitSize = 2
+    
+    res = catalog._BookkeepingDBClient__exists( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__exists( ['A','C','B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'A' : 1, 'B' : 2 }, 'Failed' : {} }, res[ 'Value' ] )
+    
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )        
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

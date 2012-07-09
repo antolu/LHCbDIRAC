@@ -222,6 +222,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Removes replica flags on BKK
     '''
+    #FIXME: this method is VERY VERY similar to setHasReplicaFlag.. why not refactor 
+    # a little bit ?
     server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
@@ -243,6 +245,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Checks if lfns exist
     '''
+    #FIXME: what if the lfns returned by the service are different than the ones
+    # we are asking for.. the output will be totally messed up.
     server = RPCClient( self.url, timeout=120 )
     successful = {}
     failed = {}
@@ -250,6 +254,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
       res = server.exists( lfnList )
       if not res['OK']:
         for lfn in lfnList:
+          #FIXME: W(TF)hat happens with failed after all ?
           failed[lfn] = res['Message']
       else:
         for lfn, exists in res['Value'].items():
