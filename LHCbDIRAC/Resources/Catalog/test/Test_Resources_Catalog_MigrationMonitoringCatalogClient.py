@@ -49,14 +49,22 @@ class MigrationMonitoringCatalogClient_Success( MigrationMonitoringCatalogClient
   def test_init(self):
     ''' tests that the init method does what it should do
     '''
-      
+
     catalog = self.testClass()
     self.assertEqual( True, catalog.valid )
     self.assertEqual( 'cookiesURL', catalog.url )
-    
-    self.moduleTested.PathFinder.return_value = Exception( 'Boom!' )
-    #catalog = self.testClass()
+
+    # We are altering one of the module members, we have to reload the whole module..
+    self.moduleTested.PathFinder.getServiceURL.return_value = Exception( 'Boom!' )
+    reload( self.moduleTested )
+
+    catalog = self.testClass()
     self.assertEqual( False, catalog.valid )
+
+    # Restore the module
+    self.moduleTested.PathFinder.getServiceURL.return_value = 'cookiesURL'
+    reload( self.moduleTested )
+
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
