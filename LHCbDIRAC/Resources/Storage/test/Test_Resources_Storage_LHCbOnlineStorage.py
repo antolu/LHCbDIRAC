@@ -97,7 +97,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( 2, res )
 
   def test___checkArgumentFormat( self ):
-    ''' tests the outout of __checkArgumentFormat
+    ''' tests the output of __checkArgumentFormat
     '''
     
     resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
@@ -129,6 +129,29 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     
     res = resource._LHCbOnlineStorage__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )
+
+  def test_getFileSize( self ):
+    ''' tests the output of getFileSize 
+    '''
+    
+    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    
+    res = resource.getFileSize( 1 )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.getFileSize( {} )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.getFileSize( [] )
+    self.assertEqual( False, res['OK'] )
+    
+    res = resource.getFileSize( [ 'A', 'B' ] )
+    self.assertEqual( {'A':0,'B':0}, res['OK']['Successful'] )    
+    self.assertEqual( {}, res['OK']['Failed'] )
+    
+    res = resource.getFileSize( { 'A' : 1, 'B' : {}} )
+    self.assertEqual( {'A':0,'B':0}, res['OK']['Successful'] )
+    self.assertEqual( {}, res['OK']['Failed'] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
