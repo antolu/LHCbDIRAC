@@ -23,18 +23,18 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
 #    mock_pathFinder.getServiceURL.return_value = 'cookiesURL' 
 #    self.mock_pathFinder = mock_pathFinder
 #    
-#    mock_RPC = mock.Mock()
-#    mock_RPC.addMigratingReplicas.return_value    = { 'OK' : True }
+    mock_RPC = mock.Mock()
+    mock_RPC.addFiles.return_value    = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
-#    
-#    mock_RPCClient              = mock.Mock()
-#    mock_RPCClient.return_value = mock_RPC
-#    self.mock_RPCClient         = mock_RPCClient
+    
+    mock_RPCClient              = mock.Mock()
+    mock_RPCClient.return_value = mock_RPC
+    self.mock_RPCClient         = mock_RPCClient
 #    
 #    # Add mocks to moduleTested
 #    moduleTested.PathFinder = self.mock_pathFinder
-#    moduleTested.RPCClient  = self.mock_RPCClient
+    moduleTested.RPCClient  = self.mock_RPCClient
     
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.BookkeepingDBClient
@@ -124,6 +124,72 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     
     res = catalog._BookkeepingDBClient__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )   
+
+  def test__setHasReplicaFlag(self):
+    ''' test the output of __setHasReplicaFlag
+    '''
+    
+    catalog = self.testClass()    
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1, 'B' : 2 } }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['C'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'C' : True }, 'Failed' : {} }, res[ 'Value' ] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.addFiles.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 'Bo!' } }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A', 'B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 'Bo!', 'B' : 'Bo!' } }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['C'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'C' : 'Bo!' } }, res[ 'Value' ] )
+    
+    mock_RPC = mock.Mock()
+    mock_RPC.addFiles.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } }, 
+                                      { 'OK' : False, 'Message' : 'Bo!' } ]
+
+    self.moduleTested.RPCClient.return_value = mock_RPC
+    
+    catalog = self.testClass()
+    catalog.splitSize = 2
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( [] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A','C','B'] )
+    self.assertEqual( True, res['OK'] )
+    self.assertEqual( { 'Successful' : { 'C' : True }, 'Failed' : { 'A' : 1, 'B' : 'Bo!' } }, res[ 'Value' ] )
+    
+    # Restore the module
+    self.moduleTested.RPCClient.return_value = self.mock_RPCClient
+    reload( self.moduleTested )    
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
