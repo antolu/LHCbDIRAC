@@ -48,6 +48,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     :param self: self reference
     """
+    ## shifter proxy
+    self.am_setOption( "shifterProxy", "DataManager" )
     self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', [ 'MCSimulation',
                                                                                      'DataReconstruction',
                                                                                      'DataStripping',
