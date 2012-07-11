@@ -16,10 +16,10 @@ AGENT_NAME = 'DataManagement/UserStorageQuotaAgent'
 class UserStorageQuotaAgent( AgentModule ):
 
   def initialize( self ):
-    if self.am_getOption( 'DirectDB', False ):
+    try:
       from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
       self.StorageUsageDB = StorageUsageDB()
-    else:
+    except SystemExit:
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
 

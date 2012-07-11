@@ -87,7 +87,7 @@ class StorageUsageDB( DB ):
                                                        'Status' : 'VARCHAR(32) NOT NULL'
                                                   },
                                         'PrimaryKey' : [ 'ID'],
-                                     } 
+                                     }
     self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
                                                        'ConfigName' : 'VARCHAR(64) NOT NULL',
                                                        'ConfigVersion' : 'VARCHAR(64) NOT NULL',
@@ -317,9 +317,11 @@ class StorageUsageDB( DB ):
       sqlSite = ''
     sqlPath = self._escapeString( dirPath )[ 'Value' ]
     if sqlSE:
-      sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID AND d.Path=%s AND r.SEName=%s" % ( sqlPath, sqlSE )
+      sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID \
+      ND d.Path=%s AND r.SEName=%s" % ( sqlPath, sqlSE )
     elif sqlSite:
-      sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID AND d.Path=%s AND r.SEName LIKE '%s%%'" % ( sqlPath, sqlSite )
+      sqlCmd = "SELECT d.Path, d.DID FROM se_Usage r, su_Directory d WHERE d.DID=r.DID \
+      AND d.Path=%s AND r.SEName LIKE '%s%%'" % ( sqlPath, sqlSite )
     else:
       self.log.error( "Not enough information to formulate the query: either Site or SEName should be provided " )
       return S_ERROR()
@@ -391,10 +393,14 @@ class StorageUsageDB( DB ):
     return S_OK()
 
   def removeDirFromSe_Usage( self, dirDict ):
-    """ Remove the entry corresponding to the tuple (path, SE) from the se_Usage table.
-     This function is typically called when a directory is found to be a problematic directory, and before inserting it into the problematicDirs
-     table, it is necessary to remove it from the se_Usage table, if it exists there. In general, one same directory can only exist into either the
-     se_Usage or the problematicDirs table. """
+    """ 
+      Remove the entry corresponding to the tuple (path, SE) from the se_Usage table.
+       This function is typically called when a directory is found to be a problematic directory, 
+       and before inserting it into the problematicDirs
+       table, it is necessary to remove it from the se_Usage table, if it exists there. 
+       In general, one same directory can only exist into either the
+       se_Usage or the problematicDirs table. 
+     """
     deletedDirs = 0
     result = self.__getIDsFromSe_Usage( dirDict )
     if not result[ 'OK' ]:
@@ -413,9 +419,13 @@ class StorageUsageDB( DB ):
     return S_OK( deletedDirs )
 
   def removeDirFromProblematicDirs( self, dirDict ):
-    """ Remove an entry from the problematicDirs table. This is typically used when a directory is found to be correctly registered in the FC
-    and it was previously inserted in the problematic data table: before inserting the entry into the se_Usage table, it has to be removed
-    from the problematicDirs """
+    """ 
+    Remove an entry from the problematicDirs table. 
+    This is typically used when a directory is found to be correctly registered in the FC
+    and it was previously inserted in the problematic data table: 
+    before inserting the entry into the se_Usage table, it has to be removed
+    from the problematicDirs 
+    """
     deletedDirs = 0
     result = self.__getIDsFromProblematicDirs( dirDict )
     if not result[ 'OK' ]:
@@ -452,9 +462,9 @@ class StorageUsageDB( DB ):
     if not result[ 'OK' ]:
       return result
     self.log.info( "sqlCmd result for DELETE is: %s" % result )
-    deletedDirs = result['Value'] 
+    deletedDirs = result['Value']
     return S_OK( deletedDirs )
- 
+
   ################
   # Clean outdated entries
   ################
@@ -637,25 +647,25 @@ class StorageUsageDB( DB ):
     if not res[ 'OK' ]:
       return S_ERROR( res )
     if not res[ 'Value' ]:
-      gLogger.warn( "Entry for site=%s, spaceToken=%s is not there => insert new entry " %( site, spaceToken) )
+      gLogger.warn( "Entry for site=%s, spaceToken=%s is not there => insert new entry " % ( site, spaceToken ) )
       sqlCmd = "INSERT INTO `se_STSummary` (Site, SpaceToken, TotalSize, TotalFiles, Updated) VALUES ( %s, %s, %d, %d, UTC_TIMESTAMP())" % ( sqlSite, sqlSpaceToken, sqlTotalSize, sqlTotalFiles )
 
     else:
-      gLogger.info( "Entry for site=%s, spaceToken=%s is there => update entry " %( site, spaceToken) )
+      gLogger.info( "Entry for site=%s, spaceToken=%s is there => update entry " % ( site, spaceToken ) )
       sqlCmd = "UPDATE `se_STSummary` SET TotalSize=%d, TotalFiles=%d, Updated=UTC_TIMESTAMP() WHERE Site=%s and SpaceToken=%s" % ( sqlTotalSize, sqlTotalFiles, sqlSite, sqlSpaceToken )
 
     gLogger.info( " publishTose_STSummary sqlCmd: %s " % sqlCmd )
     result = self._update( sqlCmd )
     if not result[ 'OK' ]:
-      gLogger.error( "Cannot insert entry", "%s,%s: %s" % ( sqlSite, sqlSpaceToken, re[ 'Message' ] ) )
-      return result 
+      gLogger.error( "Cannot insert entry", "%s,%s: %s" % ( sqlSite, sqlSpaceToken, result[ 'Message' ] ) )
+      return result
     return S_OK()
 
   def __getSTSummary( self, site, spaceToken = False ):
     """ Get total files and total size for the space token identified by the input arguments
          (site, space token) , if space token is not specified, return all entries relative
          to the site. """
-    
+
     sqlSite = self._escapeString( site )['Value']
     sqlCond = [ "Site=%s" % sqlSite ]
     if spaceToken:
@@ -663,23 +673,23 @@ class StorageUsageDB( DB ):
       sqlCond.append( "SpaceToken=%s" % sqlSpaceToken )
 
     sqlCmd = "SELECT Site, SpaceToken, TotalSize, TotalFiles, Updated FROM `se_STSummary` WHERE %s" % ( " AND ".join( sqlCond ) )
-    gLogger.info( " __getSTSummary sqlCmd is: %s " %sqlCmd )
+    gLogger.info( " __getSTSummary sqlCmd is: %s " % sqlCmd )
     result = self._query( sqlCmd )
-    gLogger.info( " __getSTSummary result: %s " %result )
+    gLogger.info( " __getSTSummary result: %s " % result )
     if not result[ 'OK' ]:
       return S_ERROR( result )
     return S_OK( result[ 'Value' ] )
-    
+
 
   def getSTSummary( self, site, spaceToken = False ):
     """Returns a summary of space usage for the given site, on the basis of the information 
        provided by the SRM db dumps from sites """
     return self.__getSTSummary( site, spaceToken )
-  
-  def removeSTSummary( self, site,  spaceToken = False ):
+
+  def removeSTSummary( self, site, spaceToken = False ):
     """ Remove from se_STSummary table the entry relative to the given site and space token (if specified). 
     If no space token is specified, remove all entries relative to site
-    """ 
+    """
     sqlSite = self._escapeString( site )['Value']
     sqlCond = [ "Site=%s" % sqlSite ]
     if spaceToken:
@@ -687,16 +697,16 @@ class StorageUsageDB( DB ):
       sqlCond.append( "SpaceToken=%s" % sqlSpaceToken )
 
     sqlCmd = "DELETE FROM `se_STSummary` WHERE %s" % ( " AND ".join( sqlCond ) )
-    gLogger.info( " __getSTSummary sqlCmd is: %s " %sqlCmd )
+    gLogger.info( " __getSTSummary sqlCmd is: %s " % sqlCmd )
     result = self._update( sqlCmd )
-    gLogger.info( " __getSTSummary result: %s " %result )
+    gLogger.info( " __getSTSummary result: %s " % result )
     if not result[ 'OK' ]:
       return S_ERROR( result )
     return S_OK( result[ 'Value' ] )
 
   def getProblematicDirsSummary( self, site, problem = False ):
     """ Get a summary of problematic directories for a given site and given problem (optional)
-    """ 
+    """
     sqlSite = self._escapeString( site )['Value']
     sqlCond = [ "Site=%s" % sqlSite ]
     if problem:
@@ -704,14 +714,14 @@ class StorageUsageDB( DB ):
       sqlCond.append( "Problem=%s" % sqlProblem )
 
     sqlCmd = "SELECT Site, SpaceToken, LFCFiles, SEFiles, Path, Problem, ReplicaType from `problematicDirs` WHERE %s" % ( " AND ".join( sqlCond ) )
-    gLogger.info( " getProblematicDirsSummary sqlCmd is: %s " %sqlCmd )
+    gLogger.info( " getProblematicDirsSummary sqlCmd is: %s " % sqlCmd )
     result = self._query( sqlCmd )
-    gLogger.info( " getProblematicDirsSummary result: %s " %result )
+    gLogger.info( " getProblematicDirsSummary result: %s " % result )
     if not result[ 'OK' ]:
       return S_ERROR( result['Message'] )
     return S_OK( result[ 'Value' ] )
-    
-    
+
+
   def getRunSummaryPerSE( self, run ):
     """ Queries the DB and get a summary (total size and files) per SE  for the given run. It assumes that the path in the LFC where the
     run's file are stored is like:  /lhcb/data/[YEAR]/RAW/[STREAM]/[PARTITION]/[ACTIVITY]/[RUNNO]/"""
@@ -731,7 +741,7 @@ class StorageUsageDB( DB ):
           if seName not in Data[ thisRun ].keys():
             Data[ thisRun ][ seName ] = {}
           Data[ thisRun ][ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
-    else:    
+    else:
       sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory as d, su_SEUsage as su WHERE d.DID = su.DID and d.Path LIKE '/lhcb/data/%%/RAW/%%/%%/%%/%d/' GROUP BY su.SEName" % ( run )
       gLogger.info( "getRunSummaryPerSE: sqlCmd is %s " % sqlCmd )
       result = self._query( sqlCmd )
@@ -831,7 +841,7 @@ class StorageUsageDB( DB ):
   ######
   # methods to interact with Popularity table
   ######
-  
+
 
   def sendDataUsageReport( self, site, directoryDict, status = 'New' ):
     """ Add a new trace in the Popularity table  """
@@ -847,35 +857,35 @@ class StorageUsageDB( DB ):
       sqlPath = self._escapeString( d )[ 'Value' ]
       sqlStatus = self._escapeString( status )[ 'Value' ]
       if type( count ) != IntType:
-        self.log.warn("in sendDataUsageReport: type is not correct %s" % count )
+        self.log.warn( "in sendDataUsageReport: type is not correct %s" % count )
         continue
       sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES ( %s, %s, %d, %s, UTC_TIMESTAMP() )" % ( sqlPath, sqlSite, count, sqlStatus )
-      self.log.info("sqlCmd = %s " % sqlCmd )
+      self.log.info( "sqlCmd = %s " % sqlCmd )
       result = self._update( sqlCmd )
       if not result[ 'OK' ]:
-        self.log.error( "Cannot insert entry: %s" % (  result[ 'Message' ] ) )
+        self.log.error( "Cannot insert entry: %s" % ( result[ 'Message' ] ) )
         continue
       insertedEntries += 1
     return S_OK( insertedEntries )
 
 
 
-  def getDataUsageSummary( self, startTime, endTime, status ='New' ):
+  def getDataUsageSummary( self, startTime, endTime, status = 'New' ):
     """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
-    """ 
+    """
     if startTime > endTime:
       return S_OK()
     if ( type( startTime ) != StringType or type( endTime ) != StringType ):
-      return S_ERROR('wrong arguments format')
-          
+      return S_ERROR( 'wrong arguments format' )
+
     sqlStartTime = self._escapeString( startTime )[ 'Value' ]
     sqlEndTime = self._escapeString( endTime )[ 'Value' ]
     sqlStatus = self._escapeString( status )[ 'Value' ]
-    sqlCmd = "SELECT ID, Path, Site, Count from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s " %( sqlStatus, sqlStartTime, sqlEndTime )
-    self.log.info("sqlCmd = %s " % sqlCmd )
+    sqlCmd = "SELECT ID, Path, Site, Count from `Popularity` WHERE Status = %s AND InsertTime > %s AND InsertTime < %s " % ( sqlStatus, sqlStartTime, sqlEndTime )
+    self.log.info( "sqlCmd = %s " % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
-      return S_ERROR( result['Message'])
+      return S_ERROR( result['Message'] )
     return result
 
 
@@ -883,23 +893,23 @@ class StorageUsageDB( DB ):
     """ Update the status of the entry identified by the IDList, to the status specified by Newstatus.
     """
     if not IdList:
-      self.log.info("updatePopEntryStatus: no entry to be updated")
+      self.log.info( "updatePopEntryStatus: no entry to be updated" )
       return S_OK()
 
-    sqlStatus = self._escapeString( newStatus )['Value'] 
+    sqlStatus = self._escapeString( newStatus )['Value']
     strIdList = [ str( id ) for id in IdList ]
     sqlIdList = ", ".join( strIdList )
-    self.log.info("updatePopEntryStatus: sqlIdList %s " % sqlIdList )
+    self.log.info( "updatePopEntryStatus: sqlIdList %s " % sqlIdList )
     sqlCmd = "UPDATE `Popularity` SET Status=%s WHERE ID IN ( %s )" % ( sqlStatus, sqlIdList )
     result = self._update( sqlCmd )
     if not result[ 'OK' ]:
       return result
     return result
-   
+
   def insertToDirMetadata( self, directoryDict ):
     """ Inserts a new entry into the DirMetadata table. The input dictionary should contain, for each
         lfn directory, a dictionary with all the necessary metadata provided by the bookkeeping """
-    
+
     if not directoryDict:
       return S_OK()
     # get the IDs from the su_Directory table:
@@ -908,8 +918,8 @@ class StorageUsageDB( DB ):
       return result
     dirIDs = result[ 'Value' ]
     if not dirIDs:
-      errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict 
-      self.log.error("%s" % errMsg )
+      errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict
+      self.log.error( "%s" % errMsg )
       return S_ERROR( errMsg )
     self.log.info( "in insertToDirMetadata: dirIDs: %s" % ( dirIDs ) )
     # returns a dictionary of type:
@@ -917,7 +927,7 @@ class StorageUsageDB( DB ):
     insertedEntries = 0
     for d in directoryDict.keys():
       if d not in dirIDs.keys():
-        self.log.warn("in insertToDirMetadata: found no DID for directory %s" % d )
+        self.log.warn( "in insertToDirMetadata: found no DID for directory %s" % d )
         continue
       id = int( dirIDs[ d ] )
       try:
@@ -929,14 +939,14 @@ class StorageUsageDB( DB ):
         sqlFiletype = self._escapeString( directoryDict[d]['FileType'] )[ 'Value' ]
         sqlProd = self._escapeString( directoryDict[d]['Production'] )[ 'Value' ]
       except KeyError:
-        self.log.error("in insertToDirMetadata: the input dictionary was not correctly formatted: %s " % directoryDict )
+        self.log.error( "in insertToDirMetadata: the input dictionary was not correctly formatted: %s " % directoryDict )
         return S_ERROR( "Key error in input dictionary %s " % directoryDict )
       sqlCmd = "INSERT INTO `DirMetadata` ( DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, EventType, FileType, Production ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s )" % ( id, sqlConfigname, sqlConfigversion, sqlConditions, sqlProcpass, sqlEvttype, sqlFiletype, sqlProd )
-      self.log.info("sqlCmd = %s " % sqlCmd )
+      self.log.info( "sqlCmd = %s " % sqlCmd )
       result = self._update( sqlCmd )
       if not result[ 'OK' ]:
-        self.log.error( "Cannot insert entry: %s" % (  result[ 'Message' ] ) )
-        return S_ERROR(result['Message'])
+        self.log.error( "Cannot insert entry: %s" % ( result[ 'Message' ] ) )
+        return S_ERROR( result['Message'] )
       insertedEntries += 1
     return S_OK( insertedEntries )
 
@@ -952,26 +962,26 @@ class StorageUsageDB( DB ):
       directoryDict[ directory ] = {}
     result = self.__getIDs( directoryDict )
     if not result[ 'OK' ]:
-      return S_ERROR(result['Message'])
+      return S_ERROR( result['Message'] )
     dirIDs = result[ 'Value' ]
     if not dirIDs:
-      errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict 
-      self.log.error("%s" % errMsg )
+      errMsg = "ERROR! the directory %s was not found in the LFN directory table! " % directoryDict
+      self.log.error( "%s" % errMsg )
       return S_ERROR( errMsg )
     self.log.info( "in getDirMetadata: dirIDs: %s" % ( dirIDs ) )
     # returns a dictionary of type:
     #  {dir1: ID1, dir2: ID2, ...}
-    idList = [] 
+    idList = []
     for d in directoryDict.keys():
       if d not in dirIDs.keys():
-        self.log.warn("in insertToDirMetadata: found no DID for directory %s" % d )
+        self.log.warn( "in insertToDirMetadata: found no DID for directory %s" % d )
         continue
-      id = str( dirIDs[ d ] ) 
+      id = str( dirIDs[ d ] )
       #idList.append( self._escapeString( id )[ 'Value' ] )
       idList.append( id )
     sqlCmd = "SELECT DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, EventType, FileType, Production FROM `DirMetadata` WHERE DID in ( %s )" % ", ".join( idList )
-    self.log.info("sqlCmd = %s " % sqlCmd )
+    self.log.info( "sqlCmd = %s " % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
       return S_ERROR( result['Message'] )
-    return S_OK( result[ 'Value' ] )  
+    return S_OK( result[ 'Value' ] )

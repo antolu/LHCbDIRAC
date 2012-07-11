@@ -11,19 +11,10 @@
 
 __RCSID__ = "$Id$"
 
-## imports
-import os
-import re
-from datetime import datetime, timedelta
 ## from DIRAC
-from DIRAC import S_OK, S_ERROR, gConfig, gMonitor, gLogger, rootPath
-from DIRAC.Core.Utilities.List import sortList, breakListIntoChunks
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
-from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC.Core.Utilities.List import sortList
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
-from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
-from DIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 ## from LHCbDIRAC
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -37,7 +28,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
   """
 
-  def __init__( self, agentName, baseAgentName = False,	properties = dict() ):
+  def __init__( self, agentName, baseAgentName = False, 	properties = dict() ):
     """ c'tor
 
     :param self: self reference
@@ -57,20 +48,20 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     :param self: self reference
     """
-    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', [ 'MCSimulation', 
-                                                                                     'DataReconstruction', 
-                                                                                     'DataStripping', 
-                                                                                     'MCStripping', 
-                                                                                     'Merge', 
+    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', [ 'MCSimulation',
+                                                                                     'DataReconstruction',
+                                                                                     'DataStripping',
+                                                                                     'MCStripping',
+                                                                                     'Merge',
                                                                                      'Replication'] ) )
     self.log.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
-    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB', 
+    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
                                                                                    'StorageUsage' ] ) )
     self.log.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
     self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 ) # days
     self.log.info( "Will archive Completed transformations after %d days" % self.archiveAfter )
     storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
-    storageElements +=  ['CNAF_MC-DST', 'CNAF-RAW'] 
+    storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
     ## what about RSS???
     self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
     self.log.info( "Will check the following storage elements: %s" % str( self.activeStorages ) )
