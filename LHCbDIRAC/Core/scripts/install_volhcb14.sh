@@ -18,7 +18,7 @@ DIRACVERSION=v5r0p0-pre11
 DIRACARCH=Linux_x86_64_glibc-2.5
 DIRACPYTHON=25
 DIRACDIRS=""
-DIRACDBs="RequestDB StagerDB ResourceStatusDB ProxyDB SystemLoggingDB ComponentMonitoringDB UserProfileDB FileCatalogDB MigrationMonitoringDB ReplicationPlacementDB TransferDB DataIntegrityDB DataLoggingDB StorageManagementDB SandboxDB JobDB JobLoggingDB TaskQueueDB PilotAgentsDB SandboxMetadataDB ProductionRequestDB ProductionDB TransformationDB StorageUsageDB DatasetDB RAWIntegrityDB ErrorLoggingDB "
+DIRACDBs="RequestDB StagerDB ResourceStatusDB ProxyDB SystemLoggingDB ComponentMonitoringDB UserProfileDB FileCatalogDB MigrationMonitoringDB ReplicationPlacementDB TransferDB DataIntegrityDB DataLoggingDB StorageManagementDB SandboxDB JobDB JobLoggingDB TaskQueueDB PilotAgentsDB SandboxMetadataDB ProductionRequestDB ProductionDB TransformationDB StorageUsageDB RAWIntegrityDB "
 LCGVERSION=2009-08-13
 
 export DIRACINSTANCE=Certification
