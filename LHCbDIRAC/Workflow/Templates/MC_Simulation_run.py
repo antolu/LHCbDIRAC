@@ -974,7 +974,7 @@ else:
   mergingProd.setJobFileGroupSize( mergingGroupSize )
   mergingProd.setProdGroup( '{{pDsc}}' )
   mergingProd.setProdPriority( mergingPriority )
-  mergingProd.setJobParameters( { 'CPUTime': cpu } )
+  mergingProd.setJobParameters( { 'CPUTime': '200000' } )
 
   #mergingProd.setFileMask( finalAppType.lower() )
   mergingProd.setProdPlugin( mergingPlugin )
