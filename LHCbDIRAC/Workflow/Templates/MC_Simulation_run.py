@@ -880,6 +880,7 @@ else:
   selectionProd.setJobFileGroupSize( selectionGroupSize )
   selectionProd.setProdGroup( '{{pDsc}}' )
   selectionProd.setProdPriority( selectionPriority )
+  selectionProd.setJobParameters( { 'CPUTime': '200000' } )
 
   #selectionProd.setFileMask( finalAppType.lower() )
   selectionProd.setProdPlugin( selectionPlugin )
@@ -973,6 +974,7 @@ else:
   mergingProd.setJobFileGroupSize( mergingGroupSize )
   mergingProd.setProdGroup( '{{pDsc}}' )
   mergingProd.setProdPriority( mergingPriority )
+  mergingProd.setJobParameters( { 'CPUTime': cpu } )
 
   #mergingProd.setFileMask( finalAppType.lower() )
   mergingProd.setProdPlugin( mergingPlugin )
