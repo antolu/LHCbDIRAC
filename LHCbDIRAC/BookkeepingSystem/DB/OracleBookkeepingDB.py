@@ -1846,7 +1846,7 @@ class OracleBookkeepingDB:
                   'VisibilityFlag':'Y'}
 
     for param in fileobject:
-      if not attrList.__contains__(param):
+      if param not in  attrList:
         gLogger.error("insert file error: ", " the files table not contains " + param + " this attributte!!")
         return S_ERROR(" The files table not contains " + param + " this attributte!!")
 
@@ -1857,8 +1857,9 @@ class OracleBookkeepingDB:
         timestamp = datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), 0, 0)
         attrList[param] = timestamp
       else:
-        attrList[param] = file[param]
+        attrList[param] = fileobject[param]
     utctime = datetime.datetime.utcnow()
+
     result = self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertFilesRow', LongType, [  attrList['Adler32'], \
                   attrList['CreationDate'], \
                   attrList['EventStat'], \
@@ -1905,7 +1906,7 @@ class OracleBookkeepingDB:
   @staticmethod
   def deleteFiles(lfns):
     """deletes a file"""
-    return S_ERROR('Not Implemented !!'+lfns)
+    return S_ERROR('Not Implemented !!' + lfns)
 
   #############################################################################
   def insertSimConditions(self, simdesc, beamCond,
@@ -3576,7 +3577,7 @@ and files.qualityid= dataquality.qualityid'
       if len(retVal['Value']) > 0:
         processingid = retVal['Value'][0]
       else:
-        return S_ERROR('The proccesing pass exist! You have to ask Zoltan!')
+        return S_ERROR('The proccesing pass exists! You have to write lhcb-bookkeeping@cern.ch!')
     retVal = self.addProductionSteps(steps, production)
     if retVal['OK']:
       sim = None
@@ -3879,14 +3880,14 @@ and files.qualityid= dataquality.qualityid'
     j.configurationid=c.configurationid %s" % (tables, condition)
     return self.dbR_.query(command)
 
-
   #############################################################################
-  def getStepsMetadata(self, configName, configVersion,
+  def _prepareStepMetadata(self, configName, configVersion,
                        cond=default, procpass=default,
                        evt=default, production=default,
-                       filetype=default, runnb=default):
-    """returns the steps with metadata"""
-    processing = {}
+                       filetype=default, runnb=default, selection=''):
+    """
+    it generates the sql command depending on the selection
+    """
     condition = ''
     tables = 'steps s, productionscontainer prod, stepscontainer cont, prodview bview'
     if configName != default:
@@ -3923,38 +3924,110 @@ and files.qualityid= dataquality.qualityid'
       tables += ', filetypes ftypes'
       condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % (filetype)
 
-    command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
-     s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step \
-                from  %s \
+    command = "select %s  from  %s \
                where \
               cont.stepid=s.stepid and \
               prod.production=bview.production and \
-              prod.production=cont.production %s order by cont.step" % (tables, condition)
+              prod.production=cont.production %s order by cont.step" % (selection, tables, condition)
+    return command
 
-    retVal = self.dbR_.query(command)
-    records = []
+  #############################################################################
+  def getStepsMetadata(self, configName, configVersion,
+                       cond=default, procpass=default,
+                       evt=default, production=default,
+                       filetype=default, runnb=default):
+    """returns the steps with metadata"""
+    command = None
+    processing = {}
+    result = None
+    if configName.upper().find('MC') >= 0:
+      command = self._prepareStepMetadata(configName,
+                                          configVersion,
+                                          cond,
+                                          procpass,
+                                          evt,
+                                          production,
+                                          filetype,
+                                          runnb,
+                                          selection="prod.production")
+      retVal = self.dbR_.query(command)
+      if not retVal['OK']:
+        result = retVal
+      else:
+        production = retVal['Value'][0][0]
+        gLogger.debug('Production' + str(production))
+        command = "select j.production from jobs j, files f where \
+        j.jobid=f.jobid and\
+        f.fileid=(select i.fileid from jobs j, inputfiles i where \
+        j.jobid=i.jobid and j.production=%d and ROWNUM <2)" % (int(production))
+        retVal = self.dbR_.query(command)
+        if not retVal['OK']:
+          result = retVal
+        else:
+          parentprod = retVal['Value'][0][0]
+          gLogger.debug('Parent production:' + str(parentprod))
+          condition = ''
+          tables = 'steps s, productionscontainer prod, stepscontainer cont'
 
-    parametersNames = ['id', 'name']
-    if retVal['OK']:
-      nb = 0
-      for i in retVal['Value']:
-        #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
-        records = [ ['StepId', i[0]],
-                   ['StepName', i[1]],
-                   ['ApplicationName', i[2]],
-                   ['ApplicationVersion', i[3]],
-                   ['OptionFiles', i[4]],
-                   ['DDDB', i[5]],
-                   ['CONDDB', i[6]],
-                   ['ExtraPackages', i[7]],
-                   ['Visible', i[8]]]
-        step = 'Step-%s' % (i[0])
-        processing[step] = records
-        nb += 1
+          if procpass != default:
+            condition += " and prod.processingid in ( \
+                          select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                              FROM processing v   START WITH id in (select distinct id from processing where name='%s') \
+                                              CONNECT BY NOCYCLE PRIOR  id=parentid) v where v.path='%s' \
+                             )" % (procpass.split('/')[1], procpass)
+
+          if cond != default:
+            retVal = self._getConditionString(cond, 'prod')
+            if retVal['OK']:
+              condition += retVal['Value']
+            else:
+              return retVal
+
+          command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
+       s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
+                     where cont.stepid=s.stepid and \
+                      prod.production=cont.production and\
+                      prod.production=%d %s order by cont.step" % (tables, parentprod, condition)
+
+
     else:
-      return retVal
+      command = self._prepareStepMetadata(configName,
+                                        configVersion,
+                                        cond,
+                                        procpass,
+                                        evt,
+                                        production,
+                                        filetype,
+                                        runnb,
+                                        selection='distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
+       s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step')
 
-    return S_OK({'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb})
+    if not result:
+      retVal = self.dbR_.query(command)
+      records = []
+
+      parametersNames = ['id', 'name']
+      if retVal['OK']:
+        nb = 0
+        for i in retVal['Value']:
+          #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+          records = [ ['StepId', i[0]],
+                     ['StepName', i[1]],
+                     ['ApplicationName', i[2]],
+                     ['ApplicationVersion', i[3]],
+                     ['OptionFiles', i[4]],
+                     ['DDDB', i[5]],
+                     ['CONDDB', i[6]],
+                     ['ExtraPackages', i[7]],
+                     ['Visible', i[8]]]
+          step = 'Step-%s' % (i[0])
+          processing[step] = records
+          nb += 1
+        result = S_OK({'Parameters':parametersNames, 'Records':processing, 'TotalRecords':nb})
+      else:
+        result = retVal
+
+    return result
 
   #############################################################################
   def getDirectoryMetadata(self, lfn):

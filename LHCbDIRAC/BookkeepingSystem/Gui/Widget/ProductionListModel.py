@@ -17,5 +17,5 @@ class ProductionListModel(ListModel):
   def __init__(self, datain = None, parent=None, *args):
     if datain != None:
       datain = datain.getChildren()
-      ListModel.__init__(self,datain, parent, *args)
+    ListModel.__init__(self,datain, parent, *args)
 

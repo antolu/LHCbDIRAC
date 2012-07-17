@@ -12,8 +12,8 @@ class ListModel(QAbstractListModel):
   """List Model class"""
   #############################################################################
   def __init__(self, datain=None, parent=None, *args):
-    """initialize the class members"""
     QAbstractTableModel.__init__(self, parent, *args)
+    """initialize the class members"""
     self.__listdata = datain
 
 

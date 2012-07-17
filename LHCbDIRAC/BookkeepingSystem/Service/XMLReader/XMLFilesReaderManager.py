@@ -369,7 +369,7 @@ class XMLFilesReaderManager:
         outputfile.addFileParam(vFileParams)
         gLogger.debug('The visibility flag is:' + outputFileTypes[ftype])
 
-      result = self.__insertOutputFiles(job, file)
+      result = self.__insertOutputFiles(job, outputfile)
       if not result['OK']:
         dataManager_.deleteInputFiles(job.getJobId())
         dataManager_.deleteJob(job.getJobId())

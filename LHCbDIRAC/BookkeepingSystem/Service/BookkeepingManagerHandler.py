@@ -1712,6 +1712,7 @@ class BookkeepingManagerHandler(RequestHandler):
   @staticmethod
   def export_getStepsMetadata(in_dict):
     """more info in the BookkeepingClient.py"""
+    gLogger.debug('getStepsMetadata'+str(in_dict))
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
     cond = in_dict.get('ConditionDescription', default)

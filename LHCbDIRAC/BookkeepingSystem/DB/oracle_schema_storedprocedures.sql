@@ -914,7 +914,7 @@ function insertJobsRow (
          FillNumber=v_fillNumber,
          WNCPUHS06=v_WNCPUHS06,
          TotalLuminosity=v_totalLuminosity,
-         Tck=v_tck where runnumber=v_runNumber;
+         Tck=v_tck where runnumber=v_runNumber and production<0;
       commit;
     return jid;
     END IF;
@@ -996,7 +996,6 @@ function insertFilesRow (
                 EventStat=v_EventStat,
                 EventTypeId=v_EventTypeId,
                 FileTypeId=v_FileTypeId,
-                GotReplica=v_GotReplica,
                 Guid=v_Guid,
                 JobId=v_JobId,
                 MD5Sum=v_MD5Sum,
@@ -1361,6 +1360,9 @@ procedure insertStepsContainer(v_prod number, v_stepid number, v_step number)is
 begin
 insert into stepscontainer(production,stepid,step)values(v_prod, v_stepid, v_step);
 commit;
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+   dbms_output.put_line(v_prod || 'already in the steps container table');
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
