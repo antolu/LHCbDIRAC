@@ -22,9 +22,10 @@ class LHCbOnlineStorage_TestCase( unittest.TestCase ):
     # Mock external libraries / modules not interesting for the unit test
     mock_xmlrpclib = mock.Mock()
     mock_xmlrpclib.Server.return_value( '' ) 
+    self.mock_xmlrpclib = mock_xmlrpclib
     
     # Add mocks to moduleTested
-    moduleTested.xmlrpclib = mock_xmlrpclib
+    moduleTested.xmlrpclib = self.mock_xmlrpclib
     
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.LHCbOnlineStorage
@@ -34,6 +35,8 @@ class LHCbOnlineStorage_TestCase( unittest.TestCase ):
     TearDown
     '''
     del self.testClass
+    del self.moduleTested
+    del self.mock_xmlrpclib
       
 ################################################################################
 # Tests
