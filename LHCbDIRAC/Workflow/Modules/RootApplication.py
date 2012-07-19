@@ -61,7 +61,7 @@ class RootApplication( object ):
       self.arguments = self.step_commons['arguments']
       tmp = []
       for argument in self.arguments:
-        if argument:
+        if argument or type( argument ) != type( ' ' ):
           tmp.append( argument )
       self.arguments = tmp
     else:
