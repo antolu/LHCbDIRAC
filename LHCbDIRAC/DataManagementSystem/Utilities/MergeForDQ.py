@@ -1,7 +1,7 @@
 """Utilities for LHCbDIRAC/DataManagement/Agent/MergingForDQAgent. """
 __RCSID__ = "$Id: $"
 import DIRAC
-from   DIRAC                                                 import S_OK, S_ERROR, gLogger
+from   DIRAC                                                 import gLogger, S_OK, S_ERROR
 from   DIRAC.Core.Utilities.List                             import sortList
 from   DIRAC.Interfaces.API.Dirac import Dirac
 from   DIRAC.Core.Utilities.File  import *
@@ -14,8 +14,8 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 #System libraries
 import subprocess
-import os, sys
-import re, string, time, glob
+import os, sys, string
+import re, time, glob
 
 #Libraries needed for XML report
 from xml.dom.minidom                         import Document, DocumentType
@@ -25,22 +25,22 @@ GetRuns retrieve the list of files that correspond to the query bkDict. After th
 The output is a dictionary such as for example:
 
 results_ord = {'BRUNELHIST':{1234:
-                                  {'LFNs'        :['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017838_1_Hist.root'
-                                                   ]
-                                  }
+                             {'LFNs':['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017838_1_Hist.root'
+                                     ]
+                             }
                             1234:
-                                  {'LFNs'        :['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root', 
-                                                   '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017838_1_Hist.root'
-                                                   ]
+                             {'LFNs':['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root', 
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017838_1_Hist.root'
+                                    ]
                                   }
                             }
                'DAVINCIHIST':{
@@ -205,7 +205,7 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,tes
       brunelLocal.append(localfile)
     else:
       retry = 1
-      while retry<6  and not res['OK']:
+      while retry<6  and ((not res['OK']) or (not res['Value']['Successful'])):
         gLogger.info("Trying to download %s time"%retry)
         res = rm.getFile(lfn,homeDir)
         retry = retry+1
@@ -226,7 +226,7 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,tes
       brunelLocal.append(localfile)
     else:
       retry = 1
-      while retry<6 and not res['OK']:
+      while retry<6  and ((not res['OK']) or (not res['Value']['Successful'])):
         gLogger.info("Trying to download %s time"%retry)
         res = rm.getFile(lfn,homeDir)
         retry = retry+1
@@ -295,10 +295,9 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   logger.info( "=====VerifyReconstructionStatus=====" )
   logger.info( str( rawBkDict ) )
   logger.info( "====================================" )
-
+  
   res = bkClient.getFilesWithGivenDataSets( rawBkDict )
-     
-  gLogger.info(str(res))  
+
   if ( not res['OK'] ) or ( not len( res['Value'] ) ):
     gLogger.error( "Cannot get RAW files for run %s" % str( run ) )
     gLogger.error( res['Message'] )
@@ -307,11 +306,37 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   rawLFN = res['Value']
   countRAW = len( rawLFN )
   countBrunel = len( runData['BRUNELHIST'] )
-
+  
+  count_b = 0
+  count_d = 0       
+      
+  descendants = bkClient.getFileDescendents(rawLFN,9)
+  gLogger.info("=== Performing check for multiple run in RAW ancestors ===")
+  for rawDescendants in descendants['Value']['Successful'].keys():
+    for lfn in descendants['Value']['Successful'][rawDescendants]:
+      if lfn.endswith(".root"):
+        if  (string.find(lfn,'/Brunel_') != -1):
+          ancestors = bkClient.getFileAncestors(lfn,2)
+          res = check_Multiple(ancestors,lfn)
+          if res['OK']:
+            count_b = count_b + 1
+          else:
+            return ( retVal, res )
+        if  (string.find(lfn,'/DaVinci_') != -1):
+          ancestors = bkClient.getFileAncestors(lfn,2)
+          res = check_Multiple(ancestors,lfn)
+          if res['OK']:
+            count_d = count_d + 1
+          else:
+            return ( retVal, res )
+  
   #
   # Make sure enough files have been reconstructed in the run.
   #
-
+  
+  alt_counting = False
+  #Special counting tempted. 
+  gLogger.info("countBrunel %s countRAW %s"%(countBrunel,countRAW))
   if not countBrunel == countRAW:
     if specialMode=='True':
       gLogger.info( "Run %s in pass %s accepted by special mode selection." % ( str( run ), rawBkDict['ProcessingPass'] ) )
@@ -323,14 +348,26 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
         gLogger.info( "Run %s in pass %s is not completed." % (run, bkDict['ProcessingPass'] ) )
         res['OK']=False
         return (retVal , res)
+      
+      #
+      # New 95% or hist = RAW - 1 selection
+      #
 
       if ( countBrunel < 0.95 * countRAW ) and ( countBrunel < ( countRAW - 1 ) ):
-        gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d" % ( run, bkDict['ProcessingPass'], int( countRAW ) ) )
-        res['OK']=False
-        return (retVal , res)
+        gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. Trying to count the number of histogram from the RAW descendants." % ( run, bkDict['ProcessingPass'], int( countRAW ), int(countBrunel) ) )
+        gLogger.info("Found %s BRUNELHIST descendants."%count_b)
+        gLogger.info("Found %s DAVINCIHIST descendants."%count_d)
+        if (count_b==countRAW) and (count_d==countRAW):
+          alt_counting = True
+        else:
+          gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d" % ( run, bkDict['ProcessingPass'], int( countRAW ) ) )
+          res['OK']=False
+          return (retVal , res)
 
-      gLogger.info( "Run %s in pass %s accepted by -1 or 0.95 selection: Number of BRUNEL hist = %d Number of RAW = %d" % ( 
-        run, bkDict['ProcessingPass'], countBrunel, countRAW ) )
+      if not alt_counting:
+        gLogger.info( "Run %s in pass %s accepted by -1 or 0.95 selection: Number of BRUNEL hist = %d Number of RAW = %d" % (run, bkDict['ProcessingPass'], countBrunel, countRAW ) )
+      else:
+        gLogger.info( "Run %s in pass %s accepted by directly counting of RAW descendants: Number of BRUNEL hist = %d Number of RAW = %d" % (run, bkDict['ProcessingPass'], countBrunel, countRAW ) ) 
 
   #
   # Make sure the RAW have one and one only BRUNELHIST and
@@ -342,14 +379,13 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
 
   for raw in sortList( rawLFN ):
     res = DescendantIsDownloaded( raw, runData , bkClient )
+    #print "DescendantIsDownloaded ",res
     if not res['OK']:
-      gLogger.info( "LFN %s in Run %s has too many hist descendants in processing pass %s" % ( 
-                   raw, str( run ), bkDict['ProcessingPass'] ) )
+      gLogger.info( "LFN %s in Run %s has too many hist descendants in processing pass %s" % (raw, str( run ), bkDict['ProcessingPass']))
       return ( retVal, res )
 
     if len( res['BRUNELHIST'] ) > 1:
-      gLogger.info( "LFN %s in Run %s has %s BRUNELHIST in processing pass %s" % ( 
-                   raw, str( run ), len( res['BRUNELHIST'] ), bkDict['ProcessingPass'] ) )
+      gLogger.info( "LFN %s in Run %s has %s BRUNELHIST in processing pass %s" % (raw, str( run ), len( res['BRUNELHIST'] ), bkDict['ProcessingPass'] ))
       return ( retVal, res )
     elif len( res['BRUNELHIST'] ) == 0:
       missing['BRUNELHIST'].append( raw )
@@ -369,13 +405,39 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
     retVal['BRUNELHIST'].append( brunelHist )
     retVal['DAVINCIHIST'].append( daVinciHist )
 
-  if not len( retVal['BRUNELHIST'] ) == countBrunel:
-    gLogger.info( "Run %s processing pass %s found %s BRUNELHIST expected %s" % ( 
-      str( run ), bkDict['ProcessingPass'], len( retVal['BRUNELHIST'] ), countBrunel ) )
+  if ( len( retVal['BRUNELHIST'] ) > countBrunel):
+    gLogger.info( "Run %s processing pass %s found %s BRUNELHIST expected %s" % (str( run ), bkDict['ProcessingPass'], len( retVal['BRUNELHIST'] ), countBrunel ) )
+    print missing
     return ( retVal, res )
+  else: 
+    if alt_counting:
+      gLogger.info( "Run %s processing pass %s found %s HIST by counting the RAW descendants." %(str( run ), bkDict['ProcessingPass'], count_b ) )
+      retVal['OK'] = True
+      return ( retVal, res )
 
-  retVal['OK'] = True
-  return ( retVal, res )
+    
+'''
+check_Multiple
+
+check for the presence of RAWs from multiple runs in the histograms ancestors 
+'''
+def check_Multiple (dict,lfn):
+  for d in dict['Value']['Successful'][lfn]:
+    if d['FileType']=='RAW':
+      raw = d['FileName']
+      t = raw.split("/")
+      run_ref = t[-1].split('_')[0]
+      break
+  for d in dict['Value']['Successful'][lfn]:
+    if d['FileType']=='RAW':
+      raw = d['FileName']
+      t = raw.split("/")
+      run = t[-1].split('_')[0]
+      if not (run == run_ref):
+        gLogger.error( "Histograms created from MIXED RUNs!!!" )
+        return S_ERROR()
+  return S_OK()
+
 
 """
                                                                             
@@ -1011,6 +1073,8 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
 
   #Registration in the LFC
   result = failoverTransfer.transferAndRegisterFile( localpath, localfilename, lfn , ['CERN-HIST'], fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
+  if not result['OK']:
+    return result
   performBKRegistration.append( lfn )
   bkFileExtensions = ['bookkeeping*.xml']
   log = gLogger.getSubLogger( "UploadOutputData" )
