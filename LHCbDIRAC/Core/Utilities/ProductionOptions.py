@@ -6,6 +6,7 @@
 
 __RCSID__ = "$Id$"
 
+import re
 from DIRAC import S_OK, gLogger
 
 gLogger = gLogger.getSubLogger( 'ProductionOptions' )
@@ -65,4 +66,27 @@ def getDataOptions( applicationName, inputDataList, inputDataType, poolXMLCatalo
   options.append( poolOpt )
   return S_OK( options )
 
+#############################################################################
+
+def getEventSelectorInput( inputDataList, inputDataType ):
+  """ Returns the correctly formatted event selector options for accessing input
+      data using Gaudi applications.
+  """
+  inputDataFiles = []
+  for lfn in inputDataList:
+    lfn = lfn.replace( 'LFN:', '' ).replace( 'lfn:', '' )
+    if inputDataType == "MDF":
+      inputDataFiles.append( """ "DATAFILE='LFN:%s' SVC='LHCb::MDFSelector'", """ % ( lfn ) )
+    elif inputDataType in ( "ETC", "SETC", "FETC" ):
+      inputDataFiles.append( """ "COLLECTION='TagCreator/EventTuple' DATAFILE='LFN:%s' TYP='POOL_ROOT' SEL='(StrippingGlobal==1)' OPT='READ'", """ % ( lfn ) )
+    elif inputDataType == 'RDST':
+      if re.search( 'rdst$', lfn ):
+        inputDataFiles.append( """ "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % ( lfn ) )
+      else:
+        gLogger.info( 'Ignoring file %s for step with input data type %s' % ( lfn, inputDataType ) )
+    else:
+      inputDataFiles.append( """ "DATAFILE='LFN:%s' TYP='POOL_ROOTTREE' OPT='READ'", """ % ( lfn ) )
+
+  inputDataOpt = '\n'.join( inputDataFiles )[:-2]
+  return S_OK( inputDataOpt )
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
