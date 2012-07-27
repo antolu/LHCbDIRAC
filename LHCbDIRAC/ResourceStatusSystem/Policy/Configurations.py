@@ -21,20 +21,15 @@ __RCSID__ = '$Id$'
 #############################################################################
 
 policies = {
-  'DT_OnGoing_Only' :
-    { 
-     'description' : 'Ongoing down-times',
-      'module'     : 'DT_Policy',
-      'command'    : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
-      'args'       : None
-     },
-  'DT_Scheduled' :
+                  
+  'DTScheduled' :
     { 
       'description'     : 'Ongoing and scheduled down-times',
-      'module'          : 'DT_Policy',
+      'module'          : 'DTPolicy',
       'commandInNewRes' : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
-      'command'         : ( 'GOCDBStatusCommand', 'DTCachedCommand' ),
-      'args'            : ( 12, ), # Fix to avoid querying the CS on load time, to be fixed
+      #'command'         : ( 'GOCDBStatusCommand', 'DTCachedCommand' ),
+      'command'         : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
+      'args'            : { 'hours' : 12 }, # Fix to avoid querying the CS on load time, to be fixed
       
       'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand', 'DTInfoCachedCommand' ),
                                     'args': None}},
