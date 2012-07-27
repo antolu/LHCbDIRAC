@@ -16,7 +16,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] <transList>' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   args = Script.getPositionalArgs()
 
@@ -49,16 +49,16 @@ if __name__ == "__main__":
 
   prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
   for prod in idList:
-    res = transClient.getTransformation( prod, extraParams=False )
+    res = transClient.getTransformation( prod, extraParams = False )
     if not res['OK']:
         print "Couldn't find transformation", prod
         continue
     else:
         transType = res['Value']['Type']
-    bkQuery = BKQuery( {'Production': prod, 'ReplicaFlag':'No'}, fileTypes='ALL',
-                       visible=( transType not in prodsWithMerge ) )
+    bkQuery = BKQuery( {'Production': prod, 'ReplicaFlag':'No'}, fileTypes = 'ALL',
+                       visible = ( transType not in prodsWithMerge ) )
     print "Production %d: %s" % ( prod, transType )
-    lfns = bkQuery.getLFNs( printOutput=False )
+    lfns = bkQuery.getLFNs( printOutput = False )
     if not lfns:
       print "\tNo files found without replica flag"
       continue
@@ -78,22 +78,31 @@ if __name__ == "__main__":
     else:
       # In principle most files have no replica flag, start from LFC files with replicas
       dirs = []
+      present = []
+
       for lfn in lfns:
-        dir = os.path.dirname( lfn )
-        if dir not in dirs:
-          dirs.append( dir )
+        dirN = os.path.dirname( lfn )
+        if dirN not in dirs:
+          dirs.append( dirN )
       dirs.sort()
       print "\tChecking LFC files from %d directories" % len( dirs )
       gLogger.setLevel( 'FATAL' )
-      res = rm.getFilesFromDirectory( dirs )
-      gLogger.setLevel( 'WARNING' )
+      res = self.rm.getFilesFromDirectory( dirs )
+      gLogger.setLevel( 'VERBOSE' )
       if not res['OK']:
-        print "Error getting files from directories %s:" % dirs, res['Message']
+        gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
         continue
       if res['Value']:
-        res = rm.getReplicas( res['Value'] )
-        if res['OK']:
-          existingLFNs = res['Value']['Successful'].keys()
+        filesFound = res['Value']
+      else:
+        filesFound = []
+
+      if filesFound:
+        for lfn in lfns:
+          if lfn in filesFound:
+            present.append( lfn )
+
+      existingLFNs = present
 
 
     print ""

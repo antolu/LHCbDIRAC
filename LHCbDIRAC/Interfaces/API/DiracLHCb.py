@@ -15,7 +15,7 @@ import string
 import time
 import re
 
-from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig 
+from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List                           import sortList, removeEmptyElements
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
@@ -47,18 +47,13 @@ class DiracLHCb( Dirac ):
       self.opsH = operationsHelperIn
 
     try:
-      #fix for bug in RSS
-#      for site in getSites()['Value']:
-#        if getSiteTier( site )['Value'] in ( ['0'], ['1'] ):
-#          self.tier1s.append( site )
       for site in getSites():
         if getSiteTier( site ) in ( 0, 1 ):
           self.tier1s.append( site )
     except Exception, e:
       return S_ERROR( 'Could not get the sites or sites tier ' + e )
 
-# Commented out, I believe it is not used.
-#    self.softwareSection = '/Operations/SoftwareDistribution'
+    self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
                              'DataTakingConditions'     : 'All',
                              'ProcessingPass'           : 'All',
@@ -166,7 +161,7 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    rootVersions = self.opsH.getOptionsDict( '/SoftwareDistribution/LHCbRoot' )
+    rootVersions = gConfig.getOptionsDict( self.softwareSection + '/LHCbRoot' )
     if not rootVersions['OK']:
       return self.__errorReport( rootVersions, 'Could not contact DIRAC Configuration Service for supported ROOT version list' )
 
@@ -194,7 +189,7 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    softwareDistribution = self.opsH.getOptionsDict( 'SoftwareDistribution' )
+    softwareDistribution = gConfig.getOptionsDict( self.softwareSection )
     if not softwareDistribution['OK']:
       return self.__errorReport( 'Could not contact DIRAC Configuration Service for supported software version list' )
 
@@ -239,7 +234,7 @@ class DiracLHCb( Dirac ):
         Example Usage:
 
         >>> dirac.getBKAncestors('/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst',2)
-        {'OK': True, 'Value': ['/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst', 
+        {'OK': True, 'Value': ['/lhcb/data/2009/DST/00005727/0000/00005727_00000042_1.dst',
         '/lhcb/data/2009/RAW/FULL/LHCb/COLLISION09/63807/063807_0000000004.raw']}
 
        @param lfn: Logical File Name (LFN)
@@ -913,7 +908,7 @@ class DiracLHCb( Dirac ):
       return siteMask
 
     totalList = gConfig.getSections( '/Resources/Sites/%s' % gridType )
-        
+
     if not totalList['OK']:
       return S_ERROR( 'Could not get list of sites from CS' )
     totalList = totalList['Value']
@@ -947,7 +942,7 @@ class DiracLHCb( Dirac ):
     """
     storageCFGBase = '/Resources/StorageElements'
     res = gConfig.getSections( storageCFGBase, True )
-    
+
     if not res['OK']:
       return S_ERROR( 'Failed to get storage element information' )
 

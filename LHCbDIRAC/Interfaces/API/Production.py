@@ -59,8 +59,7 @@ class Production():
     self.csSection = 'Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
     self.LHCbJob.gaudiStepCount = 0
 
-    inOutputSandbox = self.opsHelper.getValue( '%s/%s' % ( self.csSection, 'inOutputSandbox' ),
-                                               ['std.out', 'std.err', '*.log'] )
+    inOutputSandbox = self.opsHelper.getValue( 'Productions/inOutputSandbox', ['std.out', 'std.err'] )
     self.LHCbJob.setOutputSandbox( inOutputSandbox )
 
     defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
