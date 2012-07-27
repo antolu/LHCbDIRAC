@@ -5,6 +5,8 @@
   
 '''
 
+from DIRAC.ResourceStatusSystem.Policy.Configurations import policiesMeta
+
 #from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 __RCSID__ = '$Id$'
@@ -18,26 +20,26 @@ __RCSID__ = '$Id$'
 # policies evaluated
 #############################################################################
 
-Policies = {
+policies = {
   'DT_OnGoing_Only' :
     { 
      'description' : 'Ongoing down-times',
       'module'     : 'DT_Policy',
-      'command'    : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
+      'command'    : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
       'args'       : None
      },
   'DT_Scheduled' :
     { 
       'description'     : 'Ongoing and scheduled down-times',
       'module'          : 'DT_Policy',
-      'commandInNewRes' : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
-      'command'         : ( 'GOCDBStatus_Command', 'DTCached_Command' ),
+      'commandInNewRes' : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
+      'command'         : ( 'GOCDBStatusCommand', 'DTCachedCommand' ),
       'args'            : ( 12, ), # Fix to avoid querying the CS on load time, to be fixed
       
-      'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatus_Command', 'DTInfo_Cached_Command' ),
+      'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand', 'DTInfoCachedCommand' ),
                                     'args': None}},
                       ],
-      'Resource_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatus_Command', 'DTInfo_Cached_Command' ),
+      'Resource_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand', 'DTInfoCachedCommand' ),
                                         'args': None}},
                       ]
      },
@@ -45,12 +47,12 @@ Policies = {
     { 
       'description' : 'Open GGUS tickets',
       'module'      : 'GGUSTicketsPolicy',
-      'command'     : ( 'GGUSTickets_Command', 'GGUSTickets_Open' ),
+      'command'     : ( 'GGUSTicketsCommand', 'GGUSTicketsOpen' ),
       'args'        : None,
       
-      'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GGUSTickets_Command', 'GGUSTickets_Link' ),
+      'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GGUSTicketsCommand', 'GGUSTicketsLink' ),
                                     'args': None}},
-                       {'TextInfo': {'CommandIn': ( 'GGUSTickets_Command', 'GGUSTickets_Info' ),
+                       {'TextInfo': {'CommandIn': ( 'GGUSTicketsCommand', 'GGUSTicketsInfo' ),
                                     'args': None}},
                      ]
      },
@@ -142,49 +144,49 @@ Policies = {
     { 
       'description'     : 'Simple jobs efficiency',
       'module'          : 'JobsEfficiencySimplePolicy',
-      'commandInNewRes' : ( 'Jobs_Command', 'JobsEffSimple_Command' ),
-      'command'         : ( 'Jobs_Command', 'JobsEffSimpleCached_Command' ),
+      'commandInNewRes' : ( 'JobsCommand', 'JobsEffSimpleCommand' ),
+      'command'         : ( 'JobsCommand', 'JobsEffSimpleCachedCommand' ),
       'args'            : None,
       
       'Service_Computing_Panel' : [ {'FillChart - Successfull Jobs in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args':( 'Job', 'SuccessfullJobsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'Job', 'NumberOfJobs',
                                                      {'Format': 'LastHours', 'hours': 24},
                                                      'Site', {'FinalMajorStatus':'Done'} )}},
                                     {'FillChart - Failed Jobs in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args':( 'Job', 'FailedJobsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'Job', 'NumberOfJobs',
                                                      {'Format': 'LastHours', 'hours': 24},
                                                      'Site', {'FinalMajorStatus':'Failed'} )}},
                                     {'FillChart - Running Jobs in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args':( 'Job', 'RunningJobsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
                                                      {'Format': 'LastHours', 'hours': 24},
                                                      'Site', {} )}},
                                     {'FillChart - Running Jobs in the last week':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args':( 'Job', 'RunningJobsBySiteSplitted_168' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
                                                      {'Format': 'LastHours', 'hours': 168},
                                                      'Site', {} )}},
                                     {'FillChart - Running Jobs in the last month':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args':( 'Job', 'RunningJobsBySiteSplitted_720' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
                                                      {'Format': 'LastHours', 'hours': 720},
                                                                'Site', {} )}},
                                     {'FillChart - Running Jobs in the last year':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args':( 'Job', 'RunningJobsBySiteSplitted_8760' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
                                                      {'Format': 'LastHours', 'hours': 8760},
                                                      'Site', {} )}}
@@ -194,21 +196,21 @@ Policies = {
     { 
       'description'     : 'Simple pilots efficiency',
       'module'          : 'PilotsEfficiencySimplePolicy',
-      'commandInNewRes' : ( 'Pilots_Command', 'PilotsEffSimple_Command' ),
-      'command'         : ( 'Pilots_Command', 'PilotsEffSimpleCached_Command' ),
+      'commandInNewRes' : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
+      'command'         : ( 'PilotsCommand', 'PilotsEffSimpleCachedCommand' ),
       'args'            : None,
       
       'Service_Computing_Panel' : [ {'FillChart - Successfull pilots in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                       'args': ( 'Pilot', 'SuccessfullPilotsBySiteSplitted_24' ),
-                                      'CommandInNewRes' : ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'Pilot', 'NumberOfPilots',
                                                      {'Format': 'LastHours', 'hours': 24},
                                                      'Site', {'GridStatus':'Done'} )}},
                                     {'FillChart - Aborted pilots in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotsCommand' ),
                                       'args': ( 'Pilot', 'FailedPilotsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                       'argsNewRes': ( 'Pilot', 'NumberOfPilots',
                                                      {'Format': 'LastHours', 'hours': 24},
                                                      'Site', {'GridStatus':'Aborted'} )}},
@@ -218,20 +220,20 @@ Policies = {
     { 
       'description' : 'Simple pilots efficiency',
       'module'      : 'PilotsEfficiencySimplePolicy',
-      'command'     : ( 'Pilots_Command', 'PilotsEffSimple_Command' ),
+      'command'     : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
       'args'        : None,
       
       'Resource_Panel' : [ { 'FillChart - Successfull pilots in the last 24 hours':
-                           { 'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                           { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                              'args':( 'Pilot', 'SuccessfullPilotsByCESplitted_24' ),
-                             'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                             'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                              'argsNewRes': ( 'Pilot', 'NumberOfPilots',
                                             {'Format': 'LastHours', 'hours': 24},
                                             'GridCE', {'GridStatus':'Done'} )}},
                            { 'FillChart - Failed pilots in the last 24 hours':
-                            { 'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                            { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                              'args': ( 'Pilot', 'FailedPilotsByCESplitted_24' ),
-                              'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                              'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                               'argsNewRes': ( 'Pilot', 'NumberOfPilots',
                                              {'Format': 'LastHours', 'hours': 24},
                                              'GridCE', {'GridStatus':'Aborted'} )}},
@@ -241,7 +243,7 @@ Policies = {
     { 
       'description' : 'How the site\'s services are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'command'     : ( 'RS_Command', 'ServiceStats_Command' ),
+      'command'     : ( 'RSCommand', 'ServiceStatsCommand' ),
       'args'        : ( 'Service', ),
       
       'Site_Panel' : [ { 'RSS' : 'ServiceOfSite' } ]
@@ -250,7 +252,7 @@ Policies = {
     { 
       'description' : 'How the service\'s computing resources are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'command'     : ( 'RS_Command', 'ResourceStats_Command' ),
+      'command'     : ( 'RSCommand', 'ResourceStatsCommand' ),
       'args'        : ( 'Resource', ),
       
       'Service_Computing_Panel' : [ { 'RSS' : 'ResOfCompService' } ]
@@ -259,7 +261,7 @@ Policies = {
     { 
       'description' : 'How the service\'s storage nodes are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'command'     : ( 'RS_Command', 'ResourceStats_Command' ),
+      'command'     : ( 'RSCommand', 'ResourceStatsCommand' ),
       'args'        : ( 'Resource', ),
       
       'Service_Storage_Panel' : [ { 'RSS' : 'ResOfStorService' } ]
@@ -268,21 +270,21 @@ Policies = {
     { 
       'description' : 'How the service\'s storage elements are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'command'     : ( 'RS_Command', 'StorageElementsStats_Command' ),
+      'command'     : ( 'RSCommand', 'StorageElementsStatsCommand' ),
       'args'        : ( 'StorageElement', ),
       
       'Service_Storage_Panel' : [ { 'RSS' : 'StorageElementsOfSite' },
                                   {'Chart - Transfer quality in the last 24 hours, incoming.':
-                                  {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                  {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                    'args': ( 'Pilot', 'TransferQualityByDestSplittedSite_24' ),
-                                   'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                   'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                    'argsNewRes': ( 'DataOperation', 'Quality',
                                                   {'Format': 'LastHours', 'hours': 24},
                                                   'Destination', {'OperationType':'putAndRegister'} )}},
                                   {'Chart - Transfer quality in the last 24 hours, outgoing.':
-                                  {'CommandIn': ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                                  {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                    'args': ( 'Pilot', 'TransferQualityBySourceSplittedSite_24' ),
-                                   'CommandInNewRes': ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                                   'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                    'argsNewRes': ( 'DataOperation', 'Quality',
                                                   {'Format': 'LastHours', 'hours': 24},
                                                   'Source', {'OperationType':'putAndRegister'} )}},
@@ -329,7 +331,7 @@ Policies = {
     { 
       'description' : 'How the storage element\'s nodes are behaving in the RSS',
       'module'      : 'DownHillPropagationPolicy',
-      'command'     : ( 'RS_Command', 'MonitoredStatus_Command' ),
+      'command'     : ( 'RSCommand', 'MonitoredStatusCommand' ),
       'args'        : ( 'Resource', ),
       
       'SE_Panel' : [ {
@@ -341,17 +343,17 @@ Policies = {
     { 
       'description'     : 'SE transfer quality',
       'module'          : 'TransferQualityPolicy',
-      'commandInNewRes' : ( 'DIRACAccounting_Command', 'TransferQuality_Command' ),
+      'commandInNewRes' : ( 'DIRACAccountingCommand', 'TransferQualityCommand' ),
       'argsNewRes'      : None,
-      'command'         : ( 'DIRACAccounting_Command', 'TransferQualityFromCachedPlot_Command' ),
+      'command'         : ( 'DIRACAccountingCommand', 'TransferQualityFromCachedPlotCommand' ),
       'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_2' ),
       
       'SE_Panel' : [ {
                       'FillChart - Transfer quality in the last 24 hours, incoming in the space token':
                         {
-                          'CommandIn'       : ( 'DIRACAccounting_Command', 'CachedPlot_Command' ),
+                          'CommandIn'       : ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                           'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_24' ),
-                          'CommandInNewRes' : ( 'DIRACAccounting_Command', 'DIRACAccounting_Command' ),
+                          'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                           'argsNewRes'      : ( 'DataOperation', 'Quality',
                                                { 
                                                 'Format' : 'LastHours', 'hours': 24
@@ -430,6 +432,9 @@ Policies = {
       'args'        : ( 'LFC', )
     }
 }
+
+#Update DIRAC policies with LHCbDIRAC policies
+policiesMeta.update( policies )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
