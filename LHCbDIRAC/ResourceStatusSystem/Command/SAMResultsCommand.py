@@ -14,6 +14,7 @@ __RCSID__ = '$Id: $'
 
 class SAMResultsCommand( Command ):
   
+  #FIXME: we need agent extension in LHCbDIRAC to run with SAMResultsClient
   __APIs__ = [ 'SAMResultsClient', 'ResourceStatusClient' ]
   
   def doCommand( self ):
