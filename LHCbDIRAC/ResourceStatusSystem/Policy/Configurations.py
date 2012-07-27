@@ -5,14 +5,14 @@
   
 '''
 
-from DIRAC.ResourceStatusSystem.Utilities import CS
+#from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 __RCSID__ = '$Id$'
 
 #pp = CS.getTypedDictRootedAt( 'PolicyParameters' )
 
-def getPolicyParameters():
-  return CS.getTypedDictRootedAt( 'PolicyParameters' )
+#def getPolicyParameters():
+#  return CSHelpers.getTypedDictRootedAt( 'PolicyParameters' )
 
 #############################################################################
 # policies evaluated
@@ -21,17 +21,17 @@ def getPolicyParameters():
 Policies = {
   'DT_OnGoing_Only' :
     { 
-     'Description' : 'Ongoing down-times',
+     'description' : 'Ongoing down-times',
       'module'     : 'DT_Policy',
-      'commandIn'  : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
+      'command'    : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
       'args'       : None
      },
   'DT_Scheduled' :
     { 
-      'Description'     : 'Ongoing and scheduled down-times',
+      'description'     : 'Ongoing and scheduled down-times',
       'module'          : 'DT_Policy',
       'commandInNewRes' : ( 'GOCDBStatus_Command', 'GOCDBStatus_Command' ),
-      'commandIn'       : ( 'GOCDBStatus_Command', 'DTCached_Command' ),
+      'command'         : ( 'GOCDBStatus_Command', 'DTCached_Command' ),
       'args'            : ( 12, ), # Fix to avoid querying the CS on load time, to be fixed
       
       'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatus_Command', 'DTInfo_Cached_Command' ),
@@ -43,9 +43,9 @@ Policies = {
      },
   'GGUSTickets' :
     { 
-      'Description' : 'Open GGUS tickets',
+      'description' : 'Open GGUS tickets',
       'module'      : 'GGUSTicketsPolicy',
-      'commandIn'   : ( 'GGUSTickets_Command', 'GGUSTickets_Open' ),
+      'command'     : ( 'GGUSTickets_Command', 'GGUSTickets_Open' ),
       'args'        : None,
       
       'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GGUSTickets_Command', 'GGUSTickets_Link' ),
@@ -56,9 +56,9 @@ Policies = {
      },
   'SAM_CE' :
     { 
-      'Description' : 'Latest SAM results on the LCG Computing Element',
+      'description' : 'Latest SAM results on the LCG Computing Element',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install', 
                                 'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel', 
                                 'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss', 
@@ -76,9 +76,9 @@ Policies = {
      },
   'SAM_CREAMCE' :
     { 
-      'Description' : 'Latest SAM results on the CREAM Computing Element',
+      'description' : 'Latest SAM results on the CREAM Computing Element',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] ),
 
       'Resource_Panel' : [ { 'SAM': 
@@ -90,9 +90,9 @@ Policies = {
      },
   'SAM_SE' :
     { 
-      'Description' : 'Latest SAM results on the SRM nodes',
+      'description' : 'Latest SAM results on the SRM nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'DiracTestUSER', 'FileAccessV2', 'LHCb-cr' ] ),
 
       'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
@@ -101,9 +101,9 @@ Policies = {
      },
   'SAM_LFC_C' :
     { 
-      'Description' : 'Latest SAM results on the central LFC nodes',
+      'description' : 'Latest SAM results on the central LFC nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] ),
       
       'Resource_Panel' : [ { 'SAM': 
@@ -115,9 +115,9 @@ Policies = {
      },
   'SAM_LFC_L' :
     { 
-      'Description' : 'Latest SAM results on the slave LFC nodes',
+      'description' : 'Latest SAM results on the slave LFC nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] ),
       
       'Resource_Panel' : [ { 'SAM': 
@@ -129,9 +129,9 @@ Policies = {
      },
   'SAM_FTS' :
     { 
-      'Description' : 'Latest SAM results on the FTS nodes',
+      'description' : 'Latest SAM results on the FTS nodes',
       'module'      : 'SAMResultsPolicy',
-      'commandIn'   : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
       'args'        : ( None, [ 'ftschn', 'ftsinfo' ] ),
      
       'Resource_Panel' : [ { 'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
@@ -140,10 +140,10 @@ Policies = {
      },
   'JobsEfficiencySimple' :
     { 
-      'Description'     : 'Simple jobs efficiency',
+      'description'     : 'Simple jobs efficiency',
       'module'          : 'JobsEfficiencySimplePolicy',
       'commandInNewRes' : ( 'Jobs_Command', 'JobsEffSimple_Command' ),
-      'commandIn'       : ( 'Jobs_Command', 'JobsEffSimpleCached_Command' ),
+      'command'         : ( 'Jobs_Command', 'JobsEffSimpleCached_Command' ),
       'args'            : None,
       
       'Service_Computing_Panel' : [ {'FillChart - Successfull Jobs in the last 24 hours':
@@ -192,10 +192,10 @@ Policies = {
    },
   'PilotsEfficiencySimple_Service' :
     { 
-      'Description'     : 'Simple pilots efficiency',
+      'description'     : 'Simple pilots efficiency',
       'module'          : 'PilotsEfficiencySimplePolicy',
       'commandInNewRes' : ( 'Pilots_Command', 'PilotsEffSimple_Command' ),
-      'commandIn'       : ( 'Pilots_Command', 'PilotsEffSimpleCached_Command' ),
+      'command'         : ( 'Pilots_Command', 'PilotsEffSimpleCached_Command' ),
       'args'            : None,
       
       'Service_Computing_Panel' : [ {'FillChart - Successfull pilots in the last 24 hours':
@@ -216,9 +216,9 @@ Policies = {
      },
   'PilotsEfficiencySimple_Resource' :
     { 
-      'Description' : 'Simple pilots efficiency',
+      'description' : 'Simple pilots efficiency',
       'module'      : 'PilotsEfficiencySimplePolicy',
-      'commandIn'   : ( 'Pilots_Command', 'PilotsEffSimple_Command' ),
+      'command'     : ( 'Pilots_Command', 'PilotsEffSimple_Command' ),
       'args'        : None,
       
       'Resource_Panel' : [ { 'FillChart - Successfull pilots in the last 24 hours':
@@ -239,36 +239,36 @@ Policies = {
      },
   'OnSitePropagation' :
     { 
-      'Description' : 'How the site\'s services are behaving in the RSS',
+      'description' : 'How the site\'s services are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'commandIn'   : ( 'RS_Command', 'ServiceStats_Command' ),
+      'command'     : ( 'RS_Command', 'ServiceStats_Command' ),
       'args'        : ( 'Service', ),
       
       'Site_Panel' : [ { 'RSS' : 'ServiceOfSite' } ]
      },
   'OnComputingServicePropagation' :
     { 
-      'Description' : 'How the service\'s computing resources are behaving in the RSS',
+      'description' : 'How the service\'s computing resources are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'commandIn'   : ( 'RS_Command', 'ResourceStats_Command' ),
+      'command'     : ( 'RS_Command', 'ResourceStats_Command' ),
       'args'        : ( 'Resource', ),
       
       'Service_Computing_Panel' : [ { 'RSS' : 'ResOfCompService' } ]
      },
   'OnStorageServicePropagation_Res' :
     { 
-      'Description' : 'How the service\'s storage nodes are behaving in the RSS',
+      'description' : 'How the service\'s storage nodes are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'commandIn'   : ( 'RS_Command', 'ResourceStats_Command' ),
+      'command'     : ( 'RS_Command', 'ResourceStats_Command' ),
       'args'        : ( 'Resource', ),
       
       'Service_Storage_Panel' : [ { 'RSS' : 'ResOfStorService' } ]
      },
   'OnStorageServicePropagation_SE' :
     { 
-      'Description' : 'How the service\'s storage elements are behaving in the RSS',
+      'description' : 'How the service\'s storage elements are behaving in the RSS',
       'module'      : 'PropagationPolicy',
-      'commandIn'   : ( 'RS_Command', 'StorageElementsStats_Command' ),
+      'command'     : ( 'RS_Command', 'StorageElementsStats_Command' ),
       'args'        : ( 'StorageElement', ),
       
       'Service_Storage_Panel' : [ { 'RSS' : 'StorageElementsOfSite' },
@@ -290,9 +290,9 @@ Policies = {
      },
   'VOBOX-SLS' :
     { 
-      'Description' : 'How the VO-Box is behaving in the SLS',
+      'description' : 'How the VO-Box is behaving in the SLS',
       'module'      : 'SLSPolicy',
-      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
+      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VO-BOX', ),
       
       'Service_VO-BOX_Panel' : [ {
@@ -305,9 +305,9 @@ Policies = {
      },
   'VOMS-SLS' :
     { 
-      'Description' : 'How the VOMS service is behaving in the SLS',
+      'description' : 'How the VOMS service is behaving in the SLS',
       'module'      : 'SLSPolicy',
-      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
+      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VOMS', ),
       
       'Service_VOMS_Panel' : [ {
@@ -320,16 +320,16 @@ Policies = {
      },
   'CondDB-SLS' :
     { 
-      'Description' : 'How the CondDB service is behaving in the SLS',
+      'description' : 'How the CondDB service is behaving in the SLS',
       'module'      : 'SLSPolicy',
-      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
+      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'CondDB', )
       },
   'OnStorageElementPropagation' :
     { 
-      'Description' : 'How the storage element\'s nodes are behaving in the RSS',
+      'description' : 'How the storage element\'s nodes are behaving in the RSS',
       'module'      : 'DownHillPropagationPolicy',
-      'commandIn'   : ( 'RS_Command', 'MonitoredStatus_Command' ),
+      'command'     : ( 'RS_Command', 'MonitoredStatus_Command' ),
       'args'        : ( 'Resource', ),
       
       'SE_Panel' : [ {
@@ -339,11 +339,11 @@ Policies = {
      },
   'TransferQuality' :
     { 
-      'Description'     : 'SE transfer quality',
+      'description'     : 'SE transfer quality',
       'module'          : 'TransferQualityPolicy',
       'commandInNewRes' : ( 'DIRACAccounting_Command', 'TransferQuality_Command' ),
       'argsNewRes'      : None,
-      'commandIn'       : ( 'DIRACAccounting_Command', 'TransferQualityFromCachedPlot_Command' ),
+      'command'         : ( 'DIRACAccounting_Command', 'TransferQualityFromCachedPlot_Command' ),
       'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_2' ),
       
       'SE_Panel' : [ {
@@ -366,9 +366,9 @@ Policies = {
      },
   'SEOccupancy' :
     { 
-      'Description' : 'SE occupancy',
+      'description' : 'SE occupancy',
       'module'      : 'SEOccupancyPolicy',
-      'commandIn'   : ( 'SLSCommand', 'SLSStatusCommand' ),
+      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : None,
 
       'SE_Panel' : [ {
@@ -381,9 +381,9 @@ Policies = {
      },
   'SEQueuedTransfers' :
     { 
-      'Description' : 'Queued transfers on the SE',
+      'description' : 'Queued transfers on the SE',
       'module'      : 'SEQueuedTransfersPolicy',
-      'commandIn'   : ( 'SLSCommand', 'SLSServiceInfoCommand' ),
+      'command'     : ( 'SLSCommand', 'SLSServiceInfoCommand' ),
       'args'        : None,
       
       'SE_Panel' : [ { 
@@ -396,36 +396,37 @@ Policies = {
      },
   'AlwaysFalse' :
     {
-      'Description' : 'A Policy that always returns false',
-      'commandIn'   : None,
+      'description' : 'A Policy that always returns false',
+      'module'      : None,
+      'command'     : None,
       'args'        : None,
     },
    'Nagios_CE' :
     {
-      'Description' : 'Checks probes with ServiceFlavour CE for a given resource',
+      'description' : 'Checks probes with ServiceFlavour CE for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
+      'command'     : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'CE', )
     },
     'Nagios_CREAMCE' :
     {
-      'Description' : 'Checks probes with ServiceFlavour CREAM-CE for a given resource',
+      'description' : 'Checks probes with ServiceFlavour CREAM-CE for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
+      'command'     : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'CREAM-CE', )
     },
     'Nagios_SE' :
     {
-      'Description' : 'Checks probes with ServiceFlavour SRMv2 for a given resource',
+      'description' : 'Checks probes with ServiceFlavour SRMv2 for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
+      'command'     : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'SRMv2', )
     },
     'Nagios_LFC' :
     {
-      'Description' : 'Checks probes with ServiceFlavour LFC for a given resource',
+      'description' : 'Checks probes with ServiceFlavour LFC for a given resource',
       'module'      : 'NagiosProbesPolicy',
-      'commandIn'   : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
+      'command'     : ( 'NagiosProbesCommand', 'NagiosProbesCommand' ),
       'args'        : ( 'LFC', )
     }
 }
