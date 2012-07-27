@@ -11,6 +11,18 @@ from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import \
 __RCSID__ = '$Id:  $'
 
 class ResourceManagementDB( DIRACResourceManagementDB ):
+  '''
+    Extension of ResourceManagementDB, adding the following tables:
+    - HammerCloudTest
+    - MonitoringTest
+    - SLSTest
+    - SLSService
+    - SLSSRMStats
+    - SLST1Service
+    - SLSLogSE
+    - SLSStorage
+    - SLSCondDB
+  '''
   
   _tablesDB    = DIRACResourceManagementDB._tablesDB
   _tablesDB[ 'HammerCloudTest' ] = { 'Fields' : 
