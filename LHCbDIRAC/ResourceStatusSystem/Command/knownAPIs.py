@@ -6,7 +6,7 @@
    
 '''
 
-import DIRAC.ResourceStatusSystem.Command.knownAPIs as DIRACknownAPIs
+#import DIRAC.ResourceStatusSystem.Command.knownAPIs as DIRACknownAPIs
 
 __RCSID__ = '$Id: $'
 
@@ -20,9 +20,10 @@ def initAPIs( desiredAPIs, knownAPIs, force = False ):
   been updated to use LHCbDIRAC clients instead of DIRAC ones.
   '''
   
-  DIRACknownAPIs.__APIs__.update( __APIs__ )
-  
-  return DIRACknownAPIs.initAPIs( desiredAPIs, knownAPIs, force )
+  #FIXME: get rid of this
+#  DIRACknownAPIs.__APIs__.update( __APIs__ ) 
+#  return DIRACknownAPIs.initAPIs( desiredAPIs, knownAPIs, force )
+  return knownAPIs
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

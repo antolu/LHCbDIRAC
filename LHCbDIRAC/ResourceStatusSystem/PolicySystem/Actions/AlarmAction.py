@@ -3,18 +3,18 @@
 
 '''
 
-import urllib2
-
-from DIRAC.ResourceStatusSystem.PolicySystem.Actions.AlarmAction import AlarmAction as BaseAlarmAction
-from DIRAC.ResourceStatusSystem.Utilities                        import Utils
-
-__RCSID__ = '$Id: $'
-
-class AlarmAction( BaseAlarmAction ):
-  '''
-  Extended AlarmAction for LHCbDIRAC, adding 
-  '''
-  pass  
+#import urllib2
+#
+#from DIRAC.ResourceStatusSystem.PolicySystem.Actions.AlarmAction import AlarmAction as BaseAlarmAction
+#from DIRAC.ResourceStatusSystem.Utilities                        import Utils
+#
+#__RCSID__ = '$Id: $'
+#
+#class AlarmAction( BaseAlarmAction ):
+#  '''
+#  Extended AlarmAction for LHCbDIRAC, adding 
+#  '''
+#  pass  
   
 # Commented out, the following method does not work. ShiftDBAgent is doing its job.
   
