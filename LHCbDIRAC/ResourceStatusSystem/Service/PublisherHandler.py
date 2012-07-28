@@ -60,7 +60,7 @@ class PublisherHandler( RequestHandler ):
       Returns list of all nodes considered by RSS
     '''
     gLogger.info( 'getNodes' )
-    return CSHelpers.getResources()
+    return CSHelpers.getNodes()
   
   ## RssConfiguration methods ##################################################
   
