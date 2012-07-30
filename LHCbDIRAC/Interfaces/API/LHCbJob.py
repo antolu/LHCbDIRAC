@@ -913,7 +913,7 @@ class LHCbJob( Job ):
 
     modulesNameList = [
                        'CreateDataFile',
-                       'GaudiApplicationScript',
+                       'Script',
                        'FileUsage',
                        'UserJobFinalization'
                        ]

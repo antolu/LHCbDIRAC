@@ -25,10 +25,18 @@ def getStepDefinition( stepName, modulesNameList = [], importLine = """""", para
 
     #create the module definition
     moduleDef = ModuleDefinition( moduleName )
-    moduleDef.setDescription( getattr( __import__( "%s.%s" % ( importLine, moduleName ),
-                                                   globals(), locals(), ['__doc__'] ),
-                                       "__doc__" ) )
-    moduleDef.setBody( """\nfrom %s.%s import %s\n""" % ( importLine, moduleName, moduleName ) )
+    try:
+      moduleDef.setDescription( getattr( __import__( "%s.%s" % ( importLine, moduleName ),
+                                                     globals(), locals(), ['__doc__'] ),
+                                        "__doc__" ) )
+      moduleDef.setBody( """\nfrom %s.%s import %s\n""" % ( importLine, moduleName, moduleName ) )
+    except ImportError:
+      importLine = "DIRAC.Core.Workflow.Modules"
+      moduleDef.setDescription( getattr( __import__( "%s.%s" % ( importLine, moduleName ),
+                                                     globals(), locals(), ['__doc__'] ),
+                                        "__doc__" ) )
+      moduleDef.setBody( """\nfrom %s.%s import %s\n""" % ( importLine, moduleName, moduleName ) )
+      importLine = "LHCbDIRAC.Workflow.Modules"
 
     #add the module to the step, and instance it
     stepDef.addModule( moduleDef )
