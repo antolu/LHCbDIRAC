@@ -1,21 +1,35 @@
-""" DISET request handler base class for the DatasetDB."""
+########################################################################
+# $HeadURL $
+# File: RunDBInterfaceHandler.py
+########################################################################
+""" :mod: RunDBInterfaceHandler
+    ===========================
+ 
+    .. module: RunDBInterfaceHandler
+    :synopsis: DISET request handler base class for the DatasetDB 
+"""
+# imports
+import os
+import time
+import sys
+from types import DictType, ListType, IntType, StringTypes
+## from DIRAC
+from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RequestHandler import RequestHandler
 
 __RCSID__ = "$Id$"
 
-from types import *
-from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from DIRAC import gLogger, S_OK, S_ERROR
-import os, time, sys
-
-allRunFields = ['runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID', 'startTime', 'endTime', 'destination', 'startLumi', 'endLumi', 'beamEnergy']
-#selectRunFields = ['runID','fillID','state','runType','partitionName','partitionID','startLumi','endLumi','beamEnergy','startTime','endTime','destination']
-allFileFields = ['fileID', 'runID', 'name', 'state', 'bytes', 'events', 'stream', 'creationTime', 'timeStamp', 'refCount']
+allRunFields = [ 'runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID', 
+                 'startTime', 'endTime', 'destination', 'startLumi', 'endLumi', 'beamEnergy']
+allFileFields = ['fileID', 'runID', 'name', 'state', 'bytes', 
+                 'events', 'stream', 'creationTime', 'timeStamp', 'refCount']
 
 server = False
 runStates = {}
 runStateRev = {}
 fileStates = {}
 fileStateRev = {}
+
 def initializeRunDBInterfaceHandler( serviceInfo ):
   global server
   #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
@@ -58,9 +72,12 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
   return S_OK()
 
 class RunDBInterfaceHandler( RequestHandler ):
-
-  types_getFilesSummaryWeb = [DictType, ListType, IntType, IntType]
+  """
+  .. class:: RunDBInterfaceHandler
+  """
+  types_getFilesSummaryWeb = [ DictType, ListType, IntType, IntType ]
   def export_getFilesSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
+    """ export of getFilesSummaryWeb """
     paramString = ''
     for selectParam in allFileFields:
       if selectDict.has_key( selectParam ):
@@ -97,13 +114,13 @@ class RunDBInterfaceHandler( RequestHandler ):
       result.reverse()
 
     statusCountDict = {}
-    for tuple in result:
-      state = tuple[3]
-      if fileStates.has_key( state ):
+    for res in result:
+      state = res[3]
+      if state in fileStates:
         state = fileStates[state]
       else:
         state = 'UNKNOWN'
-      if not statusCountDict.has_key( state ):
+      if state not in statusCountDict:
         statusCountDict[state] = 0
       statusCountDict[state] += 1
     resultDict['Extras'] = statusCountDict
@@ -119,9 +136,9 @@ class RunDBInterfaceHandler( RequestHandler ):
     # prepare the standard structure now
     resultDict['ParameterNames'] = allFileFields
     records = []
-    for tuple in fileList:
+    for fileTuple in fileList:
       ['fileID', 'runID', 'name', 'state', 'bytes', 'events', 'stream', 'creationTime', 'timeStamp', 'refCount']
-      fileID, runID, name, state, bytes, events, stream, creationTime, timeStamp, refCount = tuple
+      fileID, runID, name, state, bytes, events, stream, creationTime, timeStamp, refCount = fileTuple
       timeStamp = str( timeStamp )
       creationTime = str( creationTime )
       if fileStates.has_key( state ):
@@ -161,6 +178,7 @@ class RunDBInterfaceHandler( RequestHandler ):
 
   types_getRunsSummaryWeb = [DictType, ListType, IntType, IntType]
   def export_getRunsSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
+    """ export of getRunsSummaryWeb """
     paramString = ''
     for selectParam in allRunFields:
       if selectDict.has_key( selectParam ):
@@ -198,13 +216,13 @@ class RunDBInterfaceHandler( RequestHandler ):
       result.reverse()
 
     statusCountDict = {}
-    for tuple in result:
-      state = tuple[2]
-      if runStates.has_key( state ):
+    for res in result:
+      state = res[2]
+      if state in runStates:
         state = runStates[state]
       else:
         state = 'UNKNOWN'
-      if not statusCountDict.has_key( state ):
+      if state not in statusCountDict:
         statusCountDict[state] = 0
       statusCountDict[state] += 1
     resultDict['Extras'] = statusCountDict
@@ -219,8 +237,8 @@ class RunDBInterfaceHandler( RequestHandler ):
 
     # prepare the standard structure now
     runCounters = {}
-    for tuple in runList:
-      runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, magnetCurrent, magnetState = tuple
+    for runTuple in runList:
+      runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, magnetCurrent, magnetState = runTuple
       runCounters[runID] = {'Size':0, 'Events':0, 'Files':0}
 
     # Now sum the number of events and files in the run
@@ -228,10 +246,10 @@ class RunDBInterfaceHandler( RequestHandler ):
       success, result = server.getFilesDirac( fields = allFileFields, runID = runCounters.keys(), orderBy = 'runID', no = sys.maxint )
       if not success:
         return S_ERROR( result )
-      for tuple in result:
-        runID = tuple[1]
-        size = tuple[4]
-        events = tuple[5]
+      for item in result:
+        runID = item[1]
+        size = item[4]
+        events = item[5]
         if size and events:
           runCounters[runID]['Size'] += size
           runCounters[runID]['Events'] += events
@@ -249,11 +267,11 @@ class RunDBInterfaceHandler( RequestHandler ):
     resultDict['Counters'] = {'Files':totalFiles, 'Events':totalEvents, 'Size':"%.2f" % ( totalSize / ( 1000 * 1000 * 1000.0 ) )}
 
     records = []
-    for tuple in runList:
-      runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, magnetCurrent, magnetState = tuple
+    for runTuple in runList:
+      runID, fillID, state, runType, partitionName, partitionID, startTime, endTime, destination, startLumi, endLumi, beamEnergy, magnetCurrent, magnetState = runTuple
       startTime = str( startTime )
       endTime = str( endTime )
-      if runStates.has_key( state ):
+      if state in runStates:
         state = runStates[state]
       else:
         state = 'UNKNOWN'
@@ -270,6 +288,7 @@ class RunDBInterfaceHandler( RequestHandler ):
 
   types_getRunSelections = []
   def export_getRunSelections( self ):
+    """ export of getRunSelections """
     try:
       paramDict = {}
 
@@ -291,10 +310,7 @@ class RunDBInterfaceHandler( RequestHandler ):
           errStr = "RunDBInterfaceHandler.getSelections: Failed to get distinct %s." % key
           gLogger.error( errStr, result )
           return S_ERROR( errStr )
-        list = []
-        for res in result:
-          if res:list.append( res )
-        paramDict[key] = list
+        paramDict[key] = [ res for res in results if res ]
 
       startTime = time.time()
       success, result = server.getRunStates()
@@ -316,6 +332,7 @@ class RunDBInterfaceHandler( RequestHandler ):
 
   types_getRunParams = [IntType]
   def export_getRunParams( self, runID ):
+    """ export of getRunParams """
     success, result = server.getRunParams( runID )
     if not success:
       return S_ERROR( result )

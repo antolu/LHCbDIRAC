@@ -1,60 +1,89 @@
-"""  UserStorageQuotaAgent obtains the usage by each user from the StorageUsageDB and compares with a quota present in the CS.
+########################################################################
+# $HeadURL $
+# File: UserStorageQuotaAgent.py
+########################################################################
+
+""" :mod: UserStorageQuotaAgent
+    ===========================
+ 
+    .. module: UserStorageQuotaAgent
+    :synopsis: UserStorageQuotaAgent obtains the usage by each user from the StorageUsageDB 
+    and compares with a quota present in the CS.
 """
-# $HeadURL$
-__RCSID__ = "$Id$"
 
-from DIRAC  import gLogger, gConfig, S_OK
+from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
-
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
-from types import *
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'DataManagement/UserStorageQuotaAgent'
 
 class UserStorageQuotaAgent( AgentModule ):
+  """
+  .. class:: UserStorageQuotaAgent
+
+  :param int deafultQuota: default quota in MB
+  :param NotificationClient notificationClient: NotificationClient instance
+  :param StorageUsageDB storageUsageDB: StorageUsageDB or RPC client pointing to StorageUsageDB
+  """
+
+  defaultQuota = 1000
+  notificationClient = None
+  storageUsageDB = None
+
 
   def initialize( self ):
+    """ agent initialisation
+
+    :param self: self reference
+    """
+    self.notificationClient = NotificationClient() 
     try:
-      from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
-      self.StorageUsageDB = StorageUsageDB()
+      self.storageUsageDB = StorageUsageDB()
     except SystemExit:
-      from DIRAC.Core.DISET.RPCClient import RPCClient
-      self.StorageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
+      self.storageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
-    self.defaultQuota = gConfig.getValue( '/Registry/DefaultStorageQuota', 1000 ) # Default is 1TB
-    gLogger.info( "initialize: Default quota found to be %d GB" % self.defaultQuota )
+    self.defaultQuota = gConfig.getValue( '/Registry/DefaultStorageQuota', self.defaultQuota ) # Default is 1TB
+    self.log.info( "initialize: Default quota found to be %d GB" % self.defaultQuota )
     return S_OK()
 
   def execute( self ):
-    res = self.StorageUsageDB.getUserStorageUsage()
+    """ execution of one cycle
+
+    :param self: self reference
+
+    """
+    res = self.storageUsageDB.getUserStorageUsage()
     usageDict = res['Value']
 
     byteToGB = 1000 * 1000 * 1000.0
 
     managerMsg = ""
     errorMsg = ""
-    gLogger.info( "Determining quota usage for %s users." % len( usageDict.keys() ) )
+    self.log.info( "Determining quota usage for %s users." % len( usageDict ) )
     for userName in sortList( usageDict.keys() ):
       usageGB = usageDict[userName] / byteToGB
       res = gConfig.getOptionsDict( '/Registry/Users/%s' % userName )
       if not res['OK']:
         msg = "Username not found in the CS: %s using %.2f GB" % ( userName, usageGB )
         errorMsg += msg + '\n'
-        gLogger.error( msg )
+        self.log.error( msg )
         continue
       elif not res['Value'].has_key( 'Email' ):
         msg = "CS does not contain email information for user %s" % userName
         errorMsg += msg + '\n'
-        gLogger.error( msg )
+        self.log.error( msg )
         continue
-      elif not res['Value'].has_key( 'Quota' ):
+      elif "Quota" not in res['Value']:
         userQuota = float( self.defaultQuota )
       else:
         userQuota = float( res['Value']['Quota'] )
@@ -62,17 +91,20 @@ class UserStorageQuotaAgent( AgentModule ):
       # Different behaviour for 90% exceeded, 110% exceeded and 150% exceeded
       msg = None
       if ( 1.5 * userQuota ) < usageGB:
-        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, '%', userQuota, usageGB )
-        gLogger.info( msg )
+        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, 
+                                                            '%', userQuota, usageGB )
+        self.log.info( msg )
         self.sendBlockedMail( userName, userMail, userQuota, usageGB )
-        gLogger.info( "!!!!!!!!!!!!!!!!!!!!!!!!REMEMBER TO MODIFY THE ACLs and STATUS HERE!!!!!!!!!!!!!!!!!" )
+        self.log.info( "!!!!!!!!!!!!!!!!!!!!!!!!REMEMBER TO MODIFY THE ACLs and STATUS HERE!!!!!!!!!!!!!!!!!" )
       elif ( 1.0 * userQuota ) < usageGB:
-        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, '%', userQuota, usageGB )
-        gLogger.info( msg )
+        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, 
+                                                            '%', userQuota, usageGB )
+        self.log.info( msg )
         self.sendSecondWarningMail( userName, userMail, userQuota, usageGB )
       elif ( 0.9 * userQuota ) < usageGB:
-        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, '%', userQuota, usageGB )
-        gLogger.info( msg )
+        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, 
+                                                            '%', userQuota, usageGB )
+        self.log.info( msg )
         self.sendFirstWarningMail( userName, userMail, userQuota, usageGB )
       if msg:
         managerMsg += msg + "\n"
@@ -83,38 +115,80 @@ class UserStorageQuotaAgent( AgentModule ):
         managerMsg += "\nThe following errors have been found by the UserStorageQuotaAgent:\n" + errorMsg
       fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
       toAddress = 'lhcb-datamanagement@cern.ch'
-      NotificationClient().sendMail( toAddress, "User quota warnings", managerMsg, fromAddress )
+      self.notificationClient.sendMail( toAddress, "User quota warnings", managerMsg, fromAddress )
     return S_OK()
 
   def sendFirstWarningMail( self, userName, userMail, quota, usage ):
-    msgbody = "This mail has been generated automatically.\n\n"
-    msgbody += "You have received this mail because you are approaching your Grid storage usage quota of %sGB.\n\n" % int( quota )
-    msgbody += "You are currently using %.1f GB.\n\n" % usage
-    msgbody += "Please reduce you usage by removing some files. If you have reduced your usage in the last 24 hours please ignore this message.\n"
-    msgbody += "Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota"
+    """ first warning email
+
+    :param self: self reference
+    :param str userName: DIRAC user name
+    :param str userMail: email address
+    :param int quota: default quota
+    :param float usage: space currently used
+    """
+    msgbody = """
+This mail has been generated automatically.
+
+You have received this mail because you are approaching your Grid storage usage quota of %s GB.
+
+You are currently using %.1f GB.
+
+Please reduce you usage by removing some files. If you have reduced your usage in the last 24 hours please ignore this message.
+
+Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota
+""" % ( int(quota), usage )
     fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
     subject = 'Grid storage use near quota (%s)' % userName
     toAddress = userMail
-    NotificationClient().sendMail( toAddress, subject, msgbody, fromAddress )
+    self.notificationClient.sendMail( toAddress, subject, msgbody, fromAddress )
 
   def sendSecondWarningMail( self, userName, userMail, quota, usage ):
-    msgbody = "This mail has been generated automatically.\n\n"
-    msgbody += "You have received this mail because your Grid storage usage has exceeded your quota of %sGB.\n\n" % int( quota )
-    msgbody += "You are currently using %.1f GB.\n\n" % usage
-    msgbody += "Please reduce you usage by removing some files. If you have reduced your usage in the last 24 hours please ignore this message.\n"
-    msgbody += "Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota"
+    """ second warning email
+
+    :param self: self reference
+    :param str userName: DIRAC user name
+    :param str userMail: email address
+    :param int quota: default quota
+    :param float usage: space currently used
+    """
+    msgbody = """
+This mail has been generated automatically.
+
+You have received this mail because your Grid storage usage has exceeded your quota of %sGB.
+
+You are currently using %.1f GB.
+
+Please reduce you usage by removing some files. If you have reduced your usage in the last 24 hours please ignore this message.
+Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota
+""" % ( int(quota), usage )
     fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
     subject = 'Grid storage use over quota (%s)' % userName
     toAddress = userMail
-    NotificationClient().sendMail( toAddress, subject, msgbody, fromAddress )
+    self.notificationClient.sendMail( toAddress, subject, msgbody, fromAddress )
 
   def sendBlockedMail( self, userName, userMail, quota, usage ):
-    msgbody = "This mail has been generated automatically.\n\n"
-    msgbody += "You have received this mail because your Grid storage usage has exceeded your quota of %sGB.\n\n" % int( quota )
-    msgbody += "You are currently using %.1f GB.\n\n" % usage
-    msgbody += "Your account could soon been given a lower priority and your jobs will run at a lower pace if you don't create space. If you have reduced your usage in the last 24 hours please ignore this message.\n"
-    msgbody += "Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota"
+    """ send blocked email
+
+    :param self: self reference
+    :param str userName: DIRAC user name
+    :param str userMail: email adress
+    :param int quota: default quota
+    :param float usage: space used
+    """
+    msgbody = """ 
+This mail has been generated automatically.
+
+You have received this mail because your Grid storage usage has exceeded your quota of %s GB.
+
+You are currently using %.1f GB.
+
+Your account could soon been given a lower priority and your jobs will run at a lower pace if you don't create space. 
+If you have reduced your usage in the last 24 hours please ignore this message.
+Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota
+""" % ( int(quota), usage )
+ 
     fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
     subject = 'Grid storage use blocked (%s)' % userName
     toAddress = userMail
-    NotificationClient().sendMail( toAddress, subject, msgbody, fromAddress )
+    self.notificationClient.sendMail( toAddress, subject, msgbody, fromAddress )

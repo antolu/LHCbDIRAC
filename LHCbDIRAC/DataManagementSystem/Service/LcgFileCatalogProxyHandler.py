@@ -1,23 +1,36 @@
+########################################################################
+# $HeadURL $
+# File: LcgFileCatalogProxyHandler.py
+########################################################################
+
+""" :mod: LcgFileCatalogProxyHandler 
+    ================================
+ 
+    .. module: LcgFileCatalogProxyHandler
+    :synopsis: This is a service which represents a DISET proxy to the LCG File Catalog    
 """
-This is a service which represents a DISET proxy to the LCG File Catalog
-"""
+## imports
+import os
+from types import StringType, DictType, TupleType
+## from DIRAC
+from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RequestHandler import RequestHandler
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.Core.Utilities.Subprocess import pythonCall
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
+
 __RCSID__ = "$Id$"
 
-from DIRAC                                          import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RequestHandler                import RequestHandler
-from DIRAC.Resources.Catalog.FileCatalog            import FileCatalog
-from DIRAC.Core.Utilities.Subprocess                    import pythonCall
-from DIRAC.FrameworkSystem.Client.ProxyManagerClient    import gProxyManager
-import os
-from types import *
-
-
 def initializeLcgFileCatalogProxyHandler( serviceInfo ):
+  """ service initalisation """
   return S_OK()
 
 class LcgFileCatalogProxyHandler( RequestHandler ):
+  """
+  .. class:: LcgFileCatalogProxyHandler
+  """
 
-  types_callProxyMethod = [StringType, TupleType, DictionaryType]
+  types_callProxyMethod = [ StringType, TupleType, DictType ]
   def export_callProxyMethod( self, name, args, kargs ):
     """ A generic method to call methods of the Storage Element.
     """
@@ -27,10 +40,14 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
     else:
       return res
 
-  def __proxyWrapper( self, name, args, kargs ):
+  def __proxyWrapper( self, name, args, kwargs ):
     """ The wrapper will obtain the client proxy and set it up in the environment.
-
         The required functionality is then executed and returned to the client.
+
+    :param self: self reference
+    :param str name: fcn name
+    :param tuple args: fcn args
+    :param dict kwargs: fcn keyword args 
     """
     res = self.__prepareSecurityDetails()
     if not res['OK']:
@@ -38,21 +55,20 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
     try:
       fileCatalog = FileCatalog( ['LcgFileCatalogCombined'] )
       method = getattr( fileCatalog, name )
-    except AttributeError, x:
+    except AttributeError, error:
       errStr = "LcgFileCatalogProxyHandler.__proxyWrapper: No method named %s" % name
-      gLogger.exception( errStr, name, x )
+      gLogger.exception( errStr, name, error )
       return S_ERROR( errStr )
     try:
-      result = method( *args, **kargs )
+      result = method( *args, **kwargs )
       return result
-    except Exception, x:
+    except Exception, error:
       errStr = "LcgFileCatalogProxyHandler.__proxyWrapper: Exception while performing %s" % name
-      gLogger.exception( errStr, name, x )
+      gLogger.exception( errStr, name, error )
       return S_ERROR( errStr )
 
   def __prepareSecurityDetails( self ):
-    """ Obtains the connection details for the client
-    """
+    """ Obtains the connection details for the client """
     try:
       credDict = self.getRemoteCredentials()
       clientDN = credDict[ 'DN' ]
@@ -74,7 +90,7 @@ class LcgFileCatalogProxyHandler( RequestHandler ):
       gLogger.debug( "Updating environment." )
       os.environ['X509_USER_PROXY'] = res['Value']
       return res
-    except Exception, x:
+    except Exception, error:
       exStr = "__getConnectionDetails: Failed to get client connection details."
-      gLogger.exception( exStr, '', x )
+      gLogger.exception( exStr, '', error )
       return S_ERROR( exStr )

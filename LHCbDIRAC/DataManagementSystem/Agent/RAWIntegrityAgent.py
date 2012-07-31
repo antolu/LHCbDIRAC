@@ -1,51 +1,85 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL $
+# File: RAWIntegrityAgent.py
 ########################################################################
-"""  RAWIntegrityAgent determines whether RAW files in Castor were migrated correctly
+
+""" :mod: RAWIntegrityAgent
+    =======================
+ 
+    .. module: RAWIntegrityAgent
+    :synopsis: RAWIntegrityAgent determines whether RAW files in CASTOR were migrated correctly.
 """
-from DIRAC                                                  import gLogger, gMonitor, S_OK
-from DIRAC.Core.Base.AgentModule                            import AgentModule
-from DIRAC.RequestManagementSystem.Client.RequestClient     import RequestClient
-from DIRAC.RequestManagementSystem.Client.RequestContainer  import RequestContainer
-from DIRAC.DataManagementSystem.Client.ReplicaManager       import ReplicaManager
-from DIRAC.Core.Utilities.Subprocess                        import shellCall
-from DIRAC.ConfigurationSystem.Client                       import PathFinder
-from DIRAC.DataManagementSystem.Client.DataLoggingClient    import DataLoggingClient
 
-from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB       import RAWIntegrityDB
+__RCSID__ = "$Id $"
 
+## imports
 import os
-from types import *
-
-__RCSID__ = "$Id$"
+## from DIRAC
+from DIRAC import gMonitor, S_OK
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
+from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.ConfigurationSystem.Client import PathFinder
+from DIRAC.DataManagementSystem.Client.DataLoggingClient import DataLoggingClient
+## from LHCbDIRAC
+from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 
 AGENT_NAME = 'DataManagement/RAWIntegrityAgent'
 
 class RAWIntegrityAgent( AgentModule ):
+  """
+  .. class:: RAWIntegirtyAgent
+
+  :param RequestClient requestClient: RequestDB client
+  :param ReplicaManager replicaManager: Replicamanager instance
+  :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
+  :param DataLoggingClient dataLoggingClient: DataLoggingClient instance
+  :param str gatewayUrl: URL to online RequestClient
+  """
+  requestClient = None
+  replicaManager = None
+  rawIntegrityDB = None
+  dataLoggingClient = None
+  gatewayUrl = None
 
   def initialize( self ):
+    """ agent initialisation """
 
-    self.RequestDBClient = RequestClient()
-    self.ReplicaManager = ReplicaManager()
-    self.RAWIntegrityDB = RAWIntegrityDB()
-    self.DataLog = DataLoggingClient()
+    self.requestClient = RequestClient()
+    self.replicaManager = ReplicaManager()
+    self.rawIntegrityDB = RAWIntegrityDB()
+    self.dataLoggingClient = DataLoggingClient()
 
     self.gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway' )
 
-    gMonitor.registerActivity( "Iteration", "Agent Loops/min", "RAWIntegriryAgent", "Loops", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "WaitingFiles", "Files waiting for migration", "RAWIntegriryAgent", "Files", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "NewlyMigrated", "Newly migrated files", "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "TotMigrated", "Total migrated files", "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "SuccessfullyMigrated", "Successfully migrated files", "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "TotSucMigrated", "Total successfully migrated files", "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "FailedMigrated", "Erroneously migrated files", "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "TotFailMigrated", "Total erroneously migrated files", "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "MigrationTime", "Average migration time", "RAWIntegriryAgent", "Seconds", gMonitor.OP_MEAN )
-
-    gMonitor.registerActivity( "TotMigratedSize", "Total migrated file size", "RAWIntegriryAgent", "GB", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "TimeInQueue", "Average current wait for migration", "RAWIntegriryAgent", "Minutes", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "WaitSize", "Size of migration buffer", "RAWIntegrityAgent", "GB", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "MigrationRate", "Observed migration rate", "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
+    gMonitor.registerActivity( "Iteration", "Agent Loops/min", 
+                               "RAWIntegriryAgent", "Loops", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "WaitingFiles", "Files waiting for migration", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_MEAN )
+    gMonitor.registerActivity( "NewlyMigrated", "Newly migrated files", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "TotMigrated", "Total migrated files", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
+    gMonitor.registerActivity( "SuccessfullyMigrated", "Successfully migrated files", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "TotSucMigrated", "Total successfully migrated files", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
+    gMonitor.registerActivity( "FailedMigrated", "Erroneously migrated files", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "TotFailMigrated", "Total erroneously migrated files", 
+                               "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
+    gMonitor.registerActivity( "MigrationTime", "Average migration time", 
+                               "RAWIntegriryAgent", "Seconds", gMonitor.OP_MEAN )
+    gMonitor.registerActivity( "TotMigratedSize", "Total migrated file size", 
+                               "RAWIntegriryAgent", "GB", gMonitor.OP_ACUM )
+    gMonitor.registerActivity( "TimeInQueue", "Average current wait for migration", 
+                               "RAWIntegriryAgent", "Minutes", gMonitor.OP_MEAN )
+    gMonitor.registerActivity( "WaitSize", "Size of migration buffer", 
+                               "RAWIntegrityAgent", "GB", gMonitor.OP_MEAN )
+    gMonitor.registerActivity( "MigrationRate", "Observed migration rate", 
+                               "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
@@ -54,24 +88,27 @@ class RAWIntegrityAgent( AgentModule ):
 
     return S_OK()
 
-
   def execute( self ):
+    """ execution in one cycle 
+    
+    TODO: needs some refactoring and splitting, it's just to long
+    """
     gMonitor.addMark( "Iteration", 1 )
 
     ############################################################
     #
     # Obtain the files which have not yet been migrated
     #
-    gLogger.info( "RAWIntegrityAgent.execute: Obtaining un-migrated files." )
-    res = self.RAWIntegrityDB.getActiveFiles()
+    self.log.info( "Obtaining un-migrated files." )
+    res = self.rawIntegrityDB.getActiveFiles()
     if not res['OK']:
-      errStr = "RAWIntegrityAgent.execute: Failed to obtain un-migrated files."
-      gLogger.error( errStr, res['Message'] )
+      errStr = "Failed to obtain un-migrated files."
+      self.log.error( errStr, res['Message'] )
       return S_OK()
     activeFiles = res['Value']
 
     gMonitor.addMark( "WaitingFiles", len( activeFiles.keys() ) )
-    gLogger.info( "RAWIntegrityAgent.execute: Obtained %s un-migrated files." % len( activeFiles.keys() ) )
+    self.log.info( "Obtained %s un-migrated files." % len( activeFiles.keys() ) )
     if not len( activeFiles.keys() ) > 0:
       return S_OK()
     totalSize = 0
@@ -84,30 +121,30 @@ class RAWIntegrityAgent( AgentModule ):
     #
     # Obtain the physical file metadata for the files awating migration
     #
-    gLogger.info( "RAWIntegrityAgent.execute: Obtaining physical file metadata." )
+    self.log.info( "Obtaining physical file metadata." )
     sePfns = {}
     pfnDict = {}
     for lfn, metadataDict in activeFiles.items():
       pfn = metadataDict['PFN']
       pfnDict[pfn] = lfn
       se = metadataDict['SE']
-      if not sePfns.has_key( se ):
+      if se not in sePfns:
         sePfns[se] = []
       sePfns[se].append( pfn )
-    pfnMetadata = {'Successful':{}, 'Failed':{}}
+    pfnMetadata = { 'Successful':{}, 'Failed':{} }
     for se, pfnList in sePfns.items():
-      res = self.ReplicaManager.getStorageFileMetadata( pfnList, se )
+      res = self.replicaManager.getStorageFileMetadata( pfnList, se )
       if not res['OK']:
-        errStr = "RAWIntegrityAgent.execute: Failed to obtain physical file metadata."
-        gLogger.error( errStr, res['Message'] )
+        errStr = "Failed to obtain physical file metadata."
+        self.log.error( errStr, res['Message'] )
         for pfn in pfnList:
           pfnMetadata['Failed'][pfn] = errStr
       else:
         pfnMetadata['Successful'].update( res['Value']['Successful'] )
         pfnMetadata['Failed'].update( res['Value']['Failed'] )
     if len( pfnMetadata['Failed'] ) > 0:
-      gLogger.info( "RAWIntegrityAgent.execute: Failed to obtain physical file metadata for %s files." % len( pfnMetadata['Failed'] ) )
-    gLogger.info( "RAWIntegrityAgent.execute: Obtained physical file metadata for %s files." % len( pfnMetadata['Successful'] ) )
+      self.log.info( "Failed to obtain physical file metadata for %s files." % len( pfnMetadata['Failed'] ) )
+    self.log.info( "Obtained physical file metadata for %s files." % len( pfnMetadata['Successful'] ) )
     if not len( pfnMetadata['Successful'] ) > 0:
       return S_OK()
 
@@ -122,9 +159,9 @@ class RAWIntegrityAgent( AgentModule ):
       if pfnMetadataDict['Migrated']:
         lfn = pfnDict[pfn]
         filesMigrated.append( lfn )
-        gLogger.info( "RAWIntegrityAgent.execute: %s is newly migrated." % lfn )
-        if not pfnMetadataDict.has_key( 'Checksum' ):
-          gLogger.error( "RAWIntegrityAgent.execute: No checksum information available.", lfn )
+        self.log.info( "%s is newly migrated." % lfn )
+        if "Checksum" not in pfnMetadataDict:
+          self.log.error( "No checksum information available.", lfn )
           comm = "nsls -lT --checksum /castor/%s" % pfn.split( '/castor/' )[-1]
           res = shellCall( 180, comm )
           returnCode, stdOut, stdErr = res['Value']
@@ -135,26 +172,30 @@ class RAWIntegrityAgent( AgentModule ):
         castorChecksum = pfnMetadataDict['Checksum']
         onlineChecksum = activeFiles[lfn]['Checksum']
         if castorChecksum.lower().lstrip( '0' ) == onlineChecksum.lower().lstrip( '0' ).lstrip( 'x' ):
-          gLogger.info( "RAWIntegrityAgent.execute: %s migrated checksum match." % lfn )
-          self.DataLog.addFileRecord( lfn, 'Checksum match', castorChecksum, '', 'RAWIntegrityAgent' )
+          self.log.info( "%s migrated checksum match." % lfn )
+          self.dataLoggingClient.addFileRecord( lfn, 'Checksum match', castorChecksum, '', 'RAWIntegrityAgent' )
           filesToRemove.append( lfn )
           activeFiles[lfn]['Checksum'] = castorChecksum
         elif pfnMetadataDict['Checksum'] == 'Not available':
-          gLogger.info( "RAWIntegrityAgent.execute: Unable to determine checksum.", lfn )
+          self.log.info( "Unable to determine checksum.", lfn )
         else:
-          gLogger.error( "RAWIntegrityAgent.execute: Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ), onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
-          self.DataLog.addFileRecord( lfn, 'Checksum mismatch', '%s %s' % ( castorChecksum.lower().lstrip( '0' ), onlineChecksum.lower().lstrip( '0' ) ), '', 'RAWIntegrityAgent' )
+          self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ), 
+                                                                         onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
+          self.dataLoggingClient.addFileRecord( lfn, 'Checksum mismatch', 
+                                                '%s %s' % ( castorChecksum.lower().lstrip( '0' ), 
+                                                            onlineChecksum.lower().lstrip( '0' ) ), 
+                                                '', 'RAWIntegrityAgent' )
           filesToTransfer.append( lfn )
 
     migratedSize = 0
     for lfn in filesMigrated:
       migratedSize += int( activeFiles[lfn]['Size'] )
-    res = self.RAWIntegrityDB.getLastMonitorTimeDiff()
+    res = self.rawIntegrityDB.getLastMonitorTimeDiff()
     if res['OK']:
       timeSinceLastMonitor = res['Value']
       migratedSizeMB = migratedSize / ( 1024 * 1024.0 )
       gMonitor.addMark( "MigrationRate", migratedSizeMB / timeSinceLastMonitor )
-    res = self.RAWIntegrityDB.setLastMonitorTime()
+    res = self.rawIntegrityDB.setLastMonitorTime()
     migratedSizeGB = migratedSize / ( 1024 * 1024 * 1024.0 )
     gMonitor.addMark( "TotMigratedSize", migratedSizeGB )
     gMonitor.addMark( "NewlyMigrated", len( filesMigrated ) )
@@ -163,9 +204,9 @@ class RAWIntegrityAgent( AgentModule ):
     gMonitor.addMark( "TotSucMigrated", len( filesToRemove ) )
     gMonitor.addMark( "FailedMigrated", len( filesToTransfer ) )
     gMonitor.addMark( "TotFailMigrated", len( filesToTransfer ) )
-    gLogger.info( "RAWIntegrityAgent.execute: %s files newly migrated." % len( filesMigrated ) )
-    gLogger.info( "RAWIntegrityAgent.execute: Found %s checksum matches." % len( filesToRemove ) )
-    gLogger.info( "RAWIntegrityAgent.execute: Found %s checksum mis-matches." % len( filesToTransfer ) )
+    self.log.info( "%s files newly migrated." % len( filesMigrated ) )
+    self.log.info( "Found %s checksum matches." % len( filesToRemove ) )
+    self.log.info( "Found %s checksum mis-matches." % len( filesToTransfer ) )
 
 
     if len( filesToRemove ) > 0:
@@ -173,7 +214,7 @@ class RAWIntegrityAgent( AgentModule ):
       #
       # Register the correctly migrated files to the file catalogue
       #
-      gLogger.info( "RAWIntegrityAgent.execute: Registering correctly migrated files to the File Catalog." )
+      self.log.info( "Registering correctly migrated files to the File Catalog." )
       for lfn in filesToRemove:
         pfn = activeFiles[lfn]['PFN']
         size = activeFiles[lfn]['Size']
@@ -181,46 +222,46 @@ class RAWIntegrityAgent( AgentModule ):
         guid = activeFiles[lfn]['GUID']
         checksum = activeFiles[lfn]['Checksum']
         fileTuple = ( lfn, pfn, size, se, guid, checksum )
-        res = self.ReplicaManager.registerFile( fileTuple )
+        res = self.replicaManager.registerFile( fileTuple )
         if not res['OK']:
-          self.DataLog.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
-          gLogger.error( "RAWIntegrityAgent.execute: Completely failed to register successfully migrated file.", res['Message'] )
-        elif res['Value']['Failed'].has_key( lfn ):
-          self.DataLog.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
-          gLogger.error( "RAWIntegrityAgent.execute: Failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn] )
+          self.dataLoggingClient.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
+          self.log.error( "Completely failed to register successfully migrated file.", res['Message'] )
+        elif lfn in res['Value']['Failed']:
+          self.dataLoggingClient.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
+          self.log.error( "Failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn] )
         else:
-          self.DataLog.addFileRecord( lfn, 'Register', se, '', 'RAWIntegrityAgent' )
-          gLogger.info( "RAWIntegrityAgent.execute: Successfully registered %s in the File Catalog." % lfn )
+          self.dataLoggingClient.addFileRecord( lfn, 'Register', se, '', 'RAWIntegrityAgent' )
+          self.log.info( "Successfully registered %s in the File Catalog." % lfn )
           ############################################################
           #
           # Create a removal request and set it to the gateway request DB
           #
-          gLogger.info( "RAWIntegrityAgent.execute: Creating removal request for correctly migrated files." )
+          self.log.info( "Creating removal request for correctly migrated files." )
           oRequest = RequestContainer()
           subRequestIndex = oRequest.initiateSubRequest( 'removal' )['Value']
           attributeDict = {'Operation':'physicalRemoval', 'TargetSE':'OnlineRunDB'}
           oRequest.setSubRequestAttributes( subRequestIndex, 'removal', attributeDict )
-          filesDict = [{'LFN':lfn, 'PFN':pfn}]
+          filesDict = [ {'LFN' : lfn, 'PFN' : pfn } ]
           oRequest.setSubRequestFiles( subRequestIndex, 'removal', filesDict )
           fileName = os.path.basename( lfn )
           requestName = 'remove_%s.xml' % fileName
           requestString = oRequest.toXML()['Value']
-          gLogger.info( "RAWIntegrityAgent.execute: Attempting to put %s to gateway requestDB." % requestName )
-          res = self.RequestDBClient.setRequest( requestName, requestString, self.gatewayUrl )
+          self.log.info( "Attempting to put %s to gateway requestDB." % requestName )
+          res = self.requestClient.setRequest( requestName, requestString, self.gatewayUrl )
           if not res['OK']:
-            gLogger.error( "RAWIntegrityAgent.execute: Failed to set removal request to gateway requestDB.", res['Message'] )
+            self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
-            gLogger.info( "RAWIntegrityAgent.execute: Successfully put %s to gateway requestDB." % requestName )
+            self.log.info( "Successfully put %s to gateway requestDB." % requestName )
             ############################################################
             #
             # Remove the file from the list of files awaiting migration in database
             #
-            gLogger.info( "RAWIntegrityAgent.execute: Updating status of %s in raw integrity database." % lfn )
-            res = self.RAWIntegrityDB.setFileStatus( lfn, 'Done' )
+            self.log.info( "Updating status of %s in raw integrity database." % lfn )
+            res = self.rawIntegrityDB.setFileStatus( lfn, 'Done' )
             if not res['OK']:
-              gLogger.error( "RAWIntegrityAgent.execute: Failed to update status in raw integrity database.", res['Message'] )
+              self.log.error( "Failed to update status in raw integrity database.", res['Message'] )
             else:
-              gLogger.info( "RAWIntegrityAgent.execute: Successfully updated status in raw integrity database." )
+              self.log.info( "Successfully updated status in raw integrity database." )
               gMonitor.addMark( "MigrationTime", activeFiles[lfn]['WaitTime'] )
 
     if len( filesToTransfer ) > 0:
@@ -228,51 +269,51 @@ class RAWIntegrityAgent( AgentModule ):
       #
       # Remove the incorrectly migrated files from the storage element (will be over written anyways)
       #
-      gLogger.info( "RAWIntegrityAgent.execute: Removing incorrectly migrated files from Storage Element." )
+      self.log.info( "Removing incorrectly migrated files from Storage Element." )
       for lfn in filesToTransfer:
         pfn = activeFiles[lfn]['PFN']
         size = activeFiles[lfn]['Size']
         se = activeFiles[lfn]['SE']
         guid = activeFiles[lfn]['GUID']
-        res = self.ReplicaManager.removeStorageFile( pfn, se )
+        res = self.replicaManager.removeStorageFile( pfn, se )
         if not res['OK']:
-          self.DataLog.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
-          gLogger.error( "RAWIntegrityAgent.execute: Completely failed to remove pfn from the storage element.", res['Message'] )
-        elif not res['Value']['Successful'].has_key( pfn ):
-          self.DataLog.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
-          gLogger.error( "RAWIntegrityAgent.execute: Failed to remove pfn from the storage element.", res['Value']['Failed'][pfn] )
+          self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
+          self.log.error( "Completely failed to remove pfn from the storage element.", res['Message'] )
+        elif pfn not in res['Value']['Successful']:
+          self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
+          self.log.error( "Failed to remove pfn from the storage element.", res['Value']['Failed'][pfn] )
         else:
-          self.DataLog.addFileRecord( lfn, 'RemoveReplica', se, '', 'RAWIntegrityAgent' )
-          gLogger.info( "RAWIntegrityAgent.execute: Successfully removed pfn from the storage element." )
+          self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplica', se, '', 'RAWIntegrityAgent' )
+          self.log.info( "Successfully removed pfn from the storage element." )
           ############################################################
           #
           # Create a transfer request for the files incorrectly migrated
           #
-          gLogger.info( "RAWIntegrityAgent.execute: Creating (re)transfer request for incorrectly migrated files." )
+          self.log.info( "Creating (re)transfer request for incorrectly migrated files." )
           oRequest = RequestContainer()
           subRequestIndex = oRequest.initiateSubRequest( 'removal' )['Value']
-          attributeDict = {'Operation':'reTransfer', 'TargetSE':'OnlineRunDB'}
+          attributeDict = { 'Operation' : 'reTransfer', 'TargetSE' : 'OnlineRunDB' }
           oRequest.setSubRequestAttributes( subRequestIndex, 'removal', attributeDict )
           fileName = os.path.basename( lfn )
-          filesDict = [{'LFN':lfn, 'PFN':fileName}]
+          filesDict = [ { 'LFN' : lfn, 'PFN' : fileName } ]
           oRequest.setSubRequestFiles( subRequestIndex, 'removal', filesDict )
           requestName = 'retransfer_%s.xml' % fileName
           requestString = oRequest.toXML()['Value']
-          gLogger.info( "RAWIntegrityAgent.execute: Attempting to put %s to gateway requestDB." % requestName )
-          res = self.RequestDBClient.setRequest( requestName, requestString, self.gatewayUrl )
+          self.log.info( "Attempting to put %s to gateway requestDB." % requestName )
+          res = self.requestClient.setRequest( requestName, requestString, self.gatewayUrl )
           if not res['OK']:
-            gLogger.error( "RAWIntegrityAgent.execute: Failed to set removal request to gateway requestDB.", res['Message'] )
+            self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
-            gLogger.info( "RAWIntegrityAgent.execute: Successfully put %s to gateway requestDB." % requestName )
+            self.log.info( "Successfully put %s to gateway requestDB." % requestName )
             ############################################################
             #
             # Remove the file from the list of files awaiting migration in database
             #
-            gLogger.info( "RAWIntegrityAgent.execute: Updating status of %s in raw integrity database." % lfn )
-            res = self.RAWIntegrityDB.setFileStatus( lfn, 'Failed' )
+            self.log.info( "Updating status of %s in raw integrity database." % lfn )
+            res = self.rawIntegrityDB.setFileStatus( lfn, 'Failed' )
             if not res['OK']:
-              gLogger.error( "RAWIntegrityAgent.execute: Failed to update status in raw integrity database.", res['Message'] )
+              self.log.error( "Failed to update status in raw integrity database.", res['Message'] )
             else:
-              gLogger.info( "RAWIntegrityAgent.execute: Successfully updated status in raw integrity database." )
+              self.log.info( "Successfully updated status in raw integrity database." )
 
     return S_OK()

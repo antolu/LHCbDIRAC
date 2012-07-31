@@ -1,44 +1,76 @@
-"""  LogUploadAgent uploads log and other auxilliary files of the given job
-     to the long term log storage
+########################################################################
+# $HeadURL $
+# File: LogUploadAgent.py
+########################################################################
+
+"""  
+    :mod: LogUplaodAgent
+    ====================
+ 
+    .. module: LogUplaodAgent
+    :synopsis: LogUploadAgent uploads log and other auxilliary files of the given job
+     to the long term log storage.
+    .. moduleauthor:: Krzysztof.Ciba@NOSPAMgmail.com
+
 """
+
 __RCSID__ = "$Id$"
 
-import os, shutil
+import os
 
-from DIRAC  import gLogger, gMonitor, S_OK, S_ERROR
+from DIRAC  import gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient import SandboxStoreClient
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.RequestManagementSystem.Agent.RequestAgentMixIn import RequestAgentMixIn
+
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'DataManagement/LogUploadAgent'
 
 class LogUploadAgent( AgentModule, RequestAgentMixIn ):
+  """
+  .. class:: LogUploadAgent
+  
+  :param RequestClient requestClient: RequestClient instance
+  :param ReplicaManager replicaManager: ReplicaManager instance
+  :param str local: local URL to RequestClient
+  """
+  requestClient = None
+  replicaManager = None 
+  local = None
 
   def initialize( self ):
-    self.RequestDBClient = RequestClient()
-    self.rm = ReplicaManager()
+    """ agent initalisation
 
-    gMonitor.registerActivity( "Iteration", "Agent Loops", "JobLogUploadAgent", "Loops/min", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "Attempted", "Request Processed", "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "Successful", "Request Forward Successful", "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "Failed", "Request Forward Failed", "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
+    :param self: self reference
+    """
+    gMonitor.registerActivity( "Iteration", "Agent Loops", 
+                               "JobLogUploadAgent", "Loops/min", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "Attempted", "Request Processed", 
+                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "Successful", "Request Forward Successful", 
+                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "Failed", "Request Forward Failed", 
+                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
 
-#    self.workDir = self.am_getWorkDirectory()
+    self.requestClient = RequestClient()
+    self.replicaManager = ReplicaManager()
+
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
     self.local = PathFinder.getServiceURL( "RequestManagement/localURL" )
     if not self.local:
       errStr = 'The RequestManagement/localURL option must be defined.'
-      gLogger.fatal( errStr )
+      self.log.fatal( errStr )
       return S_ERROR( errStr )
     return S_OK()
 
   def execute( self ):
-    """ Takes the logupload requests and forwards to destination service
+    """ Takes the logupload requests and forwards to destination service.
+
+    :param self: self reference
     """
     gMonitor.addMark( "Iteration", 1 )
 
@@ -46,12 +78,12 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
 
     while work_done:
       work_done = False
-      res = self.RequestDBClient.getRequest( 'logupload', url = self.local )
+      res = self.requestClient.getRequest( 'logupload', url = self.local )
       if not res['OK']:
-        gLogger.error( "Failed to get request from database.", self.local )
+        self.log.error( "Failed to get request from database.", self.local )
         return S_OK()
       elif not res['Value']:
-        gLogger.info( "No requests to be executed found." )
+        self.log.info( "No requests to be executed found." )
         return S_OK()
 
       gMonitor.addMark( "Attempted", 1 )
@@ -60,29 +92,28 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
       jobID = res['Value']['JobID']
       try:
         jobID = int( res['Value']['JobID'] )
-      except:
+      except (TypeError, ValueError):
         jobID = 0
-      gLogger.info( "Obtained request %s" % requestName )
+      self.log.info( "Obtained request %s" % requestName )
 
-      result = self.RequestDBClient.getCurrentExecutionOrder( requestName, self.local )
+      result = self.requestClient.getCurrentExecutionOrder( requestName, self.local )
       if result['OK']:
         currentOrder = result['Value']
       else:
-        gLogger.warn( 'Can not get the request execution order' )
+        self.log.warn( 'Can not get the request execution order' )
         continue
 
       oRequest = RequestContainer( request = requestString )
-#      requestAttributes = oRequest.getRequestAttributes()['Value']
 
       ################################################
       # Find the number of sub-requests from the request
       res = oRequest.getNumSubRequests( 'logupload' )
       if not res['OK']:
         errStr = "Failed to obtain number of logupload subrequests."
-        gLogger.error( errStr, res['Message'] )
+        self.log.error( errStr, res['Message'] )
         continue
 
-      gLogger.info( "Found %s sub requests for job %s" % ( res['Value'], jobID ) )
+      self.log.info( "Found %s subrequests for job %s" % ( res['Value'], jobID ) )
       ################################################
       # For all the sub-requests in the request
       modified = False
@@ -93,31 +124,32 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
         targetSE = subRequestAttributes['TargetSE']
         subRequestFiles = oRequest.getSubRequestFiles( ind, 'logupload' )['Value']
         lfn = subRequestFiles[0]['LFN']
-        gLogger.info( "Processing sub-request %s with execution order %d" % ( ind, subExecutionOrder ) )
+        self.log.info( "Processing subrequest %s with execution order %d" % ( ind, subExecutionOrder ) )
         if subStatus == 'Waiting' and subExecutionOrder <= currentOrder:
           destination = '/'.join( lfn.split( '/' )[0:-1] ) + \
           '/' + ( os.path.basename( lfn ) ).split( '_' )[1].split( '.' )[0]
-          res = self.rm.replicate( lfn, targetSE, destPath = destination )
+          res = self.replicaManager.replicate( lfn, targetSE, destPath = destination )
           if res['OK']:
-            gLogger.info( "Successfully uploaded %s to %s for job %s." % ( lfn, targetSE, jobID ) )
+            self.log.info( "Successfully uploaded %s to %s for job %s." % ( lfn, targetSE, jobID ) )
             oRequest.setSubRequestStatus( ind, 'logupload', 'Done' )
             gMonitor.addMark( "Successful", 1 )
             modified = True
             work_done = True
           else:
             gMonitor.addMark( "Failed", 1 )
-            gLogger.error( "Failed to upload log file: ", res['Message'] )
+            self.log.error( "Failed to upload log file: ", res['Message'] )
         else:
-          gLogger.info( "Sub-request %s is status '%s' and  not to be executed." % ( ind, subRequestAttributes['Status'] ) )
+          self.log.info( "Subrequest %s status is '%s', skipping." % ( ind, 
+                                                                       subRequestAttributes['Status'] ) )
 
       ################################################
       #  Generate the new request string after operation
       requestString = oRequest.toXML()['Value']
-      res = self.RequestDBClient.updateRequest( requestName, requestString, self.local )
+      res = self.requestClient.updateRequest( requestName, requestString, self.local )
       if res['OK']:
-        gLogger.info( "JobLogUploadAgent.execute: Successfully updated request." )
+        self.log.info( "JobLogUploadAgent.execute: Successfully updated request." )
       else:
-        gLogger.error( "JobLogUploadAgent.execute: Failed to update request to ", self.local )
+        self.log.error( "JobLogUploadAgent.execute: Failed to update request to ", self.local )
 
       if modified and jobID:
         result = self.finalizeRequest( requestName, jobID, self.local )
