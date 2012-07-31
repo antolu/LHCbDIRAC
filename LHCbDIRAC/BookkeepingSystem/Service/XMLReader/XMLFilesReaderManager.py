@@ -209,15 +209,40 @@ class XMLFilesReaderManager:
 
       infiles = job.getJobInputFiles()
       if not job.exists('RunNumber') and len(infiles) > 0:
-        fileName = infiles[0].getFileName()
-        retVal = dataManager_.getRunNbAndTck(fileName)
+        runnumber = -1
+        tck = -2
+        runnumbers = []
+        tcks = []
+        for i in infiles:
+          fileName = i.getFileName()
+          retVal = dataManager_.getRunNbAndTck(fileName)
 
-        if not retVal['OK']:
-          return S_ERROR(retVal['Message'])
-        if len(retVal['Value']) > 0:
-          gLogger.debug('RunTCK:' + str(retVal['Value']))
-          runnumber = retVal['Value'][0][0]
-          tck = retVal['Value'][0][1]
+          if not retVal['OK']:
+            return S_ERROR(retVal['Message'])
+          if len(retVal['Value']) > 0:
+            gLogger.debug('RunTCK:' + str(retVal['Value']))
+
+            for i in retVal['Value']:
+              if i[0] not in runnumbers:
+                runnumbers += [i[0]]
+              if i[1] not in tcks:
+                tcks += [i[1]]
+
+          if len(runnumbers) > 1:
+            gLogger.warn('Different runs are reconstructed: ' + str(runnumbers))
+            runnumber = -1
+          else:
+            runnumber = runnumbers[0]
+
+          if len(tcks) > 1:
+            gLogger.warn('Different TCKs are reconstructed: ' + str(tcks))
+            tck = -2
+          else:
+            tck = tcks[0]
+
+          gLogger.debug('The output files of the job inherits the following run: ' + str(runnumber))
+          gLogger.debug('The output files of the job inherits the following TCK: ' + str(tck))
+
           if not job.exists('Tck'):
             newJobParams = JobParameters()
             newJobParams.setName('Tck')
@@ -230,7 +255,7 @@ class XMLFilesReaderManager:
             newJobParams.setName('RunNumber')
             newJobParams.setValue(str(runnumber))
             job.addJobParams(newJobParams)
-            gLogger.debug('Production!')
+
             if job.getParam('JobType') and job.getParam('JobType').getValue() == 'DQHISTOMERGING':
               gLogger.debug('DQ merging!')
               retVal = dataManager_.getJobInfo(fileName)
@@ -260,50 +285,25 @@ class XMLFilesReaderManager:
               gLogger.warn('Bkk can not set the quality flag because the processing pass is missing!')
 
     inputfiles = job.getJobInputFiles()
-    sumEventInputStat = 0
-    sumEvtStat = 0
+
     sumLuminosity = 0
 
     if job.exists('JobType'):
       job.removeParam('JobType')
 
+    ### This must be replaced by a single call!!!!
+    ### It is not urgent as we do not have a huge load on the database
     for i in inputfiles:
       fname = i.getFileName()
-      res = dataManager_.getJobInfo(fname)
-
-      if res['OK']:
-        value = res["Value"]
-        if len(value) > 0 and value[0][2] != None:
-          sumEventInputStat += value[0][2]
-      else:
-        return S_ERROR(res['Message'])
       res = dataManager_.getFileMetadata([fname])
       if res['OK']:
         value = res['Value']
-        if value[fname]['EventStat'] != None:
-          sumEvtStat += value[fname]['EventStat']
         if value[fname]['Luminosity'] != None:
           sumLuminosity += value[fname]['Luminosity']
         if dqvalue == None and value[fname].has_key('DQFlag'):
           dqvalue = value[fname]['DQFlag']
 
-    evtinput = 0
-    if long(sumEvtStat) > long(sumEventInputStat):
-      evtinput = sumEvtStat
-    else:
-      evtinput = sumEventInputStat
-
-    currentEventInputStat = job.getParam('EventInputStat')
-    if currentEventInputStat != None:
-      if long(currentEventInputStat.getValue()) != long(evtinput):
-        gLogger.error('EventInputStat is not equal' + str(currentEventInputStat.getValue()) + '  ' + str(evtinput))
-      currentEventInputStat.setValue(evtinput)
-    elif not job.exists('EventInputStat') and len(inputfiles) > 0:
-      newJobParams = JobParameters()
-      newJobParams.setName('EventInputStat')
-      newJobParams.setValue(str(evtinput))
-      job.addJobParams(newJobParams)
-
+    gLogger.debug('Luminosity: '+ str(sumLuminosity))
     outputFiles = job.getJobOutputFiles()
     for outputfile in outputFiles:
       if outputfile.getFileType() not in ['LOG'] and \
@@ -312,7 +312,7 @@ class XMLFilesReaderManager:
         newFileParams.setParamName('Luminosity')
         newFileParams.setParamValue(sumLuminosity)
         outputfile.addFileParam(newFileParams)
-
+        gLogger.debug('Lumiisity added to ' + outputfile.getFileName())
       ################
 
     config = job.getJobConfiguration()
@@ -321,7 +321,8 @@ class XMLFilesReaderManager:
     for param in params:
       if param.getName() == "RunNumber":
         value = long(param.getValue())
-        if value <= 0:
+        if value <= 0 and len(job.getJobInputFiles()) == 0:
+          #The files which inherits the runs can be entered to the database
           return S_ERROR('The run number not greater 0!')
 
     result = self.__insertJob(job)
@@ -582,7 +583,7 @@ class XMLFilesReaderManager:
           message += "removed"
         else:
           message += "added"
-        message += " to file " + str(file) + " for " + str(location) + ".\n"
+        message += " to file " + str(replicaFileName) + " for " + str(location) + ".\n"
         return S_ERROR(message)
       else:
         fileID = long(result['Value'][0][0])

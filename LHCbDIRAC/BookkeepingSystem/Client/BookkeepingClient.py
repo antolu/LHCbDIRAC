@@ -486,6 +486,8 @@ class BookkeepingClient:
     """
     It returns the metadata information for a given file or a list of files.
     """
+    if type(lfns) == types.StringType:
+      lfns = [lfns]
     server = self.__getServer()
     return server.getFileMetadata(lfns)
 

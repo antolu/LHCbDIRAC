@@ -94,11 +94,11 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt, visible)
 
   #############################################################################
-  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, runnb, production):
+  def getFileTypes(self, configName, configVersion, conddescription, processing, evt, runnb, production, visible):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFileTypes(configName, configVersion,
                                           conddescription, processing,
-                                          evt, runnb, production)
+                                          evt, runnb, production, visible)
 
   #############################################################################
   def getFilesWithMetadata(self, configName, configVersion, conddescription,

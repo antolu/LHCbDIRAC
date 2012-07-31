@@ -342,11 +342,15 @@ class BookkeepingManagerHandler(RequestHandler):
     evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
     production = in_dict.get('Production', default)
     runnb = in_dict.get('RunNumber', default)
+    visible = in_dict.get('Visible', 'Y')
 
     if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
-    retVal = dataMGMT_.getFileTypes(configName, configVersion, conddescription, processing, evt, runnb, production)
+    retVal = dataMGMT_.getFileTypes(configName, configVersion,
+                                    conddescription, processing,
+                                    evt, runnb,
+                                    production, visible)
     if retVal['OK']:
       records = []
       parameters = ['FileTypes']
@@ -378,7 +382,7 @@ class BookkeepingManagerHandler(RequestHandler):
     quality = in_dict.get('DataQuality', in_dict.get('Quality', default))
     runnb = in_dict.get('RunNumber', default)
     visible = in_dict.get('Visible', 'Y')
-    replicaFlag = in_dict.get('ReplicaFlag', default)
+    replicaFlag = in_dict.get('ReplicaFlag', 'Yes')
 
     if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')

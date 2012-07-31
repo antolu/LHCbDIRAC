@@ -13,6 +13,7 @@ from DIRAC.ConfigurationSystem.Client.Config                         import gCon
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
 #from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                      import OracleDB
+from DIRAC.Core.Utilities.List                                       import breakListIntoChunks
 import datetime
 import types, re
 global ALLOWED_ALL
@@ -820,13 +821,14 @@ class OracleBookkeepingDB:
 
   #############################################################################
   def getProductions(self, configName=default, configVersion=default,
-                     conddescription=default, processing=default, evt=default, visible='Y'):
+                     conddescription=default, processing=default, evt=default,
+                     visible=default):
     """return the production for a given dataset"""
     #### MUST BE REIMPLEMNETED!!!!!!
     ####
     ####
     command = ''
-    if visible.upper().find('Y') >= 0:
+    if visible.upper().startswith('Y'):
       condition = ''
       if configName != default:
         condition += " and bview.configname='%s'" % (configName)
@@ -876,7 +878,7 @@ class OracleBookkeepingDB:
         else:
           return retVal
 
-      if visible.upper().find('A') < 0:
+      if not visible.upper().startswith('A'):
         if tables.find('files') < 0:
           tables += ',files f'
         condition += " and f.jobid=j.jobid and f.visibilityflag='N' "
@@ -905,15 +907,28 @@ class OracleBookkeepingDB:
 
   #############################################################################
   def getFileTypes(self, configName, configVersion, conddescription=default,
-                   processing=default, evt=default, runnb=default, production=default):
+                   processing=default, evt=default, runnb=default, production=default,
+                   visible=default):
     """returns the available file types"""
     condition = ''
+    tables = ''
+    if visible.upper().startswith('N'):
+      condition += " and  f.visibilityflag='N'"
 
-    if configName != default:
-      condition += " and bview.configname='%s' " % (configName)
+    if visible.upper().startswith('Y'):
+      if configName != default:
+        condition += " and bview.configname='%s' " % (configName)
 
-    if configVersion != default:
-      condition += " and bview.configversion='%s' " % (configVersion)
+      if configVersion != default:
+        condition += " and bview.configversion='%s' " % (configVersion)
+    else:
+      if configName != default:
+        condition += " and c.configname='%s'" % (configName)
+      if configVersion != default:
+        condition += " and c.configversion='%s'" % (configVersion)
+      if condition.find('and c.') >= 0:
+        tables += ',configurations c'
+        condition += ' and j.configurationid=c.configurationid '
 
     if conddescription != default:
       retVal = self._getConditionString(conddescription, 'pcont')
@@ -922,21 +937,29 @@ class OracleBookkeepingDB:
       else:
         return retVal
 
-    if evt != default:
-      condition += ' and bview.eventtypeid=' + str(evt)
+    if evt != default and visible.upper().startswith('Y'):
+      condition += ' and bview.eventtypeid=%d' % (int(evt))
+    elif evt != default and visible.upper().startswith('N'):
+      condition += '  and f.eventtypeid=%d ' % (int(evt))
 
-    if production != default and type(production) == types.StringType:
-      condition += ' and bview.production=' + str(production)
+    defaultTable = 'bview'
+    if not visible.upper().startswith('Y'):
+      defaultTable = 'j'
+
+    if production != default and type(production) in [types.StringType, types.LongType, types.IntType]:
+      condition += ' and %s.production=%d' % (defaultTable, int(production))
     elif production != default and type(production) == types.ListType:
       cond = ' and ('
       for i in production:
-        cond += ' bview.production=%d or ' % (i)
+        cond += ' %s.production=%d or ' % (defaultTable, i)
       condition += cond[:-3] + ') '
 
-    tables = ''
     if runnb != default:
-      tables = ' , prodrunview prview'
-      condition += ' and prview.production=bview.production and prview.runnumber=' + str(runnb)
+      if visible.upper().startswith('Y'):
+        tables = ' , prodrunview prview'
+        condition += ' and prview.production=bview.production and prview.runnumber=' + str(runnb)
+      else:
+        condition += ' and j.runnumber=%d' % (int(runnb))
 
 
     if processing != default:
@@ -952,30 +975,41 @@ class OracleBookkeepingDB:
         pro += "%s," % (str(i[0]))
       pro = pro[:-1]
       pro += (')')
-      command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name from \
+      if visible.upper().startswith('Y'):
+        command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name from \
                  productionscontainer pcont,prodview bview, filetypes ftypes  %s \
                  where pcont.processingid in %s \
                   and bview.production=pcont.production and\
                    bview.filetypeId=ftypes.filetypeid  %s" % (tables, pro, condition)
+      else:
+        command = " select distinct ft.name from filetypes ft, files f, jobs j, productionscontainer pcont %s where \
+                    j.jobid=f.jobid and f.filetypeid=ft.filetypeid and pcont.production=j.production and  \
+                    pcont.processingid in %s %s " % (tables, pro, condition)
     else:
-      command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name  from \
+      if visible.upper().startswith('Y'):
+        command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name  from \
       productionscontainer pcont, prodview bview,  filetypes ftypes %s where \
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid %s" % (tables, condition)
+      else:
+        command = " select distinct ft.name from filetypes ft, files f, jobs j, productionscontainer pcont %s  where \
+                    j.jobid=f.jobid and f.filetypeid=ft.filetypeid and \
+                    pcont.production=j.production  %s " % (tables, condition)
     return self.dbR_.query(command)
+
 
   #############################################################################
   def getFilesWithMetadata(self, configName, configVersion, conddescription=default,
                            processing=default, evt=default, production=default,
                            filetype=default, quality=default, runnb=default,
-                           visible='Y', replicaflag=default):
+                           visible=default, replicaflag=default):
     """return a list of files with their metadata"""
     condition = ''
 
     tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
-    if visible.upper().find('A') < 0:
-      if visible.upper().find('Y') >= 0:
+    if not visible.upper().startswith('A'):
+      if visible.upper().startswith('Y'):
         condition += "and f.visibilityFlag='Y' "
-      elif visible.upper().find('N') >= 0:
+      elif visible.upper().startswith('N'):
         condition += "and f.visibilityFlag='N' "
 
     if configName != default:
@@ -991,11 +1025,11 @@ class OracleBookkeepingDB:
       else:
         return retVal
 
-    if evt != default and visible.upper().find('Y') >= 0:
+    if evt != default and visible.upper().startswith('Y'):
       tables += ' ,prodview bview'
       condition += '  and j.production=bview.production and bview.production=prod.production\
        and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (str(evt))
-    elif evt != default and visible.upper().find('N') >= 0:
+    elif evt != default and visible.upper().startswith('N'):
       condition += '  and f.eventtypeid=%s ' % (str(evt))
 
     if production != default:
@@ -1004,7 +1038,7 @@ class OracleBookkeepingDB:
     if runnb != default:
       condition += ' and j.runnumber=' + str(runnb)
 
-    if filetype != default and visible.upper().find('Y') >= 0:
+    if filetype != default and visible.upper().startswith('Y'):
       if tables.find('bview') > -1:
         condition += " and bview.filetypeid=ftypes.filetypeid "
       if type(filetype) == types.ListType:
@@ -1014,7 +1048,7 @@ class OracleBookkeepingDB:
         condition += values[:-1] + ')'
       else:
         condition += " and ftypes.name='%s' " % (str(filetype))
-    elif filetype != default and visible.upper('N') >= 0:
+    elif filetype != default and visible.upper().startswith('N'):
       if type(filetype) == types.ListType:
         values = ' and ftypes.name in ('
         for i in filetype:
@@ -1992,18 +2026,67 @@ class OracleBookkeepingDB:
   def getFileMetadata(self, lfns):
     """returns the metadata of a list of files"""
     result = {}
-    for lfn in lfns:
-      res = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData', [lfn])
-      if not res['OK']:
-        result[file] = res['Message']
+
+#    for lfnList in breakListIntoChunks( lfns, 999 ):
+#      inputlfns = ''
+#      if len(lfnList) == 1:
+#        inputlfns = "lists(%s)" % str(tuple(lfnList))[1:-2]
+#      else:
+#        inputlfns = "lists(%s)" % str(tuple(lfnList))[1:-1]
+#
+#      command = " select * from table(BOOKKEEPINGORACLEDB.getFileMetaData2(%s))" % (inputlfns)
+#
+#      retVal = self.dbR_.query(command)
+#      if not retVal['OK']:
+#        result = retVal
+#      else:
+#        for record in retVal['Value']:
+#          row = {'ADLER32':record[1],
+#                 'CreationDate':record[2],
+#                 'EventStat':record[3],
+#                 'FullStat':record[10],
+#                 'EventType':record[4],
+#                 'FileType':record[5],
+#                 'GotReplica':record[6],
+#                 'GUID':record[7],
+#                 'MD5SUM':record[8],
+#                 'FileSize':record[9],
+#                 'DQFlag':record[11],
+#                 'JobId':record[12],
+#                 'RunNumber':record[13],
+#                 'InsertTimeStamp':record[14],
+#                 'Luminosity':record[15],
+#                 'InstLuminosity':record[16]}
+#          result[record[0]] = row
+
+#    #2 type
+    for lfnList in breakListIntoChunks( lfns, 999 ):
+      inputlfns = ''
+      if len(lfnList) == 1:
+        inputlfns = "(%s)" % str(tuple(lfnList))[1:-2]
       else:
-        records = res['Value']
-        for record in records:
+        inputlfns = "(%s)" % str(tuple(lfnList))[1:-1]
+
+      command = " select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT, \
+      files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, \
+      files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid,\
+      jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity \
+      from files,filetypes,dataquality,jobs where\
+         filename in %s and \
+         jobs.jobid=files.jobid and\
+         files.filetypeid=filetypes.filetypeid and\
+         files.QUALITYID=DataQuality.qualityID " % (inputlfns)
+
+      retVal = self.dbR_.query(command)
+      if not retVal['OK']:
+        result = retVal
+      else:
+        for record in retVal['Value']:
           row = {'ADLER32':record[1],
                  'CreationDate':record[2],
                  'EventStat':record[3],
                  'FullStat':record[10],
-                 'EventTypeId':record[4],
+                 'EventType':record[4],
                  'FileType':record[5],
                  'GotReplica':record[6],
                  'GUID':record[7],
@@ -2015,7 +2098,58 @@ class OracleBookkeepingDB:
                  'InsertTimeStamp':record[14],
                  'Luminosity':record[15],
                  'InstLuminosity':record[16]}
-          result[file] = row
+          result[record[0]] = row
+
+    # 3 type
+#    for lfnList in breakListIntoChunks( lfns, 5000 ):
+#      retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData3', [], True, lfnList )
+#      if not retVal['OK']:
+#        result = retVal
+#      else:
+#        for record in retVal['Value']:
+#          row = {'ADLER32':record[1],
+#                 'CreationDate':record[2],
+#                 'EventStat':record[3],
+#                 'FullStat':record[10],
+#                 'EventType':record[4],
+#                 'FileType':record[5],
+#                 'GotReplica':record[6],
+#                 'GUID':record[7],
+#                 'MD5SUM':record[8],
+#                 'FileSize':record[9],
+#                 'DQFlag':record[11],
+#                 'JobId':record[12],
+#                 'RunNumber':record[13],
+#                 'InsertTimeStamp':record[14],
+#                 'Luminosity':record[15],
+#                 'InstLuminosity':record[16]}
+#          result[record[0]] = row
+#    4 type
+#    for lfn in lfns:
+#      res = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData', [lfn])
+#      if not res['OK']:
+#        result[lfn] = res['Message']
+#      else:
+#        records = res['Value']
+#        for record in records:
+#          row = {'ADLER32':record[1],
+#                 'CreationDate':record[2],
+#                 'EventStat':record[3],
+#                 'FullStat':record[10],
+#                 'EventType':record[4],
+#                 'FileType':record[5],
+#                 'GotReplica':record[6],
+#                 'GUID':record[7],
+#                 'MD5SUM':record[8],
+#                 'FileSize':record[9],
+#                 'DQFlag':record[11],
+#                 'JobId':record[12],
+#                 'RunNumber':record[13],
+#                 'InsertTimeStamp':record[14],
+#                 'Luminosity':record[15],
+#                 'InstLuminosity':record[16]}
+#          result[lfn] = row
+
     return S_OK(result)
 
   #############################################################################
@@ -2031,7 +2165,7 @@ class OracleBookkeepingDB:
       else:
         values = res['Value']
         for record in values:
-          row = [file, record[9], record[5], record[2], record[4], record[3], record[6]]
+          row = [lfn, record[9], record[5], record[2], record[4], record[3], record[6]]
           records += [row]
     return S_OK({'TotalRecords':totalrecords, 'ParameterNames':parametersNames, 'Records':records})
 
@@ -2121,9 +2255,9 @@ class OracleBookkeepingDB:
       if not res['OK']:
         return S_ERROR(res['Message'])
       if res['Value'] == 0:
-        result[file] = False
+        result[lfn] = False
       else:
-        result[file] = True
+        result[lfn] = True
     return S_OK(result)
 
   #############################################################################
@@ -2737,7 +2871,7 @@ and files.qualityid= dataquality.qualityid'
                startDate=None, endDate=None,
                nbofEvents=False, startRunID=None,
                endRunID=None, runnumbers=[],
-               replicaFlag='Yes', visible=default, filesize=False, tcks=[]):
+               replicaFlag=default, visible=default, filesize=False, tcks=[]):
     """returns a list of lfns"""
     condition = ''
     tables = ' files f,jobs j '
@@ -2877,10 +3011,10 @@ and files.qualityid= dataquality.qualityid'
     if replicaFlag in ['Yes', 'No']:
       condition += ' and f.gotreplica=\'' + replicaFlag + '\''
 
-    if visible.upper().find('A') < 0:
-      if visible.upper().find('Y') >= 0:
+    if not visible.upper().startswith('A'):
+      if visible.upper().startswith('Y'):
         condition += " and f.visibilityflag='Y'"
-      elif visible.upper().find('N') >= 0:
+      elif visible.upper().startswith('N'):
         condition += " and f.visibilityflag='N'"
 
     if simdesc != default:
@@ -3078,15 +3212,16 @@ and files.qualityid= dataquality.qualityid'
                       conddescription=default, processing=default,
                       evt=default, production=default,
                       filetype=default, quality=default,
-                      runnb=default, startrun=default, endrun=default, visible='Y'):
+                      runnb=default, startrun=default, endrun=default,
+                      visible=default):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    if visible.upper().find('A') < 0:
-      if visible.upper().find('Y') >= 0:
+    if not visible.upper().startswith('A'):
+      if visible.upper().startswith('Y'):
         condition += "and f.visibilityFlag='Y' "
-      elif visible.upper().find('N') >= 0:
+      elif visible.upper().startswith('N'):
         condition += "and f.visibilityFlag='N' "
 
     if configName != default and configVersion != default:
@@ -3110,11 +3245,11 @@ and files.qualityid= dataquality.qualityid'
 
     econd = ''
     tables2 = ''
-    if evt != default and visible.upper().find('Y') >= 0:
+    if evt != default and visible.upper().startswith('Y'):
       tables2 += ', prodview bview'
       econd += " and bview.production=prod.production and bview.eventtypeid='%s'" % (str(evt))
       condition += " and f.eventtypeid=%s" % (str(evt))
-    elif evt != default and visible.upper().find('N') >= 0:
+    elif evt != default and visible.upper().startswith('N'):
       condition += " and f.eventtypeid=%s" % (str(evt))
 
     if production != default:
@@ -3130,14 +3265,14 @@ and files.qualityid= dataquality.qualityid'
 
     tables += ' ,filetypes ftypes '
     fcond = ''
-    if filetype != default and visible.upper().find('Y') >= 0:
+    if filetype != default and visible.upper().startswith('Y'):
       if tables2.find('bview') < 0:
         tables2 += ', prodview bview'
       tables2 += ' ,filetypes ftypes '
       condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
       fcond += " and bview.production=prod.production and ftypes.Name='%s'" % (str(filetype))
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
-    elif filetype != default and visible.upper().find('N') >= 0:
+    elif filetype != default and visible.upper().startswith('N'):
       condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
 
     if quality != default:
@@ -3954,21 +4089,23 @@ and files.qualityid= dataquality.qualityid'
       if not retVal['OK']:
         result = retVal
       else:
-        production = retVal['Value'][0][0]
+        production = tuple([ i[0] for i in retVal['Value']])
         gLogger.debug('Production' + str(production))
-        command = "select j.production from jobs j, files f where \
+        parentprod = ()
+        for i in production:
+          command = "select j.production from jobs j, files f where \
         j.jobid=f.jobid and\
-        f.fileid=(select i.fileid from jobs j, inputfiles i where \
-        j.jobid=i.jobid and j.production=%d and ROWNUM <2)" % (int(production))
-        retVal = self.dbR_.query(command)
-        if not retVal['OK']:
-          result = retVal
-        else:
-          parentprod = retVal['Value'][0][0]
+        f.fileid in (select i.fileid from jobs j, inputfiles i where \
+        j.jobid=i.jobid and j.production = %d and ROWNUM <2)" % (int(i))
+          retVal = self.dbR_.query(command)
+          if not retVal['OK']:
+            result = retVal
+            break
+          else:
+            parentprod += tuple([ i[0] for i in retVal['Value']])
           gLogger.debug('Parent production:' + str(parentprod))
           condition = ''
           tables = 'steps s, productionscontainer prod, stepscontainer cont'
-
           if procpass != default:
             condition += " and prod.processingid in ( \
                           select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
@@ -3987,7 +4124,7 @@ and files.qualityid= dataquality.qualityid'
        s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
                      where cont.stepid=s.stepid and \
                       prod.production=cont.production and\
-                      prod.production=%d %s order by cont.step" % (tables, parentprod, condition)
+                      prod.production in %s %s order by cont.step" % (tables, str(parentprod), condition)
 
 
     else:

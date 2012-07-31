@@ -2,10 +2,13 @@ CREATE OR REPLACE package BOOKKEEPINGORACLEDB as
 
   type udt_RefCursor is ref cursor;
   --TYPE ifileslist is VARRAY(30) of varchar2(10);
+  
   TYPE ifileslist IS TABLE OF VARCHAR2(30)
     INDEX BY PLS_INTEGER;
 
-  TYPE numberarray IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
+  TYPE numberarray  IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
+  TYPE varchararray IS TABLE OF VARCHAR2(256) INDEX BY PLS_INTEGER;
+   
 procedure funny(a number);
 function  ext return udt_RefCursor;
 procedure getAvailableFileTypes(a_Cursor out udt_RefCursor );
@@ -129,6 +132,8 @@ function insertDataTakingCond(
   ) return number;
 
 procedure getFileMetaData(v_fileName varchar2, a_Cursor out udt_RefCursor);
+function getFileMetaData2(iftypes lists) return metadata_table PIPELINED;
+procedure getFileMetaData3(iftypes varchararray, a_Cursor out udt_RefCursor);
 function fileExists(v_fileName varchar2)return number;
 PROCEDURE inserteventTypes (v_Description VARCHAR2, v_EventTypeId NUMBER, v_Primary VARCHAR2);
 Procedure updateEventTypes(v_Description VARCHAR2, v_EventTypeId NUMBER, v_Primary VARCHAR2);
@@ -268,12 +273,12 @@ output BOOLEAN;
 BEGIN
 IF iftypes.COUNT = 0 and oftypes.COUNT = 0 THEN
   FOR cur in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, r.stepid as rid, r.stepname as rsname, r.ApplicationName as rappname, r.ApplicationVersion as rappver, r.OptionFiles as roptsf, r.DDDb as rdddb, r.condDb as rcondb, r.extrapackages as rextra, r.visible as rvisi, r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff
-  FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null) LOOP
+  FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null and s.usable !='Obsolete') LOOP
   pipe row(stepobj(cur.stepid,cur.stepname,cur.ApplicationName, cur.ApplicationVersion, cur.OptionFiles, cur.DDDb, cur.condDb, cur.extrapackages, cur.visible, cur.processingpass, cur.usable, cur.dqtag, cur.optionsformat,cur.rid, cur.rsname, cur.rappname, cur.rappver, cur.roptsf, cur.rdddb, cur.rcondb, cur.rextra, cur.rvisi, cur.rproc, cur.rusab,cur.rdq,cur.ropff));
   END LOOP;
 ELSE
 IF iftypes.COUNT>0 THEN
-  FOR c IN (select s.stepid, s.inputfiletypes, s.outputfiletypes from steps s  where s.inputfiletypes is not null and s.usable!= 'Oboslete')
+  FOR c IN (select s.stepid, s.inputfiletypes, s.outputfiletypes from steps s  where s.inputfiletypes is not null and s.usable!= 'Obsolete')
     LOOP
      --DBMS_OUTPUT.PUT_LINE('WHY!!? '||c.stepid);
      IF c.inputfiletypes is NOT NULL THEN
@@ -339,14 +344,14 @@ IF iftypes.COUNT>0 THEN
     IF input and output THEN
       DBMS_OUTPUT.PUT_LINE('Insert1: '||c.stepid);
       FOR cur in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, r.stepid as rid, r.stepname as rsname, r.ApplicationName as rappname, r.ApplicationVersion as rappver, r.OptionFiles as roptsf, r.DDDb as rdddb, r.condDb as rcondb, r.extrapackages as rextra, r.visible as rvisi, r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff
-        FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid) LOOP
+        FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid and s.usable!='Obsolete' ) LOOP
       pipe row(stepobj(cur.stepid,cur.stepname,cur.ApplicationName, cur.ApplicationVersion, cur.OptionFiles, cur.DDDb, cur.condDb, cur.extrapackages, cur.visible, cur.processingpass, cur.usable, cur.dqtag, cur.optionsformat,cur.rid, cur.rsname, cur.rappname, cur.rappver, cur.roptsf, cur.rdddb, cur.rcondb, cur.rextra, cur.rvisi, cur.rproc, cur.rusab,cur.rdq,cur.ropff));
       END LOOP;
     END IF;
   END IF;
  END LOOP;
 ELSE
-  FOR c IN (select s.stepid, s.inputfiletypes, s.outputfiletypes from steps s where s.outputfiletypes is not null and s.usable!= 'Oboslete')
+  FOR c IN (select s.stepid, s.inputfiletypes, s.outputfiletypes from steps s where s.outputfiletypes is not null and s.usable!= 'Obsolete')
     LOOP
      output:=FALSE;
      IF c.outputfiletypes is NOT NULL THEN
@@ -410,7 +415,7 @@ ELSE
     IF input and output THEN
       DBMS_OUTPUT.PUT_LINE('Insert2: '||c.stepid);
       FOR cur2 in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, r.stepid as rid, r.stepname as rsname, r.ApplicationName as rappname, r.ApplicationVersion as rappver, r.OptionFiles as roptsf, r.DDDb as rdddb, r.condDb as rcondb, r.extrapackages as rextra, r.visible as rvisi, r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff
-        FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid) LOOP
+        FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid and s.usable!='Obsolete') LOOP
         pipe row(stepobj(cur2.stepid,cur2.stepname,cur2.ApplicationName, cur2.ApplicationVersion, cur2.OptionFiles, cur2.DDDb, cur2.condDb, cur2.extrapackages, cur2.visible, cur2.processingpass, cur2.usable, cur2.dqtag, cur2.optionsformat,cur2.rid, cur2.rsname, cur2.rappname, cur2.rappver, cur2.roptsf, cur2.rdddb, cur2.rcondb, cur2.rextra, cur2.rvisi, cur2.rproc, cur2.rusab,cur2.rdq,cur2.ropff));
       END LOOP;
     END IF;
@@ -1203,6 +1208,44 @@ procedure getFileMetaData(
          files.filetypeid=filetypes.filetypeid and
          files.QUALITYID=DataQuality.qualityID;
   end;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function getFileMetaData2(iftypes lists) return metadata_table PIPELINED
+is 
+BEGIN
+FOR j in iftypes.FIRST .. iftypes.LAST LOOP
+  DBMS_OUTPUT.PUT_LINE('FileName: '|| iftypes(j));
+  FOR cur in (select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT,files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid, jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity from files,filetypes,dataquality,jobs where
+         filename=iftypes(j) and
+         jobs.jobid=files.jobid and
+         files.filetypeid=filetypes.filetypeid and
+         files.QUALITYID=DataQuality.qualityID) LOOP
+        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity));
+  END LOOP;
+END LOOP;
+END;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure getFileMetaData3(iftypes varchararray, a_Cursor out udt_RefCursor) 
+is
+lfnmeta metadata_table := metadata_table();
+n integer := 0; 
+BEGIN
+FOR j in iftypes.FIRST .. iftypes.LAST LOOP
+  DBMS_OUTPUT.PUT_LINE('FileName: '|| iftypes(j));
+  FOR cur in (select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT,files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid, jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity from files,filetypes,dataquality,jobs where
+         filename=iftypes(j) and
+         jobs.jobid=files.jobid and
+         files.filetypeid=filetypes.filetypeid and
+         files.QUALITYID=DataQuality.qualityID) LOOP
+ lfnmeta.extend;  
+ n:=n+1;
+ lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity);
+  END LOOP;
+END LOOP;
+open a_Cursor for select * from table(lfnmeta);
+END;
+   
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function fileExists(
     v_fileName            varchar2
