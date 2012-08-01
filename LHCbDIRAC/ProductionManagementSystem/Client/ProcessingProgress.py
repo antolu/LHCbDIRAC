@@ -469,7 +469,7 @@ class ProcessingProgress:
         summStr = "%d files, " % info['Files']['']
         if info['Events']:
           summStr += "%d events in " % info['Events']['']
-        _msgTuple = ( info['Runs'][''], info['Lumi'][''], info['Lumi']['Bad'], info['Lumi']['OK'] )
+        _msgTuple = ( len( info['Runs'][''] ), info['Lumi'][''], info['Lumi']['Bad'], info['Lumi']['OK'] )
         summStr += "%d runs, luminosity (pb-1): All=%.3f, Bad=%.3f, OK=%.3f" % _msgTuple
         gLogger.info( summStr )
     for flag in totInfo.get( 'Runs', [] ):
