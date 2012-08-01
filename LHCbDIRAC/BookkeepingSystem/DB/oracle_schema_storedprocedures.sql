@@ -168,6 +168,9 @@ procedure updateRuntimeProject(pr_stepid number, run_pr_stepid number);
 procedure removeRuntimeProject(pr_stepid number);
 procedure getDirectoryMetadata(f_name varchar2, a_Cursor out udt_RefCursor);
 function getFilesForGUID(v_guid varchar2) return varchar2;
+procedure updateDataQualityFlag(v_qualityid number, lfns varchararray);
+procedure bulkcheckfiles(lfns varchararray,  a_Cursor out udt_RefCursor); 
+procedure bulkupdateReplicaRow(v_replica varchar2, lfns varchararray);
 end;
 /
 
@@ -1665,6 +1668,41 @@ return result;
 EXCEPTION
    WHEN NO_DATA_FOUND THEN
     raise_application_error(-20088, 'The file which corresponds to GUID: '||v_guid||' does not exists in the bookkeeping database!');
+END;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure updateDataQualityFlag(v_qualityid number, lfns varchararray )
+is 
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP
+  update files set inserttimestamp=sys_extract_utc(systimestamp), qualityid= v_qualityid where filename=lfns(i);
+END LOOP;
+commit;
+END; 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkcheckfiles(lfns varchararray,  a_Cursor out udt_RefCursor) 
+is
+lfnmeta metadata_table := metadata_table();
+n integer := 0; 
+found number := 0;
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP 
+  select count(filename) into found from files where filename=lfns(i);
+  IF found = 0 THEN
+    lfnmeta.extend;  
+    n:=n+1;
+    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+  END IF;
+END LOOP;
+open a_Cursor for select filename from table(lfnmeta);
+END;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkupdateReplicaRow(v_replica varchar2, lfns varchararray)
+is 
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP
+ update files set inserttimestamp = sys_extract_utc(systimestamp),gotreplica=v_replica where filename=lfns(i);
+END LOOP;
+commit;
 END;
 
 END;

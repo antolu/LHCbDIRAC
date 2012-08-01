@@ -1000,24 +1000,14 @@ class BookkeepingManagerHandler(RequestHandler):
   @staticmethod
   def export_addFiles(lfns):
     """more info in the BookkeepingClient.py"""
-    result = {}
-    for lfn in lfns:
-      res = dataMGMT_.addReplica(lfn)
-      if not res['OK']:
-        result[lfn] = res['Message']
-    return S_OK(result)
+    return dataMGMT_.addReplica(lfns)
 
   #############################################################################
   types_removeFiles = [ListType]
   @staticmethod
   def export_removeFiles(lfns):
     """more info in the BookkeepingClient.py"""
-    result = {}
-    for lfn in lfns:
-      res = dataMGMT_.removeReplica(lfn)
-      if not res['OK']:
-        result[lfn] = res['Message']
-    return S_OK(result)
+    return dataMGMT_.removeReplica(lfns)
 
   #############################################################################
   types_getProductionSummary = [DictType]

@@ -1427,13 +1427,15 @@ class OracleBookkeepingDB:
       qid = retVal['Value']
       failed = []
       succ = []
-      for lfn in lfns:
-        retVal = self.__updateQualityFlag(lfn, qid)
-        if not retVal['OK']:
-          failed += [lfn]
-          gLogger.error(retVal['Message'])
-        else:
-          succ += [lfn]
+      retVal = self.dbR_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.updateDataQualityFlag',
+                                                parameters = [qid],
+                                                output = False,
+                                                array= lfns )
+      if not retVal['OK']:
+        failed = lfns
+        gLogger.error(retVal['Message'])
+      else:
+        succ = lfns
       values['Successful'] = succ
       values['Failed'] = failed
       result = S_OK(values)
@@ -1566,20 +1568,6 @@ class OracleBookkeepingDB:
               values['Successful'] = succ
               values['Failed'] = []
               result = S_OK(values)
-    return result
-
-  #############################################################################
-  def __updateQualityFlag(self, lfn, qid):
-    """changes the data quality flag of a given LFN"""
-    result = S_ERROR()
-    utctime = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    command = "update files set inserttimestamp=TO_TIMESTAMP('%s', 'YYYY-MM-DD HH24:MI:SS'), \
-    qualityid=%d where filename='%s'" % (str(utctime), qid, lfn)
-    retVal = self.dbW_.query(command)
-    if not retVal['OK']:
-      result = retVal
-    else:
-      result = S_OK('Quality flag has been updated!')
     return result
 
   #############################################################################
@@ -2007,19 +1995,32 @@ class OracleBookkeepingDB:
 
 
   #############################################################################
-  def removeReplica(self, fileName):
+  def removeReplica(self, fileNames):
     """removes the replica flag of a file"""
     result = S_ERROR()
-    retVal = self.checkfile(fileName)
-    if retVal['OK']:
-      fileID = long(retVal['Value'][0][0])
-      res = self.updateReplicaRow(fileID, 'No')
-      if res['OK']:
-        result = S_OK("Replica has ben removed!!!")
-      else:
-        result = res
+    retVal = self.dbR_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.bulkcheckfiles',
+                                                parameters = [],
+                                                output = True,
+                                                array= fileNames )
+    failed = {}
+    if not retVal['OK']:
+      result = retVal
     else:
-      result = S_ERROR('The file ' + fileName + 'not exist in the BKK database!!!')
+      for i in retVal['Value']:
+        failed[i[0]] = 'The file %s does not exist in the BKK database!!!' % (i[0])
+        fileNames.remove(i[0])
+      if len(fileNames) > 0:
+        retVal = self.dbW_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.bulkupdateReplicaRow',
+                                                  parameters = ['No'],
+                                                  output = False,
+                                                  array= fileNames)
+        if not retVal['OK']:
+          result = retVal
+        elif len(failed) > 0:
+          result = S_OK(failed)
+        else:
+          result = S_OK("Replica has ben removed!!!")
+
     return result
 
   #############################################################################
@@ -2261,19 +2262,32 @@ class OracleBookkeepingDB:
     return S_OK(result)
 
   #############################################################################
-  def addReplica(self, fileName):
+  def addReplica(self, fileNames):
     """adds the replica flag to a file"""
     result = S_ERROR()
-    retVal = self.checkfile(fileName)
-    if retVal['OK']:
-      fileID = long(retVal['Value'][0][0])
-      res = self.updateReplicaRow(fileID, 'Yes')
-      if res['OK']:
-        result = S_OK("Replica has ben added!!!")
-      else:
-        result = res
+    retVal = self.dbR_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.bulkcheckfiles',
+                                                parameters = [],
+                                                output = True,
+                                                array= fileNames )
+    failed = {}
+    if not retVal['OK']:
+      result = retVal
     else:
-      result = S_ERROR('The file ' + fileName + 'not exist in the BKK database!!!')
+      for i in retVal['Value']:
+        failed[i[0]] = 'The file %s does not exist in the BKK database!!!' % (i[0])
+        fileNames.remove(i[0])
+      if len(fileNames) > 0:
+        retVal = self.dbW_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.bulkupdateReplicaRow',
+                                                  parameters = ['Yes'],
+                                                  output = False,
+                                                  array= fileNames)
+        if not retVal['OK']:
+          result = retVal
+        elif len(failed) > 0:
+          result = S_OK(failed)
+        else:
+          result = S_OK("Replica has ben added!!!")
+
     return result
 
 
