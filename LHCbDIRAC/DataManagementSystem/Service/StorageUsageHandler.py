@@ -9,9 +9,6 @@
     .. module: StorageUsageHandler
     :synopsis: Implementation of the Storage Usage service in the DISET framework.
 """
-
-__RCSID__ = "$Id$"
-
 ## imports
 from types import DictType, StringType, TupleType, ListType, IntType, LongType
 ## from DIRAC
@@ -21,7 +18,6 @@ from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 __RCSID__ = "$Id$"
-
 
 # This is a global instance of the DataIntegrityDB class
 gStorageUsageDB = False
@@ -92,7 +88,6 @@ class StorageUsageHandler( RequestHandler ):
     for dirPath in result[ 'Value' ]:
       dl.append( ( dirPath, result[ 'Value' ][ dirPath ][ 'Size' ], result[ 'Value' ][ dirPath ][ 'Files' ] ) )
     return S_OK( dl )
-
 
   types_getStorageDirectoryData = []
   @staticmethod

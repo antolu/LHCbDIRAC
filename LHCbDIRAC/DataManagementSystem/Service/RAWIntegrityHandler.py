@@ -33,7 +33,8 @@ class RAWIntegrityHandler( RequestHandler ):
   """
 
   types_addFile = [ StringType, StringType, IntType, StringType, StringType, StringType ]
-  def export_addFile( self, lfn, pfn, size, se, guid, checksum ):
+  @staticmethod
+  def export_addFile( lfn, pfn, size, se, guid, checksum ):
     """ Add a file to the RAW integrity DB """
     try:
       gLogger.info( "RAWIntegrityHandler.addFile: Attempting to add %s to the gRAWIntegrityDB." % lfn )
@@ -45,7 +46,8 @@ class RAWIntegrityHandler( RequestHandler ):
       return S_ERROR( errStr )
 
   types_getGlobalStatistics = []
-  def export_getGlobalStatistics( self ):
+  @staticmethod
+  def export_getGlobalStatistics():
     """ Get global file statistics """
     try:
       gLogger.info( "Attempting to get global statistics." )
@@ -61,7 +63,8 @@ class RAWIntegrityHandler( RequestHandler ):
       return S_ERROR( errStr )
 
   types_getFileSelections = []
-  def export_getFileSelections( self ):
+  @staticmethod
+  def export_getFileSelections():
     """ Get the possible selections available
     """
     try:
@@ -78,7 +81,8 @@ class RAWIntegrityHandler( RequestHandler ):
       return S_ERROR( errStr )
 
   types_getFilesSummaryWeb = [ DictType, ListType, IntType, IntType ]
-  def export_getFilesSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
+  @staticmethod
+  def export_getFilesSummaryWeb( selectDict, sortList, startItem, maxItems ):
     """ Get the file information according to conventions """
     resultDict = {}
     startDate = selectDict.get( 'FromDate', None )

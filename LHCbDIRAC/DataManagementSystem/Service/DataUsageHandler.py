@@ -33,27 +33,32 @@ class DataUsageHandler( RequestHandler ):
   .. class:: DataUsageHandler
   """
   types_sendDataUsageReport = [ ( StringType, DictType, StringType ) ]
-  def export_sendDataUsageReport( self, site , directoryDict, status ='New' ):
+  @staticmethod
+  def export_sendDataUsageReport( site , directoryDict, status ='New' ):
     """ export of sendDataUsageReport """
     return gStorageUsageDB.sendDataUsageReport( site, directoryDict, status )
 
   types_getDataUsageSummary = [ ( StringType, StringType, StringType ) ]
-  def export_getDataUsageSummary( self, startTime, endTime, status = 'New' ):
+  @staticmethod
+  def export_getDataUsageSummary( startTime, endTime, status = 'New' ):
     """ export of getDataUsageSummary """
     return gStorageUsageDB.getDataUsageSummary( startTime, endTime, status )
 
   types_updatePopEntryStatus = [ ( ListType, StringType ) ]
-  def export_updatePopEntryStatus( self, idList, newStatus ):
+  @staticmethod
+  def export_updatePopEntryStatus( idList, newStatus ):
     """ export of updatePopEntryStatus """
     return gStorageUsageDB.updatePopEntryStatus( idList, newStatus )
 
   types_insertToDirMetadata = [ ( DictType ) ]
-  def export_insertToDirMetadata( self, directoryDict ):
+  @staticmethod
+  def export_insertToDirMetadata( directoryDict ):
     """ export of insertToDirMetadata """
     return gStorageUsageDB.insertToDirMetadata( directoryDict )
 
   types_getDirMetadata = [ ( ListType ) ]
-  def export_getDirMetadata( self, directoryList ):
+  @staticmethod
+  def export_getDirMetadata( directoryList ):
     """ export of getDirMetadata """
     return gStorageUsageDB.getDirMetadata( directoryList )
 
