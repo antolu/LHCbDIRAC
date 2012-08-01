@@ -1,36 +1,59 @@
-"""   The Popularity Agent creates reports about per LFC directory data usage, based on the StorageUsageDB/Popularity table
-      Then it creates an accounting record for each directory, adding all the relevant directory metadata, obtained from the 
-      StorageUsageDB/DirMetadata table
-      The accounting records are stored in the AccountingDB and then displayed via the web portal.
+########################################################################
+# $HeadURL $
+# File: PopularityAgent.py
+########################################################################
+""" :mod: PopularityAgent
+    =====================
+ 
+    .. module: PopularityAgent
+    :synopsis: The Popularity Agent creates reports about per LFC directory data usage.
+
+    The Popularity Agent creates reports about per LFC directory data usage, based on the 
+    StorageUsageDB/Popularity table. Then it creates an accounting record for each directory, 
+    adding all the relevant directory metadata, obtained from the StorageUsageDB/DirMetadata table.
+    The accounting records are stored in the AccountingDB and then displayed via the web portal.
 """
+# imports
+import os
+from datetime import datetime, timedelta
+## from DIRAC
+from DIRAC  import S_OK, S_ERROR
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.Utilities import Time
+from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
+from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
+from DIRAC.Core.DISET.RPCClient import RPCClient
+## from LHCbDIRAC
+from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
+from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities.List                           import sortList, intListToString
-from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
-from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-#from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient            import DataUsageClient
-import os, sys, time
-from datetime import datetime, timedelta
-from DIRAC  import S_OK, S_ERROR, gLogger
-
-
+AGENT_NAME = "DataManagement/PopularityAgent"
 
 class PopularityAgent( AgentModule ):
+  """
+  .. class:: PopularityAgent
+  
+  """
+  ## DataUsageClient
+  __dataUsageClient = None
+  ## StorageUsageDB instance or DMS/DataUsage RPS client 
+  __stDB = None
+  ## BKK Client
+  __bkClient = None
+  ## work directory
+  __workDirectory = None
+  ## counter for records to be sent to the accouting
+  numPopRows = None
 
   def initialize( self ):
-    """Sets defaults
-    """
+    """ agent initialisation """
     self.am_setOption( 'PollingTime', 43200 )
     if self.am_getOption( 'DirectDB', False ):
-      from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
       self.__stDB = StorageUsageDB()
       #self.bkClient = BookkeepingClient()#the necessary method is still not available in Bookk. client
     else:
-      from DIRAC.Core.DISET.RPCClient import RPCClient
       self.__stDB = RPCClient( 'DataManagement/DataUsage' )
       timeout = 600
       self.__bkClient = RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
@@ -52,24 +75,24 @@ class PopularityAgent( AgentModule ):
     startTimeQuery = startTime.isoformat()
     # query all traces in popularity in the time rage startTime,endTime and status =new
     # the condition to get th etraces is the AND of the time range and the status new 
-    gLogger.info("Querying Pop db to retrieve entries in time range %s - %s " %(  startTimeQuery, endTimeQuery) )
+    self.log.info("Querying Pop db to retrieve entries in time range %s - %s " % ( startTimeQuery, endTimeQuery ) )
     status = 'New'
     res = self.__dataUsageClient.getDataUsageSummary( startTimeQuery, endTimeQuery, status )
     if not res['OK']:
-      gLogger.error("Error querying Popularity table.. %s" % res['Message'] )
+      self.log.error("Error querying Popularity table.. %s" % res['Message'] )
       return S_ERROR( res['Message'] )
     val = res[ 'Value' ]
-    gLogger.info("Retrieved %d entries from Pop table" % len( val ))
+    self.log.info("Retrieved %d entries from Pop table" % len( val ))
   
     # Build popularity report, and store the Ids in a  list:
-    IdList = []  
+    idList = []  
     traceDict = {}
     for row in val:
-      id, dirLfn, site, count = row
-      if id not in IdList:
-        IdList.append( id )
+      rowId, dirLfn, site, count = row
+      if rowId not in idList:
+        idList.append( rowId )
       else:
-        gLogger.error("Same Id found twice! %d " % id )
+        self.log.error("Same Id found twice! %d " % rowId )
         continue
       if dirLfn not in traceDict.keys():
         traceDict[ dirLfn ] = {}
@@ -78,26 +101,27 @@ class PopularityAgent( AgentModule ):
       traceDict[ dirLfn ][ site ] += count
     now = Time.dateTime()
     self.numPopRows = 0 # keep a counter of the records to send to accounting data-store
-    for dirLfn in traceDict.keys():
-      #did, configName, configVersion, conditions, processingPass, eventType, fileType, production = ('na', 'na', 'na', 'na', 'na', 'na', 'na', 'na' )
+    for dirLfn in traceDict:
+      #did = configName = configVersion = conditions = processingPass = eventType = fileType = production = "na"
       # retrieve the directory meta-data from the DirMetadata table
-      gLogger.info( "Processing dir %s " % dirLfn )
+      self.log.info( "Processing dir %s " % dirLfn )
       dirList = [ dirLfn ]
-      res = self.__dataUsageClient.getDirMetadata( dirList ) # this could be done in a bulk query for a list of directories... TBF
+      # this could be done in a bulk query for a list of directories... TBF
+      res = self.__dataUsageClient.getDirMetadata( dirList ) 
       if not res[ 'OK' ]:
-        gLogger.error("Error retrieving directory meta-data %s " % res['Message'] )
+        self.log.error("Error retrieving directory meta-data %s " % res['Message'] )
         continue
       if not res['Value']:
-        gLogger.warn( "No result returned for directory %s from the getDirMetadata method" % dirList )
-        gLogger.info( " --> Query Bookkeeping to retrieve meta-data for %s directory and then cache them in the DirMetadata table.." % dirList ) 
+        self.log.warn( "No result returned for directory %s from the getDirMetadata method" % dirList )
+        self.log.info( "Query Bookkeeping to retrieve '%s' folder metadata and store them in the cache" % dirList ) 
         res = self.__bkClient.getDirectoryMetadata( dirLfn )
         if not res[ 'OK' ]:
-          gLogger.error( "Failed to query Bookkeeping %s" %res[ 'Message' ] )
+          self.log.error( "Failed to query Bookkeeping %s" %res[ 'Message' ] )
           continue
-        gLogger.info( "Successfully queried Bookkeeping, result: %s " % res )
+        self.log.info( "Successfully queried Bookkeeping, result: %s " % res )
         if not res['Value']:
-          gLogger.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
-          configName, configVersion, conditions, processingPass, eventType, fileType, production = ( 'na', 'na', 'na', 'na', 'na', 'na', 'na' )
+          self.log.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
+          configName = configVersion = conditions = processingPass = eventType = fileType = production = "na" 
         else:
           metadata = res['Value'][ 0 ]
           configName = metadata[ 'ConfigName' ]
@@ -108,24 +132,24 @@ class PopularityAgent( AgentModule ):
           fileType = metadata[ 'FileType' ]
           production = metadata[ 'Production' ]
         
-          gLogger.info( "Cache this entry in DirMetadata table.." )
+          self.log.info( "Cache this entry in DirMetadata table.." )
           dirMetadataDict = {}
           dirMetadataDict[ dirLfn ] = metadata
           res = self.__dataUsageClient.insertToDirMetadata( dirMetadataDict )
           if not res[ 'OK' ]:
-            gLogger.error( "Failed to insert metadata in DirMetadata table! %s " % res[ 'Message' ] )
+            self.log.error( "Failed to insert metadata in DirMetadata table! %s " % res[ 'Message' ] )
           else:
-            gLogger.info( "Successfully inserted metadata for directory %s in DirMetadata table " % dirMetadataDict )
-            gLogger.verbose( "result: %s " % res )
+            self.log.info( "Successfully inserted metadata for directory %s in DirMetadata table " % dirMetadataDict )
+            self.log.verbose( "result: %s " % res )
   
       else:
-        gLogger.info( "Directory %s was cached in DirMetadata table" % dirLfn )     
+        self.log.info( "Directory %s was cached in DirMetadata table" % dirLfn )     
         for row in res['Value']:
           did, configName, configVersion, conditions, processingPass, eventType, fileType, production = row
         
-      for site in traceDict[ dirLfn ].keys():
+      for site in traceDict[ dirLfn ]:
         usage = traceDict[ dirLfn ][ site ]
-        gLogger.info("%s %s %d" %( dirLfn, site, usage ))
+        self.log.info("%s %s %d" %( dirLfn, site, usage ))
         # compute the normalized usage, dividing by the number of files in the directory:
         normUsage = usage # tp be done!
         # Build record for the accounting
@@ -144,26 +168,26 @@ class PopularityAgent( AgentModule ):
         popRecord.setValueByKey( "NormalizedUsage", normUsage )
         res = gDataStoreClient.addRegister( popRecord )
         if not res[ 'OK']:
-          gLogger.error( "ERROR: addRegister returned: %s" % res['Message'] )
+          self.log.error( "ERROR: addRegister returned: %s" % res['Message'] )
           continue
         self.numPopRows += 1
 
-    gLogger.info(" %d records to be sent to Popularity accounting" %self.numPopRows )        
+    self.log.info(" %d records to be sent to Popularity accounting" %self.numPopRows )        
     res = gDataStoreClient.commit()
     if not res[ 'OK' ]:
       self.log.notice( "ERROR: committing Popularity records: %s " % res )
       return S_ERROR( res )
     else:
-      gLogger.info( "%s records for Popularity type successfully committed" %self.numPopRows )
+      self.log.info( "%s records for Popularity type successfully committed" %self.numPopRows )
       # then set the status to Used
-      gLogger.info("Set the status to Used for %d entries" % len( IdList ) )
-      res = self.__dataUsageClient.updatePopEntryStatus( IdList, 'Used' )
+      self.log.info("Set the status to Used for %d entries" % len( idList ) )
+      res = self.__dataUsageClient.updatePopEntryStatus( idList, 'Used' )
 
       if not res['OK']:
-        gLogger.error("Error to update status in  Popularity table.. %s" % res['Message'] )
+        self.log.error("Error to update status in  Popularity table.. %s" % res['Message'] )
         return S_ERROR( res['Message'] )
       else:
-        gLogger.info("Status updated to Used correctly for %s entries " % res[ 'Value' ] )
+        self.log.info("Status updated to Used correctly for %s entries " % res[ 'Value' ] )
   
     return S_OK()
  

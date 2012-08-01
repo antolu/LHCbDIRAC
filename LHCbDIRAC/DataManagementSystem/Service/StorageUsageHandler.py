@@ -1,57 +1,72 @@
-###################################################################################################
-# $HeadURL$
-###################################################################################################
+########################################################################
+# $HeadURL $
+# File: StorageUsageHandler.py
+########################################################################
 
-""" StorageUsageHandler is the implementation of the Storage Usage service in the DISET framework.
+""" :mod: StorageUsageHandler 
+    =========================
+ 
+    .. module: StorageUsageHandler
+    :synopsis: Implementation of the Storage Usage service in the DISET framework.
 """
+
 __RCSID__ = "$Id$"
 
-##
-from types import *
-
+## imports
+from types import DictType, StringType, TupleType, ListType, IntType, LongType
 ## from DIRAC
-from DIRAC import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from DIRAC.Resources.Storage.StorageElement import StorageElement
-
 ## from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
+__RCSID__ = "$Id$"
+
+
 # This is a global instance of the DataIntegrityDB class
-storageUsageDB = False
+gStorageUsageDB = False
 
 def initializeStorageUsageHandler( serviceInfo ):
-
-  global storageUsageDB
-  storageUsageDB = StorageUsageDB()
+  """ handlre initialisation """
+  global gStorageUsageDB
+  gStorageUsageDB = StorageUsageDB()
   return S_OK()
 
 class StorageUsageHandler( RequestHandler ):
+  """
+  .. class:: StorageUsageHandler
+  """
 
-  types_publishDirectories = [DictType]
-  def export_publishDirectories( self, directoryDict ):
-    return storageUsageDB.publishDirectories( directoryDict )
+  types_publishDirectories = [ DictType ]
+  @staticmethod
+  def export_publishDirectories( directoryDict ):
+    """ export of publishDirectories """
+    return gStorageUsageDB.publishDirectories( directoryDict )
 
   types_removeDirectory = [ ( StringType, ListType, TupleType ) ]
-  def export_removeDirectory( self, dirPaths ):
+  @staticmethod
+  def export_removeDirectory( dirPaths ):
+    """ export of removeDirectory """
     if type( dirPaths ) == StringType:
       dirPaths = ( dirPaths, )
     for dirPath in dirPaths:
-      result = storageUsageDB.removeDirectory( dirPath )
+      result = gStorageUsageDB.removeDirectory( dirPath )
       if not result[ 'OK' ]:
         gLogger.error( "Could not delete directory", "%s : %s" % ( dirPath, result[ 'Message' ] ) )
         return result
     return S_OK()
 
   types_removeDirFromSe_Usage = []
-  def export_removeDirFromSe_Usage( self, dirPaths ):
+  @staticmethod
+  def export_removeDirFromSe_Usage( dirPaths ):
     """ Exports the method to remove entries from the se_Usage table """
-    return storageUsageDB.removeDirFromSe_Usage( dirPaths )
+    return gStorageUsageDB.removeDirFromSe_Usage( dirPaths )
 
   types_removeDirFromProblematicDirs = []
-  def export_removeDirFromProblematicDirs( self, dirPaths ):
+  @staticmethod
+  def export_removeDirFromProblematicDirs( dirPaths ):
     """ Exports the method to remove entries from the problematicDirs table """
-    return storageUsageDB.removeDirFromProblematicDirs( dirPaths )
+    return gStorageUsageDB.removeDirFromProblematicDirs( dirPaths )
 
   ##################################################################
   #
@@ -59,16 +74,18 @@ class StorageUsageHandler( RequestHandler ):
   #
 
   types_getStorageSummary = []
-  def export_getStorageSummary( self, directory = '', filetype = '', production = '', sites = [] ):
-    """ Retieve a summary for the storage usage
-    """
-    return storageUsageDB.getStorageSummary( directory, filetype, production, sites )
+  @staticmethod
+  def export_getStorageSummary( directory = '', filetype = '', production = '', sites = None ):
+    """ Retieve a summary for the storage usage """
+    sites = sites if sites else []
+    return gStorageUsageDB.getStorageSummary( directory, filetype, production, sites )
 
   types_getStorageDirectorySummary = []
-  def export_getStorageDirectorySummary( self, directory = '', filetype = '', production = '', sites = [] ):
-    """ Retieve a directory summary for the storage usage
-    """
-    result = storageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
+  @staticmethod
+  def export_getStorageDirectorySummary( directory = '', filetype = '', production = '', sites = None ):
+    """ Retieve a directory summary for the storage usage """
+    sites = sites if sites else []
+    result = gStorageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
     if not result[ 'OK' ]:
       return result
     dl = []
@@ -78,26 +95,26 @@ class StorageUsageHandler( RequestHandler ):
 
 
   types_getStorageDirectoryData = []
-  def export_getStorageDirectoryData( self, directory = '', filetype = '', production = '', sites = [] ):
-    """ Retrieve a directory summary for the storage usage
-    """
-    return storageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
+  @staticmethod
+  def export_getStorageDirectoryData( directory = '', filetype = '', production = '', sites = None ):
+    """ Retrieve a directory summary for the storage usage """
+    sites = sites if sites else []
+    return gStorageUsageDB.getStorageDirectorySummary( directory, filetype, production, sites )
 
 
   types_getStorageDirectories = []
-  def export_getStorageDirectories( self, directory = '', filetype = '', production = '', sites = [] ):
-    """ Retrieve the directories for the supplied selection
-    """
-    return storageUsageDB.getStorageDirectories( directory, filetype, production, sites )
+  @staticmethod
+  def export_getStorageDirectories( directory = '', filetype = '', production = '', sites = None ):
+    """ Retrieve the directories for the supplied selection """
+    sites = sites if sites else []
+    return gStorageUsageDB.getStorageDirectories( directory, filetype, production, sites )
 
   types_getStorageDirectorySummaryWeb = []
-  def export_getStorageDirectorySummaryWeb( self, selectDict, sortList, startItem, maxItems ):
-    """ Get the summary of the directory storage summary
-    """
+  @staticmethod
+  def export_getStorageDirectorySummaryWeb( selectDict, sortList, startItem, maxItems ):
+    """ Get the summary of the directory storage summary """
     resultDict = {}
-
     # Sorting instructions. Only one for the moment.
-
     directory = ''
     if "Directory" in selectDict:
       directory = selectDict['Directory']
@@ -111,9 +128,10 @@ class StorageUsageHandler( RequestHandler ):
     if "SEs" in selectDict:
       ses = selectDict['SEs']
 
-    res = storageUsageDB.getStorageDirectorySummary( directory, filetype, production, ses )
+    res = gStorageUsageDB.getStorageDirectorySummary( directory, filetype, production, ses )
     if not res['OK']:
-      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain directory summary.", res['Message'] )
+      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain directory summary.", 
+                     res['Message'] )
       return res
     dirList = res['Value']
     dirList = [ ( path, dirList[ path ][ 'Size' ], dirList[ path ][ 'Files' ] ) for path in dirList ]
@@ -130,9 +148,10 @@ class StorageUsageHandler( RequestHandler ):
       lastDir = nDirs
 
     # prepare the extras count
-    res = storageUsageDB.getStorageSummary( directory, filetype, production, ses )
+    res = gStorageUsageDB.getStorageSummary( directory, filetype, production, ses )
     if not res['OK']:
-      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain usage summary.", res['Message'] )
+      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain usage summary.", 
+                     res['Message'] )
       return res
     resultDict['Extras'] = res['Value']
 
@@ -142,166 +161,130 @@ class StorageUsageHandler( RequestHandler ):
     return S_OK( resultDict )
 
   types_getStorageElementSelection = []
-  def export_getStorageElementSelection( self ):
-    """ Retrieve the possible selections
-    """
-    return storageUsageDB.getStorageElementSelection()
+  @staticmethod
+  def export_getStorageElementSelection():
+    """ Retrieve the possible selections """
+    return gStorageUsageDB.getStorageElementSelection()
 
   types_getUserStorageUsage = []
-  def export_getUserStorageUsage( self, userName = False ):
+  @staticmethod
+  def export_getUserStorageUsage( userName = False ):
     """ Retrieve a summary of the user usage
     """
-    return storageUsageDB.getUserStorageUsage( userName )
+    return gStorageUsageDB.getUserStorageUsage( userName )
 
   types_getUserSummaryPerSE = []
-  def export_getUserSummaryPerSE( self, userName = False ):
+  @staticmethod
+  def export_getUserSummaryPerSE( userName = False ):
     """ Retrieve a summary of the user usage per SE
     """
-    return storageUsageDB.getUserSummaryPerSE( userName )
+    return gStorageUsageDB.getUserSummaryPerSE( userName )
 
   types_getDirectorySummaryPerSE = []
-  def export_getDirectorySummaryPerSE( self, directory ):
+  @staticmethod
+  def export_getDirectorySummaryPerSE( directory ):
     """Retrieve a summary (total files and total size) for a given directory, grouped by storage element """
-    return storageUsageDB.getDirectorySummaryPerSE( directory )
+    return gStorageUsageDB.getDirectorySummaryPerSE( directory )
 
   types_getRunSummaryPerSE = []
-  def export_getRunSummaryPerSE( self, run ):
+  @staticmethod
+  def export_getRunSummaryPerSE( run ):
     """Retrieve a summary (total files and total size) for a given run, grouped by storage element """
-    return storageUsageDB.getRunSummaryPerSE( run )
+    return gStorageUsageDB.getRunSummaryPerSE( run )
 
   types_getIDs = []
-  def export_getIDs( self, dirList ):
-    """ Check if the directories exist in the su_Directory table and if yes returns the IDs
-    """
-    return storageUsageDB.getIDs( dirList )
+  @staticmethod
+  def export_getIDs( dirList ):
+    """ Check if the directories exist in the su_Directory table and if yes returns the IDs """
+    return gStorageUsageDB.getIDs( dirList )
 
   types_getAllReplicasInFC = []
-  def export_getAllReplicasInFC( self, path ):
+  @staticmethod
+  def export_getAllReplicasInFC( path ):
     """ Export the DB method to query the su_seUsage table to get all the entries relative to a given path registered
     in the FC. Returns for every replica the SE, the update, the files and the size  """
-    return storageUsageDB.getAllReplicasInFC( path )
+    return gStorageUsageDB.getAllReplicasInFC( path )
 
   ####
   # Catalog
   ####
 
   types_getSummary = [ StringType ]
-  def export_getSummary( self, path, fileType = False, production = False ):
-    return storageUsageDB.getSummary( path, fileType, production )
+  @staticmethod
+  def export_getSummary( path, fileType = False, production = False ):
+    """ export of getSummary """
+    return gStorageUsageDB.getSummary( path, fileType, production )
 
   types_getUserSummary = []
-  def export_getUserSummary( self, userName = False ):
-    return storageUsageDB.getUserSummary( userName )
+  @staticmethod
+  def export_getUserSummary( userName = False ):
+    """ export of getUserSummary """
+    return gStorageUsageDB.getUserSummary( userName )
 
   ####
   # Purge
   ####
 
   types_purgeOutdatedEntries = [ StringType, ( IntType, LongType ) ]
-  def export_purgeOutdatedEntries( self, rootDir, outdatedSeconds, preserveDirsList = [] ):
-    """ Purge entries that haven't been updated in the last outdated seconds
-    """
-    return storageUsageDB.purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList )
+  @staticmethod
+  def export_purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList = None ):
+    """ Purge entries that haven't been updated in the last outdated seconds """
+    preserveDirsList = preserveDirsList if preserveDirsList else []
+    return gStorageUsageDB.purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList )
 
   ###
   # methods to deal with problematicDirs directory: problematicDirs
   ###
   types_publishToProblematicDirs = []
-  def export_publishToProblematicDirs( self, directoryDict ):
+  @staticmethod
+  def export_publishToProblematicDirs( directoryDict ):
     """ Export the publishToProblematicDirs DB method, which inserts/updates row into the  problematicDirs """
-    return storageUsageDB.publishToProblematicDirs( directoryDict )
+    return gStorageUsageDB.publishToProblematicDirs( directoryDict )
 
   types_getProblematicDirsSummary = []
-  def export_getProblematicDirsSummary( self, site, problem = False ):
+  @staticmethod
+  def export_getProblematicDirsSummary( site, problem = False ):
     """ Exports the getProblematicDirsSummary method: returns a list of directories from the 
       problematicDirs table, that have some inconsistency between the SE dumps and the LFC
     """
-    return storageUsageDB.getProblematicDirsSummary( site, problem )
+    return gStorageUsageDB.getProblematicDirsSummary( site, problem )
 
   types_removeAllFromProblematicDirs = []
-  def export_removeAllFromProblematicDirs( self, site = False ):
-    """ Exports the removeAllFromProblematicDirs method: delete all entries from problematicDirs table for a give site (optional argument) 
-    """
-    return storageUsageDB.removeAllFromProblematicDirs( site )
-
-
-
+  @staticmethod
+  def export_removeAllFromProblematicDirs( site = False ):
+    """ Exports the removeAllFromProblematicDirs method: delete all entries 
+    from problematicDirs table for a give site (optional argument) """
+    return gStorageUsageDB.removeAllFromProblematicDirs( site )
 
   ###
   # methods to deal with se_Usage table
   ###
   types_publishToSEReplicas = []
-  def export_publishToSEReplicas( self, directoryDict ):
+  @staticmethod
+  def export_publishToSEReplicas( directoryDict ):
     """ Export the publishToSEReplicas DB method, which inserts/updates replicas on the SE to the se_Usage table """
-    return storageUsageDB.publishToSEReplicas( directoryDict )
+    return gStorageUsageDB.publishToSEReplicas( directoryDict )
 
   ###
   # methods to deal with se_STSummary table
   ###
   types_publishTose_STSummary = []
-  def export_publishTose_STSummary( self, site, spaceToken, totalSize, totalFiles ):
+  @staticmethod
+  def export_publishTose_STSummary( site, spaceToken, totalSize, totalFiles ):
     """ Export the publishTose_STSummary DB method, which inserts/updates the reports of total 
         files and total size from the storage dumps to the se_STSummary table """
-    return storageUsageDB.publishTose_STSummary( site, spaceToken, totalSize, totalFiles )
+    return gStorageUsageDB.publishTose_STSummary( site, spaceToken, totalSize, totalFiles )
  
   types_getSTSummary = []
-  def export_getSTSummary( self, site, spaceToken = False ):
+  @staticmethod 
+  def export_getSTSummary( site, spaceToken = False ):
     """ Exports getSTSummary method: returns a summary of the used space for the given
         site, based on the storage dumps provided by sites """
-    return storageUsageDB.getSTSummary( site, spaceToken )
+    return gStorageUsageDB.getSTSummary( site, spaceToken )
 
   types_removeSTSummary = []
-  def export_removeSTSummary( self, site, spaceToken = False ):
+  @staticmethod 
+  def export_removeSTSummary( site, spaceToken = False ):
     """ Exports removeSTSummary method: removes from the se_STSummary table all entries relative
         to the given site and (optionally ) space token """
-    return storageUsageDB.removeSTSummary( site, spaceToken )
-  
-#  ####
-#  # Tier1 SE status for web
-#  ####
-#  types_getTier1SEStatusWeb = [ DictType, ListType, IntType, IntType ]
-#  def export_getTier1SEStatusWeb( self, selectDict = {}, sortList = [ "SE", "DESC" ], startItem = 0, maxItems = 56 ):
-#    """get Tier1 SE status
-#
-#    :warning:
-#    Always returning information about all T1 SEs but could be easly modified to see only few of them.
-#
-#    :todo:
-#    Read space tokens quota from DIRAC config.
-#
-#    :param self: self reference
-#    :param dict SelectionDict: not used, required by the web interface
-#    :param list SortList: as above
-#    :param int StartItem: as above
-#    :param MaxItems: as above
-#    """
-#    res = gConfig.getOptionsDict( "/Resources/StorageElementGroups" )
-#    if not res["OK"]:
-#      return S_ERROR( res["Message"] )
-#    tier1SEs = list()
-#    for seStr in [ seStr for seGroup, seStr in res["Value"].items() if seGroup.startswith( "Tier1" ) ]:
-#      tier1SEs += [ se.strip() for se in seStr.split( "," ) if not se.endswith( "-disk" ) ]
-#    SEs = { "ParameterNames" : [ "SE", "ReadAccess", "WriteAccess", "Used", "Quota", "Free" ],
-#            "Records" : [],
-#            "TotalRecords" : 0,
-#            "Extras" : "" }
-#    for seName in sorted( tier1SEs ):
-#      storageElement = StorageElement( seName )
-#      if not storageElement.valid:
-#        gLogger.error( "invalid StorageElement '" + seName + "' reason: " + storageElement.errorReason )
-#      else:
-#        seStatus = storageElement.getStatus()
-#        if not seStatus["OK"]:
-#          return S_ERROR( seStatus["Message"] )
-#        seStatus = seStatus["Value"]
-#        seFree = seStatus["DiskCacheTB"] * 100.0 / seStatus["TotalCapacityTB"]
-#
-#        SEs["Records"].append( [ seName,
-#                                 "Active" if seStatus["Read"] else "InActive",
-#                                 "Active" if seStatus["Write"] else "InActive",
-#                                 "%4.2f" % seStatus["DiskCacheTB"],
-#                                 "%4.2f" % seStatus["TotalCapacityTB"],
-#                                 "%4.2f" % seFree ] )
-#        SEs["TotalRecords"] += 1
-#    return S_OK( SEs )
-
+    return gStorageUsageDB.removeSTSummary( site, spaceToken )
