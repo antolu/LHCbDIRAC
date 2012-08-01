@@ -20,17 +20,19 @@ if __name__ == "__main__":
   start = False
   force = False
   invisible = False
+  lfcCheck = True
 
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
+  Script.registerSwitch( "", "NoLFCCheck", "   Suppress the check in LFC for removal transformations" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors = True )
+  Script.parseCommandLine( ignoreErrors=True )
 
   plugin = pluginScript.getOption( 'Plugin' )
   prods = pluginScript.getOption( 'Productions' )
@@ -54,6 +56,8 @@ if __name__ == "__main__":
       force = True
     elif opt == "setinvisible":
       invisible = True
+    elif opt == "nolfccheck":
+      lfcCheck = False
 
   if not plugin:
     print "ERROR: No plugin supplied..."
@@ -79,7 +83,7 @@ if __name__ == "__main__":
   visible = True
   if plugin == "DestroyDataset" or prods:
     visible = False
-  bkQuery = pluginScript.getBKQuery( visible = visible )
+  bkQuery = pluginScript.getBKQuery( visible=visible )
   transBKQuery = bkQuery.getQueryDict()
   if not transBKQuery:
     print "No BK query was given..."
@@ -153,7 +157,7 @@ if __name__ == "__main__":
   if transBKQuery:
     print "Executing the BK query..."
     startTime = time.time()
-    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
+    lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
     bkTime = time.time() - startTime
     nfiles = len( lfns )
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
@@ -174,7 +178,7 @@ if __name__ == "__main__":
     DIRAC.exit( 0 )
 
   # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
-  if transType == 'Removal':
+  if lfcCheck and transType == 'Removal':
     from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
     from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
