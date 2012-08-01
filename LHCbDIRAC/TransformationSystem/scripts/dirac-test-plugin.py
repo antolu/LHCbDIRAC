@@ -12,6 +12,10 @@ class fakeClient:
     self.transID = transID
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     self.transClient = TransformationClient()
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+    self.bk = BookkeepingClient()
+    from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+    self.rm = ReplicaManager()
     self.asIfProd = asIfProd
 
     ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
@@ -125,15 +129,11 @@ class fakeClient:
 
   def prepareForPlugin( self, lfns ):
     import time
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-    bk = BookkeepingClient()
+    print "Preparing the plugin input data (%d files)" % len( lfns )
     type = self.trans.getType()['Value']
     if not lfns:
       return ( None, None )
-    from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-    from DIRAC.Core.Utilities.List                        import breakListIntoChunks
-    rm = ReplicaManager()
-    res = bk.getFileMetadata( lfns )
+    res = self.bk.getFileMetadata( lfns )
     if res['OK']:
       files = []
       for lfn, metadata in res['Value'].items():
@@ -142,12 +142,13 @@ class fakeClient:
         files.append( runDict )
     replicas = {}
     startTime = time.time()
+    from DIRAC.Core.Utilities.List                        import breakListIntoChunks
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
       #print lfnChunk
       if type.lower() in ( "replication", "removal" ):
-        res = rm.getReplicas( lfnChunk )
+        res = self.rm.getReplicas( lfnChunk )
       else:
-        res = rm.getActiveReplicas( lfnChunk )
+        res = self.rm.getActiveReplicas( lfnChunk )
       #print res
       if res['OK']:
         replicas.update( res['Value']['Successful'] )
@@ -268,7 +269,7 @@ if __name__ == "__main__":
     print "No plugin to be tested..."
     DIRAC.exit( 0 )
 
-  print "\nNow testing %s the plugin %s" % ( transType, plugin )
+  print "\nNow testing the %s plugin %s" % ( transType.lower(), plugin )
   transformation.setPlugin( plugin )
   transformation.setBkQuery( bkQueryDict )
 
@@ -279,7 +280,9 @@ if __name__ == "__main__":
   pluginParams['Status'] = "Active"
   # Create a fake transformation client
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
-  oplugin = TransformationPlugin( plugin, transClient=fakeClient, debug=debugPlugin )
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  oplugin = TransformationPlugin( plugin, transClient=fakeClient, replicaManager=ReplicaManager(), bkkClient=BookkeepingClient(), debug=debugPlugin )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...
