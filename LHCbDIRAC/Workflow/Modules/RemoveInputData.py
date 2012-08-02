@@ -76,7 +76,8 @@ class RemoveInputData( ModuleBase ):
       result = rm.removeFile( self.inputDataList )
       self.log.verbose( result )
       if not result['OK']:
-        self.log.error( 'Could not remove files with message:\n"%s"\nWill set removal requests just in case.' % ( result['Message'] ) )
+        self.log.error( 'Could not remove files with message:\n"%s"\n\
+        Will set removal requests just in case.' % ( result['Message'] ) )
         failover = self.inputDataList
       try:
         if result['Value']['Failed']:
@@ -108,8 +109,10 @@ class RemoveInputData( ModuleBase ):
     """ Sets a removal request for a file including all replicas.
     """
     self.log.info( 'Setting file removal request for %s' % lfn )
+    lastOperationOnFile = self.request._getLastOrder( lfn )
     result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
-                                                       'TargetSE':'', 'ExecutionOrder':1}},
+                                                       'TargetSE':'',
+                                                       'ExecutionOrder':lastOperationOnFile + 1}},
                                          'removal' )
     index = result['Value']
     fileDict = {'LFN':lfn, 'Status':'Waiting'}

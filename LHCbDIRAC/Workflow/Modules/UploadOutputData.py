@@ -205,7 +205,9 @@ class UploadOutputData( ModuleBase ):
       registrationFailure = False
       failover = {}
       for fileName, metadata in final.items():
-        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
+        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
+                                                                                     string.join( metadata['resolvedSE'],
+                                                                                                  ', ' ) ) )
         result = failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
                                                            lfn = metadata['lfn'],
@@ -217,10 +219,12 @@ class UploadOutputData( ModuleBase ):
           failover[fileName] = metadata
         else:
           if result['Value'].has_key( 'registration' ):
-            self.log.info( 'File %s was put to the SE but the catalog registration will be set as an asynchronous request' % ( fileName ) )
+            self.log.info( 'File %s was put to the SE but the catalog registration \
+            will be set as an asynchronous request' % ( fileName ) )
             registrationFailure = True
           else:
-            self.log.info( '%s uploaded successfully, will be registered in BK if all files uploaded for job' % ( fileName ) )
+            self.log.info( '%s uploaded successfully, will be registered in BK if \
+            all files uploaded for job' % ( fileName ) )
 
           lfn = metadata['lfn']
           performBKRegistration.append( lfn )
@@ -266,7 +270,8 @@ class UploadOutputData( ModuleBase ):
         result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
         if not result['OK']:
           lfns = []
-          self.log.error( 'Input files for this job were marked as processed during the upload of this job\'s outputs! Cleaning up...' )
+          self.log.error( 'Input files for this job were marked as processed during the \
+          upload of this job\'s outputs! Cleaning up...' )
           for fileName, metadata in final.items():
             lfns.append( metadata['lfn'] )
 
@@ -307,7 +312,8 @@ class UploadOutputData( ModuleBase ):
       if not performBKRegistration:
         self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
       elif registrationFailure:
-        self.log.info( 'There were catalog registration failures during the upload of files for this job, BK registration requests are being prepared' )
+        self.log.info( 'There were catalog registration failures during the upload of files \
+        for this job, BK registration requests are being prepared' )
         for lfn in performBKRegistration:
           result = self.setBKRegistrationRequest( lfn )
           if not result['OK']:
@@ -358,10 +364,12 @@ class UploadOutputData( ModuleBase ):
     timing = time.time() - start
     self.log.info( 'BK Descendents Lookup Time: %.2f seconds ' % ( timing ) )
     if not result['OK']:
-      self.log.error( 'Would have uploaded output data for job but could not check for descendents of input data from BK with result:\n%s' % ( result ) )
+      self.log.error( 'Would have uploaded output data for job but could not check for \
+      descendents of input data from BK with result:\n%s' % ( result ) )
       return S_ERROR( 'Could Not Contact BK To Check Descendents' )
     if result['Value']['Failed']:
-      self.log.error( 'BK getFileDescendents returned an error for some files:\n%s\nwill exit to avoid uploading outputs that have already been processed' % ( result['Value']['Failed'] ) )
+      self.log.error( 'BK getFileDescendents returned an error for some files:\n%s\nwill \
+      exit to avoid uploading outputs that have already been processed' % ( result['Value']['Failed'] ) )
       return S_ERROR( 'BK Descendents Check Was Not Complete' )
 
     inputDataDescDict = result['Value']['Successful']
@@ -369,9 +377,11 @@ class UploadOutputData( ModuleBase ):
     for inputDataFile, descendents in inputDataDescDict.items():
       if descendents:
         failed = True
-        self.log.error( 'Input files: \n%s \nDescendents: %s' % ( string.join( inputData, '\n' ), string.join( descendents, '\n' ) ) )
+        self.log.error( 'Input files: \n%s \nDescendents: %s' % ( string.join( inputData, '\n' ),
+                                                                  string.join( descendents, '\n' ) ) )
     if failed:
-      self.log.error( '!!!!Found descendent files for production %s with BK replica flag for an input file of this job!!!!' % ( prodID ) )
+      self.log.error( '!!!!Found descendent files for production %s with \
+      BK replica flag for an input file of this job!!!!' % ( prodID ) )
       return S_ERROR( 'Input Data Already Processed' )
 
     return S_OK( 'Outputs can be uploaded' )
@@ -387,7 +397,11 @@ class UploadOutputData( ModuleBase ):
     else:
       self.log.info( 'Setting BK registration request for %s' % ( lfn ) )
 
-    result = self.request.addSubRequest( {'Attributes':{'Operation':'registerFile', 'ExecutionOrder':2, 'Catalogue':'BookkeepingDB'}}, 'register' )
+    lastOperationOnFile = self.request._getLastOrder( lfn )
+    result = self.request.addSubRequest( {'Attributes':{'Operation':'registerFile',
+                                                        'ExecutionOrder':lastOperationOnFile + 1,
+                                                        'Catalogue':'BookkeepingDB'}},
+                                        'register' )
     if not result['OK']:
       self.log.error( 'Could not set registerFile request:\n%s' % result )
       return S_ERROR( 'Could Not Set BK Registration Request' )
@@ -421,7 +435,11 @@ class UploadOutputData( ModuleBase ):
 
     # Set removal requests just in case
     for lfn in lfnList:
-      result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile', 'TargetSE':'', 'ExecutionOrder':1}}, 'removal' )
+      lastOperationOnFile = self.request._getLastOrder( lfn )
+      result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
+                                                          'TargetSE':'',
+                                                          'ExecutionOrder':lastOperationOnFile + 1}},
+                                          'removal' )
       index = result['Value']
       fileDict = {'LFN':lfn, 'PFN':'', 'Status':'Waiting'}
       self.request.setSubRequestFiles( index, 'removal', [fileDict] )
