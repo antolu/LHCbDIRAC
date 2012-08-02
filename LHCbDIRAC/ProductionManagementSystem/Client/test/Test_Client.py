@@ -9,6 +9,7 @@ class ClientTestCase( unittest.TestCase ):
   def setUp( self ):
 
     self.bkClientMock = Mock()
+    self.diracProdIn = Mock()
 
 #############################################################################
 # TemplatesUtilities.py
@@ -32,13 +33,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                                   'ParameterNames': ['FileType', 'Visible'],
                                                                   'Records': [['SDST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
 
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
                             'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                             'fileTypesOut':['SDST', 'CALIBRATION.DST']}] )
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
@@ -48,7 +49,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                             'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                             'fileTypesOut':['SDST', 'CALIBRATION.DST']}
                            ] )
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
@@ -63,7 +64,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                         'Value': {'TotalRecords': 7,
                                                                   'ParameterNames': ['FileType', 'Visible'],
                                                                   'Records': [['BHADRON.DST', 'Y']]}}
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
@@ -74,7 +75,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                         'Value': {'TotalRecords': 0,
                                                                   'ParameterNames': ['FileType', 'Visible'],
                                                                   'Records': []}}
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
@@ -82,7 +83,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                             'fileTypesOut':['SDST', 'CALIBRATION.DST']}] )
 
   def test_resolveStepsFailure( self ):
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123']
     self.bkClientMock.getAvailableSteps.return_value = {'OK': False,
                                                         'Message': 'error'}
@@ -95,7 +96,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
 
   def test_getProdsDescriptionDict( self ):
-    pr = ProductionRequest( self.bkClientMock )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = [123, 456, 789]
     pr.prodsTypeList = ['DataStripping', 'Merge']
     pr.stepsInProds = [[1, 2], [3]]
@@ -120,7 +121,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'input': [],
                       'target':'',
                       'groupSize': 1,
-                      'plugin': 'ByRun'
+                      'plugin': 'ByRun',
+                      'inputDataPolicy':'download'
                      },
 
                    2:{
@@ -136,12 +138,40 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'input': [],
                       'target':'',
                       'groupSize': 1,
-                      'plugin': 'BySize'
+                      'plugin': 'BySize',
+                      'inputDataPolicy':'download'
                       }
                    }
 
     self.assertEqual( res, resExpected )
 
+
+  def test__buildFullBKKQuery( self ):
+
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr.dataTakingConditions = 'dataTC'
+    pr.processingPass = 'procePass'
+    pr.DQFlag = 'OK,AA, BB'
+    pr.startRun = '123'
+    pr.endRun = '456'
+    pr._buildFullBKKQuery()
+
+    resExpected = {'DataTakingConditions':'dataTC',
+                   'ProcessingPass':'procePass',
+                   'FileType':'',
+                   'EventType':'',
+                   'ConfigName':'test',
+                   'ConfigVersion':'certification',
+                   'ProductionID':'0',
+                   'DataQualityFlag':'OK;;;AA;;;BB',
+                   'StartRun':123,
+                   'EndRun':456
+                   }
+
+    self.assertEqual( pr.bkQuery, resExpected )
+
+    pr.runsList = ['1', '2']
+    self.assertRaises( ValueError, pr._buildFullBKKQuery )
 
   def test__splitIntoProductionSteps( self ):
 

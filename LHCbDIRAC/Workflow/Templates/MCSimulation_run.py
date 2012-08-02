@@ -9,9 +9,9 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base import Script
-
+import DIRAC
 from DIRAC import gLogger
+from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
@@ -59,7 +59,7 @@ targets = '{{Target#PROD-MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}
 MCCpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
 MCPriority = '{{MCPriority#PROD-MC: Production priority#0}}'
 pr.extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
-pr.extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
+extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#20}}'
@@ -88,12 +88,17 @@ if not parentReq:
 else:
   pr.requestID = parentReq
 
+if extraOptions:
+  pr.extraOptions = eval( extraOptions )
 pr.prodGroup = '{{pDsc}}'
 pr.dataTakingConditions = '{{simDesc}}'
 
 MCPriority = int( MCPriority )
 selectionPriority = int( selectionPriority )
 mergingPriority = int( mergingPriority )
+
+removeInputMerge = eval( removeInputMerge )
+removeInputSelection = eval( removeInputSelection )
 
 ###########################################
 # LHCb conventions implied by the above
@@ -108,6 +113,7 @@ if certificationFlag or localTestFlag:
     pr.publishFlag = True
   if localTestFlag:
     pr.publishFlag = False
+    pr.prodsToLaunch = [1]
 
 #In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
@@ -125,6 +131,7 @@ w4 = eval( w4 )
 
 if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
+  DIRAC.exit( 2 )
 
 if w1:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping', 'Merge']
@@ -139,6 +146,7 @@ if w1:
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
+  pr.inputDataPolicies['', 'protocol', 'download']
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping']
   pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
@@ -151,6 +159,7 @@ elif w2:
   pr.targets = [targets, '']
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
+  pr.inputDataPolicies['', 'protocol']
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC_M-DST']
@@ -163,6 +172,7 @@ elif w3:
   pr.targets = [targets, '']
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
+  pr.inputDataPolicies['', 'download']
 elif w4:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
@@ -174,6 +184,7 @@ elif w4:
   pr.targets = [targets]
   pr.groupSizes = [1]
   pr.plugins = ['']
+  pr.inputDataPolicies['']
 
 pr.buildAndLaunchRequest()
 

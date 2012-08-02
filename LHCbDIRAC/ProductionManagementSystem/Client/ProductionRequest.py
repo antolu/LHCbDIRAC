@@ -54,13 +54,20 @@ class ProductionRequest( object ):
     self.outputFileMasks = []
     self.groupSizes = []
     self.plugins = []
+    self.inputDataPolicies = []
     self.prodGroup = ''
     self.previousProdID = 0
     self.publishFlag = True
     self.testFlag = False
     self.extend = 0
     self.dataTakingConditions = ''
-
+    self.processingPass = ''
+    self.bkFileType = ''
+    self.DQFlag = ''
+    self.startRun = ''
+    self.endRun = ''
+    self.runsList = []
+    self.prodsToLaunch = []
 
   #############################################################################
 
@@ -69,7 +76,7 @@ class ProductionRequest( object ):
         resolve it into a dictionary of steps
     """
 
-    self.stepsList = __toIntList( self.stepsList )
+    self.stepsList = _toIntList( self.stepsList )
 
     for stepID in self.stepsList:
       stepDict = self.BKKClient.getAvailableSteps( {'StepId':stepID} )
@@ -116,6 +123,10 @@ class ProductionRequest( object ):
 
     for prodIndex, prodDict in prodsDict.items():
 
+      if self.prodsToLaunch:
+        if prodIndex not in self.prodsToLaunch:
+          continue
+
       stepsInProd = []
       for stepID in prodDict['stepsInProd']:
         for step in stepsListDict:
@@ -129,6 +140,7 @@ class ProductionRequest( object ):
                                     target = prodDict['target'],
                                     removeInputData = prodDict['removeInputsFlag'],
                                     groupSize = prodDict['groupSize'],
+                                    inputDataPolicy = prodDict['inputDataPolicy'],
                                     bkQuery = prodDict['bkQuery'],
                                     previousProdID = self.previousProdID )
 
@@ -179,21 +191,27 @@ class ProductionRequest( object ):
     else:
       groupSizes = self.groupSizes
 
+    if not self.inputDataPolicies:
+      inputDataPolicies = ['download'] * len( self.prodsTypeList )
+    else:
+      inputDataPolicies = self.inputDataPolicies
+
     prodNumber = 1
 
     for prodType, stepsInProd, removeInputsFlag, outputSE, priority, \
-    cpu, inputD, outFileMask, target, groupSize, plugin in itertools.izip( self.prodsTypeList,
-                                                                           self.stepsInProds,
-                                                                           removeInputsFlags,
-                                                                           self.outputSEs,
-                                                                           self.priorities,
-                                                                           self.CPUs,
-                                                                           inputD,
-                                                                           outputFileMasks,
-                                                                           targets,
-                                                                           groupSizes,
-                                                                           self.plugins
-                                                                           ):
+    cpu, inputD, outFileMask, target, groupSize, plugin, idp in itertools.izip( self.prodsTypeList,
+                                                                                self.stepsInProds,
+                                                                                removeInputsFlags,
+                                                                                self.outputSEs,
+                                                                                self.priorities,
+                                                                                self.CPUs,
+                                                                                inputD,
+                                                                                outputFileMasks,
+                                                                                targets,
+                                                                                groupSizes,
+                                                                                self.plugins,
+                                                                                inputDataPolicies
+                                                                                ):
 
       prodsDict[ prodNumber ] = {
                                'productionType': prodType,
@@ -208,7 +226,8 @@ class ProductionRequest( object ):
                                'outputFileMask':outFileMask,
                                'target':target,
                                'groupSize': groupSize,
-                               'plugin': plugin
+                               'plugin': plugin,
+                               'inputDataPolicy': idp
                                }
       bkQuery = 'fromPreviousProd'
       prodNumber += 1
@@ -225,6 +244,7 @@ class ProductionRequest( object ):
                         priority, cpu,
                         inputDataList = [],
                         outputMode = 'Any',
+                        inputDataPolicy = 'download',
                         outputFileMask = '',
                         target = '',
                         removeInputData = False,
@@ -251,6 +271,8 @@ class ProductionRequest( object ):
 
     #optional parameters
     prod.jobFileGroupSize = groupSize
+    if inputDataPolicy:
+      prod.LHCbJob.setInputinputDataPolicy( inputDataPolicy )
     if self.sysConfig:
       prod.setJobParameters( { 'SystemConfig': self.sysConfig } )
     prod.setOutputMode( outputMode )
@@ -308,9 +330,42 @@ class ProductionRequest( object ):
 
     return prod
 
+  #############################################################################
+
+  def _buildFullBKKQuery( self ):
+    """ just simply create the bkk query dictionary
+    """
+
+    self.bkQuery = {
+                    'DataTakingConditions'     : self.dataTakingConditions,
+                    'ProcessingPass'           : self.processingPass,
+                    'FileType'                 : self.bkFileType,
+                    'EventType'                : str( self.eventType ),
+                    'ConfigName'               : self.configName,
+                    'ConfigVersion'            : self.configVersion,
+                    'ProductionID'             : str( self.previousProdID ),
+                    'DataQualityFlag'          : self.DQFlag.replace( ',', ';;;' ).replace( ' ', '' )
+                    }
+
+    if ( self.startRun and self.runsList ) or ( self.endRun and self.runsList ):
+      raise ValueError, 'Please don\'t mix runs list with start/end run'
+
+    if int( self.endRun ) and int( self.startRun ):
+      if int( self.endRun ) < int( self.startRun ):
+        gLogger.error( 'Your end run "%s" should be more than your start run "%s"!' % ( self.endRun, self.startRun ) )
+        raise ValueError, 'Error setting start or end run'
+
+    if int( self.startRun ):
+      self.bkQuery['StartRun'] = int( self.startRun )
+    if int( self.endRun ):
+      self.bkQuery['EndRun'] = int( self.endRun )
+
+    if self.runsList:
+      self.bkQuery['RunNumbers'] = self.runsList.replace( ',', ';;;' ).replace( ' ', '' )
+
 #############################################################################
 
-def __toIntList( self, stringsList ):
+def _toIntList( stringsList ):
 
   listInt = []
   i = 0

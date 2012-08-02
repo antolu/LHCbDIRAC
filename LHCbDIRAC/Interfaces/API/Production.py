@@ -91,7 +91,7 @@ class Production():
     self._setParameter( 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
     self._setParameter( 'JOB_ID', 'string', '00006789', 'ProductionJobID' )
     self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
-    self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
+    self._setParameter( 'outputMode', 'string', 'Any', 'SEResolutionPolicy' )
     self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
     #BK related parameters
