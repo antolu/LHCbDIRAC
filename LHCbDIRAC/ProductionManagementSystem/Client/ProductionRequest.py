@@ -56,7 +56,7 @@ class ProductionRequest( object ):
     self.plugins = []
     self.inputDataPolicies = []
     self.prodGroup = ''
-    self.previousProdID = 0
+    self.derivedProduction = 0
     self.publishFlag = True
     self.testFlag = False
     self.extend = 0
@@ -121,6 +121,8 @@ class ProductionRequest( object ):
 
     prodsDict = self._getProdsDescriptionDict()
 
+    prodID = 0
+
     for prodIndex, prodDict in prodsDict.items():
 
       if self.prodsToLaunch:
@@ -142,10 +144,11 @@ class ProductionRequest( object ):
                                     groupSize = prodDict['groupSize'],
                                     inputDataPolicy = prodDict['inputDataPolicy'],
                                     bkQuery = prodDict['bkQuery'],
-                                    previousProdID = self.previousProdID )
+                                    previousProdID = prodID,
+                                    derivedProdID = prodDict[''] )
 
-      prodID = self.diracProduction.launchProduction( prod, self.publishFlag, self.testFlag,
-                                                      self.requestID, self.extend, prodDict['tracking'] )
+      prodID = self.diracProduction.launchProduction( prod, self.publishFlag, self.testFlag, self.requestID,
+                                                      self.extend, prodDict['tracking'] )
 
       self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
                                                                                            prodIndex,
@@ -155,7 +158,7 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _getProdsDescriptionDict( self ):
-    """ Returns a dictionary representing the description of the request
+    """ Returns a dictionary representing the description of the request (of all the productions in it)
     """
 
     prodsDict = {}
@@ -227,13 +230,18 @@ class ProductionRequest( object ):
                                'target':target,
                                'groupSize': groupSize,
                                'plugin': plugin,
-                               'inputDataPolicy': idp
+                               'inputDataPolicy': idp,
+                               'derivedProduction': 0
                                }
       bkQuery = 'fromPreviousProd'
       prodNumber += 1
 
     #tracking the last production
     prodsDict[prodNumber - 1]['tracking'] = 1
+
+    #production derivation, if necessary
+    if self.derivedProduction:
+      prodsDict[1]['derivedProduction'] = self.derivedProduction
 
     return prodsDict
 
@@ -250,7 +258,8 @@ class ProductionRequest( object ):
                         removeInputData = False,
                         groupSize = 1,
                         bkQuery = None,
-                        previousProdID = 0 ):
+                        previousProdID = 0,
+                        derivedProduction = 0 ):
     """ Wrapper around Production API to build a production, given the needed parameters
     """
     prod = Production()
@@ -287,6 +296,8 @@ class ProductionRequest( object ):
         prod.LHCbJob.setDestination( target )
     if inputDataList:
       prod.LHCbJob.setInputData( inputDataList )
+    if derivedProduction:
+      prod.ancestorProduction = derivedProduction
 
     #Adding optional input BK query
     if bkQuery == 'fromPreviousProd':
@@ -343,7 +354,6 @@ class ProductionRequest( object ):
                     'EventType'                : str( self.eventType ),
                     'ConfigName'               : self.configName,
                     'ConfigVersion'            : self.configVersion,
-                    'ProductionID'             : str( self.previousProdID ),
                     'DataQualityFlag'          : self.DQFlag.replace( ',', ';;;' ).replace( ' ', '' )
                     }
 

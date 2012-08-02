@@ -122,7 +122,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'target':'',
                       'groupSize': 1,
                       'plugin': 'ByRun',
-                      'inputDataPolicy':'download'
+                      'inputDataPolicy':'download',
+                      'derivedProduction':0
                      },
 
                    2:{
@@ -139,7 +140,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'target':'',
                       'groupSize': 1,
                       'plugin': 'BySize',
-                      'inputDataPolicy':'download'
+                      'inputDataPolicy':'download',
+                      'derivedProduction':0
                       }
                    }
 
@@ -162,7 +164,6 @@ class ProductionRequestSuccess( ClientTestCase ):
                    'EventType':'',
                    'ConfigName':'test',
                    'ConfigVersion':'certification',
-                   'ProductionID':'0',
                    'DataQualityFlag':'OK;;;AA;;;BB',
                    'StartRun':123,
                    'EndRun':456

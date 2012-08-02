@@ -50,6 +50,7 @@ pr.endRun = '{{endRun#GENERAL: run end, to set the end of the range#0}}'
 pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
 targetSite = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
+pr.derivedProduction = '{{AncestorProd#PROD: ancestor production if any#0}}'
 
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO(Stripp): priority#2}}'
@@ -58,7 +59,6 @@ recoPlugin = '{{RecoPluginType#PROD-RECO(Stripp): production plugin name#AtomicR
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
 recoType = '{{RecoType#PROD-RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
-recoAncestorProd = '{{RecoAncestorProd#PROD-RECO(Stripp): ancestor production if any#0}}'
 
 #stripp params
 strippPriority = '{{priority#PROD-Stripping: priority#5}}'
@@ -67,7 +67,6 @@ strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#2}}'
 strippDataSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#download}}'
-strippAncestorProd = '{{StrippAncestorProd#PROD-Stripping: ancestor production if any#0}}'
 
 #merging params
 mergingPriority = '{{MergePriority#PROD-Merging: priority#8}}'
