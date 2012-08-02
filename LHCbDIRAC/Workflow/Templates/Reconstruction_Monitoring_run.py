@@ -18,7 +18,6 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
-args = Script.getPositionalArgs()
 
 import DIRAC
 
@@ -178,8 +177,8 @@ production.setJobParameters( {'CPUTime': recoCPU } )
 production.setProdType( recoType )
 wkfName = 'Request%s_%s_{{eventType}}' % ( currentReqID, prodGroup.replace( ' ', '' ) )
 #Rest can be taken from the details in the monitoring
-production.setWorkflowName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
-production.setWorkflowDescription( "%sRealdataFULLreconstructionproduction." % ( prodGroup.replace( ' ', '' ) ) )
+production.LHCbJob.workflow.setName( '%s_%s_%s' % ( recoType, wkfName, appendName ) )
+production.LHCbJob.workflow.setDescription( "%sRealdataFULLreconstructionproduction." % ( prodGroup.replace( ' ', '' ) ) )
 production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
 production.setInputBKSelection( recoInputBKQuery )
 production.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
@@ -265,9 +264,9 @@ if "{{p2Ver}}":
 production.addFinalizationStep( ['UploadOutputData',
                                  'UploadLogFile',
                                  'FailoverRequest'] )
-production.setProdGroup( prodGroup )
-production.setProdPriority( recoPriority )
-production.setProdPlugin( recoPlugin )
+production.prodGroup = prodGroup
+production.priority = str( recoPriority )
+production.plugin = recoPlugin
 production.setJobParameters( { 'InputDataPolicy': recoIDPolicy } )
 production.setFileMask( [brunelOutput, 'HIST'] )
 production.setJobFileGroupSize( recoFilesPerJob )

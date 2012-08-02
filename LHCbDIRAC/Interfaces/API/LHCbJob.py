@@ -99,7 +99,7 @@ __RCSID__ = "$Id$"
 
 import os, types, re
 
-from DIRAC import gConfig, S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR
 
 from DIRAC.Interfaces.API.Job import Job
 from DIRAC.Core.Utilities.File import makeGuid

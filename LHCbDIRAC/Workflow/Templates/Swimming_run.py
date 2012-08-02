@@ -383,8 +383,8 @@ if swimmEnabled:
   production.setJobParameters( { 'CPUTime': swimmCPU } )
   production.setProdType( 'DataSwimming' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
-  production.setWorkflowName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
-  production.setWorkflowDescription( "%s real data swimming production." % ( prodGroup ) )
+  production.LHCbJob.workflow.setName( 'SWIMMING_%s_%s' % ( wkfName, appendName ) )
+  production.LHCbJob.workflow.setDescription( "%s real data swimming production." % ( prodGroup ) )
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( swimmInputBKQuery )
   production.setDBTags( swimmCDb, swimmDDDb )
@@ -408,9 +408,9 @@ if swimmEnabled:
   production.addFinalizationStep( ['UploadOutputData',
                                    'UploadLogFile',
                                    'FailoverRequest'] )
-  production.setProdGroup( prodGroup )
-  production.setProdPriority( swimm_priority )
-  production.setJobFileGroupSize( swimmFilesPerJob )
+  production.prodGroup = prodGroup
+  production.priority = str( swimm_priority )
+  production.jobFileGroupSize = swimmFilesPerJob
 #  production.setFileMask(  )
 
 
@@ -498,8 +498,8 @@ if swimmEnabled:
     DVProduction.setJobParameters( { 'CPUTime': swimmCPU_DV } )
     DVProduction.setProdType( 'DataSwimming' )
     wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
-    DVProduction.setWorkflowName( 'SWIMMING_DV_%s_%s' % ( wkfName, appendName ) )
-    DVProduction.setWorkflowDescription( "%s real data swimming DV Production." % ( prodGroup ) )
+    DVProduction.LHCbJob.workflow.setName( 'SWIMMING_DV_%s_%s' % ( wkfName, appendName ) )
+    DVProduction.LHCbJob.workflow.setDescription( "%s real data swimming DV Production." % ( prodGroup ) )
     DVProduction.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
     DVProduction.setInputBKSelection( swimmDVInputBKQuery )
     DVProduction.setDBTags( swimmDVCDb, swimmDVDDDb )
@@ -517,9 +517,9 @@ if swimmEnabled:
                                       'RemoveInputData',
                                       'UploadLogFile',
                                       'FailoverRequest'] )
-    DVProduction.setProdGroup( prodGroup )
-    DVProduction.setProdPriority( swimm_priority )
-    DVProduction.setJobFileGroupSize( swimmFilesPerJob_DV )
+    DVProduction.prodGroup = prodGroup
+    DVProduction.priority = str( swimm_priority )
+    DVProduction.jobFileGroupSize = swimmFilesPerJob_DV
   #  DVProduction.setFileMask(  )
 
     #################################################################################
@@ -640,7 +640,7 @@ if mergingEnabled:
     mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
-    mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
+    mergeProd.LHCbJob.workflow.setName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
       mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
@@ -676,9 +676,9 @@ if mergingEnabled:
                                       'FailoverRequest'] )
     mergeProd.setInputBKSelection( mergeBKQuery )
     mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
-    mergeProd.setProdGroup( prodGroup )
-    mergeProd.setProdPriority( mergePriority )
-    mergeProd.setJobFileGroupSize( mergeFileSize )
+    mergeProd.prodGroup = prodGroup
+    mergeProd.priority = str( mergePriority )
+    mergeProd.jobFileGroupSize = mergeFileSize
     mergeProd.setFileMask( mergeStream.lower() )
     mergeProd.setProdPlugin( mergePlugin )
 

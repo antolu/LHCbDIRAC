@@ -322,8 +322,8 @@ if strippEnabled:
   production.setJobParameters( { 'CPUTime': strippCPU } )
   production.setProdType( 'DataStripping' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
-  production.setWorkflowName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
-  production.setWorkflowDescription( "%s real data stripping production." % ( prodGroup ) )
+  production.LHCbJob.workflow.setName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
+  production.LHCbJob.workflow.setDescription( "%s real data stripping production." % ( prodGroup ) )
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( strippInputBKQuery )
   production.setDBTags( strippCDb, strippDDDb )
@@ -344,9 +344,9 @@ if strippEnabled:
   production.addFinalizationStep( ['UploadOutputData',
                                    'UploadLogFile',
                                    'FailoverRequest'] )
-  production.setProdGroup( prodGroup )
-  production.setProdPriority( stripp_priority )
-  production.setJobFileGroupSize( strippFilesPerJob )
+  production.prodGroup = prodGroup
+  production.priority = str( stripp_priority )
+  production.jobFileGroupSize = strippFilesPerJob
 #  production.setFileMask(  )
 
 
@@ -460,7 +460,7 @@ if mergingEnabled:
     mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
-    mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream, wkfName, appendName ) )
+    mergeProd.LHCbJob.workflow.setName( '%s_%s_%s' % ( mergeStream, wkfName, appendName ) )
 
     if sysConfig:
       mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
@@ -496,10 +496,10 @@ if mergingEnabled:
                                       'UploadLogFile',
                                       'FailoverRequest'] )
 
-    mergeProd.setInputBKSelection( mergeBKQuery )
-    mergeProd.setProdGroup( prodGroup )
-    mergeProd.setProdPriority( mergePriority )
-    mergeProd.setJobFileGroupSize( mergeFileSize )
+    mergeProd.inputBKSelection = mergeBKQuery
+    mergeProd.prodGroup = prodGroup
+    mergeProd.priority = str( mergePriority )
+    mergeProd.jobFileGroupSize = mergeFileSize
   #  mergeProd.setFileMask( mergeStream.lower() )
     mergeProd.setProdPlugin( mergePlugin )
 

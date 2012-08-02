@@ -94,11 +94,11 @@ def _splitIntoProductionSteps( stepsList ):
 
 def buildProduction( prodType, stepsList, requestID, prodDesc,
                      configName, configVersion, dataTakingConditions, appendName,
-                     extraOptions, defaultOutputSE,
+                     extraOptions, outputSE,
                      eventType, events, priority, cpu,
                      sysConfig = '',
                      generatorName = '',
-                     outputsCERN = False,
+                     outputMode = 'Any',
                      outputFileMask = '',
                      targetSite = '',
                      banTier1s = False,
@@ -110,24 +110,21 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
   prod = Production()
 
   #non optional parameters
-  prod.setProdType( prodType )
-  prod.setWorkflowName( 'Request_%s_%s_%s_EventType_%s_%s' % ( requestID, prodType, prodDesc, eventType, appendName ) )
+  prod.LHCbJob.setType( prodType )
+  prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s' % ( requestID, prodType, prodDesc, eventType, appendName ) )
   prod.setBKParameters( configName, configVersion, prodDesc, dataTakingConditions )
-  prod.setEventType( eventType )
-  prod.setNumberOfEvents( events )
-  prod.setProdGroup( prodDesc )
-  prod.setProdPriority( priority )
-  prod.setWorkflowDescription( 'prodDescription' )
+  prod._setParameter( 'eventType', 'string', eventType, 'Event Type of the production' )
+  prod._setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
+  prod.prodGroup = prodDesc
+  prod.priority = str( priority )
+  prod.LHCbJob.workflow.setDescription( 'prodDescription' )
   prod.setJobParameters( { 'CPUTime': cpu } )
   prod.setGeneratorName( generatorName )
 
   #optional parameters
   if sysConfig:
     prod.setJobParameters( { 'SystemConfig': sysConfig } )
-  if outputsCERN:
-    prod.setOutputMode( 'Any' )
-  else:
-    prod.setOutputMode( 'Local' )
+  prod.setOutputMode( outputMode )
   if outputFileMask:
     prod.setFileMask( outputFileMask )
   if targetSite:
@@ -151,7 +148,7 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
   except IndexError:
     ep = ''
   prod.addApplicationStep( stepDict = firstStep,
-                           outputSE = defaultOutputSE,
+                           outputSE = outputSE,
                            optionsLine = ep,
                            inputData = '' )
   for step in stepsList:
@@ -160,7 +157,7 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
     except IndexError:
       ep = ''
     prod.addApplicationStep( stepDict = step,
-                             outputSE = defaultOutputSE,
+                             outputSE = outputSE,
                              optionsLine = ep,
                              inputData = 'previousStep' )
 

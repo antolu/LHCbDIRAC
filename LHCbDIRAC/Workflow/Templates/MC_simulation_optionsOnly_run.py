@@ -28,7 +28,6 @@ __RCSID__ = "$Id$"
 import string
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
-args = Script.getPositionalArgs()
 
 import DIRAC
 
@@ -63,7 +62,7 @@ configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 
 banTier1s = '{{WorkflowBanTier1s#GENERAL: Workflow ban Tier-1 sites for jobs Boolean True/False#True}}'
-outputsCERN = '{{WorkflowCERNOutputs#GENERAL: Workflow upload workflow output to CERN#False}}'
+outputMode = '{{outputMode#GENERAL: Workflow upload workflow output#Any}}'
 sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
 targetSite = '{{TargetSite#GENERAL: Set a target site (blank for everything)#}}'
 
@@ -77,11 +76,13 @@ selectionPlugin = '{{selectionPlugin#PROD-Selection: plugin e.g. Standard, BySiz
 selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#20}}'
 selectionPriority = '{{selectionPriority#PROD-Selection: Job Priority e.g. 8 by default#6}}'
 selectionExtraOptions = '{{selectionExtraOptions#PROD-Selection: selection extra options (leave blank for default)#}}'
+selectionCPU = '{{selectionCPU#PROD-Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-Selection: remove inputs#True}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
+mergingCPU = '{{mergingCPU#PROD-Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-Merging: remove inputs#True}}'
 
 replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
@@ -104,7 +105,6 @@ if not parentReq:
 
 replicationFlag = eval( replicationFlag )
 banTier1s = eval( banTier1s )
-outputsCERN = eval( outputsCERN )
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 if extraOptions:
@@ -147,12 +147,8 @@ else:
 
 diracProd = DiracProduction()
 
-if outputsCERN:
-  defaultOutputSE = 'CERN_MC-DST'
-  mergedDataSE = 'CERN_MC_M-DST'
-else:
-  defaultOutputSE = 'Tier1_MC-DST'
-  mergedDataSE = 'Tier1_MC_M-DST'
+defaultOutputSE = 'Tier1_MC-DST'
+mergedDataSE = 'Tier1_MC_M-DST'
 
 BKscriptFlag = False
 # If we don't even publish the production, we assume we want to see if the BK scripts are OK 
@@ -193,35 +189,51 @@ prodsList = []
 if w1:
   simulationSteps = stepsDictList[:-2]
   selectionSteps = stepsDictList[-2:-1]
-  mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking ) )
-  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection, selectionTracking ) )
+  if mergingPlugin == 'ByRunFileTypeSizeWithFlush':
+    mergingSteps = stepsDictList[-1:]
+  else:
+    mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, defaultOutputSE, priority, cpu ) )
+  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection, selectionTracking, defaultOutputSE, selectionPriority, selectionCPU ) )
   for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge, mergingTracking ) )
+    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge, mergingTracking, mergedDataSE, mergingPriority, mergingCPU ) )
 elif w2:
   simulationSteps = stepsDictList[:-1]
   selectionSteps = stepsDictList[-1:]
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking ) )
-  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection, selectionTracking ) )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, defaultOutputSE, priority, cpu ) )
+  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection, selectionTracking, defaultOutputSE, selectionPriority, selectionCPU ) )
 elif w3:
   simulationSteps = stepsDictList[:-1]
-  mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking ) )
+  if mergingPlugin == 'ByRunFileTypeSizeWithFlush':
+    mergingSteps = stepsDictList[-1:]
+  else:
+    mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, defaultOutputSE, priority, cpu ) )
   for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge, mergingTracking ) )
+    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge, mergingTracking, mergedDataSE, mergingPriority, mergingCPU ) )
 elif w4:
   simulationSteps = stepsDictList
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking ) )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, mergedDataSE, priority, cpu ) )
 
 prodID = 0
-for prodType, stepsList, bkQuery, removeInput, tracking in prodsList:
-  prod = LHCbDIRAC.Workflow.Templates.TemplatesUtilities.buildProduction( prodType, stepsList, requestID, '{{pDsc}}',
-                                                                          configName, configVersion, '{{simDesc}}', appendName,
-                                                                          extraOptions, defaultOutputSE,
-                                                                          '{{eventType}}', events, priority, cpu,
+for prodType, stepsList, bkQuery, removeInput, tracking, outputSE, priority, cpu in prodsList:
+  prod = LHCbDIRAC.Workflow.Templates.TemplatesUtilities.buildProduction( prodType = prodType,
+                                                                          stepsList = stepsList,
+                                                                          requestID = requestID,
+                                                                          prodDesc = '{{pDsc}}',
+                                                                          configName = configName,
+                                                                          configVersion = configVersion,
+                                                                          dataTakingConditions = '{{simDesc}}',
+                                                                          appendName = appendName,
+                                                                          extraOptions = extraOptions,
+                                                                          outputSE = outputSE,
+                                                                          eventType = '{{eventType}}',
+                                                                          events = events,
+                                                                          priority = priority,
+                                                                          cpu = cpu,
                                                                           sysConfig = sysConfig,
                                                                           generatorName = '{{Generator}}',
-                                                                          outputsCERN = outputsCERN,
+                                                                          outputsCERN = outputMode,
                                                                           outputFileMask = outputFileMask,
                                                                           targetSite = targetSite,
                                                                           banTier1s = banTier1s,

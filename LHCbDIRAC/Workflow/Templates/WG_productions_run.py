@@ -524,8 +524,8 @@ if strippEnabled:
   production.setJobParameters( { 'CPUTime': strippCPU } )
   production.setProdType( 'WGProduction' )
   wkfName = 'Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID ) #Rest can be taken from the details in the monitoring
-  production.setWorkflowName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
-  production.setWorkflowDescription( "%s real data stripping production." % ( prodGroup ) )
+  production.LHCbJob.workflow.setName( 'STRIPPING_%s_%s' % ( wkfName, appendName ) )
+  production.LHCbJob.workflow.setDescription( "%s real data stripping production." % ( prodGroup ) )
   production.setBKParameters( outBkConfigName, outBkConfigVersion, prodGroup, dataTakingCond )
   production.setInputBKSelection( strippInputBKQuery )
   if strippDQ is None:
@@ -547,9 +547,9 @@ if strippEnabled:
                              optionsFormat = strippOF )
 
   production.addFinalizationStep()
-  production.setProdGroup( prodGroup )
-  production.setProdPriority( stripp_priority )
-  production.setJobFileGroupSize( strippFilesPerJob )
+  production.prodGroup = prodGroup
+  production.priority = str( stripp_priority )
+  production.jobFileGroupSize = strippFilesPerJob
 #  production.setFileMask(  )
 
 
@@ -664,7 +664,7 @@ if mergingEnabled:
     mergeProd.setJobParameters( { 'CPUTime': mergeCPU } )
     mergeProd.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
-    mergeProd.setWorkflowName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
+    mergeProd.LHCbJob.workflow.setName( '%s_%s_%s' % ( mergeStream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
       mergeProd.setJobParameters( { 'SystemConfig': sysConfig } )
@@ -708,8 +708,8 @@ if mergingEnabled:
                                      'UploadLogFile',
                                      'FailoverRequest'] )
 
-    mergeProd.setInputBKSelection( mergeBKQuery )
-    mergeProd.setProdGroup( prodGroup )
+    mergeProd.inputBKSelection = mergeBKQuery
+    mergeProd.prodGroup = prodGroup
     mergeProd.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
     mergeProd.setJobFileGroupSize( mergeFileSize )
     mergeProd.setProdPlugin( mergePlugin )
@@ -819,7 +819,7 @@ if step4Enabled:
     step4_Prod.setJobParameters( { 'CPUTime': step4_CPU } )
     step4_Prod.setProdType( 'Merge' )
     wkfName = 'Merging_Request%s_{{pDsc}}_{{eventType}}' % ( currentReqID )
-    step4_Prod.setWorkflowName( '%s_%s_%s' % ( step4_Stream.split( '.' )[0], wkfName, appendName ) )
+    step4_Prod.LHCbJob.workflow.setName( '%s_%s_%s' % ( step4_Stream.split( '.' )[0], wkfName, appendName ) )
 
     if sysConfig:
       step4_Prod.setJobParameters( { 'SystemConfig': sysConfig } )
@@ -859,10 +859,10 @@ if step4Enabled:
 
     step4_Prod.setInputBKSelection( step4_BKQuery )
     step4_Prod.setJobParameters( { 'InputDataPolicy': mergeIDPolicy } )
-    step4_Prod.setProdGroup( prodGroup )
-    step4_Prod.setProdPriority( mergePriority )
-    step4_Prod.setJobFileGroupSize( mergeFileSize )
-    step4_Prod.setProdPlugin( mergePlugin )
+    step4_Prod.prodGroup = prodGroup
+    step4_Prod.priority = str( mergePriority )
+    step4_Prod.jobFileGroupSize = mergeFileSize
+    step4_Prod.plugin = mergePlugin
 
     if ( not publishFlag ) and ( testFlag ):
 

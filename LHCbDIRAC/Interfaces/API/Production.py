@@ -1,17 +1,18 @@
 """ Production API
 
+    A production is an augmented version of an LHCbJob
+
     Notes:
-    - Supports simulation + reconstruction + stripping workflows 
+    - Supports all workflows 
     - create() method that takes a workflow or Production object
       and publishes to the production management system, in addition this
       can automatically construct and publish the BK pass info and transformations
     - Uses getOutputLFNs() function to add production output directory parameter
 """
 
-import shutil, re, os, time
+import shutil, re, os, copy
 
-from DIRAC import S_OK, S_ERROR, gConfig
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow import Workflow, fromXMLString
 from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
@@ -21,11 +22,13 @@ from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
 __RCSID__ = "$Id$"
 
 class Production():
+  """ Production does not inherits from LHCbJob, but uses an LHCbJob object.
+  """
 
   #############################################################################
 
   def __init__( self, script = None, lhcbJobIn = None, BKKClientIn = None,
-                transClientIn = None, transformationIn = None ):
+                transClientIn = None ):
     """Instantiates the Workflow object and some default parameters.
     """
 
@@ -47,38 +50,18 @@ class Production():
       from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
       self.transClient = TransformationClient()
 
-    if transformationIn is not None:
-      self.transformation = transformationIn
-    else:
-      from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
-      self.transformation = Transformation()
-
-    self.opsHelper = Operations()
-
-    self.prodVersion = __RCSID__
-    self.csSection = 'Productions/%s' % gConfig.getValue( "DIRAC/Setup" )
-    self.LHCbJob.gaudiStepCount = 0
-
-    inOutputSandbox = self.opsHelper.getValue( 'Productions/inOutputSandbox', ['std.out', 'std.err'] )
-    self.LHCbJob.setOutputSandbox( inOutputSandbox )
-
-    defaultHistName = '@{applicationName}_@{STEP_ID}_Hist.root'
-    self.histogramName = self.opsHelper.getValue( '%s/HistogramName' % self.csSection, defaultHistName )
-    self.histogramSE = self.opsHelper.getValue( '%s/HistogramSE' % self.csSection, 'CERN-HIST' )
-    self.systemConfig = self.opsHelper.getValue( '%s/SystemConfig' % self.csSection, 'ANY' )
-    self.defaultProdID = '12345'
-    self.defaultProdJobID = '67890'
-    self.ioDict = {}
-    self.name = 'unspecifiedWorkflow'
-    self.firstEventType = ''
+    self.histogramName = self.LHCbJob.opsHelper.getValue( 'Productions/HistogramName',
+                                                          '@{applicationName}_@{STEP_ID}_Hist.root' )
+    self.histogramSE = self.LHCbJob.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
     self.bkSteps = {}
     self.prodGroup = ''
     self.plugin = ''
     self.inputFileMask = ''
     self.inputBKSelection = {}
     self.jobFileGroupSize = 0
-    self.ancestorProduction = ''
-    self.importLine = """LHCbDIRAC.Workflow.Modules"""
+    self.ancestorProduction = 0
+    self.transformationFamily = 0
+    self.priority = 1
     if not script:
       self.__setDefaults()
 
@@ -88,10 +71,12 @@ class Production():
     """Sets some default parameters.
     """
 
-    #TODO: see for others to be put here
+    self.LHCbJob.gaudiStepCount = 0
+    self.LHCbJob.setOutputSandbox( self.LHCbJob.opsHelper.getValue( 'Productions/inOutputSandbox',
+                                                            ['std.out', 'std.err', '*.log'] ) )
     self.setJobParameters( {
-                           'Type'          : 'MCSimulation',
-                           'SystemConfig' : self.systemConfig,
+                           'Type'         : 'MCSimulation',
+                           'SystemConfig' : 'ANY',
                            'CPUTime'      : '1000000',
                            'LogLevel'     : 'verbose',
                            'JobGroup'     : '@{PRODUCTION_ID}'
@@ -100,13 +85,12 @@ class Production():
     self.setFileMask( '' )
 
     #version control
-    self._setParameter( 'productionVersion', 'string', self.prodVersion, 'ProdAPIVersion' )
+    self._setParameter( 'productionVersion', 'string', __RCSID__, 'ProdAPIVersion' )
 
     #General workflow parameters
-    self._setParameter( 'PRODUCTION_ID', 'string', self.defaultProdID.zfill( 8 ), 'ProductionID' )
-    self._setParameter( 'JOB_ID', 'string', self.defaultProdJobID.zfill( 8 ), 'ProductionJobID' )
+    self._setParameter( 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
+    self._setParameter( 'JOB_ID', 'string', '00006789', 'ProductionJobID' )
     self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
-    self._setParameter( 'Priority', 'JDL', '1', 'Priority' )
     self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
     self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
@@ -132,7 +116,7 @@ class Production():
   def _setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
-    proposedParam = self.opsHelper.getValue( '%s/%s' % ( self.csSection, name ), '' )
+    proposedParam = self.LHCbJob.opsHelper.getValue( 'Productions/%s' % name, '' )
     if proposedParam:
       self.LHCbJob.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description )
@@ -255,8 +239,8 @@ class Production():
 
       gaudiModules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
-      gaudiPath = '%s/GaudiStep_Modules' % self.csSection
-      modulesNameList = self.opsHelper.getValue( gaudiPath, gaudiModules )
+      gaudiPath = 'Productions/GaudiStep_Modules'
+      modulesNameList = self.LHCbJob.opsHelper.getValue( gaudiPath, gaudiModules )
       #pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
@@ -357,8 +341,6 @@ class Production():
 
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
-    #to keep track of the inputs / outputs for a given workflow track the step number and name
-    self.ioDict[self.LHCbJob.gaudiStepCount] = gaudiStepInstance.getName()
 
     return gaudiStepInstance
 
@@ -426,10 +408,8 @@ class Production():
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
       if not modulesList:
-        finalizationPath = '%s/FinalizationStep_Modules' % self.csSection
-        finalizationMods = [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ]
-        modulesNameList = self.opsHelper.getValue( finalizationPath, finalizationMods )
-
+        modulesNameList = self.LHCbJob.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
+                                                   [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
       else:
         modulesNameList = modulesList
 
@@ -444,7 +424,7 @@ class Production():
     """ Create XML for local testing.
     """
     if not name:
-      name = self.name
+      name = 'unspecifiedWorkflow'
     if not re.search( 'xml$', name ):
       name = '%s.xml' % name
     if os.path.exists( name ):
@@ -610,12 +590,10 @@ class Production():
 
   #############################################################################
 
-  def create( self, publish = True, fileMask = '', bkQuery = {}, groupSize = 1, derivedProduction = 0,
-              bkScript = True, wfString = '', requestID = 0, reqUsed = 0,
-              transformation = True, transReplicas = 0, bkProcPassPrepend = '', parentRequestID = 0, transformationPlugin = '' ):
-    """ Will create the production and subsequently publish to the BK, this
-        currently relies on the conditions information being present in the
-        worklow.  Production parameters are also added at this point.
+  def create( self, publish = True,
+              wfString = '', requestID = 0, reqUsed = 0 ):
+    """ Will create the production and subsequently publish to the BK.
+        Production parameters are also added at this point.
 
         publish = True - will add production to the production management system
                   False - does not publish the production, allows to check the BK script
@@ -639,7 +617,7 @@ class Production():
 
     if wfString:
       self.LHCbJob.workflow = fromXMLString( wfString )
-      self.name = self.LHCbJob.workflow.getName()
+#      self.name = self.LHCbJob.workflow.getName()
 
     try:
       fileName = self.createWorkflow()['Value']
@@ -703,22 +681,18 @@ class Production():
 
     prodID = 0
     if publish:
-      if self.inputFileMask:
-        fileMask = self.inputFileMask
-      if self.jobFileGroupSize:
-        groupSize = self.jobFileGroupSize
-      if self.inputBKSelection:
-        bkQuery = self.inputBKSelection
-      if self.ancestorProduction:
-        derivedProduction = self.ancestorProduction
+
+      self._setParameter( 'ProcessingType', 'JDL', str( self.prodGroup ), 'ProductionGroupOrType' )
+      self._setParameter( 'Priority', 'JDL', str( self.priority ), 'UserPriority' )
 
       #This mechanism desperately needs to be reviewed
       result = self.transClient.addTransformation( fileName, descShort, descLong, self.LHCbJob.type, self.plugin, 'Manual',
-                                                   fileMask, transformationGroup = self.prodGroup, groupSize = int( groupSize ),
-                                                   inheritedFrom = int( derivedProduction ), body = workflowBody,
-                                                   maxTasks = int( maxNumberOfTasks ),
-                                                   eventsPerTask = int( maxEventsPerTask ),
-                                                   bkQuery = bkQuery
+                                                   fileMask = self.inputFileMask,
+                                                   transformationGroup = self.prodGroup,
+                                                   groupSize = int( self.jobFileGroupSize ),
+                                                   inheritedFrom = int( self.ancestorProduction ),
+                                                   body = workflowBody,
+                                                   bkQuery = self.inputBKSelection
                                                   )
 
       if not result['OK']:
@@ -733,6 +707,7 @@ class Production():
     bkDictStep['Production'] = int( prodID )
 
     queryProdID = 0
+    bkQuery = copy.deepcopy( self.inputBKSelection )
     if bkQuery.has_key( 'ProductionID' ):
       queryProdID = int( bkQuery['ProductionID'] )
     queryProcPass = ''
@@ -803,7 +778,7 @@ class Production():
                                                     bkPassInfo = bkDict['Steps'],
                                                     bkInputQuery = bkQuery,
                                                     reqID = requestID,
-                                                    derivedProd = derivedProduction )
+                                                    derivedProd = self.ancestorProduction )
         for n, v in paramsDict.items():
           result = self.setProdParameter( prodID, n, v )
           if not result['OK']:
@@ -962,7 +937,7 @@ class Production():
 
   #############################################################################
 
-  def getOutputLFNs( self, prodID = None, prodJobID = None, prodXMLFile = '' ):
+  def getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
     #TODO: fix this construction: really necessary?
@@ -970,10 +945,6 @@ class Production():
     if not prodXMLFile:
       self.LHCbJob.log.verbose( 'Using workflow object to generate XML file' )
       prodXMLFile = self.createWorkflow()
-    if not prodID:
-      prodID = self.defaultProdID
-    if not prodJobID:
-      prodJobID = self.defaultProdJobID
 
     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     job = LHCbJob( prodXMLFile )
@@ -1050,50 +1021,6 @@ class Production():
 
   #############################################################################
 
-  def setWorkflowName( self, name ):
-    """Set workflow name.
-    """
-    self.LHCbJob.workflow.setName( name )
-    self.name = name
-
-  #############################################################################
-
-  def setWorkflowDescription( self, desc ):
-    """Set workflow dscription.
-    """
-    self.LHCbJob.workflow.setDescription( desc )
-
-  #############################################################################
-
-  def setProdType( self, prodType ):
-    """Set prod type.
-    """
-    self.LHCbJob.setType( prodType )
-
-  #############################################################################
-
-  def setNumberOfEvents( self, numberOfEvents ):
-    """ Set the event type as a workflow paramater
-    """
-    self._setParameter( 'numberOfEvents', 'string', numberOfEvents, 'Number of events requested' )
-
-  #############################################################################
-
-  def setEventType( self, eventType ):
-    """ Set the event type as a workflow paramater
-    """
-    self._setParameter( 'eventType', 'string', eventType, 'Event Type of the production' )
-    self.firstEventType = eventType
-
-  #############################################################################
-
-  def setGeneratorName( self, generatorName ):
-    """ Set the event type as a workflow paramater
-    """
-    self._setParameter( 'generatorName', 'string', generatorName, 'Generator Name' )
-
-  #############################################################################
-
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
@@ -1136,76 +1063,3 @@ class Production():
     self._setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
 
   #############################################################################
-
-  def setParentRequest( self, parentID ):
-    """ Sets the parent request ID for a production.
-    """
-    self._setParameter( 'TransformationFamily', 'string', str( parentID ).replace( ' ', '' ), 'ParentRequestID' )
-
-  #############################################################################
-
-  def setProdPriority( self, priority ):
-    """ Sets destination for all jobs.
-    """
-    self._setParameter( 'Priority', 'JDL', str( priority ), 'UserPriority' )
-
-  #############################################################################
-
-  def setProdGroup( self, group ):
-    """ Sets a user defined tag for the production as appears on the monitoring page
-    """
-    self.prodGroup = group
-    self._setParameter( 'ProcessingType', 'JDL', str( group ), 'ProductionGroupOrType' )
-
-  #############################################################################
-
-  def setProdPlugin( self, plugin ):
-    """ Sets the plugin to be used to creating the production jobs
-    """
-    self.plugin = plugin
-
-  #############################################################################
-
-  def setInputFileMask( self, fileMask ):
-    """ Sets the input data selection when using file mask.
-    """
-    self.inputFileMask = fileMask
-
-  #############################################################################
-
-  def setInputBKSelection( self, bkQuery ):
-    """ Sets the input data selection when using the bookkeeping.
-    """
-    self.inputBKSelection = bkQuery
-
-  #############################################################################
-
-  def setJobFileGroupSize( self, gb ):
-    """ Sets the number of gb to be input to each job created (e.g. for merging productions)
-        This parameter is used also as number of input files (e.g. for stripping/reco), so pay attention
-    """
-    self.jobFileGroupSize = gb
-
-  #############################################################################
-
-  def setAncestorProduction( self, prod ):
-    """ Sets the original production from which this is to be derived
-    """
-    self.ancestorProduction = prod
-
-  #############################################################################
-
-  def setWorkflowString( self, wfString ):
-    """ Uses the supplied string to create the workflow
-    """
-    self.LHCbJob.workflow = fromXMLString( wfString )
-    self.name = self.LHCbJob.workflow.getName()
-
-  #############################################################################
-
-  def disableCPUCheck( self ):
-    """ Uses the supplied string to create the workflow
-    """
-    self._setParameter( 'DisableCPUCheck', 'JDL', 'True', 'DisableWatchdogCPUCheck' )
-
-  #############################################################################  

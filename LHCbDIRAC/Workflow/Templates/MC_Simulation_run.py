@@ -67,10 +67,12 @@ selectionPlugin = '{{selectionPlugin#PROD-Selection: plugin e.g. Standard, BySiz
 selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#5}}'
 selectionPriority = '{{selectionPriority#PROD-Selection: Job Priority e.g. 8 by default#3}}'
 selectionExtraOptions = '{{selectionExtraOptions#PROD-Selection: selection extra options (leave blank for default)#}}'
+selectionCPU = '{{selectionCPU#PROD-Selection: Max CPU time in secs#100000}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#4}}'
+mergingCPU = '{{MergingCPU#PROD-Merging: Max CPU time in secs#100000}}'
 
 replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
 replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcastRandom}}'
@@ -708,7 +710,7 @@ else:
   mcProd.setProdType( 'MCSimulation' )
   wkfName = 'Request_{{ID}}_MC_{{simDesc}}_{{pDsc}}_EventType{{eventType}}_{{MCNumberOfEvents}}Events'
 
-  mcProd.setWorkflowName( '%s_%s' % ( wkfName, appendName ) )
+  mcProd.LHCbJob.workflow.setName( '%s_%s' % ( wkfName, appendName ) )
   mcProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   mcProd.setDBTags( '{{p1CDb}}', '{{p1DDDb}}' )
   mcProd.setSimulationEvents( events, eventNumberTotal )
@@ -770,8 +772,8 @@ else:
                                'FailoverRequest'] )
   mcProd.setJobParameters( { 'CPUTime': cpu } )
 
-  mcProd.setProdGroup( '{{pDsc}}' )
-  mcProd.setProdPriority( priority )
+  mcProd.prodGroup = '{{pDsc}}'
+  mcProd.priority = str( priority )
   if outputsCERN:
     mcProd.setOutputMode( 'Any' )
   else:
@@ -857,8 +859,8 @@ else:
                                                                                          evtType,
                                                                                          prodID,
                                                                                          mergingGroupSize )
-  selectionProd.setWorkflowName( '%s_%s' % ( selectionName, appendName ) )
-  selectionProd.setWorkflowDescription( 'MC workflow selection from a previous production.' )
+  selectionProd.LHCbJob.workflow.setName( '%s_%s' % ( selectionName, appendName ) )
+  selectionProd.LHCbJob.workflow.setDescription( 'MC workflow selection from a previous production.' )
   selectionProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   selectionProd.setDBTags( selectionCDb, selectionDDDb )
 
@@ -944,8 +946,8 @@ else:
                                                                                      evtType,
                                                                                      prodID,
                                                                                      mergingGroupSize )
-  mergingProd.setWorkflowName( '%s_%s' % ( mergingName, appendName ) )
-  mergingProd.setWorkflowDescription( 'MC workflow for merging outputs from a previous production.' )
+  mergingProd.LHCbJob.workflow.setName( '%s_%s' % ( mergingName, appendName ) )
+  mergingProd.LHCbJob.workflow.setDescription( 'MC workflow for merging outputs from a previous production.' )
   mergingProd.setBKParameters( configName, configVersion, '{{pDsc}}', '{{simDesc}}' )
   mergingProd.setDBTags( mergingCDb, mergingDDDb )
   if mergingApp.lower() == 'lhcb':
@@ -971,10 +973,10 @@ else:
                                     'FailoverRequest'] )
   mergingProd.setJobParameters( {"InputDataPolicy": mergingIDP } )
 
-  mergingProd.setJobFileGroupSize( mergingGroupSize )
-  mergingProd.setProdGroup( '{{pDsc}}' )
-  mergingProd.setProdPriority( mergingPriority )
-  mergingProd.setJobParameters( { 'CPUTime': '200000' } )
+  mergingProd.jobFileGroupSize = mergingGroupSize
+  mergingProd.prodGroup = '{{pDsc}}'
+  mergingProd.priority = str( mergingPriority )
+  mergingProd.setJobParameters( { 'CPUTime': mergingCPU } )
 
   #mergingProd.setFileMask( finalAppType.lower() )
   mergingProd.setProdPlugin( mergingPlugin )
