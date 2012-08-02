@@ -80,12 +80,12 @@ def _splitIntoProductionSteps( stepsList ):
     if len( step['fileTypesIn'] ) <= 1:
       prodSteps.append( step )
     else:
-      if step['fileTypesIn'] != step['fileTypesOut']:
-        raise ValueError, "Step inputs and output differ (this is supposed to be a merging step)"
-      for input in step['fileTypesIn']:
+      if step['fileTypesOut'] not in step['fileTypesIn']:
+        raise ValueError, "Step outputs are not part of the inputs ...?"
+      for outputTypes in step['fileTypesOut']:
         prodStep = copy.deepcopy( step )
-        prodStep['fileTypesIn'] = [input]
-        prodStep['fileTypesOut'] = [input]
+        prodStep['fileTypesIn'] = [outputTypes]
+        prodStep['fileTypesOut'] = [outputTypes]
         prodSteps.append( prodStep )
 
   return prodSteps
