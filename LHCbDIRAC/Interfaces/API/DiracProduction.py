@@ -1059,7 +1059,7 @@ class DiracProduction:
       gLogger.info( 'Production creation completed but not published (publishFlag was %s). \
       Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
-    return prodID
+    return S_OK( prodID )
 
   #############################################################################
   def __errorReport( self, error, message = None ):

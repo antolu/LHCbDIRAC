@@ -107,36 +107,43 @@ if not w1 and not w2 and not w3 and not w4:
   DIRAC.exit( 2 )
 
 if certificationFlag or localTestFlag:
-  testFlag = True
+  pr.testFlag = True
   if certificationFlag:
-    publishFlag = True
+    pr.publishFlag = True
   if localTestFlag:
-    publishFlag = False
+    pr.publishFlag = False
+    pr.prodsToLaunch = [1]
 else:
-  publishFlag = True
-  testFlag = False
+  pr.publishFlag = True
+  pr.testFlag = False
 
-inputDataList = []
-if not publishFlag:
+recoInputDataList = []
+strippInputDataList = []
+if not pr.publishFlag:
   #this is 1380Gev MagUp
   #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
   #this is collision11
   recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
-
-  inputDataList.append( recoTestData )
+  recoInputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
 
+  strippTestData = 'LFN:/lhcb/data/2010/SDST/00008375/0001/00008375_00016947_1.sdst'
+  strippInputDataList.append( strippTestData )
+#  strippTestDataRAW = 'LFN:/lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/75338/075338_0000000069.raw'
+#  strippInputDataList.append( strippTestDataRAW )
+  strippIDPolicy = 'protocol'
+  evtsPerJob = '2000'
+
 #In case we want just to test, we publish in the certification/test part of the BKK
-if testFlag:
+if pr.testFlag:
   pr.configName = 'certification'
   pr.configVersion = 'test'
   pr.events = 25
   strppEventsPerJob = '1000'
   mergingGroupSize = '1'
   recoCPU = '200000'
-  pr.endRun = '93718'
-  pr.startRun = '93720'
-  recoCPU = '100000'
+  pr.startRun = '93718'
+  pr.endRun = '93720'
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
   pr.processingPass = 'Real Data'
   pr.bkFileType = 'RAW'
@@ -154,6 +161,8 @@ if w1:
   pr.CPUs = [recoCPU]
   pr.groupSizes = [recoFilesPerJob]
   pr.plugins = [recoPlugin]
+  pr.inputs = [recoInputDataList]
+  pr.inputDataPolicies = [recoIDPolicy]
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
@@ -164,6 +173,8 @@ elif w2:
   pr.CPUs = [strippCPU, mergingCPU]
   pr.groupSizes = [strippFilesPerJob, mergingGroupSize]
   pr.plugins = [strippPlugin, mergingPlugin]
+  pr.inputs = [strippInputDataList, []]
+  pr.inputDataPolicies = [strippIDPolicy, mergingIDPolicy]
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
@@ -174,6 +185,8 @@ elif w3:
   pr.CPUs = [recoCPU, mergingCPU]
   pr.groupSizes = [recoFilesPerJob, mergingGroupSize]
   pr.plugins = [recoPlugin, mergingPlugin]
+  pr.inputs = [recoInputDataList, []]
+  pr.inputDataPolicies = [recoIDPolicy, mergingIDPolicy]
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
@@ -185,5 +198,7 @@ elif w4:
   pr.CPUs = [recoCPU, strippCPU, mergingCPU]
   pr.groupSizes = [recoFilesPerJob, strippFilesPerJob, mergingGroupSize]
   pr.plugins = [recoPlugin, strippPlugin, mergingPlugin]
+  pr.inputs = [recoInputDataList, [], []]
+  pr.inputDataPolicies = [recoIDPolicy, strippIDPolicy, mergingIDPolicy]
 
 pr.buildAndLaunchRequest()

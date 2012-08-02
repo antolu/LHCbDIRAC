@@ -81,7 +81,6 @@ pr.eventType = '{{eventType}}'
 #the parent ID for viewing on the production monitoring page. If a parent
 #request is defined then this is used.
 parentReq = '{{_parent}}'
-eventNumberTotal = '{{EventNumberTotal}}'
 
 if not parentReq:
   pr.requestID = '{{ID}}'
@@ -146,7 +145,7 @@ if w1:
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
-  pr.inputDataPolicies['', 'protocol', 'download']
+  pr.inputDataPolicies = ['', 'protocol', 'download']
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping']
   pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
@@ -159,7 +158,7 @@ elif w2:
   pr.targets = [targets, '']
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
-  pr.inputDataPolicies['', 'protocol']
+  pr.inputDataPolicies = ['', 'protocol']
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC_M-DST']
@@ -172,7 +171,7 @@ elif w3:
   pr.targets = [targets, '']
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
-  pr.inputDataPolicies['', 'download']
+  pr.inputDataPolicies = ['', 'download']
 elif w4:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
@@ -184,7 +183,7 @@ elif w4:
   pr.targets = [targets]
   pr.groupSizes = [1]
   pr.plugins = ['']
-  pr.inputDataPolicies['']
+  pr.inputDataPolicies = ['']
 
 pr.buildAndLaunchRequest()
 

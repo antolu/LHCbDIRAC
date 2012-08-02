@@ -272,7 +272,7 @@ class ProductionRequest( object ):
     #optional parameters
     prod.jobFileGroupSize = groupSize
     if inputDataPolicy:
-      prod.LHCbJob.setInputinputDataPolicy( inputDataPolicy )
+      prod.LHCbJob.setInputDataPolicy( inputDataPolicy )
     if self.sysConfig:
       prod.setJobParameters( { 'SystemConfig': self.sysConfig } )
     prod.setOutputMode( outputMode )
