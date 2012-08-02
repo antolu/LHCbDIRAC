@@ -1,73 +1,10 @@
 """ Some utilities for the templates
 """
 
-import itertools, copy
+import copy
 
 import DIRAC
 from LHCbDIRAC.Interfaces.API.Production import Production
-
-#############################################################################
-
-def resolveSteps( stepsList, BKKClientIn = None ):
-  """ Given a list of steps in strings, some of which might be missing,
-      resolve it into a dictionary of steps
-  """
-
-  if BKKClientIn is None:
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-    BKKClient = BookkeepingClient()
-  else:
-    BKKClient = BKKClientIn
-
-  stepsListInt = __toIntList( stepsList )
-
-  stepsListDict = []
-
-  for stepID in stepsListInt:
-    stepDict = BKKClient.getAvailableSteps( {'StepId':stepID} )
-    if not stepDict['OK']:
-      raise ValueError, stepDict['Message']
-    else:
-      stepDict = stepDict['Value']
-
-    stepsListDictItem = {}
-    for ( parameter, value ) in itertools.izip( stepDict['ParameterNames'],
-                                                stepDict['Records'][0] ):
-      stepsListDictItem[parameter] = value
-
-    s_in = BKKClient.getStepInputFiles( stepID )
-    if not s_in['OK']:
-      raise ValueError, s_in['Message']
-    else:
-      fileTypesList = [fileType[0].strip() for fileType in s_in['Value']['Records']]
-      stepsListDictItem['fileTypesIn'] = fileTypesList
-
-    s_out = BKKClient.getStepOutputFiles( stepID )
-    if not s_out['OK']:
-      raise ValueError, s_out['Message']
-    else:
-      fileTypesList = [fileType[0].strip() for fileType in s_out['Value']['Records']]
-      stepsListDictItem['fileTypesOut'] = fileTypesList
-
-    stepsListDict.append( stepsListDictItem )
-
-  return stepsListDict
-
-#############################################################################
-
-def __toIntList( stringsList ):
-
-  stepsListInt = []
-  i = 0
-  while True:
-    try:
-      stepsListInt.append( int( stringsList[i] ) )
-      i = i + 1
-    except ValueError:
-      break
-    except IndexError:
-      break
-  return stepsListInt
 
 #############################################################################
 
@@ -188,6 +125,7 @@ def launchProduction( prod, publishFlag, testFlag, requestID, parentReq,
                       diracProd = None,
                       logger = None ):
   """ given a production object, launch it
+      It returns the productionID created
   """
   if not logger:
     from DIRAC import gLogger
@@ -246,34 +184,3 @@ def launchProduction( prod, publishFlag, testFlag, requestID, parentReq,
   return prodID
 
 #############################################################################
-
-def getProdsDescriptionDict( prodsTypeList, stepsInProds, bkQuery, removeInputsFlags,
-                             outputSEs, priorities, CPUs, inputs ):
-
-  prodsDict = {}
-
-  for prodType, stepsInProd, removeInputsFlag, outputSE, priority, cpu, inputD in itertools.izip( prodsTypeList,
-                                                                                          stepsInProds,
-                                                                                          removeInputsFlags,
-                                                                                          outputSEs,
-                                                                                          priorities,
-                                                                                          CPUs,
-                                                                                          inputs
-                                                                ):
-
-    prodsDict[ prodType ] = {
-                             'stepsInProd': stepsInProd,
-                             'bkQuery': bkQuery,
-                             'removeInputsFlag': removeInputsFlag,
-                             'tracking':0,
-                             'outputSE':outputSE,
-                             'priority': priority,
-                             'cpu': cpu,
-                             'input': inputD
-                             }
-    bkQuery = 'fromPreviousProd'
-
-  #tracking the last production
-  prodsDict[prodType]['tracking'] = 1
-
-  return prodsDict

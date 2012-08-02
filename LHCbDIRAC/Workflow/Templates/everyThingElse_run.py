@@ -9,8 +9,6 @@ __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-import DIRAC
-
 import LHCbDIRAC.Workflow.Templates.TemplatesUtilities
 
 from DIRAC import gLogger
@@ -122,14 +120,14 @@ else:
 
 #In case we want just to test, we publish in the certification/test part of the BKK
 if testFlag:
-  outBkConfigName = 'certification'
-  outBkConfigVersion = 'test'
+  bkConfigName = 'certification'
+  bkConfigVersion = 'test'
   startRun = '75336'
   endRun = '75340'
   recoCPU = '100000'
   dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
   processingPass = 'Real Data/Reco12/Stripping17'
-  swimmFileType = 'CHARMCOMPLETEEVENT.DST'
+  bkFileType = 'CHARMCOMPLETEEVENT.DST'
   eventType = '90000000'
   DQFlag = 'ALL'
 
@@ -180,8 +178,8 @@ for prodType, stepsList, bkQuery, removeInput, tracking, outputSE, priority, cpu
                                                                           stepsList = stepsList,
                                                                           requestID = requestID,
                                                                           prodDesc = prodGroup,
-                                                                          configName = configName,
-                                                                          configVersion = configVersion,
+                                                                          configName = bkConfigName,
+                                                                          configVersion = bkConfigVersion,
                                                                           dataTakingConditions = dataTakingCond,
                                                                           appendName = appendName,
                                                                           extraOptions = extraOptions,
