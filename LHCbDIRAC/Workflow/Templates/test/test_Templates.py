@@ -1,7 +1,6 @@
 import unittest
 from mock import Mock
-from LHCbDIRAC.Workflow.Templates.TemplatesUtilities import resolveSteps, _splitIntoProductionSteps
-
+from LHCbDIRAC.Workflow.Templates.TemplatesUtilities import resolveSteps, _splitIntoProductionSteps, getProdsDescriptionDict
 class TemplatesTestCase( unittest.TestCase ):
   """ Base class for the Templates test cases
   """
@@ -164,6 +163,43 @@ class TemplatesUtilitiesBaseSuccess( TemplatesTestCase ):
 
     self.assertEqual( r, r_exp )
 
+  def test_getProdsDescriptionDict( self ):
+    prodsTypeList = ['DataStripping', 'Merge']
+    stepsInProds = [[1, 2], [3]]
+    bkQuery = {'P':1, 'Q':'abc'}
+    removeInputsFlags = [False, True]
+    outputSEs = ['Tier1-BUFFER', 'Tier1-DST']
+    priorities = [5, 8]
+    CPUs = [1000000, 300000]
+    inputs = ['', '']
+
+    res = getProdsDescriptionDict( prodsTypeList, stepsInProds, bkQuery,
+                                  removeInputsFlags, outputSEs, priorities, CPUs, inputs )
+
+    resExpected = {'DataStripping':{
+                                    'stepsInProd':[1, 2],
+                                    'bkQuery': bkQuery,
+                                    'removeInputsFlag': False,
+                                    'tracking':0,
+                                    'outputSE': 'Tier1-BUFFER',
+                                    'priority': 5,
+                                    'cpu': 1000000,
+                                    'input': ''
+                                    },
+
+                   'Merge':{
+                            'stepsInProd':[3],
+                            'bkQuery': 'fromPreviousProd',
+                            'removeInputsFlag': True,
+                            'tracking':1,
+                            'outputSE': 'Tier1-DST',
+                            'priority': 8,
+                            'cpu': 300000,
+                            'input': ''
+                            }
+                   }
+
+    self.assertEqual( res, resExpected )
 
 #############################################################################
 # Test Suite run 

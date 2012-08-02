@@ -23,10 +23,7 @@ class BookkeepingReport( ModuleBase ):
   """
 
   def __init__( self ):
-    #TODO check which variables are really needed here
-    """
-    Dunno why there are so maaaaaany variables here. Probably not all are
-    really needed at this level...
+    """ Usual c'tor
     """
 
     self.log = gLogger.getSubLogger( "BookkeepingReport" )
@@ -57,6 +54,8 @@ class BookkeepingReport( ModuleBase ):
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None, saveOnFile = True,
                bk = None, xf_o = None ):
+    """ Usual executor
+    """
 
     try:
 
@@ -242,7 +241,7 @@ class BookkeepingReport( ModuleBase ):
 
     jobAttributes = ( configName, configVersion, self.ldate, self.ltime )
 
-    return self.__addChildNode( doc, "Job", 1, *jobAttributes )
+    return addChildNode( doc, "Job", 1, *jobAttributes )
 
 ################################################################################
 
@@ -334,7 +333,7 @@ class BookkeepingReport( ModuleBase ):
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
-      jobNode = self.__addChildNode( jobNode, "TypedParameter", 0, *typedParam )
+      jobNode = addChildNode( jobNode, "TypedParameter", 0, *typedParam )
 
     return jobNode
 
@@ -350,10 +349,10 @@ class BookkeepingReport( ModuleBase ):
       for inputname in self.stepInputData.split( ';' ):
         for bkLFN in self.bkLFNs:
           if os.path.basename( bkLFN ) == os.path.basename( inputname ):
-            jobNode = self.__addChildNode( jobNode, "InputFile", 0, bkLFN )
+            jobNode = addChildNode( jobNode, "InputFile", 0, bkLFN )
             intermediateInputs = True
         if not intermediateInputs:
-          jobNode = self.__addChildNode( jobNode, "InputFile", 0, inputname.replace( 'LFN:', '' ) )
+          jobNode = addChildNode( jobNode, "InputFile", 0, inputname.replace( 'LFN:', '' ) )
 
     return jobNode
 
@@ -476,40 +475,37 @@ class BookkeepingReport( ModuleBase ):
       else:
         lfn = '%s/%s' % ( self.logFilePath, self.applicationLog )
 
-      #TODO: Fix for histograms: probably not needed anymore
       oldTypeName = None
-      if typeName.upper() == 'HIST':
+      if 'HIST' in typeName.upper():
         typeVersion = '0'
-        oldTypeName = typeName
-        typeName = '%sHIST' % ( self.applicationName.upper() )
 
       # Add Output to the XML file
       oFileAttributes = ( lfn, typeName, typeVersion )
-      jobNode, oFile = self.__addChildNode( jobNode, "OutputFile", 1, *oFileAttributes )
+      jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, *oFileAttributes )
 
       #HIST is in the dataTypes e.g. we may have new names in the future ;)
       if oldTypeName:
         typeName = oldTypeName
 
       if outputtype != 'LOG':
-        oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
+        oFile = addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
         if fileStats != 'Unknown':
-          oFile = self.__addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
+          oFile = addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
 
-      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
+      oFile = addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
 
       ############################################################
       # Log file replica information
 #      if typeName == "LOG":
       if self.applicationLog != None:
-          logfile = self.applicationLog
-          if logfile == output:
-            logurl = 'http://lhcb-logs.cern.ch/storage'
-            url = logurl + self.logFilePath + '/' + self.applicationLog
-            oFile = self.__addChildNode( oFile, "Replica", 0, url )
+        logfile = self.applicationLog
+        if logfile == output:
+          logurl = 'http://lhcb-logs.cern.ch/storage'
+          url = logurl + self.logFilePath + '/' + self.applicationLog
+          oFile = addChildNode( oFile, "Replica", 0, url )
 
-      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "MD5Sum", md5sum ) )
-      oFile = self.__addChildNode( oFile, "Parameter", 0, *( "Guid", guid ) )
+      oFile = addChildNode( oFile, "Parameter", 0, *( "MD5Sum", md5sum ) )
+      oFile = addChildNode( oFile, "Parameter", 0, *( "Guid", guid ) )
 
     return jobNode
 
@@ -522,8 +518,8 @@ class BookkeepingReport( ModuleBase ):
        </SimulationCondition>
     '''
     if self.applicationName == "Gauss":
-      jobNode, sim = self.__addChildNode( jobNode, "SimulationCondition", 1 )
-      sim = self.__addChildNode( sim, "Parameter", 0, *( "SimDescription", self.simDescription ) )
+      jobNode, sim = addChildNode( jobNode, "SimulationCondition", 1 )
+      sim = addChildNode( sim, "Parameter", 0, *( "SimDescription", self.simDescription ) )
 
     return jobNode
 
@@ -538,26 +534,22 @@ class BookkeepingReport( ModuleBase ):
     try:
       result[ "HostName"  ] = socket.gethostname()
 
-      file = open ( "/proc/cpuinfo", "r" )
-      info = file.readlines()
-      file.close()
-#      result[ "CPU(MHz)"  ]     = string.replace( string.replace( string.split( info[6], ":" )[1], " ", "" ), "\n", "" )
+      cpuInfo = open ( "/proc/cpuinfo", "r" )
+      info = cpuInfo.readlines()
+      cpuInfo.close()
       result[ "CPU(MHz)"  ] = info[6].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
-#      result[ "ModelName" ]     = string.replace( string.replace( string.split( info[4], ":" )[1], " ", "" ), "\n", "" )
       result[ "ModelName" ] = info[4].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
-#      result[ "CacheSize(kB)" ] = string.replace( string.replace( string.split( info[7], ":" )[1], " ", "" ), "\n", "" )
       result[ "CacheSize(kB)" ] = info[7].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
 
-      file = open ( "/proc/meminfo", "r" )
-      info = file.readlines()
-      file.close()
-#      result["Memory(kB)"] = string.replace( string.replace( string.split( info[3], ":" )[1], " ", "" ), "\n", "" )
+      memInfo = open ( "/proc/meminfo", "r" )
+      info = memInfo.readlines()
+      memInfo.close()
       result["Memory(kB)"] = info[3].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
     except Exception, x:
       self.log.fatal( 'BookkeepingReport failed to obtain node information with Exception:' )
       self.log.fatal( str( x ) )
       result = S_ERROR()
-      result['Message'] = 'Failed to obtain system information for ' + self.systemFlag
+      result['Message'] = 'Failed to obtain system information'
       return result
 
     return result
@@ -575,72 +567,72 @@ class BookkeepingReport( ModuleBase ):
 # XML GENERATION FUNCTION
 ################################################################################
 
-  def __addChildNode( self, parentNode, tag, returnChildren, *args ):
-    '''
-    Params
-      :parentNode:
-        node where the new node is going to be appended
-      :tag: 
-        name if the XML element to be created
-      :returnChildren:
-        flag to return or not the children node, used to avoid unused variables
-      :*args:
-        possible attributes of the element 
-    '''
+def addChildNode( parentNode, tag, returnChildren, *args ):
+  '''
+  Params
+    :parentNode:
+      node where the new node is going to be appended
+    :tag: 
+      name if the XML element to be created
+    :returnChildren:
+      flag to return or not the children node, used to avoid unused variables
+    :*args:
+      possible attributes of the element 
+  '''
 
-    ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
-                     'Parameter', 'Replica', 'SimulationCondition' ]
+  ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
+                   'Parameter', 'Replica', 'SimulationCondition' ]
 
-    def genJobDict( configName, configVersion, ldate, ltime ):
-      return {
-              "ConfigName"   : configName,
-              "ConfigVersion": configVersion,
-              "Date"         : ldate,
-              "Time"         : ltime
-             }
-    def genTypedParameterDict( name, value, type = "Info" ):
-      return {
-              "Name"  : name,
-              "Value" : value,
-              "Type"  : type
-              }
-    def genInputFileDict( name ):
-      return {
-              "Name" : name
-              }
-    def genOutputFileDict( name, typeName, typeVersion ):
-      return {
-              "Name"        : name,
-              "TypeName"    : typeName,
-              "TypeVersion" : typeVersion
-              }
-    def genParameterDict( name, value ):
-      return {
-              "Name"  : name,
-              "Value" : value
-              }
-    def genReplicaDict( name, location = "Web" ):
-      return {
-              "Name"     : name,
-              "Location" : location
-              }
-    def genSimulationConditionDict():
-      return {}
+  def genJobDict( configName, configVersion, ldate, ltime ):
+    return {
+            "ConfigName"   : configName,
+            "ConfigVersion": configVersion,
+            "Date"         : ldate,
+            "Time"         : ltime
+           }
+  def genTypedParameterDict( name, value, typeP = "Info" ):
+    return {
+            "Name"  : name,
+            "Value" : value,
+            "Type"  : typeP
+            }
+  def genInputFileDict( name ):
+    return {
+            "Name" : name
+            }
+  def genOutputFileDict( name, typeName, typeVersion ):
+    return {
+            "Name"        : name,
+            "TypeName"    : typeName,
+            "TypeVersion" : typeVersion
+            }
+  def genParameterDict( name, value ):
+    return {
+            "Name"  : name,
+            "Value" : value
+            }
+  def genReplicaDict( name, location = "Web" ):
+    return {
+            "Name"     : name,
+            "Location" : location
+            }
+  def genSimulationConditionDict():
+    return {}
 
-    if not tag in ALLOWED_TAGS:
-      # We can also return S_ERROR, but this let's the job keep running.
-      dict = {}
-    else:
-      dict = locals()[ 'gen%sDict' % tag ]( *args )
+  if not tag in ALLOWED_TAGS:
+    # We can also return S_ERROR, but this let's the job keep running.
+    tagsDict = {}
+  else:
+    tagsDict = locals()[ 'gen%sDict' % tag ]( *args )
 
-    childNode = Document().createElement( tag )
-    for k, v in dict.items():
-      childNode.setAttribute( k, str( v ) )
-    parentNode.appendChild( childNode )
+  childNode = Document().createElement( tag )
+  for k, v in tagsDict.items():
+    childNode.setAttribute( k, str( v ) )
+  parentNode.appendChild( childNode )
 
-    if returnChildren:
-      return ( parentNode, childNode )
-    return parentNode
+  if returnChildren:
+    return ( parentNode, childNode )
+  return parentNode
 
 ################################################################################
 # END XML GENERATION FUNCTIONS

@@ -193,27 +193,35 @@ if w1:
     mergingSteps = stepsDictList[-1:]
   else:
     mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, defaultOutputSE, priority, cpu ) )
-  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection, selectionTracking, defaultOutputSE, selectionPriority, selectionCPU ) )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False,
+                      simulationTracking, defaultOutputSE, priority, cpu ) )
+  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection,
+                      selectionTracking, defaultOutputSE, selectionPriority, selectionCPU ) )
   for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge, mergingTracking, mergedDataSE, mergingPriority, mergingCPU ) )
+    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge,
+                        mergingTracking, mergedDataSE, mergingPriority, mergingCPU ) )
 elif w2:
   simulationSteps = stepsDictList[:-1]
   selectionSteps = stepsDictList[-1:]
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, defaultOutputSE, priority, cpu ) )
-  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection, selectionTracking, defaultOutputSE, selectionPriority, selectionCPU ) )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False,
+                      simulationTracking, defaultOutputSE, priority, cpu ) )
+  prodsList.append( ( 'DataStripping', selectionSteps, 'fromPreviousProd', removeInputSelection,
+                      selectionTracking, defaultOutputSE, selectionPriority, selectionCPU ) )
 elif w3:
   simulationSteps = stepsDictList[:-1]
   if mergingPlugin == 'ByRunFileTypeSizeWithFlush':
     mergingSteps = stepsDictList[-1:]
   else:
     mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, defaultOutputSE, priority, cpu ) )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False,
+                      simulationTracking, defaultOutputSE, priority, cpu ) )
   for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge, mergingTracking, mergedDataSE, mergingPriority, mergingCPU ) )
+    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', removeInputMerge,
+                        mergingTracking, mergedDataSE, mergingPriority, mergingCPU ) )
 elif w4:
   simulationSteps = stepsDictList
-  prodsList.append( ( 'MCSimulation', simulationSteps, None, False, simulationTracking, mergedDataSE, priority, cpu ) )
+  prodsList.append( ( 'MCSimulation', simulationSteps, None, False,
+                      simulationTracking, mergedDataSE, priority, cpu ) )
 
 prodID = 0
 for prodType, stepsList, bkQuery, removeInput, tracking, outputSE, priority, cpu in prodsList:
@@ -233,7 +241,7 @@ for prodType, stepsList, bkQuery, removeInput, tracking, outputSE, priority, cpu
                                                                           cpu = cpu,
                                                                           sysConfig = sysConfig,
                                                                           generatorName = '{{Generator}}',
-                                                                          outputsCERN = outputMode,
+                                                                          outputMode = outputMode,
                                                                           outputFileMask = outputFileMask,
                                                                           targetSite = targetSite,
                                                                           banTier1s = banTier1s,

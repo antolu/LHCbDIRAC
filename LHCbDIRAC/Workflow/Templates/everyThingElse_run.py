@@ -14,7 +14,7 @@ import DIRAC
 import LHCbDIRAC.Workflow.Templates.TemplatesUtilities
 
 from DIRAC import gLogger
-gLogger = gLogger.getSubLogger( 'RecoStripping_run.py' )
+gLogger = gLogger.getSubLogger( 'EveryThingElse_run.py' )
 
 #################################################################################
 # Below here is the actual production API script with notes
@@ -27,11 +27,12 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
 appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to production name#1}}'
 
-w = '{{w#----->WORKFLOW: choose one below#}}'
-w1 = '{{w1#-WORKFLOW1: Reconstruction#False}}'
-w2 = '{{w2#-WORKFLOW2: Stripping+Merge#False}}'
-w3 = '{{w3#-WORKFLOW3: RecoStripping+Merge#False}}'
-w4 = '{{w4#-WORKFLOW4: Reconstruction+Stripping+Merge#False}}'
+w = '{{w#----->WORKFLOW: choose what to do#}}'
+r = '{{r#---List here which productions you want to create#DataSwimming,DataStripping,Merge}}'
+p = '{{p#--now map steps to productions#}}'
+p1 = '{{p1#-Production 1 steps (e.g. 1,2,3)#1,2,3}}'
+p2 = '{{p2#-Production 2 steps (e.g. 4,5)#4,5}}'
+p3 = '{{p3#-Production 3 steps (e.g. 6)#}}'
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
@@ -46,32 +47,33 @@ targetSite = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 outputMode = '{{outputMode#GENERAL: Workflow upload workflow output#Any}}'
 
-#reco params
-recoPriority = '{{RecoPriority#PROD-RECO(Stripp): priority#2}}'
-recoCPU = '{{RecoMaxCPUTime#PROD-RECO(Stripp): Max CPU time in secs#1000000}}'
-recoPlugin = '{{RecoPluginType#PROD-RECO(Stripp): production plugin name#AtomicRun}}'
-recoAncestorProd = '{{RecoAncestorProd#PROD-RECO(Stripp): ancestor production if any#0}}'
-recoDataSE = '{{RecoDataSE#PROD-RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
-recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO(Stripp): Group size or number of files per job#1}}'
-recoType = '{{RecoType#PROD-RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
+#p1 params
+p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
+p1Priority = '{{p1Priority#PROD-p1: priority#2}}'
+p1CPU = '{{p1MaxCPUTime#PROD-p1: Max CPU time in secs#1000000}}'
+p1AncestorProd = '{{p1AncestorProd#PROD-p1: ancestor production if any#0}}'
+p1DataSE = '{{p1DataSE#PROD-p1: Output Data Storage Element#Tier1-DST}}'
+p1FilesPerJob = '{{p1FilesPerJob#PROD-p1: Group size or number of files per job#1}}'
+p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 
-#stripp params
-strippPriority = '{{priority#PROD-Stripping: priority#5}}'
-strippCPU = '{{StrippMaxCPUTime#PROD-Stripping: Max CPU time in secs#1000000}}'
-strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#ByRunWithFlush}}'
-strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#2}}'
-strippDataSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
-strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#download}}'
+#p2 params
+p2Plugin = '{{p2PluginType#PROD-P1: production plugin name#LHCbStandard}}'
+p2Priority = '{{p2Priority#PROD-p2: priority#2}}'
+p2CPU = '{{p2MaxCPUTime#PROD-p2: Max CPU time in secs#1000000}}'
+p2AncestorProd = '{{p2AncestorProd#PROD-p2: ancestor production if any#0}}'
+p2DataSE = '{{p2DataSE#PROD-p2: Output Data Storage Element#Tier1-DST}}'
+p2FilesPerJob = '{{p2FilesPerJob#PROD-p2: Group size or number of files per job#1}}'
+p2Policy = '{{p2Policy#PROD-P1: data policy (download or protocol)#download}}'
 
-#merging params
-mergingDQFlag = '{{MergeDQFlag#PROD-Merging: DQ Flag e.g. OK,UNCHECKED#OK;;;UNCHECKED}}'
-mergingPriority = '{{MergePriority#PROD-Merging: priority#8}}'
-mergingPlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRunWithFlush}}'
-mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
-mergingCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
-mergingFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
-mergingIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
-mergingDataSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
+#p3 params
+p3Plugin = '{{p3PluginType#PROD-P1: production plugin name#LHCbStandard}}'
+p3Priority = '{{p3Priority#PROD-p3: priority#2}}'
+p3CPU = '{{p3MaxCPUTime#PROD-p3: Max CPU time in secs#1000000}}'
+p3AncestorProd = '{{p3AncestorProd#PROD-p3: ancestor production if any#0}}'
+p3DataSE = '{{p3DataSE#PROD-p3: Output Data Storage Element#Tier1-DST}}'
+p3FilesPerJob = '{{p3FilesPerJob#PROD-p3: Group size or number of files per job#1}}'
+p3Policy = '{{p3Policy#PROD-P1: data policy (download or protocol)#download}}'
+
 
 requestID = '{{ID}}'
 parentReq = '{{_parent}}'
@@ -86,30 +88,15 @@ processingPass = '{{inProPass}}'
 bkFileType = '{{inFileType}}'
 eventType = '{{eventType}}'
 NbOfEvents = int( '{{NbOfEvents}}' )
-
-w1 = eval( w1 )
-w2 = eval( w2 )
-w3 = eval( w3 )
-w4 = eval( w4 )
+#Productions-steps
+p1 = p1.split( ',' )
+p2 = p2.split( ',' )
+p3 = p3.split( ',' )
 
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
 if extraOptions:
   extraOptions = eval( extraOptions )
-mergeRemoveInputsFlag = eval( mergingRemoveInputsFlag )
-
-if not w1 and not w2 and not w3 and not w4:
-  gLogger.error( 'I told you to select at least one workflow!' )
-  DIRAC.exit( 2 )
-
-recoTracking = 0
-strippingTracking = 0
-mergingTracking = 0
-
-if w1:
-  recoTracking = 1
-else:
-  mergingTracking = 1
 
 if certificationFlag or localTestFlag:
   testFlag = True
@@ -125,29 +112,24 @@ diracProd = DiracProduction()
 
 inputDataList = []
 if not publishFlag:
-  #this is 1380Gev MagUp
-  #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
-  #this is collision11
-  recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
-
-  inputDataList.append( recoTestData )
-  recoIDPolicy = 'protocol'
+  testData = 'LFN:/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00012586/0000/00012586_00000706_1.charmcompleteevent.dst'
+  inputDataList.append( testData )
+  p1Policy = 'protocol'
+  evtsPerJob = '5'
   bkScriptFlag = True
+else:
+  bkScriptFlag = False
 
 #In case we want just to test, we publish in the certification/test part of the BKK
 if testFlag:
-  configName = 'certification'
-  configVersion = 'test'
-  NbOfEvents = 25
-  strppEventsPerJob = '1000'
-  mergingGroupSize = '1'
-  recoCPU = '200000'
-  recoStartRun = '93718'
-  recoEndRun = '93720'
+  outBkConfigName = 'certification'
+  outBkConfigVersion = 'test'
+  startRun = '75336'
+  endRun = '75340'
   recoCPU = '100000'
-  dataTakingCond = 'Beam3500GeV-VeloClosed-MagUp'
-  processingPass = 'Real Data'
-  bkFileType = 'RAW'
+  dataTakingCond = 'Beam3500GeV-VeloClosed-MagDown'
+  processingPass = 'Real Data/Reco12/Stripping17'
+  swimmFileType = 'CHARMCOMPLETEEVENT.DST'
   eventType = '90000000'
   DQFlag = 'ALL'
 
@@ -180,52 +162,17 @@ stepsList.append( '{{p9Step}}' )
 #get a list of steps dictionaries
 stepsDictList = LHCbDIRAC.Workflow.Templates.TemplatesUtilities.resolveSteps( stepsList )
 
-recoSteps = []
-strippingSteps = []
-mergingSteps = []
+p1Steps = []
+p2Steps = []
+p3Steps = []
 
 prodsList = []
 
-if w1:
-  recoSteps = stepsDictList
-  prodsList.append( ( recoType, recoSteps, inputBKQuery, False,
-                      recoTracking, recoDataSE, recoPriority, recoCPU, inputDataList ) )
-elif w2:
-  strippingSteps = stepsDictList[:-1]
-  if mergingPlugin == 'ByRunFileTypeSizeWithFlush':
-    mergingSteps = stepsDictList[-1:]
-  else:
-    mergingSteps = stepsDictList[-1:]
-  prodsList.append( ( 'DataStripping', strippingSteps, inputBKQuery, False,
-                      strippingTracking, strippDataSE, strippPriority, strippCPU, inputDataList ) )
-  for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', mergeRemoveInputsFlag,
-                        mergingTracking, mergingDataSE, mergingPriority, mergingCPU, '' ) )
-elif w3:
-  recoSteps = stepsDictList[:-1]
-  if mergingPlugin == 'ByRunFileTypeSizeWithFlush':
-    mergingSteps = stepsDictList[-1:]
-  else:
-    mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
-  prodsList.append( ( recoType, recoSteps, inputBKQuery, False,
-                      recoTracking, recoDataSE, recoPriority, recoCPU, inputDataList ) )
-  for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', mergeRemoveInputsFlag,
-                        mergingTracking, mergingDataSE, mergingPriority, mergingCPU, '' ) )
-elif w4:
-  recoSteps = stepsDictList[:-2]
-  strippingSteps = stepsDictList[-2:-1]
-  if mergingPlugin == 'ByRunFileTypeSizeWithFlush':
-    mergingSteps = stepsDictList[-1:]
-  else:
-    mergingSteps = LHCbDIRAC.Workflow.Templates.TemplatesUtilities._splitIntoProductionSteps( stepsDictList[-1:] )
-  prodsList.append( ( recoType, recoSteps, inputBKQuery, False,
-                      recoTracking, recoDataSE, recoPriority, recoCPU, inputDataList ) )
-  prodsList.append( ( 'DataStripping', strippingSteps, 'fromPreviousProd', False,
-                      strippingTracking, strippDataSE, strippPriority, strippCPU, '' ) )
-  for s in mergingSteps:
-    prodsList.append( ( 'Merge', [s], 'fromPreviousProd', mergeRemoveInputsFlag, mergingTracking,
-                        mergingDataSE, mergingPriority, mergingCPU, '' ) )
+
+
+
+
+
 
 prodID = 0
 for prodType, stepsList, bkQuery, removeInput, tracking, outputSE, priority, cpu, inputDataList in prodsList:
@@ -238,10 +185,10 @@ for prodType, stepsList, bkQuery, removeInput, tracking, outputSE, priority, cpu
                                                                           dataTakingConditions = dataTakingCond,
                                                                           appendName = appendName,
                                                                           extraOptions = extraOptions,
-                                                                          outputSE = outputSE,
+                                                                          defaultOutputSE = outputSE,
                                                                           inputDataList = inputDataList,
-                                                                          eventType = eventType,
-                                                                          events = NbOfEvents,
+                                                                          eventType = '{{eventType}}',
+                                                                          events = eventType,
                                                                           priority = priority,
                                                                           cpu = cpu,
                                                                           sysConfig = sysConfig,

@@ -178,8 +178,6 @@ class Production():
         the case where they might be different is the merging case.
     """
 
-    print stepDict
-
     appName = stepDict['ApplicationName']
     appVersion = stepDict['ApplicationVersion']
     optionsFile = stepDict['OptionFiles']
@@ -317,7 +315,7 @@ class Production():
       if value:
         gaudiStepInstance.setValue( pName, value )
 
-    outputFilesDict = self._constructOutputFilesDict( stepDict['fileTypesOut'], outputSE )
+    outputFilesDict = self._constructOutputFilesDict( fileTypesOut, outputSE )
     gaudiStepInstance.setValue( 'listoutput', ( outputFilesDict ) )
 
     # now we have to tell DIRAC to install the necessary software

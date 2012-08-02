@@ -39,14 +39,14 @@ def resolveSteps( stepsList, BKKClientIn = None ):
     if not s_in['OK']:
       raise ValueError, s_in['Message']
     else:
-      fileTypesList = [fileType[0] for fileType in s_in['Value']['Records']]
+      fileTypesList = [fileType[0].strip() for fileType in s_in['Value']['Records']]
       stepsListDictItem['fileTypesIn'] = fileTypesList
 
     s_out = BKKClient.getStepOutputFiles( stepID )
     if not s_out['OK']:
       raise ValueError, s_out['Message']
     else:
-      fileTypesList = [fileType[0] for fileType in s_out['Value']['Records']]
+      fileTypesList = [fileType[0].strip() for fileType in s_out['Value']['Records']]
       stepsListDictItem['fileTypesOut'] = fileTypesList
 
     stepsListDict.append( stepsListDictItem )
@@ -80,8 +80,9 @@ def _splitIntoProductionSteps( stepsList ):
     if len( step['fileTypesIn'] ) <= 1:
       prodSteps.append( step )
     else:
-      if step['fileTypesOut'] not in step['fileTypesIn']:
-        raise ValueError, "Step outputs are not part of the inputs ...?"
+      if set( step['fileTypesOut'] ) > set( step['fileTypesIn'] ):
+        raise ValueError, "Step outputs %s are not part of the inputs %s...?" % ( str( step['fileTypesOut'] ),
+                                                                                  str( step['fileTypesIn'] ) )
       for outputTypes in step['fileTypesOut']:
         prodStep = copy.deepcopy( step )
         prodStep['fileTypesIn'] = [outputTypes]
@@ -96,6 +97,7 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
                      configName, configVersion, dataTakingConditions, appendName,
                      extraOptions, outputSE,
                      eventType, events, priority, cpu,
+                     inputDataList = [],
                      sysConfig = '',
                      generatorName = '',
                      outputMode = 'Any',
@@ -111,7 +113,8 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
 
   #non optional parameters
   prod.LHCbJob.setType( prodType )
-  prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s' % ( requestID, prodType, prodDesc, eventType, appendName ) )
+  prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s' % ( requestID, prodType,
+                                                                        prodDesc, eventType, appendName ) )
   prod.setBKParameters( configName, configVersion, prodDesc, dataTakingConditions )
   prod._setParameter( 'eventType', 'string', eventType, 'Event Type of the production' )
   prod._setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
@@ -131,6 +134,8 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
     prod.setTargetSite( targetSite )
   if banTier1s:
     prod.banTier1s()
+  if inputDataList:
+    prod.LHCbJob.setInputData( inputDataList )
 
   #Adding optional input BK query
   if bkQuery == 'fromPreviousProd':
@@ -241,3 +246,34 @@ def launchProduction( prod, publishFlag, testFlag, requestID, parentReq,
   return prodID
 
 #############################################################################
+
+def getProdsDescriptionDict( prodsTypeList, stepsInProds, bkQuery, removeInputsFlags,
+                             outputSEs, priorities, CPUs, inputs ):
+
+  prodsDict = {}
+
+  for prodType, stepsInProd, removeInputsFlag, outputSE, priority, cpu, inputD in itertools.izip( prodsTypeList,
+                                                                                          stepsInProds,
+                                                                                          removeInputsFlags,
+                                                                                          outputSEs,
+                                                                                          priorities,
+                                                                                          CPUs,
+                                                                                          inputs
+                                                                ):
+
+    prodsDict[ prodType ] = {
+                             'stepsInProd': stepsInProd,
+                             'bkQuery': bkQuery,
+                             'removeInputsFlag': removeInputsFlag,
+                             'tracking':0,
+                             'outputSE':outputSE,
+                             'priority': priority,
+                             'cpu': cpu,
+                             'input': inputD
+                             }
+    bkQuery = 'fromPreviousProd'
+
+  #tracking the last production
+  prodsDict[prodType]['tracking'] = 1
+
+  return prodsDict
