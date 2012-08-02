@@ -111,6 +111,7 @@ class Production():
     self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
     #Options related parameters
+    #FIXME: needed?
     self._setParameter( 'CondDBTag', 'string', 'sim-20090112', 'CondDBTag' )
     self._setParameter( 'DDDBTag', 'string', 'head-20090112', 'DetDescTag' )
     self._setParameter( 'DQTag', 'string', 'head-20090112', 'DQTag' )
@@ -144,21 +145,6 @@ class Production():
     else:
       self.LHCbJob.log.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description )
-
-  #############################################################################
-
-  def __getEventType( self, eventType ):
-    """ Checks whether or not the global event type should be set.
-    """
-    if eventType.lower() == 'firststep' and not self.firstEventType:
-      raise TypeError, 'Must specify event type for initial step'
-    elif eventType.lower() == 'firststep' and self.firstEventType:
-      eventType = self.firstEventType
-    elif not self.firstEventType:
-      self.firstEventType = eventType
-
-    self.LHCbJob.log.verbose( 'Setting event type for current step to %s' % ( eventType ) )
-    return eventType
 
   #############################################################################
 
@@ -394,7 +380,6 @@ class Production():
 
   #############################################################################
 
-  #NEW: try to put here common stuff of the addXXXXStep
   def addApplicationStep( self, stepDict, outputSE, eventType, extraPackages, optionsFile ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1', 
@@ -408,10 +393,32 @@ class Production():
         the case where they should be different is the merging case.
     """
 
-    #common to all
-    eventType = self.__getEventType( eventType ) #only to be reported in the BKK (and eventually by the StepAccounting
+    appName = stepDict['ApplicationName']
+    appVersion = stepDict['ApplicationVersion']
+    optionsFile = stepDict['OptionFiles']
+    stepID = stepDict['StepId']
+    stepName = stepDict['StepName']
+    stepVisible = stepDict['Visible']
+    extraPackages = stepDict['ExtraPackages']
+    fileTypesOut = stepDict['fileTypesOut']
+    stepPass = stepDict['ProcessingPass']
+    optionsFormat = stepDict['OptionsFormat']
+    dddbOpt = stepDict['DDDB']
+    conddbOpt = stepDict['CONDDB']
+    DQOpt = stepDict['DQTag']
+
+    if extraPackages:
+      if type( extraPackages ) == type( [] ):
+        extraPackages = string.join( extraPackages, ';' )
+      if 'ProdConf' not in extraPackages:
+        extraPackages = extraPackages + ';ProdConf.v1r0'
+      extraPackages = extraPackages.replace( ' ', '' )
+    else:
+      extraPackages = 'ProdConf.v1r0'
+
+    self.__addSoftwarePackages( extraPackages )
+
     self.__checkArguments( extraPackages, optionsFile )
-    #firstEventNumber is useless here (set by GaudiApplication module for Gauss only
 
     outputFilesDict = self._constructOutputFilesDict( stepDict['fileTypesOut'], outputSE )
 
@@ -506,7 +513,8 @@ class Production():
 
     #create the step instance add it to the wf, and return it
     gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step',
-                                                                  '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount ) )
+                                                                  '%s_%s' % ( appName,
+                                                                              self.LHCbJob.gaudiStepCount ) )
 
     #lower the appType if not creating a template
     if type( appType ) == str and appType and not re.search( '{{', appType ):
@@ -521,7 +529,6 @@ class Production():
     valuesToSet = [
                    ['applicationName', appName ],
                    ['applicationVersion', appVersion ],
-                   ['applicationType', appType ],
                    ['optionsFile', optionsFile ],
                    ['extraOptionsLine', optionsLine],
                    ['optionsLinePrev', 'None'],
@@ -530,7 +537,7 @@ class Production():
                    ['outputFilePrefix', '@{STEP_ID}'],
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
                    ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
-                   ['outputData', '@{STEP_ID}.@{applicationType}'],
+                   ['outputData', '@{STEP_ID}.' + fileTypesOut[0] if len( fileTypesOut ) == 1 else 'multiple'],
                    ['BKStepID', str( stepID )],
                    ['StepProcPass', stepPass],
                    ['HistogramName', self.histogramName],
@@ -559,8 +566,6 @@ class Production():
 
     for pName, value in valuesToSet:
       gaudiStepInstance.setValue( pName, value )
-
-
 
     if not inputData:
       self.LHCbJob.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
@@ -651,6 +656,77 @@ class Production():
     return gaudiStepInstance
 
   #############################################################################
+
+
+  def _constructOutputFilesDict( self, filesList, outputSE, histoName = None, histoSE = None ):
+    """ build list of dictionary of output files, including HIST case, and fix outputSE for file
+    """
+
+    if not histoName:
+      histoName = self.histogramName
+
+    if not histoSE:
+      histoSE = self.histogramSE
+
+    outputList = []
+
+    for fileType in filesList:
+      fileDict = {}
+      if 'hist' in fileType.lower():
+        fileDict['outputDataName'] = histoName
+        fileDict['outputDataSE'] = histoSE
+      else:
+        fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
+        fileDict['outputDataSE'] = outputSE
+      fileDict['outputDataType'] = fileType.lower()
+
+      outputList.append( fileDict )
+
+    return outputList
+
+  #############################################################################
+
+  def __addStepDefinition( self ):
+    """ Add a step definition to the workflow
+    """
+    modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
+                                                                                  'AnalyseLogFile',
+                                                                                  'AnalyseXMLSummary',
+                                                                                  'ErrorLogging',
+                                                                                  'BookkeepingReport',
+                                                                                  'StepAccounting'
+                                                                                  ] )
+
+    #pName, pType, pValue, pDesc
+    parametersList = [
+                      ['inputData', 'string', '', 'StepInputData'],
+                      ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
+                      ['outputData', 'string', '', 'OutputData'],
+                      ['generatorName', 'string', '', 'GeneratorName'],
+                      ['applicationName', 'string', '', 'ApplicationName'],
+                      ['applicationVersion', 'string', '', 'ApplicationVersion'],
+                      ['runTimeProjectName', 'string', '', 'runTimeProjectName'],
+                      ['runTimeProjectVersion', 'string', '', 'runTimeProjectVersion'],
+                      ['applicationLog', 'string', '', 'ApplicationLogFile'],
+                      ['XMLSummary', 'string', '', 'XMLSummaryFile'],
+                      ['optionsFile', 'string', '', 'OptionsFile'],
+                      ['optionsLine', 'string', '', 'OptionsLines'],
+                      ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
+                      ['listoutput', 'list', [], 'StepOutputList'],
+                      ['extraPackages', 'string', '', 'ExtraPackages'],
+                      ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
+                      ['BKStepID', 'string', '', 'BKKStepID'],
+                      ['StepProcPass', 'string', '', 'StepProcessingPass'],
+                      ['HistogramName', 'string', '', 'NameOfHistogram'],
+                      ['optionsFormat', 'string', '', 'ProdConf configuration'],
+                      ]
+
+    gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
+                                      parametersList = parametersList )
+    self.LHCbJob.workflow.addStep( gaudiStepDef )
+
+  #############################################################################
+
   def __addSoftwarePackages( self, nameVersion ):
     """ Internal method to accumulate software packages.
     """
@@ -667,6 +743,7 @@ class Production():
       self.LHCbJob._addParameter( self.LHCbJob.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
+
   def __addBKPassStep( self ):
     """ Internal method to add BKK parameters
     """
@@ -762,6 +839,8 @@ class Production():
     parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
     parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
     parameters['JobType'] = prodWorkflow.findParameter( 'JobType' ).getValue()
+    parameters['eventType'] = prodWorkflow.findParameter( 'eventType' ).getValue()
+    parameters['numberOfEvents'] = prodWorkflow.findParameter( 'numberOfEvents' ).getValue()
     parameters['SizeGroup'] = self.jobFileGroupSize
 
     if parameters['JobType'].lower() == 'mcsimulation':
@@ -776,13 +855,6 @@ class Production():
 
     if prodWorkflow.findParameter( 'TransformationFamily' ):
       parameters['TransformationFamily'] = prodWorkflow.findParameter( 'TransformationFamily' ).getValue()
-
-    for i in prodWorkflow.step_instances:
-      if i.findParameter( 'eventType' ):
-        parameters['eventType'] = i.findParameter( 'eventType' ).getValue()
-
-    if not parameters.has_key( 'eventType' ):
-      raise ValueError, 'Could not determine eventType from workflow'
 
     parameters['BKCondition'] = prodWorkflow.findParameter( 'conditions' ).getValue()
 
@@ -954,14 +1026,6 @@ class Production():
       bkDict['SimulationConditions'] = bkConditions
       bkDictStep['SimulationConditions'] = bkConditions
 
-    #Adding some MC transformation parameters if present
-    maxNumberOfTasks = 0
-    maxEventsPerTask = 0
-    if self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ):
-      maxNumberOfTasks = self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ).getValue()
-    if self.LHCbJob.workflow.findParameter( 'EventsPerTask' ):
-      maxEventsPerTask = self.LHCbJob.workflow.findParameter( 'EventsPerTask' ).getValue()
-
     descShort = self.LHCbJob.workflow.getDescrShort()
     descLong = self.LHCbJob.workflow.getDescription()
 
@@ -979,10 +1043,7 @@ class Production():
       #This mechanism desperately needs to be reviewed
       result = self.transClient.addTransformation( fileName, descShort, descLong, self.LHCbJob.type, self.plugin, 'Manual',
                                                    fileMask, transformationGroup = self.prodGroup, groupSize = int( groupSize ),
-                                                   inheritedFrom = int( derivedProduction ), body = workflowBody,
-                                                   maxTasks = int( maxNumberOfTasks ),
-                                                   eventsPerTask = int( maxEventsPerTask ),
-                                                   bkQuery = bkQuery
+                                                   inheritedFrom = int( derivedProduction ), body = workflowBody, bkQuery = bkQuery
                                                   )
 
       if not result['OK']:
@@ -1336,6 +1397,21 @@ class Production():
 
   #############################################################################
 
+  def setNumberOfEvents( self, numberOfEvents ):
+    """ Set the event type as a workflow paramater
+    """
+    self._setParameter( 'numberOfEvents', 'string', numberOfEvents, 'Number of events requested' )
+
+  #############################################################################
+
+  def setEventType( self, eventType ):
+    """ Set the event type as a workflow paramater
+    """
+    self._setParameter( 'eventType', 'string', eventType, 'Event Type of the production' )
+    self.firstEventType = eventType
+
+  #############################################################################
+
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
@@ -1376,15 +1452,6 @@ class Production():
     self._setParameter( 'groupDescription', 'string', groupDescription, 'GroupDescription' )
     self._setParameter( 'conditions', 'string', conditions, 'SimOrDataTakingCondsString' )
     self._setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
-
-  #############################################################################
-
-  def setDBTags( self, conditions = '', detector = '', dqTag = '' ):
-    """ Sets DB tags
-    """
-    self._setParameter( 'CondDBTag', 'string', conditions.replace( ' ', '' ), 'CondDBTag' )
-    self._setParameter( 'DDDBTag', 'string', detector.replace( ' ', '' ), 'DetDescTag' )
-    self._setParameter( 'DQTag', 'string', dqTag.replace( ' ', '' ), 'DQTag' )
 
   #############################################################################
 
@@ -1460,17 +1527,3 @@ class Production():
     self._setParameter( 'DisableCPUCheck', 'JDL', 'True', 'DisableWatchdogCPUCheck' )
 
   #############################################################################  
-
-  def setSimulationEvents( self, eventsTotal, eventsPerTask ):
-    """ In order to set the EventsPerTask and MaxNumberOfTasks parameters for 
-        MC simulation productions.
-    """
-    if int( eventsTotal ) and int( eventsPerTask ):
-      self._setParameter( 'EventsPerTask', 'string', str( eventsPerTask ), 'EventsPerTask' )
-      #Add a 10% buffer
-      maxJobs = int( 1.1 * int( eventsTotal ) / int( eventsPerTask ) )
-      self._setParameter( 'MaxNumberOfTasks', 'string', str( maxJobs ), 'MaxNumberOfTasks' )
-    else:
-      self.LHCbJob.log.warn( 'Either EventsTotal "%s" or EventsPerTask "%s" were set to null' % ( eventsTotal, eventsPerTask ) )
-
-  #############################################################################
