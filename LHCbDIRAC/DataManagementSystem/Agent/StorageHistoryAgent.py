@@ -1,4 +1,4 @@
-#####################################################################
+########################################################################
 # $HeadURL $
 # File: StorageHistoryAgent.py
 ########################################################################
@@ -7,71 +7,103 @@
  
     .. module: StorageHistoryAgent
     :synopsis: The Storage History Agent will create a summary of the
-    storage usage DB grouped by processing pass or other
-    interesting parameters.
+    storage usage DB grouped by processing pass or other interesting parameters.
 
     Initially this will dump the information to a file but eventually
     can be inserted in a new DB table and made visible via the web portal.
 """
 ## imports
 import os
-import sys
 import re
-import pprint
 import time
 ## from DIRAC
+from DIRAC  import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities import Time
-from DIRAC.Core.Utilities.List                           import sortList, intListToString
+from DIRAC.Core.Utilities.List import sortList
+from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
+from DIRAC.Core.DISET.RPCClient import RPCClient
+## from LHCbDIRAC
 from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage import UserStorage
 from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
-from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
-
-from DIRAC  import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 __RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/StorageHistoryAgent"
 
-byteToGB = 1.0e9
+# gB2GB = 1.0e9
 
 class StorageHistoryAgent( AgentModule ):
+  """
+  .. class:: StorageHistoryAgent
+
+  :param mixed storageUsage: StorageUsageDB instance or its rpc client
+  :param BookkeepingClient bkClient: BookkeepingClient instance 
+  :param str workDirectory: abs path to work directory
+  :param int bkkCacheTimeout: cache validity period
+  """
+  storageUsage = None
+  bkClient = None
+  workDirectory = None
+  bkkCacheTimeout = 259200
+
+  dataDirs = None
+  dataSum = None
+  prodsNotInLFC = None
+  persistentDictList = None
+  rawDirs = None
+  limitForCommit = None
+  totalRecords = None
+  dict1 = None
+  recordsToCommit = None
+  mcSum = None
+  eventTypeDescription = None
+  proPassTuples = None
+  totalBkkProductions = None
+  totalBkkRuns = None
+  runsNotInLFC = None
+  rawSum = None
+  prodsInLFC = None
+  numDataRows = None
+  mcDirs = None
+  bkkDictFile = None 
+  runsInLFC = None
 
   def initialize( self ):
-    """Sets defaults
-    """
+    """ agent initialisation """
     self.am_setOption( 'PollingTime', 43200 )
     if self.am_getOption( 'DirectDB', False ):
-      from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
-      self.__stDB = StorageUsageDB()
+      self.storageUsage = StorageUsageDB()
     else:
-      from DIRAC.Core.DISET.RPCClient import RPCClient
-      self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
+      self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
     self.bkClient = BookkeepingClient()
 
-    self.__workDirectory =  self.am_getOption( "WorkDirectory" )
-    if not os.path.isdir( self.__workDirectory ):
-      os.makedirs( self.__workDirectory )
-    self.log.info( "Working directory is %s" % self.__workDirectory )
-    self.bkkCacheTimeout = self.am_getOption( 'BookkeepingCacheTimeout', 259200 ) # by default 3 days
+    self.workDirectory =  self.am_getOption( "WorkDirectory" )
+    if not os.path.isdir( self.workDirectory ):
+      os.makedirs( self.workDirectory )
+    self.log.info( "Working directory is %s" % self.workDirectory )
+    self.bkkCacheTimeout = self.am_getOption( 'BookkeepingCacheTimeout', self.bkkCacheTimeout ) # by default 3 days
     return S_OK()
 
   def execute( self ):
+    """ execution in one cycle """
     if self.am_getOption( "CleanBefore", False ):
       self.log.notice( "Cleaning the DB" )
-      result = self.__stDB.purgeOutdatedEntries( "/lhcb/user", self.am_getOption( "OutdatedSeconds", 86400 * 10 ) )
+      result = self.storageUsage.purgeOutdatedEntries( "/lhcb/user", 
+                                                       self.am_getOption( "OutdatedSeconds", 86400 * 10 ) )
       if not result[ 'OK' ]:
         return result
       self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
-    result = self.__stDB.getUserSummary()
+    result = self.storageUsage.getUserSummary()
     if not result[ 'OK' ]:
       return result
     userCatalogData = result[ 'Value' ]
     print userCatalogData
     self.log.notice( "Got summary for %s users" % ( len( userCatalogData ) ) )
-    result = self.__stDB.getUserSummaryPerSE()
+    result = self.storageUsage.getUserSummaryPerSE()
     if not result[ 'OK' ]:
       return result
     userSEData = result[ 'Value' ]
@@ -116,7 +148,7 @@ class StorageHistoryAgent( AgentModule ):
     ftb = 1.0e12
 
     # get info from the DB about the LOGICAL STORAGE USAGE (from the su_Directory table):
-    result = self.__stDB.getSummary( '/lhcb/' )
+    result = self.storageUsage.getSummary( '/lhcb/' )
     if not result[ 'OK' ]:
       return result
     logicalUsage = result['Value']
@@ -124,10 +156,10 @@ class StorageHistoryAgent( AgentModule ):
     for row in logicalUsage.keys():
       #self.log.debug("row is %s " %row)
       #d, size, files = row
-      d = row
-      files = logicalUsage[ d ][ 'Files' ]
-      size = logicalUsage[ d ][ 'Size' ]
-      splitDir = d.split( "/" )
+      #d = row
+      files = logicalUsage[ row ][ 'Files' ]
+      size = logicalUsage[ row ][ 'Size' ]
+      splitDir = row.split( "/" )
       if len( splitDir ) > 3: # skip the root directory "/lhcb/"
         firstLevelDir = '/' + splitDir[1] + '/' + splitDir[2] + '/'
         if firstLevelDir not in topDirLogicalUsage.keys():
@@ -137,26 +169,29 @@ class StorageHistoryAgent( AgentModule ):
         topDirLogicalUsage[ firstLevelDir ][ 'Files' ] += files
         topDirLogicalUsage[ firstLevelDir ][ 'Size' ] += size
     self.log.notice( "Summary on logical usage of top directories: " )
-    for d in topDirLogicalUsage.keys():
-      self.log.notice( "dir: %s size: %.4f TB  files: %d" % ( d, topDirLogicalUsage[d]['Size'] / ftb, topDirLogicalUsage[d]['Files'] ) )
+    for folder in topDirLogicalUsage:
+      self.log.notice( "dir: %s size: %.4f TB  files: %d" % ( folder, 
+                                                              topDirLogicalUsage[folder]['Size'] / ftb, 
+                                                              topDirLogicalUsage[folder]['Files'] ) )
 
-    # loop on top level directories (/lhcb/data, /lhcb/user/, /lhcb/MC/, etc..) to get the summary in terms of PHYSICAL usage grouped by SE:
-    SEData = {}
+    # loop on top level directories (/lhcb/data, /lhcb/user/, /lhcb/MC/, etc..) 
+    #  to get the summary in terms of PHYSICAL usage grouped by SE:
+    seData = {}
     for directory in topDirLogicalUsage.keys():
-      result = self.__stDB.getDirectorySummaryPerSE( directory ) # retrieve the PHYSICAL usage
+      result = self.storageUsage.getDirectorySummaryPerSE( directory ) # retrieve the PHYSICAL usage
       if not result[ 'OK' ]:
         return result
-      SEData[ directory ] = result[ 'Value' ]
-      self.log.notice( "Got SE summary for %s directories " % ( len( SEData ) ) )
-      self.log.debug( "SEData: %s" % SEData )
+      seData[ directory ] = result[ 'Value' ]
+      self.log.notice( "Got SE summary for %s directories " % ( len( seData ) ) )
+      self.log.debug( "seData: %s" % seData )
     # loop on top level directories to send the accounting records
     numRows = 0
-    for directory in SEData.keys():
-      self.log.debug( "dir: %s SEData: %s " % ( directory, SEData[ directory ] ) )
-      if directory not in topDirLogicalUsage.keys():
-        self.log.error( "ERROR: directory %s is in the summary per SE, but it is not in the logical files summary!" % directory )
+    for directory in seData.keys():
+      self.log.debug( "dir: %s seData: %s " % ( directory, seData[ directory ] ) )
+      if directory not in topDirLogicalUsage:
+        self.log.error( "directory %s is in the summary per SE, but missing in the logical files summary!" % directory )
         continue
-      for se in sorted( SEData[ directory ].keys() ):
+      for se in sorted( seData[ directory ].keys() ):
         storageRecord = Storage()
         storageRecord.setStartTime( now )
         storageRecord.setEndTime( now )
@@ -167,12 +202,12 @@ class StorageHistoryAgent( AgentModule ):
         storageRecord.setValueByKey( "LogicalFiles", logicalFiles )
         storageRecord.setValueByKey( "LogicalSize", logicalSize )
         try:
-          physicalFiles = SEData[ directory ][ se ][ 'Files' ]
+          physicalFiles = seData[ directory ][ se ][ 'Files' ]
         except:
           self.log.notice( "WARNING! no files replicas for directory %s on SE %s" % ( directory, se ) )
           physicalFiles = 0
         try:
-          physicalSize = SEData[ directory ][ se ][ 'Size' ]
+          physicalSize = seData[ directory ][ se ][ 'Size' ]
         except:
           self.log.notice( "WARNING! no size for replicas for directory %s on SE %s" % ( directory, se ) )
           physicalSize = 0
@@ -180,7 +215,8 @@ class StorageHistoryAgent( AgentModule ):
         storageRecord.setValueByKey( "PhysicalSize", physicalSize )
         gDataStoreClient.addRegister( storageRecord )
         numRows += 1
-        self.log.debug( "Directory: %s SE: %s  physical size: %.4f TB (%d files)" % ( directory, se, physicalSize / ftb, physicalFiles ) )
+        self.log.debug( "Directory: %s SE: %s physical size: %.4f TB (%d files)" % ( directory, se, 
+                                                                                     physicalSize/ftb, physicalFiles ) )
 
     self.log.notice( "Sending %s records to accounting for top level directories storage" % numRows )
     res = gDataStoreClient.commit()
@@ -193,19 +229,22 @@ class StorageHistoryAgent( AgentModule ):
     self.log.notice("-------------------------------------------------------------------------------------\n")
     self.log.notice("Generate accounting records for DataStorage type ")
     self.log.notice("-------------------------------------------------------------------------------------\n")
+
     # work flow:
-    # 1- queries the BKK client to get the set of data taking conditions relative to: eventType=93000000,ConfigVersion': 'Collision10', 'ConfigName': 'LHCb'.
+    # 1. queries the BKK client to get the set of data taking conditions relative to: 
+    #    eventType=93000000,ConfigVersion': 'Collision10', 'ConfigName': 'LHCb'.
     # 2- loops on the data taking conditions and retrieve for each of them the set of all existing processing passes.
     #    Loops on all processing passes:
     #    2.1 - for every ( data taking condition, proc. pass) queries the BKK client to get the list of productions/runs
-    #    2.2 - for production, gets the list of file types and adds the HIST, DST and SETC (not clear..) and fill and accounting record per SE.
-
+    #    2.2 - for production, gets the list of file types and adds the HIST, DST and SETC (not clear..) and fill 
+    #          and accounting record per SE.
 
     # counter for DataStorage records, commit to the accounting in bunches of self.limitForCommit records
     self.totalRecords = 0
     self.recordsToCommit = 0
     self.limitForCommit = 200
-    # keep a counter for all runs and productions returned by the Bkk queries, to compare with those stored in the LFC and check consistency
+    # keep a counter for all runs and productions returned by the Bkk queries, 
+    # to compare with those stored in the LFC and check consistency
     self.totalBkkProductions = []
     self.totalBkkRuns = []
  
@@ -220,22 +259,28 @@ class StorageHistoryAgent( AgentModule ):
 
 
     self.log.notice(" Try to read cached Bookkeeping dictionary from disk..")
-    BkkCachedInfo = False
-    self.bkkDictFile = os.path.join( self.__workDirectory, "bkkPersistentDict.txt" )
+    bkkCachedInfo = False
+    self.bkkDictFile = os.path.join( self.workDirectory, "bkkPersistentDict.txt" )
     if not os.path.exists(self.bkkDictFile):
       self.log.notice("Could not read cached Bookkeeping dictionary from file => regenerate the dictionary")
     else:
       self.log.notice("File with cached Bookkeeping dictionary found. Checking the creation time...")
-      (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat( self.bkkDictFile )
+      #(mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat( self.bkkDictFile )
+      mtime = os.path.getmtime( self.bkkDictFile ) 
       elapsedTime = time.time() - mtime
-      self.log.notice("Creation time: %s,  elapsed time: %d h (maximum delay allowed : %d h ) " %(time.ctime( mtime ), elapsedTime/3600, self.bkkCacheTimeout/3600))
+      self.log.notice("Creation time: %s elapsed time: %d h (max delay allowed: %d h ) " %( time.ctime( mtime ), 
+                                                                                            elapsedTime/3600, 
+                                                                                            self.bkkCacheTimeout/3600) )
       if elapsedTime > self.bkkCacheTimeout:
-        self.log.info("WARNING: Bookkeeping cached dictionary is older than maximum limit! %s s ( %d h )  => It will be re-created and dump to file: %s " % ( self.bkkCacheTimeout, self.bkkCacheTimeout/3600, self.bkkDictFile ) ) 
+        self.log.warn( "Bookkeeping cached dictionary is older than maximum limit! %s s ( %d h ) " \
+                         " => It will be re-created and dump to file: %s " % ( self.bkkCacheTimeout, 
+                                                                               self.bkkCacheTimeout/3600, 
+                                                                               self.bkkDictFile ) ) 
       else:
         self.log.notice("Bookkeeping cached dictionary is fresh") 
-        BkkCachedInfo = True
+        bkkCachedInfo = True
 
-    if not BkkCachedInfo: 
+    if not bkkCachedInfo: 
       creationStart =  time.time()
       res = self.generateBookkeepingDictionary()
       if not res[ 'OK' ]:
@@ -261,11 +306,13 @@ class StorageHistoryAgent( AgentModule ):
       self.dict1[ 'ConditionDescription' ] = bkkDict[ 'ConditionDescription' ]
       # loop on processing pass
       self.proPassTuples = []
-      self.getProcessingPass( bkkDict, '/' )  # this function stores in the self.proPassTuples variable a list of processing pass tuples.
+      # this function stores in the self.proPassTuples variable a list of processing pass tuples.
+      self.getProcessingPass( bkkDict, '/' )  
       for proPassTuple in sortList( self.proPassTuples ): # loop on processing passes
         rawDataFlag = False # True only for RAW data
         self.log.notice( "proPassTuple: %s" % proPassTuple )
-        if proPassTuple == '/Real Data': #RAW DATA. Warning: this is condition sufficient but NOT necessary to be raw data!
+        # RAW DATA. Warning: this is condition sufficient but NOT necessary to be raw data!
+        if proPassTuple == '/Real Data':
           rawDataFlag = True
  
         self.dict1['ProcessingPass'] = proPassTuple
@@ -277,8 +324,9 @@ class StorageHistoryAgent( AgentModule ):
           continue
       processedBookkeepingQueries += 1
       progress = 1.0*processedBookkeepingQueries/totalBookkeepingQueries
-      if not processedBookkeepingQueries%100:
-        self.log.notice("Bookkeeping queries processed so far: %d ( %f of total queries ) " % ( processedBookkeepingQueries, progress ) )
+      if not processedBookkeepingQueries % 100:
+        self.log.notice("Bookkeeping queries processed: %d ( %f of total queries ) " % ( processedBookkeepingQueries, 
+                                                                                         progress ) )
 
 
     self.log.notice( "Sending %d records to DataStore for the DataStorage type" % self.numDataRows )
@@ -288,48 +336,45 @@ class StorageHistoryAgent( AgentModule ):
       return S_ERROR( res )
     self.log.notice("-------------------------------------------------------------------------------------\n")
     self.log.notice("------ End of cycle report ----------------------------------------------------------\n")
-    self.log.notice( "End of full BKK browsing: total records sent to accounting for DataStorage:  %d " % self.totalRecords )
-    self.log.notice( "Total Bookkeeping queries to process: %d and correctly processed: %d " %(totalBookkeepingQueries, processedBookkeepingQueries) )
-    self.log.notice( "Total productions returned by Bkk: %d  - Total productions in LFC: %d " % ( len( self.totalBkkProductions ), len(self.prodsInLFC.keys())))
-    self.log.notice( "Total runs returned by Bkk: %d - Total runs in LFC: %d " % (len( self.totalBkkRuns ),len(self.runsInLFC.keys())))    
-    fileName = os.path.join( self.__workDirectory, "totalBkkProductions.txt")
-    f = open( fileName, "w")
-    f.write("%s" % self.totalBkkProductions )
-    f.close()
-    fileName = os.path.join( self.__workDirectory, "totalBkkRuns.txt")
-    f = open( fileName, "w")
-    f.write("%s" % self.totalBkkRuns )
-    f.close()
-
+    self.log.notice("End of full BKK browsing: tot records sent to accounting for DataStorage: %d" % self.totalRecords )
+    self.log.notice("Total Bookkeeping queries to process: %d Correctly processed: %d" %\
+                      ( totalBookkeepingQueries, processedBookkeepingQueries ) )
+    self.log.notice("Total productions returned by Bkk: %d Total productions in LFC: %d" %\
+                      ( len(self.totalBkkProductions), len(self.prodsInLFC) ) )
+    self.log.notice("Total runs returned by Bkk: %d Total runs in LFC: %d " % ( len(self.totalBkkRuns), 
+                                                                                len(self.runsInLFC) ) )    
+    dumpFile = open( os.path.join( self.workDirectory, "totalBkkProductions.txt"), "w")
+    dumpFile.write("%s" % self.totalBkkProductions )
+    dumpFile.close()
+    dumpFile = open( os.path.join( self.workDirectory, "totalBkkRuns.txt"), "w")
+    dumpFile.write("%s" % self.totalBkkRuns )
+    dumpFile.close()
     self.log.notice( "Consistency LFC vs BKK: " )
     runsInLFCNotInBKK = []
     for run in self.runsInLFC.keys():
       if not self.runsInLFC[ run ][ 'InBkk' ]:
         runsInLFCNotInBKK.append( run )
-    fileName = os.path.join( self.__workDirectory, "runsInLFCNotInBkk.txt")
-    f = open( fileName, "w")
-    f.write("%s" % runsInLFCNotInBKK )
-    f.close()
+    dumpFile = open( os.path.join( self.workDirectory, "runsInLFCNotInBkk.txt"), "w")
+    dumpFile.write("%s" % runsInLFCNotInBKK )
+    dumpFile.close()
     self.log.notice( "Runs in LFC not in BKK: %d " % len(runsInLFCNotInBKK) )
     # productions:
     prodsInLFCNotInBKK = []
     for prod in self.prodsInLFC.keys():
       if not self.prodsInLFC[ prod ]['InBkk']:
         prodsInLFCNotInBKK.append( prod )
-    fileName = os.path.join( self.__workDirectory, "prodsInLFCNotInBkk.txt")
-    f = open( fileName, "w")
-    f.write("%s" % prodsInLFCNotInBKK )
-    f.close()
-    self.log.notice( "Productions in LFC not in BKK: %d " % len( prodsInLFCNotInBKK) )
+    dumpFile = open( os.path.join( self.workDirectory, "prodsInLFCNotInBkk.txt"), "w")
+    dumpFile.write("%s" % prodsInLFCNotInBKK )
+    dumpFile.close()
+    self.log.notice( "Productions in LFC not in BKK: %d " % len(prodsInLFCNotInBKK) )
     self.log.notice( "Consistency BKK vs LFC: " )
-    self.log.notice( "Runs in BKK not in LFC: %d " % len( self.runsNotInLFC) )
-    self.log.notice( "Productions in BKK not in LFC: %d " % len( self.prodsNotInLFC) )
+    self.log.notice( "Runs in BKK not in LFC: %d " % len(self.runsNotInLFC) )
+    self.log.notice( "Productions in BKK not in LFC: %d " % len(self.prodsNotInLFC) )
     return S_OK()
 
-#..................................................................................
+  # ..................................................................................
   def generateBookkeepingDictionary( self ):
     """ Generate the list of Bkk dictionaries and store them on disk """
-
 
     bkDict = {}
     mainBkDict = {}
@@ -339,15 +384,16 @@ class StorageHistoryAgent( AgentModule ):
       return S_ERROR( res )
     configNames = res['Value']['Records']
     # returns a list of list with one element
-    for c in configNames: # loop on ConfigNames
-      configName = c[ 0 ]
+    for config in configNames: # loop on ConfigNames
+      configName = config[ 0 ]
       bkDict[ 'ConfigName' ] = configName
       res = self.bkClient.getConfigVersions( bkDict )
       if not res[ 'OK' ]:
         return S_ERROR( res )
-      configVersions = res['Value']['Records']# this is a list of lists , of length 1, lets' change it to a list of strings
-      for v in configVersions:  # loop on configVersions
-        configVersion = v[ 0 ]
+      # this is a list of lists , of length 1, lets' change it to a list of strings
+      configVersions = res['Value']['Records']
+      for version in configVersions:  # loop on configVersions
+        configVersion = version[ 0 ]
         bkDict[ 'ConfigVersion' ] = configVersion
         self.log.notice( " Getting event types for %s " % bkDict )
         res = self.bkClient.getEventTypes ( bkDict )
@@ -393,94 +439,86 @@ class StorageHistoryAgent( AgentModule ):
             mainBkDict[ count ]['ConditionDescription'] = bkDict['ConditionDescription']
 
     fp = open( self.bkkDictFile, "w")
-    for k in mainBkDict.keys():
-      fp.write( "%s\n" % mainBkDict[ k ] )
+    for value in mainBkDict.values():
+      fp.write( "%s\n" % value )
     fp.close()
     self.log.notice( "Bookkeeping persistent dictionary written to file: %s " % self.bkkDictFile )
 
     return S_OK( mainBkDict )
 
-#....................................................................................................
-
-
+  # ....................................................................................................
 
   def generateStorageUsageDictionary( self ):
-    """Generate a dump of the StorageUsageDB and keep it in memory in a dictionary
-    """
-
-    c = 0
+    """ Generate a dump of the StorageUsageDB and keep it in memory in a dictionary """
+    count = 0
     getSummaryCalls = 0
     start = time.time()
-    gLogger.notice( 'Starting MC', '/lhcb/MC' )
-    res = self.__stDB.getStorageDirectories( '/lhcb/MC' )
+    self.log.notice( 'Starting MC', '/lhcb/MC' )
+    res = self.storageUsage.getStorageDirectories( '/lhcb/MC' )
     if not res['OK']:
       return S_ERROR()
-
     mcDirs = {}
     mcSum = {}
-    for d in res['Value']:
-      s = d.split('/')
-      prod = s[-3]
-      typ = s[-4]
-      d = '/'.join( s[:-2])
+    for directory in res['Value']:
+      words = directory.split('/')
+      prod = words[-3]
+      typ = words[-4]
+      directory = '/'.join( words[:-2] )
       if prod not in mcDirs:
         mcDirs[prod] = {}
-      if typ  not in mcDirs[prod]:
-        mcDirs[prod][typ] = {'Dirs':[]}
-      if d not in mcDirs[prod][typ]['Dirs']:
-        mcDirs[prod][typ]['Dirs'].append( d )
+      if typ not in mcDirs[prod]:
+        mcDirs[prod][typ] = { 'Dirs': [] }
+      if directory not in mcDirs[prod][typ]['Dirs']:
+        mcDirs[prod][typ]['Dirs'].append( directory )
 
-    gLogger.notice( 'MC Productions:', len( mcDirs ) )
-    for prod,t in mcDirs.items():
-      for typ,data in t.items():
-        for d in data['Dirs']:
-          res = self.__stDB.getDirectorySummaryPerSE( d )
-          c += 1
+    self.log.notice( 'MC Productions:', len( mcDirs ) )
+    for prod, pTypes in mcDirs.items():
+      for typ, data in pTypes.items():
+        for directory in data['Dirs']:
+          res = self.storageUsage.getDirectorySummaryPerSE( directory )
+          count += 1
           if res['OK']:
-            for se in res['Value'].keys():
+            for se in res['Value']:
               if not se in data:
-                data[se] = {'Files':0,'Size':0}
+                data[se] = { 'Files': 0, 'Size': 0 }
               data[se]['Files'] += res['Value'][se]['Files']
               data[se]['Size'] += res['Value'][se]['Size']
               if se not in mcSum:
-                mcSum[se] = {'Files':0,'Size':0}
+                mcSum[se] = { 'Files': 0, 'Size': 0 }
               mcSum[se]['Files'] += res['Value'][se]['Files']
               mcSum[se]['Size'] += res['Value'][se]['Size']
           else:
-            gLogger.error("Cannot retrieve storage usage %s" % res['Message'])
+            self.log.error("Cannot retrieve storage usage %s" % res['Message'] )
             continue
-          res = self.__stDB.getSummary( d )
+          res = self.storageUsage.getSummary( directory )
           getSummaryCalls += 1
           if not res[ 'OK' ]:
-            gLogger.error("Cannot retrieve LFN usage %s" % res['Message'])
+            self.log.error("Cannot retrieve LFN usage %s" % res['Message'])
             continue
           for retDir in res['Value'].keys():
             if retDir[-1] != '/':
               retDir = retDir+'/'
-            if d in retDir:
+            if directory in retDir:
               data['LfnSize'] = res['Value'][ retDir ]['Size']
               data['LfnFiles'] = res['Value'][ retDir ]['Files']
  
-    gLogger.notice( 'MC Done' )
-    fileName = os.path.join( self.__workDirectory, "mcSum.txt" )
-    f = open(fileName, "w")
-    for se in mcSum.keys():
-      f.write("%s %s \n" %(se, mcSum[ se ]))
-    f.close()
-    #gLogger.notice( pprint.pformat( mcSum ) )
-    fileName = os.path.join( self.__workDirectory, "mcDirs.txt" )
-    f = open(fileName, "w")
-    for prod in mcDirs.keys():
-      f.write("%s\n" % prod)
-      for ft in mcDirs[ prod ].keys():
-        f.write("-- %s\n" % ft )
-        for k in mcDirs[ prod ][ ft ].keys():
-          f.write("---- %s %s \n" %(k, mcDirs[ prod ][ ft ][ k ]) )
-    f.close()      
-    #gLogger.info( pprint.pformat( mcDirs ) )
+    self.log.notice( 'MC Done' )
+    dumpFile = open( os.path.join( self.workDirectory, "mcSum.txt" ) , "w")
+    for se, value in mcSum.items():
+      dumpFile.write("%s %s \n" %( se, value ) )
+    dumpFile.close()
+    #self.log.notice( pprint.pformat( mcSum ) )
+    dumpFile = open( os.path.join( self.workDirectory, "mcDirs.txt" ), "w")
+    for prod in mcDirs:
+      dumpFile.write("%s\n" % prod)
+      for ft in mcDirs[ prod ]:
+        dumpFile.write("-- %s\n" % ft )
+        for key, item  in mcDirs[ prod ][ ft ].items():
+          dumpFile.write("---- %s %s \n" % ( key, item ) )
+    dumpFile.close()      
+    #self.log.info( pprint.pformat( mcDirs ) )
   
-
-    gLogger.notice( 'Starting Data', '/lhcb/LHCb,/lhcb/data,/lhcb/validation' )
+    self.log.notice( 'Starting Data', '/lhcb/LHCb,/lhcb/data,/lhcb/validation' )
   
     dataDirs = {}
     dataSum = {}
@@ -488,162 +526,156 @@ class StorageHistoryAgent( AgentModule ):
     rawSum = {}
     # get list of reconstructed data productions: 
     for path in ['/lhcb/LHCb', '/lhcb/data','/lhcb/validation']:
-      res = self.__stDB.getStorageDirectories( path )
-      for d in res['Value']:
-        s = d.split('/')
-        if d.find('RAW') > -1:
-          continue
-        prod = s[-3]
-        typ = s[-4]
-        d = '/'.join( s[:-2])
+      res = self.storageUsage.getStorageDirectories( path )
+      for directory in res['Value']:
+        if "RAW" in directory:
+          continue          
+        words = directory.split('/')
+        prod = words[-3]
+        typ = words[-4]
+        directory = '/'.join( words[:-2])
         myDirs = dataDirs
         if prod not in myDirs:
           myDirs[prod] = {}
         if typ  not in myDirs[prod]:
-          myDirs[prod][typ] = {'Dirs':[]}
-        if d not in myDirs[prod][typ]['Dirs']:
-          myDirs[prod][typ]['Dirs'].append( d )
+          myDirs[prod][typ] = { 'Dirs': [] }
+        if directory not in myDirs[prod][typ]['Dirs']:
+          myDirs[prod][typ]['Dirs'].append( directory )
     
-    gLogger.notice( 'Data Productions:', len( dataDirs ) )
+    self.log.notice( 'Data Productions:', len( dataDirs ) )
 
     # get list of raw data runs: 
     for path in ['/lhcb/data']:
-      res = self.__stDB.getStorageDirectories( path )
-      for d in res['Value']:
-        s = d.split('/')
-        if s[4] != 'RAW': # not raw data 
+      res = self.storageUsage.getStorageDirectories( path )
+      for directory in res['Value']:
+        words = directory.split('/')
+        if words[4] != 'RAW': # not raw data 
           continue      
-        prod = s[-2]
+        prod = words[-2]
         typ = 'RAW'
         #d = '/'.join( s[:-2])
-        if len(s) == 10:
-          stream = s[5]
+        if len(words) == 10:
+          stream = words[5]
             #print 'ok, usual format for raw data, stream is ', stream
           #if stream not in possibleStreams:
           #possibleStreams.append( stream )
         else:
-          gLogger.warn("unusual directory format (probably data previous to Jan 2009): %s " % d )
+          self.log.warn("unusual directory format (probably data previous to Jan 2009): %s " % directory )
           continue
         myDirs = rawDirs
         if prod not in myDirs:
           myDirs[prod] = {}
         if stream not in myDirs[prod]:
-          myDirs[prod][stream] = {'Dirs':[]}
-        if d not in myDirs[prod][stream]['Dirs']:
-          myDirs[prod][stream]['Dirs'].append( d )
+          myDirs[prod][stream] = { 'Dirs': [] }
+        if directory not in myDirs[prod][stream]['Dirs']:
+          myDirs[prod][stream]['Dirs'].append( directory )
     
-    gLogger.notice( 'Raw data runs:', len( rawDirs ) )
-
+    self.log.notice( 'Raw data runs:', len( rawDirs ) )
 
     # get storage usage for reconstructed data directories:
-    for prod,t in dataDirs.items():
-      for typ,data in t.items():
-        for d in data['Dirs']:
-          res = self.__stDB.getDirectorySummaryPerSE( d )
-          c += 1
+    for prod, pTypes in dataDirs.items():
+      for typ, data in pTypes.items():
+        for directory in data['Dirs']:
+          res = self.storageUsage.getDirectorySummaryPerSE( directory )
+          count += 1
           if res['OK']:
-            for se in res['Value'].keys():
-              if not se in data:
-                data[se] = {'Files':0,'Size':0}
+            for se in res['Value']:
+              if se not in data:
+                data[se] = { 'Files': 0, 'Size':0 }
               data[se]['Files'] += res['Value'][se]['Files']
               data[se]['Size'] += res['Value'][se]['Size']
-              if not se in dataSum:
-                dataSum[se] = {'Files':0,'Size':0}
+              if se not in dataSum:
+                dataSum[se] = { 'Files': 0, 'Size': 0 }
               dataSum[se]['Files'] += res['Value'][se]['Files']
               dataSum[se]['Size'] += res['Value'][se]['Size']
           else:
-            gLogger.error("Cannot retrieve storage usage: %s " %res['Message'] )
+            self.log.error("Cannot retrieve storage usage: %s "  % res['Message'] )
             continue
-          res = self.__stDB.getSummary( d )
+          res = self.storageUsage.getSummary( directory )
           getSummaryCalls += 1
           if not res[ 'OK' ]:
-            gLogger.error("Cannot retrieve LFN usage %s" % res['Message'])
+            self.log.error("Cannot retrieve LFN usage %s" % res['Message'])
             continue
           for retDir in res['Value'].keys():
             if retDir[-1] != '/':
               retDir = retDir+'/'
-            if d in retDir:
+            if directory in retDir:
               data['LfnSize'] = res['Value'][ retDir ]['Size']
               data['LfnFiles'] = res['Value'][ retDir ]['Files']
  
     
-    gLogger.notice( 'Data Productions Done' )
-    fileName = os.path.join( self.__workDirectory, "dataSum.txt" )
-    f = open(fileName, "w")
-    for se in dataSum.keys():
-      f.write("%s %s \n" %(se, dataSum[ se ]))
-    f.close()
-    #gLogger.notice( pprint.pformat( dataSum ) )
-    fileName = os.path.join( self.__workDirectory, "dataDirs.txt" )
-    f = open(fileName, "w")
-    for prod in dataDirs.keys():
-      f.write("%s\n" % prod)
-      for ft in dataDirs[ prod ].keys():
-        f.write("-- %s\n" % ft )
-        for k in dataDirs[ prod ][ ft ].keys():
-          f.write("---- %s %s \n" %(k, dataDirs[ prod ][ ft ][ k ]) )
-    f.close()      
+    self.log.notice( 'Data Productions Done' )
+    dumpFile = open( os.path.join( self.workDirectory, "dataSum.txt" ), "w")
+    for se, item in dataSum.items():
+      dumpFile.write("%s %s \n" % ( se,  item ) )
+    dumpFile.close()
+    # self.log.notice( pprint.pformat( dataSum ) )
+    dumpFile = open( os.path.join( self.workDirectory, "dataDirs.txt" ), "w")
+    for prod in dataDirs:
+      dumpFile.write( "%s\n" % prod )
+      for ft in dataDirs[ prod ]:
+        dumpFile.write("-- %s\n" % ft )
+        for key, value in dataDirs[ prod ][ ft ].items():
+          dumpFile.write("---- %s %s \n" % ( key, value ) ) 
+    dumpFile.close()      
 
     # get storage usage for runs directories:
-    gLogger.notice( 'Data Runs:', len( rawDirs ) )
+    self.log.notice( 'Data Runs:', len( rawDirs ) )
     
-    for prod,t in rawDirs.items():
-      for stream,data in t.items():
-        for d in data['Dirs']:
-          res = self.__stDB.getDirectorySummaryPerSE( d )
-          c += 1
+    for prod, pTypes in rawDirs.items():
+      for stream, data in pTypes.items():
+        for directory in data['Dirs']:
+          res = self.storageUsage.getDirectorySummaryPerSE( directory )
+          count += 1
           if res['OK']:
-            for se in res['Value'].keys():
+            for se in res['Value']:
               if not se in data:
-                data[se] = {'Files':0,'Size':0}
+                data[se] = { 'Files': 0, 'Size': 0 }
               data[se]['Files'] += res['Value'][se]['Files']
               data[se]['Size'] += res['Value'][se]['Size']
               if not se in rawSum:
-                rawSum[se] = {'Files':0,'Size':0}
+                rawSum[se] = { 'Files': 0, 'Size': 0 }
               rawSum[se]['Files'] += res['Value'][se]['Files']
               rawSum[se]['Size'] += res['Value'][se]['Size']
           else:
-            gLogger.error("Cannot retrieve storage usage: %s " %res['Message'] )
+            self.log.error("Cannot retrieve storage usage: %s " %res['Message'] )
             continue
 
-          res = self.__stDB.getSummary( d )
+          res = self.storageUsage.getSummary( directory )
           getSummaryCalls += 1
           if not res[ 'OK' ]:
-            gLogger.error("Cannot retrieve LFN usage %s" % res['Message'])
+            self.log.error("Cannot retrieve LFN usage %s" % res['Message'])
             continue
           for retDir in res['Value'].keys():
             if retDir[-1] != '/':
               retDir = retDir+'/'
-            if d in retDir:
+            if directory in retDir:
               data['LfnSize'] = res['Value'][ retDir ]['Size']
               data['LfnFiles'] = res['Value'][ retDir ]['Files']
  
 
-    gLogger.notice( 'Data Runs Done' )
-    fileName = os.path.join( self.__workDirectory, "rawSum.txt" )
-    f = open(fileName, "w")
-    for se in rawSum.keys():
-      f.write("%s %s \n" %(se, rawSum[ se ]))
-    f.close()
-    fileName = os.path.join( self.__workDirectory, "rawDirs.txt" )
-    f = open(fileName, "w")
-    for prod in rawDirs.keys():
-      f.write("%s\n" % prod)
-      for stream in rawDirs[ prod ].keys():
-        f.write("-- %s\n" % stream )
-        for k in rawDirs[ prod ][ stream ].keys():
-          f.write("---- %s %s \n" %(k, rawDirs[ prod ][ stream ][ k ]) )
-    f.close()      
+    self.log.notice( 'Data Runs Done' )
+    dumpFile = open( os.path.join( self.workDirectory, "rawSum.txt" ), "w")
+    for se, value in rawSum.items():
+      dumpFile.write( "%s %s \n" %( se, value ) )
+    dumpFile.close()
+    dumpFile = open( os.path.join( self.workDirectory, "rawDirs.txt" ), "w")
+    for prod in rawDirs:
+      dumpFile.write( "%s\n" % prod )
+      for stream in rawDirs[ prod ]:
+        dumpFile.write( "-- %s\n" % stream )
+        for key, value in rawDirs[ prod ][ stream ].items():
+          dumpFile.write( "---- %s %s \n" %( key, value ) )
+    dumpFile.close()      
 
-
-    gLogger.notice( 'Data Done' )
+    self.log.notice( 'Data Done' )
     
-    gLogger.notice( 'Queried directories for storage usage:', c )
-    gLogger.notice( 'Queried directories for LFN usage: ' , getSummaryCalls )
+    self.log.notice( 'Queried directories for storage usage:', count )
+    self.log.notice( 'Queried directories for LFN usage: ' , getSummaryCalls )
     
     end = time.time()
     duration = end - start
-    gLogger.info("Total time to create StorageUsageDB dump: %d s" % duration )
+    self.log.info("Total time to create StorageUsageDB dump: %d s" % duration )
     # export these dictionaries:
     self.mcDirs = mcDirs
     self.mcSum = mcSum
@@ -698,8 +730,8 @@ class StorageHistoryAgent( AgentModule ):
     eventTypeDesc = self.dict1['EventTypeDescription' ] # needed to send it to accounting (instead of numeric ID)
     eventTypeDesc = str( self.dict1['EventTypeId'] ) + '-' + eventTypeDesc
     self.log.debug( "eventTypeDescription %s" % eventTypeDesc )
-    #dataTypeFlag = '' # either RealData or SimData
-    LFCBasePath = {'RealData': '/lhcb/', 'SimData': '/lhcb/MC/'}
+    # dataTypeFlag = '' # either RealData or SimData
+    # LFCBasePath = {'RealData': '/lhcb/', 'SimData': '/lhcb/MC/'}
     dict3 = {}
     dict3[ 'ConfigName' ] = self.dict1[ 'ConfigName' ]
     dict3[ 'ConfigVersion' ] = self.dict1[ 'ConfigVersion' ]
@@ -713,7 +745,8 @@ class StorageHistoryAgent( AgentModule ):
     self.log.notice( " Get productions/runs for dict3 : %s " % dict3 )
     res = self.bkClient.getProductions( dict3 )
     if not res[ 'OK' ]:
-      self.log.error( "ERROR: could not get productions/runs for dict %s Error: %s" % ( dict3, res['Message'] ) )
+      self.log.error( "could not get productions/runs for dict %s Error: %s" % ( dict3, 
+                                                                                 res['Message'] ) )
       return S_ERROR( res )
     productions = sortList( [x[0] for x in res[ 'Value' ][ 'Records' ]] )
     if productions == []:
@@ -736,7 +769,7 @@ class StorageHistoryAgent( AgentModule ):
         if not res['OK']:
           self.log.notice( "ERROR getting file types for prod %s, Error: %s" % ( prodID, res['Message'] ) )
           continue
-        prodFileTypes = reduce(lambda x,y:x+y, res['Value']['Records'])
+        prodFileTypes = reduce( lambda x, y: x+y, res['Value']['Records'] )
         prodFileTypes = [ x for x in prodFileTypes if not re.search( "HIST", x ) ]
         # add the HIST, SETC, DST file type to the list (to be checked why)
         prodFileTypes.append( 'HIST' )
@@ -765,10 +798,12 @@ class StorageHistoryAgent( AgentModule ):
 
         for fType in prodFileTypes:
           if prodID not in myDirs.keys():
-            self.log.warn("The storage usage for production %s  was not stored in dictionary! (this should never happen! should have been checked before!)" % (prodID ) )
+            self.log.warn("The storage usage for production %s was not stored in dictionary! " \
+                            "(this should never happen! should have been checked before!)" % (prodID ) )
             continue
           if fType not in myDirs[ prodID ].keys():
-            self.log.warn("The storage usage for production %s and fileType %s  was not stored in dictionary!" % (prodID, fType ) )
+            self.log.warn("The storage usage for production %s and fileType %s was not stored in dictionary!" %\
+                            ( prodID, fType ) )
             continue
           
           for seName in sortList( myDirs[ prodID ][ fType ].keys() ):
@@ -778,7 +813,8 @@ class StorageHistoryAgent( AgentModule ):
               physicalFiles = myDirs[ prodID ][ fType ][ seName ][ 'Files' ]
               physicalSize = myDirs[ prodID ][ fType ][ seName ][ 'Size' ]
             except:
-              self.log.warn("The storage usage for production %s fileType %s SE %s was not stored in dictionary!" % (prodID, fType, seName ) )
+              self.log.warn("The storage usage for production %s fileType %s SE %s was not stored in dictionary!" %\
+                              (prodID, fType, seName ) )
               continue
             
             logicalSize = 0
@@ -789,7 +825,13 @@ class StorageHistoryAgent( AgentModule ):
             except:
               self.log.warn("LFN size/files not stored for prod,fileType = %s, %s " %(prodID, fType ))
             # create a record to be sent to the accounting:
-            self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d lfnFiles: %d lfnSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
+            self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: " \
+                               "DataType: %s Activity: %s FileType: %s Production: %s ProcessingPass: %s " \
+                               "Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  " \
+                               "physSize: %d lfnFiles: %d lfnSize: %d " %\
+                               ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, prodID, dict3['ProcessingPass'], 
+                                 dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, 
+                                 physicalSize, logicalFiles, logicalSize ) )
             # call function to send the record to the accounting
          
             dataRecord = DataStorage()
@@ -818,9 +860,11 @@ class StorageHistoryAgent( AgentModule ):
     else: # raw data
       myDirs = self.rawDirs
       for prodID in productions:
-        runNoForAccounting = str( prodID ) # for the accounting, keep the negative number not to confuse with productions.
+        # for the accounting, keep the negative number not to confuse with productions.
+        runNoForAccounting = str( prodID )
         self.totalBkkRuns.append( runNoForAccounting )
-        # Bkk returns a negative number for raw data runs, change it to positive (necessary to match the key in the dictionary where storage usage is stored)
+        # Bkk returns a negative number for raw data runs, change it to positive 
+        # (necessary to match the key in the dictionary where storage usage is stored)
         prodID = str(-1*prodID)
 
         if prodID not in myDirs.keys():
@@ -840,7 +884,8 @@ class StorageHistoryAgent( AgentModule ):
             physicalFiles = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Files' ]
             physicalSize = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Size' ]
           except:
-            self.log.warn("The storage usage for production %s stream %s SE %s was not stored in dictionary!" % (prodID, streamInLFC, seName ) )
+            self.log.warn("The storage usage for production %s stream %s SE %s was not stored in dictionary!" %\
+                            (prodID, streamInLFC, seName ) )
             continue
           
           logicalSize = 0
@@ -852,7 +897,13 @@ class StorageHistoryAgent( AgentModule ):
             self.log.warn("LFN size/files not stored for run,stream = %s, %s " %(prodID, streamInLFC ))
  
           #res = __fillAccountingRecord( )        
-          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: DataType: %s Activity: %s FileType: %s Run: %s ProcessingPass: %s Conditions: %s EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d lfnFiles: %d lfnSize: %d " % ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, runNoForAccounting, dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
+          self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: " \
+                             "DataType: %s Activity: %s FileType: %s Run: %s ProcessingPass: %s Conditions: %s " \
+                             "EventType: %s StorageElement: %s --> physFiles: %d  physSize: %d " \
+                             "lfnFiles: %d lfnSize: %d" %\
+                             ( dict3['ConfigName'] , dict3['ConfigVersion'], fType, runNoForAccounting, 
+                               dict3['ProcessingPass'], dict3['ConditionDescription'], dict3['EventTypeDescription'], 
+                               seName, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
           dataRecord = DataStorage()
           dataRecord.setStartTime( now )
           dataRecord.setEndTime( now )
@@ -876,8 +927,6 @@ class StorageHistoryAgent( AgentModule ):
           self.totalRecords += 1
           self.recordsToCommit += 1
 
-
-
     if self.recordsToCommit > self.limitForCommit:
       res = gDataStoreClient.commit()
       if not res[ 'OK' ]:
@@ -887,13 +936,10 @@ class StorageHistoryAgent( AgentModule ):
         self.recordsToCommit = 0
       self.log.notice( "In getStorageUsage commit returned: %s" % res )
  
-
     return S_OK()
 
-
-
   def getProcessingPass( self, thisDict, path ):
-    # retrieves all processing pass recursively from the initial path '/', for the given bkk dictionary
+    """ retrieves all processing pass recursively from the initial path '/', for the given bkk dictionary """
 
     dict2 = {}
     #dict2[ 'ConfigName'] = self.dict1[ 'ConfigName' ]
