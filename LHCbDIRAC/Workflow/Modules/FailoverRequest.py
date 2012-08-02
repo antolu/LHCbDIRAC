@@ -124,8 +124,11 @@ class FailoverRequest( ModuleBase ):
       if accountingReport:
         result = accountingReport.commit()
         if not result['OK']:
-          self.log.info( 'Populating request with accounting report information' )
-          self.request.setDISETRequest( result['rpcStub'] )
+          if not result.has_key( 'rpcStub' ):
+            self.log.error( '!!! The accounting is down? The job will end correctly anyway, but please report !!!' )
+          else:
+            self.log.info( 'Populating request with accounting report information' )
+            self.request.setDISETRequest( result['rpcStub'] )
 
       if self.request.isEmpty()['Value']:
         self.log.info( 'Request is empty, nothing to do.' )
