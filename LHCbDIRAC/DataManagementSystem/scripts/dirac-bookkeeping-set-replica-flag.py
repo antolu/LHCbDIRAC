@@ -2,12 +2,14 @@
 """
    Set the replica flag for output files of a transformation that are in the LFC and not in the BK
    <transList> is a comma-separated list of transformation ID or ranges (<t1>:<t2>)
+
+   It also does the opposite, when a file has ReplicaFlag=Yes when it shouldn't.
 """
-import DIRAC
-from DIRAC.Core.Base import Script
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
-from DIRAC import gLogger
 import sys, os
+from DIRAC import gLogger
+
+from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyChecks
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 if __name__ == "__main__":
 
@@ -21,98 +23,36 @@ if __name__ == "__main__":
   args = Script.getPositionalArgs()
 
   if not len( args ):
-    print "Specify transformation number..."
+    gLogger.warn( "Specify transformation number..." )
     DIRAC.exit( 0 )
   else:
     try:
       ids = args[0].split( "," )
       idList = []
       for id in ids:
-          r = id.split( ':' )
-          if len( r ) > 1:
-              for i in range( int( r[0] ), int( r[1] ) + 1 ):
-                  idList.append( i )
-          else:
-              idList.append( int( r[0] ) )
+        r = id.split( ':' )
+        if len( r ) > 1:
+          for i in range( int( r[0] ), int( r[1] ) + 1 ):
+            idList.append( i )
+        else:
+          idList.append( int( r[0] ) )
     except:
-      print "Invalid list of transformation (ranges):", args[0]
+      gLogger.error( "Invalid list of transformation (ranges): ", args[0] )
       Script.showHelp()
       DIRAC.exit( 1 )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  rm = ReplicaManager()
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-  bk = BookkeepingClient()
-  from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-  transClient = TransformationClient()
+  bkClient = BookkeepingClient()
 
-  prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
-  for prod in idList:
-    res = transClient.getTransformation( prod, extraParams = False )
-    if not res['OK']:
-        print "Couldn't find transformation", prod
-        continue
-    else:
-        transType = res['Value']['Type']
-    bkQuery = BKQuery( {'Production': prod, 'ReplicaFlag':'No'}, fileTypes = 'ALL',
-                       visible = ( transType not in prodsWithMerge ) )
-    print "Production %d: %s" % ( prod, transType )
-    lfns = bkQuery.getLFNs( printOutput = False )
-    if not lfns:
-      print "\tNo files found without replica flag"
-      continue
-    print "\tFound %d files without replica flag" % len( lfns )
-    existingLFNs = []
-    if transType not in prodsWithMerge:
-      # In principle few files without replica flag, check them in FC
-      sys.stdout.write( '\tChecking LFC ' )
-      sys.stdout.flush()
-      thousands = 10
-      for chunk in breakListIntoChunks( lfns, thousands * 1000 ):
-        sys.stdout.write( len( chunk ) / 1000 * '.' )
-        sys.stdout.flush()
-        res = rm.getReplicas( chunk )
-        if res['OK']:
-          existingLFNs += res['Value']['Successful'].keys()
-    else:
-      # In principle most files have no replica flag, start from LFC files with replicas
-      dirs = []
-      present = []
-
-      for lfn in lfns:
-        dirN = os.path.dirname( lfn )
-        if dirN not in dirs:
-          dirs.append( dirN )
-      dirs.sort()
-      print "\tChecking LFC files from %d directories" % len( dirs )
-      gLogger.setLevel( 'FATAL' )
-      res = self.rm.getFilesFromDirectory( dirs )
-      gLogger.setLevel( 'VERBOSE' )
+  for transformationID in idList:
+    cc = consistencyChecks( transformationID )
+    cc.replicaConsistencyCheck()
+    if cc.existingLFNsThatAreNotInBKK:
+      gLogger.info( "Setting the replica flag to %d files" % len( cc.existingLFNsThatAreNotInBKK ) )
+      res = bkClient.addFiles( cc.existingLFNsThatAreNotInBKK )
       if not res['OK']:
-        gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
-        continue
-      if res['Value']:
-        filesFound = res['Value']
-      else:
-        filesFound = []
-
-      if filesFound:
-        for lfn in lfns:
-          if lfn in filesFound:
-            present.append( lfn )
-
-      existingLFNs = present
-
-
-    print ""
-    if len( existingLFNs ) != len( lfns ):
-      print "\t%d files in BK are not in the LFC" % ( len( lfns ) - len( existingLFNs ) )
-    if existingLFNs:
-      print "\t%d files are in the LFC and not in BK" % len( existingLFNs )
-      res = bk.addFiles( existingLFNs )
-      if res['OK']:
-        print "\tSuccessfully set replica flag to %d files " % len( existingLFNs )
-
-
-
+        gLogger.error( "Something wrong: %s" % res['Message'] )
+    if cc.nonExistingLFNsThatAreInBKK:
+      gLogger.info( "Un-Setting the replica flag to %d files" % len( cc.nonExistingLFNsThatAreInBKK ) )
+      res = bkClient.removeFiles( cc.nonExistingLFNsThatAreInBKK )
+      if not res['OK']:
+        gLogger.error( "Something wrong: %s" % res['Message'] )

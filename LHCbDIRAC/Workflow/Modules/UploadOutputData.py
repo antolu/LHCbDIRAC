@@ -145,8 +145,6 @@ class UploadOutputData( ModuleBase ):
       #Get final, resolved SE list for files
       final = {}
 
-
-
       for fileName, metadata in fileMetadata.items():
         if not SEs:
           from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
@@ -176,7 +174,8 @@ class UploadOutputData( ModuleBase ):
       #already exist with replica flag in the BK.  The result structure is:
       #{'OK': True,
       # 'Value': {
-      #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
+      #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': 
+      #['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
       #'Failed': [], 'NotProcessed': []}}
 
       if inputDataList:
@@ -311,27 +310,28 @@ class UploadOutputData( ModuleBase ):
       #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
       if not performBKRegistration:
         self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
-      elif registrationFailure:
-        self.log.info( 'There were catalog registration failures during the upload of files \
-        for this job, BK registration requests are being prepared' )
-        for lfn in performBKRegistration:
-          result = self.setBKRegistrationRequest( lfn )
-          if not result['OK']:
-            return result
       else:
-        if not rm:
-          from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-          rm = ReplicaManager()
-        result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
-        self.log.verbose( result )
-        if not result['OK']:
-          self.log.error( result )
-          return S_ERROR( 'Could Not Perform BK Registration' )
-        if result['Value']['Failed']:
-          for lfn, error in result['Value']['Failed'].items():
-            result = self.setBKRegistrationRequest( lfn, error )
+        if registrationFailure:
+          self.log.info( 'There were catalog registration failures during the upload of files \
+          for this job, BK registration requests are being prepared' )
+          for lfn in performBKRegistration:
+            result = self.setBKRegistrationRequest( lfn )
             if not result['OK']:
               return result
+        else:
+          if not rm:
+            from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+            rm = ReplicaManager()
+          result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
+          self.log.verbose( result )
+          if not result['OK']:
+            self.log.error( result )
+            return S_ERROR( 'Could Not Perform BK Registration' )
+          if result['Value']['Failed']:
+            for lfn, error in result['Value']['Failed'].items():
+              result = self.setBKRegistrationRequest( lfn, error )
+              if not result['OK']:
+                return result
 
       self.workflow_commons['Request'] = self.request
 
