@@ -202,6 +202,8 @@ class Production():
         extraPackages = ';'.join( extraPackages )
       if type( extraPackages ) != type( '' ):
         raise TypeError, 'extraPackages is not a string (nor a list)'
+      if ',' in extraPackages:
+        extraPackages = ';'.join( extraPackages.split( ',' ) )
       if 'ProdConf' not in extraPackages:
         extraPackages = extraPackages + ';ProdConf'
       extraPackages = extraPackages.replace( ' ', '' )

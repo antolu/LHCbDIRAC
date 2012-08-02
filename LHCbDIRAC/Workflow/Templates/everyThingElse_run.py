@@ -34,15 +34,21 @@ pr.appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to prod
 w = '{{w#----->WORKFLOW: choose what to do#}}'
 pr.prodsTypeList = '{{r#---List here which prods you want to create#DataSwimming,DataStripping,Merge}}'.split( ',' )
 p = '{{p#--now map steps to productions#}}'
-p1 = '{{p1#-Production 1 steps (e.g. 1,2,3 = first, second, third)#1,2,3}}'.split( ',' )
+p1 = '{{p1#-Production 1 steps (e.g. 1,2,3 = first, second, third)#1,2,3}}'
 if p1:
-  pr.stepsInProd.append( p1 )
-p2 = '{{p2#-Production 2 steps (e.g. 4,5)#4,5}}'.split( ',' )
+  p1 = p1.split( ',' )
+  p1 = [int( x ) for x in p1]
+  pr.stepsInProds.append( p1 )
+p2 = '{{p2#-Production 2 steps (e.g. 4,5)#4,5}}'
 if p2:
-  pr.stepsInProd.append( p2 )
-p3 = '{{p3#-Production 3 steps (e.g. 6)#}}'.split( ',' )
+  p2 = p2.split( ',' )
+  p2 = [int( x ) for x in p2]
+  pr.stepsInProds.append( p2 )
+p3 = '{{p3#-Production 3 steps (e.g. 6)#}}'
 if p3:
-  pr.stepsInProd.append( p3 )
+  p3 = p3.split( ',' )
+  p3 = [int( x ) for x in p3]
+  pr.stepsInProds.append( p3 )
 
 certificationFlag = eval( '{{certificationFLAG#GENERAL: Set True for certification test#False}}' )
 localTestFlag = eval( '{{localTestFlag#GENERAL: Set True for local test#False}}' )
@@ -52,9 +58,13 @@ validationFlag = eval( '{{validationFlag#GENERAL: Set True for validation prod#F
 pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 pr.startRun = int( '{{startRun#GENERAL: run start, to set the start run#0}}' )
 pr.endRun = int( '{{endRun#GENERAL: run end, to set the end of the range#0}}' )
-pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'.split( ',' )
+runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
+if runsList:
+  pr.runsList.split( ',' )
 pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#}}'] * len( pr.prodsTypeList )
-pr.extraOptions = eval( '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}' )
+extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
+if extraOptions:
+  pr.extraOptions = eval( extraOptions )
 pr.derivedProduction = '{{AncestorProd#GENERAL: ancestor production if any#0}}'
 
 #p1 params
@@ -103,7 +113,6 @@ pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
-pr.events = int( '{{NbOfEvents}}' )
 
 if certificationFlag or localTestFlag:
   pr.testFlag = True
@@ -133,6 +142,7 @@ if pr.testFlag:
   pr.startRun = '75336'
   pr.endRun = '75340'
   p1CPU = '100000'
+  pr.events = 2000
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagDown'
   pr.processingPass = 'Real Data/Reco12/Stripping17'
   pr.bkFileType = 'CHARMCOMPLETEEVENT.DST'

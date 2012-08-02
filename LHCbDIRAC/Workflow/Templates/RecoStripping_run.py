@@ -88,7 +88,6 @@ pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
-pr.events = int( '{{NbOfEvents}}' )
 
 w1 = eval( w1 )
 w2 = eval( w2 )
@@ -137,15 +136,19 @@ if not pr.publishFlag:
 if pr.testFlag:
   pr.configName = 'certification'
   pr.configVersion = 'test'
-  pr.events = 25
-  strppEventsPerJob = '1000'
+  pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
+  if w1 or w3:
+    pr.events = 25
+    pr.processingPass = 'Real Data'
+    pr.bkFileType = 'RAW'
+  else:
+    pr.events = 2000
+    pr.processingPass = 'Real Data/Reco12'
+    pr.bkFileType = 'SDST'
   mergingGroupSize = '1'
-  recoCPU = '200000'
+  recoCPU = strippCPU = '200000'
   pr.startRun = '93718'
   pr.endRun = '93720'
-  pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
-  pr.processingPass = 'Real Data'
-  pr.bkFileType = 'RAW'
   pr.eventType = '90000000'
   pr.DQFlag = 'ALL'
 

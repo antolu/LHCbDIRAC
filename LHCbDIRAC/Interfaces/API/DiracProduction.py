@@ -1017,17 +1017,13 @@ class DiracProduction:
 
     if publishFlag == False and testFlag:
       gLogger.info( 'Test prod will be launched locally' )
-      try:
-        result = prod.runLocal()
-        if result['OK']:
-          gLogger.info( 'Template finished successfully' )
-          return S_OK()
-        else:
-          gLogger.error( 'Launching production: something wrong with execution!' )
-          return S_ERROR( 'Something wrong with execution!' )
-      except Exception, x:
-        gLogger.error( 'prod test failed with exception:\n%s' % ( x ) )
-        return S_ERROR( 'prod test failed with exception:\n%s' % ( x ) )
+      result = prod.runLocal()
+      if result['OK']:
+        gLogger.info( 'Template finished successfully' )
+        return S_OK()
+      else:
+        gLogger.error( 'Launching production: something wrong with execution!' )
+        return S_ERROR( 'Something wrong with execution!' )
 
     result = prod.create( publish = publishFlag,
                           requestID = int( requestID ),
