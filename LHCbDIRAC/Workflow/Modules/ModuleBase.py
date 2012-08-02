@@ -246,6 +246,16 @@ class ModuleBase( object ):
       self.onlineCondDBTag = runMetadataDict['CondDb']
       self.TCK = runMetadataDict['TCK']
 
+    #for older productions these are found the step parameters
+    if self.workflow_commons.has_key( 'eventType' ):
+      self.eventType = self.workflow_commons['eventType']
+
+    if self.workflow_commons.has_key( 'numberOfEvents' ):
+      self.numberOfEvents = self.workflow_commons['numberOfEvents']
+
+    if self.workflow_commons.has_key( 'generatorName' ):
+      self.generator_name = self.workflow_commons['generatorName']
+
   #############################################################################
 
   def _resolveInputStep( self ):
@@ -288,9 +298,6 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'applicationType' ):
       self.applicationType = self.step_commons['applicationType']
 
-    if self.step_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = self.step_commons['numberOfEvents']
-
     if self.step_commons.has_key( 'optionsFile' ):
       self.optionsFile = self.step_commons['optionsFile']
 
@@ -316,6 +323,9 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'inputData' ):
       if self.step_commons['inputData']:
         self.stepInputData = self.step_commons['inputData']
+        if self.stepInputData == 'previousStep':
+          last = len( self.workflow_commons['outputList'] ) - 1
+          self.stepInputData = self.workflow_commons['outputList'][last]['outputDataName']
 
     if self.step_commons.has_key( 'listoutput' ):
       self.stepOutputs = self.step_commons['listoutput']
@@ -323,6 +333,16 @@ class ModuleBase( object ):
 
     if self.step_commons.has_key( 'optionsFormat' ):
       self.optionsFormat = self.step_commons['optionsFormat']
+
+    #for older productions these are found in the workflow parameters
+    if self.step_commons.has_key( 'DDDBTag' ):
+      self.DDDBTag = self.step_commons['DDDBTag']
+
+    if self.step_commons.has_key( 'CondDBTag' ):
+      self.CondDBTag = self.step_commons['CondDBTag']
+
+    if self.step_commons.has_key( 'DQTag' ):
+      self.DQTag = self.step_commons['DQTag']
 
   #############################################################################
 

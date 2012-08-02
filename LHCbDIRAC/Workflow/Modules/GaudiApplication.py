@@ -360,6 +360,7 @@ class GaudiApplication( ModuleBase ):
 
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
     self.step_commons['listoutput'] = finalOutputs
+#    self.step_commons['outputData'] = finalOutputs[0]['outputDataName']
 
     if self.workflow_commons.has_key( 'outputList' ):
       for outFile in finalOutputs:

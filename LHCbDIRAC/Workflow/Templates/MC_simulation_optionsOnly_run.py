@@ -218,13 +218,19 @@ for prodType, stepsList, bkQuery, removeInput, tracking in prodsList:
   prod = LHCbDIRAC.Workflow.Templates.TemplatesUtilities.buildProduction( prodType, stepsList, requestID, '{{pDsc}}',
                                                                           configName, configVersion, '{{simDesc}}', appendName,
                                                                           extraOptions, defaultOutputSE,
-                                                                          '{{eventType}}', events, priority, cpu, sysConfig,
-                                                                          outputsCERN, outputFileMask, targetSite, banTier1s,
-                                                                          removeInput,
+                                                                          '{{eventType}}', events, priority, cpu,
+                                                                          sysConfig = sysConfig,
+                                                                          generatorName = '{{Generator}}',
+                                                                          outputsCERN = outputsCERN,
+                                                                          outputFileMask = outputFileMask,
+                                                                          targetSite = targetSite,
+                                                                          banTier1s = banTier1s,
+                                                                          removeInputData = removeInput,
                                                                           bkQuery = bkQuery,
                                                                           previousProdID = prodID )
   prodID = LHCbDIRAC.Workflow.Templates.TemplatesUtilities.launchProduction( prod, publishFlag, testFlag, requestID, parentReq,
-                                                                             extend, tracking, BKscriptFlag, diracProd, logger = gLogger )
+                                                                             extend, tracking, BKscriptFlag, diracProd,
+                                                                             logger = gLogger )
 
 #################################################################################
 # This is the start of the MC production definition (if requested)

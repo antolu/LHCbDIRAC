@@ -110,12 +110,6 @@ class Production():
     self._setParameter( 'outputMode', 'string', 'Local', 'SEResolutionPolicy' )
     self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
-    #Options related parameters
-    #FIXME: needed?
-    self._setParameter( 'CondDBTag', 'string', 'sim-20090112', 'CondDBTag' )
-    self._setParameter( 'DDDBTag', 'string', 'head-20090112', 'DetDescTag' )
-    self._setParameter( 'DQTag', 'string', 'head-20090112', 'DQTag' )
-    self._setParameter( 'EventMaxDefault', 'string', '-1', 'DefaultNumberOfEvents' )
     #BK related parameters
     self._setParameter( 'configName', 'string', 'MC', 'ConfigName' )
     self._setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
@@ -187,200 +181,7 @@ class Production():
 
   #############################################################################
 
-  def addGaussStep( self, appVersion, generatorName, numberOfEvents, optionsFile, eventType = 'firstStep',
-                   extraPackages = '', outputSE = None, histograms = False, extraOpts = '', optionsFormat = '',
-                   appType = '', condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
-                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep and getOptions.
-    """
-
-    eventType = self.__getEventType( eventType )
-    self.__checkArguments( extraPackages, optionsFile )
-    firstEventNumber = 1
-
-    optionsLine = ''
-    if extraOpts:
-      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
-      optionsLine = ';'.join( extraOpts )
-
-    if not outputSE:
-      raise ValueError, 'Missing OutputSE of Gauss Step'
-    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    gaussStep = self._addGaudiStep( 'Gauss', appVersion, appType, numberOfEvents, optionsFile,
-                                   optionsLine, eventType, extraPackages, outputSE, '', 'None',
-                                   histograms, firstEventNumber, {}, condDBTag, ddDBTag, DQTag, '',
-                                   stepID, stepName, stepVisible, stepPass, optionsFormat )
-    gaussStep.setValue( 'numberOfEventsInput', 0 )
-    gaussStep.setValue( 'generatorName', generatorName )
-
-  #############################################################################
-
-  def addBooleStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                   outputSE = None, histograms = False, inputData = 'previousStep', optionsFormat = '',
-                   extraOpts = '', extraOutputFile = [], inputDataType = '',
-                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
-                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep and getOptions.
-    """
-    eventType = self.__getEventType( eventType )
-    self.__checkArguments( extraPackages, optionsFile )
-    firstEventNumber = 0
-    numberOfEvents = '-1'
-
-    optionsLine = ''
-    if extraOpts:
-      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
-      optionsLine = ';'.join( extraOpts )
-
-    if not outputSE:
-      raise ValueError, 'Missing OutputSE of Boole Step'
-    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    if extraOutputFile:
-      self.LHCbJob.log.verbose( 'Adding output file to Boole step %s' % extraOutputFile )
-
-    self._addGaudiStep( 'Boole', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
-                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput = extraOutputFile,
-                       condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
-                       outputAppendName = '',
-                       stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-                       stepPass = stepPass, optionsFormat = optionsFormat )
-
-  #############################################################################
-
-  def addBrunelStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                    inputData = 'previousStep', inputDataType = '', outputSE = None, histograms = False,
-                    extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
-                    condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
-                    stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep
-    """
-    eventType = self.__getEventType( eventType )
-    self.__checkArguments( extraPackages, optionsFile )
-    if not outputSE:
-      raise ValueError, 'Missing OutputSE of Brunel Step'
-    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    optionsLine = ''
-    if extraOpts:
-      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
-      optionsLine = ';'.join( extraOpts )
-
-    firstEventNumber = 0
-
-    self._addGaudiStep( 'Brunel', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
-                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput = [],
-                       condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
-                       outputAppendName = '',
-                       stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-                       stepPass = stepPass, optionsFormat = optionsFormat )
-
-  #############################################################################
-
-  def addDaVinciStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                     inputData = 'previousStep', inputDataType = '', outputSE = None, histograms = False,
-                     extraOpts = '', numberOfEvents = '-1', dataType = 'DATA', optionsFormat = '',
-                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
-                     extraOutput = [],
-                     stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep
-    """
-
-    eventType = self.__getEventType( eventType )
-    self.__checkArguments( extraPackages, optionsFile )
-    firstEventNumber = 0
-
-    if not outputSE:
-      raise ValueError, 'Missing OutputSE of DaVinci Step'
-    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    optionsLine = ''
-    if extraOpts:
-      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
-      optionsLine = ';'.join( extraOpts )
-
-#    if appType.lower() == 'davincihist':
-#      appType = 'dst'
-
-    if  appType.lower() == 'merge':
-      appType = inputDataType.lower()
-
-    self._addGaudiStep( 'DaVinci', appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
-                        extraPackages, outputSE, inputData, inputDataType, histograms,
-                        firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
-                        stepID, stepName, stepVisible, stepPass, optionsFormat )
-
-  #############################################################################
-
-  def addMooreStep( self, appVersion, appType, optionsFile, eventType = 'firstStep', extraPackages = '',
-                   inputData = 'previousStep', inputDataType = '', outputSE = None, histograms = False,
-                   extraOpts = '', numberOfEvents = '-1', optionsFormat = '',
-                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
-                   outputAppendName = '',
-                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """ Wraps around addGaudiStep and getOptions.
-    """
-    eventType = self.__getEventType( eventType )
-    self.__checkArguments( extraPackages, optionsFile )
-
-    firstEventNumber = 0
-
-    if not outputSE:
-      raise ValueError, 'Missing OutputSE of Moore Step'
-    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    optionsLine = ''
-    if extraOpts:
-      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
-      optionsLine = ';'.join( extraOpts )
-
-    self._addGaudiStep( 'Moore', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
-                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput = [],
-                       condDBTag = condDBTag, ddDBTag = ddDBTag, DQTag = DQTag,
-                       outputAppendName = outputAppendName,
-                       stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-                       stepPass = stepPass, optionsFormat = optionsFormat )
-
-  #############################################################################
-
-  def addMergeStep( self, appVersion = 'v26r3', optionsFile = '$STDOPTS/PoolCopy.opts',
-                   eventType = 'firstStep', extraPackages = '', inputData = 'previousStep',
-                   inputDataType = '', outputSE = None, extraOpts = '', numberOfEvents = '-1',
-                   condDBTag = 'global', ddDBTag = 'global', DQTag = 'global', optionsFormat = '',
-                   dataType = 'MC', extraOutput = [],
-                   stepID = '', stepName = '', stepVisible = '', stepPass = '' ):
-    """Wraps around addGaudiStep.  The merging uses a standard Gaudi step with
-       any available LHCb project as the application.
-    """
-    eventType = self.__getEventType( eventType )
-    self.__checkArguments( extraPackages, optionsFile )
-    firstEventNumber = 0
-    histograms = False
-    #appVersion =''
-    #optionsFile = ''
-    appType = inputDataType
-    if not outputSE:
-      raise ValueError, 'Missing OutputSE of LHCb Step'
-    self.LHCbJob.log.verbose( 'Setting default outputSE to %s' % ( outputSE ) )
-
-    optionsLine = ''
-    if extraOpts:
-      extraOpts = removeEmptyElements( extraOpts.split( '\n' ) )
-      optionsLine = ';'.join( extraOpts )
-
-    self._addGaudiStep( 'LHCb', appVersion, appType, numberOfEvents, optionsFile, optionsLine,
-                       eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-                       firstEventNumber, extraOutput, condDBTag, ddDBTag, DQTag, '',
-                       stepID, stepName, stepVisible, stepPass, optionsFormat )
-    #if using LHCb to merge we won't want to abandon the output
-
-  #############################################################################
-
-  def addApplicationStep( self, stepDict, outputSE, eventType, extraPackages, optionsFile ):
+  def addApplicationStep( self, stepDict, outputSE, optionsLine, inputData = None ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1', 
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 
@@ -390,8 +191,10 @@ class Production():
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
         
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
-        the case where they should be different is the merging case.
+        the case where they might be different is the merging case.
     """
+
+    print stepDict
 
     appName = stepDict['ApplicationName']
     appVersion = stepDict['ApplicationVersion']
@@ -400,6 +203,7 @@ class Production():
     stepName = stepDict['StepName']
     stepVisible = stepDict['Visible']
     extraPackages = stepDict['ExtraPackages']
+    fileTypesIn = stepDict['fileTypesIn']
     fileTypesOut = stepDict['fileTypesOut']
     stepPass = stepDict['ProcessingPass']
     optionsFormat = stepDict['OptionsFormat']
@@ -407,69 +211,45 @@ class Production():
     conddbOpt = stepDict['CONDDB']
     DQOpt = stepDict['DQTag']
 
-    if extraPackages:
-      if type( extraPackages ) == type( [] ):
-        extraPackages = string.join( extraPackages, ';' )
-      if 'ProdConf' not in extraPackages:
-        extraPackages = extraPackages + ';ProdConf.v1r0'
-      extraPackages = extraPackages.replace( ' ', '' )
-    else:
-      extraPackages = 'ProdConf.v1r0'
-
-    self.__addSoftwarePackages( extraPackages )
-
-    self.__checkArguments( extraPackages, optionsFile )
-
-    outputFilesDict = self._constructOutputFilesDict( stepDict['fileTypesOut'], outputSE )
-
-    #questo l'ho preso come esempio da Brunel
-#    self._addGaudiStep( stepDict['ApplicationName'], stepDict['ApplicationVersion'], 
-#                        appType, numberOfEvents, optionsFile, optionsLine,
-#                        eventType, extraPackages, outputSE, inputData, inputDataType, histograms,
-#                        firstEventNumber, extraOutput = [], condDBTag = condDBTag, ddDBTag = ddDBTag,
-#                        outputAppendName = '',
-#                        stepID = stepID, stepName = stepName, stepVisible = stepVisible,
-#                        stepPass = stepPass )
-
-
-
-
-
-  def _constructOutputFilesDict( self, filesList, outputSE ):
-    """ build list of dictionary of output files, including HIST case, and fix outputSE for file
-    """
-
-    outputList = []
-
-    for fileType in filesList:
-      fileDict = {}
-      if 'hist' in fileType.lower():
-        fileDict['outputDataName'] = self.histogramName
-        fileDict['outputDataSE'] = self.histogramSE
-      else:
-        fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
-        fileDict['outputDataSE'] = outputSE
-      fileDict['outputDataType'] = fileType.lower()
-
-      outputList.append( fileDict )
-
-    return outputList
-
-  #############################################################################
-
-  def _addGaudiStep( self, appName, appVersion, appType, numberOfEvents, optionsFile, optionsLine, eventType,
-                     extraPackages, outputSE, inputData = 'previousStep', inputDataType = 'None',
-                     histograms = False, firstEventNumber = 0, extraOutput = [],
-                     condDBTag = 'global', ddDBTag = 'global', DQTag = 'global',
-                     outputAppendName = '',
-                     stepID = 0, stepName = '', stepVisible = '', stepPass = '', optionsFormat = '' ):
-    """Helper function.
-    """
+    #a series of various checks
     if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
       raise TypeError, 'Expected strings for application name and version'
 
+    if extraPackages:
+      if type( extraPackages ) == type( [] ):
+        extraPackages = ';'.join( extraPackages )
+      if type( extraPackages ) != type( '' ):
+        raise TypeError, 'extraPackages is not a string (nor a list)'
+      if 'ProdConf' not in extraPackages:
+        extraPackages = extraPackages + ';ProdConf'
+      extraPackages = extraPackages.replace( ' ', '' )
+    else:
+      extraPackages = 'ProdConf'
+
+    self.__checkArguments( extraPackages, optionsFile )
+
+    try:
+      if not dddbOpt.lower() == 'global':
+        self.LHCbJob.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, dddbOpt ) )
+        dddbOpt = dddbOpt.replace( ' ', '' )
+    except AttributeError:
+      pass
+    try:
+      if not conddbOpt.lower() == 'global':
+        self.LHCbJob.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, conddbOpt ) )
+        conddbOpt = conddbOpt.replace( ' ', '' )
+    except AttributeError:
+      pass
+    try:
+      if not DQOpt.lower() == 'global':
+        self.LHCbJob.log.verbose( 'Specific DQTag setting found for %s step, setting to: %s' % ( appName, DQOpt ) )
+        DQOpt = DQOpt.replace( ' ', '' )
+    except AttributeError:
+      pass
+
+
+    #starting real stuff
     self.LHCbJob.gaudiStepCount += 1
-#    gaudiStep = self.__getGaudiApplicationStep( '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount ) )
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
@@ -481,10 +261,8 @@ class Production():
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
-                        ['eventType', 'string', '', 'EventType'],
                         ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
-                        ['outputData', 'string', '', 'OutputData'],
-                        ['generatorName', 'string', '', 'GeneratorName'],
+#                        ['outputData', 'string', '', 'OutputData'],
                         ['applicationName', 'string', '', 'ApplicationName'],
                         ['applicationVersion', 'string', '', 'ApplicationVersion'],
                         ['runTimeProjectName', 'string', '', 'runTimeProjectName'],
@@ -493,18 +271,17 @@ class Production():
                         ['applicationLog', 'string', '', 'ApplicationLogFile'],
                         ['XMLSummary', 'string', '', 'XMLSummaryFile'],
                         ['optionsFile', 'string', '', 'OptionsFile'],
-#                        ['optionsLine', 'string', '', 'OptionsLines'],
                         ['extraOptionsLine', 'string', '', 'extraOptionsLines'],
-                        ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
-                        ['numberOfEvents', 'string', '', 'NumberOfEvents'],
                         ['numberOfEventsInput', 'string', '', 'NumberOfEventsInput'],
                         ['listoutput', 'list', [], 'StepOutputList'],
                         ['extraPackages', 'string', '', 'ExtraPackages'],
-                        ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
                         ['BKStepID', 'string', '', 'BKKStepID'],
                         ['StepProcPass', 'string', '', 'StepProcessingPass'],
                         ['HistogramName', 'string', '', 'NameOfHistogram'],
                         ['optionsFormat', 'string', '', 'ProdConf configuration'],
+                        ['CondDBTag', 'string', '', 'ConditionDatabaseTag'],
+                        ['DDDBTag', 'string', '', 'DetDescTag' ],
+                        ['DQTag', 'string', '', 'DataQualityTag']
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -516,126 +293,56 @@ class Production():
                                                                   '%s_%s' % ( appName,
                                                                               self.LHCbJob.gaudiStepCount ) )
 
-    #lower the appType if not creating a template
-    if type( appType ) == str and appType and not re.search( '{{', appType ):
-      appType = appType.lower()
-    if outputAppendName:
-      appType = '%s.%s' % ( outputAppendName, appType )
-      appType = appType.lower()
-    if type( optionsFile ) == type( [] ):
-      optionsFile = ';'.join( optionsFile )
-    optionsFile = optionsFile.replace( ' ', '' )
-
     valuesToSet = [
                    ['applicationName', appName ],
                    ['applicationVersion', appVersion ],
                    ['optionsFile', optionsFile ],
                    ['extraOptionsLine', optionsLine],
-                   ['optionsLinePrev', 'None'],
-                   ['numberOfEvents', numberOfEvents],
-                   ['eventType', eventType],
                    ['outputFilePrefix', '@{STEP_ID}'],
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
                    ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
-                   ['outputData', '@{STEP_ID}.' + fileTypesOut[0] if len( fileTypesOut ) == 1 else 'multiple'],
+                   ['extraPackages', extraPackages],
+#                   ['outputData', '@{STEP_ID}.' + fileTypesOut[0] if len( fileTypesOut ) == 1 else 'multiple'],
                    ['BKStepID', str( stepID )],
                    ['StepProcPass', stepPass],
                    ['HistogramName', self.histogramName],
-                   ['optionsFormat', optionsFormat]
+                   ['optionsFormat', optionsFormat],
+                   ['CondDBTag', conddbOpt],
+                   ['DDDBTag', dddbOpt],
+                   ['DQTag', DQOpt]
                    ]
 
-    if extraPackages:
-      if type( extraPackages ) == type( [] ):
-        extraPackages = ';'.join( extraPackages )
-      if 'ProdConf' not in extraPackages:
-        extraPackages = extraPackages + ';ProdConf'
-      extraPackages = extraPackages.replace( ' ', '' )
-    else:
-      extraPackages = 'ProdConf'
-    valuesToSet.append( [ 'extraPackages', extraPackages ] )
-    self.__addSoftwarePackages( extraPackages )
-
-    if firstEventNumber:
-      valuesToSet.append( [ 'firstEventNumber', firstEventNumber ] )
-
-    if inputDataType != 'None':
-      if re.search( '{{', inputDataType ):
-        valuesToSet.append( [ 'inputDataType', inputDataType ] )
-      else:
-        valuesToSet.append( [ 'inputDataType', inputDataType.upper() ] )
-
-    for pName, value in valuesToSet:
-      gaudiStepInstance.setValue( pName, value )
+    if fileTypesIn:
+      if len( fileTypesIn ) != 1:
+        raise IndexError, 'More than one data type in input'
+      fileTypeIn = fileTypesIn[0].upper()
+      valuesToSet.append( [ 'inputDataType', fileTypeIn ] )
 
     if not inputData:
       self.LHCbJob.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
     elif inputData == 'previousStep':
       self.LHCbJob.log.verbose( 'Taking input data as output from previous Gaudi step' )
-      if not self.ioDict.has_key( self.LHCbJob.gaudiStepCount - 1 ):
-        raise TypeError, 'Expected previously defined Gaudi step for input data'
-      gaudiStepInstance.setLink( 'inputData', self.ioDict[self.LHCbJob.gaudiStepCount - 1], 'outputData' )
-    elif inputData == 'firstStep':
-      self.LHCbJob.log.verbose( 'Taking input data as output from first Gaudi step' )
-      stepKeys = self.ioDict.keys()
-      stepKeys.sort()
-      gaudiStepInstance.setLink( 'inputData', self.ioDict[stepKeys[0]], 'outputData' )
+      valuesToSet.append( [ 'inputData', inputData ] )
     else:
       self.LHCbJob.log.verbose( 'Assume input data requirement should be added to job' )
       self.LHCbJob.setInputData( inputData )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
-      #such that it can be overwritten during submission
-      #but also the template value can be used for testing
 
-    outputList = []
+    for pName, value in valuesToSet:
+      if value:
+        gaudiStepInstance.setValue( pName, value )
 
-    #trying to control the stripping case, with many output file types
-    if not extraOutput:
-      extraOutput = [appType]
-
-    for fileType in extraOutput:
-      if 'hist' in fileType.lower():
-        continue
-
-      gaudiStepOutputItem = {}
-
-      gaudiStepOutputItem['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
-      gaudiStepOutputItem['outputDataType'] = fileType.lower()
-      gaudiStepOutputItem['outputDataSE'] = outputSE
-
-      outputList.append( gaudiStepOutputItem )
-
-    if histograms:
-      histoFile = {}
-      histoFile['outputDataName'] = self.histogramName
-      histoFile['outputDataType'] = 'HIST'
-      histoFile['outputDataSE'] = self.histogramSE
-      outputList.append( histoFile )
-#    if extraOutput:
-#      outputList.append( extraOutput )
-
-    gaudiStepInstance.setValue( 'listoutput', ( outputList ) )
+    outputFilesDict = self._constructOutputFilesDict( stepDict['fileTypesOut'], outputSE )
+    gaudiStepInstance.setValue( 'listoutput', ( outputFilesDict ) )
 
     # now we have to tell DIRAC to install the necessary software
     self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
-    dddbOpt = "@{DDDBTag}"
-    conddbOpt = "@{CondDBTag}"
-    DQOpt = "@{DQTag}"
-    if not condDBTag.lower() == 'global':
-      self.LHCbJob.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, condDBTag ) )
-      conddbOpt = condDBTag.replace( ' ', '' )
-    if not ddDBTag.lower() == 'global':
-      self.LHCbJob.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, ddDBTag ) )
-      dddbOpt = ddDBTag.replace( ' ', '' )
-    if not DQTag.lower() == 'global':
-      self.LHCbJob.log.verbose( 'Specific DQTag setting found for %s step, setting to: %s' % ( appName, DQTag ) )
-      DQOpt = DQTag.replace( ' ', '' )
+    self.__addSoftwarePackages( extraPackages )
 
     #to construct the BK processing pass structure, starts from step '0'
     stepIDInternal = 'Step%s' % ( self.LHCbJob.gaudiStepCount - 1 )
     bkOptionsFile = optionsFile
-    if re.search( '@{eventType}', optionsFile ):
-      bkOptionsFile = optionsFile.replace( '@{eventType}', str( eventType ) )
 
     stepBKInfo = {'ApplicationName':appName,
                   'ApplicationVersion':appVersion,
@@ -683,47 +390,6 @@ class Production():
       outputList.append( fileDict )
 
     return outputList
-
-  #############################################################################
-
-  def __addStepDefinition( self ):
-    """ Add a step definition to the workflow
-    """
-    modulesNameList = gConfig.getValue( '%s/GaudiStep_Modules' % self.csSection, ['GaudiApplication',
-                                                                                  'AnalyseLogFile',
-                                                                                  'AnalyseXMLSummary',
-                                                                                  'ErrorLogging',
-                                                                                  'BookkeepingReport',
-                                                                                  'StepAccounting'
-                                                                                  ] )
-
-    #pName, pType, pValue, pDesc
-    parametersList = [
-                      ['inputData', 'string', '', 'StepInputData'],
-                      ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
-                      ['outputData', 'string', '', 'OutputData'],
-                      ['generatorName', 'string', '', 'GeneratorName'],
-                      ['applicationName', 'string', '', 'ApplicationName'],
-                      ['applicationVersion', 'string', '', 'ApplicationVersion'],
-                      ['runTimeProjectName', 'string', '', 'runTimeProjectName'],
-                      ['runTimeProjectVersion', 'string', '', 'runTimeProjectVersion'],
-                      ['applicationLog', 'string', '', 'ApplicationLogFile'],
-                      ['XMLSummary', 'string', '', 'XMLSummaryFile'],
-                      ['optionsFile', 'string', '', 'OptionsFile'],
-                      ['optionsLine', 'string', '', 'OptionsLines'],
-                      ['optionsLinePrev', 'string', '', 'PreviousOptionsLines'],
-                      ['listoutput', 'list', [], 'StepOutputList'],
-                      ['extraPackages', 'string', '', 'ExtraPackages'],
-                      ['firstEventNumber', 'string', 'int', 'FirstEventNumber'],
-                      ['BKStepID', 'string', '', 'BKKStepID'],
-                      ['StepProcPass', 'string', '', 'StepProcessingPass'],
-                      ['HistogramName', 'string', '', 'NameOfHistogram'],
-                      ['optionsFormat', 'string', '', 'ProdConf configuration'],
-                      ]
-
-    gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
-                                      parametersList = parametersList )
-    self.LHCbJob.workflow.addStep( gaudiStepDef )
 
   #############################################################################
 
@@ -839,8 +505,6 @@ class Production():
     parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
     parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
     parameters['JobType'] = prodWorkflow.findParameter( 'JobType' ).getValue()
-    parameters['eventType'] = prodWorkflow.findParameter( 'eventType' ).getValue()
-    parameters['numberOfEvents'] = prodWorkflow.findParameter( 'numberOfEvents' ).getValue()
     parameters['SizeGroup'] = self.jobFileGroupSize
 
     if parameters['JobType'].lower() == 'mcsimulation':
@@ -1026,6 +690,14 @@ class Production():
       bkDict['SimulationConditions'] = bkConditions
       bkDictStep['SimulationConditions'] = bkConditions
 
+    #Adding some MC transformation parameters if present
+    maxNumberOfTasks = 0
+    maxEventsPerTask = 0
+    if self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ):
+      maxNumberOfTasks = self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ).getValue()
+    if self.LHCbJob.workflow.findParameter( 'EventsPerTask' ):
+      maxEventsPerTask = self.LHCbJob.workflow.findParameter( 'EventsPerTask' ).getValue()
+
     descShort = self.LHCbJob.workflow.getDescrShort()
     descLong = self.LHCbJob.workflow.getDescription()
 
@@ -1043,7 +715,10 @@ class Production():
       #This mechanism desperately needs to be reviewed
       result = self.transClient.addTransformation( fileName, descShort, descLong, self.LHCbJob.type, self.plugin, 'Manual',
                                                    fileMask, transformationGroup = self.prodGroup, groupSize = int( groupSize ),
-                                                   inheritedFrom = int( derivedProduction ), body = workflowBody, bkQuery = bkQuery
+                                                   inheritedFrom = int( derivedProduction ), body = workflowBody,
+                                                   maxTasks = int( maxNumberOfTasks ),
+                                                   eventsPerTask = int( maxEventsPerTask ),
+                                                   bkQuery = bkQuery
                                                   )
 
       if not result['OK']:
@@ -1409,6 +1084,13 @@ class Production():
     """
     self._setParameter( 'eventType', 'string', eventType, 'Event Type of the production' )
     self.firstEventType = eventType
+
+  #############################################################################
+
+  def setGeneratorName( self, generatorName ):
+    """ Set the event type as a workflow paramater
+    """
+    self._setParameter( 'generatorName', 'string', generatorName, 'Generator Name' )
 
   #############################################################################
 

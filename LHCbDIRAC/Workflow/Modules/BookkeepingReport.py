@@ -35,7 +35,6 @@ class BookkeepingReport( ModuleBase ):
 
     self.version = __RCSID__
 
-    self.eventsRequested = ''
     self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
@@ -145,8 +144,6 @@ class BookkeepingReport( ModuleBase ):
       startTime = self.step_commons['StartTime']
       self.ldatestart = time.strftime( "%Y-%m-%d", time.localtime( startTime ) )
       self.ltimestart = time.strftime( "%H:%M", time.localtime( startTime ) )
-
-    self.eventsRequested = self.step_commons['numberOfEvents']
 
     if not xf_o:
       try:
@@ -327,7 +324,7 @@ class BookkeepingReport( ModuleBase ):
 
     typedParams.append( ( "FirstEventNumber", 1 ) )
 
-    typedParams.append( ( "StatisticsRequested", self.eventsRequested ) )
+    typedParams.append( ( "StatisticsRequested", self.numberOfEvents ) )
 
     try:
       typedParams.append( ( "EventInputStat", self.xf_o.inputEventsTotal ) )

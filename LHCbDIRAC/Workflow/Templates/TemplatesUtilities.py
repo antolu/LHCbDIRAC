@@ -97,6 +97,7 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
                      extraOptions, defaultOutputSE,
                      eventType, events, priority, cpu,
                      sysConfig = '',
+                     generatorName = '',
                      outputsCERN = False,
                      outputFileMask = '',
                      targetSite = '',
@@ -118,7 +119,7 @@ def buildProduction( prodType, stepsList, requestID, prodDesc,
   prod.setProdPriority( priority )
   prod.setWorkflowDescription( 'prodDescription' )
   prod.setJobParameters( { 'CPUTime': cpu } )
-
+  prod.setGeneratorName( generatorName )
 
   #optional parameters
   if sysConfig:
