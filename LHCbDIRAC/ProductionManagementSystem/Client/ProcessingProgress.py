@@ -403,7 +403,7 @@ class ProcessingProgress:
     # Create the info for the 3 sets of productions
     prodSets = []
     fileType = bkQuery.getFileTypeList()[0]
-    prodSets.append( {'Name': processingPass[2], 'FileType': "SDST", 'List':recoList,
+    prodSets.append( {'Name': processingPass[2], 'FileType': ['SDST', 'FULL.DST'], 'List':recoList,
                       'RunRange':recoRunRanges, 'MotherProds':None, 'AllReplicas':False } )
     prodSets.append( {'Name': processingPass[3], 'FileType': fileType, 'List':stripList,
                       'RunRange':stripRunRanges, 'MotherProds':None, 'AllReplicas':True, 'StatForOK':False } )
