@@ -3910,17 +3910,18 @@ and files.qualityid= dataquality.qualityid'
     return self.dbR_.query(command)
 
   #############################################################################
-  def getFileTypeVersion(self, lfn):
+  def getFileTypeVersion(self, lfns):
     """returns the format of an lfn"""
-    result = {}
-    for i in lfn:
-      res = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getTypeVesrsion', [i])
-      if res['OK']:
-        if len(res['Value']) > 0:
-          result[i] = res['Value'][0][0]
-      else:
-        result[i] = res['Message']
-    return S_OK(result)
+    result = None
+    retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.bulkgetTypeVesrsion', [], True, lfns)
+    if retVal['OK']:
+      values = {}
+      for i in retVal['Value']:
+        values[i[0]] = i[1]
+      result = S_OK(values)
+    else:
+      result = retVal
+    return result
 
   #############################################################################
   def insertRuntimeProject(self, projectid, runtimeprojectid):

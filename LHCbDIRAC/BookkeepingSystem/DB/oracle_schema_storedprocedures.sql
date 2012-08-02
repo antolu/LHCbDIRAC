@@ -171,6 +171,7 @@ function getFilesForGUID(v_guid varchar2) return varchar2;
 procedure updateDataQualityFlag(v_qualityid number, lfns varchararray);
 procedure bulkcheckfiles(lfns varchararray,  a_Cursor out udt_RefCursor); 
 procedure bulkupdateReplicaRow(v_replica varchar2, lfns varchararray);
+procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor);
 end;
 /
 
@@ -1415,6 +1416,9 @@ procedure insertproductionscontainer(v_prod number, v_processingid number, v_sim
 begin
 insert into productionscontainer(production,processingid,simid,daqperiodid)values(v_prod, v_processingid, v_simid, v_daqperiodid);
 commit;
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+   dbms_output.put_line(v_prod || 'already in the steps container table');
 end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  procedure getEventTypes(
@@ -1704,6 +1708,26 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
 END LOOP;
 commit;
 END;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor)
+is
+lfnmeta metadata_table := metadata_table();
+n integer := 0; 
+found number := 0;
+ftype varchar2(256);
+
+begin
+FOR i in lfns.FIRST .. lfns.LAST LOOP 
+  select count(ftype.version) into found from files f, filetypes ftype where f.filetypeid=ftype.filetypeid and f.filename=lfns(i);
+  IF found > 0 THEN
+    select ftype.version into ftype from files f, filetypes ftype where f.filetypeid=ftype.filetypeid and f.filename=lfns(i);
+    lfnmeta.extend;  
+    n:=n+1;
+    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+  END IF;
+END LOOP;
+open a_Cursor for select * from table(lfnmeta);
+end;
 
 END;
 /
