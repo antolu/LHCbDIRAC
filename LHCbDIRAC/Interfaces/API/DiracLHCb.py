@@ -100,14 +100,16 @@ class DiracLHCb( Dirac ):
 
        Example Usage:
 
-       >>> print dirac.rootMergeRepository('MyMergedRootFile.root',inputFileMask='DVHistos.root',location='Sandbox', requestedStates = ['Done'])
+       >>> print dirac.rootMergeRepository('MyMergedRootFile.root',
+       inputFileMask='DVHistos.root',location='Sandbox', requestedStates = ['Done'])
        {'OK': True, 'Value': ''}
 
        @param outputFileName: The target merged file
        @type outputFileName: string
        @param inputFileMask: Mask to be used when locating input files. Can support wildcards like 'Tuple*.root'
        @type inputFileMask: string
-       @param location: The input files present either in the 'Sandbox' (retrieved with getOutputSandbox) or 'OutputFiles' (getJobOutputData)
+       @param location: The input files present either in the 'Sandbox' (retrieved with getOutputSandbox)
+        or 'OutputFiles' (getJobOutputData)
        @type location: string
        @param requestedStates: List of jobs states to be considered
        @type requestedStates: list of strings
@@ -152,7 +154,12 @@ class DiracLHCb( Dirac ):
         Example Usage:
 
         >>> print dirac.getRootVersions()
-        {'OK': True, 'Value': {'5.26.00b': 'DaVinci.v25r1', '5.22.00d': 'DaVinci.v24r3p2', '5.22.00c': 'DaVinci.v24r2p3', '5.22.00b': 'DaVinci.v23r2p1', '5.22.00a': 'DaVinci.v23r0p1', '5.14.00h': 'DaVinci.v19r8', '5.14.00i': 'DaVinci.v19r9', '5.18.00d': 'DaVinci.v20r3', '5.18.00f': 'DaVinci.v21r0', '5.24.00b': 'DaVinci.v24r7p3', '5.18.00a': 'DaVinci.v19r12', '4.04.02': 'DaVinci.v14r5', '3.10.02': 'DaVinci.v12r18', '5.18.00': 'DaVinci.v19r10', '5.14.00f': 'DaVinci.v19r5'}}
+        {'OK': True, 'Value': {'5.26.00b': 'DaVinci.v25r1', '5.22.00d': 'DaVinci.v24r3p2',
+        '5.22.00c': 'DaVinci.v24r2p3', '5.22.00b': 'DaVinci.v23r2p1', '5.22.00a': 'DaVinci.v23r0p1',
+        '5.14.00h': 'DaVinci.v19r8', '5.14.00i': 'DaVinci.v19r9', '5.18.00d': 'DaVinci.v20r3',
+        '5.18.00f': 'DaVinci.v21r0', '5.24.00b': 'DaVinci.v24r7p3', '5.18.00a': 'DaVinci.v19r12',
+        '4.04.02': 'DaVinci.v14r5', '3.10.02': 'DaVinci.v12r18',
+        '5.18.00': 'DaVinci.v19r10', '5.14.00f': 'DaVinci.v19r5'}}
 
        @param printOutput: Optional flag to print result
        @type printOutput: boolean
@@ -160,14 +167,16 @@ class DiracLHCb( Dirac ):
     """
     rootVersions = gConfig.getOptionsDict( self.softwareSection + '/LHCbRoot' )
     if not rootVersions['OK']:
-      return self.__errorReport( rootVersions, 'Could not contact DIRAC Configuration Service for supported ROOT version list' )
+      return self.__errorReport( rootVersions,
+                                 'Could not contact DIRAC Configuration Service for supported ROOT version list' )
 
     if printOutput:
       rootList = []
       rootDict = rootVersions['Value']
       for r, d in rootDict.items():
         rootList.append( '%s = %s' % ( r, d ) )
-      self.log.info( 'Supported versions of ROOT (and corresponding DaVinci versions) in LHCb are:\n%s' % ( string.join( rootList, '\n' ) ) )
+      self.log.info( 'Supported versions of ROOT (and corresponding DaVinci versions) \
+      in LHCb are:\n%s' % ( string.join( rootList, '\n' ) ) )
 
     return rootVersions
 
@@ -180,7 +189,8 @@ class DiracLHCb( Dirac ):
         Example Usage:
 
         >>> print dirac.getSoftwareVersions()
-        {'OK': True, 'Value': {'Compat': {'v1r3': ['slc4_ia32_gcc34', 'x86_64-slc5-gcc43-opt']}, 'LHCbGrid': {'v1r7': ['slc4_amd64_gcc34', 'slc4_ia32_gcc34']}}
+        {'OK': True, 'Value': {'Compat': {'v1r3': ['slc4_ia32_gcc34', 'x86_64-slc5-gcc43-opt']},
+        'LHCbGrid': {'v1r7': ['slc4_amd64_gcc34', 'slc4_ia32_gcc34']}}
 
        @param printOutput: Optional flag to print result
        @type printOutput: boolean
