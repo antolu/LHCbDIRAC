@@ -468,26 +468,19 @@ class Production():
     """
 
     prodWorkflow = Workflow( prodXMLFile )
-    if not bkPassInfo:
-      bkPassInfo = prodWorkflow.findParameter( 'BKProcessingPass' ).getValue()
-    if not groupDescription:
-      groupDescription = prodWorkflow.findParameter( 'groupDescription' ).getValue()
 
     parameters = {}
+    info = []
 
-    parameters['Priority'] = prodWorkflow.findParameter( 'Priority' ).getValue()
-    parameters['CondDBTag'] = prodWorkflow.findParameter( 'CondDBTag' ).getValue()
-    parameters['DDDBTag'] = prodWorkflow.findParameter( 'DDDBTag' ).getValue()
-    parameters['DQTag'] = prodWorkflow.findParameter( 'DQTag' ).getValue()
-    parameters['configName'] = prodWorkflow.findParameter( 'configName' ).getValue()
-    parameters['configVersion'] = prodWorkflow.findParameter( 'configVersion' ).getValue()
-    parameters['outputDataFileMask'] = prodWorkflow.findParameter( 'outputDataFileMask' ).getValue()
-    parameters['JobType'] = prodWorkflow.findParameter( 'JobType' ).getValue()
+    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType',
+                           'configName', 'configVersion', 'outputDataFileMask', 'JobType', 'MaxNumberOfTasks' ):
+      try:
+        parameters[parameterName] = prodWorkflow.findParameter( parameterName ).getValue()
+        info.append( "%s: %s" % ( parameterName, prodWorkflow.findParameter( parameterName ).getValue() ) )
+      except AttributeError:
+        continue
+
     parameters['SizeGroup'] = self.jobFileGroupSize
-
-    if parameters['JobType'].lower() == 'mcsimulation':
-      if prodWorkflow.findParameter( 'MaxNumberOfTasks' ):
-        parameters['MaxNumberOfTasks'] = prodWorkflow.findParameter( 'MaxNumberOfTasks' ).getValue()
 
     if prodWorkflow.findParameter( 'InputData' ): #now only comes from BK query
       prodWorkflow.findParameter( 'InputData' ).setValue( '' )
@@ -498,17 +491,14 @@ class Production():
     if prodWorkflow.findParameter( 'TransformationFamily' ):
       parameters['TransformationFamily'] = prodWorkflow.findParameter( 'TransformationFamily' ).getValue()
 
+    if not bkPassInfo:
+      bkPassInfo = prodWorkflow.findParameter( 'BKProcessingPass' ).getValue()
+    if not groupDescription:
+      groupDescription = prodWorkflow.findParameter( 'groupDescription' ).getValue()
+
     parameters['BKCondition'] = prodWorkflow.findParameter( 'conditions' ).getValue()
-
-    if not bkInputQuery and parameters['JobType'].lower() != 'mcsimulation':
-      res = self.transClient.getBookkeepingQueryForTransformation( int( prodID ) )
-      if not res['OK']:
-        self.LHCbJob.log.error( res )
-        raise ValueError, 'Could not obtain production info'
-      bkInputQuery = res['Value']
-
-    parameters['BKInputQuery'] = bkInputQuery
     parameters['BKProcessingPass'] = bkPassInfo
+    parameters['BKInputQuery'] = bkInputQuery
     parameters['groupDescription'] = groupDescription
     parameters['RequestID'] = reqID
     parameters['DerivedProduction'] = derivedProd
@@ -530,19 +520,7 @@ class Production():
           outputDirectories.append( outputDir )
 
     parameters['OutputDirectories'] = outputDirectories
-    #Create detailed information string similar to ELOG entry
-    #TODO: put tags per step and include other interesting parameters
-    info = []
-    info.append( '%s Production %s for event type %s has following parameters:\n' % ( parameters['JobType'],
-                                                                                      prodID,
-                                                                                      parameters['eventType'] ) )
-    info.append( 'Production priority: %s' % ( parameters['Priority'] ) )
-    info.append( 'BK Config Name Version: %s %s' % ( parameters['configName'], parameters['configVersion'] ) )
-    info.append( 'BK Processing Pass Name: %s' % ( parameters['groupDescription'] ) )
-    info.append( 'CondDB Tag: %s' % ( parameters['CondDBTag'] ) )
-    info.append( 'DDDB Tag: %s\n' % ( parameters['DDDBTag'] ) )
-    info.append( 'DQ Tag: %s\n' % ( parameters['DQTag'] ) )
-    #info.append('Number of events: % s' %(parameters['numberOfEvents']))
+
     #Now for the steps of the workflow
     stepKeys = bkPassInfo.keys()
     stepKeys.sort()
@@ -640,10 +618,6 @@ class Production():
     bkDict['Steps'] = bkSteps
     bkDict['GroupDescription'] = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue()
 
-    # After the reorganisation by steps release this stuff can be greatly simplified
-    # only the stepID, stepName and stepVisible need to be tracked.
-    # In the first instance I am just demonstrating the new functionality without making
-    # sweeping changes
     bkDictStep = {}
 
     #Add the BK conditions metadata / name
@@ -683,8 +657,8 @@ class Production():
       self._setParameter( 'ProcessingType', 'JDL', str( self.prodGroup ), 'ProductionGroupOrType' )
       self._setParameter( 'Priority', 'JDL', str( self.priority ), 'UserPriority' )
 
-      #This mechanism desperately needs to be reviewed
-      result = self.transClient.addTransformation( fileName, descShort, descLong, self.LHCbJob.type, self.plugin, 'Manual',
+      result = self.transClient.addTransformation( fileName, descShort, descLong,
+                                                   self.LHCbJob.type, self.plugin, 'Manual',
                                                    fileMask = self.inputFileMask,
                                                    transformationGroup = self.prodGroup,
                                                    groupSize = int( self.jobFileGroupSize ),
@@ -718,15 +692,16 @@ class Production():
         inputPass = self.BKKClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
           self.LHCbJob.log.error( inputPass )
-          self.LHCbJob.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID, queryProdID ) )
+          self.LHCbJob.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID,
+                                                                                                               queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
-        self.LHCbJob.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID, prodID, inputPass ) )
-        bkDict['InputProductionTotalProcessingPass'] = inputPass
+        self.LHCbJob.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
+                                                                                                      prodID, inputPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
-        self.LHCbJob.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID, queryProcPass ) )
-        bkDict['InputProductionTotalProcessingPass'] = queryProcPass
+        self.LHCbJob.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
+                                                                                                                 queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
 
     if bkProcPassPrepend:
@@ -764,26 +739,27 @@ class Production():
       reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
       result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
-        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed, dictionary below:\n%s' % ( prodID, requestID, reqDict ) )
+        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed, dictionary below:\n%s' % ( prodID,
+                                                                                                               requestID,
+                                                                                                               reqDict ) )
       else:
-        self.LHCbJob.log.info( 'Successfully added production %s to request %s with Used flag set to %s' % ( prodID, requestID, reqUsed ) )
+        self.LHCbJob.log.info( 'Successfully added production %s to request %s with flag set to %s' % ( prodID,
+                                                                                                        requestID,
+                                                                                                        reqUsed ) )
 
     if publish:
-      try:
-        paramsDict = self._getProductionParameters( prodID = prodID,
-                                                    prodXMLFile = fileName,
-                                                    groupDescription = bkDict['GroupDescription'],
-                                                    bkPassInfo = bkDict['Steps'],
-                                                    bkInputQuery = bkQuery,
-                                                    reqID = requestID,
-                                                    derivedProd = self.ancestorProduction )
-        for n, v in paramsDict.items():
-          result = self.setProdParameter( prodID, n, v )
-          if not result['OK']:
-            self.LHCbJob.log.error( result['Message'] )
-
-      except Exception, x:
-        self.LHCbJob.log.error( 'Failed to set production parameters with exception\n%s\nThis can be done later...' % ( str( x ) ) )
+      groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue(),
+      paramsDict = self._getProductionParameters( prodID = prodID,
+                                                  prodXMLFile = fileName,
+                                                  groupDescription = groupDesc,
+                                                  bkPassInfo = bkSteps,
+                                                  bkInputQuery = bkQuery,
+                                                  reqID = requestID,
+                                                  derivedProd = self.ancestorProduction )
+      for n, v in paramsDict.items():
+        result = self.setProdParameter( prodID, n, v )
+        if not result['OK']:
+          self.LHCbJob.log.error( result['Message'] )
 
     if transformation and not bkScript:
       if not bkQuery.has_key( 'FileType' ):
@@ -947,7 +923,7 @@ class Production():
     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     job = LHCbJob( prodXMLFile )
     result = preSubmissionLFNs( job._getParameters(), job.createCode(),
-                               productionID = prodID, jobID = prodJobID )
+                                productionID = prodID, jobID = prodJobID )
     if not result['OK']:
       return result
     lfns = result['Value']
@@ -967,8 +943,10 @@ class Production():
       pvalue = str( pvalue )
     result = self.transClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
     if not result['OK']:
-      self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s. Error = %s' % ( pname, prodID,
-                                                                                                             pvalue, result['Message'] ) )
+      self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s. Error = %s' % ( pname,
+                                                                                                             prodID,
+                                                                                                             pvalue,
+                                                                                                             result['Message'] ) )
     return result
 
   #############################################################################

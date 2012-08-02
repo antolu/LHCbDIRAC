@@ -80,12 +80,8 @@ pr.eventType = '{{eventType}}'
 #Often MC requests are defined with many subrequests but we want to retain
 #the parent ID for viewing on the production monitoring page. If a parent
 #request is defined then this is used.
-parentReq = '{{_parent}}'
-
-if not parentReq:
-  pr.requestID = '{{ID}}'
-else:
-  pr.requestID = parentReq
+pr.parentRequestID = '{{_parent}}'
+pr.requestID = '{{ID}}'
 
 if extraOptions:
   pr.extraOptions = eval( extraOptions )

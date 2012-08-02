@@ -123,7 +123,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'groupSize': 1,
                       'plugin': 'ByRun',
                       'inputDataPolicy':'download',
-                      'derivedProduction':0
+                      'derivedProduction':0,
+                      'transformationFamily':0
                      },
 
                    2:{
@@ -141,7 +142,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'groupSize': 1,
                       'plugin': 'BySize',
                       'inputDataPolicy':'download',
-                      'derivedProduction':0
+                      'derivedProduction':0,
+                      'transformationFamily':0
                       }
                    }
 

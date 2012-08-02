@@ -32,6 +32,7 @@ class ProductionRequest( object ):
     self.logger = gLogger.getSubLogger( 'ProductionRequest' )
 
     self.requestID = 0
+    self.parentRequestID = 0
     self.appendName = '1'
     self.configName = 'test'
     self.configVersion = 'certification'
@@ -145,15 +146,26 @@ class ProductionRequest( object ):
                                     inputDataPolicy = prodDict['inputDataPolicy'],
                                     bkQuery = prodDict['bkQuery'],
                                     previousProdID = prodID,
-                                    derivedProdID = prodDict[''] )
+                                    derivedProdID = prodDict['derivedProduction'],
+                                    transformationFamily = prodDict['transformationFamily'] )
 
-      prodID = self.diracProduction.launchProduction( prod, self.publishFlag, self.testFlag, self.requestID,
-                                                      self.extend, prodDict['tracking'] )
+      res = self.diracProduction.launchProduction( prod = prod,
+                                                   publishFlag = self.publishFlag,
+                                                   testFlag = self.testFlag,
+                                                   requestID = self.requestID,
+                                                   extend = self.extend,
+                                                   tracking = prodDict['tracking'] )
+      if not res['OK']:
+        raise RuntimeError, res['Message']
 
-      self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
-                                                                                           prodIndex,
-                                                                                           prodDict['productionType'],
-                                                                                           str( prodID ) ) )
+      self.extend = 0 #only extending the first one (MC)
+      prodID = res['Value']
+
+      if self.publishFlag:
+        self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
+                                                                                             prodIndex,
+                                                                                             prodDict['productionType'],
+                                                                                             str( prodID ) ) )
 
   #############################################################################
 
@@ -231,7 +243,8 @@ class ProductionRequest( object ):
                                'groupSize': groupSize,
                                'plugin': plugin,
                                'inputDataPolicy': idp,
-                               'derivedProduction': 0
+                               'derivedProduction': 0,
+                               'transformationFamily': self.parentRequestID
                                }
       bkQuery = 'fromPreviousProd'
       prodNumber += 1
@@ -259,7 +272,8 @@ class ProductionRequest( object ):
                         groupSize = 1,
                         bkQuery = None,
                         previousProdID = 0,
-                        derivedProduction = 0 ):
+                        derivedProdID = 0,
+                        transformationFamily = 0 ):
     """ Wrapper around Production API to build a production, given the needed parameters
     """
     prod = Production()
@@ -296,8 +310,10 @@ class ProductionRequest( object ):
         prod.LHCbJob.setDestination( target )
     if inputDataList:
       prod.LHCbJob.setInputData( inputDataList )
-    if derivedProduction:
-      prod.ancestorProduction = derivedProduction
+    if derivedProdID:
+      prod.ancestorProduction = derivedProdID
+    if transformationFamily:
+      prod.transformationFamily = transformationFamily
 
     #Adding optional input BK query
     if bkQuery == 'fromPreviousProd':
