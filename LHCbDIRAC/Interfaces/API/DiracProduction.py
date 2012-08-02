@@ -1,12 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   DiracProduction.py
-# Author : Stuart Paterson
-########################################################################
-
-from DIRAC.Core.Base import Script
-Script.parseCommandLine()
-
 """DIRAC Production Management Class
 
    This class allows to monitor the progress of productions operationally.
@@ -18,39 +9,42 @@ Script.parseCommandLine()
 
 __RCSID__ = "$Id$"
 
-import string, os, types
+import os, types
 import pprint
 
-from DIRAC.Interfaces.API.Dirac                               import Dirac
-from DIRAC.Core.DISET.RPCClient                               import RPCClient
-from DIRAC.Core.Utilities.Time                                import toString
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
-
-from DIRAC                                          import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.Time import toString
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 COMPONENT_NAME = 'DiracProduction'
 
 class DiracProduction:
+  """ class for managing productions
+  """
 
   #############################################################################
-  def __init__( self ):
+  def __init__( self, tsClientIn = None ):
     """Instantiates the Workflow object and some default parameters.
     """
+
+    if tsClientIn is None:
+      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+      self.transformationClient = TransformationClient()
+    else:
+      self.transformationClient = tsClientIn
+
     self.log = gLogger.getSubLogger( COMPONENT_NAME )
     #gLogger.setLevel('verbose')
     self.section = COMPONENT_NAME
-    self.scratchDir = gConfig.getValue( '/LocalSite/ScratchDir', '/tmp' )
-    self.scratchDir = gConfig.getValue( '/LocalSite/ScratchDir', '/tmp' )
-    self.submittedStatus = gConfig.getValue( self.section + '/ProcDBSubStatus', 'Submitted' )
-    self.createdStatus = gConfig.getValue( self.section + '/ProcDBCreatedStatus', 'Created' )
-    self.defaultOwnerGroup = gConfig.getValue( self.section + '/DefaultOwnerGroup', 'lhcb_prod' )
-    self.diracAPI = Dirac()
+    self.diracAPI = DiracLHCb()
     self.pPrint = pprint.PrettyPrinter()
-    self.toCleanUp = []
-    self.prodHeaders = {'AgentType':'SubmissionMode', 'Status':'Status', 'CreationDate':'Created', \
-                        'TransformationName':'Name', 'Type':'Type'}
+    self.prodHeaders = {'AgentType':'SubmissionMode',
+                        'Status':'Status',
+                        'CreationDate':'Created',
+                        'TransformationName':'Name',
+                        'Type':'Type'}
     self.prodAdj = 22
-    self.proxy = None
     self.commands = {'start':['Active', 'Manual'],
                      'stop':['Stopped', 'Manual'],
                      'automatic':['Active', 'Automatic'],
@@ -66,14 +60,14 @@ class DiracProduction:
                      'remove':['RemovingFiles', 'Manual'],
                      'validated':['ValidatedOutput', 'Manual'],
                      'removed':['RemovedFiles', 'Manual']}
-    self.prodClient = TransformationClient()
+
 
   #############################################################################
   def getAllProductions( self, printOutput = False ):
     """Returns a dictionary of production IDs and metadata. If printOutput is
        specified, a high-level summary of the productions is printed.
     """
-    result = self.prodClient.getTransformationSummary()
+    result = self.transformationClient.getTransformationSummary()
     if not result['OK']:
       return result
 
@@ -95,7 +89,7 @@ class DiracProduction:
             line += str( v ).ljust( adj )
       message.append( line )
 
-    print string.join( message, '\n' )
+    print '\n'.join( message )
     return result
 
   #############################################################################
@@ -109,7 +103,7 @@ class DiracProduction:
       if not type( productionID ) == type( " " ):
         return self.__errorReport( 'Expected string, long or int for production ID' )
 
-    result = self.prodClient.getTransformation( int( productionID ) )
+    result = self.transformationClient.getTransformation( int( productionID ) )
     if not result['OK']:
       return result
 
@@ -123,15 +117,17 @@ class DiracProduction:
         top += i.ljust( adj )
       message = ['ProductionID'.ljust( adj ) + top + '\n']
       #very painful to make this consistent, better improved first on the server side
-      message.append( productionID.ljust( adj ) + prodInfo['Status'].ljust( adj ) + prodInfo['Type'].ljust( adj ) + prodInfo['AgentType'].ljust( adj ) + toString( prodInfo['CreationDate'] ).ljust( adj ) + prodInfo['TransformationName'].ljust( adj ) )
-      print string.join( message, '\n' )
+      message.append( productionID.ljust( adj ) + prodInfo['Status'].ljust( adj ) + prodInfo['Type'].ljust( adj ) + \
+                      prodInfo['AgentType'].ljust( adj ) + toString( prodInfo['CreationDate'] ).ljust( adj ) + \
+                      prodInfo['TransformationName'].ljust( adj ) )
+      print '\n'.join( message )
     return S_OK( result['Value'] )
 
   #############################################################################
   def getActiveProductions( self, printOutput = False ):
     """Returns a dictionary of active production IDs and their status, e.g. automatic, manual.
     """
-    result = self.prodClient.getTransformations()
+    result = self.transformationClient.getTransformations()
     if not result['OK']:
       return result
     prodList = result['Value']
@@ -162,7 +158,7 @@ class DiracProduction:
       if not type( productionID ) == type( " " ):
         return self.__errorReport( 'Expected string, long or int for production ID' )
 
-    result = self.prodClient.getTransformationLogging( long( productionID ) )
+    result = self.transformationClient.getTransformationLogging( long( productionID ) )
     if not result['OK']:
       self.log.warn( 'Could not get transformation logging information for productionID %s' % ( productionID ) )
       return result
@@ -173,11 +169,14 @@ class DiracProduction:
     if not printOutput:
       return result
 
-    message = ['ProdID'.ljust( int( 0.5 * self.prodAdj ) ) + 'Message'.ljust( 3 * self.prodAdj ) + 'DateTime [UTC]'.ljust( self.prodAdj ) + 'AuthorCN'.ljust( 2 * self.prodAdj )]
+    message = ['ProdID'.ljust( int( 0.5 * self.prodAdj ) ) + 'Message'.ljust( 3 * self.prodAdj ) + \
+               'DateTime [UTC]'.ljust( self.prodAdj ) + 'AuthorCN'.ljust( 2 * self.prodAdj )]
     for line in result['Value']:
-      message.append( str( line['TransformationID'] ).ljust( int( 0.5 * self.prodAdj ) ) + line['Message'].ljust( 3 * self.prodAdj ) + toString( line['MessageDate'] ).ljust( self.prodAdj ) + line['AuthorDN'].split( '/' )[-1].ljust( 2 * self.prodAdj ) )
+      message.append( str( line['TransformationID'] ).ljust( int( 0.5 * self.prodAdj ) ) + \
+                      line['Message'].ljust( 3 * self.prodAdj ) + toString( line['MessageDate'] ).ljust( self.prodAdj ) + \
+                      line['AuthorDN'].split( '/' )[-1].ljust( 2 * self.prodAdj ) )
 
-    print '\nLogging summary for productionID ' + str( productionID ) + '\n\n' + string.join( message, '\n' )
+    print '\nLogging summary for productionID ' + str( productionID ) + '\n\n' + '\n'.join( message )
 
     return result
 
@@ -194,7 +193,7 @@ class DiracProduction:
         if not type( productionID ) == type( " " ):
           return self.__errorReport( 'Expected string or long for production ID' )
 
-    result = self.prodClient.getTransformationSummary()
+    result = self.transformationClient.getTransformationSummary()
     if not result['OK']:
       return result
 
@@ -302,13 +301,15 @@ class DiracProduction:
       message += 'and MinorStatus = %s' % ( minorStatus )
 
     message += ':\n\n'
-    message += 'Status'.ljust( statAdj ) + 'MinorStatus'.ljust( mStatAdj ) + 'ApplicationStatus'.ljust( mStatAdj ) + 'Total'.ljust( totalAdj ) + 'Example'.ljust( exAdj ) + '\n'
+    message += 'Status'.ljust( statAdj ) + 'MinorStatus'.ljust( mStatAdj ) + 'ApplicationStatus'.ljust( mStatAdj ) + \
+    'Total'.ljust( totalAdj ) + 'Example'.ljust( exAdj ) + '\n'
     for stat, metadata in summary.items():
       message += '\n'
       for minor, appInfo in metadata.items():
         message += '\n'
         for appStat, jobInfo in appInfo.items():
-          message += stat.ljust( statAdj ) + minor.ljust( mStatAdj ) + appStat.ljust( mStatAdj ) + str( jobInfo['Total'] ).ljust( totalAdj ) + str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
+          message += stat.ljust( statAdj ) + minor.ljust( mStatAdj ) + appStat.ljust( mStatAdj ) + \
+          str( jobInfo['Total'] ).ljust( totalAdj ) + str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
 
     print message
     #self._prettyPrint(summary)
@@ -328,8 +329,10 @@ class DiracProduction:
     percSub = int( 100 * submittedJobs / createdJobs )
     percDone = int( 100 * doneJobs / createdJobs )
     print '\nCurrent status of production %s:\n' % productionID
-    print 'Submitted'.ljust( 12 ) + str( percSub ).ljust( 3 ) + '%  ( ' + str( submittedJobs ).ljust( 7 ) + 'Submitted / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
-    print 'Done'.ljust( 12 ) + str( percDone ).ljust( 3 ) + '%  ( ' + str( doneJobs ).ljust( 7 ) + 'Done / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
+    print 'Submitted'.ljust( 12 ) + str( percSub ).ljust( 3 ) + '%  ( ' + str( submittedJobs ).ljust( 7 ) + \
+    'Submitted / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
+    print 'Done'.ljust( 12 ) + str( percDone ).ljust( 3 ) + '%  ( ' + str( doneJobs ).ljust( 7 ) + \
+    'Done / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
     result = S_OK()
     result['Totals'] = {'Submitted':int( submittedJobs ), 'Created':int( createdJobs ), 'Done':int( doneJobs )}
     result['Value'] = summary
@@ -402,11 +405,13 @@ class DiracProduction:
       message += ' all status combinations'
 
     message += ':\n\n'
-    message += 'Status'.ljust( statAdj ) + 'MinorStatus'.ljust( mStatAdj ) + 'Total'.ljust( totalAdj ) + 'Example'.ljust( exAdj ) + '\n'
+    message += 'Status'.ljust( statAdj ) + 'MinorStatus'.ljust( mStatAdj ) + 'Total'.ljust( totalAdj ) + \
+    'Example'.ljust( exAdj ) + '\n'
     for stat, metadata in summary.items():
       message += '\n'
       for minor, jobInfo in metadata.items():
-        message += stat.ljust( statAdj ) + minor.ljust( mStatAdj ) + str( jobInfo['Total'] ).ljust( totalAdj ) + str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
+        message += stat.ljust( statAdj ) + minor.ljust( mStatAdj ) + str( jobInfo['Total'] ).ljust( totalAdj ) + \
+        str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
 
     print message
     #self._prettyPrint(summary)
@@ -425,8 +430,10 @@ class DiracProduction:
     percSub = int( 100 * submittedJobs / createdJobs )
     percDone = int( 100 * doneJobs / createdJobs )
     print '\nCurrent status of production %s:\n' % productionID
-    print 'Submitted'.ljust( 12 ) + str( percSub ).ljust( 3 ) + '%  ( ' + str( submittedJobs ).ljust( 7 ) + 'Submitted / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
-    print 'Done'.ljust( 12 ) + str( percDone ).ljust( 3 ) + '%  ( ' + str( doneJobs ).ljust( 7 ) + 'Done / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
+    print 'Submitted'.ljust( 12 ) + str( percSub ).ljust( 3 ) + '%  ( ' + str( submittedJobs ).ljust( 7 ) + \
+    'Submitted / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
+    print 'Done'.ljust( 12 ) + str( percDone ).ljust( 3 ) + '%  ( ' + str( doneJobs ).ljust( 7 ) + \
+    'Done / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
     result = S_OK()
     result['Totals'] = {'Submitted':int( submittedJobs ), 'Created':int( createdJobs ), 'Done':int( doneJobs )}
     result['Value'] = summary
@@ -501,11 +508,13 @@ class DiracProduction:
     else:
       message += ' at all Sites'
     message += ':\n\n'
-    message += 'Site'.ljust( siteAdj ) + 'Status'.ljust( statAdj ) + 'Total'.ljust( totalAdj ) + 'Example'.ljust( exAdj ) + '\n'
+    message += 'Site'.ljust( siteAdj ) + 'Status'.ljust( statAdj ) + 'Total'.ljust( totalAdj ) + \
+    'Example'.ljust( exAdj ) + '\n'
     for siteStr, metadata in summary.items():
       message += '\n'
       for stat, jobInfo in metadata.items():
-        message += siteStr.ljust( siteAdj ) + stat.ljust( statAdj ) + str( jobInfo['Total'] ).ljust( totalAdj ) + str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
+        message += siteStr.ljust( siteAdj ) + stat.ljust( statAdj ) + str( jobInfo['Total'] ).ljust( totalAdj ) + \
+        str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
 
     print message
     #self._prettyPrint(summary)
@@ -523,8 +532,10 @@ class DiracProduction:
     percDone = int( 100 * doneJobs / createdJobs )
     if not site:
       print '\nCurrent status of production %s:\n' % productionID
-      print 'Submitted'.ljust( 12 ) + str( percSub ).ljust( 3 ) + '%  ( ' + str( submittedJobs ).ljust( 7 ) + 'Submitted / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
-      print 'Done'.ljust( 12 ) + str( percDone ).ljust( 3 ) + '%  ( ' + str( doneJobs ).ljust( 7 ) + 'Done / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
+      print 'Submitted'.ljust( 12 ) + str( percSub ).ljust( 3 ) + '%  ( ' + str( submittedJobs ).ljust( 7 ) + \
+      'Submitted / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
+      print 'Done'.ljust( 12 ) + str( percDone ).ljust( 3 ) + '%  ( ' + str( doneJobs ).ljust( 7 ) + \
+      'Done / '.ljust( 15 ) + str( createdJobs ).ljust( 7 ) + ' Created jobs )'
     result = S_OK()
     result['Totals'] = {'Submitted':int( submittedJobs ), 'Created':int( createdJobs ), 'Done':int( doneJobs )}
     result['Value'] = summary
@@ -550,11 +561,11 @@ class DiracProduction:
       productionID = [productionID]
 
     productionID = [ str( x ) for x in productionID ]
-    self.log.verbose( 'Will check progress for production(s):\n%s' % ( string.join( productionID, ', ' ) ) )
+    self.log.verbose( 'Will check progress for production(s):\n%s' % ( ', '.join( productionID ) ) )
     progress = {}
     for prod in productionID:
       #self._prettyPrint(result)
-      result = self.prodClient.getTransformationTaskStats( int( prod ) )
+      result = self.transformationClient.getTransformationTaskStats( int( prod ) )
       if not result['Value']:
         self.log.error( result )
         return result
@@ -601,23 +612,27 @@ class DiracProduction:
     if not type( command ) == type( " " ):
       return self.__errorReport( 'Expected string, for command' )
     if not command.lower() in commands.keys():
-      return self.__errorReport( 'Expected one of: %s for command string' % ( string.join( commands.keys(), ', ' ) ) )
+      return self.__errorReport( 'Expected one of: %s for command string' % ( ', '.join( commands.keys() ) ) )
 
-    self.log.verbose( 'Requested to change production %s with command "%s"' % ( productionID, command.lower().capitalize() ) )
+    self.log.verbose( 'Requested to change production %s with command "%s"' % ( productionID,
+                                                                                command.lower().capitalize() ) )
     if not disableCheck:
-      result = self.__promptUser( 'Do you wish to change production %s with command "%s"? ' % ( productionID, command.lower().capitalize() ) )
+      result = self.__promptUser( 'Do you wish to change production %s with command "%s"? ' % ( productionID,
+                                                                                                command.lower().capitalize() ) )
       if not result['OK']:
         self.log.info( 'Action cancelled' )
         return S_OK( 'Action cancelled' )
 
     actions = commands[command]
-    self.log.info( 'Setting production status to %s and submission mode to %s for productionID %s' % ( actions[0], actions[1], productionID ) )
-    result = self.prodClient.setTransformationParameter( long( productionID ), "Status", actions[0] )
+    self.log.info( 'Setting production status to %s and submission mode to %s for productionID %s' % ( actions[0],
+                                                                                                       actions[1],
+                                                                                                       productionID ) )
+    result = self.transformationClient.setTransformationParameter( long( productionID ), "Status", actions[0] )
     if not result['OK']:
       self.log.warn( 'Problem updating transformation status with result:\n%s' % result )
       return result
     self.log.verbose( 'Setting transformation status to %s successful' % ( actions[0] ) )
-    result = self.prodClient.setTransformationParameter( long( productionID ), 'AgentType', actions[1] )
+    result = self.transformationClient.setTransformationParameter( long( productionID ), 'AgentType', actions[1] )
     if not result['OK']:
       self.log.warn( 'Problem updating transformation agent type with result:\n%s' % result )
       return result
@@ -636,14 +651,15 @@ class DiracProduction:
       if not type( productionID ) == type( " " ):
         return self.__errorReport( 'Expected string, long or int for production ID' )
 
-    result = self.prodClient.deleteTransformation( productionID )
+    result = self.transformationClient.deleteTransformation( productionID )
     if result['OK'] and printOutput:
       print 'Production %s is deleted from the production management system' % productionID
 
     return result
 
   #############################################################################
-  def productionFileSummary( self, productionID, selectStatus = None, outputFile = None, orderOutput = True, printSummary = False, printOutput = False ):
+  def productionFileSummary( self, productionID, selectStatus = None, outputFile = None,
+                             orderOutput = True, printSummary = False, printOutput = False ):
     """ Allows to investigate the input files for a given production transformation
         and provides summaries / selections based on the file status if desired.
     """
@@ -651,7 +667,8 @@ class DiracProduction:
     ordering = 'TaskID'
     if not orderOutput:
       ordering = 'LFN'
-    fileSummary = self.prodClient.getTransformationFiles( condDict = {'TransformationID':int( productionID )}, orderAttribute = ordering )
+    fileSummary = self.transformationClient.getTransformationFiles( condDict = {'TransformationID':int( productionID )},
+                                                          orderAttribute = ordering )
     if not fileSummary['OK']:
       return fileSummary
 
@@ -700,7 +717,9 @@ class DiracProduction:
     if selectStatus and not selected:
       return S_ERROR( 'No files were selected for production %s and status "%s"' % ( productionID, selectStatus ) )
     elif selectStatus and selected:
-      print '%s / %s files (%s percent) were found for production %s in status "%s"' % ( selected, totalRecords, int( 100 * int( selected ) / totalRecords ), productionID, selectStatus )
+      print '%s / %s files (%s percent) were found for production %s in status "%s"' % ( selected, totalRecords,
+                                                                                         int( 100 * int( selected ) / totalRecords ),
+                                                                                         productionID, selectStatus )
 
     if outputFile:
       if os.path.exists( outputFile ):
@@ -738,7 +757,7 @@ class DiracProduction:
     else:
       return self.__errorReport( 'Expected single string or list of strings for LFN(s)' )
 
-    fileStatus = self.prodClient.getFileSummary( lfns, long( productionID ) )
+    fileStatus = self.transformationClient.getFileSummary( lfns, long( productionID ) )
     if printOutput:
       self._prettyPrint( fileStatus['Value'] )
     return fileStatus
@@ -762,7 +781,7 @@ class DiracProduction:
       return jobs
 
     jobs = jobs['Value']
-    self.log.info( 'Selected %s jobs:\n%s' % ( len( jobs ), string.join( jobs, ', ' ) ) )
+    self.log.info( 'Selected %s jobs:\n%s' % ( len( jobs ), ', '.join( jobs ) ) )
     lfns = []
     res = self.diracAPI.getJobInputData( jobs )
     #print res
@@ -776,14 +795,14 @@ class DiracProduction:
 
     lfns = [i.replace( 'LFN:', '' ) for i in lfns]
 
-    self.log.verbose( 'Found LFNs:\n%s' % ( string.join( lfns, '\n' ) ) )
+    self.log.verbose( 'Found LFNs:\n%s' % ( '\n'.join( lfns ) ) )
 
     if setFlag:
-      result = self.prodClient.setFileStatusForTransformation( productionID, setStatus, lfns )
+      result = self.transformationClient.setFileStatusForTransformation( productionID, setStatus, lfns )
       if printOutput:
         if not result['OK']:
           print result
-          print "Failed to update status for files:\n%s" % ( string.join( lfns, '\n' ) )
+          print "Failed to update status for files:\n%s" % ( '\n'.join( lfns ) )
         for lfn, message in result['Value']['Successful'].items():
           print "Successful:", lfn, ":", message
         for lfn, message in result['Value']['Failed'].items():
@@ -810,11 +829,11 @@ class DiracProduction:
     else:
       return self.__errorReport( 'Expected string or list for LFNs' )
 
-    result = self.prodClient.setFileStatusForTransformation( productionID, status, lfnList )
+    result = self.transformationClient.setFileStatusForTransformation( productionID, status, lfnList )
     if printOutput:
       if not result['OK']:
         print result
-        print "Failed to update status for files:\n%s" % ( string.join( lfnList, '\n' ) )
+        print "Failed to update status for files:\n%s" % ( '\n'.join( lfnList ) )
       for lfn, message in result['Value']['Successful'].items():
         print "Successful:", lfn, ":", message
       for lfn, message in result['Value']['Failed'].items():
@@ -897,7 +916,8 @@ class DiracProduction:
   def getProdJobInfo( self, productionID, jobID, printOutput = False ):
     """Retrieve production job information from Production Manager service.
     """
-    res = self.prodClient.getTransformationTasks( condDict = {'TransformationID':productionID, 'TaskID':jobID}, inputVector = True )
+    res = self.transformationClient.getTransformationTasks( condDict = {'TransformationID':productionID, 'TaskID':jobID},
+                                                  inputVector = True )
     if not res['OK']:
       return res
     if not res['Value']:
@@ -927,14 +947,16 @@ class DiracProduction:
     return self.diracAPI.parameters( jobID )
 
   #############################################################################
-  def selectProductionJobs( self, ProductionID, Status = None, MinorStatus = None, ApplicationStatus = None, Site = None, Owner = None, Date = None ):
+  def selectProductionJobs( self, ProductionID, Status = None, MinorStatus = None, ApplicationStatus = None,
+                            Site = None, Owner = None, Date = None ):
     """Wraps around DIRAC API selectJobs(). Arguments correspond to the web page
        selections. By default, the date is the creation date of the production.
     """
     if not Date:
       self.log.verbose( 'No Date supplied, setting old date for production %s' % ProductionID )
       Date = '2001-01-01'
-    return self.diracAPI.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner, str( ProductionID ).zfill( 8 ), Date )
+    return self.diracAPI.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner,
+                                     str( ProductionID ).zfill( 8 ), Date )
 
   #############################################################################
   def extendProduction( self, productionID, numberOfJobs, printOutput = False ):
@@ -953,7 +975,7 @@ class DiracProduction:
       except Exception, x:
         return self.__errorReport( str( x ), 'Expected integer or string for number of jobs to submit' )
 
-    result = self.prodClient.extendTransformation( long( productionID ), numberOfJobs )
+    result = self.transformationClient.extendTransformation( long( productionID ), numberOfJobs )
     if not result['OK']:
       return self.__errorReport( result, 'Could not extend production %s by %s jobs' % ( productionID, numberOfJobs ) )
 
@@ -968,19 +990,76 @@ class DiracProduction:
        the current WMS status information for all jobs in that production starting from the creation
        date.
     """
-    result = self.prodClient.getTransformationParameters( long( productionID ), ['CreationDate'] )
+    result = self.transformationClient.getTransformationParameters( long( productionID ), ['CreationDate'] )
     if not result['OK']:
       self.log.warn( 'Problem getting production metadata for ID %s:\n%s' % ( productionID, result ) )
       return result
 
     creationDate = toString( result['Value'] ).split()[0]
-    result = self.selectProductionJobs( productionID, Status = status, MinorStatus = minorStatus, Site = site, Date = creationDate )
+    result = self.selectProductionJobs( productionID, Status = status, MinorStatus = minorStatus, Site = site,
+                                        Date = creationDate )
     if not result['OK']:
       self.log.warn( 'Problem selecting production jobs for ID %s:\n%s' % ( productionID, result ) )
       return result
 
     jobsList = result['Value']
     return self.diracAPI.status( jobsList )
+
+  #############################################################################
+
+  def launchProduction( self, prod, publishFlag, testFlag, requestID,
+                        extend = 0,
+                        tracking = 0
+                        ):
+    """ given a production object (prod), launch it
+        It returns the productionID created
+    """
+
+    if publishFlag == False and testFlag:
+      gLogger.info( 'Test prod will be launched locally' )
+      try:
+        result = prod.runLocal()
+        if result['OK']:
+          gLogger.info( 'Template finished successfully' )
+          return S_OK()
+        else:
+          gLogger.error( 'Launching production: something wrong with execution!' )
+          return S_ERROR( 'Something wrong with execution!' )
+      except Exception, x:
+        gLogger.error( 'prod test failed with exception:\n%s' % ( x ) )
+        return S_ERROR( 'prod test failed with exception:\n%s' % ( x ) )
+
+    result = prod.create( publish = publishFlag,
+                          requestID = int( requestID ),
+                          reqUsed = tracking
+                          )
+
+    if not result['OK']:
+      gLogger.error( 'Error during prod creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
+      return S_ERROR( result['Message'] )
+
+    if publishFlag:
+      prodID = result['Value']
+      msg = 'Production %s successfully created ' % ( prodID )
+
+      if extend:
+        self.extendProduction( prodID, extend, printOutput = True )
+        msg += ', extended by %s jobs' % extend
+
+      if testFlag:
+        self.production( prodID, 'manual', printOutput = True )
+        msg = msg + 'and started in manual mode.'
+      else:
+        self.production( prodID, 'automatic', printOutput = True )
+        msg = msg + 'and started in automatic mode.'
+      gLogger.info( msg )
+
+    else:
+      prodID = 1
+      gLogger.info( 'Production creation completed but not published (publishFlag was %s). \
+      Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
+
+    return prodID
 
   #############################################################################
   def __errorReport( self, error, message = None ):
@@ -993,10 +1072,10 @@ class DiracProduction:
     return S_ERROR( message )
 
   #############################################################################
-  def _prettyPrint( self, object ):
+  def _prettyPrint( self, objectIn ):
     """Helper function to pretty print an object.
     """
-    print self.pPrint.pformat( object )
+    print self.pPrint.pformat( objectIn )
 
   #############################################################################
   def __promptUser( self, message ):
@@ -1006,7 +1085,7 @@ class DiracProduction:
     response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
     responses = ['yes', 'y', 'n', 'no']
     if not response.strip() or response == '\n':
-      self.log.info( 'Possible responses are: %s' % ( string.join( responses, ', ' ) ) )
+      self.log.info( 'Possible responses are: %s' % ( ', '.join( responses ) ) )
       response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
 
     if not response.strip().lower() in responses:

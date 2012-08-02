@@ -3,7 +3,7 @@
     A production is an augmented version of an LHCbJob
 
     Notes:
-    - Supports all workflows 
+    - Supports all workflows
     - create() method that takes a workflow or Production object
       and publishes to the production management system, in addition this
       can automatically construct and publish the BK pass info and transformations
@@ -103,9 +103,9 @@ class Production():
 
   def setJobParameters( self, parametersDict ):
     """ Set an (LHCb)Job parameter
-    
-        The parametersDict is in the form {'parameterName': 'value'} 
-        Each parameter calls LHCbJob.setparameterName(value) 
+
+        The parametersDict is in the form {'parameterName': 'value'}
+        Each parameter calls LHCbJob.setparameterName(value)
     """
 
     for parameter in parametersDict.keys():
@@ -167,13 +167,13 @@ class Production():
 
   def addApplicationStep( self, stepDict, outputSE, optionsLine, inputData = None ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
-        {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1', 
-        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 
-        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 
+        {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
+        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-        'fileTypesIn': ['SDST'], 
+        'fileTypesIn': ['SDST'],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
-        
+
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
     """
@@ -422,7 +422,7 @@ class Production():
     """ Create XML for local testing.
     """
     if not name:
-      name = 'unspecifiedWorkflow'
+      name = self.LHCbJob.workflow.getName()
     if not re.search( 'xml$', name ):
       name = '%s.xml' % name
     if os.path.exists( name ):
@@ -434,7 +434,7 @@ class Production():
   #############################################################################
 
   def runLocal( self, DiracLHCb = None ):
-    """ 
+    """
         Create XML workflow for local testing then reformulate as a job and run locally.
     """
 

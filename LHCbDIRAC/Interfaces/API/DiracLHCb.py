@@ -5,9 +5,6 @@
 
 """
 
-from DIRAC.Core.Base import Script
-Script.parseCommandLine()
-
 import os
 import glob
 import fnmatch
