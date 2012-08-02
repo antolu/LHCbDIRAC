@@ -1,18 +1,25 @@
+#####################################################################
+# $HeadURL $
+# File: StorageHistoryAgent.py
 ########################################################################
-# $HeadURL$
-# File :   StorageSummaryAgent.py
-########################################################################
+""" :mod: StorageHistoryAgent 
+    =========================
+ 
+    .. module: StorageHistoryAgent
+    :synopsis: The Storage History Agent will create a summary of the
+    storage usage DB grouped by processing pass or other
+    interesting parameters.
 
-"""   The Storage History Agent will create a summary of the
-      storage usage DB grouped by processing pass or other
-      interesting parameters.
-
-      Initially this will dump the information to a file but eventually
-      can be inserted in a new DB table and made visible via the web portal.
+    Initially this will dump the information to a file but eventually
+    can be inserted in a new DB table and made visible via the web portal.
 """
-
-__RCSID__ = "$Id$"
-
+## imports
+import os
+import sys
+import re
+import pprint
+import time
+## from DIRAC
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities import Time
 from DIRAC.Core.Utilities.List                           import sortList, intListToString
@@ -21,12 +28,12 @@ from LHCbDIRAC.AccountingSystem.Client.Types.Storage import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage import DataStorage
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient            import BookkeepingClient
-import os, sys, re
-import pprint, time
 
 from DIRAC  import S_OK, S_ERROR, gLogger
 
+__RCSID__ = "$Id$"
 
+AGENT_NAME = "DataManagement/StorageHistoryAgent"
 
 byteToGB = 1.0e9
 

@@ -889,7 +889,7 @@ class StorageUsageDB( DB ):
         d = "%s/" % d
       sqlPath = self._escapeString( d )[ 'Value' ]
       sqlStatus = self._escapeString( status )[ 'Value' ]
-      if type( count ) != IntType:
+      if type( count ) != int:
         self.log.warn( "in sendDataUsageReport: type is not correct %s" % count )
         continue
       sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \
