@@ -1,102 +1,112 @@
+#####################################################################
+# $HeadURL $
+# File: TargzJobLogAgent.py
 ########################################################################
-# $HeadURL$
-########################################################################
-
-__RCSID__ = "$Id$"
-
-""" Compress Old Jobs
+""" :mod: TargzJobLogAgent
+    ======================
+ 
+    .. module: TargzJobLogAgent
+    :synopsis: Compress old jobs
 """
-
-from DIRAC                                                    import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.AgentModule                              import AgentModule
-from DIRAC.Resources.Storage.StorageElement                   import StorageElement
-import os, shutil
+## imports
+import os
+import shutil
 import glob
 import re
 from datetime import datetime, timedelta
 import tarfile
+## from DIRAC
+from DIRAC import S_OK, S_ERROR
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+
+__RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/TargzJobLogAgent"
 
 class TargzJobLogAgent( AgentModule ):
+  """
+  .. class:: TargzJobLogAgent
+
+  :param int pollingTime: polling time
+  :param str logPath: log path location
+  :param StorageElement storageElement: CERN-tape SE
+  :param str desDirectory: destination directory
+  """
+  pollingTime = 3600
+  logPath = "/storage/lhcb/MC/MC09/LOG"
+  storageElement = None
+  destDirectory = "/lhcb/backup/log"
 
   def initialize( self ):
+    """ agent initialisation """
 
-    self.logLevel = self.am_getOption( 'LogLevel', 'INFO' )
-    gLogger.info( "LogLevel", self.logLevel )
-    gLogger.setLevel( self.logLevel )
+    self.pollingTime = self.am_getOption( 'PollingTime', self.pollingTime )
+    self.log.info( "PollingTime %d hours" % ( int( self.pollingTime )/3600 ) )
 
-    self.pollingTime = self.am_getOption( 'PollingTime', 3600 )
-    gLogger.info( "PollingTime %d hours" % ( int( self.pollingTime ) / 3600 ) )
-
-    self.logPath = self.am_getOption( 'LogPath', '/storage/lhcb/MC/MC09/LOG' )
-    gLogger.info( "LogPath", self.logPath )
+    self.logPath = self.am_getOption( 'LogPath', self.logPath )
+    self.log.info( "LogPath", self.logPath )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/SAMManager
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'SAMManager' )
-
+    
     self.storageElement = StorageElement( "CERN-tape" )
-    self.destDirectory = "/lhcb/backup/log"
 
     return S_OK()
 
   def execute( self ):
+    """ execution in one cycle """
 
-    gLogger.info( 'Starting Agent loop' )
+    self.log.info( 'Starting Agent loop' )
 
     path = os.path.abspath( self.logPath )
 
-#    jobage = gConfig.getValue(self.section+'/JobAgeDays', 100)
     jobage = self.am_getOption( 'JobAgeDays', 100 )
-    gLogger.info( "JobAgeDays", jobage )
-#    prodage = gConfig.getValue(self.section+'/ProdAgeDays', 365)
+    self.log.info( "JobAgeDays", jobage )
     prodage = self.am_getOption( 'ProdAgeDays', 365 )
-    gLogger.info( "ProdAgeDays", prodage )
+    self.log.info( "ProdAgeDays", prodage )
 
-#    g1 = gConfig.getValue(self.section+'/ProductionGlob', '????????')
     g1 = self.am_getOption( 'ProductionGlob', '????????' )
-    gLogger.info( "ProductionGlob", g1 )
-#    g2 = gConfig.getValue(self.section+'/SubdirGlob', '????')
+    self.log.info( "ProductionGlob", g1 )
     g2 = self.am_getOption( 'SubdirGlob', '????' )
-    gLogger.info( "SubdirGlob", g2 )
-#    g3 = gConfig.getValue(self.section+'/JobGlob', '????')
+    self.log.info( "SubdirGlob", g2 )
     g3 = self.am_getOption( 'JobGlob', '????' )
-    gLogger.info( "JobGlob", g3 )
+    self.log.info( "JobGlob", g3 )
 
     logPathList = self.am_getOption( 'LogPathList', [] )
-    gLogger.info( "LogPathList", logPathList )
+    self.log.info( "LogPathList", logPathList )
 
     numberOfTared = 0
     numberOfFailed = 0
 
     for path in logPathList:
-      gLogger.info( "LogPath", path )
+      self.log.info( "LogPath", path )
       for subprodpath in self._iFindOldSubProd( path, g1, g2, prodage ):
         pathlist = subprodpath.split( "/" )
         sub = pathlist[-1]
         prod = pathlist[-2]
-        gLogger.info( "Found Old Log", "Production %s, subProduction %s" % ( prod, sub ) )
+        self.log.info( "Found Old Log", "Production %s, subProduction %s" % ( prod, sub ) )
         res = self._tarSubProdDir( path, prod, sub )
         if res['OK']:
           numberOfTared += 1
         else:
           numberOfFailed += 1
 
-    gLogger.info( "Number of tared subproduction %d" % numberOfTared )
-    gLogger.info( "Number of failed subproduction %d" % numberOfFailed )
+    self.log.info( "Number of tared subproduction %d" % numberOfTared )
+    self.log.info( "Number of failed subproduction %d" % numberOfFailed )
 
     numberOfTared = 0
     numberOfFailed = 0
 
     for path in logPathList:
-      gLogger.info( "LogPath", path )
+      self.log.info( "LogPath", path )
       for jobpath in self._iFindOldJob( path, g1, g2, g3, jobage ):
         pathlist = jobpath.split( "/" )
         job = pathlist[-1]
         prod = pathlist[-3]
-        gLogger.debug( "Found Old Log", "Production %s, Job %s" % ( prod, job ) )
+        self.log.debug( "Found Old Log", "Production %s, Job %s" % ( prod, job ) )
 
         name = prod + "_" + job + ".tgz"
         try:
@@ -107,38 +117,39 @@ class TargzJobLogAgent( AgentModule ):
           lines = lines.replace( 'compressed</h3>', 'compressed</h3>\n<br><a href="%s">%s</a><br>' % ( name, name ) )
 
           self._tarJobDir( path, prod, job )
-          open( os.path.join( jobpath, 'index.html' ), 'w' ).write( lines )
+          indexHTML = open( os.path.join( jobpath, 'index.html' ), 'w' )
+          indexHTML.write( lines )
+          indexHTML.close()
           numberOfTared += 1
         except Exception, x:
-          gLogger.warn( "Exception during taring %s" % x, "Production %s, Job %s" % ( prod, job ) )
+          self.log.warn( "Exception during taring %s" % x, "Production %s, Job %s" % ( prod, job ) )
           numberOfFailed += 1
 
-    gLogger.info( "Number of tared jobs %d" % numberOfTared )
-    gLogger.info( "Number of failed jobs %d" % numberOfFailed )
+    self.log.info( "Number of tared jobs %d" % numberOfTared )
+    self.log.info( "Number of failed jobs %d" % numberOfFailed )
 
     return S_OK()
 
-  def _iFindOldJob( self, path, g1, g2, g3, agedays ):
+  @staticmethod
+  def _iFindOldJob( path, g1, g2, g3, agedays ):
+    """ old job directory generator """
 
-    p1 = '^\d{8}$'
-    c1 = re.compile( p1 )
-    p2 = '^\d{4}$'
-    c2 = re.compile( p2 )
-    p3 = '^\d{8}$'
-    c3 = re.compile( p3 )
+    c1 = re.compile( '^\d{8}$' )
+    c2 = re.compile( '^\d{4}$' )
+    c3 = re.compile( '^\d{8}$' )
 
     def iFindDir( path, gl, reobject ):
-
+      """ directory generator """
       dirs = glob.glob( os.path.join( path, gl ) )
-      for d in dirs:
-        name = os.path.basename( d )
-        if reobject.match( name ) and os.path.isdir( d ):
-          yield d
+      for directory in dirs:
+        name = os.path.basename( directory )
+        if reobject.match( name ) and os.path.isdir( directory ):
+          yield directory
 
     for d1 in iFindDir( path, g1, c1 ):
       for d2 in iFindDir( d1, g2, c2 ):
         for d3 in iFindDir( d2, os.path.basename( d2 ) + g3, c3 ):
-          mtime = os.stat( d3 )[8]
+          mtime = os.path.getmtime( d3 )  # os.stat( d3 )[8]
           modified = datetime.fromtimestamp( mtime )
           if datetime.now() - modified > timedelta( days = agedays ):
             prod = os.path.basename( d1 )
@@ -147,8 +158,9 @@ class TargzJobLogAgent( AgentModule ):
             if not os.path.exists( os.path.join( d3, name ) ):
               yield d3
 
-  def _tarJobDir( self, path, prod, job ):
-
+  @staticmethod
+  def _tarJobDir( path, prod, job ):
+    """ tar job directory """
     oldpath = os.getcwd()
     try:
       name = prod + "_" + job + ".tgz"
@@ -157,43 +169,41 @@ class TargzJobLogAgent( AgentModule ):
       os.chdir( jobpath )
 
       tarFile = tarfile.open( name, "w:gz" )
-      for f in files:
-        tarFile.add( f )
+      for fd in files:
+        tarFile.add( fd )
       tarFile.close()
-      for f in files:
-        os.remove( f )
+      for fd in files:
+        os.remove( fd )
     finally:
       os.chdir( oldpath )
 
+  @staticmethod
+  def _iFindOldSubProd( path, g1, g2, agedays ):
+    """ subprod directory generator """
 
-  def _iFindOldSubProd( self, path, g1, g2, agedays ):
-
-    p1 = '^\d{8}$'
-    c1 = re.compile( p1 )
-    p2 = '^\d{4}$'
-    c2 = re.compile( p2 )
+    c1 = re.compile( '^\d{8}$' )    
+    c2 = re.compile( '^\d{4}$' )
 
     def iFindDir( path, gl, reobject ):
-
+      """ directory generator """
       dirs = glob.glob( os.path.join( path, gl ) )
-      for d in dirs:
-        name = os.path.basename( d )
-        if reobject.match( name ) and os.path.isdir( d ):
-          yield d
+      for directory in dirs:
+        name = os.path.basename( directory )
+        if reobject.match( name ) and os.path.isdir( directory ):
+          yield directory
 
     for d1 in iFindDir( path, g1, c1 ):
       for d2 in iFindDir( d1, g2, c2 ):
-        mtime = os.stat( d2 )[8]
+        mtime = os.path.getmtime( d2 ) # os.stat( d2 )[8]
         modified = datetime.fromtimestamp( mtime )
         if datetime.now() - modified > timedelta( days = agedays ):
           yield d2
-
+          
   def _tarSubProdDir( self, path, prod, sub ):
-
+    """ create tar file for old prod directories """
     oldpath = os.getcwd()
 
-    import time
-    date = time.strftime( "%Y-%m-%d" )
+    date = str( datetime.now() ).split(" ")[0]
 
     tarname = "/opt/dirac/tmp/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + "_" + date + ".tgz"
@@ -202,23 +212,22 @@ class TargzJobLogAgent( AgentModule ):
     if res['OK']:
       pfn = res["Value"]
     else:
-      gLogger.error( "getPfnForLfnfor file %s" % destFile, res['Message'] )
+      self.log.error( "getPfnForLfnfor file %s" % destFile, res['Message'] )
       return S_ERROR()
 
     res = self.storageElement.exists( pfn, True )
     if res['OK']:
       if res['Value']:
-        gLogger.error( "file exists ", pfn )
+        self.log.error( "file exists ", pfn )
         return S_ERROR()
     else:
-      gLogger.error( "Can not check file exists %s" % pfn, res['Message'] )
+      self.log.error( "Can not check file exists %s" % pfn, res['Message'] )
       return S_ERROR()
 
     tared = False
     try:
       os.chdir( path )
       subprodpath = os.path.join( prod, sub )
-
       tarFile = tarfile.open( tarname, "w:gz" )
       tarFile.add( subprodpath )
       tarFile.close()
@@ -228,23 +237,23 @@ class TargzJobLogAgent( AgentModule ):
 
     if not tared:
       os.remove( tarname )
-      gLogger.error( "Can not tar file %s", subprodpath )
+      self.log.error( "Can not tar file %s", subprodpath )
       return S_ERROR()
 
     putok = False
     fileDict = {pfn:tarname}
-    gLogger.info( "putFile", fileDict )
+    self.log.info( "putFile", fileDict )
     res = self.storageElement.putFile( fileDict )
     if res['OK']:
       if not res['Value']['Failed']:
         subprodpath = os.path.join( path, prod, sub )
-        gLogger.info( "rmTree", subprodpath )
+        self.log.info( "rmTree", subprodpath )
         shutil.rmtree( subprodpath )
         putok = True
       else:
-        gLogger.error( "putFile", res['Value']['Failed'] )
+        self.log.error( "putFile", res['Value']['Failed'] )
     else:
-      gLogger.error( "putFile", res['Message'] )
+      self.log.error( "putFile", res['Message'] )
 
     os.remove( tarname )
 
