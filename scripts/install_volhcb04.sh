@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_volhcb04.sh,v 1.3 2009/10/07 13:42:53 rgracian Exp $
+# $Header: /local/reps/dirac/DIRAC3/scripts/install_volhcb04.sh,v 1.3 2009/10/07 13:42:53 rgracian Exp $
 # File :   install_volhcb01.sh
 # Author : Ricardo Graciani
 ########################################################################

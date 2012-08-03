@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_store02.sh,v 1.12 2009/04/06 10:55:03 acsmith Exp $
+# $Header: /local/reps/dirac/DIRAC3/scripts/install_store02.sh,v 1.12 2009/04/06 10:55:03 acsmith Exp $
 # File :   install_store02.sh
 # Author : Andrew C. Smith
 ########################################################################

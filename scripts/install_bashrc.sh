@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_bashrc.sh,v 1.6 2009/10/06 13:39:49 rgracian Exp $
+# $Header: /local/reps/dirac/DIRAC3/scripts/install_bashrc.sh,v 1.6 2009/10/06 13:39:49 rgracian Exp $
 # File :   install_bashrc.sh
 # Author : Ricardo Graciani
 ########################################################################
@@ -21,21 +21,14 @@ export PYTHONOPTIMIZE=x
 export HOME=$HOME
 PYTHONPATH=""
 LD_LIBRARY_PATH=""
-if [ -e /afs/cern.ch/lhcb/scripts/GridEnv.sh ] ; then
-  source /afs/cern.ch/lhcb/scripts/GridEnv.sh
-  #
-  # Forces their python first in the path, remove it.
-  # LCGPYTHON=\`which python\`
-  # LCGPATH=\`dirname \$LCGPYTHON\`
-  # PATH=\`echo \$PATH | awk -F: '{\$1="";OFS=":";print \$0}'\`
-  PYTHONPATH=\`echo \$PYTHONPATH | awk -F: '{\$1="" ; \$2="" ; OFS=":";print \$0}'\`
-  PYTHONPATH=""
-fi
 
 DIRAC=$DESTDIR/pro
 DIRACBIN=$DESTDIR/pro/$ARCH/bin
 DIRACSCRIPTS=$DESTDIR/pro/scripts
 DIRACLIB=$DESTDIR/pro/$ARCH/lib
+
+export X509_CERT_DIR=${DESTDIR}/etc/grid-security/certificates
+export X509_VOMS_DIR=${DESTDIR}/etc/grid-security/vomsdir
 
 sDIRACBIN="`echo $DESTDIR/pro/$ARCH/bin | sed 's/\//\\\\\//g'`"
 sDIRACSCRIPTS="`echo $DESTDIR/pro/scripts | sed 's/\//\\\\\//g'`"
@@ -54,7 +47,6 @@ PATH=\`echo \$PATH | sed "s/\$sDIRACSCRIPTS://g"\`
 ( echo \$PATH | grep -q /usr/local/bin ) || export PATH=\$PATH:/usr/local/bin
 
 EOF
-
 
 source bashrc
 echo PATH=$PATH

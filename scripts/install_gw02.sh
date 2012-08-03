@@ -1,6 +1,6 @@
 #!/bin/bash
 ########################################################################
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/scripts/install_gw02.sh,v 1.7 2009/01/23 09:38:23 acsmith Exp $
+# $Header: /local/reps/dirac/DIRAC3/scripts/install_gw02.sh,v 1.7 2009/01/23 09:38:23 acsmith Exp $
 # File :   install_gw02.sh
 # Author : Andrew C. Smith
 ########################################################################
