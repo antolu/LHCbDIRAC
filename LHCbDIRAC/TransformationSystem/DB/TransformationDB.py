@@ -225,6 +225,8 @@ class TransformationDB( DIRACTransformationDB ):
     return self._update( req, connection )
 
   def addBookkeepingQueryRunListTransformation( self, transName, runList, connection = False ):
+    """ Adds the list of runs
+    """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
       return S_ERROR("Failed to get Connection to TransformationDB")
@@ -238,18 +240,18 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return S_ERROR("Cannot retrieve BkQuery")
     if isinstance(res['Value']['RunNumbers'], str):
-      RunInQuery = [res['Value']['RunNumbers']]
+      runInQuery = [res['Value']['RunNumbers']]
     else:
-      RunInQuery =res['Value']['RunNumbers']     
+      runInQuery = res['Value']['RunNumbers']
     res = makeRunList(str(runList))
     runs=res['Value']
-    for r in runs:
-      if r not in RunInQuery:
-         RunInQuery.append(r)
-    RunInQuery.sort()
-    if len(RunInQuery)>999:
+    for run in runs:
+      if run not in runInQuery:
+        runInQuery.append( run )
+    runInQuery.sort()
+    if len( runInQuery ) > 999:
       return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
-    value = ';;;'.join( RunInQuery )
+    value = ';;;'.join( runInQuery )
     req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
     self._update( req, connection )
     return S_OK()
@@ -262,8 +264,10 @@ class TransformationDB( DIRACTransformationDB ):
     return S_OK( bkQueryID )
 
   def __setTransformationQuery( self, transName, bkQueryID, author = '', connection = False ):
-    """ Set the bookkeeping query ID of the transformation specified by transID """
-    return self.setTransformationParameter( transName, 'BkQueryID', bkQueryID, author = author, connection = connection )
+    """ Set the bookkeeping query ID of the transformation specified by transID
+    """
+    return self.setTransformationParameter( transName, 'BkQueryID', bkQueryID, author = author,
+                                            connection = connection )
 
 
   def __addBookkeepingQuery( self, queryDict, connection = False ):
@@ -295,9 +299,7 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     queryID = res['lastRowId']
     return S_OK( queryID )
-
          
-
   def __getBookkeepingQuery( self, bkQueryID = 0, connection = False ):
     """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
     """
@@ -351,7 +353,8 @@ class TransformationDB( DIRACTransformationDB ):
           status = "%s-%d" % ( status, originalID )
           if taskID:
             taskID = str( int( originalID ) ).zfill( 8 ) + '_' + str( int( taskID ) ).zfill( 8 )
-        req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID, targetSE, runNumber )
+        req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID,
+                                                                  targetSE, runNumber )
     req = req.rstrip( "," )
     if not candidates:
       return S_OK()

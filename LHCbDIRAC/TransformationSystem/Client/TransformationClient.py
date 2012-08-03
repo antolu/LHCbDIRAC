@@ -1,8 +1,5 @@
 """ Class that contains client access to the transformation DB handler. """
-########################################################################
-# $Id$
-# $HeadURL$
-########################################################################
+
 __RCSID__ = "$Id$"
 
 from DIRAC                                                    import S_OK, gLogger
@@ -22,7 +19,7 @@ class TransformationClient( DIRACTransformationClient ):
           getBookkeepingQueryForTransformation(transName)
   """
 
-  def addTransformation( self, transName, description, longDescription, type, plugin, agentType, fileMask,
+  def addTransformation( self, transName, description, longDescription, transfType, plugin, agentType, fileMask,
                          transformationGroup = 'General',
                          groupSize = 1,
                          inheritedFrom = 0,
@@ -35,7 +32,7 @@ class TransformationClient( DIRACTransformationClient ):
                          url = '',
                          timeout = 120 ):
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
-    res = rpcClient.addTransformation( transName, description, longDescription, type, plugin, agentType,
+    res = rpcClient.addTransformation( transName, description, longDescription, transfType, plugin, agentType,
                                        fileMask, transformationGroup, groupSize, inheritedFrom, body,
                                        maxTasks, eventsPerTask, addFiles )
     if not res['OK']:

@@ -26,9 +26,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     if not bkkClient:
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-      self.bk = BookkeepingClient()
+      self.bkkClient = BookkeepingClient()
     else:
-      self.bk = bkkClient
+      self.bkkClient = bkkClient
 
     if not rmClient:
       from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -98,7 +98,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for lfns in breakListIntoChunks( self.data.keys(), 500 ):
       # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
       #          may have themselves descendants with replicas
-      res = self.bk.getFileDescendents( lfns, production=int( transID ), depth=1, checkreplica=True )
+      res = self.bkkClient.getFileDescendents( lfns, production = int( transID ), depth = 1, checkreplica = True )
       if not res['OK']:
         self.__logError( "Cannot get descendants of files:", res['Message'] )
       else:
@@ -388,7 +388,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runID = runDict['RunNumber']
       if transType == 'DataReconstruction':
         # Wait for 'delay' hours before starting the task
-        res = self.bk.getRunInformations( int( runID ) )
+        res = self.bkkClient.getRunInformations( int( runID ) )
         if res['OK']:
           endDate = res['Value']['RunEnd']
           if datetime.datetime.now() - endDate < datetime.timedelta( hours=delay ):
@@ -495,6 +495,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( tasks )
 
   def __groupByRun( self, files=None ):
+    """ Utility function
+    """
     if files == None:
       files = self.files
     runDict = {}
@@ -508,6 +510,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( runDict )
 
   def __groupByRunAndParam( self, lfns, param='' ):
+    """ Utility function - uses __groupByRun
+    """
     runDict = {}
     if type( lfns ) == type( {} ):
       lfns = lfns.keys()
@@ -530,6 +534,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( runDict )
 
   def __getRAWAncestorsForRun( self, transID, runID, param='', paramValue='' ):
+    """ Utility function
+    """
     startTime1 = time.time()
     res = self.transClient.getTransformationFiles( { 'TransformationID' : transID, 'RunNumber': runID } )
     self.__logVerbose( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
@@ -553,7 +559,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       lfns = [f for f in metadata if metadata[f][param] == paramValue]
     if lfns:
       startTime = time.time()
-      res = self.bk.getFileAncestors( lfns, depth=10 )
+      res = self.bkkClient.getFileAncestors( lfns, depth = 10 )
       self.__logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ),
                                                                                                   time.time() - startTime ) )
       if res['OK']:
@@ -569,6 +575,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return ancestors
 
   def __readCacheFile( self, transID ):
+    """ Utility function
+    """
     import pickle
     # Now try and get the cached information
     tmpDir = os.environ.get( 'TMPDIR', '/tmp' )
@@ -603,6 +611,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.__logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def __writeCacheFile( self ):
+    """ Utility function
+    """
     import pickle
     if self.cacheFile:
       try:
@@ -618,6 +628,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.__logError( "Could not write cache file %s" % self.cacheFile )
 
   def __getFileSize( self, lfns ):
+    """ Utility function
+    """
     fileSizes = {}
     startTime1 = time.time()
     for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
@@ -639,6 +651,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( fileSizes )
 
   def __clearCachedFileSize( self, lfns ):
+    """ Utility function
+    """
     for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
       self.cachedLFNSize.pop( lfn )
 
@@ -687,13 +701,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( tasks )
 
   def _LHCbStandard( self ):
+    """ Plugin, used for example for WG productions
+    """
     return self._groupByReplicas()
 
   def __getNbRAWInRun( self, runID, evtType ):
+    """ Utility function
+    """
     rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType )
     if not rawFiles:
       startTime = time.time()
-      res = self.bk.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
+      res = self.bkkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
       if not res['OK']:
         rawFiles = 0
         self.__logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
@@ -861,7 +879,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __getBookkeepingMetadata( self, lfns ):
     start = time.time()
-    res = self.bk.getFileMetadata( lfns )
+    res = self.bkkClient.getFileMetadata( lfns )
     self.__logVerbose( "Obtained BK metadata of %d files in %.3f seconds" % ( len( lfns ), time.time() - start ) )
     return res
 
@@ -875,6 +893,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return se.endswith( "-FREEZER" )
 
   def __sortExistingSEs( self, lfns, lfnSEs ):
+    """ Utility function
+    """
     seFrequency = {}
     archiveSEs = []
     for lfn in lfns:
@@ -890,6 +910,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return sortedSEs + archiveSEs
 
   def __getStorageFreeSpace( self, candSEs ):
+    """ Utility function
+    """
     weight = {}
     for se in candSEs:
       weight[se] = self.__getRMFreeSpace( se )
@@ -898,6 +920,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
 
   def __getRMFreeSpace( self, se ):
+    """ Utility function
+    """
     if se in self.freeSpace:
       return self.freeSpace[se]['freeSpace']
     # get the site and space token, for the time being short cut ;-)
@@ -936,6 +960,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return 0
 
   def __rankSEs( self, candSEs ):
+    """ Utility function
+    """
     if len( candSEs ) <= 1:
       return candSEs
     import random
@@ -967,6 +993,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return rankedSEs
 
   def __selectSEs( self, candSEs, needToCopy, existingSites ):
+    """ Utility function
+    """
     targetSites = existingSites
     targetSEs = []
     for se in candSEs:
@@ -991,6 +1019,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs,
                       exclusiveSEs = False ):
+    """ Utility function
+    """
     # Select active SEs
     nbArchive1 = min( 1, len( archive1SEs ) )
     nbArchive2 = min( 1, len( archive2SEs ) )
@@ -1050,6 +1080,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return ','.join( sorted( targetSEs ) )
 
   def __assignTargetToLfns( self, lfns, stringTargetSEs ):
+    """ Utility function
+    """
     targetSEs = [se for se in stringTargetSEs.split( ',' ) if se]
     alreadyCompleted = []
     fileTargetSEs = {}
@@ -1075,6 +1107,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return ( fileTargetSEs, alreadyCompleted )
 
   def __getPluginParam( self, name, default=None ):
+    """ Utility function
+    """
     # get the value of a parameter looking 1st in the CS
     if default != None:
       valueType = type( default )
@@ -1248,7 +1282,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.__createTasks( storageElementGroups ) )
 
   def __getActiveSEs( self, selist ):
-
+    """ Utility function - uses RSS
+    """
     activeSE = []
 
     try:
@@ -1268,7 +1303,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return activeSE
 
   def __getListFromString( self, s ):
-    # Avoid using eval()... painful
+    """ Utility function
+    """
     if type( s ) == types.StringType:
       if s == "[]" or s == '':
         return []
@@ -1334,6 +1370,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self.__simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies=numberOfCopies )
 
   def __simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies=0 ):
+    """ Utility function
+    """
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
     if not numberOfCopies:
@@ -1397,6 +1435,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.__createTasks( storageElementGroups ) )
 
   def _FakeReplication( self ):
+    """ Utility function - just for the tests
+    """
     storageElementGroups = {}
     for replicaSE, lfnGroup in self._getFileGroups( self.data ).items():
       existingSEs = replicaSE.split( ',' )

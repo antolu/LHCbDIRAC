@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+  from LHCbDIRAC.TransformationSystem.Client.Utilities import *
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
@@ -217,9 +217,9 @@ if __name__ == "__main__":
   # Create the transformation
   transformation = Transformation()
   transType = None
-  if plugin in pluginScript.getRemovalPlugins():
+  if plugin in getRemovalPlugins():
     transType = "Removal"
-  elif plugin in pluginScript.getReplicationPlugins():
+  elif plugin in getReplicationPlugins():
     transType = "Replication"
   else:
     transType = "Processing"
@@ -273,7 +273,7 @@ if __name__ == "__main__":
   transformation.setPlugin( plugin )
   transformation.setBkQuery( bkQueryDict )
 
-  from DIRAC.Core.Utilities.List                                         import sortList
+  from DIRAC.Core.Utilities.List import sortList
   from LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin
   transID = -9999
   pluginParams['TransformationID'] = transID
@@ -282,7 +282,11 @@ if __name__ == "__main__":
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  oplugin = TransformationPlugin( plugin, transClient=fakeClient, replicaManager=ReplicaManager(), bkkClient=BookkeepingClient(), debug=debugPlugin )
+  oplugin = TransformationPlugin( plugin,
+                                  transClient = fakeClient,
+                                  replicaManager = ReplicaManager(),
+                                  bkkClient = BookkeepingClient(),
+                                  debug = debugPlugin )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...

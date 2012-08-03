@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+  from LHCbDIRAC.TransformationSystem.Client.Utilities import *
   import time
 
   pluginScript = PluginScript()
@@ -66,9 +66,9 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
   transType = None
-  if plugin in pluginScript.getRemovalPlugins():
+  if plugin in getRemovalPlugins():
     transType = "Removal"
-  elif plugin in pluginScript.getReplicationPlugins():
+  elif plugin in getReplicationPlugins():
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"

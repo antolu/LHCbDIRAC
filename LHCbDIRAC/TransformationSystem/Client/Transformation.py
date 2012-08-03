@@ -8,7 +8,6 @@ Script.parseCommandLine()
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation import Transformation as DIRACTransformation
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 COMPONENT_NAME = 'Transformation'
 
@@ -18,12 +17,18 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def __init__( self, transID=0 ):
+  def __init__( self, transID = 0, transClientIn = None ):
     """ Just params setting.
         transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
     """
 
-    DIRACTransformation.__init__( self, transID=transID, transClient=TransformationClient() )
+    if not transClientIn:
+      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+      self.transClient = TransformationClient()
+    else:
+      self.transClient = transClientIn
+
+    DIRACTransformation.__init__( self, transID = transID, transClient = self.transClient )
 
     self.supportedPlugins += ['RAWShares', 'AtomicRun']
     self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast', 'FakeReplication']
