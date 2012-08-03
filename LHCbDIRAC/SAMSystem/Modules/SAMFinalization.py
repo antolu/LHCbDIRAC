@@ -23,7 +23,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 
 import LHCbDIRAC
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import sharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 
 __RCSID__ = '$Id$'
 
@@ -98,7 +98,7 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self._resolveInputVariables()
     self.runinfo = self.getRunInfo()
-    sharedArea = sharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return S_ERROR( 'Could not determine shared area for site' )

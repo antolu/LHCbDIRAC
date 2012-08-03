@@ -39,7 +39,7 @@ logLevel = 'info'
 submissionMode = 'local'
 jobName = 'TestJob'
 lhcbConvention = {'Gauss':'Sim', 'Boole':'Digi', 'Brunel':'Rec', 'DaVinci':'Phys'}
-sharedArea = sharedArea()
+sharedArea = getSharedArea()
 
 #Variables to be assigned or dynamically evaluated
 

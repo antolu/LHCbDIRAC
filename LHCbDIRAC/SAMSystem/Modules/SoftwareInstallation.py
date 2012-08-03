@@ -17,7 +17,8 @@ import DIRAC
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import sharedArea, installApplication, removeApplication, createSharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import getSharedArea, installApplication
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import  removeApplication, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
@@ -104,7 +105,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
-    sharedArea = sharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       # After previous check this error should never occur
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )

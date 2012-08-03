@@ -74,8 +74,8 @@ class CombinedSoftwareInstallation:
     else:
       self.ceConfigs = [self.jobConfig]
 
-    self.sharedArea = sharedArea()
-    self.localArea = localArea()
+    self.sharedArea = getSharedArea()
+    self.localArea = getLocalArea()
     self.mySiteRoot = '%s:%s' % ( self.localArea, self.sharedArea )
 
 
@@ -151,11 +151,11 @@ def mySiteRoot():
   """Returns the mySiteRoot for the current local and / or shared areas.
   """
   localmySiteRoot = ''
-  localArea = localArea()
+  localArea = getLocalArea()
   if not localArea:
     DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
     return localmySiteRoot
-  sharedArea = sharedArea()
+  sharedArea = getSharedArea()
   if not sharedArea:
     DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
     return localArea
@@ -235,8 +235,8 @@ def installApplication( app, config, area ):
   if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
     try:
       urllib.urlretrieve( '%s%s' % ( installProjectURL, installProjectFile ), installProjectFile )
-    except Exception, e:
-      DIRAC.gLogger.exception( e )
+    except urllib.ContentTooShortError, msg:
+      DIRAC.gLogger.exception( 'Content too short ', msg )
       return False
     if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
       DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( installProjectURL, installProjectFile ) )
@@ -255,8 +255,8 @@ def installApplication( app, config, area ):
   if not os.path.exists( installProject ):
     try:
       shutil.copy( installProjectFile, localArea )
-    except:
-      DIRAC.gLogger.warn( 'Failed to create:', installProject )
+    except shutil.Error, errorMsg:
+      DIRAC.gLogger.warn( 'Failed to create:', installProject, errorMsg )
       return False
 
   curDir = os.getcwd()
@@ -307,8 +307,8 @@ def removeApplication( app, config, area ):
   if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
     try:
       urllib.urlretrieve( '%s%s' % ( installProjectURL, installProjectFile ), installProjectFile )
-    except Exception, e:
-      DIRAC.gLogger.exception( e )
+    except urllib.ContentTooShortError, msg:
+      DIRAC.gLogger.exception( 'Content too short', msg )
       return False
     if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
       DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( installProjectURL, installProjectFile ) )
@@ -382,7 +382,7 @@ def _getApp( app ):
 
 #############################################################################
 
-def sharedArea():
+def getSharedArea():
   """
    Discover location of Shared SW area
    This area is populated by a tool independent of the DIRAC jobs
@@ -436,13 +436,13 @@ def createSharedArea():
     os.remove( sharedArea )
     os.mkdir( sharedArea )
     return True
-  except Exception, x:
-    DIRAC.gLogger.error( 'Problem trying to create shared area', str( x ) )
+  except OSError, msg:
+    DIRAC.gLogger.error( 'Problem trying to create shared area', str( msg ) )
     return False
 
 #############################################################################
 
-def localArea():
+def getLocalArea():
   """
    Discover Location of Local SW Area.
    This area is populated by DIRAC job Agent for jobs needing SW not present
@@ -459,14 +459,14 @@ def localArea():
     if os.path.exists( localArea ):
       try:
         os.remove( localArea )
-      except Exception:
-        DIRAC.gLogger.error( 'Cannot remove:', localArea )
+      except OSError, msg:
+        DIRAC.gLogger.error( 'Cannot remove: ', localArea, msg )
         localArea = ''
     else:
       try:
         os.mkdir( localArea )
-      except Exception:
-        DIRAC.gLogger.error( 'Cannot create:', localArea )
+      except OSError:
+        DIRAC.gLogger.error( 'Cannot create:', localArea, msg )
         localArea = ''
   return localArea
 

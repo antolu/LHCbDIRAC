@@ -14,7 +14,7 @@ import DIRAC
 from DIRAC                      import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Interfaces.API.Dirac import Dirac
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import sharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import getSharedArea
 from LHCbDIRAC.Core.Utilities.DetectOS                     import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob                      import LHCbJob
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM             import ModuleBaseSAM
@@ -134,7 +134,7 @@ class TestApplications( ModuleBaseSAM ):
     """Method to set the correct options for the LHCb project that will be executed.
        By convention the inputs / outputs are the system configuration + file extension.
     """
-    sharedArea = sharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )

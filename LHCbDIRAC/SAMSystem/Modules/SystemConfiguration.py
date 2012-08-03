@@ -13,7 +13,7 @@ import DIRAC
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import sharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
@@ -77,7 +77,7 @@ class SystemConfiguration( ModuleBaseSAM ):
     localRoot = gConfig.getValue( '/LocalSite/Root', self.cwd )
     self.log.info( "Root directory for job is %s" % ( localRoot ) )
 
-    sharedArea = sharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )
