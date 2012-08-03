@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ Module to upload specified job output files according to the parameters
     defined in the production workflow.
 """
@@ -14,7 +11,6 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
 
 class UploadOutputData( ModuleBase ):
 

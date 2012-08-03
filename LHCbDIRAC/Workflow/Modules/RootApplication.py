@@ -2,30 +2,30 @@
 
 __RCSID__ = "$Id$"
 
+import string, os, sys, fnmatch
+
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-
-import string, os, sys, fnmatch
-
-class RootApplication( object ):
+class RootApplication( ModuleBase ):
 
   #############################################################################
   def __init__( self ):
+    """ Module initialization
+    """
 
-    self.enable = True
-    self.version = __RCSID__
-    self.debug = True
     self.log = gLogger.getSubLogger( "RootApplication" )
-    self.result = S_ERROR()
-    self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
+    super( RootApplication, self ).__init__( self.log )
 
-    self.logFile = ''
+    self.version = __RCSID__
+    self.result = S_ERROR()
+    self.jobID = ''
+
+    self.applicationLog = ''
     self.rootVersion = ''
     self.rootScript = ''
     self.rootType = ''
@@ -34,13 +34,12 @@ class RootApplication( object ):
     self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
 
   #############################################################################
-  def resolveInputVariables( self ):
+  def _resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
-    else:
-      self.log.warn( 'No SystemConfig defined' )
+
+    super( RootApplication, self )._resolveInputVariables()
+    super( RootApplication, self )._resolveInputStep()
 
     if self.step_commons.has_key( 'rootScript' ):
       self.rootScript = self.step_commons['rootScript']
@@ -69,144 +68,158 @@ class RootApplication( object ):
 
     print self.arguments
 
-    if self.step_commons.has_key( 'logFile' ):
-      self.logFile = self.step_commons['logFile']
-    else:
-      self.log.warn( 'No logFile specified' )
-
     return S_OK()
 
   #############################################################################
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_id = None, step_number = None,
+               projectEnvironment = None, bkkClient = None ):
     """The main execution method of the RootApplication module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
 
-    self.result = S_OK()
-    if not self.rootVersion:
-      self.result = S_ERROR( 'No Root Version defined' )
-    elif not self.systemConfig:
-      self.result = S_ERROR( 'No system configuration selected' )
-    elif not self.rootScript:
-      self.result = S_ERROR( 'No script defined' )
-    elif not self.logFile:
-      self.logFile = '%s.log' % self.rootScript
-    elif not self.rootType.lower() in ( 'c', 'py', 'bin', 'exe' ):
-      self.result = S_ERROR( 'Wrong root type defined' )
+    try:
 
-    if not self.result['OK']:
-      return self.result
+      super( RootApplication, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
+                                               workflowStatus, stepStatus,
+                                               wf_commons, step_commons, step_number, step_id )
 
-    self.__report( 'Initializing RootApplication module' )
+      self._resolveInputVariables()
 
-    self.log.debug( self.version )
-    self.log.info( "Executing application Root %s" % ( self.rootVersion ) )
-    self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
+      self.result = S_OK()
+      if not self.rootVersion:
+        self.result = S_ERROR( 'No Root Version defined' )
+      elif not self.systemConfig:
+        self.result = S_ERROR( 'No system configuration selected' )
+      elif not self.rootScript:
+        self.result = S_ERROR( 'No script defined' )
+      elif not self.applicationLog:
+        self.applicationLog = '%s.log' % self.rootScript
+      elif not self.rootType.lower() in ( 'c', 'py', 'bin', 'exe' ):
+        self.result = S_ERROR( 'Wrong root type defined' )
 
-    result = gConfig.getOption( "/".join( [self.rootSection, self.rootVersion] ) )
-    if not result['OK']:
-      return self._reportError( 'Could not contact DIRAC Configuration Service for application for root ', __name__, **kwargs )
+      if not self.result['OK']:
+        return self.result
 
-    application, version = result['Value'].split( '.' )
+      self.__report( 'Initializing RootApplication module' )
 
-    self.log.info( 'Application Found:', result['Value'] )
+      self.log.debug( self.version )
+      self.log.info( "Executing application Root %s" % ( self.rootVersion ) )
+      self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
 
-    #Now obtain the project environment for execution
-    result = getProjectEnvironment( self.systemConfig, application, version )
-    if not result['OK']:
-      self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-      return result # this will distinguish between LbLogin / SetupProject / actual application failures
+      result = gConfig.getOption( "/".join( [self.rootSection, self.rootVersion] ) )
+      if not result['OK']:
+        return self._reportError( 'Could not contact DIRAC Configuration Service for application for root ', __name__ )
 
-    projectEnvironment = result['Value']
+      application, version = result['Value'].split( '.' )
 
-    if not os.path.exists( self.rootScript ):
-      self.log.info( 'rootScript not Found' )
-      return S_ERROR( 'rootScript not Found' )
+      self.log.info( 'Application Found:', result['Value'] )
 
-    if self.rootType.lower() == 'c':
-      rootCmd = ['root']
-      rootCmd.append( '-b' )
-      rootCmd.append( '-f' )
-      if self.arguments:
-        escapedArgs = []
-        for arg in self.arguments:
-          if type( arg ) == type( ' ' ):
-            escapedArgs.append( '\'"%s"\'' % ( arg ) )
-          else:
-            escapedArgs.append( '%s' % ( arg ) )
+      #Now obtain the project environment for execution
+      result = getProjectEnvironment( self.systemConfig, application, version )
+      if not result['OK']:
+        self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
+        return result # this will distinguish between LbLogin / SetupProject / actual application failures
 
-        macroArgs = '%s\(%s\)' % ( self.rootScript, string.join( escapedArgs, ',' ) )
-        rootCmd.append( macroArgs )
-      else:
+      projectEnvironment = result['Value']
+
+      if not os.path.exists( self.rootScript ):
+        self.log.info( 'rootScript not Found' )
+        return S_ERROR( 'rootScript not Found' )
+
+      if self.rootType.lower() == 'c':
+        rootCmd = ['root']
+        rootCmd.append( '-b' )
+        rootCmd.append( '-f' )
+        if self.arguments:
+          escapedArgs = []
+          for arg in self.arguments:
+            if type( arg ) == type( ' ' ):
+              escapedArgs.append( '\'"%s"\'' % ( arg ) )
+            else:
+              escapedArgs.append( '%s' % ( arg ) )
+
+          macroArgs = '%s\(%s\)' % ( self.rootScript, string.join( escapedArgs, ',' ) )
+          rootCmd.append( macroArgs )
+        else:
+          rootCmd.append( self.rootScript )
+
+      elif self.rootType.lower() == 'py':
+
+        rootCmd = ['python']
         rootCmd.append( self.rootScript )
+        if self.arguments:
+          rootCmd += self.arguments
 
-    elif self.rootType.lower() == 'py':
+      elif self.rootType.lower() in ( 'bin', 'exe' ):
+        rootCmd = [os.path.abspath( self.rootScript )]
+        if self.arguments:
+          rootCmd += self.arguments
 
-      rootCmd = ['python']
-      rootCmd.append( self.rootScript )
-      if self.arguments:
-        rootCmd += self.arguments
+      if os.path.exists( self.applicationLog ):
+        os.remove( self.applicationLog )
 
-    elif self.rootType.lower() in ( 'bin', 'exe' ):
-      rootCmd = [os.path.abspath( self.rootScript )]
-      if self.arguments:
-        rootCmd += self.arguments
+      self.log.info( 'Running:', ' '.join( rootCmd ) )
+      self.__report( 'Running ROOT %s' % ( self.rootVersion ) )
 
-    if os.path.exists( self.logFile ):
-      os.remove( self.logFile )
+      ret = shellCall( 0, ' '.join( rootCmd ), env = projectEnvironment, callbackFunction = self.redirectLogOutput )
+      if not ret['OK']:
+        self.log.warn( 'Error during: %s ' % rootCmd )
+        self.log.warn( ret )
+        self.result = ret
+        return self.result
 
-    self.log.info( 'Running:', ' '.join( rootCmd ) )
-    self.__report( 'Running ROOT %s' % ( self.rootVersion ) )
+      resultTuple = ret['Value']
+      status = resultTuple[0]
+      stdError = resultTuple[2]
 
-    ret = shellCall( 0, ' '.join( rootCmd ), env = projectEnvironment, callbackFunction = self.redirectLogOutput )
-    if not ret['OK']:
-      self.log.warn( 'Error during: %s ' % rootCmd )
-      self.log.warn( ret )
-      self.result = ret
+      self.log.info( "Status after %s execution is %s" % ( self.rootScript, str( status ) ) )
+      failed = False
+      if status != 0:
+        self.log.info( "%s execution completed with non-zero status:" % self.rootScript )
+        failed = True
+      elif len( stdError ) > 0:
+        self.log.info( "%s execution completed with application warning:" % self.rootScript )
+        self.log.info( stdError )
+      else:
+        self.log.info( "%s execution completed succesfully:" % self.rootScript )
+
+      if failed == True:
+        self.log.error( "==================================\n StdError:\n" )
+        self.log.error( stdError )
+        self.__report( '%s Exited With Status %s' % ( self.rootScript, status ) )
+        self.result = S_ERROR( "Script execution completed with errors" )
+        return self.result
+
+      # Return OK assuming that subsequent module will spot problems
+      self.__report( '%s (Root %s) Successful' % ( self.rootScript, self.rootVersion ) )
+      self.result = S_OK()
       return self.result
 
-    resultTuple = ret['Value']
-    status = resultTuple[0]
-    stdError = resultTuple[2]
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
 
-    self.log.info( "Status after %s execution is %s" % ( self.rootScript, str( status ) ) )
-    failed = False
-    if status != 0:
-      self.log.info( "%s execution completed with non-zero status:" % self.rootScript )
-      failed = True
-    elif len( stdError ) > 0:
-      self.log.info( "%s execution completed with application warning:" % self.rootScript )
-      self.log.info( stdError )
-    else:
-      self.log.info( "%s execution completed succesfully:" % self.rootScript )
-
-    if failed == True:
-      self.log.error( "==================================\n StdError:\n" )
-      self.log.error( stdError )
-      self.__report( '%s Exited With Status %s' % ( self.rootScript, status ) )
-      self.result = S_ERROR( "Script execution completed with errors" )
-      return self.result
-
-    # Return OK assuming that subsequent module will spot problems
-    self.__report( '%s (Root %s) Successful' % ( self.rootScript, self.rootVersion ) )
-    self.result = S_OK()
-    return self.result
+    finally:
+      super( RootApplication, self ).finalize( self.version )
 
   #############################################################################
+
   def redirectLogOutput( self, fd, message ):
 
     print message
     sys.stdout.flush()
     if message:
-      if self.logFile:
-        log = open( self.logFile, 'a' )
+      if self.applicationLog:
+        log = open( self.applicationLog, 'a' )
         log.write( message + '\n' )
         log.close()
       else:
         self.log.error( "Application Log file not defined" )
 
   #############################################################################
+
   def __report( self, status ):
     """Wraps around setJobApplicationStatus of state update client
     """
@@ -222,6 +235,7 @@ class RootApplication( object ):
     return jobStatus
 
   #############################################################################
+
   def getPythonFromRoot( self, rootsys ):
     """Locate the external python version that root was built with.
     """

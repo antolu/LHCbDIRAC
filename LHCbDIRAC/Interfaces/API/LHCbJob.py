@@ -633,7 +633,7 @@ class LHCbJob( Job ):
                       ( 'rootScript', 'string', '', 'Root script' ),
                       ( 'rootType', 'string', '', 'Root type' ),
                       ( 'arguments', 'list', [], 'Optional arguments for payload' ),
-                      ( 'logFile', 'string', '', 'Log file name' )
+                      ( 'applicationLog', 'string', '', 'Log file name' )
                       ]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
@@ -653,7 +653,7 @@ class LHCbJob( Job ):
     stepInstance.setValue( "rootVersion", rootVersion )
     stepInstance.setValue( "rootType", rootType )
     stepInstance.setValue( "rootScript", os.path.basename( rootScript ) )
-    stepInstance.setValue( "logFile", logName )
+    stepInstance.setValue( "applicationLog", logName )
     if arguments:
       stepInstance.setValue( "arguments", arguments )
 
@@ -921,7 +921,7 @@ class LHCbJob( Job ):
                       ( 'name', 'string', '', 'Name of executable' ),
                       ( 'executable', 'string', '', 'Executable Script' ),
                       ( 'arguments', 'string', '', 'Arguments for executable Script' ),
-                      ( 'logFile', 'string', '', 'Log file name' )
+                      ( 'applicationLog', 'string', '', 'Log file name' )
                       ]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
@@ -937,7 +937,7 @@ class LHCbJob( Job ):
 
 
     stepInstance.setValue( "name", moduleName )
-    stepInstance.setValue( "logFile", logName )
+    stepInstance.setValue( "applicationLog", logName )
     stepInstance.setValue( "executable", executable )
     if arguments:
       stepInstance.setValue( "arguments", arguments )
