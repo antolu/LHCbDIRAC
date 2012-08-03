@@ -20,34 +20,47 @@ class TransformationAgent( DIRACTransformationAgent ):
   """ Extends base class
   """
 
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    """ c'tor
+
+    :param self: self reference
+    :param str agentName: name of agent
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
+    """
+    DIRACTransformationAgent.__init__( self, agentName, loadName, baseAgentName, properties )
+
+    self.transQueue = Queue.Queue()
+    self.transInQueue = []
+    self.lock = threading.Lock()
+
+    self.rm = ReplicaManager()
+    self.transClient = TransformationClient()
+    self.resourceStatus = ResourceStatus()
+    self.bkk = BookkeepingClient()
+    self.rmClient = ResourceManagementClient()
+
   def initialize( self ):
     """ Augments base class initialize
     """
     DIRACTransformationAgent.initialize( self )
     self.workDirectory = self.am_getWorkDirectory()
     self.cacheFile = os.path.join( self.workDirectory, 'ReplicaCache.pkl' )
-    # Get it threaded
-    self.maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
     self.debug = self.am_getOption( 'verbosePlugin', False )
-    self.threadPool = ThreadPool( self.maxNumberOfThreads,
-                                            self.maxNumberOfThreads )
-    self.transQueue = Queue.Queue()
-    self.transInQueue = []
-    self.lock = threading.Lock()
-    self.__readCache()
-    self.rm = ReplicaManager()
-    self.transClient = TransformationClient()
-    self.resourceStatus = ResourceStatus()
-    self.bkk = BookkeepingClient()
-    self.rmClient = ResourceManagementClient()
+
     # Validity of the cache in days
     self.replicaCacheValidity = 2
+    self.__readCache()
+
+    # Get it threaded
+    maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
+    threadPool = ThreadPool( maxNumberOfThreads, maxNumberOfThreads )
     self.log.debug( "*************************************************" )
     self.log.debug( "Hello! This is the LHCbDirac TransformationAgent!" )
     self.log.debug( "*************************************************" )
-    self.log.info( "Multithreaded with %d threads" % self.maxNumberOfThreads )
-    for i in xrange( self.maxNumberOfThreads ):
-      self.threadPool.generateJobAndQueueIt( self._execute )
+    self.log.info( "Multithreaded with %d threads" % maxNumberOfThreads )
+    for i in xrange( maxNumberOfThreads ):
+      threadPool.generateJobAndQueueIt( self._execute )
     return S_OK()
 
   def finalize( self ):

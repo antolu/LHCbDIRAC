@@ -28,7 +28,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
   """
 
-  def __init__( self, agentName, baseAgentName = False, 	properties = dict() ):
+  def __init__( self, agentName, loadName, baseAgentName = False, 	properties = dict() ):
     """ c'tor
 
     :param self: self reference
@@ -36,7 +36,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     :param bool baseAgentName: whatever  
     :param dict properties: whatever else
     """
-    DiracTCAgent.__init__( self, agentName, baseAgentName, properties )
+    DiracTCAgent.__init__( self, agentName, loadName, baseAgentName, properties )
     ## LHCb bookkeeping client
     self.bkClient = BookkeepingClient()
     ## LHCb transformation client 

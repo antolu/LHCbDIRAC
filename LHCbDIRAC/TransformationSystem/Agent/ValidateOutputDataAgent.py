@@ -1,15 +1,12 @@
-########################################################################
-# $HeadURL$
-########################################################################
 __RCSID__ = "$Id$"
 
-from DIRAC                                                          import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities.List                                      import sortList
-from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
-from DIRAC.DataManagementSystem.Client.StorageUsageClient           import StorageUsageClient
-from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
-from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities.List import sortList
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
+from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
+from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
@@ -17,21 +14,38 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
 
   #############################################################################
 
-  def initialize( self ):
-    """Sets defaults
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    """ c'tor
+
+    :param self: self reference
+    :param str agentName: name of agent
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
     """
+    DIRACValidateOutputDataAgent.__init__( self, agentName, loadName, baseAgentName, properties )
+
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
+  #############################################################################
+
+  def initialize( self ):
+    """Sets defaults
+    """
     # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
-    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', ['MCSimulation', 'DataReconstruction', 'DataStripping', 'MCStripping', 'Merge'] ) )
+    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', ['MCSimulation',
+                                                                                    'DataReconstruction',
+                                                                                    'DataStripping',
+                                                                                    'MCStripping',
+                                                                                    'Merge'] ) )
     gLogger.info( "Will treat the following transformation types: %s" % str( self.transformationTypes ) )
-    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', ['TransformationDB', 'StorageUsage'] ) )
+    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', ['TransformationDB',
+                                                                                  'StorageUsage'] ) )
     gLogger.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
     return S_OK()
 

@@ -1,5 +1,5 @@
 """
-MCReplicationCleaningAgent Completed all MC Replication transformations which have enough replicas for Done requests. 
+MCReplicationCleaningAgent Completed all MC Replication transformations which have enough replicas for Done requests.
 """
 
 from DIRAC                                                          import S_OK, S_ERROR, gLogger
@@ -13,13 +13,25 @@ AGENT_NAME = 'Transformation/MCReplicationCleaningAgent'
 class MCReplicationCleaningAgent( AgentModule ):
 
   #############################################################################
-  def initialize( self ):
-    """Sets defaults """
+
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    """ c'tor
+
+    :param self: self reference
+    :param str agentName: name of agent
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
+    """
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
 
     self.transClient = TransformationClient()
     self.replicaManager = ReplicaManager()
-    #self.requestClient = RequestClient()
     self.requestClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
+
+  #############################################################################
+
+  def initialize( self ):
+    """Sets defaults """
 
     # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.

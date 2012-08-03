@@ -21,6 +21,8 @@
 
 __RCSID__ = "$Id$"
 
+import datetime
+
 from DIRAC                                                       import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
 from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
@@ -31,27 +33,33 @@ from DIRAC.Core.Utilities.Time                                   import dateTime
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-import string, datetime
-
 AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
 class DataRecoveryAgent( AgentModule ):
   """ Standard DIRAC agent class
   """
 
-  #############################################################################
-  def initialize( self ):
-    """Sets defaults
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    """ c'tor
+
+    :param self: self reference
+    :param str agentName: name of agent
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
     """
-    self.enableFlag = '' #defined below
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
+
     self.replicaManager = ReplicaManager()
-    #self.prodDB = ProductionDB()
     self.transClient = TransformationClient( 'TransformationDB' )
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
-    self.taskIDName = 'TaskID'
-    self.externalStatus = 'ExternalStatus'
-    self.externalID = 'ExternalID'
+    self.enableFlag = '' #defined below
+
+  #############################################################################
+
+  def initialize( self ):
+    """Sets defaults
+    """
     self.am_setOption( 'PollingTime', 2 * 60 * 60 ) #no stalled jobs are considered so can be frequent
 
     # This sets the Default Proxy
@@ -90,15 +98,15 @@ class DataRecoveryAgent( AgentModule ):
 
       if not result['Value']:
         self.log.info( 'No "%s" transformations of types %s to process.' % ( transStatus,
-                                                                             string.join( transformationTypes, ', ' ) ) )
+                                                                             ', '.join( transformationTypes ) ) )
         continue
 
       transformationDict.update( result['Value'] )
 
     self.log.info( 'Selected %s transformations of types %s' % ( len( transformationDict.keys() ),
-                                                                 string.join( transformationTypes, ', ' ) ) )
-    self.log.verbose( 'The following transformations were selected out of %s:\n%s' % ( string.join( transformationTypes, ', ' ),
-                                                                                       string.join( transformationDict.keys(), ', ' ) ) )
+                                                                 ', '.join( transformationTypes ) ) )
+    self.log.verbose( 'The following transformations were selected out of %s:\n%s' % ( ', '.join( transformationTypes ),
+                                                                                       ', '.join( transformationDict.keys() ) ) )
 
     trans = []
     #initially this was useful for restricting the considered list
@@ -116,7 +124,7 @@ class DataRecoveryAgent( AgentModule ):
     ########## Uncomment for debugging
 
     if trans:
-      self.log.info( 'Skipping all transformations except %s' % ( string.join( trans, ', ' ) ) )
+      self.log.info( 'Skipping all transformations except %s' % ( ', '.join( trans, ', ' ) ) )
 
     for transformation, typeName in transformationDict.items():
       if trans:
@@ -137,7 +145,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       if not result['Value']:
-        self.log.info( 'No files in status %s selected for transformation %s' % ( string.join( fileSelectionStatus, ', ' ),
+        self.log.info( 'No files in status %s selected for transformation %s' % ( ', '.join( fileSelectionStatus ),
                                                                                   transformation ) )
         continue
 
@@ -216,13 +224,15 @@ class DataRecoveryAgent( AgentModule ):
             continue
         else:
           for job, fileList in jobsWithProblematicFiles.items():
-            self.log.info( 'Job: %s, Input data: %s' % ( job, string.join( fileList, '\n' ) ) )
+            self.log.info( 'Job: %s, Input data: %s' % ( job, '\n'.join( fileList, '\n' ) ) )
           self.log.warn( '!!!!!!!!Production %s has %s problematic descendent files without \
-          replica flags (found from %s jobs above).' % ( transformation, len( problematicFiles ), len( jobsWithProblematicFiles.keys() ) ) )
+          replica flags (found from %s jobs above).' % ( transformation, len( problematicFiles ),
+                                                         len( jobsWithProblematicFiles.keys() ) ) )
           self.log.warn( 'This must be investigated by hand or removalOKFlag should be set to True!!!!!!!!' )
           continue
       else:
-        self.log.info( 'No problematic files without replica flags were found to be removed for transformation %s' % ( transformation ) )
+        self.log.info( 'No problematic files without replica flags were found to be removed \
+        for transformation %s' % ( transformation ) )
 
       problematicFilesToUpdate = []
       for job, fileList in jobsWithProblematicFiles.items():
@@ -278,11 +288,11 @@ class DataRecoveryAgent( AgentModule ):
       return res
     resDict = {}
     for fileDict in res['Value']:
-      if not fileDict.has_key( 'LFN' ) or not fileDict.has_key( self.taskIDName ) or not fileDict.has_key( 'LastUpdate' ):
-        self.log.info( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( self.taskIDName, fileDict ) )
+      if not fileDict.has_key( 'LFN' ) or not fileDict.has_key( 'TaskID' ) or not fileDict.has_key( 'LastUpdate' ):
+        self.log.info( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( 'TaskID', fileDict ) )
         continue
       lfn = fileDict['LFN']
-      jobID = fileDict[self.taskIDName]
+      jobID = fileDict['TaskID']
       lastUpdate = fileDict['LastUpdate']
       resDict[lfn] = jobID
     if resDict:
@@ -303,7 +313,7 @@ class DataRecoveryAgent( AgentModule ):
                                                                                              prodJobIDs ) )
 
     jobFileDict = {}
-    condDict = {'TransformationID':transformation, self.taskIDName:prodJobIDs}
+    condDict = {'TransformationID':transformation, 'TaskID':prodJobIDs}
     delta = datetime.timedelta( hours = selectDelay )
     now = dateTime()
     olderThan = now - delta
@@ -319,7 +329,7 @@ class DataRecoveryAgent( AgentModule ):
 
     for jobDict in res['Value']:
       missingKey = False
-      for key in [self.taskIDName, self.externalID, 'LastUpdateTime', self.externalStatus, 'InputVector']:
+      for key in ['TaskID', 'ExternalID', 'LastUpdateTime', 'ExternalStatus', 'InputVector']:
         if not jobDict.has_key( key ):
           self.log.info( 'Missing key %s for job dictionary, the following is available:\n%s' % ( key, jobDict ) )
           missingKey = True
@@ -328,10 +338,10 @@ class DataRecoveryAgent( AgentModule ):
       if missingKey:
         continue
 
-      job = jobDict[self.taskIDName]
-      wmsID = jobDict[self.externalID]
+      job = jobDict['TaskID']
+      wmsID = jobDict['ExternalID']
       lastUpdate = jobDict['LastUpdateTime']
-      wmsStatus = jobDict[self.externalStatus]
+      wmsStatus = jobDict['ExternalStatus']
       jobInputData = jobDict['InputVector']
       jobInputData = [lfn.replace( 'LFN:', '' ) for lfn in jobInputData.split( ';' )]
 
@@ -346,7 +356,7 @@ class DataRecoveryAgent( AgentModule ):
       #Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
       if not wmsStatus in wmsStatusList:
         self.log.info( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
-                                                                               string.join( wmsStatusList, ', ' ) ) )
+                                                                               ', '.join( wmsStatusList ) ) )
         continue
 
       finalJobData = []
@@ -442,7 +452,7 @@ class DataRecoveryAgent( AgentModule ):
 
     if toRemove:
       self.log.info( 'Found %s descendent files of transformation %s without \
-      BK replica flag to be removed:\n%s' % ( len( toRemove ), transformation, string.join( toRemove, '\n' ) ) )
+      BK replica flag to be removed:\n%s' % ( len( toRemove ), transformation, '\n'.join( toRemove ) ) )
 
     if hasReplicaFlag:
       self.log.info( 'Found %s jobs with descendent files that do have a BK replica flag' % ( len( hasReplicaFlag ) ) )
@@ -493,7 +503,7 @@ class DataRecoveryAgent( AgentModule ):
       self.log.error( result )
       return S_ERROR( result['Value']['Failed'] )
 
-    self.log.info( 'The following problematic files were successfully removed:\n%s' % ( string.join( problematicFiles, '\n' ) ) )
+    self.log.info( 'The following problematic files were successfully removed:\n%s' % ( '\n'.join( problematicFiles ) ) )
     return S_OK()
 
   #############################################################################

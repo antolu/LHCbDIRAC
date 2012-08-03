@@ -21,7 +21,22 @@ class BookkeepingWatchAgent( AgentModule ):
   """ LHCbDIRAC only agent. A threaded agent.
   """
 
-################################################################################
+  def __init__( self, agentName, baseAgentName = False, properties = dict() ):
+    """ c'tor
+
+    :param self: self reference
+    :param str agentName: name of agent
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
+    """
+    AgentModule.__init__( self, agentName, baseAgentName, properties )
+
+    self.bkQueriesToBeChecked = Queue.Queue()
+    self.bkQueriesInCheck = []
+    self.transClient = TransformationClient( 'TransformationDB' )
+    # Create the BK client
+    self.bkClient = BookkeepingClient()
+
   def initialize( self ):
     """ Make the necessary initializations. 
         The ThreadPool is created here, the _execute() method is what each thread will execute.
@@ -42,23 +57,16 @@ class BookkeepingWatchAgent( AgentModule ):
       self.fullTimeLog = {}
       self.bkQueries = {}
 
-    self.maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
-    self.threadPool = ThreadPool( self.maxNumberOfThreads,
-                                  self.maxNumberOfThreads )
+    maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
+    threadPool = ThreadPool( maxNumberOfThreads, maxNumberOfThreads )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
 
-    self.bkQueriesToBeChecked = Queue.Queue()
-    self.bkQueriesInCheck = []
-
-    for i in xrange( self.maxNumberOfThreads ):
-      self.threadPool.generateJobAndQueueIt( self._execute )
+    for i in xrange( maxNumberOfThreads ):
+      threadPool.generateJobAndQueueIt( self._execute )
 
     self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
     gMonitor.registerActivity( "Iteration", "Agent Loops", AGENT_NAME, "Loops/min", gMonitor.OP_SUM )
-    self.transClient = TransformationClient( 'TransformationDB' )
-    # Create the BK client
-    self.bkClient = BookkeepingClient()
     return S_OK()
 
   def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
@@ -175,9 +183,11 @@ class BookkeepingWatchAgent( AgentModule ):
             # Add the RunNumber to the newly inserted files
             start = time.time()
             res = self.bkClient.getFileMetadata( lfnList )
-            self.__logVerbose( "BK query time for metadata: %.2f seconds." % ( time.time() - start ), transID = transID )
+            self.__logVerbose( "BK query time for metadata: %.2f seconds." % ( time.time() - start ),
+                               transID = transID )
             if not res['OK']:
-              self.__logError( "Failed to get BK metadata for %d files" % len( lfnList ), res['Message'], transID = transID )
+              self.__logError( "Failed to get BK metadata for %d files" % len( lfnList ), res['Message'],
+                               transID = transID )
             else:
               runDict = {}
               for lfn, metadata in res['Value'].items():
