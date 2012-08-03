@@ -105,6 +105,9 @@ class PopularityAgent( AgentModule ):
       #did = configName = configVersion = conditions = processingPass = eventType = fileType = production = "na"
       # retrieve the directory meta-data from the DirMetadata table
       self.log.info( "Processing dir %s " % dirLfn )
+      if dirLfn.startswith('/lhcb/user/'):
+        self.log.info("Private user directory. No metadata stored in Bkk %s " % dirLfn )
+        continue
       dirList = [ dirLfn ]
       # this could be done in a bulk query for a list of directories... TBF
       res = self.__dataUsageClient.getDirMetadata( dirList ) 
