@@ -58,9 +58,7 @@ validationFlag = eval( '{{validationFlag#GENERAL: Set True for validation prod#F
 pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 pr.startRun = int( '{{startRun#GENERAL: run start, to set the start run#0}}' )
 pr.endRun = int( '{{endRun#GENERAL: run end, to set the end of the range#0}}' )
-runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
-if runsList:
-  pr.runsList.split( ',' )
+pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
 pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#}}'] * len( pr.prodsTypeList )
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 if extraOptions:
@@ -108,7 +106,7 @@ pr.prodGroup = '{{pDsc}}'
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'
 #Other parameters from the request page
-pr.DQFlag = '{{inDataQualityFlag}}' #UNCHECKED
+pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
@@ -147,14 +145,14 @@ if pr.testFlag:
   pr.processingPass = 'Real Data/Reco12/Stripping17'
   pr.bkFileType = 'CHARMCOMPLETEEVENT.DST'
   pr.eventType = '90000000'
-  pr.DQFlag = 'ALL'
+  pr.dqFlag = 'ALL'
 
 pr._buildFullBKKQuery()
 
 pr.outputSEs = [x for x in [p1DataSE, p2DataSE, p3DataSE] if x != '']
 pr.removeInputsFlags = [p1RemoveInputs, p2RemoveInputs, p3RemoveInputs][0:len( pr.prodsTypeList )]
 pr.priorities = [p1Priority, p2Priority, p3Priority][0:len( pr.prodsTypeList )]
-pr.CPUs = [p1CPU, p2CPU, p3CPU][0:len( pr.prodsTypeList )]
+pr.cpus = [p1CPU, p2CPU, p3CPU][0:len( pr.prodsTypeList )]
 pr.groupSizes = [p1GroupSize, p2GroupSize, p3GroupSize][0:len( pr.prodsTypeList )]
 pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList]

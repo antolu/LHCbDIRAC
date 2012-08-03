@@ -74,8 +74,8 @@ class CombinedSoftwareInstallation:
     else:
       self.ceConfigs = [self.jobConfig]
 
-    self.sharedArea = SharedArea()
-    self.localArea = LocalArea()
+    self.sharedArea = sharedArea()
+    self.localArea = localArea()
     self.mySiteRoot = '%s:%s' % ( self.localArea, self.sharedArea )
 
 
@@ -108,7 +108,8 @@ class CombinedSoftwareInstallation:
       DIRAC.gLogger.info( 'Job SystemConfiguration is set to /LocalSite/Architecture, checking compatible platforms' )
       compatibleArchs = DIRAC.gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % ( self.jobConfig ), [] )
       if not compatibleArchs:
-        DIRAC.gLogger.error( 'Could not find matching section for %s in /Resources/Computing/OSCompatibility/' % ( self.jobConfig ) )
+        DIRAC.gLogger.error( 'Could not find matching section for %s \
+        in /Resources/Computing/OSCompatibility/' % ( self.jobConfig ) )
         return DIRAC.S_ERROR( 'SystemConfig Not Found' )
       self.jobConfig = compatibleArchs[0]
       DIRAC.gLogger.info( 'Setting system config to compatible platform %s' % ( self.jobConfig ) )
@@ -121,11 +122,11 @@ class CombinedSoftwareInstallation:
 
     for app in copy.deepcopy( self.apps ):
       DIRAC.gLogger.info( 'Checking %s for %s with site root %s' % ( str( app ), self.jobConfig, self.mySiteRoot ) )
-      result = CheckApplication( app, self.jobConfig, self.mySiteRoot )
+      result = checkApplication( app, self.jobConfig, self.mySiteRoot )
       if not result:
         DIRAC.gLogger.info( 'Software was not found to be pre-installed in the shared area: %s' % str( app ) )
         if re.search( ':', self.mySiteRoot ):
-          result = InstallApplication( app, self.jobConfig, self.mySiteRoot )
+          result = installApplication( app, self.jobConfig, self.mySiteRoot )
           if not result:
             DIRAC.gLogger.error( 'Software failed to be installed!' )
             return DIRAC.S_ERROR( 'Software Not Installed' )
@@ -150,11 +151,11 @@ def mySiteRoot():
   """Returns the mySiteRoot for the current local and / or shared areas.
   """
   localmySiteRoot = ''
-  localArea = LocalArea()
+  localArea = localArea()
   if not localArea:
     DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
     return localmySiteRoot
-  sharedArea = SharedArea()
+  sharedArea = sharedArea()
   if not sharedArea:
     DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
     return localArea
@@ -163,7 +164,7 @@ def mySiteRoot():
 
 #############################################################################
 
-def CheckApplication( app, config, area ):
+def checkApplication( app, config, area ):
   """Will perform a local + shared area installation using install project
      to check where components should be installed.  In this case the 'area'
      is localArea:sharedArea.
@@ -225,7 +226,7 @@ def CheckApplication( app, config, area ):
 
 #############################################################################
 
-def InstallApplication( app, config, area ):
+def installApplication( app, config, area ):
   """
    Install given application at given area, at some point (when supported)
    it will check already installed packages in shared area and install locally
@@ -297,7 +298,7 @@ def InstallApplication( app, config, area ):
 
 #############################################################################
 
-def RemoveApplication( app, config, area ):
+def removeApplication( app, config, area ):
   """
    Install given application at given area, at some point (when supported)
    it will check already installed packages in shared area and install locally
@@ -381,7 +382,7 @@ def _getApp( app ):
 
 #############################################################################
 
-def SharedArea():
+def sharedArea():
   """
    Discover location of Shared SW area
    This area is populated by a tool independent of the DIRAC jobs
@@ -407,7 +408,7 @@ def SharedArea():
 
 #############################################################################
 
-def CreateSharedArea():
+def createSharedArea():
   """
    Method to be used by SAM jobs to make sure the proper directory structure is created
    if it does not exists
@@ -441,7 +442,7 @@ def CreateSharedArea():
 
 #############################################################################
 
-def LocalArea():
+def localArea():
   """
    Discover Location of Local SW Area.
    This area is populated by DIRAC job Agent for jobs needing SW not present

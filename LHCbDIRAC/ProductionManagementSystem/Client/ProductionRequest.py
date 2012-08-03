@@ -1,6 +1,8 @@
 """ Module for creating, describing and managing production requests objects
 """
 
+__RCSID__ = "$Id$"
+
 import itertools, copy
 from DIRAC import gLogger
 from LHCbDIRAC.Interfaces.API.Production import Production
@@ -10,18 +12,18 @@ class ProductionRequest( object ):
   """
   #############################################################################
 
-  def __init__( self, BKKClientIn = None, diracProdIn = None ):
+  def __init__( self, bkkClientIn = None, diracProdIn = None ):
     """ c'tor
 
         Some variables are defined here. A production request is made of:
         stepsList, productionsTypes, and various parameters of those productions
     """
 
-    if BKKClientIn is None:
+    if bkkClientIn is None:
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-      self.BKKClient = BookkeepingClient()
+      self.bkkClient = BookkeepingClient()
     else:
-      self.BKKClient = BKKClientIn
+      self.bkkClient = bkkClientIn
 
     if diracProdIn is None:
       from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
@@ -49,7 +51,7 @@ class ProductionRequest( object ):
     self.removeInputsFlags = []
     self.outputSEs = []
     self.priorities = []
-    self.CPUs = []
+    self.cpus = []
     self.inputs = [] # list of lists
     self.targets = []
     self.outputFileMasks = []
@@ -64,10 +66,10 @@ class ProductionRequest( object ):
     self.dataTakingConditions = ''
     self.processingPass = ''
     self.bkFileType = ''
-    self.DQFlag = ''
+    self.dqFlag = ''
     self.startRun = ''
     self.endRun = ''
-    self.runsList = []
+    self.runsList = ''
     self.prodsToLaunch = []
 
   #############################################################################
@@ -80,7 +82,7 @@ class ProductionRequest( object ):
     self.stepsList = _toIntList( self.stepsList )
 
     for stepID in self.stepsList:
-      stepDict = self.BKKClient.getAvailableSteps( {'StepId':stepID} )
+      stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
         raise ValueError, stepDict['Message']
       else:
@@ -91,14 +93,14 @@ class ProductionRequest( object ):
                                                   stepDict['Records'][0] ):
         stepsListDictItem[parameter] = value
 
-      s_in = self.BKKClient.getStepInputFiles( stepID )
+      s_in = self.bkkClient.getStepInputFiles( stepID )
       if not s_in['OK']:
         raise ValueError, s_in['Message']
       else:
         fileTypesList = [fileType[0].strip() for fileType in s_in['Value']['Records']]
         stepsListDictItem['fileTypesIn'] = fileTypesList
 
-      s_out = self.BKKClient.getStepOutputFiles( stepID )
+      s_out = self.bkkClient.getStepOutputFiles( stepID )
       if not s_out['OK']:
         raise ValueError, s_out['Message']
       else:
@@ -219,7 +221,7 @@ class ProductionRequest( object ):
                                                                                 removeInputsFlags,
                                                                                 self.outputSEs,
                                                                                 self.priorities,
-                                                                                self.CPUs,
+                                                                                self.cpus,
                                                                                 inputD,
                                                                                 outputFileMasks,
                                                                                 targets,
@@ -317,12 +319,11 @@ class ProductionRequest( object ):
 
     #Adding optional input BK query
     if bkQuery == 'fromPreviousProd':
-      BKQuery = {
-                 'FileType': stepsInProd[0]['fileTypesIn'][0].upper(),
-                 'EventType': self.eventType,
-                 'ProductionID': int( previousProdID )
-                 }
-      prod.inputBKSelection = BKQuery
+      prod.inputBKSelection = {
+                               'FileType': stepsInProd[0]['fileTypesIn'][0].upper(),
+                               'EventType': self.eventType,
+                               'ProductionID': int( previousProdID )
+                               }
 
     #Adding the application steps
     firstStep = stepsInProd.pop( 0 )
@@ -370,7 +371,7 @@ class ProductionRequest( object ):
                     'EventType'                : str( self.eventType ),
                     'ConfigName'               : self.configName,
                     'ConfigVersion'            : self.configVersion,
-                    'DataQualityFlag'          : self.DQFlag.replace( ',', ';;;' ).replace( ' ', '' )
+                    'DataQualityFlag'          : self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
                     }
 
     if ( self.startRun and self.runsList ) or ( self.endRun and self.runsList ):

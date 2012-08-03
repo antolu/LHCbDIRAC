@@ -17,8 +17,8 @@ import DIRAC
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, InstallApplication, RemoveApplication, CreateSharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import sharedArea, installApplication, removeApplication, createSharedArea
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
@@ -89,7 +89,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
       return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
     if not self.workflow_commons.has_key( 'SAMResults' ):
-      return self.finalize( 'Problem determining CE-lhcb-lock test result', 'No SAMResults key in workflow commons', 'error' )
+      return self.finalize( 'Problem determining CE-lhcb-lock test result',
+                            'No SAMResults key in workflow commons', 'error' )
 
     if int( self.workflow_commons['SAMResults']['CE-lhcb-lock'] ) > int( self.samStatus['ok'] ):
       self.writeToLog( 'Another SAM job is running at this site, disabling software installation test for this CE job' )
@@ -100,10 +101,10 @@ class SoftwareInstallation( ModuleBaseSAM ):
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    if not CreateSharedArea():
+    if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
-    sharedArea = SharedArea()
+    sharedArea = sharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       # After previous check this error should never occur
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
@@ -140,7 +141,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at CERN' )
       if re.search( '.cern.ch', sharedArea ):
         newSharedArea = sharedArea.replace( 'cern.ch', '.cern.ch' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea, newSharedArea ) )
+        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea,
+                                                                                                       newSharedArea ) )
         sharedArea = newSharedArea
         os.environ['VO_LHCB_SW_DIR'] = os.environ['VO_LHCB_SW_DIR'].replace( 'cern.ch', '.cern.ch' )
 
@@ -148,7 +150,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at IN2P3' )
       if re.search( '.in2p3.fr', sharedArea ):
         newSharedArea = sharedArea.replace( 'in2p3.fr', '.in2p3.fr' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.IN2P3.fr:\n%s => %s' % ( sharedArea, newSharedArea ) )
+        self.writeToLog( 'Changing path to shared area writeable volume at LCG.IN2P3.fr:\n%s => %s' % ( sharedArea,
+                                                                                                        newSharedArea ) )
         sharedArea = newSharedArea
         os.environ['VO_LHCB_SW_DIR'] = os.environ['VO_LHCB_SW_DIR'].replace( 'in2p3.fr', '.in2p3.fr' )
 
@@ -176,15 +179,18 @@ class SoftwareInstallation( ModuleBaseSAM ):
 
       localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
       if not localArch:
-        return self.finalize( '/LocalSite/Architecture is not defined in the local configuration', 'Could not get /LocalSite/Architecture', 'error' )
+        return self.finalize( '/LocalSite/Architecture is not defined in the local configuration',
+                              'Could not get /LocalSite/Architecture', 'error' )
 
       #must get the list of compatible platforms for this architecture
       localPlatforms = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % localArch, [] )
       if not localPlatforms:
-        return self.finalize( 'Could not obtain compatible platforms for %s' % localArch, '/Resources/Computing/OSCompatibility/%s' % localArch, 'error' )
+        return self.finalize( 'Could not obtain compatible platforms for %s' % localArch,
+                              '/Resources/Computing/OSCompatibility/%s' % localArch, 'error' )
 
       for systemConfig in localPlatforms:
-        self.log.info( 'The following software packages will be installed:\n%s\nfor system configuration %s' % ( '\n'.join( installList ), systemConfig ) )
+        self.log.info( 'The following software packages will be installed:\
+        \n%s\nfor system configuration %s' % ( '\n'.join( installList ), systemConfig ) )
         packageList = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( systemConfig ), [] )
 
         for installPackage in installList:
@@ -196,16 +202,20 @@ class SoftwareInstallation( ModuleBaseSAM ):
           #Must check that package to install is supported by LHCb for requested system configuration
 
           if installPackage in packageList:
-            self.log.info( 'Attempting to install %s %s for system configuration %s' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+            self.log.info( 'Attempting to install %s %s for system configuration %s' % ( appNameVersion[0],
+                                                                                         appNameVersion[1],
+                                                                                         systemConfig ) )
             sys.stdout.flush()
             orig = sys.stdout
             catch = open( self.logFile, 'a' )
             sys.stdout = catch
             result = False
             try:
-              result = InstallApplication( appNameVersion, systemConfig, sharedArea )
+              result = installApplication( appNameVersion, systemConfig, sharedArea )
             except Exception, x:
-              self.log.error( 'InstallApplication("%s","%s","%s") failed with exception:\n%s' % ( appNameVersion, systemConfig, sharedArea, x ) )
+              self.log.error( 'installApplication("%s","%s","%s") failed with exception:\n%s' % ( appNameVersion,
+                                                                                                  systemConfig,
+                                                                                                  sharedArea, x ) )
             sys.stdout = orig
             catch.close()
             sys.stdout.flush()
@@ -214,9 +224,11 @@ class SoftwareInstallation( ModuleBaseSAM ):
                 self.__changePermissions( sharedArea )
               return self.finalize( 'Problem during software installation, stopping.', result, 'error' )
             else:
-              self.log.info( 'Installation of %s %s for %s successful' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+              self.log.info( 'Installation of %s %s for %s successful' % ( appNameVersion[0], appNameVersion[1],
+                                                                           systemConfig ) )
           else:
-            self.log.info( '%s is not supported for system configuration %s, nothing to install.' % ( installPackage, systemConfig ) )
+            self.log.info( '%s is not supported for system configuration %s, nothing to install.' % ( installPackage,
+                                                                                                      systemConfig ) )
 
         for removePackage in removeList:
           appNameVersion = removePackage.split( '.' )
@@ -226,16 +238,20 @@ class SoftwareInstallation( ModuleBaseSAM ):
             return self.finalize( 'Could not determine name and version of package:', installPackage, 'error' )
 
 #          if removePackage in packageList:
-          self.log.info( 'Attempting to remove %s %s for system configuration %s' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+          self.log.info( 'Attempting to remove %s %s for system configuration %s' % ( appNameVersion[0],
+                                                                                      appNameVersion[1],
+                                                                                      systemConfig ) )
           sys.stdout.flush()
           orig = sys.stdout
           catch = open( self.logFile, 'a' )
           sys.stdout = catch
           result = False
           try:
-            result = RemoveApplication( appNameVersion, systemConfig, sharedArea )
+            result = removeApplication( appNameVersion, systemConfig, sharedArea )
           except Exception, x:
-            self.log.error( 'RemoveApplication("%s","%s","%s") failed with exception:\n%s' % ( appNameVersion, systemConfig, sharedArea, x ) )
+            self.log.error( 'removeApplication("%s","%s","%s") failed with exception:\n%s' % ( appNameVersion,
+                                                                                               systemConfig,
+                                                                                               sharedArea, x ) )
           sys.stdout = orig
           catch.close()
           sys.stdout.flush()
@@ -245,7 +261,9 @@ class SoftwareInstallation( ModuleBaseSAM ):
               self.__changePermissions( sharedArea )
             return self.finalize( 'Problem during execution, stopping.', result, 'error' )
           else:
-            self.log.info( 'Removal of %s %s for %s successful' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+            self.log.info( 'Removal of %s %s for %s successful' % ( appNameVersion[0],
+                                                                    appNameVersion[1],
+                                                                    systemConfig ) )
 #          else:
 #            self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
     else:

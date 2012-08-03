@@ -13,7 +13,7 @@ import DIRAC
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import sharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
@@ -77,7 +77,7 @@ class SystemConfiguration( ModuleBaseSAM ):
     localRoot = gConfig.getValue( '/LocalSite/Root', self.cwd )
     self.log.info( "Root directory for job is %s" % ( localRoot ) )
 
-    sharedArea = SharedArea()
+    sharedArea = sharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )
@@ -89,7 +89,8 @@ class SystemConfiguration( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at CERN' )
       if re.search( '.cern.ch', sharedArea ):
         newSharedArea = sharedArea.replace( 'cern.ch', '.cern.ch' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea, newSharedArea ) )
+        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea,
+                                                                                                       newSharedArea ) )
         sharedArea = newSharedArea
 
     self.log.info( 'Checking shared area contents: %s' % ( sharedArea ) )
@@ -136,14 +137,16 @@ class SystemConfiguration( ModuleBaseSAM ):
       if sc in cPlats:
         compatible = True
     if not compatible:
-      return self.finalize( 'Site does not have an officially compatible platform', string.join( systemConfigs, ', ' ), 'critical' )
+      return self.finalize( 'Site does not have an officially compatible platform',
+                            string.join( systemConfigs, ', ' ), 'critical' )
 
     for arch in systemConfigs:
       libPath = '%s/%s/' % ( sharedArea, arch )
       cmd = 'ls -alR %s' % libPath
       result = self.runCommand( 'Checking compatibility libraries for system configuration %s' % ( arch ), cmd )
       if not result['OK']:
-        return self.finalize( 'Failed to check compatibility library directory %s' % libPath, result['Message'], 'error' )
+        return self.finalize( 'Failed to check compatibility library directory %s' % libPath,
+                              result['Message'], 'error' )
 
     cmd = 'rpm -qa | grep lcg_util | cut -f 2 -d "-"'
     result = self.runCommand( 'Checking RPM for LCG Utilities', cmd )

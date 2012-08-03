@@ -83,7 +83,7 @@ pr.prodGroup = '{{pDsc}}'
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'
 #Other parameters from the request page
-pr.DQFlag = '{{inDataQualityFlag}}' #UNCHECKED
+pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
@@ -150,7 +150,7 @@ if pr.testFlag:
   pr.startRun = '93718'
   pr.endRun = '93720'
   pr.eventType = '90000000'
-  pr.DQFlag = 'ALL'
+  pr.dqFlag = 'ALL'
 
 pr._buildFullBKKQuery()
 
@@ -160,7 +160,7 @@ if w1:
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
   pr.removeInputsFlags = [False]
   pr.priorities = [recoPriority]
-  pr.CPUs = [recoCPU]
+  pr.cpus = [recoCPU]
   pr.groupSizes = [recoFilesPerJob]
   pr.plugins = [recoPlugin]
   pr.inputs = [recoInputDataList]
@@ -172,7 +172,7 @@ elif w2:
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, mergingRemoveInputsFlag]
   pr.priorities = [strippPriority, mergingPriority]
-  pr.CPUs = [strippCPU, mergingCPU]
+  pr.cpus = [strippCPU, mergingCPU]
   pr.groupSizes = [strippFilesPerJob, mergingGroupSize]
   pr.plugins = [strippPlugin, mergingPlugin]
   pr.inputs = [strippInputDataList, []]
@@ -184,7 +184,7 @@ elif w3:
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, mergingRemoveInputsFlag]
   pr.priorities = [recoPriority, mergingPriority]
-  pr.CPUs = [recoCPU, mergingCPU]
+  pr.cpus = [recoCPU, mergingCPU]
   pr.groupSizes = [recoFilesPerJob, mergingGroupSize]
   pr.plugins = [recoPlugin, mergingPlugin]
   pr.inputs = [recoInputDataList, []]
@@ -197,7 +197,7 @@ elif w4:
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, False, mergingRemoveInputsFlag]
   pr.priorities = [recoPriority, strippPriority, mergingPriority]
-  pr.CPUs = [recoCPU, strippCPU, mergingCPU]
+  pr.cpus = [recoCPU, strippCPU, mergingCPU]
   pr.groupSizes = [recoFilesPerJob, strippFilesPerJob, mergingGroupSize]
   pr.plugins = [recoPlugin, strippPlugin, mergingPlugin]
   pr.inputs = [recoInputDataList, [], []]

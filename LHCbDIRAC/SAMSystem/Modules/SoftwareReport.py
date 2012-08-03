@@ -16,7 +16,7 @@ import urllib
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import sharedArea, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
@@ -97,10 +97,10 @@ class SoftwareReport( ModuleBaseSAM ):
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    if not CreateSharedArea():
+    if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
-    sharedArea = SharedArea()
+    sharedArea = sharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       # After previous check this error should never occur
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( self.site, sharedArea ) )

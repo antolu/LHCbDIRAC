@@ -152,14 +152,6 @@ class Production():
       if not re.search( '.', p ):
         raise TypeError, 'Must have extra packages in the following format "Name.Version" not %s' % ( p )
 
-    for o in optionsFile:
-      if re.search( 'DECFILESROOT', o ):
-        self.LHCbJob.log.verbose( '%s specified, checking event type options: %s' % ( self.firstEventType, o ) )
-        if re.search( '@', o ) or re.search( '%s' % self.firstEventType, o ):
-          self.LHCbJob.log.verbose( 'Options: %s specify event type correctly' % ( o ) )
-        else:
-          raise TypeError, 'Event type options must be the event type number or workflow parameter'
-
     self.LHCbJob.log.verbose( 'Extra packages and event type options are correctly specified' )
     return S_OK()
 
@@ -456,13 +448,6 @@ class Production():
 
   #############################################################################
 
-  def getDetailedInfo( self, productionID ):
-    """ Return detailed information for a given production.
-    """
-    return self.getParameters( int( productionID ), 'DetailedInfo' )
-
-  #############################################################################
-
   def _getProductionParameters( self, prodXMLFile, prodID, groupDescription = '',
                                 bkPassInfo = {}, bkInputQuery = {},
                                 derivedProd = 0, reqID = 0 ):
@@ -490,8 +475,8 @@ class Production():
       prodXMLFile = self.createWorkflow( prodXMLFile )['Value']
       #prodWorkflow.toXMLFile(prodXMLFile)
 
-    if prodWorkflow.findParameter( 'TransformationFamily' ):
-      parameters['TransformationFamily'] = prodWorkflow.findParameter( 'TransformationFamily' ).getValue()
+    if self.transformationFamily:
+      parameters['TransformationFamily'] = self.transformationFamily
 
     if not bkPassInfo:
       bkPassInfo = prodWorkflow.findParameter( 'BKProcessingPass' ).getValue()
@@ -574,25 +559,10 @@ class Production():
         Production parameters are also added at this point.
 
         publish = True - will add production to the production management system
-                  False - does not publish the production, allows to check the BK script
-
-        bkScript = True - will write a script that can be checked first before
-                          adding to BK
-                   False - will print BK parameters but publish the production
-
-        transformation = True - will create a transformation to distribute the output data if bkScript is False
-                         False - will not create the transformation or a transformation script in case bkScript=True
+                  False - does not publish the production
 
         The workflow XML is created regardless of the flags.
     """
-    #Needs to be revisited in order to disentangle the many operations.
-
-    #FIXME: requestID is the same as the parameter TransformationFamily. Why having 2? What for the Derived productions?
-    if not parentRequestID:
-      parentRequestID = requestID
-
-    self.setParentRequest( parentRequestID )
-
     if wfString:
       self.LHCbJob.workflow = fromXMLString( wfString )
 #      self.name = self.LHCbJob.workflow.getName()
@@ -615,10 +585,7 @@ class Production():
 
     bkConditions = self.LHCbJob.workflow.findParameter( 'conditions' ).getValue()
 
-    bkDict = {}
     bkSteps = self.LHCbJob.workflow.findParameter( 'BKProcessingPass' ).getValue()
-    bkDict['Steps'] = bkSteps
-    bkDict['GroupDescription'] = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue()
 
     bkDictStep = {}
 
@@ -631,24 +598,12 @@ class Production():
     for record in simConds['Value']:
       simulationDescriptions.append( str( record[1] ) )
 
-    realDataFlag = False
     if not bkConditions in simulationDescriptions:
       self.LHCbJob.log.verbose( 'Assuming BK conditions %s are DataTakingConditions' % bkConditions )
-      bkDict['DataTakingConditions'] = bkConditions
       bkDictStep['DataTakingConditions'] = bkConditions
-      realDataFlag = True
     else:
       self.LHCbJob.log.verbose( 'Found simulation conditions for %s' % bkConditions )
-      bkDict['SimulationConditions'] = bkConditions
       bkDictStep['SimulationConditions'] = bkConditions
-
-    #Adding some MC transformation parameters if present
-    maxNumberOfTasks = 0
-    maxEventsPerTask = 0
-    if self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ):
-      maxNumberOfTasks = self.LHCbJob.workflow.findParameter( 'MaxNumberOfTasks' ).getValue()
-    if self.LHCbJob.workflow.findParameter( 'EventsPerTask' ):
-      maxEventsPerTask = self.LHCbJob.workflow.findParameter( 'EventsPerTask' ).getValue()
 
     descShort = self.LHCbJob.workflow.getDescrShort()
     descLong = self.LHCbJob.workflow.getDescription()
@@ -677,7 +632,6 @@ class Production():
     else:
       self.LHCbJob.log.verbose( 'Publish flag is disabled, using default production ID' )
 
-    bkDict['Production'] = int( prodID )
     bkDictStep['Production'] = int( prodID )
 
     queryProdID = 0
@@ -706,11 +660,6 @@ class Production():
                                                                                                                  queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
 
-    if bkProcPassPrepend:
-      self.LHCbJob.log.info( 'The following path will be prepended to the BK processing pass for this production: %s' % ( bkProcPassPrepend ) )
-      bkDict['InputProductionTotalProcessingPass'] = bkProcPassPrepend
-      bkDictStep['InputProductionTotalProcessingPass'] = bkProcPassPrepend
-
     stepList = []
     stepKeys = bkSteps.keys()
     #The BK needs an ordered list of steps
@@ -725,15 +674,12 @@ class Production():
     #This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
 
-    if bkScript:
-      self.LHCbJob.log.verbose( 'Writing BK publish script...' )
-      self._publishProductionToBK( bkDictStep, prodID, script = True )
-    else:
-      for n, v in bkDictStep.items():
-        self.LHCbJob.log.verbose( '%s BK parameter is: %s' % ( n, v ) )
-
-    if publish and not bkScript:
-      self._publishProductionToBK( bkDictStep, prodID, script = False )
+    if publish:
+      self.LHCbJob.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
+      result = self.BKKClient.addProduction( bkDictStep )
+      if not result['OK']:
+        self.LHCbJob.log.error( result )
+        return result
 
     if requestID and publish:
       from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -763,155 +709,10 @@ class Production():
         if not result['OK']:
           self.LHCbJob.log.error( result['Message'] )
 
-    if transformation and not bkScript:
-      if not bkQuery.has_key( 'FileType' ):
-        return S_ERROR( 'BK query does not include FileType!' )
-      bkFileType = bkQuery['FileType']
-      result = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
-                                           prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
-                                           parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
-      if not result['OK']:
-        self.LHCbJob.log.error( 'Transformation creation failed with below result, can be done later...\n%s' % ( result ) )
-      else:
-        self.LHCbJob.log.info( 'Successfully created transformation %s for production %s' % ( result['Value'], prodID ) )
-
-      transID = result['Value']
-      if transID and prodID:
-        result = self.setProdParameter( prodID, 'AssociatedTransformation', transID )
-        if not result['OK']:
-          self.LHCbJob.log.error( 'Could not set AssociatedTransformation parameter to %s for %s with result %s' % ( transID, prodID, result ) )
-
-    elif transformation:
-      if not bkQuery.has_key( 'FileType' ):
-        return S_ERROR( 'BK query does not include FileType!' )
-      bkFileType = bkQuery['FileType']
-      self.LHCbJob.log.info( 'transformation is %s, bkScript generation is %s, writing transformation script' % ( transformation, bkScript ) )
-      transID = self._createTransformation( prodID, bkFileType, transReplicas, reqID = requestID, realData = realDataFlag,
-                                           script = True, prodPlugin = self.plugin, groupDescription = bkDict['GroupDescription'],
-                                           parentRequestID = parentRequestID, transformationPlugin = transformationPlugin )
-      if not transID['OK']:
-        self.LHCbJob.log.error( 'Problem writing transformation script, result was: %s' % transID )
-      else:
-        self.LHCbJob.log.verbose( 'Successfully created transformation script for prod %s' % prodID )
-    else:
-      self.LHCbJob.log.info( 'transformation is %s, bkScript generation is %s, will not write transformation script' % ( transformation, bkScript ) )
-
     return S_OK( prodID )
 
   #############################################################################
-  def _createTransformation( self, inputProd, fileType, replicas, reqID = 0, realData = True,
-                             script = False, prodPlugin = '', groupDescription = '',
-                             parentRequestID = 0, transformationPlugin = '' ):
-    """ Create a transformation to distribute the output data for a given production.
-    """
 
-    inputProd = int( inputProd )
-    replicas = int( replicas )
-
-    if transformationPlugin:
-      plugin = transformationPlugin
-    else:
-      if realData:
-        plugin = 'LHCbDSTBroadcast'
-      else:
-        plugin = 'LHCbMCDSTBroadcast'
-
-    tName = '%sReplication_Prod%s' % ( fileType, inputProd )
-    if reqID:
-      tName = 'Request_%s_%s' % ( reqID, tName )
-
-    if script:
-      transLines = ['# Transformation publishing script created on %s by' % ( time.asctime() )]
-      transLines.append( '# by %s' % self.prodVersion )
-      transLines.append( 'from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation' )
-      transLines.append( 'transformation=Transformation()' )
-      transLines.append( 'transformation.setTransformationName("%s")' % ( tName ) )
-      if type( fileType ) == type( [] ):
-        transLines.append( """transformation.setBkQuery({"ProductionID":%s,"FileType":%s})""" % ( inputProd, fileType ) )
-      else:
-        transLines.append( 'transformation.setBkQuery({"ProductionID":%s,"FileType":"%s"})' % ( inputProd, fileType ) )
-      transLines.append( 'transformation.setDescription("Replication of transformation %s output data")' % ( inputProd ) )
-      transLines.append( 'transformation.setLongDescription("This transformation is to replicate the output data from transformation %s according to the computing model")' % ( inputProd ) )
-      transLines.append( 'transformation.setType("Replication")' )
-      transLines.append( 'transformation.setPlugin("%s")' % plugin )
-      if replicas > 1:
-        transLines.append( 'transformation.setDestinations(%s)' % replicas )
-      transLines.append( 'transformation.addTransformation()' )
-      transLines.append( 'transformation.setStatus("Active")' )
-      transLines.append( 'transformation.setAgentType("Automatic")' )
-      transLines.append( 'transformation.setTransformationGroup("%s")' % ( groupDescription ) )
-      transLines.append( 'print transformation.getTransformationID()' )
-      if os.path.exists( '%s.py' % tName ):
-        shutil.move( '%s.py' % tName, '%s.py.backup' % tName )
-      fopen = open( '%s.py' % tName, 'w' )
-      fopen.write( '\n'.join( transLines ) + '\n' )
-      fopen.close()
-      return S_OK()
-
-
-    self.transformation.setTransformationName( tName )
-    self.transformation.setBkQuery( {'ProductionID':inputProd, 'FileType':fileType} )
-    self.transformation.setDescription( 'Replication of transformation %s output data' % inputProd )
-    self.transformation.setLongDescription( 'This transformation is to replicate the output data from transformation %s according to the computing model' % ( inputProd ) )
-    self.transformation.setType( 'Replication' )
-    self.transformation.setPlugin( plugin )
-    if replicas > 1:
-      self.transformation.setDestinations( replicas )
-    self.transformation.setTransformationGroup( groupDescription )
-    self.transformation.addTransformation()
-    self.transformation.setStatus( 'Active' )
-    self.transformation.setAgentType( 'Automatic' )
-    transResult = self.transformation.getTransformationID()
-    if not transResult['OK']:
-      return transResult
-
-    transID = transResult['Value']
-    if parentRequestID:
-      result = self.setProdParameter( transID, 'TransformationFamily', parentRequestID )
-      if not result['OK']:
-        self.LHCbJob.log.error( 'Could not set TransformationFamily parameter to %s for %s with result %s' % ( parentRequestID, transID, result ) )
-
-    # Since other prods also have this parameter defined.
-    result = self.setProdParameter( transID, 'groupDescription', groupDescription )
-    if not result['OK']:
-      self.LHCbJob.log.error( 'Could no set groupDescription parameter with result %s' % ( result['Message'] ) )
-
-    # Set the detailed info parameter such that the "Show Details" portal option works for transformations.
-    infoString = []
-    infoString.append( 'Replication transformation %s was created for %s\nWith plugin %s' % ( transID, groupDescription, plugin ) )
-    infoString.append( '\nBK Input Data Query:\n    ProductionID : %s\n    FileType     : %s' % ( inputProd, fileType ) )
-    infoString = '\n'.join( infoString )
-    result = self.setProdParameter( transID, 'DetailedInfo', infoString )
-    if not result['OK']:
-      self.LHCbJob.log.error( 'Could not set Transformation DetailedInfo parameter for %s with result %s' % ( transID, result ) )
-
-    return transResult
-
-  #############################################################################
-  def _publishProductionToBK( self, bkDict, prodID, script = False ):
-    """Publishes the production to the BK or writes a script to do so.
-    """
-    if script:
-      bkName = 'insertBKPass%s.py' % ( prodID )
-      if os.path.exists( bkName ):
-        shutil.move( bkName, '%s.backup' % bkName )
-      fopen = open( bkName, 'w' )
-      bkLines = ['# Bookkeeping publishing script created on %s by' % ( time.asctime() )]
-      bkLines.append( '# by %s' % self.prodVersion )
-      bkLines.append( 'from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient' )
-      bkLines.append( 'bkClient = BookkeepingClient()' )
-      bkLines.append( 'bkDict = %s' % bkDict )
-      bkLines.append( 'print bkClient.addProduction(bkDict)' )
-      fopen.write( '\n'.join( bkLines ) + '\n' )
-      fopen.close()
-      return S_OK( bkName )
-    self.LHCbJob.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
-    result = self.BKKClient.addProduction( bkDict )
-    if not result['OK']:
-      self.LHCbJob.log.error( result )
-    return result
-
-  #############################################################################
 
   def getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
@@ -1012,13 +813,6 @@ class Production():
         tier1s.append( site )
 
     self.LHCbJob.setBannedSites( tier1s )
-
-  #############################################################################
-
-  def setTargetSite( self, site ):
-    """ Sets destination for all jobs.
-    """
-    self.LHCbJob.setDestination( site )
 
   #############################################################################
 
