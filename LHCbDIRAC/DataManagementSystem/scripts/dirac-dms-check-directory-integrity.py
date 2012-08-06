@@ -23,8 +23,8 @@ else:
 
 if os.path.exists( inputFileName ):
   inputFile = open( inputFileName, 'r' )
-  string = inputFile.read()
-  directories = string.splitlines()
+  stringIn = inputFile.read()
+  directories = stringIn.splitlines()
   inputFile.close()
 else:
   directories = [inputFileName]

@@ -9,7 +9,7 @@
 
 __RCSID__ = "$Id$"
 
-import os, string, glob
+import os, glob
 from DIRAC                                                 import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 
@@ -73,7 +73,7 @@ class SendBookkeeping( ModuleBase ):
 
       #Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
-      self.log.info( 'The following BK files will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
+      self.log.info( 'The following BK files will be sent: %s' % ( ', '.join( bkFiles ) ) )
 
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )

@@ -2,7 +2,7 @@
 
 __RCSID__ = "$Id$"
 
-import string, os, sys, fnmatch
+import os, sys, fnmatch
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
@@ -140,7 +140,7 @@ class RootApplication( ModuleBase ):
             else:
               escapedArgs.append( '%s' % ( arg ) )
 
-          macroArgs = '%s\(%s\)' % ( self.rootScript, string.join( escapedArgs, ',' ) )
+          macroArgs = '%s\(%s\)' % ( self.rootScript, ','.join( escapedArgs ) )
           rootCmd.append( macroArgs )
         else:
           rootCmd.append( self.rootScript )

@@ -8,7 +8,6 @@
 
 import os
 import shutil
-import string
 import sys
 import re
 import urllib
@@ -21,9 +20,9 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME     = 'CE-lhcb-softreport'
-SAM_LOG_FILE      = 'sam-softreport.log'
-InstallProject    = 'install_project.py'
+SAM_TEST_NAME = 'CE-lhcb-softreport'
+SAM_LOG_FILE = 'sam-softreport.log'
+InstallProject = 'install_project.py'
 InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class SoftwareReport( ModuleBaseSAM ):
@@ -32,20 +31,20 @@ class SoftwareReport( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version  = __RCSID__
-    self.runinfo  = {}
-    self.logFile  = SAM_LOG_FILE
+    self.version = __RCSID__
+    self.runinfo = {}
+    self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.site     = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
-    self.log      = gLogger.getSubLogger( "SoftwareReport" )
-    self.result   = S_ERROR()
+    self.site = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
+    self.log = gLogger.getSubLogger( "SoftwareReport" )
+    self.result = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
-    self.enable            = True
+    self.enable = True
     self.installProjectURL = None
 
   def resolveInputVariables( self ):
@@ -157,11 +156,10 @@ class SoftwareReport( ModuleBaseSAM ):
           softwareDictRemove[appName] = 'ALL'
 
       for systemConfig in localPlatforms['Value'].keys():
-#        self.log.info('The following software packages will be checked:\n%s\nfor system configuration %s' %(string.join(installList,'\n'),systemConfig))
         packageList = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( systemConfig ), [] )
 
         for installPackage in installList:
-          appNameVersion = string.split( installPackage, '.' )
+          appNameVersion = '.'.split( installPackage )
           if not len( appNameVersion ) == 2:
             return self.finalize( 'Could not determine name and version of package:', installPackage, 'warning' )
           #Must check that package to install is supported by LHCb for requested system configuration
@@ -241,7 +239,7 @@ class SoftwareReport( ModuleBaseSAM ):
       archList = softwareDict[appNameVersion]
       name = appNameVersion.split( '.' )[0]
       version = appNameVersion.split( '.' )[1]
-      sysConfigs = string.join( archList, ', ' )
+      sysConfigs = ', '.join( archList )
       rows += """
 
 <tr>
@@ -281,7 +279,7 @@ def CheckPackage( self, app, config, area ):
 
   localArea = area
   if re.search( ':', area ):
-    localArea = string.split( area, ':' )[0]
+    localArea = ':'.split( area )[0]
 
   appName = app[0]
   appVersion = app[1]
@@ -341,7 +339,7 @@ def CheckSharedArea( self, area ):
 
   localArea = area
   if re.search( ':', area ):
-    localArea = string.split( area, ':' )[0]
+    localArea = ':'.split( area )[0]
 
   lbLogin = '%s/LbLogin' % localArea
   ret = DIRAC.Os.sourceEnv( 300, [lbLogin], dict( os.environ ) )

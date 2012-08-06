@@ -117,8 +117,6 @@ def _getOptsFiles( appName, appVersion, optionsFiles, destinationDir ):
       if re.search( '\$%s' % n, optFile ):
         toCheck.append( optFile.replace( '$%s' % n, v ) )
 
-#  if toInclude:
-#    gLogger.verbose('Options files are: %s' %(string.join(toInclude,'\n')))
   if toCheck:
     gLogger.verbose( 'Environment expanded options files are: %s' % ( '\n'.join( toCheck ) ) )
 

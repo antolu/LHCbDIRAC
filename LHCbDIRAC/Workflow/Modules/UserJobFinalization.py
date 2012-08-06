@@ -12,7 +12,7 @@ from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestination
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 
 import DIRAC
-import string, os, random, time, re
+import os, random, time, re
 
 class UserJobFinalization( ModuleBase ):
 
@@ -56,7 +56,7 @@ class UserJobFinalization( ModuleBase ):
       if not type( specifiedSE ) == type( [] ):
         self.userOutputSE = [i.strip() for i in specifiedSE.split( ';' )]
     else:
-      self.log.verbose( 'No UserOutputSE specified, using default value: %s' % ( string.join( self.defaultOutputSE, ', ' ) ) )
+      self.log.verbose( 'No UserOutputSE specified, using default value: %s' % ( ', '.join( self.defaultOutputSE ) ) )
       self.userOutputSE = []
 
     if self.workflow_commons.has_key( 'UserOutputPath' ):
@@ -84,7 +84,8 @@ class UserJobFinalization( ModuleBase ):
       if int( self.step_number ) == int( self.workflow_commons['TotalSteps'] ):
         self.lastStep = True
       else:
-        self.log.debug( 'Current step = %s, total steps of workflow = %s, UserJobFinalization will enable itself only at the last workflow step.' % ( self.step_number,
+        self.log.debug( 'Current step = %s, total steps of workflow = %s, \
+        UserJobFinalization will enable itself only at the last workflow step.' % ( self.step_number,
                                                                                                                                                      self.workflow_commons['TotalSteps'] ) )
       if not self.lastStep:
         return S_OK()
@@ -97,7 +98,8 @@ class UserJobFinalization( ModuleBase ):
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
       if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-        self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
+        self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'],
+                                                                       self.stepStatus['OK'] ) )
         self.log.error( 'Workflow status is not ok, will not overwrite application status.' )
         return S_ERROR( 'Workflow failed, UserJobFinalization module completed' )
 
@@ -105,7 +107,7 @@ class UserJobFinalization( ModuleBase ):
         self.log.info( 'No user output data is specified for this job, nothing to do' )
         return S_OK( 'No output data to upload' )
 
-      self.log.info( 'User specified output file list is: %s' % ( string.join( self.userOutputData, ', ' ) ) )
+      self.log.info( 'User specified output file list is: %s' % ( ', '.join( self.userOutputData ) ) )
 
       globList = []
       for i in self.userOutputData:
@@ -120,22 +122,22 @@ class UserJobFinalization( ModuleBase ):
         from DIRAC.Core.Utilities.File import getGlobbedFiles
         globbedOutputList = List.uniqueElements( getGlobbedFiles( globList ) )
         if globbedOutputList:
-          self.log.info( 'Found a pattern in the output data file list, extra files to upload are: %s' % ( string.join( globbedOutputList, ', ' ) ) )
+          self.log.info( 'Found a pattern in the output data file list, extra files to upload are: %s' % ( ', '.join( globbedOutputList ) ) )
           self.userOutputData += globbedOutputList
         else:
-          self.log.info( 'No files were found on the local disk for the following patterns: %s' % ( string.join( globList, ', ' ) ) )
+          self.log.info( 'No files were found on the local disk for the following patterns: %s' % ( ', '.join( globList ) ) )
 
-      self.log.info( 'Final list of files to upload are: %s' % ( string.join( self.userOutputData, ', ' ) ) )
+      self.log.info( 'Final list of files to upload are: %s' % ( ', '.join( self.userOutputData ) ) )
 
       #Determine the final list of possible output files for the
       #workflow and all the parameters needed to upload them.
       outputList = []
       for i in self.userOutputData:
-        outputList.append( {'outputDataType':string.upper( string.split( i, '.' )[-1] ), 'outputDataSE':self.userOutputSE, 'outputDataName':os.path.basename( i )} )
+        outputList.append( {'outputDataType':( '.'.split( i )[-1] ).upper(), 'outputDataSE':self.userOutputSE, 'outputDataName':os.path.basename( i )} )
 
       userOutputLFNs = []
       if self.userOutputData:
-        self.log.info( 'Constructing user output LFN(s) for %s' % ( string.join( self.userOutputData, ', ' ) ) )
+        self.log.info( 'Constructing user output LFN(s) for %s' % ( ', '.join( self.userOutputData ) ) )
         if not self.jobID:
           self.jobID = 12345
         owner = ''
@@ -199,7 +201,7 @@ class UserJobFinalization( ModuleBase ):
             prependSEs.append( userSE )
         orderedSEs = prependSEs + orderedSEs
 
-      self.log.info( 'Ordered list of output SEs is: %s' % ( string.join( orderedSEs, ', ' ) ) )
+      self.log.info( 'Ordered list of output SEs is: %s' % ( ', '.join( orderedSEs ) ) )
       final = {}
       for fileName, metadata in fileMetadata.items():
         final[fileName] = metadata
@@ -207,7 +209,7 @@ class UserJobFinalization( ModuleBase ):
 
       #At this point can exit and see exactly what the module will upload
       if not self._enableModule():
-        self.log.info( 'Module is disabled by control flag, would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
+        self.log.info( 'Module is disabled by control flag, would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
         for fileName, metadata in final.items():
           self.log.info( '--------%s--------' % fileName )
           for n, v in metadata.items():
@@ -231,7 +233,7 @@ class UserJobFinalization( ModuleBase ):
       failover = {}
       uploaded = []
       for fileName, metadata in final.items():
-        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, string.join( metadata['resolvedSE'], ', ' ) ) )
+        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, ', '.join( metadata['resolvedSE'] ) ) )
         result = ft.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = self.userFileCatalog )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
@@ -269,7 +271,7 @@ class UserJobFinalization( ModuleBase ):
 
       #For files correctly uploaded must report LFNs to job parameters
       if uploaded:
-        report = string.join( uploaded, ', ' )
+        report = ', '.join( uploaded )
         self.jobReport.setJobParameter( 'UploadedOutputData', report )
 
       #Now after all operations, retrieve potentially modified request object

@@ -7,7 +7,6 @@
 """ The LHCb Software Distribution class is used by the DIRAC Job Agent
     to install necessary software via the ModuleFactory.  This relies on
     two JDL parameters in LHCb workflows:
-    - SoftwareDistModule - expresses the import string
     - SoftwarePackages - for the necessary parameters to install software
     and DIRAC assumes an execute() method will exist during usage.
 

@@ -7,7 +7,6 @@
 import glob
 import os
 import re
-import string
 
 import DIRAC
 
@@ -19,7 +18,7 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 __RCSID__ = "$Id$"
 
 SAM_TEST_NAME = 'CE-lhcb-os'
-SAM_LOG_FILE  = 'sam-os.log'
+SAM_LOG_FILE = 'sam-os.log'
 
 class SystemConfiguration( ModuleBaseSAM ):
 
@@ -27,12 +26,12 @@ class SystemConfiguration( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version  = __RCSID__
-    self.runinfo  = {}
-    self.logFile  = SAM_LOG_FILE
+    self.version = __RCSID__
+    self.runinfo = {}
+    self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.log      = gLogger.getSubLogger( "SystemConfiguration" )
-    self.result   = S_ERROR()
+    self.log = gLogger.getSubLogger( "SystemConfiguration" )
+    self.result = S_ERROR()
 
     self.jobID = None
     if os.environ.has_key( 'JOBID' ):
@@ -127,7 +126,7 @@ class SystemConfiguration( ModuleBaseSAM ):
 
 
     systemConfigs = gConfig.getValue( '/LocalSite/Architecture', [] )
-    self.log.info( 'Current system configurations are: %s ' % ( string.join( systemConfigs, ', ' ) ) )
+    self.log.info( 'Current system configurations are: %s ' % ( ', '.join( systemConfigs ) ) )
     compatiblePlatforms = gConfig.getOptionsDict( '/Resources/Computing/OSCompatibility' )
     if not compatiblePlatforms['OK']:
       return self.finalize( 'Could not establish compatible platforms', compatiblePlatforms['Message'], 'error' )
@@ -138,7 +137,7 @@ class SystemConfiguration( ModuleBaseSAM ):
         compatible = True
     if not compatible:
       return self.finalize( 'Site does not have an officially compatible platform',
-                            string.join( systemConfigs, ', ' ), 'critical' )
+                            ', '.join( systemConfigs ), 'critical' )
 
     for arch in systemConfigs:
       libPath = '%s/%s/' % ( sharedArea, arch )

@@ -4,7 +4,6 @@
 __RCSID__ = "$Id"
 
 import unittest
-import string
 
 from DIRAC.Core.Workflow.Parameter import Parameter
 from mock import Mock
@@ -31,12 +30,12 @@ class UtilsSuccess( UtilitiesTestCase ):
 #    #modules
 #    gaudiApp = ModuleDefinition( 'GaudiApplication' )
 #    gaudiApp.setDescription( 'Gaudi Application class' )
-#    body = string.replace( importLine, '<MODULE>', 'GaudiApplication' )
+#    body = importLine.replace( '<MODULE>', 'GaudiApplication' )
 #    gaudiApp.setBody( body )
 #
 #    genBKReport = ModuleDefinition( 'BookkeepingReport' )
 #    genBKReport.setDescription( 'Bookkeeping Report class' )
-#    body = string.replace( importLine, '<MODULE>', 'BookkeepingReport' )
+#    body = importLine.replace( '<MODULE>', 'BookkeepingReport' )
 #    genBKReport.setBody( body )
 #
 #    #step

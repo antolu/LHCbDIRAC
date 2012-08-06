@@ -85,12 +85,11 @@ def makeRunList( runInput ):
       makeRunList("1234:1236,12340,12342,1520:1522") --> ['1234','1235','1236','12340','12342','1520','1521','1522']
   """
 
-  import string
   from DIRAC import S_OK, S_ERROR
 
   try:
     #remove blank spaces
-    l = string.join( runInput.split(), "" )
+    l = ''.join( runInput.split() )
     i = l.split( "," )
     runList = []
     for part in i:

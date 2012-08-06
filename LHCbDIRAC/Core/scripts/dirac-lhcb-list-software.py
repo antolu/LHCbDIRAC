@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __RCSID__ = "$Id$"
-import string
+
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig
@@ -14,7 +14,7 @@ def usage():
 
 def printSoftware( package, packageArch ):
   adj = 30
-  print package.split( '.' )[0].ljust( adj ) + package.split( '.' )[1].ljust( adj ) + string.join( packageArch, ',' ).ljust( adj )
+  print package.split( '.' )[0].ljust( adj ) + package.split( '.' )[1].ljust( adj ) + ','.join( packageArch ).ljust( adj )
 
 def printHeader( header ):
   print '=========> %s ' % header
@@ -63,6 +63,6 @@ for package in active:
 
 if warn:
   printHeader( 'Deprecated LHCb Software' )
-  print '%s' % ( string.join( deprecated, ', ' ) )
+  print '%s' % ( ', '.join( deprecated ) )
 
 DIRAC.exit( 0 )

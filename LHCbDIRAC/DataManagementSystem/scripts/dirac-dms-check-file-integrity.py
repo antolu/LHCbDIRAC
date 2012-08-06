@@ -28,8 +28,8 @@ else:
 
 if os.path.exists( inputFileName ):
   inputFile = open( inputFileName, 'r' )
-  string = inputFile.read()
-  lfns = string.splitlines()
+  stringIn = inputFile.read()
+  lfns = stringIn.splitlines()
   inputFile.close()
 else:
   lfns = [inputFileName]

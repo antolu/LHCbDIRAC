@@ -15,9 +15,17 @@ from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModul
 from DIRAC.Core.DISET.RPCClient                            import RPCClient
 from DIRAC                                                 import S_OK, S_ERROR
 
-import time, string
+import time
 
 class BKInputDataAgent( OptimizerModule ):
+
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = {} ):
+    """ c'tor
+    """
+    OptimizerModule.__init__( self, agentName, loadName, baseAgentName, properties )
+
+    self.dataAgentName = self.am_getOption( 'InputDataAgent', 'InputData' )
+    self.bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
 
   #############################################################################
   def initializeOptimizer( self ):
@@ -30,7 +38,6 @@ class BKInputDataAgent( OptimizerModule ):
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
-    self.bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
     return S_OK()
 
   #############################################################################
@@ -59,7 +66,7 @@ class BKInputDataAgent( OptimizerModule ):
   def __determineInputDataIntegrity( self, job, inputData ):
     """This method checks the mutual consistency of the file catalog and bookkeeping information.
     """
-    lfns = [string.replace( fname, 'LFN:', '' ) for fname in inputData]
+    lfns = [fname.replace( 'LFN:', '' ) for fname in inputData]
 
     # Remove user generated files as they will not have BK entries
     self.log.info( "Obtained %s input files for job" % len( lfns ) )
@@ -90,7 +97,7 @@ class BKInputDataAgent( OptimizerModule ):
         badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'File does not exist in the BK' ) )
     if badLFNs:
       self.log.info( 'Found %s problematic LFN(s) for job %s' % ( len( badLFNs ), job ) )
-      param = string.join( badLFNs, '\n' )
+      param = '\n'.join( badLFNs, '\n' )
       self.log.info( param )
       result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
       if not result['OK']:
@@ -132,7 +139,7 @@ class BKInputDataAgent( OptimizerModule ):
     # Failed the job if there are any inconsistencies
     if badLFNs:
       self.log.info( 'Found %s problematic LFN(s) for job %s' % ( badFileCount, job ) )
-      param = string.join( badLFNs, '\n' )
+      param = '\n'.join( badLFNs, '\n' )
       self.log.info( param )
       result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
       if not result['OK']:

@@ -11,7 +11,7 @@ from DIRAC                                               import S_OK, S_ERROR, g
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData             import constructProductionLFNs
 
-import string, os
+import os
 
 class MergeMDF( ModuleBase ):
 
@@ -109,7 +109,7 @@ class MergeMDF( ModuleBase ):
         return result
 
       logLines = ['#' * len( self.version ), self.version, '#'*len( self.version )]
-      logLines.append( 'The following files will be downloaded for merging:\n%s' % ( string.join( self.inputData, '\n' ) ) )
+      logLines.append( 'The following files will be downloaded for merging:\n%s' % ( '\n'.join( self.inputData, '\n' ) ) )
       #Now use the RM to obtain all input data sets locally
       for lfn in self.inputData:
         if os.path.exists( os.path.basename( lfn ) ):
@@ -134,7 +134,7 @@ class MergeMDF( ModuleBase ):
             return self.finalize( logLines, error = 'Downloaded File Not Found' )
 
       #Now all MDF files are local, merge is a 'cat'
-      cmd = 'cat %s > %s' % ( string.join( [os.path.basename( x ) for x in self.inputData], ' ' ), self.outputDataName )
+      cmd = 'cat %s > %s' % ( ' '.join( [os.path.basename( x ) for x in self.inputData] ), self.outputDataName )
       logLines.append( '\nExecuting merge operation...' )
       self.log.info( 'Executing "%s"' % cmd )
       result = shellCall( self.commandTimeOut, cmd )
@@ -187,7 +187,7 @@ class MergeMDF( ModuleBase ):
     logLines = [ str( i ) for i in logLines]
     logLines.append( '#EOF' )
     fopen = open( self.applicationLog, 'w' )
-    fopen.write( string.join( logLines, '\n' ) + '\n' )
+    fopen.write( '\n'.join( logLines ) + '\n' )
     fopen.close()
     if msg:
       return S_OK( msg )

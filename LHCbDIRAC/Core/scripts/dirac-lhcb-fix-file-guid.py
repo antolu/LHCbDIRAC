@@ -4,7 +4,7 @@
 """
 __RCSID__ = "$Id$"
 
-import os, string
+import os
 
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -92,7 +92,7 @@ if not storageElements:
   os.chdir( start )
   DIRAC.exit( exitCode )
 
-gLogger.info( 'Existing LFN has replicas at: %s' % string.join( storageElements, ', ' ) )
+gLogger.info( 'Existing LFN has replicas at: %s' % ', '.join( storageElements ) )
 
 oldGUID = dirac.getMetadata( oldLFN )
 if not oldGUID['OK'] or oldGUID['Value']['Failed']:

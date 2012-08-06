@@ -1,7 +1,6 @@
 """ The LHCb Local Software Install class is used by the DIRAC Job Agent
     to install necessary software via the ModuleFactory.  This relies on
     two JDL parameters in LHCb workflows:
-    - SoftwareDistModule - expresses the import string
     - SoftwarePackages - for the necessary parameters to install software
     - SystemConfig - to determine the required value of CMTCONFIG
     It checks also the provided CE:

@@ -18,9 +18,11 @@ class AncestorFilesAgent( OptimizerModule ):
   """ Connects to BKK, ran through the optimizer
   """
 
-  def initializeOptimizer( self ):
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = {} ):
+    """ c'tor
+    """
+    OptimizerModule.__init__( self, agentName, loadName, baseAgentName, properties )
     self.bk = BookkeepingClient()
-    return S_OK()
 
   #############################################################################
   def checkJob( self, job, classadJob ):

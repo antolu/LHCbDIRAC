@@ -28,7 +28,7 @@ diracProd = DiracProduction()
 def usage():
   print 'Usage: %s <Command> <Production ID> |<Production ID>' %(Script.scriptName)
   commands = diracProd.getProductionCommands()['Value']
-  print "\nCommands include: %s" %(string.join(commands.keys(),', '))
+  print "\nCommands include: %s" % ( ', '.join( commands.keys() ) )
   print '\nDescription:\n'
   for n,v in commands.items():
     print '%s:' %n

@@ -13,7 +13,7 @@ from DIRAC.Core.Utilities.Statistics                                import getMe
 from LHCbDIRAC.Workflow.Modules.ModuleBase                          import ModuleBase
 from LHCbDIRAC.Core.Utilities.ClientTools                           import readFileEvents
 
-import os, string, shutil
+import os, shutil
 
 COMPONENT_NAME = 'ProtocolAccessTest'
 
@@ -90,7 +90,7 @@ class ProtocolAccessTest( ModuleBase ):
         from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
         rm = ReplicaManager()
 
-      self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( string.join( self.stepInputData, '\n' ) ) )
+      self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( '\n'.join( self.stepInputData ) ) )
 
       replicaRes = rm.getReplicas( self.stepInputData )
       if not replicaRes['OK']:

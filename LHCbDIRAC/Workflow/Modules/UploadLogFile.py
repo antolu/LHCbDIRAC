@@ -4,7 +4,7 @@
 
 __RCSID__ = "$Id$"
 
-import os, shutil, glob, string, random
+import os, shutil, glob, random
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
@@ -132,7 +132,8 @@ class UploadLogFile( ModuleBase ):
       self.log.error( 'Completely failed to select relevant log files.', res['Message'] )
       return S_OK()
     selectedFiles = res['Value']
-    self.log.info( 'The following %s files were selected to be saved:\n%s' % ( len( selectedFiles ), string.join( selectedFiles, '\n' ) ) )
+    self.log.info( 'The following %s files were selected to be saved:\n%s' % ( len( selectedFiles ),
+                                                                               '\n'.join( selectedFiles ) ) )
 
     #########################################
     # Create a temporary directory containing these files
@@ -196,7 +197,7 @@ class UploadLogFile( ModuleBase ):
     ############################################################W
     random.shuffle( self.failoverSEs )
     self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
-                                                                                 string.join( self.failoverSEs, ', ' ) ) )
+                                                                                 ', '.join( self.failoverSEs ) ) )
     result = ft.transferAndRegisterFile( fileName = tarFileName,
                                          localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
                                          lfn = self.logLFNPath,
@@ -235,12 +236,13 @@ class UploadLogFile( ModuleBase ):
     """ The files which are below a configurable size will be stored in the logs.
         This will typically pick up everything in the working directory minus the output data files.
     """
-    logFileExtensions = ['*.txt', '*.log', '*.out', '*.output', '*.xml', '*.sh', '*.info', '*.err', 'prodConf*.py'] #'*.root',
+    logFileExtensions = ['*.txt', '*.log', '*.out', '*.output',
+                         '*.xml', '*.sh', '*.info', '*.err', 'prodConf*.py'] #'*.root',
     if self.logExtensions:
-      self.log.info( 'Using list of log extensions from CS:\n%s' % ( string.join( self.logExtensions, ', ' ) ) )
+      self.log.info( 'Using list of log extensions from CS:\n%s' % ( ', '.join( self.logExtensions ) ) )
       logFileExtensions = self.logExtensions
     else:
-      self.log.info( 'Using default list of log extensions:\n%s' % ( string.join( logFileExtensions, ', ' ) ) )
+      self.log.info( 'Using default list of log extensions:\n%s' % ( ', '.join( logFileExtensions ) ) )
 
     candidateFiles = []
     for ext in logFileExtensions:
@@ -285,12 +287,12 @@ class UploadLogFile( ModuleBase ):
       self.log.error( 'Could not set logdir permissions to 0755:', '%s (%s)' % ( self.logdir, str( x ) ) )
     # Populate the temporary directory
     try:
-      for file in selectedFiles:
-        destinationFile = '%s/%s' % ( self.logdir, os.path.basename( file ) )
-        shutil.copy ( file, destinationFile )
+      for fileS in selectedFiles:
+        destinationFile = '%s/%s' % ( self.logdir, os.path.basename( fileS ) )
+        shutil.copy ( fileS, destinationFile )
     except Exception, x:
-      self.log.exception( 'Exception while trying to copy file.', file, str( x ) )
-      self.log.info( 'File %s will be skipped and can be considered lost.' % file )
+      self.log.exception( 'Exception while trying to copy file.', fileS, str( x ) )
+      self.log.info( 'File %s will be skipped and can be considered lost.' % fileS )
 
     # Now verify the contents of our target log dir
     successfulFiles = os.listdir( self.logdir )

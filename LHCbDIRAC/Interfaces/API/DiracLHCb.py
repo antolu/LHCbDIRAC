@@ -8,7 +8,6 @@
 import os
 import glob
 import fnmatch
-import string
 import time
 import re
 
@@ -95,7 +94,8 @@ class DiracLHCb( Dirac ):
     return res
 
   #############################################################################
-  def rootMergeRepository( self, outputFileName, inputFileMask = '*.root', location = 'Sandbox', requestedStates = ['Done'] ):
+  def rootMergeRepository( self, outputFileName, inputFileMask = '*.root',
+                           location = 'Sandbox', requestedStates = ['Done'] ):
     """ Create a merged ROOT file using root files retrived in the sandbox or output data
 
        Example Usage:
@@ -176,7 +176,7 @@ class DiracLHCb( Dirac ):
       for r, d in rootDict.items():
         rootList.append( '%s = %s' % ( r, d ) )
       self.log.info( 'Supported versions of ROOT (and corresponding DaVinci versions) \
-      in LHCb are:\n%s' % ( string.join( rootList, '\n' ) ) )
+      in LHCb are:\n%s' % ( '\n'.join( rootList ) ) )
 
     return rootVersions
 
@@ -224,7 +224,7 @@ class DiracLHCb( Dirac ):
       if packageArch:
         adj = 30
         if printOutput:
-          print name.ljust( adj ) + version.ljust( adj ) + string.join( packageArch, ',' ).ljust( adj )
+          print name.ljust( adj ) + version.ljust( adj ) + ','.join( packageArch ).ljust( adj )
         if not result.has_key( name ):
           result[name] = {}
         result[name][version] = packageArch
@@ -311,7 +311,7 @@ class DiracLHCb( Dirac ):
     """
     runSelection = ['Runs', 'ProcessedRuns', 'NotProcessed']
     if not selection in runSelection:
-      return S_ERROR( 'Expected one of %s not "%s" for selection' % ( string.join( runSelection, ', ' ), selection ) )
+      return S_ERROR( 'Expected one of %s not "%s" for selection' % ( ', '.join( runSelection ), selection ) )
 
     if not type( bkPath ) == type( ' ' ):
       return S_ERROR( 'Expected string for bkPath' )
@@ -348,7 +348,7 @@ class DiracLHCb( Dirac ):
       return S_ERROR( 'No %s runs for specified dates' % ( selection ) )
 
     runs = result['Value'][selection]
-    self.log.info( 'Found the following %s runs:\n%s' % ( len( runs ), string.join( [str( i ) for i in runs], ', ' ) ) )
+    self.log.info( 'Found the following %s runs:\n%s' % ( len( runs ), ', '.join( [str( i ) for i in runs] ) ) )
     #temporary until we can query for a discrete list of runs
 
     selectedData = []
@@ -547,7 +547,8 @@ class DiracLHCb( Dirac ):
     #remove any empty components from leading and trailing slashes
     bkPath = self.__translateBKPath( bkPath, procPassID = 3 )
     if not len( bkPath ) == 6:
-      return S_ERROR( 'Expected 6 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
+      return S_ERROR( 'Expected 6 components to the BK path: \
+      /<ConfigurationName>/<Configuration Version>/<Sim or Data Taking Condition>/<Processing Pass>/<Event Type>/<File Type>' )
 
     query = self.bkQueryTemplate.copy()
     query['ConfigName'] = bkPath[0]
@@ -563,7 +564,8 @@ class DiracLHCb( Dirac ):
       dqFlag = check['Value']
       query['DataQualityFlag'] = dqFlag
 
-    #The problem here is that we don't know if it's a sim or data taking condition, assume that if configName=MC this is simulation
+    #The problem here is that we don't know if it's a sim or data taking condition, 
+    #assume that if configName=MC this is simulation
     if bkPath[0].lower() == 'mc':
       query['SimulationConditions'] = bkPath[2]
     else:
@@ -574,13 +576,16 @@ class DiracLHCb( Dirac ):
     return result
 
   #############################################################################
-  def bookkeepingQuery( self, SimulationConditions = 'All', DataTakingConditions = 'All', ProcessingPass = 'All', FileType = 'All', EventType = 'All', ConfigName = 'All', ConfigVersion = 'All', ProductionID = 0, DataQualityFlag = 'ALL' ):
+  def bookkeepingQuery( self, SimulationConditions = 'All', DataTakingConditions = 'All',
+                        ProcessingPass = 'All', FileType = 'All', EventType = 'All', ConfigName = 'All',
+                        ConfigVersion = 'All', ProductionID = 0, DataQualityFlag = 'ALL' ):
     """ This function will create and perform a BK query using the supplied arguments
         and return a list of LFNs.
 
         Example Usage:
 
-        >>> dirac.bookkeepingQuery(ConfigName='LHCb',ConfigVersion='Collision09',EventType='90000000',ProcessingPass='Real Data',DataTakingConditions='Beam450GeV-VeloOpen-MagDown')
+        >>> dirac.bookkeepingQuery(ConfigName='LHCb',ConfigVersion='Collision09',
+        EventType='90000000',ProcessingPass='Real Data',DataTakingConditions='Beam450GeV-VeloOpen-MagDown')
         {'OK':True,'Value':<files>}
 
        @param  ConfigName: BK ConfigName
@@ -637,7 +642,8 @@ class DiracLHCb( Dirac ):
         problematicFields.append( name )
 
     if problematicFields:
-      msg = 'The following fields are not valid for a BK query: %s\nValid fields include: %s' % ( string.join( problematicFields, ', ' ), string.join( self.bkQueryTemplate.keys(), ', ' ) )
+      msg = 'The following fields are not valid for a BK query: %s\nValid fields include: %s' % ( ', '.join( problematicFields ),
+                                                                                                  ', '.join( self.bkQueryTemplate.keys() ) )
       return S_ERROR( msg )
 
     for name, value in bkQueryDict.items():
@@ -704,7 +710,7 @@ class DiracLHCb( Dirac ):
       else:
         flag = flag.upper()
         if not flag in bkFlags['Value']:
-          msg = 'Specified DQ flag "%s" is not in allowed list: %s' % ( flag, string.join( bkFlags['Value'], ', ' ) )
+          msg = 'Specified DQ flag "%s" is not in allowed list: %s' % ( flag, ', '.join( bkFlags['Value'] ) )
           self.log.error( msg )
           return S_ERROR( msg )
         else:
@@ -738,7 +744,7 @@ class DiracLHCb( Dirac ):
 
     if printOutput:
       flags = result['Value']
-      self.log.info( 'Possible DQ flags from BK are: %s' % ( string.join( flags, ', ' ) ) )
+      self.log.info( 'Possible DQ flags from BK are: %s' % ( ', '.join( flags ) ) )
 
     return result
 
@@ -927,10 +933,11 @@ class DiracLHCb( Dirac ):
 
     if printOutput:
       print '\n========> Allowed Sites\n'
-      print string.join( sites, '\n' )
+      print '\n'.join( sites )
       print '\n========> Banned Sites\n'
-      print string.join( bannedSites, '\n' )
-      print '\nThere is a total of %s allowed sites and %s banned sites in the system.' % ( len( sites ), len( bannedSites ) )
+      print '\n'.join( bannedSites )
+      print '\nThere is a total of %s allowed sites and %s banned sites in the system.' % ( len( sites ),
+                                                                                            len( bannedSites ) )
 
     return S_OK( {'AllowedSites':sites, 'BannedSites':bannedSites} )
 
