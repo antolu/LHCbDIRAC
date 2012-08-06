@@ -1,4 +1,3 @@
-#Thu Sep 15 16:42:12 CEST 2011
 eclipse.preferences.version=1
 encoding//BookkeepingSystem/Gui/Widget/Ui_AdvancedSave.py=utf-8
 encoding//BookkeepingSystem/Gui/Widget/Ui_BookmarksWidget.py=utf-8
@@ -9,3 +8,4 @@ encoding//BookkeepingSystem/Gui/Widget/Ui_MainWidget.py=utf-8
 encoding//BookkeepingSystem/Gui/Widget/Ui_ProductionLookup.py=utf-8
 encoding//BookkeepingSystem/Gui/Widget/Ui_TreeWidget.py=utf-8
 encoding//BookkeepingSystem/Gui/qt_resources/Resources_rc.py=utf-8
+encoding//Core/Utilities/HTML.py=iso-8859-1
