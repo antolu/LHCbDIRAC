@@ -63,7 +63,7 @@ for switch in switches[0]:
     if ( len( args ) != 2 ):
       Script.showHelp()
     else:
-      if ( bkDict.has_key( "EndRun" ) and bkDict.has_key( "StartRun" ) ):
+      if ( not (bkDict.has_key( "RunNumbers" ))):
         endRun = int( res['Value']['EndRun'] )
         runId = int( args[1] )
         res = client.setBookkeepingQueryEndRunForTransformation( prodId, runId )
@@ -78,7 +78,7 @@ for switch in switches[0]:
     if ( len( args ) != 2 ):
       Script.showHelp()
     else:
-      if ( bkDict.has_key( "EndRun" ) and bkDict.has_key( "StartRun" ) ):
+      if ( not (bkDict.has_key( "RunNumbers" ))):
         runId = int( args[1] )
         res = client.setBookkeepingQueryStartRunForTransformation( prodId, runId )
         if res['OK']:
@@ -93,14 +93,14 @@ for switch in switches[0]:
       Script.showHelp()
     else:
       runId = str( args[1] )
-      if ( bkDict.has_key( "RunNumbers" ) ):
+      if ( bkDict.has_key( "RunNumbers" ) and not bkDict["RunNumbers"]=='All'):
         res = client.addBookkeepingQueryRunListTransformation( prodId, runId )
         if res['OK']:
           print "Run list modified for production %s" % str( prodId )
         else:
           print res['Message']
       else:
-        print "Production %s has start run and end run" % str( prodId )
+        print "Production %s has StarRun, EndRun or RunNumbers='All'" % str( prodId )
 
   if opt in ( 'l', 'list' ):
     if ( len( args ) != 1 ):
