@@ -13,7 +13,7 @@ from DIRAC.Core.Utilities.List     import sortList
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProcessingProgress import ProcessingProgress, HTMLProgressTable
 
-__RCSID__ = "$Id: ProductionStatusAgent.py 36439 2011-03-23 08:53:13Z roma $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'ProductionManagement/DataProcessingProgressAgent'
 
