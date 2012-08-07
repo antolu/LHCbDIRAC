@@ -14,7 +14,7 @@ from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdminis
 from DIRAC import gLogger
 
 
-Script.registerSwitch( 'D', 'days', "Days requested" )
+Script.registerSwitch( 'D:', 'days=', "Days requested" )
 Script.registerSwitch( '', 'noMail', "No mail option" )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -29,7 +29,7 @@ sendMail = True
 for switch in switches:
   if switch[0].lower() == 'days' or switch[0].lower() == 'd':
     daysRequested = switch[1]
-  elif switch[0].lower() == 'noMail':
+  elif switch[0].lower() == 'nomail':
     sendMail = False
 
 res = getProxyInfo()
