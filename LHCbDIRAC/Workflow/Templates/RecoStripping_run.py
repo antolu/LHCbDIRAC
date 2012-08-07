@@ -59,6 +59,7 @@ recoPlugin = '{{RecoPluginType#PROD-RECO(Stripp): production plugin name#AtomicR
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
 recoType = '{{RecoType#PROD-RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
+recoIDPolicy = '{{recoIDPolicy#PROD-RECO(Stripp): policy for input data access (download or protocol)#download}}'
 
 #stripp params
 strippPriority = '{{priority#PROD-Stripping: priority#5}}'

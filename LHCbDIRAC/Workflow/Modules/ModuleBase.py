@@ -262,6 +262,8 @@ class ModuleBase( object ):
     """ Resolve the input variables for an application step
     """
 
+    self.stepName = self.step_commons['STEP_INSTANCE_NAME']
+
     if self.step_commons.has_key( 'applicationName' ):
       self.applicationName = self.step_commons['applicationName']
 
@@ -324,8 +326,11 @@ class ModuleBase( object ):
       if self.step_commons['inputData']:
         self.stepInputData = self.step_commons['inputData']
         if self.stepInputData == 'previousStep':
-          last = len( self.workflow_commons['outputList'] ) - 1
-          self.stepInputData = self.workflow_commons['outputList'][last]['outputDataName']
+          stepIndex = self.workflow_commons['gaudiSteps'].index( 'STEP_INSTANCE_NAME' )
+          previousStep = self.workflow_commons['gaudiSteps'][stepIndex - 1]
+
+          oL = self.workflow_commons['outputList']
+          self.stepInputData = [outputF['outputDataName'] for outputF in oL if outputF['stepName'] == previousStep][0]
 
     if self.step_commons.has_key( 'listoutput' ):
       self.stepOutputs = self.step_commons['listoutput']

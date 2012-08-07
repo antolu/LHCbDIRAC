@@ -230,6 +230,11 @@ class ProductionRequest( object ):
                                                                                 inputDataPolicies
                                                                                 ):
 
+      if not self.parentRequestID and self.requestID:
+        transformationFamily = self.requestID
+      else:
+        transformationFamily = self.parentRequestID
+
       prodsDict[ prodNumber ] = {
                                'productionType': prodType,
                                'stepsInProd': [self.stepsList[index - 1] for index in stepsInProd],
@@ -246,7 +251,7 @@ class ProductionRequest( object ):
                                'plugin': plugin,
                                'inputDataPolicy': idp,
                                'derivedProduction': 0,
-                               'transformationFamily': self.parentRequestID
+                               'transformationFamily': transformationFamily
                                }
       bkQuery = 'fromPreviousProd'
       prodNumber += 1
@@ -324,6 +329,8 @@ class ProductionRequest( object ):
                                'EventType': self.eventType,
                                'ProductionID': int( previousProdID )
                                }
+    elif bkQuery is not None:
+      prod.inputBKSelection = bkQuery
 
     #Adding the application steps
     firstStep = stepsInProd.pop( 0 )
@@ -331,19 +338,20 @@ class ProductionRequest( object ):
       ep = extraOptions[firstStep['StepId']]
     except IndexError:
       ep = ''
-    prod.addApplicationStep( stepDict = firstStep,
-                             outputSE = outputSE,
-                             optionsLine = ep,
-                             inputData = '' )
+    stepName = prod.addApplicationStep( stepDict = firstStep,
+                                        outputSE = outputSE,
+                                        optionsLine = ep,
+                                        inputData = '' )
     for step in stepsInProd:
       try:
         ep = extraOptions[step['StepId']]
       except IndexError:
         ep = ''
-      prod.addApplicationStep( stepDict = step,
-                               outputSE = outputSE,
-                               optionsLine = ep,
-                               inputData = 'previousStep' )
+      stepName = prod.addApplicationStep( stepDict = step,
+                                          outputSE = outputSE,
+                                          optionsLine = ep,
+                                          inputData = 'previousStep' )
+    prod.gaudiSteps.append( stepName )
 
     #Adding the finalization step
     if removeInputData:

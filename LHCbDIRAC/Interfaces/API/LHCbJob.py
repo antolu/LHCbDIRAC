@@ -921,7 +921,7 @@ class LHCbJob( Job ):
                       ( 'name', 'string', '', 'Name of executable' ),
                       ( 'executable', 'string', '', 'Executable Script' ),
                       ( 'arguments', 'string', '', 'Arguments for executable Script' ),
-                      ( 'applicationLog', 'string', '', 'Log file name' )
+                      ( 'logFile', 'string', '', 'Log file name' )
                       ]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
@@ -937,7 +937,7 @@ class LHCbJob( Job ):
 
 
     stepInstance.setValue( "name", moduleName )
-    stepInstance.setValue( "applicationLog", logName )
+    stepInstance.setValue( "logFile", logName )
     stepInstance.setValue( "executable", executable )
     if arguments:
       stepInstance.setValue( "arguments", arguments )

@@ -62,6 +62,7 @@ class Production():
     self.ancestorProduction = 0
     self.transformationFamily = 0
     self.priority = 1
+    self.gaudiSteps = []
     if not script:
       self.__setDefaults()
 
@@ -265,9 +266,8 @@ class Production():
       self.LHCbJob.workflow.addStep( gaudiStepDef )
 
     #create the step instance add it to the wf, and return it
-    gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step',
-                                                                  '%s_%s' % ( appName,
-                                                                              self.LHCbJob.gaudiStepCount ) )
+    name = '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount )
+    gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step', name )
 
     valuesToSet = [
                    ['applicationName', appName ],
@@ -298,6 +298,13 @@ class Production():
       self.LHCbJob.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
     elif inputData == 'previousStep':
+
+#      if not self.ioDict.has_key( self.LHCbJob.gaudiStepCount - 1 ):
+#        raise TypeError, 'Expected previously defined Gaudi step for input data'
+#      gaudiStepInstance.setLink( 'inputData', self.ioDict[self.LHCbJob.gaudiStepCount - 1], 'outputData' )
+
+
+
       self.LHCbJob.log.verbose( 'Taking input data as output from previous Gaudi step' )
       valuesToSet.append( [ 'inputData', inputData ] )
     else:
@@ -334,12 +341,12 @@ class Production():
     self.bkSteps[stepIDInternal] = stepBKInfo
     self.__addBKPassStep()
 
-    return gaudiStepInstance
+    return name
 
   #############################################################################
 
 
-  def _constructOutputFilesDict( self, filesList, outputSE, histoName = None, histoSE = None ):
+  def _constructOutputFilesDict( self, filesTypesList, outputSE, histoName = None, histoSE = None ):
     """ build list of dictionary of output files, including HIST case, and fix outputSE for file
     """
 
@@ -351,7 +358,7 @@ class Production():
 
     outputList = []
 
-    for fileType in filesList:
+    for fileType in filesTypesList:
       fileDict = {}
       if 'hist' in fileType.lower():
         fileDict['outputDataName'] = histoName
@@ -413,7 +420,7 @@ class Production():
 
   #############################################################################
   def createWorkflow( self, name = '' ):
-    """ Create XML for local testing.
+    """ Create XML of the workflow
     """
     if not name:
       name = self.LHCbJob.workflow.getName()
@@ -563,6 +570,9 @@ class Production():
 
         The workflow XML is created regardless of the flags.
     """
+
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
+
     if wfString:
       self.LHCbJob.workflow = fromXMLString( wfString )
 #      self.name = self.LHCbJob.workflow.getName()
