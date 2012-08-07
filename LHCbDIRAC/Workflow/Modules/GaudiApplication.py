@@ -422,7 +422,7 @@ class GaudiApplication( ModuleBase ):
                             'outputDataType': f['outputDataType'].lower(),
                             'outputDataSE': f['outputDataSE'],
                             'outputBKType': f['outputDataType'].upper(),
-                            'gaudiStep':self.stepName
+                            'stepName':self.stepName
                             } )
 
     return ( finalOutputs, bkFileTypes )

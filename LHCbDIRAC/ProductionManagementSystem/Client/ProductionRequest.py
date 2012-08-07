@@ -342,6 +342,8 @@ class ProductionRequest( object ):
                                         outputSE = outputSE,
                                         optionsLine = ep,
                                         inputData = '' )
+    prod.gaudiSteps.append( stepName )
+
     for step in stepsInProd:
       try:
         ep = extraOptions[step['StepId']]
@@ -351,7 +353,7 @@ class ProductionRequest( object ):
                                           outputSE = outputSE,
                                           optionsLine = ep,
                                           inputData = 'previousStep' )
-    prod.gaudiSteps.append( stepName )
+      prod.gaudiSteps.append( stepName )
 
     #Adding the finalization step
     if removeInputData:

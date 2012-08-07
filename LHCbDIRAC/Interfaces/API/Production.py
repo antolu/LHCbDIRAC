@@ -422,6 +422,8 @@ class Production():
   def createWorkflow( self, name = '' ):
     """ Create XML of the workflow
     """
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
+
     if not name:
       name = self.LHCbJob.workflow.getName()
     if not re.search( 'xml$', name ):
@@ -570,8 +572,6 @@ class Production():
 
         The workflow XML is created regardless of the flags.
     """
-
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
 
     if wfString:
       self.LHCbJob.workflow = fromXMLString( wfString )

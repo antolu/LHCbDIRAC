@@ -326,7 +326,7 @@ class ModuleBase( object ):
       if self.step_commons['inputData']:
         self.stepInputData = self.step_commons['inputData']
         if self.stepInputData == 'previousStep':
-          stepIndex = self.workflow_commons['gaudiSteps'].index( 'STEP_INSTANCE_NAME' )
+          stepIndex = self.workflow_commons['gaudiSteps'].index( self.stepName )
           previousStep = self.workflow_commons['gaudiSteps'][stepIndex - 1]
 
           oL = self.workflow_commons['outputList']
