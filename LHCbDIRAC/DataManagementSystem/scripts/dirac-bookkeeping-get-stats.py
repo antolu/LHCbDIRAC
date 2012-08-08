@@ -79,7 +79,7 @@ if __name__ == "__main__":
       nbEvents = 0
       fileSize = 0
       lumi = 0
-      res = bk.getFilesWithGivenDataSets( queryDict )
+      res = bk.getFiles( queryDict )
       if res['OK']:
         res = bk.getFileMetadata( res['Value'] )
         if res['OK']:
