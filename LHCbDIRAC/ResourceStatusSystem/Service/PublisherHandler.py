@@ -79,7 +79,7 @@ class PublisherHandler( RequestHandler ):
   
   #TODO: set the types as in the previous method
   def export_getValidStatusTypes( self ):
-    #TODO: return in from RssConfiguration
+    #TODO: return in from RssConfiguration().getConfig...
     pass
   
   ## Status methods ############################################################
