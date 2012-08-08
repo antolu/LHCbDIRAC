@@ -10,10 +10,10 @@
 __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
-Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
-                                     '  %s [option|cfgfile] ...' % Script.scriptName ]))
-Script.parseCommandLine(ignoreErrors=True)
+                                     '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
+Script.parseCommandLine( ignoreErrors=True )
 from DIRAC.Core.Utilities.List                                  import sortList, breakListIntoChunks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient    import BookkeepingClient
 import time
@@ -27,30 +27,30 @@ bkDict = {'ConfigName'           :'LHCb',
 bkClient = BookkeepingClient()
 for eventType in [91000000, 90000000]:
   bkDict['EventType'] = eventType
-  res = bkClient.getFilesWithGivenDataSets(bkDict)
+  res = bkClient.getFiles( bkDict )
   if not res['OK']:
     print 'ERROR:', res['Message']
-    DIRAC.exit(2)
+    DIRAC.exit( 2 )
   lfns = res['Value']
-  print 'Found %s UNCHECKED files from %s stream' % (len(lfns), eventType)
+  print 'Found %s UNCHECKED files from %s stream' % ( len( lfns ), eventType )
 
   allMetadata = {}
-  for lfnList in breakListIntoChunks(lfns, 1000):
+  for lfnList in breakListIntoChunks( lfns, 1000 ):
     startTime = time.time()
-    res = bkClient.getFileMetadata(lfnList)
+    res = bkClient.getFileMetadata( lfnList )
     if not res['OK']:
       print 'ERROR:', res['Message']
-      DIRAC.exit(2)
-    allMetadata.update(res['Value'])
+      DIRAC.exit( 2 )
+    allMetadata.update( res['Value'] )
 
   uncheckedRuns = []
-  for lfn in sortList(allMetadata.keys()):
+  for lfn in sortList( allMetadata.keys() ):
     runNumber = allMetadata[lfn]['RunNumber']
     if not runNumber in uncheckedRuns:
-      uncheckedRuns.append(runNumber)
+      uncheckedRuns.append( runNumber )
   if uncheckedRuns:
-    print 'Corresponding to %s runs:' % len(uncheckedRuns)
-    for run in sortList(uncheckedRuns):
+    print 'Corresponding to %s runs:' % len( uncheckedRuns )
+    for run in sortList( uncheckedRuns ):
       print run
 
 DIRAC.exit()
