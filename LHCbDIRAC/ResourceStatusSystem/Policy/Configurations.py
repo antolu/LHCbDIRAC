@@ -5,7 +5,7 @@
   
 '''
 
-from DIRAC.ResourceStatusSystem.Policy.Configurations import policiesMeta
+from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
 
 #from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
@@ -429,7 +429,7 @@ policies = {
 }
 
 #Update DIRAC policies with LHCbDIRAC policies
-policiesMeta.update( policies )
+POLICIESMETA.update( policies )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
