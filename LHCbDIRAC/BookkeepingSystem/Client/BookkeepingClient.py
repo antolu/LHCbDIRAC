@@ -782,8 +782,7 @@ class BookkeepingClient:
     """
     It returns a list of files for a given condition.
     """
-    server = self.__getServer()
-    return server.getFilesWithGivenDataSets(values)
+    return self.getFiles(values)
 
   #############################################################################
   def getVisibleFilesWithMetadata(self, values):
@@ -1285,10 +1284,10 @@ class BookkeepingClient:
 
   #############################################################################
   def getFiles(self, in_dict):
-    """Temporary method"""
-    self.__errorReport("The 'getFiles' method is obsolete and it will be removed\
-     from the next release. Please use the 'getFilesWithMetadata'!")
-    return self.getFilesWithMetadata(in_dict)
+    """
+    It returns a list of files for a given condition.
+    """
+    return self.getFiles(in_dict)
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, values):
