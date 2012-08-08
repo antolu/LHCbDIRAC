@@ -17,7 +17,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def __init__( self, transID = 0, transClientIn = None ):
+  def __init__( self, transID=0, transClientIn=None ):
     """ Just params setting.
         transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
     """
@@ -28,7 +28,7 @@ class Transformation( DIRACTransformation ):
     else:
       self.transClient = transClientIn
 
-    DIRACTransformation.__init__( self, transID = transID, transClient = self.transClient )
+    DIRACTransformation.__init__( self, transID=transID, transClient=self.transClient )
 
     self.supportedPlugins += ['RAWShares', 'AtomicRun']
     self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast', 'FakeReplication']
@@ -49,7 +49,7 @@ class Transformation( DIRACTransformation ):
     """ Returns a BK query, users are supposed to fill in values
     """
     parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
-                  'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag']
+                  'EventType', 'ConfigName', 'ConfigVersion', 'Production', 'DataQualityFlag']
     queryDict = {'FileType':'DST'}
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
@@ -77,7 +77,7 @@ class Transformation( DIRACTransformation ):
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bkClient = BookkeepingClient()
 
-    res = bkClient.getFilesWithGivenDataSets( bkQuery )
+    res = bkClient.getFiles( bkQuery )
     if not res['OK']:
       return self._errorReport( res, 'Failed to perform BK query' )
     gLogger.info( 'The supplied query returned %d files' % len( res['Value'] ) )
