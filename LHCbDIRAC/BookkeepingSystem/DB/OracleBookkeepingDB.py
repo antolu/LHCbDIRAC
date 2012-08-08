@@ -2016,11 +2016,8 @@ class OracleBookkeepingDB:
                                                   array= fileNames)
         if not retVal['OK']:
           result = retVal
-        elif len(failed) > 0:
-          result = S_OK(failed)
         else:
-          result = S_OK("Replica has ben removed!!!")
-
+          result = S_OK(failed)
     return result
 
   #############################################################################
@@ -2283,11 +2280,8 @@ class OracleBookkeepingDB:
                                                   array= fileNames)
         if not retVal['OK']:
           result = retVal
-        elif len(failed) > 0:
-          result = S_OK(failed)
         else:
-          result = S_OK("Replica has ben added!!!")
-
+          result = S_OK(failed)
     return result
 
 
