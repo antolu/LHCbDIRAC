@@ -39,8 +39,8 @@ if __name__ == "__main__":
     pass
 
   bkQuery = dmScript.getBKQuery()
-  prodList = bkQuery.getQueryDict().get( 'ProductionID', [None] )
-  bkQuery.setOption( 'ProductionID', None )
+  prodList = bkQuery.getQueryDict().get( 'Production', [None] )
+  bkQuery.setOption( 'Production', None )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
