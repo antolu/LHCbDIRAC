@@ -238,7 +238,8 @@ class UploadOutputData( ModuleBase ):
                                                                    fileGUID = metadata['guid'],
                                                                    fileCatalog = 'LcgFileCatalogCombined' )
         if not result['OK']:
-          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+          self.log.error( 'Could not transfer and register %s in failover with metadata:\n %s' % ( fileName,
+                                                                                                   metadata ) )
           cleanUp = True
           break #no point continuing if one completely fails
 
@@ -288,7 +289,6 @@ class UploadOutputData( ModuleBase ):
       #Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
       self.log.info( 'The following BK records will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
-
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
