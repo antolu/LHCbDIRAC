@@ -25,20 +25,20 @@ GetRuns retrieve the list of files that correspond to the query bkDict. After th
 The output is a dictionary such as for example:
 
 results_ord = {'BRUNELHIST':{1234:
-                             {'LFNs':['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root', 
+                             {'LFNs':['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root',
                                       '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017838_1_Hist.root'
                                      ]
                              }
                             1234:
-                             {'LFNs':['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root', 
-                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root', 
+                             {'LFNs':['/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017703_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017894_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017749_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017734_1_Hist.root',
+                                      '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017810_1_Hist.root',
                                       '/lhcb/LHCb/Collision11/HIST/00012362/0001/Brunel_00012362_00017838_1_Hist.root'
                                     ]
                                   }
@@ -69,62 +69,62 @@ def GetRuns( bkDict, bkClient ):
   return results_ord
 
 
-def GetProductionId(run, procPass, eventTypeId , bkClient):
+def GetProductionId( run, procPass, eventTypeId , bkClient ):
   bkDict = {'Runnumber' : run,
             'ProcPass'  : procPass}
-  res = bkClient.getProductionsFromView(bkDict)
+  res = bkClient.getProductionsFromView( bkDict )
   if not res['OK']:
-    outMess = 'Cannot get the production id for run %s proc. pass. %s' %(
-      run, procPass)
-    gLogger.error(outMess)
-    gLogger.error(res['Message'])
+    outMess = 'Cannot get the production id for run %s proc. pass. %s' % ( 
+      run, procPass )
+    gLogger.error( outMess )
+    gLogger.error( res['Message'] )
     return res
 
   prodId = 0
-  if not len(res['Value']):
-    outMess = 'Empty production id list for run %s proc. pass. %s' %(run, procPass)
-    gLogger.error(outMess)
-    gLogger.error(res)
-    res['OK']=False
+  if not len( res['Value'] ):
+    outMess = 'Empty production id list for run %s proc. pass. %s' % ( run, procPass )
+    gLogger.error( outMess )
+    gLogger.error( res )
+    res['OK'] = False
     return res
 
   allProdList = res['Value']
   for prodList in allProdList:
-    thisProdId = int(prodList[0])
-    res = bkClient.getProductionInformations(thisProdId)
+    thisProdId = int( prodList[0] )
+    res = bkClient.getProductionInformations( thisProdId )
     if not res['OK']:
-      outMess = 'Cannot get the information for production %s' %(thisProdId)
-      gLogger.error(outMess)
-      gLogger.error(res['Message'])
+      outMess = 'Cannot get the information for production %s' % ( thisProdId )
+      gLogger.error( outMess )
+      gLogger.error( res['Message'] )
       return res
-    if int(res['Value']['Production informations'][0][2]) == int(eventTypeId):
+    if int( res['Value']['Production informations'][0][2] ) == int( eventTypeId ):
       if thisProdId > prodId:
         prodId = thisProdId
 
   if prodId == 0:
     return prodId
-  
-  retVal = str(prodId)
-  length = len(retVal)
-  
-  for i in range(8-length):
+
+  retVal = str( prodId )
+  length = len( retVal )
+
+  for i in range( 8 - length ):
     retVal = '0' + retVal
-  
-  res={}
-  res['OK']=True
-  res['prodId']=retVal 
+
+  res = {}
+  res['OK'] = True
+  res['prodId'] = retVal
   return res
 
 
 """
-                                                                              
+
  MergeRun: Merge the BRUNELHIST and DAVINCIHIST of a particular run in three steps.
- 
+
  1 - Group BRUNELHISTs and DAVINCIHISTs in groups of 50;
- 2 - Merge the output of step 1; 
+ 2 - Merge the output of step 1;
  3 - Merge the output of step 2.
 """
-def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,testMode , specialMode ,
+def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir , prodId , addFlag, testMode , specialMode ,
               mergeExeDir , mergeStep1Command, mergeStep2Command, mergeStep3Command,
               brunelCount , daVinciCount , logFile , logFileName , environment ):
 
@@ -169,9 +169,9 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,tes
   if countBrunel == 0:
     results['OK'] = False
     return results
-  
- 
-  targetFile = GetTargetFile( run, prodId , homeDir , addFlag)
+
+
+  targetFile = GetTargetFile( run, prodId , homeDir , addFlag )
 
   #Redundancy check of existence
   retVal = os.path.exists( targetFile )
@@ -189,57 +189,57 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,tes
     results['OK'] = False
     return results
 
-  gLogger.info( "Now processing run %s in pass %s." % (
-  str(run), bkDict['ProcessingPass'] ) )
+  gLogger.info( "Now processing run %s in pass %s." % ( 
+  str( run ), bkDict['ProcessingPass'] ) )
 
-  brunelLocal=[]
-  davinciLocal=[]
-  res={}
-  gLogger.info('===>Retrieving Brunel histograms locally')
+  brunelLocal = []
+  davinciLocal = []
+  res = {}
+  gLogger.info( '===>Retrieving Brunel histograms locally' )
   for lfn in brunelList:
-    res['OK']=False
-    s = lfn.split('/')
-    localfile=homeDir+s[len(s)-1]
-    if os.path.exists(localfile):
-      gLogger.info("Found file %s in local temp folder"%localfile)
-      brunelLocal.append(localfile)
+    res['OK'] = False
+    s = lfn.split( '/' )
+    localfile = homeDir + s[len( s ) - 1]
+    if os.path.exists( localfile ):
+      gLogger.info( "Found file %s in local temp folder" % localfile )
+      brunelLocal.append( localfile )
     else:
       retry = 1
-      while retry<6  and ((not res['OK']) or (not res['Value']['Successful'])):
-        gLogger.info("Trying to download %s time"%retry)
-        res = rm.getFile(lfn,homeDir)
-        retry = retry+1
-      if res['OK'] and res['Value']['Successful'].has_key(lfn):
-        brunelLocal.append(res['Value']['Successful'][lfn])
+      while retry < 6  and ( ( not res['OK'] ) or ( not res['Value']['Successful'] ) ):
+        gLogger.info( "Trying to download %s time" % retry )
+        res = rm.getFile( lfn, homeDir )
+        retry = retry + 1
+      if res['OK'] and res['Value']['Successful'].has_key( lfn ):
+        brunelLocal.append( res['Value']['Successful'][lfn] )
       else:
-        if not res['Value']['Successful'].has_key(lfn):
-          gLogger.error("Cannot retrieve %s" %lfn)
+        if not res['Value']['Successful'].has_key( lfn ):
+          gLogger.error( "Cannot retrieve %s" % lfn )
           return results
-  
-  gLogger.info('===>Retrieving DaVinci histograms locally')
+
+  gLogger.info( '===>Retrieving DaVinci histograms locally' )
   for lfn in davinciList:
-    res['OK']=False
-    s = lfn.split('/')
-    localfile=homeDir+s[len(s)-1]
-    if os.path.exists(localfile):
-      gLogger.info("Found file %s in local temp folder"%localfile)
-      brunelLocal.append(localfile)
+    res['OK'] = False
+    s = lfn.split( '/' )
+    localfile = homeDir + s[len( s ) - 1]
+    if os.path.exists( localfile ):
+      gLogger.info( "Found file %s in local temp folder" % localfile )
+      brunelLocal.append( localfile )
     else:
       retry = 1
-      while retry<6  and ((not res['OK']) or (not res['Value']['Successful'])):
-        gLogger.info("Trying to download %s time"%retry)
-        res = rm.getFile(lfn,homeDir)
-        retry = retry+1
-      if res['OK'] and res['Value']['Successful'].has_key(lfn):
-        davinciLocal.append(res['Value']['Successful'][lfn])
+      while retry < 6  and ( ( not res['OK'] ) or ( not res['Value']['Successful'] ) ):
+        gLogger.info( "Trying to download %s time" % retry )
+        res = rm.getFile( lfn, homeDir )
+        retry = retry + 1
+      if res['OK'] and res['Value']['Successful'].has_key( lfn ):
+        davinciLocal.append( res['Value']['Successful'][lfn] )
       else:
-        if not res['Value']['Successful'].has_key(lfn):
-          gLogger.error("Cannot retrieve %s" %lfn)
+        if not res['Value']['Successful'].has_key( lfn ):
+          gLogger.error( "Cannot retrieve %s" % lfn )
           return results
 
 
   """
-  Real Merging part 
+  Real Merging part
   """
   res = Merge( targetFile, run, brunelLocal , davinciLocal , mergeExeDir ,
                mergeStep1Command, mergeStep2Command, mergeStep3Command,
@@ -250,14 +250,14 @@ def MergeRun( bkDict, res_0, res_1, run, bkClient , homeDir ,prodId ,addFlag,tes
     results['OutputFile'] = targetFile
     return results
 
-"""                                                                            
-GetTargetFile:                                                              
-                                                                            
-Define the full path of the final histogram file.                           
-                                                                            
 """
-def GetTargetFile( run , prodId, homeDir ,addFlag):
-  if addFlag=='True':
+GetTargetFile:
+
+Define the full path of the final histogram file.
+
+"""
+def GetTargetFile( run , prodId, homeDir , addFlag ):
+  if addFlag == 'True':
     targetFile = '%sBrunelDaVinci_run_%s_%s.root' % ( homeDir , prodId , run )
   else:
     targetFile = '%sBrunelDaVinci_run_%s.root' % ( homeDir , run )
@@ -265,12 +265,12 @@ def GetTargetFile( run , prodId, homeDir ,addFlag):
 
 
 """
-                                                                             
-VerifyReconstructionStatus:                                                  
-                                                                             
-Check that enough RAW data have been reconstructed and one and only one output    
-is generated for each one of them.                                           
-                                                                             
+
+VerifyReconstructionStatus:
+
+Check that enough RAW data have been reconstructed and one and only one output
+is generated for each one of them.
+
 """
 def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , specialMode ):
 
@@ -295,8 +295,8 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   logger.info( "=====VerifyReconstructionStatus=====" )
   logger.info( str( rawBkDict ) )
   logger.info( "====================================" )
-  
-  res = bkClient.getFilesWithGivenDataSets( rawBkDict )
+
+  res = bkClient.getFiles( rawBkDict )
 
   if ( not res['OK'] ) or ( not len( res['Value'] ) ):
     gLogger.error( "Cannot get RAW files for run %s" % str( run ) )
@@ -306,68 +306,68 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   rawLFN = res['Value']
   countRAW = len( rawLFN )
   countBrunel = len( runData['BRUNELHIST'] )
-  
+
   count_b = 0
-  count_d = 0       
-      
-  descendants = bkClient.getFileDescendents(rawLFN,9)
-  gLogger.info("=== Performing check for multiple run in RAW ancestors ===")
+  count_d = 0
+
+  descendants = bkClient.getFileDescendents( rawLFN, 9 )
+  gLogger.info( "=== Performing check for multiple run in RAW ancestors ===" )
   for rawDescendants in descendants['Value']['Successful'].keys():
     for lfn in descendants['Value']['Successful'][rawDescendants]:
-      if lfn.endswith(".root"):
-        if  (string.find(lfn,'/Brunel_') != -1):
-          ancestors = bkClient.getFileAncestors(lfn,2)
-          res = check_Multiple(ancestors,lfn)
+      if lfn.endswith( ".root" ):
+        if  ( string.find( lfn, '/Brunel_' ) != -1 ):
+          ancestors = bkClient.getFileAncestors( lfn, 2 )
+          res = check_Multiple( ancestors, lfn )
           if res['OK']:
             count_b = count_b + 1
           else:
             return ( retVal, res )
-        if  (string.find(lfn,'/DaVinci_') != -1):
-          ancestors = bkClient.getFileAncestors(lfn,2)
-          res = check_Multiple(ancestors,lfn)
+        if  ( string.find( lfn, '/DaVinci_' ) != -1 ):
+          ancestors = bkClient.getFileAncestors( lfn, 2 )
+          res = check_Multiple( ancestors, lfn )
           if res['OK']:
             count_d = count_d + 1
           else:
             return ( retVal, res )
-  
+
   #
   # Make sure enough files have been reconstructed in the run.
   #
-  
+
   alt_counting = False
-  #Special counting tempted. 
-  gLogger.info("countBrunel %s countRAW %s"%(countBrunel,countRAW))
+  #Special counting tempted.
+  gLogger.info( "countBrunel %s countRAW %s" % ( countBrunel, countRAW ) )
   if not countBrunel == countRAW:
-    if specialMode=='True':
+    if specialMode == 'True':
       gLogger.info( "Run %s in pass %s accepted by special mode selection." % ( str( run ), rawBkDict['ProcessingPass'] ) )
     else:
       #
       # New 95% or hist = RAW - 1 selection
       #
       if not eventType == "Full stream":
-        gLogger.info( "Run %s in pass %s is not completed." % (run, bkDict['ProcessingPass'] ) )
-        res['OK']=False
-        return (retVal , res)
-      
+        gLogger.info( "Run %s in pass %s is not completed." % ( run, bkDict['ProcessingPass'] ) )
+        res['OK'] = False
+        return ( retVal , res )
+
       #
       # New 95% or hist = RAW - 1 selection
       #
 
       if ( countBrunel < 0.95 * countRAW ) and ( countBrunel < ( countRAW - 1 ) ):
-        gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. Trying to count the number of histogram from the RAW descendants." % ( run, bkDict['ProcessingPass'], int( countRAW ), int(countBrunel) ) )
-        gLogger.info("Found %s BRUNELHIST descendants."%count_b)
-        gLogger.info("Found %s DAVINCIHIST descendants."%count_d)
-        if (count_b==countRAW) and (count_d==countRAW):
+        gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. Trying to count the number of histogram from the RAW descendants." % ( run, bkDict['ProcessingPass'], int( countRAW ), int( countBrunel ) ) )
+        gLogger.info( "Found %s BRUNELHIST descendants." % count_b )
+        gLogger.info( "Found %s DAVINCIHIST descendants." % count_d )
+        if ( count_b == countRAW ) and ( count_d == countRAW ):
           alt_counting = True
         else:
           gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d" % ( run, bkDict['ProcessingPass'], int( countRAW ) ) )
-          res['OK']=False
-          return (retVal , res)
+          res['OK'] = False
+          return ( retVal , res )
 
       if not alt_counting:
-        gLogger.info( "Run %s in pass %s accepted by -1 or 0.95 selection: Number of BRUNEL hist = %d Number of RAW = %d" % (run, bkDict['ProcessingPass'], countBrunel, countRAW ) )
+        gLogger.info( "Run %s in pass %s accepted by -1 or 0.95 selection: Number of BRUNEL hist = %d Number of RAW = %d" % ( run, bkDict['ProcessingPass'], countBrunel, countRAW ) )
       else:
-        gLogger.info( "Run %s in pass %s accepted by directly counting of RAW descendants: Number of BRUNEL hist = %d Number of RAW = %d" % (run, bkDict['ProcessingPass'], countBrunel, countRAW ) ) 
+        gLogger.info( "Run %s in pass %s accepted by directly counting of RAW descendants: Number of BRUNEL hist = %d Number of RAW = %d" % ( run, bkDict['ProcessingPass'], countBrunel, countRAW ) )
 
   #
   # Make sure the RAW have one and one only BRUNELHIST and
@@ -381,11 +381,11 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
     res = DescendantIsDownloaded( raw, runData , bkClient )
     #print "DescendantIsDownloaded ",res
     if not res['OK']:
-      gLogger.info( "LFN %s in Run %s has too many hist descendants in processing pass %s" % (raw, str( run ), bkDict['ProcessingPass']))
+      gLogger.info( "LFN %s in Run %s has too many hist descendants in processing pass %s" % ( raw, str( run ), bkDict['ProcessingPass'] ) )
       return ( retVal, res )
 
     if len( res['BRUNELHIST'] ) > 1:
-      gLogger.info( "LFN %s in Run %s has %s BRUNELHIST in processing pass %s" % (raw, str( run ), len( res['BRUNELHIST'] ), bkDict['ProcessingPass'] ))
+      gLogger.info( "LFN %s in Run %s has %s BRUNELHIST in processing pass %s" % ( raw, str( run ), len( res['BRUNELHIST'] ), bkDict['ProcessingPass'] ) )
       return ( retVal, res )
     elif len( res['BRUNELHIST'] ) == 0:
       missing['BRUNELHIST'].append( raw )
@@ -405,46 +405,46 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
     retVal['BRUNELHIST'].append( brunelHist )
     retVal['DAVINCIHIST'].append( daVinciHist )
 
-  if ( len( retVal['BRUNELHIST'] ) > countBrunel):
-    gLogger.info( "Run %s processing pass %s found %s BRUNELHIST expected %s" % (str( run ), bkDict['ProcessingPass'], len( retVal['BRUNELHIST'] ), countBrunel ) )
+  if ( len( retVal['BRUNELHIST'] ) > countBrunel ):
+    gLogger.info( "Run %s processing pass %s found %s BRUNELHIST expected %s" % ( str( run ), bkDict['ProcessingPass'], len( retVal['BRUNELHIST'] ), countBrunel ) )
     print missing
     return ( retVal, res )
-  else: 
+  else:
     if alt_counting:
-      gLogger.info( "Run %s processing pass %s found %s HIST by counting the RAW descendants." %(str( run ), bkDict['ProcessingPass'], count_b ) )
+      gLogger.info( "Run %s processing pass %s found %s HIST by counting the RAW descendants." % ( str( run ), bkDict['ProcessingPass'], count_b ) )
       retVal['OK'] = True
       return ( retVal, res )
 
-    
+
 '''
 check_Multiple
 
-check for the presence of RAWs from multiple runs in the histograms ancestors 
+check for the presence of RAWs from multiple runs in the histograms ancestors
 '''
-def check_Multiple (dict,lfn):
+def check_Multiple ( dict, lfn ):
   for d in dict['Value']['Successful'][lfn]:
-    if d['FileType']=='RAW':
+    if d['FileType'] == 'RAW':
       raw = d['FileName']
-      t = raw.split("/")
-      run_ref = t[-1].split('_')[0]
+      t = raw.split( "/" )
+      run_ref = t[-1].split( '_' )[0]
       break
   for d in dict['Value']['Successful'][lfn]:
-    if d['FileType']=='RAW':
+    if d['FileType'] == 'RAW':
       raw = d['FileName']
-      t = raw.split("/")
-      run = t[-1].split('_')[0]
-      if not (run == run_ref):
+      t = raw.split( "/" )
+      run = t[-1].split( '_' )[0]
+      if not ( run == run_ref ):
         gLogger.error( "Histograms created from MIXED RUNs!!!" )
         return S_ERROR()
   return S_OK()
 
 
 """
-                                                                            
-DescendantIsDownloaded:                                                     
-                                                                            
-Check if at least one descendant of a given event type has been downloaded. 
-                                                                             
+
+DescendantIsDownloaded:
+
+Check if at least one descendant of a given event type has been downloaded.
+
 """
 def DescendantIsDownloaded( rawLFN, runData , bkClient ):
   retVal = {}
@@ -471,8 +471,8 @@ def DescendantIsDownloaded( rawLFN, runData , bkClient ):
 
 """
 
-GetDescendants: Get the list of descendants of a raw file in a given stream.                 
-                                                                              
+GetDescendants: Get the list of descendants of a raw file in a given stream.
+
 """
 def GetDescendants( rawLFN , bkClient ):
   descLFN = []
@@ -491,9 +491,9 @@ def GetDescendants( rawLFN , bkClient ):
 
 
 """
-                                                                             
-Merge:  Merge all root files into one.                                               
-                                                                             
+
+Merge:  Merge all root files into one.
+
 """
 def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir , mergeStep1Command , mergeStep2Command,
            mergeStep3Command, specialMode, testMode, homeDir , brunelCount , daVinciCount , logFile , logFileName ,
@@ -587,7 +587,7 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir , mergeS
   merge.insert( 0, targetFile )
   merge.insert( 0, mergeStep3Command )
   command = " ".join( merge )
-  p = subprocess.call( args = command, env = environment , stdout = logFile , shell = True )
+  p = subprocess.call( args=command, env=environment , stdout=logFile , shell=True )
   gLogger.info( "=== Final Merging OutPut" )
   StreamToLog( logFileName, gLogger, mergeStep3Command )
 
@@ -613,11 +613,11 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir , mergeS
   return retVal
 
 """
-                                                                             
-MergeStep1                                                                   
-                                                                             
-Step 1 in the merging of root files.                                         
-                                                                             
+
+MergeStep1
+
+Step 1 in the merging of root files.
+
 """
 def MergeStep1( stepHist, histType, mergeStep1Command, runNumber, homeDir ,
                 brunelCount , daVinciCount , logFile , logFileName, environment ):
@@ -655,7 +655,7 @@ def MergeStep1( stepHist, histType, mergeStep1Command, runNumber, homeDir ,
     merge.insert( 0, targetFile )
     merge.insert( 0, mergeStep1Command )
     command = " ".join( merge )
-    p = subprocess.call( args = command, env = environment, stdout = logFile , shell = True )
+    p = subprocess.call( args=command, env=environment, stdout=logFile , shell=True )
     gLogger.debug( "Executing Step1 command %s" % command )
     StreamToLog( logFileName, gLogger, mergeStep1Command )
 
@@ -673,11 +673,11 @@ def MergeStep1( stepHist, histType, mergeStep1Command, runNumber, homeDir ,
 
 
 """
-                                    
-MergeStep2                          
-                                    
+
+MergeStep2
+
 Step 2 in the merging of root files.
-                                    
+
 """
 
 def MergeStep2( stepHist, histType, mergeStep2Command , dim,
@@ -693,7 +693,7 @@ def MergeStep2( stepHist, histType, mergeStep2Command , dim,
   merge.insert( 0, targetFile )
   merge.insert( 0, mergeStep2Command )
   command = " ".join( merge )
-  p = subprocess.call( args = command , env = environment , stdout = logFile , shell = True )
+  p = subprocess.call( args=command , env=environment , stdout=logFile , shell=True )
   gLogger.debug( "Executing Step2 command %s" % command )
   StreamToLog( logFileName, gLogger, mergeStep2Command )
   if not p == 0:
@@ -708,11 +708,11 @@ def MergeStep2( stepHist, histType, mergeStep2Command , dim,
   return retVal
 
 """
-                                                                             
-MergeCleanUp                                                                 
-                                                                             
-Remove all the temporary merge files.                                        
-                                                                             
+
+MergeCleanUp
+
+Remove all the temporary merge files.
+
 """
 def MergeCleanUp( brunelStep2, brunelFile, daVinciStep2, daVinciFile ):
   gLogger.debug( "Cleaning intermediate files %s" % str( brunelStep2 ) )
@@ -734,7 +734,7 @@ Finalization Step:
  2 - Perform failoverTransfer.transferAndRegisterFile (LFC Upload and Registration)
  3 - From the Bookkeeping XML report previously created a request object is created.
  4 - If the registration in the BK is possible than the file is added to the calalog.
- 5 - For the log file all the directory is Uploaded with the replicamanager putStorageDirectory.   
+ 5 - For the log file all the directory is Uploaded with the replicamanager putStorageDirectory.
 """
 def Finalization( homeDir, logDir, lfns, OutputFileName, LogFileName, inputData, run, bkDict, rootVersion ):
   """
@@ -762,7 +762,7 @@ def Finalization( homeDir, logDir, lfns, OutputFileName, LogFileName, inputData,
 
   gLogger.info( "Creating XML report" )
   #Create the XML Bookkeeping Report
-  res = makeBookkeepingXML( Output, lfns['DATA'], lfns['LOG'] , inputData, run , bkDict[ 'ConfigName' ] , bkDict[ 'ConfigVersion' ] , homeDir , rootVersion, saveOnFile = True )
+  res = makeBookkeepingXML( Output, lfns['DATA'], lfns['LOG'] , inputData, run , bkDict[ 'ConfigName' ] , bkDict[ 'ConfigVersion' ] , homeDir , rootVersion, saveOnFile=True )
 
   logDict = {'logdir':logDir, 'logSE':'LogSE', 'logFilePath':lfns['LOGDIR'], 'logLFNPath':lfns['LOG']}
 
@@ -777,15 +777,15 @@ def Finalization( homeDir, logDir, lfns, OutputFileName, LogFileName, inputData,
 
   return res
 """
-Build LFN for data and logfile 
+Build LFN for data and logfile
 """
-def BuildLFNs( bkDict, run ,prodId ,addFlag ):
+def BuildLFNs( bkDict, run , prodId , addFlag ):
   lfns = {}
-  gLogger.info("Run %s has Prod ID %s"%(run,prodId))
+  gLogger.info( "Run %s has Prod ID %s" % ( run, prodId ) )
   if addFlag:
-    p = "_"+str(prodId)
-  lfns['DATA'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/HIST/' + str( run ) + '/BrunelDaVinci_' + str( run )+ p + '_Hist.root'
-  lfns['LOG'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run ) + '/BrunelDaVinci_' + str( run )+ p + '_Hist.log'
+    p = "_" + str( prodId )
+  lfns['DATA'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/HIST/' + str( run ) + '/BrunelDaVinci_' + str( run ) + p + '_Hist.root'
+  lfns['LOG'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run ) + '/BrunelDaVinci_' + str( run ) + p + '_Hist.log'
   lfns['LOGDIR'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run )
   return lfns
 
@@ -814,12 +814,12 @@ def addChildNode( parentNode, tag, returnChildren, *args ):
   Params
   :parentNode:
   node where the new node is going to be appended
-  :tag: 
+  :tag:
   name if the XML element to be created
   :returnChildren:
   flag to return or not the children node, used to avoid unused variables
   :*args:
-  possible attributes of the element 
+  possible attributes of the element
   """
   ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile', 'Parameter', 'Replica']
 
@@ -851,7 +851,7 @@ def addChildNode( parentNode, tag, returnChildren, *args ):
         "Name"  : name,
         "Value" : value
         }
-  def genReplicaDict( name, location = "Web" ):
+  def genReplicaDict( name, location="Web" ):
     return {
         "Name"     : name,
         "Location" : location
@@ -891,8 +891,8 @@ def generateInputFiles( jobNode , inputData ):
 
 def generateOutputFiles( jobNode , Output , outputlfn , logFilelfn , outputDataType , outputDataVersion, configName , configVersion , run , homeDir ):
 
-  """OutputFile looks like this:  
-  
+  """OutputFile looks like this:
+
          <OutputFile Name="" TypeName="" TypeVersion="">
            <Parameter Name="" Value=""/>
            ...
@@ -920,7 +920,7 @@ def generateOutputFiles( jobNode , Output , outputlfn , logFilelfn , outputDataT
 
     if not re.search( 'log', output ):
       filesize = 0
-      #filesize = str( os.path.getsize( output ) ) 
+      #filesize = str( os.path.getsize( output ) )
       oFile = addChildNode( oFile, "Parameter", 0, *( "FileSize", Output[output]['FileSize'] ) )
     else:
       logurl = 'http://lhcb-logs.cern.ch/storage/lhcb'
@@ -946,10 +946,10 @@ def generateTypedParams( jobNode , run , rootVersion , append_string ):
 
   return jobNode
 
-def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , configName , configVersion , homeDir , rootVersion , saveOnFile = True ):
+def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , configName , configVersion , homeDir , rootVersion , saveOnFile=True ):
 
   """ Bookkeeping xml looks like this:
-  
+
     <Job ConfigName="" ConfigVersion="" Date="" Time="">
       <TypedParameter Name="" Type="" Value=""/>
       ...
@@ -961,7 +961,7 @@ def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , confi
         <Replica Location="" Name=""/>
         ....
       </OutputFile>
-    </Job> 
+    </Job>
   """
   """
   Output is a dictionary of dictionaries with first key the LFN of the file. The structure is:
@@ -1016,7 +1016,7 @@ def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , confi
 
   jobNode = generateOutputFiles( jobNode , Output , outputlfn , logFilelfn , 'MERGEFORDQ.ROOT' , 'ROOT' , configName , configVersion, run , homeDir )
 
-  prettyXMLDoc = doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
+  prettyXMLDoc = doc.toprettyxml( indent="    ", encoding="ISO-8859-1" )
 
   #horrible, necessary hack!
   prettyXMLDoc = prettyXMLDoc.replace( '\'book.dtd\'', '\"book.dtd\"' )
@@ -1035,9 +1035,9 @@ def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , confi
   return res
 
 """
-Given an LFN and a request, a registration request for the Bookkeeping Catalog is sent. 
+Given an LFN and a request, a registration request for the Bookkeeping Catalog is sent.
 """
-def setBKRegistrationRequest( lfn, request, error = '' ):
+def setBKRegistrationRequest( lfn, request, error='' ):
   """
   Set a BK registration request for changing the replica flag.  Uses the
   global request object.
@@ -1060,7 +1060,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
   """
   *localpath is the path where the file are in the local machine.
   *XMLBookkeepingReport is an XML created previously containing all infos about what will be uploaded.
-  
+
   """
   os.chdir( localpath )
 
@@ -1072,7 +1072,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
   registrationFailure = False
 
   #Registration in the LFC
-  result = failoverTransfer.transferAndRegisterFile( localpath, localfilename, lfn , ['CERN-HIST'], fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
+  result = failoverTransfer.transferAndRegisterFile( localpath, localfilename, lfn , ['CERN-HIST'], fileGUID=None, fileCatalog='LcgFileCatalogCombined' )
   if not result['OK']:
     return result
   performBKRegistration.append( lfn )
@@ -1101,7 +1101,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
       log.info( 'Bookkeeping report sent for %s' % bkFile )
     else:
       log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
-      request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
+      request.setDISETRequest( result['rpcStub'], executionOrder=0 )
   #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
   if not performBKRegistration:
     log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
@@ -1118,7 +1118,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
   else:
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
     rm = ReplicaManager()
-    result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
+    result = rm.addCatalogFile( performBKRegistration, catalogs=['BookkeepingDB'] )
     log.verbose( result )
     if not result['OK']:
       log.err( 'Could Not Perform BK Registration' )
@@ -1134,7 +1134,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
       log.verbose( "LogUpload results" )
       log.verbose( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )} )
       log.verbose( str( logDict['logSE'] ) )
-      res = rm.putStorageDirectory( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )}, logDict['logSE'], singleDirectory = True )
+      res = rm.putStorageDirectory( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )}, logDict['logSE'], singleDirectory=True )
       log.verbose( str( res ) )
 
   return result
