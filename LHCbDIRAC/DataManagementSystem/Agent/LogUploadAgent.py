@@ -24,13 +24,12 @@ from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.RequestManagementSystem.Agent.RequestAgentMixIn import RequestAgentMixIn
 
 __RCSID__ = "$Id$"
 
 AGENT_NAME = 'DataManagement/LogUploadAgent'
 
-class LogUploadAgent( AgentModule, RequestAgentMixIn ):
+class LogUploadAgent( AgentModule ):
   """
   .. class:: LogUploadAgent
   
@@ -147,11 +146,17 @@ class LogUploadAgent( AgentModule, RequestAgentMixIn ):
       requestString = oRequest.toXML()['Value']
       res = self.requestClient.updateRequest( requestName, requestString, self.local )
       if res['OK']:
-        self.log.info( "JobLogUploadAgent.execute: Successfully updated request." )
+        self.log.info( "Successfully updated request '%s' to %s." % ( requestName, self.local ) )
       else:
-        self.log.error( "JobLogUploadAgent.execute: Failed to update request to ", self.local )
-
+        self.log.error( "Failed to update request '%s' to %s: %s" % ( requestName, self.local, res["Message"] ) )
+        return res
+    
       if modified and jobID:
-        result = self.finalizeRequest( requestName, jobID, self.local )
+        result = self.requestClient.finalizeRequest( requestName, jobID, self.local )
+        if not result["OK"]:
+          self.log.error( "Failed to finalize request '%s': %s" % ( requestName, result["Message"] ) )
+          return result
+        else:
+          self.log.info("Request '%s' has been finalised." % requestName )
 
     return S_OK()
