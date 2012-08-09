@@ -1287,7 +1287,8 @@ class BookkeepingClient:
     """
     It returns a list of files for a given condition.
     """
-    return self.getFiles(in_dict)
+    server = self.__getServer()
+    return server.getFiles(in_dict)
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, values):
