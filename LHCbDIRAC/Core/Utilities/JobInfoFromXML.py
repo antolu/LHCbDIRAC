@@ -8,9 +8,6 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Interfaces.API.Dirac                              import Dirac
-from DIRAC.Interfaces.API.Job                                import Job
-
 from DIRAC import S_OK, S_ERROR
 import shutil, os
 
@@ -42,6 +39,11 @@ class JobInfoFromXML:
   """ main class"""
 
   def __init__( self, jobid ):
+
+    # Ugly import, but Dirac and Job and not simple imports. They are trigering
+    # a sys.exit if not everything is set up.
+    from DIRAC.Interfaces.API.Dirac import Dirac
+    from DIRAC.Interfaces.API.Job   import Job
 
     self.message = None
     try:
