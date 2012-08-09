@@ -1534,6 +1534,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           else:
             # remove all replicas and keep only minKeep
             targetSEs = randomize( existingSEs )[0:-minKeep]
+        else:
+          self.__logInfo( "Found %d files that did't have enough replicas (%d found, %d requested)" % ( len( lfns ), len( existingSEs ), minKeep ) )
+          continue
 
       if targetSEs:
         stringTargetSEs = ','.join( sorted( targetSEs ) )
