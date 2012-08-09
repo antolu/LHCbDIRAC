@@ -12,7 +12,6 @@ import urllib2
 
 from DIRAC                                           import S_OK, S_ERROR, gConfig  
 from DIRAC.Core.Base.AgentModule                     import AgentModule
-from DIRAC.Interfaces.API.DiracAdmin                 import DiracAdmin
 
 from LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail import getBodyEmail
 
@@ -52,6 +51,8 @@ class ShiftDBAgent( AgentModule ):
     self.roleShifters = {}
     self.newShifters  = {}
 
+    # Moved down to avoid crash   
+    from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
     #self.notification = NotificationClient()
     self.diracAdmin   = DiracAdmin()
    
