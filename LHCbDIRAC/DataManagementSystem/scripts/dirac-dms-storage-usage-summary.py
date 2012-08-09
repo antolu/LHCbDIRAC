@@ -90,7 +90,7 @@ def writeInfo( str ):
   global infoStringLength
   import sys
   if len( str ) < 1 or str[0] != '\n':
-    sys.stdout.write( ' '*infoStringLength + '\r' )
+    sys.stdout.write( ' ' * infoStringLength + '\r' )
   sys.stdout.write( str + '\r' )
   sys.stdout.flush()
   infoStringLength = len( str ) + 1
@@ -274,7 +274,7 @@ if __name__ == "__main__":
   if not dirs:
     dirs = ['']
     bkQuery = dmScript.getBKQuery( visible=False )
-    if bkQuery.getQueryDict():
+    if bkQuery.getQueryDict().keys() not in ( [], ['Visible'] ):
       print "BK query:", bkQuery
       prods = bkQuery.getBKProductions()
       if not prods:
