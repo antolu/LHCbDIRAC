@@ -2,13 +2,14 @@ import os, unittest
 
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 class ProductionLogAnalysisTestCase( unittest.TestCase ):
   """ Base class for the ProductionLogAnalysis test cases
   """
   def setUp( self ):
-    self.workdir = os.getcwd() + '/ProductionXMLLogAnalysis'
+    self.workdir = '/tmp/ProductionXMLLogAnalysis'
+    #self.workdir = os.getcwd() + '/ProductionXMLLogAnalysis'
 
   def generalTest( self, workdir, status, app ):
 

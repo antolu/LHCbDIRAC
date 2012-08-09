@@ -2,13 +2,15 @@ import os, unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 class XMLSummaryAnalysisTestCase( unittest.TestCase ):
   """ Base class for the XMLSummaryAnalysis test cases
   """
   def setUp( self ):
-    self.workdir = os.getcwd() + '/ProductionXMLLogAnalysis'
+    
+    self.workdir = '/tmp/ProductionXMLLogAnalysis'
+    #self.workdir = os.getcwd() + '/ProductionXMLLogAnalysis'
 
   def generalTest( self, workdir, status ):
 
