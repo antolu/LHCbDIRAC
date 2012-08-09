@@ -574,102 +574,102 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 ################################################################################
 # To be deleted...
 
-  def insertSLSService( self, system, service, timeStamp, availability,
-                        serviceUptime, hostUptime, instantLoad, message, meta = None ):
-    return self.__query( 'insert', 'SLSService', locals() )
-  def updateSLSService( self, system, service, timeStamp, availability,
-                        serviceUptime, hostUptime, instantLoad, message, meta = None ):
-    return self.__query( 'update', 'SLSService', locals() )
-  def getSLSService( self, system = None, service = None, timeStamp = None,
-                     availability = None, serviceUptime = None,
-                     hostUptime = None, instantLoad = None, message = None, meta = None ):
-    return self.__query( 'get', 'SLSService', locals() )
-  def deleteSLSService( self, system = None, service = None, timeStamp = None,
-                        availability = None, serviceUptime = None,
-                        hostUptime = None, instantLoad = None, message = None, meta = None ):
-    return self.__query( 'delete', 'SLSService', locals() )
-  def addOrModifySLSService( self, system, service, timeStamp, availability,
-                             serviceUptime, hostUptime, instantLoad, message):
-    return self.__addOrModifyElement( 'SLSService', locals() )
+#  def insertSLSService( self, system, service, timeStamp, availability,
+#                        serviceUptime, hostUptime, instantLoad, message, meta = None ):
+#    return self.__query( 'insert', 'SLSService', locals() )
+#  def updateSLSService( self, system, service, timeStamp, availability,
+#                        serviceUptime, hostUptime, instantLoad, message, meta = None ):
+#    return self.__query( 'update', 'SLSService', locals() )
+#  def getSLSService( self, system = None, service = None, timeStamp = None,
+#                     availability = None, serviceUptime = None,
+#                     hostUptime = None, instantLoad = None, message = None, meta = None ):
+#    return self.__query( 'get', 'SLSService', locals() )
+#  def deleteSLSService( self, system = None, service = None, timeStamp = None,
+#                        availability = None, serviceUptime = None,
+#                        hostUptime = None, instantLoad = None, message = None, meta = None ):
+#    return self.__query( 'delete', 'SLSService', locals() )
+#  def addOrModifySLSService( self, system, service, timeStamp, availability,
+#                             serviceUptime, hostUptime, instantLoad, message):
+#    return self.__addOrModifyElement( 'SLSService', locals() )
   
   
-  def insertSLST1Service( self, site, service, timeStamp, availability,
-                          serviceUptime, hostUptime, message, meta = None ):
-    return self.__query( 'insert', 'SLST1Service', locals() )
-  def updateSLST1Service( self, site, service, timeStamp, availability,
-                          serviceUptime, hostUptime, message, meta = None ):
-    return self.__query( 'update', 'SLST1Service', locals() )
-  def getSLST1Service( self, site = None, service = None, timeStamp = None,
-                       availability = None, serviceUptime = None,
-                       hostUptime = None, message = None, meta = None ):
-    return self.__query( 'get', 'SLST1Service', locals() )
-  def deleteSLST1Service( self, site = None, service = None, timeStamp = None,
-                          availability = None, serviceUptime = None,
-                          hostUptime = None, message = None, meta = None ):
-    return self.__query( 'delete', 'SLST1Service', locals() )
-  def addOrModifySLST1Service( self, site, service, timeStamp, availability,
-                               serviceUptime, hostUptime, message ):
-    return self.__addOrModifyElement( 'SLST1Service', locals() )
+#  def insertSLST1Service( self, site, service, timeStamp, availability,
+#                          serviceUptime, hostUptime, message, meta = None ):
+#    return self.__query( 'insert', 'SLST1Service', locals() )
+#  def updateSLST1Service( self, site, service, timeStamp, availability,
+#                          serviceUptime, hostUptime, message, meta = None ):
+#    return self.__query( 'update', 'SLST1Service', locals() )
+#  def getSLST1Service( self, site = None, service = None, timeStamp = None,
+#                       availability = None, serviceUptime = None,
+#                       hostUptime = None, message = None, meta = None ):
+#    return self.__query( 'get', 'SLST1Service', locals() )
+#  def deleteSLST1Service( self, site = None, service = None, timeStamp = None,
+#                          availability = None, serviceUptime = None,
+#                          hostUptime = None, message = None, meta = None ):
+#    return self.__query( 'delete', 'SLST1Service', locals() )
+#  def addOrModifySLST1Service( self, site, service, timeStamp, availability,
+#                               serviceUptime, hostUptime, message ):
+#    return self.__addOrModifyElement( 'SLST1Service', locals() )
   
   
-  def insertSLSLogSE( self, name, timeStamp, validityDuration, availability,
-                     dataPartitionUsed, dataPartitionTotal, meta = None ):
-    return self.__query( 'insert', 'SLSLogSE', locals() )
-  def updateSLSLogSE( self, name, timeStamp, validityDuration, availability,
-                      dataPartitionUsed, dataPartitionTotal, meta = None ):
-    return self.__query( 'update', 'SLSLogSE', locals() )
-  def getSLSLogSE( self, name = None, timeStamp = None, validityDuration = None,
-                   availability = None, dataPartitionUsed = None,
-                   dataPartitionTotal = None, meta = None ):
-    return self.__query( 'get', 'SLSLogSE', locals() )
-  def deleteSLSLogSE( self, name = None, timeStamp = None,
-                      validityDuration = None, availability = None,
-                      dataPartitionUsed = None, dataPartitionTotal = None,
-                      meta = None ):
-    return self.__query( 'delete', 'SLSLogSE', locals() )
-  def addOrModifySLSLogSE( self, name, timeStamp, validityDuration, availability,
-                           dataPartitionUsed, dataPartitionTotal ):
-    return self.__addOrModifyElement( 'SLSLogSE', locals() )
+#  def insertSLSLogSE( self, name, timeStamp, validityDuration, availability,
+#                     dataPartitionUsed, dataPartitionTotal, meta = None ):
+#    return self.__query( 'insert', 'SLSLogSE', locals() )
+#  def updateSLSLogSE( self, name, timeStamp, validityDuration, availability,
+#                      dataPartitionUsed, dataPartitionTotal, meta = None ):
+#    return self.__query( 'update', 'SLSLogSE', locals() )
+#  def getSLSLogSE( self, name = None, timeStamp = None, validityDuration = None,
+#                   availability = None, dataPartitionUsed = None,
+#                   dataPartitionTotal = None, meta = None ):
+#    return self.__query( 'get', 'SLSLogSE', locals() )
+#  def deleteSLSLogSE( self, name = None, timeStamp = None,
+#                      validityDuration = None, availability = None,
+#                      dataPartitionUsed = None, dataPartitionTotal = None,
+#                      meta = None ):
+#    return self.__query( 'delete', 'SLSLogSE', locals() )
+#  def addOrModifySLSLogSE( self, name, timeStamp, validityDuration, availability,
+#                           dataPartitionUsed, dataPartitionTotal ):
+#    return self.__addOrModifyElement( 'SLSLogSE', locals() )
   
   
-  def insertSLSStorage( self, site, token, timeStamp, availability,
-                        refreshPeriod, validityDuration, totalSpace,
-                        guaranteedSpace, freeSpace, meta = None ):
-    return self.__query( 'insert', 'SLSStorage', locals() )
-  def updateSLSStorage( self, site, token, timeStamp, availability,
-                        refreshPeriod, validityDuration, totalSpace,
-                        guaranteedSpace, freeSpace, meta = None ):
-    return self.__query( 'update', 'SLSStorage', locals() )
-  def getSLSStorage( self, site = None, token = None, #timeStamp = None,
-                     availability = None, refreshPeriod = None,
-                     validityDuration = None, totalSpace = None,
-                     guaranteedSpace = None, freeSpace = None, meta = None ):
-    return self.__query( 'get', 'SLSStorage', locals() )
-  def deleteSLSStorage( self, site = None, token = None, timeStamp = None,
-                        availability = None, refreshPeriod = None,
-                        validityDuration = None, totalSpace = None,
-                        guaranteedSpace = None, freeSpace = None, meta = None ):
-    return self.__query( 'delete', 'SLSStorage', locals() )
-  def addOrModifySLSStorage( self, site, token, timeStamp, availability,
-                             refreshPeriod, validityDuration, totalSpace,
-                             guaranteedSpace, freeSpace ):
-    return self.__addOrModifyElement( 'SLSStorage', locals() )
+#  def insertSLSStorage( self, site, token, timeStamp, availability,
+#                        refreshPeriod, validityDuration, totalSpace,
+#                        guaranteedSpace, freeSpace, meta = None ):
+#    return self.__query( 'insert', 'SLSStorage', locals() )
+#  def updateSLSStorage( self, site, token, timeStamp, availability,
+#                        refreshPeriod, validityDuration, totalSpace,
+#                        guaranteedSpace, freeSpace, meta = None ):
+#    return self.__query( 'update', 'SLSStorage', locals() )
+#  def getSLSStorage( self, site = None, token = None, #timeStamp = None,
+#                     availability = None, refreshPeriod = None,
+#                     validityDuration = None, totalSpace = None,
+#                     guaranteedSpace = None, freeSpace = None, meta = None ):
+#    return self.__query( 'get', 'SLSStorage', locals() )
+#  def deleteSLSStorage( self, site = None, token = None, timeStamp = None,
+#                        availability = None, refreshPeriod = None,
+#                        validityDuration = None, totalSpace = None,
+#                        guaranteedSpace = None, freeSpace = None, meta = None ):
+#    return self.__query( 'delete', 'SLSStorage', locals() )
+#  def addOrModifySLSStorage( self, site, token, timeStamp, availability,
+#                             refreshPeriod, validityDuration, totalSpace,
+#                             guaranteedSpace, freeSpace ):
+#    return self.__addOrModifyElement( 'SLSStorage', locals() )
   
 
-  def insertSLSCondDB( self, site, timeStamp, availability, accessTime,
-                       meta = None ):
-    return self.__query( 'insert', 'SLSCondDB', locals() )
-  def updateSLSCondDB( self, site, timeStamp, availability, accessTime,
-                       meta = None ):
-    return self.__query( 'update', 'SLSCondDB', locals() )
-  def getSLSCondDB( self, site = None, timeStamp = None, availability = None,
-                    accessTime = None, meta = None ):
-    return self.__query( 'get', 'SLSCondDB', locals() )
-  def deleteSLSCondDB( self, site = None, timeStamp = None, availability = None,
-                       accessTime = None, meta = None ):
-    return self.__query( 'delete', 'SLSCondDB', locals() )
-  def addOrModifySLSCondDB( self, site, timeStamp, availability, accessTime ):
-    return self.__addOrModifyElement( 'SLSCondDB', locals() )
+#  def insertSLSCondDB( self, site, timeStamp, availability, accessTime,
+#                       meta = None ):
+#    return self.__query( 'insert', 'SLSCondDB', locals() )
+#  def updateSLSCondDB( self, site, timeStamp, availability, accessTime,
+#                       meta = None ):
+#    return self.__query( 'update', 'SLSCondDB', locals() )
+#  def getSLSCondDB( self, site = None, timeStamp = None, availability = None,
+#                    accessTime = None, meta = None ):
+#    return self.__query( 'get', 'SLSCondDB', locals() )
+#  def deleteSLSCondDB( self, site = None, timeStamp = None, availability = None,
+#                       accessTime = None, meta = None ):
+#    return self.__query( 'delete', 'SLSCondDB', locals() )
+#  def addOrModifySLSCondDB( self, site, timeStamp, availability, accessTime ):
+#    return self.__addOrModifyElement( 'SLSCondDB', locals() )
 
 ################################################################################
 # addOrModify PRIVATE FUNCTIONS
