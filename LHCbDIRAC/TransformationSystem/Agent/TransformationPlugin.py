@@ -1499,7 +1499,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.__logInfo( "Starting execution of plugin" )
     transID = self.params['TransformationID']
-    nKeep = min( 2, len( keepSEs ) )
+    nKeep = min( 1, len( keepSEs ) )
     #print nKeep, listSEs, keepSEs
 
     replicaGroups = self._getFileGroups( self.data )
