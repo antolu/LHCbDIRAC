@@ -11,6 +11,10 @@ __RCSID__ = "$Id$"
 from DIRAC import S_OK, S_ERROR
 import shutil, os
 
+# They should not be here, but I do not know their effect in terms of load.
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.Job   import Job
+
 def makeProductionLFN( jobid, prodid, config, fname, ftype ):
   """ Constructs the logical file name according to LHCb conventions.
   Returns the lfn without 'lfn:' prepended
@@ -46,10 +50,6 @@ class JobInfoFromXML:
     except Exception:
       self.message = 'Input parameter is not integer'
       return
-
-    # Import here to let the module load
-    from DIRAC.Interfaces.API.Dirac import Dirac
-    from DIRAC.Interfaces.API.Job   import Job
 
     dirac = Dirac()
 
