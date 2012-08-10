@@ -174,10 +174,11 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities import *
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
+  pluginScript.registerFileSwitches()
 
   Script.registerSwitch( '', 'AsIfProduction=', '   Production # that this test using as source of information' )
   Script.registerSwitch( '', 'AllFiles', '   Sets visible = False (useful if files were marked invisible)' )
@@ -208,6 +209,7 @@ if __name__ == "__main__":
   plugin = pluginScript.getOption( 'Plugin' )
   requestID = pluginScript.getOption( 'RequestID', 0 )
   pluginParams = pluginScript.getPluginParameters()
+  requestedLFNs = pluginScript.getOption( 'LFNs' )
   #print pluginParams
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
@@ -217,9 +219,9 @@ if __name__ == "__main__":
   # Create the transformation
   transformation = Transformation()
   transType = None
-  if plugin in getRemovalPlugins():
+  if plugin in pluginScript.getRemovalPlugins():
     transType = "Removal"
-  elif plugin in getReplicationPlugins():
+  elif plugin in pluginScript.getReplicationPlugins():
     transType = "Replication"
   else:
     transType = "Processing"
@@ -229,14 +231,16 @@ if __name__ == "__main__":
   visible = True
   if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.getOption( 'Productions' ) or transType == 'Processing':
     visible = False
-  bkQuery = pluginScript.getBKQuery( visible=visible )
-  if noRepFiles and not plugin:
-    bkQuery.setOption( 'ReplicaFlag', "All" )
-  bkQueryDict = bkQuery.getQueryDict()
-  if not bkQueryDict:
-    print "No BK query was given..."
-    Script.showHelp()
-    DIRAC.exit( 2 )
+  bkQueryDict = {}
+  if not requestedLFNs:
+    bkQuery = pluginScript.getBKQuery( visible=visible )
+    if noRepFiles and not plugin:
+      bkQuery.setOption( 'ReplicaFlag', "All" )
+    bkQueryDict = bkQuery.getQueryDict()
+    if not bkQueryDict:
+      print "No BK query was given..."
+      Script.showHelp()
+      DIRAC.exit( 2 )
 
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
@@ -253,14 +257,20 @@ if __name__ == "__main__":
         DIRAC.exit( 2 )
 
   print "Transformation type:", transType
-  print "BK Query:", bkQueryDict
+  if requestedLFNs:
+    print "Requested LFNs:", requestedLFNs
+  else:
+    print "BK Query:", bkQueryDict
   print "Plugin:", plugin
   print "Parameters:", pluginParams
   if requestID:
     print "RequestID:", requestID
   # get the list of files from BK
-  print "Getting the files from BK"
-  lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
+  if requestedLFNs:
+    lfns = requestedLFNs
+  else:
+    print "Getting the files from BK"
+    lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
   if len( lfns ) == 0:
     print "No files found in BK...Exiting now"
     DIRAC.exit( 0 )
@@ -273,7 +283,7 @@ if __name__ == "__main__":
   transformation.setPlugin( plugin )
   transformation.setBkQuery( bkQueryDict )
 
-  from DIRAC.Core.Utilities.List import sortList
+  from DIRAC.Core.Utilities.List                                         import sortList
   from LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin
   transID = -9999
   pluginParams['TransformationID'] = transID
@@ -282,11 +292,7 @@ if __name__ == "__main__":
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  oplugin = TransformationPlugin( plugin,
-                                  transClient = fakeClient,
-                                  replicaManager = ReplicaManager(),
-                                  bkkClient = BookkeepingClient(),
-                                  debug = debugPlugin )
+  oplugin = TransformationPlugin( plugin, transClient=fakeClient, replicaManager=ReplicaManager(), bkkClient=BookkeepingClient(), debug=debugPlugin )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...
