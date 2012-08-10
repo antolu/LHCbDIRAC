@@ -4,7 +4,7 @@
 
 __RCSID__ = "$Id$"
 
-import string, os, random, time, glob, copy
+import os, random, time, glob, copy
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
@@ -155,7 +155,7 @@ class UploadOutputData( ModuleBase ):
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 
-      self.log.info( 'The following files will be uploaded: %s' % ( string.join( final.keys(), ', ' ) ) )
+      self.log.info( 'The following files will be uploaded: %s' % ( ', '.join( final.keys() ) ) )
       for fileName, metadata in final.items():
         self.log.info( '--------%s--------' % fileName )
         for n, v in metadata.items():
@@ -163,7 +163,7 @@ class UploadOutputData( ModuleBase ):
 
       #At this point can exit and see exactly what the module would have uploaded
       if not self._enableModule():
-        self.log.info( 'Would have attempted to upload the following files %s' % string.join( final.keys(), ', ' ) )
+        self.log.info( 'Would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
         return S_OK()
 
       #Prior to uploading any files must check (for productions with input data) that no descendent files
@@ -201,8 +201,7 @@ class UploadOutputData( ModuleBase ):
       failover = {}
       for fileName, metadata in final.items():
         self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
-                                                                                     string.join( metadata['resolvedSE'],
-                                                                                                  ', ' ) ) )
+                                                                                     ', '.join( metadata['resolvedSE'] ) ) )
         result = failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
                                                            lfn = metadata['lfn'],
@@ -288,7 +287,7 @@ class UploadOutputData( ModuleBase ):
 
       #Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
-      self.log.info( 'The following BK records will be sent: %s' % ( string.join( bkFiles, ', ' ) ) )
+      self.log.info( 'The following BK records will be sent: %s' % ( ', '.join( bkFiles ) ) )
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
@@ -373,8 +372,8 @@ class UploadOutputData( ModuleBase ):
     for inputDataFile, descendents in inputDataDescDict.items():
       if descendents:
         failed = True
-        self.log.error( 'Input files: \n%s \nDescendents: %s' % ( string.join( inputData, '\n' ),
-                                                                  string.join( descendents, '\n' ) ) )
+        self.log.error( 'Input files: \n%s \nDescendents: %s' % ( '\n'.join( inputDataFile ),
+                                                                  '\n'.join( descendents ) ) )
     if failed:
       self.log.error( '!!!!Found descendent files for production %s with \
       BK replica flag for an input file of this job!!!!' % ( prodID ) )

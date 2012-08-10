@@ -97,7 +97,7 @@ class BKInputDataAgent( OptimizerModule ):
         badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'File does not exist in the BK' ) )
     if badLFNs:
       self.log.info( 'Found %s problematic LFN(s) for job %s' % ( len( badLFNs ), job ) )
-      param = '\n'.join( badLFNs, '\n' )
+      param = '\n'.join( badLFNs )
       self.log.info( param )
       result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
       if not result['OK']:
@@ -139,7 +139,7 @@ class BKInputDataAgent( OptimizerModule ):
     # Failed the job if there are any inconsistencies
     if badLFNs:
       self.log.info( 'Found %s problematic LFN(s) for job %s' % ( badFileCount, job ) )
-      param = '\n'.join( badLFNs, '\n' )
+      param = '\n'.join( badLFNs )
       self.log.info( param )
       result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
       if not result['OK']:

@@ -124,7 +124,7 @@ class DataRecoveryAgent( AgentModule ):
     ########## Uncomment for debugging
 
     if trans:
-      self.log.info( 'Skipping all transformations except %s' % ( ', '.join( trans, ', ' ) ) )
+      self.log.info( 'Skipping all transformations except %s' % ( ', '.join( trans ) ) )
 
     for transformation, typeName in transformationDict.items():
       if trans:
@@ -132,7 +132,8 @@ class DataRecoveryAgent( AgentModule ):
           continue
       if ignoreLessThan:
         if int( ignoreLessThan ) > int( transformation ):
-          self.log.verbose( 'Ignoring transformation %s ( is less than specified limit %s )' % ( transformation, ignoreLessThan ) )
+          self.log.verbose( 'Ignoring transformation %s ( is less than specified limit %s )' % ( transformation,
+                                                                                                 ignoreLessThan ) )
           continue
 
       self.log.info( '='*len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
@@ -224,7 +225,7 @@ class DataRecoveryAgent( AgentModule ):
             continue
         else:
           for job, fileList in jobsWithProblematicFiles.items():
-            self.log.info( 'Job: %s, Input data: %s' % ( job, '\n'.join( fileList, '\n' ) ) )
+            self.log.info( 'Job: %s, Input data: %s' % ( job, '\n'.join( fileList ) ) )
           self.log.warn( '!!!!!!!!Production %s has %s problematic descendent files without \
           replica flags (found from %s jobs above).' % ( transformation, len( problematicFiles ),
                                                          len( jobsWithProblematicFiles.keys() ) ) )
