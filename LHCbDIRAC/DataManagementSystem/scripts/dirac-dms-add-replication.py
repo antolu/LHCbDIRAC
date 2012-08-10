@@ -11,11 +11,12 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities import *
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import *
   import time
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
+  pluginScript.registerFileSwitches()
   test = False
   start = False
   force = False
@@ -34,11 +35,6 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors=True )
 
-  plugin = pluginScript.getOption( 'Plugin' )
-  prods = pluginScript.getOption( 'Productions' )
-  requestID = pluginScript.getOption( 'RequestID' )
-  fileType = pluginScript.getOption( 'FileType' )
-  pluginParams = pluginScript.getPluginParameters()
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
@@ -59,10 +55,17 @@ if __name__ == "__main__":
     elif opt == "nolfccheck":
       lfcCheck = False
 
+  plugin = pluginScript.getOption( 'Plugin' )
   if not plugin:
     print "ERROR: No plugin supplied..."
     Script.showHelp()
     DIRAC.exit( 0 )
+  prods = pluginScript.getOption( 'Productions' )
+  requestID = pluginScript.getOption( 'RequestID' )
+  fileType = pluginScript.getOption( 'FileType' )
+  pluginParams = pluginScript.getPluginParameters()
+  requestedLFNs = pluginScript.getOption( 'LFNs' )
+
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
   transType = None
@@ -72,8 +75,8 @@ if __name__ == "__main__":
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"
-    print "Replication :", str( replicationPlugins )
-    print "Removal     :", str( removalPlugins )
+    print "Replication :", str( getReplicationPlugins() )
+    print "Removal     :", str( getRemovalPlugins() )
     print "If needed, ask for adding %s to the known list of plugins" % plugin
     DIRAC.exit( 2 )
 
@@ -83,12 +86,16 @@ if __name__ == "__main__":
   visible = True
   if plugin == "DestroyDataset" or prods:
     visible = False
-  bkQuery = pluginScript.getBKQuery( visible=visible )
-  transBKQuery = bkQuery.getQueryDict()
-  if not transBKQuery:
-    print "No BK query was given..."
-    Script.showHelp()
-    DIRAC.exit( 2 )
+
+  if not requestedLFNs:
+    bkQuery = pluginScript.getBKQuery( visible=visible )
+    transBKQuery = bkQuery.getQueryDict()
+    if transBKQuery.keys() in ( [], ['Visible'] ):
+      print "No BK query was given..."
+      Script.showHelp()
+      DIRAC.exit( 2 )
+  else:
+    transBKQuery = {}
 
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
@@ -98,7 +105,10 @@ if __name__ == "__main__":
 
   transGroup = plugin
   transName = transType
-  if prods:
+  if requestedLFNs:
+    longName = transGroup + " for %d LFNs" % len( requestedLFNs )
+    transName += '-LFNs'
+  elif prods:
     if not fileType:
       fileType = ["All"]
     prodsStr = ','.join( [str( p ) for p in prods] )
@@ -144,27 +154,31 @@ if __name__ == "__main__":
 
   transformation.setPlugin( plugin )
 
-  transformation.setBkQuery( transBKQuery )
-
   if test:
     print "Transformation type:", transType
     print "Transformation Name:", transName
     print "Transformation group:", transGroup
     print "Long description:", longName
     print "Transformation body:", transBody
-    print "BK Query:", transBKQuery
+    if transBKQuery:
+      print "BK Query:", transBKQuery
+    elif requestedLFNs:
+      print "List of%d LFNs" % len( requestedLFNs )
+    else:
+      # Should not happen here, but who knows ;-)
+      print "No BK query provided..."
+      Script.showHelp()
+      DIRAC.exit( 0 )
 
   if transBKQuery:
     print "Executing the BK query..."
     startTime = time.time()
     lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
     bkTime = time.time() - startTime
-    nfiles = len( lfns )
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
   else:
-    print "No BK query provided..."
-    Script.showHelp()
-    DIRAC.exit( 0 )
+    lfns = requestedLFNs
+  nfiles = len( lfns )
 
   if test:
     print "Plugin:", plugin
@@ -201,6 +215,10 @@ if __name__ == "__main__":
     else:
       print 'All files are in the LFC'
 
+  # Prepare the transformation
+  if transBKQuery:
+    transformation.setBkQuery( transBKQuery )
+
   # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
   setInvisiblePlugins = ( "DeleteDataset" )
   if invisible or plugin in setInvisiblePlugins:
@@ -208,8 +226,9 @@ if __name__ == "__main__":
     res = BookkeepingClient().setFilesInvisible( lfns )
     if res['OK']:
       print "%d files were successfully set invisible in the BK" % len( lfns )
-      transBKQuery.pop( "Visible" )
-      transformation.setBkQuery( transBKQuery )
+      if transBKQuery:
+        transBKQuery.pop( "Visible" )
+        transformation.setBkQuery( transBKQuery )
     else:
       print "Failed to set the files invisible: %s" % res['Message']
       DIRAC.exit( 2 )
@@ -228,6 +247,13 @@ if __name__ == "__main__":
         continue
       else:
         DIRAC.exit( 2 )
+    if requestedLFNs:
+      res = transformation.addFilesToTransformation( requestedLFNs, printOutput=False )
+      if not res['OK']:
+        print "Could not add %d files to transformation" % len( requestedLFNs )
+        DIRAC.exit( 2 )
+      else:
+        print "%d files successfully added to transformation" % len( requestedLFNs )
     if requestID:
       transformation.setTransformationFamily( requestID )
     if start:
@@ -242,6 +268,7 @@ if __name__ == "__main__":
       if pluginParams:
         print "Additional parameters:", pluginParams
       print "RequestID:", requestID
+
       DIRAC.exit( 0 )
     else:
       print result['Message']
