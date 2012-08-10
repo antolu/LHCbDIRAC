@@ -220,8 +220,7 @@ class UploadOutputData( ModuleBase ):
             self.log.info( '%s uploaded successfully, will be registered in BK if \
             all files uploaded for job' % ( fileName ) )
 
-          lfn = metadata['lfn']
-          performBKRegistration.append( lfn )
+          performBKRegistration.append( metadata['lfn'] )
 
       cleanUp = False
       for fileName, metadata in failover.items():

@@ -30,8 +30,6 @@ pr.stepsList.append( '{{p7Step}}' )
 pr.stepsList.append( '{{p8Step}}' )
 pr.stepsList.append( '{{p9Step}}' )
 
-pr.resolveSteps()
-
 ###########################################
 # Configurable and fixed parameters
 ###########################################

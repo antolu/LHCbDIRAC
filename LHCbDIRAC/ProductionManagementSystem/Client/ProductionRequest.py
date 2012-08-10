@@ -117,21 +117,26 @@ class ProductionRequest( object ):
   def buildAndLaunchRequest( self ):
     """ uses _getProdsDescriptionDict, _buildProduction, and DiracProduction.launchProduction
     """
+
     if not self.stepsListDict:
       self.resolveSteps()
 
-    stepsListDict = copy.deepcopy( self.stepsListDict )
+    self._applyOptionalCorrections()
 
     prodsDict = self._getProdsDescriptionDict()
 
+    stepsListDict = copy.deepcopy( self.stepsListDict )
+
     prodID = 0
 
+    #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
 
       if self.prodsToLaunch:
         if prodIndex not in self.prodsToLaunch:
           continue
 
+      #build the list of steps in a production
       stepsInProd = []
       for stepID in prodDict['stepsInProd']:
         for step in stepsListDict:
@@ -147,6 +152,7 @@ class ProductionRequest( object ):
                                     groupSize = prodDict['groupSize'],
                                     inputDataPolicy = prodDict['inputDataPolicy'],
                                     bkQuery = prodDict['bkQuery'],
+                                    plugin = prodDict['plugin'],
                                     previousProdID = prodID,
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'] )
@@ -171,12 +177,53 @@ class ProductionRequest( object ):
 
   #############################################################################
 
-  def _getProdsDescriptionDict( self ):
-    """ Returns a dictionary representing the description of the request (of all the productions in it)
+  def _applyOptionalCorrections( self ):
+    """ if needed, calls _splitIntoProductionSteps and applies other changes
     """
+    if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
+      i = 0
+      indexes = []
+      for pt in self.prodsTypeList:
+        if pt.lower() == 'merge':
+          indexes.append( i )
+        i += 1
 
-    prodsDict = {}
-    bkQuery = self.bkQuery
+      for index in indexes:
+        #In this case and only in this case I have to apply some correction
+        plugin = self.plugins[index]
+        outputSE = self.outputSEs[index]
+        priority = self.priorities[index]
+        cpu = self.cpus[index]
+        if 'byrunfiletypesizewithflush' != plugin.lower():
+          stepToSplit = self.stepsListDict[index]
+          numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
+          self.prodsTypeList.remove( 'Merge' )
+          self.plugins.pop( index )
+          self.outputSEs.pop( index )
+          self.priorities.pop( index )
+          self.cpus.pop( index )
+          newSteps = _splitIntoProductionSteps( stepToSplit )
+          newSteps.reverse()
+          self.stepsListDict.remove( stepToSplit )
+          last = self.stepsInProds.pop( index )[0]
+          for x in range( numberOfProdsToInsert ):
+            self.prodsTypeList.insert( index, 'Merge' )
+            self.plugins.insert( index, plugin )
+            self.outputSEs.insert( index, outputSE )
+            self.priorities.insert( index, priority )
+            self.cpus.insert( index, cpu )
+            self.stepsListDict.insert( index, newSteps[x] )
+            self.stepsInProds.insert( index + x, [last + x] )
+
+    correctedStepsInProds = []
+    toInsert = 1
+    lengths = [len( x ) for x in self.stepsInProds]
+    for l in lengths:
+      li = [toInsert + x for x in range( l )]
+      toInsert += l
+      correctedStepsInProds.append( li )
+
+    self.stepsInProds = correctedStepsInProds
 
     if not self.removeInputsFlags:
       removeInputsFlags = []
@@ -213,21 +260,30 @@ class ProductionRequest( object ):
     else:
       inputDataPolicies = self.inputDataPolicies
 
+  #############################################################################
+
+  def _getProdsDescriptionDict( self ):
+    """ Returns a dictionary representing the description of the request (of all the productions in it)
+    """
+
+    prodsDict = {}
+    bkQuery = self.bkQuery
+
     prodNumber = 1
 
     for prodType, stepsInProd, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outFileMask, target, groupSize, plugin, idp in itertools.izip( self.prodsTypeList,
                                                                                 self.stepsInProds,
-                                                                                removeInputsFlags,
+                                                                                self.removeInputsFlags,
                                                                                 self.outputSEs,
                                                                                 self.priorities,
                                                                                 self.cpus,
-                                                                                inputD,
-                                                                                outputFileMasks,
-                                                                                targets,
-                                                                                groupSizes,
+                                                                                self.inputs,
+                                                                                self.outputFileMasks,
+                                                                                self.targets,
+                                                                                self.groupSizes,
                                                                                 self.plugins,
-                                                                                inputDataPolicies
+                                                                                self.inputDataPolicies
                                                                                 ):
 
       if not self.parentRequestID and self.requestID:
@@ -278,6 +334,7 @@ class ProductionRequest( object ):
                         removeInputData = False,
                         groupSize = 1,
                         bkQuery = None,
+                        plugin = '',
                         previousProdID = 0,
                         derivedProdID = 0,
                         transformationFamily = 0 ):
@@ -298,6 +355,7 @@ class ProductionRequest( object ):
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
     prod.setJobParameters( { 'CPUTime': cpu } )
     prod._setParameter( 'generatorName', 'string', str( self.generatorName ), 'Generator Name' )
+    prod.plugin = plugin
 
     #optional parameters
     prod.jobFileGroupSize = groupSize
@@ -418,23 +476,22 @@ def _toIntList( stringsList ):
 
 #############################################################################
 
-def _splitIntoProductionSteps( stepsList ):
+def _splitIntoProductionSteps( step ):
   """ Given a list of bookkeeping steps, produce production steps
   """
   prodSteps = []
 
-  for step in stepsList:
-    if len( step['fileTypesIn'] ) <= 1:
-      prodSteps.append( step )
-    else:
-      if set( step['fileTypesOut'] ) > set( step['fileTypesIn'] ):
-        raise ValueError, "Step outputs %s are not part of the inputs %s...?" % ( str( step['fileTypesOut'] ),
-                                                                                  str( step['fileTypesIn'] ) )
-      for outputTypes in step['fileTypesOut']:
-        prodStep = copy.deepcopy( step )
-        prodStep['fileTypesIn'] = [outputTypes]
-        prodStep['fileTypesOut'] = [outputTypes]
-        prodSteps.append( prodStep )
+  if len( step['fileTypesIn'] ) <= 1:
+    prodSteps.append( step )
+  else:
+    if set( step['fileTypesOut'] ) > set( step['fileTypesIn'] ):
+      raise ValueError, "Step outputs %s are not part of the inputs %s...?" % ( str( step['fileTypesOut'] ),
+                                                                                str( step['fileTypesIn'] ) )
+    for outputTypes in step['fileTypesOut']:
+      prodStep = copy.deepcopy( step )
+      prodStep['fileTypesIn'] = [outputTypes]
+      prodStep['fileTypesOut'] = [outputTypes]
+      prodSteps.append( prodStep )
 
   return prodSteps
 

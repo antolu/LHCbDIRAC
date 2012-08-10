@@ -93,17 +93,170 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                         'Message': 'error'}
     self.assertRaises( ValueError, pr.resolveSteps )
 
+  def test__applyOptionalCorrections( self ):
 
+    stepStripp = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 123, 'ApplicationVersion': 'v28r3p1',
+                  'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                  'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+                  'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+                  'fileTypesIn': ['SDST'],
+                  'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
+    mergeStep = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+                 'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                 'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+                 'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+                 'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST'],
+                 'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST']}
+    mergeStepBHADRON = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+                        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+                        'fileTypesIn': ['BHADRON.DST'],
+                        'fileTypesOut': ['BHADRON.DST']}
+    mergeStepCALIBRA = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+                        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+                        'fileTypesIn': ['CALIBRATION.DST'],
+                        'fileTypesOut': ['CALIBRATION.DST']}
+    mergeStepPIDMDST = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+                        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+                        'fileTypesIn': ['PID.MDST'],
+                        'fileTypesOut': ['PID.MDST']}
+
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr.prodsTypeList = ['DataStripping', 'Merge']
+    pr.plugins = ['ByRun', 'BySize']
+    pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsInProds = [[1], [2]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4]
+    pr.cpus = [10, 100]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
+    pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
+    stepsListDictExpected = [stepStripp, mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST ]
+    stepsInProdExpected = [[1], [2], [3], [4]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 4, 4, 4]
+    cpusExpected = [10, 100, 100, 100]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
+    pr.prodsTypeList = ['DataStripping', 'Merge']
+    pr.plugins = ['ByRun', 'ByRunFileTypeSizeWithFlush']
+    pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsInProds = [[1], [2]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4]
+    pr.cpus = [10, 100]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['DataStripping', 'Merge']
+    pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
+    stepsListDictExpected = [stepStripp, mergeStep ]
+    stepsInProdExpected = [[1], [2]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 4]
+    cpusExpected = [10, 100]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
+    pr.prodsTypeList = ['Merge', 'Merge']
+    pr.plugins = ['BySize', 'ByRunFileTypeSizeWithFlush']
+    pr.stepsListDict = [mergeStep, mergeStep]
+    pr.stepsInProds = [[1], [2]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4]
+    pr.cpus = [10, 100]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
+    pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
+    stepsListDictExpected = [mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST, mergeStep ]
+    stepsInProdExpected = [[1], [2], [3], [4]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 1, 1, 4]
+    cpusExpected = [10, 10, 10, 100]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
+    pr.prodsTypeList = ['DataStripping']
+    pr.plugins = ['ByRun']
+    pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsInProds = [[1, 2]]
+    pr.priorities = [1]
+    pr.outputSEs = [ 'Tier1-DST']
+    pr.cpus = [10]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['DataStripping']
+    pluginsExpected = ['ByRun']
+    stepsListDictExpected = [stepStripp, mergeStep ]
+    stepsInProdExpected = [[1, 2]]
+    outputSEsExpected = ['Tier1-DST']
+    prioritiesExpected = [1]
+    cpusExpected = [10]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
+    pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
+    pr.plugins = ['ByRun', 'BySize', 'ByRunFileTypeSizeWithFlush']
+    pr.stepsListDict = [stepStripp, mergeStep, mergeStep]
+    pr.stepsInProds = [[1], [2], [3]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4, 5]
+    pr.cpus = [10, 100, 1000]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
+    pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
+    stepsListDictExpected = [stepStripp, mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST, mergeStep ]
+    stepsInProdExpected = [[1], [2], [3], [4], [5]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 4, 4, 4, 5]
+    cpusExpected = [10, 100, 100, 100, 1000]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = [123, 456, 789]
     pr.prodsTypeList = ['DataStripping', 'Merge']
+    pr.removeInputsFlags = [False, True]
+    pr.inputs = [[], []]
+    pr.targets = ['', '']
+    pr.groupSizes = [1, 1]
+    pr.inputDataPolicies = ['download', 'download']
+    pr.outputFileMasks = ['', '']
     pr.stepsInProds = [[1, 2], [3]]
     pr.bkQuery = {'P':1, 'Q':'abc'}
     pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST']
     pr.priorities = [5, 8]
-    pr.CPUs = [1000000, 300000]
+    pr.cpus = [1000000, 300000]
     pr.plugins = ['ByRun', 'BySize']
 
     res = pr._getProdsDescriptionDict()
@@ -146,7 +299,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'transformationFamily':0
                       }
                    }
-
+    self.maxDiff = None
     self.assertEqual( res, resExpected )
 
 
@@ -155,7 +308,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.dataTakingConditions = 'dataTC'
     pr.processingPass = 'procePass'
-    pr.DQFlag = 'OK,AA, BB'
+    pr.dqFlag = 'OK,AA, BB'
     pr.startRun = '123'
     pr.endRun = '456'
     pr._buildFullBKKQuery()
@@ -170,7 +323,6 @@ class ProductionRequestSuccess( ClientTestCase ):
                    'StartRun':123,
                    'EndRun':456
                    }
-
     self.assertEqual( pr.bkQuery, resExpected )
 
     pr.runsList = ['1', '2']
@@ -178,13 +330,13 @@ class ProductionRequestSuccess( ClientTestCase ):
 
   def test__splitIntoProductionSteps( self ):
 
-    stepStripp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
+    stepStripp = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
                   'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
                   'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
                   'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                   'fileTypesIn': ['SDST'],
                   'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
-                  ]
+
 
     r = _splitIntoProductionSteps( stepStripp )
 
@@ -193,18 +345,18 @@ class ProductionRequestSuccess( ClientTestCase ):
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
               'fileTypesIn': ['SDST'],
-              'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
-             ]
+              'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}]
+
 
     self.assertEqual( r, r_exp )
 
-    stepMerge = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
+    stepMerge = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
                  'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
                  'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
                  'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                  'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST'],
                  'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST']}
-                 ]
+
 
     r = _splitIntoProductionSteps( stepMerge )
 
@@ -223,46 +375,6 @@ class ProductionRequestSuccess( ClientTestCase ):
              ]
 
     self.assertEqual( r, r_exp )
-
-    stepsList = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-                  'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-                  'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-                  'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-                  'fileTypesIn': ['SDST'],
-                  'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST']},
-                 {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-                 'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-                 'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-                 'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-                 'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST'],
-                 'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST']}
-                 ]
-
-    r = _splitIntoProductionSteps( stepsList )
-
-    r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-              'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-              'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-              'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-              'fileTypesIn': ['SDST'],
-              'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST']},
-             {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-              'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-              'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-              'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-              'fileTypesIn': ['BHADRON.DST'],
-              'fileTypesOut': ['BHADRON.DST']},
-             {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-              'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-              'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-              'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-              'fileTypesIn': ['CALIBRATION.DST'],
-              'fileTypesOut': ['CALIBRATION.DST']}
-             ]
-
-    self.assertEqual( r, r_exp )
-
-
 
 #############################################################################
 # Test Suite run 
