@@ -178,8 +178,10 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _applyOptionalCorrections( self ):
-    """ if needed, calls _splitIntoProductionSteps and applies other changes
+    """ if needed, calls _splitIntoProductionSteps. It also applies other changes
     """
+
+    #Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
       i = 0
       indexes = []
@@ -189,7 +191,7 @@ class ProductionRequest( object ):
         i += 1
 
       for index in indexes:
-        #In this case and only in this case I have to apply some correction
+        #In this case and only in this case I have to split the merging in many productions
         plugin = self.plugins[index]
         outputSE = self.outputSEs[index]
         priority = self.priorities[index]
@@ -236,29 +238,19 @@ class ProductionRequest( object ):
       removeInputsFlags = self.removeInputsFlags
 
     if not self.outputFileMasks:
-      outputFileMasks = [''] * len( self.prodsTypeList )
-    else:
-      outputFileMasks = self.outputFileMasks
+      self.outputFileMasks = [''] * len( self.prodsTypeList )
 
     if not self.inputs:
-      inputD = [[]] * len( self.prodsTypeList )
-    else:
-      inputD = self.inputs
+      self.inputs = [[]] * len( self.prodsTypeList )
 
     if not self.targets:
-      targets = [''] * len( self.prodsTypeList )
-    else:
-      targets = self.targets
+      self.targets = [''] * len( self.prodsTypeList )
 
     if not self.groupSizes:
-      groupSizes = [1] * len( self.prodsTypeList )
-    else:
-      groupSizes = self.groupSizes
+      self.groupSizes = [1] * len( self.prodsTypeList )
 
     if not self.inputDataPolicies:
-      inputDataPolicies = ['download'] * len( self.prodsTypeList )
-    else:
-      inputDataPolicies = self.inputDataPolicies
+      self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
   #############################################################################
 
@@ -292,28 +284,33 @@ class ProductionRequest( object ):
         transformationFamily = self.parentRequestID
 
       prodsDict[ prodNumber ] = {
-                               'productionType': prodType,
-                               'stepsInProd': [self.stepsList[index - 1] for index in stepsInProd],
-                               'bkQuery': bkQuery,
-                               'removeInputsFlag': removeInputsFlag,
-                               'tracking':0,
-                               'outputSE':outputSE,
-                               'priority': priority,
-                               'cpu': cpu,
-                               'input': inputD,
-                               'outputFileMask':outFileMask,
-                               'target':target,
-                               'groupSize': groupSize,
-                               'plugin': plugin,
-                               'inputDataPolicy': idp,
-                               'derivedProduction': 0,
-                               'transformationFamily': transformationFamily
-                               }
+                                 'productionType': prodType,
+                                 'stepsInProd': [self.stepsList[index - 1] for index in stepsInProd],
+                                 'bkQuery': bkQuery,
+                                 'removeInputsFlag': removeInputsFlag,
+                                 'tracking':0,
+                                 'outputSE':outputSE,
+                                 'priority': priority,
+                                 'cpu': cpu,
+                                 'input': inputD,
+                                 'outputFileMask':outFileMask,
+                                 'target':target,
+                                 'groupSize': groupSize,
+                                 'plugin': plugin,
+                                 'inputDataPolicy': idp,
+                                 'derivedProduction': 0,
+                                 'transformationFamily': transformationFamily
+                                 }
       bkQuery = 'fromPreviousProd'
       prodNumber += 1
 
-    #tracking the last production
+    #tracking the last production(s)
     prodsDict[prodNumber - 1]['tracking'] = 1
+    typeOfLastProd = prodsDict[prodNumber - 1]['productionType']
+    index = 2
+    while prodsDict[prodNumber - index]['productionType'] == typeOfLastProd:
+      prodsDict[prodNumber - index]['tracking'] = 1
+      index += 1
 
     #production derivation, if necessary
     if self.derivedProduction:
@@ -348,13 +345,13 @@ class ProductionRequest( object ):
                                                                           self.prodGroup, self.eventType,
                                                                           self.appendName ) )
     prod.setBKParameters( self.configName, self.configVersion, self.prodGroup, self.dataTakingConditions )
-    prod._setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
-    prod._setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )
+    prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
+    prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )
     prod.prodGroup = self.prodGroup
     prod.priority = str( priority )
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
     prod.setJobParameters( { 'CPUTime': cpu } )
-    prod._setParameter( 'generatorName', 'string', str( self.generatorName ), 'Generator Name' )
+    prod.setParameter( 'generatorName', 'string', str( self.generatorName ), 'Generator Name' )
     prod.plugin = plugin
 
     #optional parameters
@@ -429,7 +426,7 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _buildFullBKKQuery( self ):
-    """ just simply create the bkk query dictionary
+    """ simply creates the bkk query dictionary
     """
 
     self.bkQuery = {
@@ -461,6 +458,8 @@ class ProductionRequest( object ):
 #############################################################################
 
 def _toIntList( stringsList ):
+  """ return list of int from list of strings
+  """
 
   listInt = []
   i = 0

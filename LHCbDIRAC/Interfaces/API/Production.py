@@ -86,19 +86,19 @@ class Production():
     self.setFileMask( '' )
 
     #version control
-    self._setParameter( 'productionVersion', 'string', __RCSID__, 'ProdAPIVersion' )
+    self.setParameter( 'productionVersion', 'string', __RCSID__, 'ProdAPIVersion' )
 
     #General workflow parameters
-    self._setParameter( 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
-    self._setParameter( 'JOB_ID', 'string', '00006789', 'ProductionJobID' )
-    self._setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
-    self._setParameter( 'outputMode', 'string', 'Any', 'SEResolutionPolicy' )
-    self._setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
+    self.setParameter( 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
+    self.setParameter( 'JOB_ID', 'string', '00006789', 'ProductionJobID' )
+    self.setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
+    self.setParameter( 'outputMode', 'string', 'Any', 'SEResolutionPolicy' )
+    self.setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
     #BK related parameters
-    self._setParameter( 'configName', 'string', 'MC', 'ConfigName' )
-    self._setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
-    self._setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
+    self.setParameter( 'configName', 'string', 'MC', 'ConfigName' )
+    self.setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
+    self.setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
 
   #############################################################################
 
@@ -114,7 +114,7 @@ class Production():
 
   #############################################################################
 
-  def _setParameter( self, name, parameterType, parameterValue, description ):
+  def setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
     proposedParam = self.LHCbJob.opsHelper.getValue( 'Productions/%s' % name, '' )
@@ -621,8 +621,8 @@ class Production():
     prodID = 0
     if publish:
 
-      self._setParameter( 'ProcessingType', 'JDL', str( self.prodGroup ), 'ProductionGroupOrType' )
-      self._setParameter( 'Priority', 'JDL', str( self.priority ), 'UserPriority' )
+      self.setParameter( 'ProcessingType', 'JDL', str( self.prodGroup ), 'ProductionGroupOrType' )
+      self.setParameter( 'Priority', 'JDL', str( self.priority ), 'UserPriority' )
 
       result = self.transClient.addTransformation( fileName, descShort, descLong,
                                                    self.LHCbJob.type, self.plugin, 'Manual',
@@ -801,7 +801,7 @@ class Production():
     """
     if type( fileMask ) == type( [] ):
       fileMask = ';'.join( fileMask )
-    self._setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
+    self.setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
 
     if stepMask:
       if type( stepMask ) == type( [] ):
@@ -831,17 +831,17 @@ class Production():
     """
     if not outputMode.lower().capitalize() in ( 'Local', 'Any' ):
       raise TypeError, 'Output mode must be Local or Any'
-    self._setParameter( 'outputMode', 'string', outputMode.lower().capitalize(), 'SEResolutionPolicy' )
+    self.setParameter( 'outputMode', 'string', outputMode.lower().capitalize(), 'SEResolutionPolicy' )
 
   #############################################################################
 
   def setBKParameters( self, configName, configVersion, groupDescription, conditions ):
     """ Sets BK parameters for production.
     """
-    self._setParameter( 'configName', 'string', configName, 'ConfigName' )
-    self._setParameter( 'configVersion', 'string', configVersion, 'ConfigVersion' )
-    self._setParameter( 'groupDescription', 'string', groupDescription, 'GroupDescription' )
-    self._setParameter( 'conditions', 'string', conditions, 'SimOrDataTakingCondsString' )
-    self._setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
+    self.setParameter( 'configName', 'string', configName, 'ConfigName' )
+    self.setParameter( 'configVersion', 'string', configVersion, 'ConfigVersion' )
+    self.setParameter( 'groupDescription', 'string', groupDescription, 'GroupDescription' )
+    self.setParameter( 'conditions', 'string', conditions, 'SimOrDataTakingCondsString' )
+    self.setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
 
   #############################################################################

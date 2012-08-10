@@ -1,3 +1,8 @@
+""" Just couple utilities
+"""
+
+__RCSID__ = "$Id$"
+
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption, getUsersInGroup
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient

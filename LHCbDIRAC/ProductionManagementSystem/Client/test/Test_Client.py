@@ -244,20 +244,20 @@ class ProductionRequestSuccess( ClientTestCase ):
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
-    pr.stepsList = [123, 456, 789]
-    pr.prodsTypeList = ['DataStripping', 'Merge']
-    pr.removeInputsFlags = [False, True]
-    pr.inputs = [[], []]
-    pr.targets = ['', '']
-    pr.groupSizes = [1, 1]
-    pr.inputDataPolicies = ['download', 'download']
-    pr.outputFileMasks = ['', '']
-    pr.stepsInProds = [[1, 2], [3]]
+    pr.stepsList = [123, 456, 789, 987]
+    pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
+    pr.removeInputsFlags = [False, True, True]
+    pr.inputs = [[], [], []]
+    pr.targets = ['', '', '']
+    pr.groupSizes = [1, 1, 2]
+    pr.inputDataPolicies = ['download', 'download', 'download']
+    pr.outputFileMasks = ['', '', '']
+    pr.stepsInProds = [[1, 2], [3], [4]]
     pr.bkQuery = {'P':1, 'Q':'abc'}
-    pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST']
-    pr.priorities = [5, 8]
-    pr.cpus = [1000000, 300000]
-    pr.plugins = ['ByRun', 'BySize']
+    pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
+    pr.priorities = [5, 8, 9]
+    pr.cpus = [1000000, 300000, 10000]
+    pr.plugins = ['ByRun', 'BySize', 'BySize']
 
     res = pr._getProdsDescriptionDict()
 
@@ -293,6 +293,25 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'input': [],
                       'target':'',
                       'groupSize': 1,
+                      'plugin': 'BySize',
+                      'inputDataPolicy':'download',
+                      'derivedProduction':0,
+                      'transformationFamily':0
+                      },
+
+                   3:{
+                      'productionType':'Merge',
+                      'stepsInProd':[987],
+                      'bkQuery': 'fromPreviousProd',
+                      'removeInputsFlag': True,
+                      'tracking':1,
+                      'outputSE': 'Tier1-DST',
+                      'priority': 9,
+                      'cpu': 10000,
+                      'outputFileMask':'',
+                      'input': [],
+                      'target':'',
+                      'groupSize': 2,
                       'plugin': 'BySize',
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
