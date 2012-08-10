@@ -640,11 +640,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #                        refreshPeriod, validityDuration, totalSpace,
 #                        guaranteedSpace, freeSpace, meta = None ):
 #    return self.__query( 'update', 'SLSStorage', locals() )
-#  def getSLSStorage( self, site = None, token = None, #timeStamp = None,
-#                     availability = None, refreshPeriod = None,
-#                     validityDuration = None, totalSpace = None,
-#                     guaranteedSpace = None, freeSpace = None, meta = None ):
-#    return self.__query( 'get', 'SLSStorage', locals() )
+  def getSLSStorage( self, site = None, token = None, #timeStamp = None,
+                     availability = None, refreshPeriod = None,
+                     validityDuration = None, totalSpace = None,
+                     guaranteedSpace = None, freeSpace = None, meta = None ):
+    return self.__query( 'get', 'SLSStorage', locals() )
 #  def deleteSLSStorage( self, site = None, token = None, timeStamp = None,
 #                        availability = None, refreshPeriod = None,
 #                        validityDuration = None, totalSpace = None,
