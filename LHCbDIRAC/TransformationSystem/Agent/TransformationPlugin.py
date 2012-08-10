@@ -1070,7 +1070,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Missing secondary copies, make a list of candidates, without already existing SEs
     #candidateSEs = [se for se in mandatorySEs]
     #candidateSEs += [se for se in existingSEs if se not in candidateSEs]
-    candidateSEs = [se for se in existingSEs if se not in targetSEs + archive1SEs + archive2SEs]
+    candidateSEs = [se for se in existingSEs if se not in targetSEs + archive1SEs + archive2SEs and not self.__isArchive( se )]
     candidateSEs += [se for se in mandatorySEs if se not in candidateSEs]
     candidateSEs += [se for se in self.__rankSEs( secondaryActiveSEs ) if se not in candidateSEs]
     ( ses, targetSites ) = self.__selectSEs( candidateSEs, numberOfCopies, targetSites )
