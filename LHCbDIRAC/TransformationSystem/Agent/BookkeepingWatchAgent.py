@@ -21,7 +21,7 @@ class BookkeepingWatchAgent( AgentModule ):
   """ LHCbDIRAC only agent. A threaded agent.
   """
 
-  def __init__( self, agentName, baseAgentName = False, properties = dict() ):
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
     """ c'tor
 
     :param self: self reference
@@ -29,7 +29,7 @@ class BookkeepingWatchAgent( AgentModule ):
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
     """
-    AgentModule.__init__( self, agentName, baseAgentName, properties )
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
 
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
