@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import *
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
   import time
 
   pluginScript = PluginScript()
@@ -69,14 +69,14 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
   transType = None
-  if plugin in getRemovalPlugins():
+  if plugin in pluginScript.getRemovalPlugins():
     transType = "Removal"
-  elif plugin in getReplicationPlugins():
+  elif plugin in pluginScript.getReplicationPlugins():
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"
-    print "Replication :", str( getReplicationPlugins() )
-    print "Removal     :", str( getRemovalPlugins() )
+    print "Replication :", str( replicationPlugins )
+    print "Removal     :", str( removalPlugins )
     print "If needed, ask for adding %s to the known list of plugins" % plugin
     DIRAC.exit( 2 )
 
@@ -175,10 +175,11 @@ if __name__ == "__main__":
     startTime = time.time()
     lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
     bkTime = time.time() - startTime
+    nfiles = len( lfns )
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
   else:
     lfns = requestedLFNs
-  nfiles = len( lfns )
+    nfiles = len( lfns )
 
   if test:
     print "Plugin:", plugin
