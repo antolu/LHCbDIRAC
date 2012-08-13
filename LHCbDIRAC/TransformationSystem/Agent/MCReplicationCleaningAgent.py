@@ -1,16 +1,36 @@
-"""
-MCReplicationCleaningAgent Completed all MC Replication transformations which have enough replicas for Done requests.
+########################################################################
+# $HeadURL $
+# File: MCReplicationCleaningAgent.py
+########################################################################
+
+""" :mod: MCReplicationCleaningAgent 
+    ================================
+ 
+  .. module: MCReplicationCleaningAgent
+  :synopsis: Clean up of completed all MC Replication transformations which 
+  have enough replicas for Done requests.
+
 """
 
-from DIRAC                                                          import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Base.AgentModule                                    import AgentModule
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
-from DIRAC.Core.DISET.RPCClient                                     import RPCClient
+__RCSID__ = "$Id $"
+
+from DIRAC import S_OK, S_ERROR
+from DIRAC.Core.Base.AgentModule import AgentModule
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 AGENT_NAME = 'Transformation/MCReplicationCleaningAgent'
 
 class MCReplicationCleaningAgent( AgentModule ):
+  """ .. class:: MCReplicationCleaningAgent
+
+  :param TransformationClient transClient: TransformationClient instance
+  :param ReplicaManager replicaManager: ReplicaManager instance
+  :param RPCClient requestClient: ProductionRequest rpc client
+  :param int reqARCHIVE: nb of requested archive replicas
+  :param int reqDST: nb of requested dst replicas
+  """
 
   #############################################################################
 
@@ -28,6 +48,10 @@ class MCReplicationCleaningAgent( AgentModule ):
     self.replicaManager = ReplicaManager()
     self.requestClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
 
+    self.reqARCHIVE = 1 
+    self.reqDST = 3 
+
+
   #############################################################################
 
   def initialize( self ):
@@ -37,8 +61,8 @@ class MCReplicationCleaningAgent( AgentModule ):
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
-    self.reqARCHIVE = self.am_getOption( "requestedARCHIVE", 1 )
-    self.reqDST = self.am_getOption( "requestedDST"    , 3 )
+    self.reqARCHIVE = self.am_getOption( "requestedARCHIVE", self.reqARCHIVE )
+    self.reqDST = self.am_getOption( "requestedDST", self.reqDST )
 
     return S_OK()
 
@@ -49,49 +73,49 @@ class MCReplicationCleaningAgent( AgentModule ):
 
     res = self.requestClient.getProductionRequestSummary( 'Done', 'Simulation' )
     if not res['OK']:
-      gLogger.error( 'Can not get requests', res['Message'] )
+      self.log.error( 'Can not get requests', res['Message'] )
       return S_OK()
     reqs = res['Value']
 
     masreqs = []
-    for r, d in reqs.iteritems():
-      master = d['master']
+    for req, reqDict in reqs.iteritems():
+      master = reqDict['master']
       if master:
         if not master in masreqs:
           masreqs.append( master )
       else:
-        masreqs.append( r )
+        masreqs.append( req )
 
     res = self.transClient.getTransformations( {'Status':'Active', 'Type':'Replication'} )
     if not res['OK']:
-      gLogger.error( 'Can not get transformations', res['Message'] )
+      self.log.error( 'Can not get transformations', res['Message'] )
       return S_OK()
     trans = res["Value"]
 
     transfdone = []
-    for t in trans:
-      tid = int( t['TransformationID'] )
-      tfamily = int( t['TransformationFamily'] )
+    for tran in trans:
+      tid = int( tran['TransformationID'] )
+      tfamily = int( tran['TransformationFamily'] )
       if tfamily in masreqs:
         transfdone.append( tid )
 
-    failedreplicas = 0
+    #failedreplicas = 0
 
-    for t in transfdone:
-      res = self.checkReplicas( t )
+    for tran in transfdone:
+      res = self.checkReplicas( tran )
       if not res['OK']:
-        gLogger.error( res["Message"] )
+        self.log.error( res["Message"] )
       else:
-        res = self.transClient.setTransformationParameter( t, 'Status', 'Completed' )
+        res = self.transClient.setTransformationParameter( tran, 'Status', 'Completed' )
         if res['OK']:
-          gLogger.info( "Completed transformation %d" % t )
+          self.log.info( "Completed transformation %d" % tran )
         else:
-          gLogger.error( "Completing transformation %d" % t, res['Message'] )
+          self.log.error( "Completing transformation %d" % tran, res['Message'] )
 
     return S_OK()
 
-
   def checkReplicas( self, transformationID ):
+    """ check replicas """
 
     res = self.transClient.getTransformationFiles( {'TransformationID':transformationID} )
     if not res['OK']:
@@ -115,7 +139,7 @@ class MCReplicationCleaningAgent( AgentModule ):
 
     for lfn in replicas.iterkeys():
       ses = replicas[lfn].keys()
-      sedict = {"FAILOVER":[], "ARCHIVE":[], "DST":[]}
+      sedict = { "FAILOVER":[], "ARCHIVE":[], "DST":[] }
       for se in ses:
         if se.endswith( "-FAILOVER" ):
           sedict["FAILOVER"].append( se )
