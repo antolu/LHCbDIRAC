@@ -37,7 +37,7 @@ class Transformation( DIRACTransformation ):
                               'ByRunSize', 'ByRunSizeWithFlush', 'ByRunFileType', 'ByRunFileTypeWithFlush']
     self.supportedPlugins += ['ByRunFileTypeSize', 'ByRunFileTypeSizeWithFlush', 'ByRunEventType',
                               'ByRunEventTypeWithFlush', 'ByRunEventTypeSize', 'ByRunEventTypeSizeWithFlush']
-    self.supportedPlugins += ['ReplicateToLocalSE', 'DeleteReplicasWhenProcessed']
+    self.supportedPlugins += ['ReplicateToLocalSE', 'DeleteReplicasWhenProcessed', 'Healing']
     if not  self.paramValues.has_key( 'BkQuery' ):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key( 'BkQueryID' ):
@@ -284,4 +284,7 @@ class Transformation( DIRACTransformation ):
     return S_OK()
 
   def _checkDeleteReplicasWhenProcessedPlugin( self ):
+    return S_OK()
+
+  def _checkHealingPlugin( self ):
     return S_OK()
