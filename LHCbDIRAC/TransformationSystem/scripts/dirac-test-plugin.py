@@ -237,7 +237,7 @@ if __name__ == "__main__":
     if noRepFiles and not plugin:
       bkQuery.setOption( 'ReplicaFlag', "All" )
     bkQueryDict = bkQuery.getQueryDict()
-    if not bkQueryDict:
+    if bkQueryDict.keys() in ( [], ['Visible'] ):
       print "No BK query was given..."
       Script.showHelp()
       DIRAC.exit( 2 )
@@ -258,7 +258,7 @@ if __name__ == "__main__":
 
   print "Transformation type:", transType
   if requestedLFNs:
-    print "Requested LFNs:", requestedLFNs
+    print "%d requested LFNs" % len( requestedLFNs )
   else:
     print "BK Query:", bkQueryDict
   print "Plugin:", plugin

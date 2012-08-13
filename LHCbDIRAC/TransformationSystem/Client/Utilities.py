@@ -118,4 +118,4 @@ def getRemovalPlugins():
   return ( "DestroyDataset", "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset",
-           "RAWShares", 'FakeReplication', 'ReplicateToLocalSE' )
+           "RAWShares", 'FakeReplication', 'ReplicateToLocalSE', 'Healing' )

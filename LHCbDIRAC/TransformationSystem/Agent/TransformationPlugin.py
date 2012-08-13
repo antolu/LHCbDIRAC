@@ -1689,3 +1689,41 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( self.__createTasks( storageElementGroups ) )
 
+  def _Healing( self ):
+    """ Plugin that creates task for replicating files to the same SE where they are declared problematic
+    """
+    transID = self.params['TransformationID']
+    replicaGroups = self._getFileGroups( self.data )
+    storageElementGroups = {}
+
+    for replicaSE, lfns in replicaGroups.items():
+      replicaSE = [se for se in replicaSE.split( ',' ) if not self.__isFailover( se ) and not self.__isArchive( se )]
+      if not replicaSE:
+        self.__logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )
+        res = self.transClient.setFileStatusForTransformation( transID, 'Problematic', lfns )
+        continue
+      # get other replicas
+      res = self.rm.getCatalogReplicas( lfns, allStatus=True )
+      if not res['OK']:
+        self.__logError( 'Error getting catalog replicas', res['Message'] )
+        continue
+      replicas = res['Value']['Successful']
+      noMissingSE = []
+      for lfn in replicas:
+        targetSEs = [se for se in replicas[lfn] if se not in replicaSE and not self.__isFailover( se ) and not self.__isArchive( se )]
+        if targetSEs:
+          storageElementGroups.setdefault( ','.join( targetSEs ), [] ).append( lfn )
+        else:
+          print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
+          noMissingSE.append( lfn )
+      if noMissingSE:
+        self.__logInfo( "Found %d files that are already present in the destination SEs (set Processed)" % len( noMissingSE ) )
+        res = self.transClient.setFileStatusForTransformation( transID, 'Processed', noMissingSE )
+        if not res['OK']:
+          self.__logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( noMissingSE ),
+                                                                                            str( transID ),
+                                                                                            res['Message'] ) )
+          return res
+
+
+    return S_OK( self.__createTasks( storageElementGroups ) )
