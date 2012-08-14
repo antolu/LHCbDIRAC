@@ -242,6 +242,76 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr.prodsTypeList = ['DataStripping', 'Merge']
+    pr.plugins = ['ByRun', 'BySize']
+    pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsInProds = [[3], [4]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4]
+    pr.cpus = [10, 100]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
+    pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
+    stepsListDictExpected = [stepStripp, mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST ]
+    stepsInProdExpected = [[3], [4], [5], [6]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 4, 4, 4]
+    cpusExpected = [10, 100, 100, 100]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
+    pr.prodsTypeList = ['DataStripping']
+    pr.plugins = ['ByRun']
+    pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsInProds = [[3, 4]]
+    pr.priorities = [1]
+    pr.outputSEs = [ 'Tier1-DST']
+    pr.cpus = [10]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['DataStripping']
+    pluginsExpected = ['ByRun']
+    stepsListDictExpected = [stepStripp, mergeStep ]
+    stepsInProdExpected = [[3, 4]]
+    outputSEsExpected = ['Tier1-DST']
+    prioritiesExpected = [1]
+    cpusExpected = [10]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
+    pr.prodsTypeList = ['Merge', 'Merge']
+    pr.plugins = ['BySize', 'ByRunFileTypeSizeWithFlush']
+    pr.stepsListDict = [mergeStep, mergeStep]
+    pr.stepsInProds = [[3], [4]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4]
+    pr.cpus = [10, 100]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
+    pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
+    stepsListDictExpected = [mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST, mergeStep ]
+    stepsInProdExpected = [[3], [4], [5], [6]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 1, 1, 4]
+    cpusExpected = [10, 10, 10, 100]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = [123, 456, 789, 987]

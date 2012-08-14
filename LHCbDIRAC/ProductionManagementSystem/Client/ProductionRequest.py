@@ -218,7 +218,7 @@ class ProductionRequest( object ):
             self.stepsInProds.insert( index + x, [last + x] )
 
     correctedStepsInProds = []
-    toInsert = 1
+    toInsert = self.stepsInProds[0][0]
     lengths = [len( x ) for x in self.stepsInProds]
     for l in lengths:
       li = [toInsert + x for x in range( l )]

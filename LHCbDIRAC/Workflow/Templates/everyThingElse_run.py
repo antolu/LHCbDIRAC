@@ -76,23 +76,23 @@ p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 
 #p2 params
-p2Plugin = '{{p2PluginType#PROD-P1: production plugin name#LHCbStandard}}'
+p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
 p2Priority = '{{p2Priority#PROD-p2: priority#2}}'
 p2CPU = '{{p2MaxCPUTime#PROD-p2: Max CPU time in secs#1000000}}'
 p2GroupSize = '{{p2GroupSize#PROD-P2: Group Size#1}}'
 p2DataSE = '{{p2DataSE#PROD-p2: Output Data Storage Element#Tier1-DST}}'
 p2FilesPerJob = '{{p2FilesPerJob#PROD-p2: Group size or number of files per job#1}}'
-p2Policy = '{{p2Policy#PROD-P1: data policy (download or protocol)#download}}'
+p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 
 #p3 params
-p3Plugin = '{{p3PluginType#PROD-P1: production plugin name#LHCbStandard}}'
+p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
 p3Priority = '{{p3Priority#PROD-p3: priority#2}}'
 p3CPU = '{{p3MaxCPUTime#PROD-p3: Max CPU time in secs#1000000}}'
 p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
 p3DataSE = '{{p3DataSE#PROD-p3: Output Data Storage Element#Tier1-DST}}'
 p3FilesPerJob = '{{p3FilesPerJob#PROD-p3: Group size or number of files per job#1}}'
-p3Policy = '{{p3Policy#PROD-P1: data policy (download or protocol)#download}}'
+p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 
 parentReq = '{{_parent}}'
