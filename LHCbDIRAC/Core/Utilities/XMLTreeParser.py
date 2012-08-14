@@ -86,4 +86,76 @@ class XMLTreeParser:
       data = node.data.encode( 'ascii' )
     return data
 
+
+"""
+Utilies for XML Report
+"""
+
+def addChildNode( parentNode, tag, returnChildren, *args ):
+  '''
+  Params
+    :parentNode:
+      node where the new node is going to be appended
+    :tag:
+      name if the XML element to be created
+    :returnChildren:
+      flag to return or not the children node, used to avoid unused variables
+    :*args:
+      possible attributes of the element
+  '''
+
+  ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
+                   'Parameter', 'Replica', 'SimulationCondition' ]
+
+  def genJobDict( configName, configVersion, ldate, ltime ):
+    return {
+            "ConfigName"   : configName,
+            "ConfigVersion": configVersion,
+            "Date"         : ldate,
+            "Time"         : ltime
+           }
+  def genTypedParameterDict( name, value, typeP = "Info" ):
+    return {
+            "Name"  : name,
+            "Value" : value,
+            "Type"  : typeP
+            }
+  def genInputFileDict( name ):
+    return {
+            "Name" : name
+            }
+  def genOutputFileDict( name, typeName, typeVersion ):
+    return {
+            "Name"        : name,
+            "TypeName"    : typeName,
+            "TypeVersion" : typeVersion
+            }
+  def genParameterDict( name, value ):
+    return {
+            "Name"  : name,
+            "Value" : value
+            }
+  def genReplicaDict( name, location = "Web" ):
+    return {
+            "Name"     : name,
+            "Location" : location
+            }
+  def genSimulationConditionDict():
+    return {}
+
+  if not tag in ALLOWED_TAGS:
+    # We can also return S_ERROR, but this let's the job keep running.
+    tagsDict = {}
+  else:
+    tagsDict = locals()[ 'gen%sDict' % tag ]( *args )
+
+  childNode = xml.dom.minidom.Document().createElement( tag )
+  for k, v in tagsDict.items():
+    childNode.setAttribute( k, str( v ) )
+  parentNode.appendChild( childNode )
+
+  if returnChildren:
+    return ( parentNode, childNode )
+  return parentNode
+
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

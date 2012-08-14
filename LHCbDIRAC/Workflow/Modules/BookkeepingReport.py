@@ -1,5 +1,5 @@
-"""  Bookkeeping Reporting module (just prepare the files, do not send them 
-    (which is done in the uploadOutput) 
+"""  Bookkeeping Reporting module (just prepare the files, do not send them
+    (which is done in the uploadOutput)
 """
 
 __RCSID__ = "$Id$"
@@ -17,6 +17,7 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummaryError
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepCPUTimes
+from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
 
 class BookkeepingReport( ModuleBase ):
   """ BookkeepingReport class
@@ -151,25 +152,25 @@ class BookkeepingReport( ModuleBase ):
         self.log.warn( 'XML Summary object not found, will try to create it (again?)' )
         from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
         try:
-          XMLSummaryFile = self.step_commons['XMLSummary']
+          xmlSummaryFile = self.step_commons['XMLSummary']
         except KeyError:
           self.log.warn( 'XML Summary file name not found, will try to guess it' )
-          XMLSummaryFile = 'summary%s_%s_%s_%s.xml' % ( self.applicationName,
+          xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % ( self.applicationName,
                                                         self.production_id,
                                                         self.prod_job_id,
                                                         self.step_number )
-          self.log.warn( 'Trying %s' % XMLSummaryFile )
-          if not XMLSummaryFile in os.listdir( '.' ):
-            self.log.warn( 'XML Summary file %s not found, will try to guess a second time' % XMLSummaryFile )
-            XMLSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
+          self.log.warn( 'Trying %s' % xmlSummaryFile )
+          if not xmlSummaryFile in os.listdir( '.' ):
+            self.log.warn( 'XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile )
+            xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
                                                     self.step_id )
-            self.log.warn( 'Trying %s' % XMLSummaryFile )
-            if not XMLSummaryFile in os.listdir( '.' ):
-              self.log.warn( 'XML Summary file %s not found, will try to guess a third and last time' % XMLSummaryFile )
-              XMLSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
+            self.log.warn( 'Trying %s' % xmlSummaryFile )
+            if not xmlSummaryFile in os.listdir( '.' ):
+              self.log.warn( 'XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile )
+              xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
                                                       self.step_number )
-              self.log.warn( 'Trying %s' % XMLSummaryFile )
-        self.xf_o = XMLSummary( XMLSummaryFile )
+              self.log.warn( 'Trying %s' % xmlSummaryFile )
+        self.xf_o = XMLSummary( xmlSummaryFile )
     else:
       self.xf_o = xf_o
 
@@ -181,7 +182,7 @@ class BookkeepingReport( ModuleBase ):
   def __makeBookkeepingXML( self ):
 
     ''' Bookkeeping xml looks like this:
-    
+
         <Job ConfigName="" ConfigVersion="" Date="" Time="">
           <TypedParameter Name="" Type="" Value=""/>
           ...
@@ -197,7 +198,7 @@ class BookkeepingReport( ModuleBase ):
           <SimulationCondition>
             <Parameter Name="" Value=""/>
           </SimulationCondition>
-        </Job>  
+        </Job>
 
     '''
     # Generate XML document
@@ -248,7 +249,7 @@ class BookkeepingReport( ModuleBase ):
   def __generateTypedParams( self, jobNode ):
     """ TypedParameter looks like
         <TypedParameter Name="" Type="" Value="">
-        
+
         List of possible TypedParameter names
         - CPUTIME
         - ExecTime
@@ -359,8 +360,8 @@ class BookkeepingReport( ModuleBase ):
 ################################################################################
 
   def __generateOutputFiles( self, jobNode ):
-    '''OutputFile looks like this:  
-      
+    '''OutputFile looks like this:
+
        <OutputFile Name="" TypeName="" TypeVersion="">
          <Parameter Name="" Value=""/>
          ...
@@ -384,7 +385,8 @@ class BookkeepingReport( ModuleBase ):
     while ( count < len( self.stepOutputs ) ):
       if self.stepOutputs[count].has_key( 'outputDataName' ):
         outputs.append( ( ( self.stepOutputs[ count ][ 'outputDataName' ] ),
-                          ( self.stepOutputs[ count ][ 'outputDataSE' ] ), ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )
+                          ( self.stepOutputs[ count ][ 'outputDataSE' ] ),
+                          ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )
       if self.stepOutputs[ count ].has_key( 'outputBKType' ):
         bkTypeDict[ self.stepOutputs[ count ][ 'outputDataName' ]] = self.stepOutputs[ count ][ 'outputBKType' ]
       count = count + 1
@@ -408,7 +410,9 @@ class BookkeepingReport( ModuleBase ):
           typeVersion = typeV['Value'][output]
           self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
         typeName = bkTypeDict[ output ].upper()
-        self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output, typeVersion, typeName ) )
+        self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output,
+                                                                                               typeVersion,
+                                                                                               typeName ) )
 
         try:
           fileStats = self.xf_o.outputsEvents[output]
@@ -561,81 +565,6 @@ class BookkeepingReport( ModuleBase ):
 
 ################################################################################
 # END AUXILIAR FUNCTIONS
-################################################################################
-
-################################################################################
-# XML GENERATION FUNCTION
-################################################################################
-
-def addChildNode( parentNode, tag, returnChildren, *args ):
-  '''
-  Params
-    :parentNode:
-      node where the new node is going to be appended
-    :tag: 
-      name if the XML element to be created
-    :returnChildren:
-      flag to return or not the children node, used to avoid unused variables
-    :*args:
-      possible attributes of the element 
-  '''
-
-  ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
-                   'Parameter', 'Replica', 'SimulationCondition' ]
-
-  def genJobDict( configName, configVersion, ldate, ltime ):
-    return {
-            "ConfigName"   : configName,
-            "ConfigVersion": configVersion,
-            "Date"         : ldate,
-            "Time"         : ltime
-           }
-  def genTypedParameterDict( name, value, typeP = "Info" ):
-    return {
-            "Name"  : name,
-            "Value" : value,
-            "Type"  : typeP
-            }
-  def genInputFileDict( name ):
-    return {
-            "Name" : name
-            }
-  def genOutputFileDict( name, typeName, typeVersion ):
-    return {
-            "Name"        : name,
-            "TypeName"    : typeName,
-            "TypeVersion" : typeVersion
-            }
-  def genParameterDict( name, value ):
-    return {
-            "Name"  : name,
-            "Value" : value
-            }
-  def genReplicaDict( name, location = "Web" ):
-    return {
-            "Name"     : name,
-            "Location" : location
-            }
-  def genSimulationConditionDict():
-    return {}
-
-  if not tag in ALLOWED_TAGS:
-    # We can also return S_ERROR, but this let's the job keep running.
-    tagsDict = {}
-  else:
-    tagsDict = locals()[ 'gen%sDict' % tag ]( *args )
-
-  childNode = Document().createElement( tag )
-  for k, v in tagsDict.items():
-    childNode.setAttribute( k, str( v ) )
-  parentNode.appendChild( childNode )
-
-  if returnChildren:
-    return ( parentNode, childNode )
-  return parentNode
-
-################################################################################
-# END XML GENERATION FUNCTIONS
 ################################################################################
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

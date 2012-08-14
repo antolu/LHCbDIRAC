@@ -1,5 +1,7 @@
 """Utilities for LHCbDIRAC/DataManagement/Agent/MergingForDQAgent. """
 __RCSID__ = "$Id: $"
+import subprocess, string, time
+
 import DIRAC
 from   DIRAC                                                 import gLogger, S_OK, S_ERROR
 from   DIRAC.Core.Utilities.List                             import sortList
@@ -11,11 +13,9 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
 
 #System libraries
-import subprocess
-import os, sys, string
-import re, time, glob
 
 #Libraries needed for XML report
 from xml.dom.minidom                         import Document, DocumentType
@@ -587,7 +587,7 @@ def Merge( targetFile, runNumber, brunelHist, daVinciHist , mergeExeDir , mergeS
   merge.insert( 0, targetFile )
   merge.insert( 0, mergeStep3Command )
   command = " ".join( merge )
-  p = subprocess.call( args=command, env=environment , stdout=logFile , shell=True )
+  p = subprocess.call( args = command, env = environment , stdout = logFile , shell = True )
   gLogger.info( "=== Final Merging OutPut" )
   StreamToLog( logFileName, gLogger, mergeStep3Command )
 
@@ -655,7 +655,7 @@ def MergeStep1( stepHist, histType, mergeStep1Command, runNumber, homeDir ,
     merge.insert( 0, targetFile )
     merge.insert( 0, mergeStep1Command )
     command = " ".join( merge )
-    p = subprocess.call( args=command, env=environment, stdout=logFile , shell=True )
+    p = subprocess.call( args = command, env = environment, stdout = logFile , shell = True )
     gLogger.debug( "Executing Step1 command %s" % command )
     StreamToLog( logFileName, gLogger, mergeStep1Command )
 
@@ -693,7 +693,7 @@ def MergeStep2( stepHist, histType, mergeStep2Command , dim,
   merge.insert( 0, targetFile )
   merge.insert( 0, mergeStep2Command )
   command = " ".join( merge )
-  p = subprocess.call( args=command , env=environment , stdout=logFile , shell=True )
+  p = subprocess.call( args = command , env = environment , stdout = logFile , shell = True )
   gLogger.debug( "Executing Step2 command %s" % command )
   StreamToLog( logFileName, gLogger, mergeStep2Command )
   if not p == 0:
@@ -762,7 +762,7 @@ def Finalization( homeDir, logDir, lfns, OutputFileName, LogFileName, inputData,
 
   gLogger.info( "Creating XML report" )
   #Create the XML Bookkeeping Report
-  res = makeBookkeepingXML( Output, lfns['DATA'], lfns['LOG'] , inputData, run , bkDict[ 'ConfigName' ] , bkDict[ 'ConfigVersion' ] , homeDir , rootVersion, saveOnFile=True )
+  res = makeBookkeepingXML( Output, lfns['DATA'], lfns['LOG'] , inputData, run , bkDict[ 'ConfigName' ] , bkDict[ 'ConfigVersion' ] , homeDir , rootVersion, saveOnFile = True )
 
   logDict = {'logdir':logDir, 'logSE':'LogSE', 'logFilePath':lfns['LOGDIR'], 'logLFNPath':lfns['LOG']}
 
@@ -803,73 +803,6 @@ def StreamToLog( stream, gLogger, exeName ):
       break
     gLogger.info( line )
 
-
-"""
-Utilies for XML Report
-"""
-
-
-def addChildNode( parentNode, tag, returnChildren, *args ):
-  """
-  Params
-  :parentNode:
-  node where the new node is going to be appended
-  :tag:
-  name if the XML element to be created
-  :returnChildren:
-  flag to return or not the children node, used to avoid unused variables
-  :*args:
-  possible attributes of the element
-  """
-  ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile', 'Parameter', 'Replica']
-
-  def genJobDict( configName, configVersion, ldate, ltime ):
-    return {
-        "ConfigName"   : configName,
-        "ConfigVersion": configVersion,
-        "Date"         : ldate,
-        "Time"         : ltime
-        }
-  def genTypedParameterDict( name, value , type ):
-    return {
-        "Name"  : name,
-        "Value" : value,
-        "Type"  : type
-        }
-  def genInputFileDict( name ):
-    return {
-        "Name" : name
-        }
-  def genOutputFileDict( name, typeName, typeVersion ):
-    return {
-    "Name"        : name,
-    "TypeName"    : typeName,
-    "TypeVersion" : typeVersion
-        }
-  def genParameterDict( name, value ):
-    return {
-        "Name"  : name,
-        "Value" : value
-        }
-  def genReplicaDict( name, location="Web" ):
-    return {
-        "Name"     : name,
-        "Location" : location
-        }
-  if not tag in ALLOWED_TAGS:
-    # We can also return S_ERROR, but this let's the job keep running.
-    dict = {}
-  else:
-    dict = locals()[ 'gen%sDict' % tag ]( *args )
-
-  childNode = Document().createElement( tag )
-  for k, v in dict.items():
-    childNode.setAttribute( k, str( v ) )
-  parentNode.appendChild( childNode )
-
-  if returnChildren:
-    return ( parentNode, childNode )
-  return parentNode
 
 def generateJobNode( doc , configName , configVersion , ldate , ltime ):
 
@@ -946,7 +879,8 @@ def generateTypedParams( jobNode , run , rootVersion , append_string ):
 
   return jobNode
 
-def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , configName , configVersion , homeDir , rootVersion , saveOnFile=True ):
+def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , configName , configVersion ,
+                        homeDir , rootVersion , saveOnFile = True ):
 
   """ Bookkeeping xml looks like this:
 
@@ -1014,9 +948,10 @@ def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , confi
   # Generate InputFiles
   jobNode = generateInputFiles( jobNode , inputData )
 
-  jobNode = generateOutputFiles( jobNode , Output , outputlfn , logFilelfn , 'MERGEFORDQ.ROOT' , 'ROOT' , configName , configVersion, run , homeDir )
+  jobNode = generateOutputFiles( jobNode , Output , outputlfn , logFilelfn , 'MERGEFORDQ.ROOT' , 'ROOT' ,
+                                 configName , configVersion, run , homeDir )
 
-  prettyXMLDoc = doc.toprettyxml( indent="    ", encoding="ISO-8859-1" )
+  prettyXMLDoc = doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
 
   #horrible, necessary hack!
   prettyXMLDoc = prettyXMLDoc.replace( '\'book.dtd\'', '\"book.dtd\"' )
@@ -1037,7 +972,7 @@ def makeBookkeepingXML( Output , outputlfn , logFilelfn , inputData, run , confi
 """
 Given an LFN and a request, a registration request for the Bookkeeping Catalog is sent.
 """
-def setBKRegistrationRequest( lfn, request, error='' ):
+def setBKRegistrationRequest( lfn, request, error = '' ):
   """
   Set a BK registration request for changing the replica flag.  Uses the
   global request object.
@@ -1047,7 +982,10 @@ def setBKRegistrationRequest( lfn, request, error='' ):
   else:
     gLogger.info( 'Setting BK registration request for %s' % ( lfn ) )
 
-  result = request.addSubRequest( {'Attributes':{'Operation':'registerFile', 'ExecutionOrder':2, 'Catalogue':'BookkeepingDB'}}, 'register' )
+  result = request.addSubRequest( {'Attributes':{'Operation':'registerFile',
+                                                 'ExecutionOrder':2,
+                                                 'Catalogue':'BookkeepingDB'}},
+                                 'register' )
   if not result['OK']:
     gLogger.error( 'Could not set registerFile request:\n%s' % result )
     return result['OK']
@@ -1072,7 +1010,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
   registrationFailure = False
 
   #Registration in the LFC
-  result = failoverTransfer.transferAndRegisterFile( localpath, localfilename, lfn , ['CERN-HIST'], fileGUID=None, fileCatalog='LcgFileCatalogCombined' )
+  result = failoverTransfer.transferAndRegisterFile( localpath, localfilename, lfn , ['CERN-HIST'], fileGUID = None, fileCatalog = 'LcgFileCatalogCombined' )
   if not result['OK']:
     return result
   performBKRegistration.append( lfn )
@@ -1101,7 +1039,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
       log.info( 'Bookkeeping report sent for %s' % bkFile )
     else:
       log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
-      request.setDISETRequest( result['rpcStub'], executionOrder=0 )
+      request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
   #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
   if not performBKRegistration:
     log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
@@ -1118,7 +1056,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
   else:
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
     rm = ReplicaManager()
-    result = rm.addCatalogFile( performBKRegistration, catalogs=['BookkeepingDB'] )
+    result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
     log.verbose( result )
     if not result['OK']:
       log.err( 'Could Not Perform BK Registration' )
@@ -1134,7 +1072,7 @@ def UpLoadOutputData( localpath, localfilename, lfn, XMLBookkeepingReport, logDi
       log.verbose( "LogUpload results" )
       log.verbose( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )} )
       log.verbose( str( logDict['logSE'] ) )
-      res = rm.putStorageDirectory( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )}, logDict['logSE'], singleDirectory=True )
+      res = rm.putStorageDirectory( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )}, logDict['logSE'], singleDirectory = True )
       log.verbose( str( res ) )
 
   return result

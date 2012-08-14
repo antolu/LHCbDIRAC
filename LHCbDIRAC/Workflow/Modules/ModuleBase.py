@@ -6,7 +6,6 @@ __RCSID__ = "$Id$"
 
 import os, copy
 
-import DIRAC
 from DIRAC  import S_OK, S_ERROR
 
 class ModuleBase( object ):
@@ -29,6 +28,14 @@ class ModuleBase( object ):
     else:
       self.opsH = operationsHelperIn
 
+    self.production_id = self.PRODUCTION_ID
+    self.prod_job_id = self.JOB_ID
+    self.jobID = ''
+    if os.environ.has_key( 'JOBID' ):
+      self.jobID = os.environ['JOBID']
+    self.step_number = self.STEP_NUMBER
+    self.step_id = '%s_%s_%s' % ( self.production_id, self.prod_job_id, self.step_number )
+
   #############################################################################
 
   def execute( self, version = None,
@@ -42,46 +49,31 @@ class ModuleBase( object ):
     if version:
       self.log.info( '===== Executing ' + version + ' ===== ' )
 
-    if not production_id:
-      self.production_id = self.PRODUCTION_ID
-    else:
+    if production_id:
       self.production_id = production_id
 
-    if not prod_job_id:
-      self.prod_job_id = self.JOB_ID
-    else:
+    if prod_job_id:
       self.prod_job_id = prod_job_id
 
-    if not wms_job_id:
-      self.jobID = ''
-      if os.environ.has_key( 'JOBID' ):
-        self.jobID = os.environ['JOBID']
-    else:
+    if wms_job_id:
       self.jobID = wms_job_id
 
-    if not workflowStatus:
-      self.workflowStatus = self.workflowStatus
-    else:
+    if workflowStatus:
       self.workflowStatus = workflowStatus
-    if not stepStatus:
-      self.stepStatus = self.stepStatus
-    else:
+
+    if stepStatus:
       self.stepStatus = stepStatus
-    if not wf_commons:
-      self.workflow_commons = self.workflow_commons
-    else:
+
+    if wf_commons:
       self.workflow_commons = wf_commons
-    if not step_commons:
-      self.step_commons = self.step_commons
-    else:
+
+    if step_commons:
       self.step_commons = step_commons
-    if not step_number:
-      self.step_number = self.STEP_NUMBER
-    else:
+
+    if step_number:
       self.step_number = step_number
-    if not step_id:
-      self.step_id = '%s_%s_%s' % ( self.production_id, self.prod_job_id, self.step_number )
-    else:
+
+    if step_id:
       self.step_id = step_id
 
   #############################################################################
@@ -407,14 +399,14 @@ class ModuleBase( object ):
 
   def getCandidateFiles( self, outputList, outputLFNs, fileMask, stepMask = '' ):
     """ Returns list of candidate files to upload, check if some outputs are missing.
-        
+
         outputList has the following structure:
-          [ {'outputDataType':'','outputDataSE':'','outputDataName':''} , {...} ] 
-          
+          [ {'outputDataType':'','outputDataSE':'','outputDataName':''} , {...} ]
+
         outputLFNs is the list of output LFNs for the job
-        
+
         fileMask is the output file extensions to restrict the outputs to
-        
+
         returns dictionary containing type, SE and LFN for files restricted by mask
     """
     fileInfo = {}
@@ -517,10 +509,10 @@ class ModuleBase( object ):
 
   def getFileMetadata( self, candidateFiles ):
     """ Returns the candidate file dictionary with associated metadata.
-    
+
         The input candidate files dictionary has the structure:
         {'lfn':'','type':'','workflowSE':''}
-       
+
         this also assumes the files are in the current working directory.
     """
     from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
@@ -578,7 +570,7 @@ class ModuleBase( object ):
   #############################################################################
 
   def _enableModule( self ):
-    """ Enable module if it's running via WMS  
+    """ Enable module if it's running via WMS
     """
     if not self._WMSJob():
       self.log.info( 'No WMS JobID found, disabling module via control flag' )
