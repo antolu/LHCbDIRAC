@@ -95,6 +95,12 @@ class ProductionRequestSuccess( ClientTestCase ):
 
   def test__applyOptionalCorrections( self ):
 
+    stepMC = {'ApplicationName': 'Gauss', 'Usable': 'Yes', 'StepId': 246, 'ApplicationVersion': 'v28r3p1',
+              'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+              'ProcessingPass': 'MC', 'Visible': 'N', 'DDDB': 'head-20110302',
+              'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+              'fileTypesIn': [],
+              'fileTypesOut': ['ALLSTREAMS.DST']}
     stepStripp = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 123, 'ApplicationVersion': 'v28r3p1',
                   'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
                   'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
@@ -134,6 +140,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.bkFileType = 'TYPE'
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -142,6 +149,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4, 4, 4]
     cpusExpected = [10, 100, 100, 100]
+    bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
+    previousProdsExpected = [None, 1, 1, 1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -149,7 +158,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
     pr.plugins = ['ByRun', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [stepStripp, mergeStep]
@@ -157,6 +169,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.bkFileType = 'TYPE'
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -165,6 +178,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4]
     cpusExpected = [10, 100]
+    bkQueriesExpected = ['Full', 'fromPreviousProd']
+    previousProdsExpected = [None, 1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -172,7 +187,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
     pr.plugins = ['BySize', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [mergeStep, mergeStep]
@@ -188,6 +206,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
+    bkQueriesExpected = ['', '', '', 'fromPreviousProd']
+    previousProdsExpected = [None, None, None, 1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -195,7 +215,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
     pr.plugins = ['ByRun']
     pr.stepsListDict = [stepStripp, mergeStep]
@@ -203,6 +226,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.priorities = [1]
     pr.outputSEs = [ 'Tier1-DST']
     pr.cpus = [10]
+    pr.bkFileType = 'TYPE'
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -211,6 +235,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST']
     prioritiesExpected = [1]
     cpusExpected = [10]
+    bkQueriesExpected = ['Full']
+    previousProdsExpected = [None]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -218,7 +244,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
     pr.plugins = ['ByRun', 'BySize', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [stepStripp, mergeStep, mergeStep]
@@ -226,6 +255,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4, 5]
     pr.cpus = [10, 100, 1000]
+    pr.bkFileType = 'TYPE'
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -234,6 +264,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4, 4, 4, 5]
     cpusExpected = [10, 100, 100, 100, 1000]
+    bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
+    previousProdsExpected = [None, 1, 1, 1, 2]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -241,6 +273,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -250,6 +284,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.bkFileType = 'TYPE'
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -258,6 +293,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4, 4, 4]
     cpusExpected = [10, 100, 100, 100]
+    bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
+    previousProdsExpected = [None, 1, 1, 1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -265,7 +302,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
     pr.plugins = ['ByRun']
     pr.stepsListDict = [stepStripp, mergeStep]
@@ -273,6 +313,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.priorities = [1]
     pr.outputSEs = [ 'Tier1-DST']
     pr.cpus = [10]
+    pr.bkFileType = 'TYPE'
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -281,6 +322,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST']
     prioritiesExpected = [1]
     cpusExpected = [10]
+    bkQueriesExpected = ['Full']
+    previousProdsExpected = [None]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -288,7 +331,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
     pr.plugins = ['BySize', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [mergeStep, mergeStep]
@@ -304,6 +350,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
+    bkQueriesExpected = ['', '', '', 'fromPreviousProd']
+    previousProdsExpected = [None, None, None, 1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -311,6 +359,36 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
+
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr.prodsTypeList = ['MCSimulation', 'Merge']
+    pr.plugins = ['', 'ByRunFileTypeSizeWithFlush']
+    pr.stepsListDict = [stepMC, mergeStep]
+    pr.stepsInProds = [[1], [2]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4]
+    pr.cpus = [10, 100]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['MCSimulation', 'Merge']
+    pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
+    stepsListDictExpected = [stepMC, mergeStep ]
+    stepsInProdExpected = [[1], [2]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 4]
+    cpusExpected = [10, 100]
+    bkQueriesExpected = ['', 'fromPreviousProd']
+    previousProdsExpected = [None, 1]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
@@ -323,18 +401,19 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputDataPolicies = ['download', 'download', 'download']
     pr.outputFileMasks = ['', '', '']
     pr.stepsInProds = [[1, 2], [3], [4]]
-    pr.bkQuery = {'P':1, 'Q':'abc'}
+    pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
     pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
     pr.priorities = [5, 8, 9]
     pr.cpus = [1000000, 300000, 10000]
     pr.plugins = ['ByRun', 'BySize', 'BySize']
+    pr.previousProds = [None, 1, 1]
 
     res = pr._getProdsDescriptionDict()
 
     resExpected = {1:{
                       'productionType':'DataStripping',
                       'stepsInProd':[123, 456],
-                      'bkQuery': pr.bkQuery,
+                      'bkQuery': 'Full',
                       'removeInputsFlag': False,
                       'tracking':0,
                       'outputSE': 'Tier1-BUFFER',
@@ -347,7 +426,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'plugin': 'ByRun',
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
-                      'transformationFamily':0
+                      'transformationFamily':0,
+                      'previousProd': None
                      },
 
                    2:{
@@ -366,7 +446,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'plugin': 'BySize',
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
-                      'transformationFamily':0
+                      'transformationFamily':0,
+                      'previousProd': 1
                       },
 
                    3:{
@@ -385,14 +466,15 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'plugin': 'BySize',
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
-                      'transformationFamily':0
+                      'transformationFamily':0,
+                      'previousProd': 1
                       }
                    }
     self.maxDiff = None
     self.assertEqual( res, resExpected )
 
 
-  def test__buildFullBKKQuery( self ):
+  def test__getBKKQuery( self ):
 
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.dataTakingConditions = 'dataTC'
@@ -400,7 +482,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.dqFlag = 'OK,AA, BB'
     pr.startRun = '123'
     pr.endRun = '456'
-    pr._buildFullBKKQuery()
+    res = pr._getBKKQuery()
 
     resExpected = {'DataTakingConditions':'dataTC',
                    'ProcessingPass':'procePass',
@@ -412,10 +494,16 @@ class ProductionRequestSuccess( ClientTestCase ):
                    'StartRun':123,
                    'EndRun':456
                    }
-    self.assertEqual( pr.bkQuery, resExpected )
+    self.assertEqual( res, resExpected )
 
-    pr.runsList = ['1', '2']
-    self.assertRaises( ValueError, pr._buildFullBKKQuery )
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr.dqFlag = 'OK,AA, BB'
+    res = pr._getBKKQuery( 'fromPreviousProd', 'type', 123 )
+    resExpected = {'ProductionID':123,
+                   'FileType':'type',
+                   'EventType':'',
+                   'DataQualityFlag':'OK;;;AA;;;BB'}
+    self.assertEqual( res, resExpected )
 
   def test__splitIntoProductionSteps( self ):
 
@@ -465,6 +553,16 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     self.assertEqual( r, r_exp )
 
+class ProductionRequestFailure( ClientTestCase ):
+
+  def test__getBKKQuery( self ):
+
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+
+    pr.runsList = ['1', '2']
+    self.assertRaises( ValueError, pr._getBKKQuery )
+
+
 #############################################################################
 # Test Suite run 
 #############################################################################
@@ -472,6 +570,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ClientTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestFailure ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

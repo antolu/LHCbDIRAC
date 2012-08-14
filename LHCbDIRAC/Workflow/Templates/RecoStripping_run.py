@@ -51,6 +51,7 @@ pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with
 targetSite = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#ALL}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 pr.derivedProduction = '{{AncestorProd#PROD: ancestor production if any#0}}'
+pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
 
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO(Stripp): priority#2}}'
@@ -152,8 +153,6 @@ if pr.testFlag:
   pr.endRun = '93720'
   pr.eventType = '90000000'
   pr.dqFlag = 'ALL'
-
-pr._buildFullBKKQuery()
 
 if w1:
   pr.prodsTypeList = [recoType]

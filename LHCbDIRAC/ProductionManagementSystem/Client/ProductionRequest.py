@@ -47,7 +47,7 @@ class ProductionRequest( object ):
     self.extraOptions = []
     self.prodsTypeList = []
     self.stepsInProds = [] #a list of lists
-    self.bkQuery = {} #initial bk query
+    self.bkQueries = [] #list of bk queries
     self.removeInputsFlags = []
     self.outputSEs = []
     self.priorities = []
@@ -70,7 +70,9 @@ class ProductionRequest( object ):
     self.startRun = ''
     self.endRun = ''
     self.runsList = ''
-    self.prodsToLaunch = []
+    self.previousProds = [None] #list of productions from which to take the inputs (the first is always None)
+    self.prodsToLaunch = [] #productions to launch
+    self.previousProdID = 0 #optional prod from which to start
 
   #############################################################################
 
@@ -115,7 +117,8 @@ class ProductionRequest( object ):
   #############################################################################
 
   def buildAndLaunchRequest( self ):
-    """ uses _getProdsDescriptionDict, _buildProduction, and DiracProduction.launchProduction
+    """ uses _applyOptionalCorrections, _getProdsDescriptionDict,
+        _buildProduction, and DiracProduction.launchProduction
     """
 
     if not self.stepsListDict:
@@ -127,7 +130,8 @@ class ProductionRequest( object ):
 
     stepsListDict = copy.deepcopy( self.stepsListDict )
 
-    prodID = 0
+    fromProd = self.previousProdID
+    prodsLaunched = []
 
     #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
@@ -153,7 +157,7 @@ class ProductionRequest( object ):
                                     inputDataPolicy = prodDict['inputDataPolicy'],
                                     bkQuery = prodDict['bkQuery'],
                                     plugin = prodDict['plugin'],
-                                    previousProdID = prodID,
+                                    previousProdID = fromProd,
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'] )
 
@@ -166,8 +170,11 @@ class ProductionRequest( object ):
       if not res['OK']:
         raise RuntimeError, res['Message']
 
-      self.extend = 0 #only extending the first one (MC)
+      self.extend = 0 #only extending the first one (MC can only go as first...)
+
       prodID = res['Value']
+      prodsLaunched.append( prodID )
+      fromProd = prodsLaunched[prodDict['previousProd'] - 1]
 
       if self.publishFlag:
         self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
@@ -180,6 +187,18 @@ class ProductionRequest( object ):
   def _applyOptionalCorrections( self ):
     """ if needed, calls _splitIntoProductionSteps. It also applies other changes
     """
+
+    #determining the bk queries
+    if self.bkFileType:
+      self.bkQueries = ['Full']
+    else:
+      self.bkQueries = ['']
+
+    if len( self.bkQueries ) != len( self.prodsTypeList ):
+      self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - 1 )
+
+    if len( self.previousProds ) != len( self.prodsTypeList ):
+      self.previousProds += range( 1, len( self.prodsTypeList ) )
 
     #Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
@@ -196,7 +215,9 @@ class ProductionRequest( object ):
         outputSE = self.outputSEs[index]
         priority = self.priorities[index]
         cpu = self.cpus[index]
-        if 'byrunfiletypesizewithflush' != plugin.lower():
+        bkQuery = self.bkQueries[index]
+        preProd = self.previousProds[index]
+        if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
           self.prodsTypeList.remove( 'Merge' )
@@ -204,6 +225,8 @@ class ProductionRequest( object ):
           self.outputSEs.pop( index )
           self.priorities.pop( index )
           self.cpus.pop( index )
+          self.bkQueries.pop( index )
+          self.previousProds.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -214,6 +237,8 @@ class ProductionRequest( object ):
             self.outputSEs.insert( index, outputSE )
             self.priorities.insert( index, priority )
             self.cpus.insert( index, cpu )
+            self.bkQueries.insert( index, bkQuery )
+            self.previousProds.insert( index, preProd )
             self.stepsListDict.insert( index, newSteps[x] )
             self.stepsInProds.insert( index + x, [last + x] )
 
@@ -259,24 +284,25 @@ class ProductionRequest( object ):
     """
 
     prodsDict = {}
-    bkQuery = self.bkQuery
 
     prodNumber = 1
 
-    for prodType, stepsInProd, removeInputsFlag, outputSE, priority, \
-    cpu, inputD, outFileMask, target, groupSize, plugin, idp in itertools.izip( self.prodsTypeList,
-                                                                                self.stepsInProds,
-                                                                                self.removeInputsFlags,
-                                                                                self.outputSEs,
-                                                                                self.priorities,
-                                                                                self.cpus,
-                                                                                self.inputs,
-                                                                                self.outputFileMasks,
-                                                                                self.targets,
-                                                                                self.groupSizes,
-                                                                                self.plugins,
-                                                                                self.inputDataPolicies
-                                                                                ):
+    for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
+    cpu, inputD, outFileMask, target, groupSize, plugin, idp, previousProd in itertools.izip( self.prodsTypeList,
+                                                                                              self.stepsInProds,
+                                                                                              self.bkQueries,
+                                                                                              self.removeInputsFlags,
+                                                                                              self.outputSEs,
+                                                                                              self.priorities,
+                                                                                              self.cpus,
+                                                                                              self.inputs,
+                                                                                              self.outputFileMasks,
+                                                                                              self.targets,
+                                                                                              self.groupSizes,
+                                                                                              self.plugins,
+                                                                                              self.inputDataPolicies,
+                                                                                              self.previousProds
+                                                                                              ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -299,18 +325,21 @@ class ProductionRequest( object ):
                                  'plugin': plugin,
                                  'inputDataPolicy': idp,
                                  'derivedProduction': 0,
-                                 'transformationFamily': transformationFamily
+                                 'transformationFamily': transformationFamily,
+                                 'previousProd': previousProd
                                  }
-      bkQuery = 'fromPreviousProd'
       prodNumber += 1
 
     #tracking the last production(s)
     prodsDict[prodNumber - 1]['tracking'] = 1
     typeOfLastProd = prodsDict[prodNumber - 1]['productionType']
     index = 2
-    while prodsDict[prodNumber - index]['productionType'] == typeOfLastProd:
-      prodsDict[prodNumber - index]['tracking'] = 1
-      index += 1
+    try:
+      while prodsDict[prodNumber - index]['productionType'] == typeOfLastProd:
+        prodsDict[prodNumber - index]['tracking'] = 1
+        index += 1
+    except KeyError:
+      pass
 
     #production derivation, if necessary
     if self.derivedProduction:
@@ -336,6 +365,7 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0 ):
     """ Wrapper around Production API to build a production, given the needed parameters
+        Returns a production object
     """
     prod = Production()
 
@@ -378,14 +408,11 @@ class ProductionRequest( object ):
       prod.transformationFamily = transformationFamily
 
     #Adding optional input BK query
-    if bkQuery == 'fromPreviousProd':
-      prod.inputBKSelection = {
-                               'FileType': stepsInProd[0]['fileTypesIn'][0].upper(),
-                               'EventType': self.eventType,
-                               'ProductionID': int( previousProdID )
-                               }
-    elif bkQuery is not None:
-      prod.inputBKSelection = bkQuery
+    if bkQuery.lower() == 'full':
+      prod.inputBKSelection = self._getBKKQuery()
+    elif bkQuery.lower() == 'frompreviousprod':
+      fileType = stepsInProd[0]['fileTypesIn'][0].upper()
+      prod.inputBKSelection = self._getBKQuery( 'frompreviousprod', fileType, previousProdID )
 
     #Adding the application steps
     firstStep = stepsInProd.pop( 0 )
@@ -425,35 +452,53 @@ class ProductionRequest( object ):
 
   #############################################################################
 
-  def _buildFullBKKQuery( self ):
+  def _getBKKQuery( self, mode = 'full', fileType = '', previousProdID = 0 ):
     """ simply creates the bkk query dictionary
     """
 
-    self.bkQuery = {
-                    'DataTakingConditions'     : self.dataTakingConditions,
-                    'ProcessingPass'           : self.processingPass,
-                    'FileType'                 : self.bkFileType,
-                    'EventType'                : str( self.eventType ),
-                    'ConfigName'               : self.configName,
-                    'ConfigVersion'            : self.configVersion,
-                    'DataQualityFlag'          : self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
-                    }
+    if mode.lower() == 'full':
+      bkQuery = {
+                      'FileType'                 : self.bkFileType,
+                      'EventType'                : str( self.eventType ),
+                      'ConfigName'               : self.configName,
+                      'ConfigVersion'            : self.configVersion,
+                      }
 
-    if ( self.startRun and self.runsList ) or ( self.endRun and self.runsList ):
-      raise ValueError, 'Please don\'t mix runs list with start/end run'
+      if self.dataTakingConditions:
+        bkQuery['DataTakingConditions'] = self.dataTakingConditions
 
-    if int( self.endRun ) and int( self.startRun ):
-      if int( self.endRun ) < int( self.startRun ):
-        gLogger.error( 'Your end run "%s" should be more than your start run "%s"!' % ( self.endRun, self.startRun ) )
-        raise ValueError, 'Error setting start or end run'
+      if self.processingPass:
+        bkQuery['ProcessingPass'] = self.processingPass
 
-    if int( self.startRun ):
-      self.bkQuery['StartRun'] = int( self.startRun )
-    if int( self.endRun ):
-      self.bkQuery['EndRun'] = int( self.endRun )
+      if self.dqFlag:
+        bkQuery['DataQualityFlag'] = self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
 
-    if self.runsList:
-      self.bkQuery['RunNumbers'] = self.runsList.replace( ',', ';;;' ).replace( ' ', '' )
+      if ( self.startRun and self.runsList ) or ( self.endRun and self.runsList ):
+        raise ValueError, 'Please don\'t mix runs list with start/end run'
+
+      if int( self.endRun ) and int( self.startRun ):
+        if int( self.endRun ) < int( self.startRun ):
+          gLogger.error( 'Your end run "%s" should be more than your start run "%s"!' % ( self.endRun, self.startRun ) )
+          raise ValueError, 'Error setting start or end run'
+
+      if int( self.startRun ):
+        bkQuery['StartRun'] = int( self.startRun )
+      if int( self.endRun ):
+        bkQuery['EndRun'] = int( self.endRun )
+
+      if self.runsList:
+        bkQuery['RunNumbers'] = self.runsList.replace( ',', ';;;' ).replace( ' ', '' )
+
+    elif mode.lower() == 'frompreviousprod':
+      bkQuery = {
+                 'FileType': fileType,
+                 'EventType': self.eventType,
+                 'ProductionID': int( previousProdID )
+                 }
+      if self.dqFlag:
+        bkQuery['DataQualityFlag'] = self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
+
+    return bkQuery
 
 #############################################################################
 

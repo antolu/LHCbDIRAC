@@ -63,7 +63,8 @@ pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 if extraOptions:
   pr.extraOptions = eval( extraOptions )
-pr.derivedProduction = '{{AncestorProd#GENERAL: ancestor production if any#0}}'
+pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor production if any#0}}' )
+pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
 
 #p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
@@ -146,8 +147,6 @@ if pr.testFlag:
   pr.bkFileType = 'CHARMCOMPLETEEVENT.DST'
   pr.eventType = '90000000'
   pr.dqFlag = 'ALL'
-
-pr._buildFullBKKQuery()
 
 pr.outputSEs = [x for x in [p1DataSE, p2DataSE, p3DataSE] if x != '']
 pr.removeInputsFlags = [p1RemoveInputs, p2RemoveInputs, p3RemoveInputs][0:len( pr.prodsTypeList )]
