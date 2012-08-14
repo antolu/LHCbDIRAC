@@ -18,17 +18,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __init__( self, plugin,
                 transClient=None, replicaManager=None,
-                bkkClient=None, rmClient=None, rss=None,
+                bkClient=None, rmClient=None, rss=None,
                 debug=False ):
     """ The clients can be passed in.
     """
     DIRACTransformationPlugin.__init__( self, plugin, transClient=transClient, replicaManager=replicaManager )
 
-    if not bkkClient:
+    if not bkClient:
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-      self.bkkClient = BookkeepingClient()
+      self.bkClient = BookkeepingClient()
     else:
-      self.bkkClient = bkkClient
+      self.bkClient = bkClient
 
     if not rmClient:
       from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -98,7 +98,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for lfns in breakListIntoChunks( self.data.keys(), 500 ):
       # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
       #          may have themselves descendants with replicas
-      res = self.bkkClient.getFileDescendents( lfns, production=int( transID ), depth=1, checkreplica=True )
+      res = self.bkClient.getFileDescendents( lfns, production=int( transID ), depth=1, checkreplica=True )
       if not res['OK']:
         self.__logError( "Cannot get descendants of files:", res['Message'] )
       else:
@@ -389,7 +389,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runID = runDict['RunNumber']
       if transType == 'DataReconstruction':
         # Wait for 'delay' hours before starting the task
-        res = self.bkkClient.getRunInformations( int( runID ) )
+        res = self.bkClient.getRunInformations( int( runID ) )
         if res['OK']:
           endDate = res['Value']['RunEnd']
           if datetime.datetime.now() - endDate < datetime.timedelta( hours=delay ):
@@ -561,7 +561,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       lfns = [f for f in metadata if metadata[f][param] == paramValue]
     if lfns:
       startTime = time.time()
-      res = self.bkkClient.getFileAncestors( lfns, depth=10 )
+      res = self.bkClient.getFileAncestors( lfns, depth=10 )
       self.__logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ),
                                                                                                   time.time() - startTime ) )
       if res['OK']:
@@ -714,7 +714,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType )
     if not rawFiles:
       startTime = time.time()
-      res = self.bkkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
+      res = self.bkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
       if not res['OK']:
         rawFiles = 0
         self.__logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
@@ -882,7 +882,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __getBookkeepingMetadata( self, lfns ):
     start = time.time()
-    res = self.bkkClient.getFileMetadata( lfns )
+    res = self.bkClient.getFileMetadata( lfns )
     self.__logVerbose( "Obtained BK metadata of %d files in %.3f seconds" % ( len( lfns ), time.time() - start ) )
     return res
 
