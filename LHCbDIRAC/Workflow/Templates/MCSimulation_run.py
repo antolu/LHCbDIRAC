@@ -5,6 +5,13 @@
       WORKFLOW3: Simulation+MCMerge
       WORKFLOW4: Simulation
 
+    Exotic things you might want to do:
+    * run a local test:
+      - of the MC: just set the localTestFlag to True
+      - of the merging/stripping: set pr.prodsToLaunch to, e.g., [2], and adjust the pr.inputs at the end of the script
+    * run only part of the request on the Grid:
+      - for the MC: just set pr.prodsToLaunch = [1]
+      - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
 __RCSID__ = "$Id$"
@@ -29,6 +36,8 @@ pr.stepsList.append( '{{p6Step}}' )
 pr.stepsList.append( '{{p7Step}}' )
 pr.stepsList.append( '{{p8Step}}' )
 pr.stepsList.append( '{{p9Step}}' )
+
+pr.resolveSteps()
 
 ###########################################
 # Configurable and fixed parameters
@@ -116,6 +125,7 @@ if pr.testFlag:
   pr.extend = '10'
   mergingGroupSize = '1'
   MCCpu = '50000'
+  pr.previousProdID = 0 #set this for, e.g., launching only merging
 
 w1 = eval( w1 )
 w2 = eval( w2 )
@@ -178,6 +188,14 @@ elif w4:
   pr.groupSizes = [1]
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
+
+#In case of local test (these examples are for the merging)
+if localTestFlag:
+  pr.inputs = [[],
+                 ['/lhcb/certification/test/ALLSTREAMS.DST/00000127/0000/00000127_00000030_5.AllStreams.dst',
+                  '/lhcb/certification/test/ALLSTREAMS.DST/00000127/0000/00000127_00000030_5.AllStreams.dst']
+                ]
+  pr.inputDataPolicies = ['', 'protocol']
 
 pr.buildAndLaunchRequest()
 

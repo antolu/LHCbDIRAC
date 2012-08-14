@@ -133,6 +133,8 @@ class ProductionRequest( object ):
     fromProd = self.previousProdID
     prodsLaunched = []
 
+    self.logger.verbose( prodsDict )
+
     #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
 
@@ -146,7 +148,6 @@ class ProductionRequest( object ):
         for step in stepsListDict:
           if step['StepId'] == stepID:
             stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
-
 
       prod = self._buildProduction( prodDict['productionType'], stepsInProd, self.extraOptions, prodDict['outputSE'],
                                     prodDict['priority'], prodDict['cpu'], prodDict['input'],
@@ -174,7 +175,8 @@ class ProductionRequest( object ):
 
       prodID = res['Value']
       prodsLaunched.append( prodID )
-      fromProd = prodsLaunched[prodDict['previousProd'] - 1]
+      if prodDict['previousProd'] is not None:
+        fromProd = prodsLaunched[prodDict['previousProd'] - 1]
 
       if self.publishFlag:
         self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
@@ -274,6 +276,7 @@ class ProductionRequest( object ):
     if not self.groupSizes:
       self.groupSizes = [1] * len( self.prodsTypeList )
 
+    print self.inputDataPolicies
     if not self.inputDataPolicies:
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
@@ -286,6 +289,8 @@ class ProductionRequest( object ):
     prodsDict = {}
 
     prodNumber = 1
+
+    print self.inputDataPolicies
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outFileMask, target, groupSize, plugin, idp, previousProd in itertools.izip( self.prodsTypeList,
@@ -308,6 +313,8 @@ class ProductionRequest( object ):
         transformationFamily = self.requestID
       else:
         transformationFamily = self.parentRequestID
+
+      print stepsInProd
 
       prodsDict[ prodNumber ] = {
                                  'productionType': prodType,
@@ -412,7 +419,7 @@ class ProductionRequest( object ):
       prod.inputBKSelection = self._getBKKQuery()
     elif bkQuery.lower() == 'frompreviousprod':
       fileType = stepsInProd[0]['fileTypesIn'][0].upper()
-      prod.inputBKSelection = self._getBKQuery( 'frompreviousprod', fileType, previousProdID )
+      prod.inputBKSelection = self._getBKKQuery( 'frompreviousprod', fileType, previousProdID )
 
     #Adding the application steps
     firstStep = stepsInProd.pop( 0 )

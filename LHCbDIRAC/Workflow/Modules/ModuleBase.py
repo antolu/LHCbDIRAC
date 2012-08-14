@@ -28,13 +28,13 @@ class ModuleBase( object ):
     else:
       self.opsH = operationsHelperIn
 
-    self.production_id = self.PRODUCTION_ID
-    self.prod_job_id = self.JOB_ID
+    self.production_id = ''
+    self.prod_job_id = ''
     self.jobID = ''
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
-    self.step_number = self.STEP_NUMBER
-    self.step_id = '%s_%s_%s' % ( self.production_id, self.prod_job_id, self.step_number )
+    self.step_number = ''
+    self.step_id = ''
 
   #############################################################################
 
@@ -51,9 +51,13 @@ class ModuleBase( object ):
 
     if production_id:
       self.production_id = production_id
+    else:
+      self.production_id = self.PRODUCTION_ID
 
     if prod_job_id:
       self.prod_job_id = prod_job_id
+    else:
+      self.prod_job_id = self.JOB_ID
 
     if wms_job_id:
       self.jobID = wms_job_id
@@ -72,9 +76,13 @@ class ModuleBase( object ):
 
     if step_number:
       self.step_number = step_number
+    else:
+      self.step_number = self.STEP_NUMBER
 
     if step_id:
       self.step_id = step_id
+    else:
+      self.step_id = '%s_%s_%s' % ( self.production_id, self.prod_job_id, self.step_number )
 
   #############################################################################
 
