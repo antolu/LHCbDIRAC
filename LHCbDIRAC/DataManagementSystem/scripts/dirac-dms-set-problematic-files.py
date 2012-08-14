@@ -136,7 +136,7 @@ if __name__ == "__main__":
   if bkToggle:
     chunkSize = 100
     sys.stdout.write( 'Checking with Transformation system (chunks of %d): ' % chunkSize )
-    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MaxReset' ), False:( 'Unused', 'MaxReset' )}
+    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
     for chunk in breakListIntoChunks( bkToggle, chunkSize ):
       sys.stdout.write( '.' )
       sys.stdout.flush()
@@ -145,6 +145,8 @@ if __name__ == "__main__":
         for trDict in res['Value']:
           transID = trDict['TransformationID']
           status = trDict['Status']
+          if not reset and status == 'Problematic':
+            continue
           lfn = trDict['LFN']
           if status in transStatusOK[reset]:
             transDict.setdefault( transID, [] ).append( lfn )
