@@ -110,7 +110,7 @@ class RootApplication( ModuleBase ):
 
       result = gConfig.getOption( "/".join( [self.rootSection, self.rootVersion] ) )
       if not result['OK']:
-        return self._reportError( 'Could not contact DIRAC Configuration Service for application for root ', __name__ )
+        return self.log.error( 'Could not contact DIRAC Configuration Service for application for root ', __name__ )
 
       application, version = result['Value'].split( '.' )
 
