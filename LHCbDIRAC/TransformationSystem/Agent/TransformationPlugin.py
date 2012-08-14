@@ -1695,11 +1695,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     transID = self.params['TransformationID']
     replicaGroups = self._getFileGroups( self.data )
     storageElementGroups = {}
+    replicaGroups[''] = [fileDict['LFN'] for fileDict in self.files if fileDict['LFN'] not in self.data]
 
     for replicaSE, lfns in replicaGroups.items():
       replicaSE = [se for se in replicaSE.split( ',' ) if not self.__isFailover( se ) and not self.__isArchive( se )]
+      if not replicaSE or replicaSE == ['']:
       if not replicaSE:
         self.__logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )
+        else:
+          self.__logInfo( 'Found %d files that have no replicas. Set Problematic' % len( replicaGroups[''] ) )
         res = self.transClient.setFileStatusForTransformation( transID, 'Problematic', lfns )
         continue
       # get other replicas
@@ -1714,7 +1718,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if targetSEs:
           storageElementGroups.setdefault( ','.join( targetSEs ), [] ).append( lfn )
         else:
-          print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
+          #print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
           noMissingSE.append( lfn )
       if noMissingSE:
         self.__logInfo( "Found %d files that are already present in the destination SEs (set Processed)" % len( noMissingSE ) )
