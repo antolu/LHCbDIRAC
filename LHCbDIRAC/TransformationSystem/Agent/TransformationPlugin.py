@@ -1511,7 +1511,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check that the dataset exists at least at 2 keepSE
         if len( [se for se in replicaSE if se in keepSEs] ) < nKeep:
           self.__logInfo( "Found %d files that are not in %d keepSEs, no removal done" % ( len( lfns ), nKeep ) )
-          self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
+          self.transClient.setFileStatusForTransformation( transID, 'Problematic', lfns )
           continue
       existingSEs = [se for se in replicaSE if not se in keepSEs and not self.__isFailover( se )]
       #print "Existing:",existingSEs,", minKeep", minKeep, ", keepSEs", keepSEs
@@ -1537,6 +1537,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         elif [se for se in listSEs if se in existingSEs]:
           nLeft = len( [se for se in existingSEs if not se in listSEs] )
           self.__logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ), nLeft, minKeep ) )
+          self.__logVerbose( "First files at %s are: %s" % ( str( existingSEs ), str( lfns[0:10] ) ) )
+          self.transClient.setFileStatusForTransformation( transID, 'Problematic', lfns )
           continue
 
       if targetSEs:
@@ -1669,9 +1671,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.__logInfo( "Found %d files that are already present in the destination SEs (status set)" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( transID, 'Processed', lfns )
         if not res['OK']:
-          self.__logError( "Can't set %s of transformation %s to 'Processed: %s'" % ( str( lfns ),
-                                                                                      str( transID ),
-                                                                                      res['Message'] ) )
+          self.__logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( lfns ),
+                                                                                            str( transID ),
+                                                                                            res['Message'] ) )
           return res
         continue
       targetSEs = [se for se in destSEs if se not in replicaSE]
