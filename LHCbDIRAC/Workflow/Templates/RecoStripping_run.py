@@ -1,4 +1,15 @@
 """ Moving toward a templates-less system
+
+    The RecoStripping Template creates workflows for the following use-cases:
+      WORKFLOW1: Reconstruction
+      WORKFLOW2: Stripping+Merge
+      WORKFLOW3: RecoStripping+Merge (Reco and Stripping within the same job)
+      WORKFLOW4: Reconstruction+Stripping+Merge
+
+    Exotic things you might want to do:
+    * run a local test:
+      pre: remember to check if your input file is online, if not use lcg-bringonline <PFN>
+    * run only part of the request on the Grid:
 """
 
 __RCSID__ = "$Id$"

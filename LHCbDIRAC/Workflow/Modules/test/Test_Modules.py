@@ -393,6 +393,52 @@ class ModuleBaseSuccess( ModulesTestCase ):
                      self.step_number, self.step_id )
     self.assertTrue( self.mb._enableModule() )
 
+  def test__determineStepInputData( self ):
+
+    self.mb.stepName = 'DaVinci_2'
+
+    inputData = 'previousStep'
+    gaudiSteps = ['Brunel_1', 'DaVinci_2']
+    outputList = [{'stepName': 'Brunel_1',
+                    'outputDataType': 'brunelhist',
+                    'outputBKType': 'BRUNELHIST',
+                    'outputDataSE': 'CERN-HIST',
+                    'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
+                   {'stepName': 'Brunel_1',
+                    'outputDataType': 'sdst',
+                    'outputBKType': 'SDST',
+                    'outputDataSE': 'Tier1-BUFFER',
+                    'outputDataName': '00012345_00006789_1.sdst'}
+                   ]
+    bkType = 'SDST'
+
+    first = self.mb._determineStepInputData( inputData, gaudiSteps, outputList, bkType )
+    second = ['00012345_00006789_1.sdst']
+    self.assertEqual( first, second )
+
+    inputData = 'previousStep'
+    gaudiSteps = ['Brunel_1', 'DaVinci_2']
+    outputList = [{'stepName': 'Brunel_1',
+                    'outputDataType': 'brunelhist',
+                    'outputBKType': 'BRUNELHIST',
+                    'outputDataSE': 'CERN-HIST',
+                    'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
+                  {'stepName': 'Brunel_1',
+                    'outputDataType': 'sdst',
+                    'outputBKType': 'SDST',
+                    'outputDataSE': 'Tier1-BUFFER',
+                    'outputDataName': 'some.sdst'},
+                   {'stepName': 'Brunel_1',
+                    'outputDataType': 'sdst',
+                    'outputBKType': 'SDST',
+                    'outputDataSE': 'Tier1-BUFFER',
+                    'outputDataName': '00012345_00006789_1.sdst'}
+                   ]
+    bkType = 'SDST'
+    first = self.mb._determineStepInputData( inputData, gaudiSteps, outputList, bkType )
+    second = ['some.sdst', '00012345_00006789_1.sdst']
+    self.assertEqual( first, second )
+
 #############################################################################
 # GaudiApplication.py
 #############################################################################

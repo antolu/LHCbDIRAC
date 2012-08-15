@@ -328,13 +328,10 @@ class ModuleBase( object ):
 
     if self.step_commons.has_key( 'inputData' ):
       if self.step_commons['inputData']:
-        self.stepInputData = self.step_commons['inputData']
-        if self.stepInputData == 'previousStep':
-          stepIndex = self.workflow_commons['gaudiSteps'].index( self.stepName )
-          previousStep = self.workflow_commons['gaudiSteps'][stepIndex - 1]
-
-          oL = self.workflow_commons['outputList']
-          self.stepInputData = [outputF['outputDataName'] for outputF in oL if outputF['stepName'] == previousStep][0]
+        self.stepInputData = self._determineStepInputData( self.step_commons['inputData'],
+                                                           self.workflow_commons['gaudiSteps'],
+                                                           self.workflow_commons['outputList'],
+                                                           self.inputDataType )
 
     if self.step_commons.has_key( 'listoutput' ):
       self.stepOutputs = self.step_commons['listoutput']
@@ -569,6 +566,29 @@ class ModuleBase( object ):
           return S_ERROR( 'File %s has missing %s' % ( fileName, key ) )
 
     return S_OK( final )
+
+  #############################################################################
+
+  def _determineStepInputData( self, inputData, gaudiSteps, outputList, bkType ):
+    """ determine the input data for the step
+    """
+    if inputData == 'previousStep':
+      stepIndex = gaudiSteps.index( self.stepName )
+      previousStep = gaudiSteps[stepIndex - 1]
+
+      stepInputData = []
+      for outputF in outputList:
+        try:
+          print outputF
+          if outputF['stepName'] == previousStep and outputF['outputBKType'].lower() == bkType.lower():
+            stepInputData.append( outputF['outputDataName'] )
+        except KeyError:
+          return S_ERROR( 'Can\'t find output of step %s' % previousStep )
+
+      return stepInputData
+
+    else:
+      return inputData
 
   #############################################################################
 
