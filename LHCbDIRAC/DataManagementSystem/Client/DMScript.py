@@ -1,14 +1,13 @@
 """
-DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
+  DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
+  The module also provides a function for printing pretty results from DMS queries
 """
 
 __RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
 
-import os, sys
 import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
-from DIRAC.Core.Utilities.List                                         import sortList
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
 def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory" ):
@@ -25,7 +24,7 @@ def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory" ):
     offset += shift
   else:
     offset += key_max
-  for key in sortList( dictionary.keys() ):
+  for key in sorted( dictionary.keys() ):
     value = dictionary[key]
     if type( value ) == type( {} ):
       if value != {}:
@@ -37,6 +36,7 @@ def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory" ):
       print key.rjust( center ), ' : ', str( value ).ljust( value_max )
 
 def printDMResult( result, shift=4, empty="Empty directory", script="DMS script" ):
+  """ Printing results returned with 'Successful' and 'Failed' items """
   if result['OK']:
     __printDictionary( result['Value'], shift=shift, empty=empty )
     return 0
@@ -45,6 +45,9 @@ def printDMResult( result, shift=4, empty="Empty directory", script="DMS script"
     return 2
 
 class DMScript():
+  """
+  DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
+  """
 
   def __init__( self ):
     from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
@@ -180,8 +183,8 @@ class DMScript():
   def setLFNsFromFile( self, arg ):
     try:
       f = open( arg, 'r' )
-      lfns = [l.split( 'LFN:' )[-1].strip().split()[-1].replace( '"', '' ) for l in f.read().splitlines()]
-      lfns = [lfn.replace( ',', '' ) if lfn.startswith( '/lhcb' ) else lfn for lfn in lfns]
+      lfns = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in f.read().splitlines()]
+      lfns = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] for lfn in lfns]
       self.options['LFNs'] = lfns
       f.close()
     except:
@@ -198,7 +201,7 @@ class DMScript():
     if self.bkQuery:
       return self.bkQuery
     if self.bkQueryDict:
-        self.bkQuery = BKQuery( self.bkQueryDict )
+      self.bkQuery = BKQuery( self.bkQueryDict )
     else:
       visible = not self.options.get( 'Invisible', False ) if visible == None else visible
       bkPath = self.options.get( 'BKPath' )
@@ -226,8 +229,8 @@ class DMScript():
     else:
       prods = prod
     if len( prods ) == 1 and str( prods[0] ).upper() != 'ALL':
-          res = TransformationClient().getTransformation( prods[0] )
-          if res['OK']:
-            requestID = int( res['Value']['TransformationFamily'] )
+      res = TransformationClient().getTransformation( prods[0] )
+      if res['OK']:
+        requestID = int( res['Value']['TransformationFamily'] )
     return requestID
 
