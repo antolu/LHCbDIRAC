@@ -4,15 +4,17 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Utilities                                  import List
-
-from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
-from LHCbDIRAC.Core.Utilities.ResolveSE                    import getDestinationSEList
-
-from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+import os, random, time, re
 
 import DIRAC
-import os, random, time, re
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities import List
+from DIRAC.Core.Utilities.File import getGlobbedFiles
+
+from LHCbDIRAC.Core.Utilities.ProductionData import constructUserLFNs
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
+
 
 class UserJobFinalization( ModuleBase ):
 
@@ -47,9 +49,9 @@ class UserJobFinalization( ModuleBase ):
 
     #Use LHCb utility for local running via dirac-jobexec
     if self.workflow_commons.has_key( 'UserOutputData' ):
-        self.userOutputData = self.workflow_commons['UserOutputData']
-        if not type( self.userOutputData ) == type( [] ):
-          self.userOutputData = [i.strip() for i in self.userOutputData.split( ';' )]
+      self.userOutputData = self.workflow_commons['UserOutputData']
+      if not type( self.userOutputData ) == type( [] ):
+        self.userOutputData = [i.strip() for i in self.userOutputData.split( ';' )]
 
     if self.workflow_commons.has_key( 'UserOutputSE' ):
       specifiedSE = self.workflow_commons['UserOutputSE']
@@ -86,7 +88,7 @@ class UserJobFinalization( ModuleBase ):
       else:
         self.log.debug( 'Current step = %s, total steps of workflow = %s, \
         UserJobFinalization will enable itself only at the last workflow step.' % ( self.step_number,
-                                                                                                                                                     self.workflow_commons['TotalSteps'] ) )
+                                                                                    self.workflow_commons['TotalSteps'] ) )
       if not self.lastStep:
         return S_OK()
 
@@ -119,10 +121,10 @@ class UserJobFinalization( ModuleBase ):
         for i in globList:
           self.userOutputData.remove( i )
 
-        from DIRAC.Core.Utilities.File import getGlobbedFiles
         globbedOutputList = List.uniqueElements( getGlobbedFiles( globList ) )
         if globbedOutputList:
-          self.log.info( 'Found a pattern in the output data file list, extra files to upload are: %s' % ( ', '.join( globbedOutputList ) ) )
+          self.log.info( 'Found a pattern in the output data file list, \
+          extra files to upload are: %s' % ( ', '.join( globbedOutputList ) ) )
           self.userOutputData += globbedOutputList
         else:
           self.log.info( 'No files were found on the local disk for the following patterns: %s' % ( ', '.join( globList ) ) )
@@ -133,7 +135,9 @@ class UserJobFinalization( ModuleBase ):
       #workflow and all the parameters needed to upload them.
       outputList = []
       for i in self.userOutputData:
-        outputList.append( {'outputDataType':( '.'.split( i )[-1] ).upper(), 'outputDataSE':self.userOutputSE, 'outputDataName':os.path.basename( i )} )
+        outputList.append( {'outputDataType':( '.'.split( i )[-1] ).upper(),
+                            'outputDataSE':self.userOutputSE,
+                            'outputDataName':os.path.basename( i )} )
 
       userOutputLFNs = []
       if self.userOutputData:
@@ -150,14 +154,14 @@ class UserJobFinalization( ModuleBase ):
             return owner
           owner = owner['Value']
 
-        from LHCbDIRAC.Core.Utilities.ProductionData import constructUserLFNs
         result = constructUserLFNs( int( self.jobID ), owner, self.userOutputData, self.userOutputPath )
         if not result['OK']:
           self.log.error( 'Could not create production LFNs', result['Message'] )
           return result
         userOutputLFNs = result['Value']
 
-      self.log.verbose( 'Calling getCandidateFiles( %s, %s, %s)' % ( outputList, userOutputLFNs, self.outputDataFileMask ) )
+      self.log.verbose( 'Calling getCandidateFiles( %s, %s, %s)' % ( outputList, userOutputLFNs,
+                                                                     self.outputDataFileMask ) )
       result = self.getCandidateFiles( outputList, userOutputLFNs, self.outputDataFileMask )
       if not result['OK']:
         self.setApplicationStatus( result['Message'] )
@@ -209,7 +213,8 @@ class UserJobFinalization( ModuleBase ):
 
       #At this point can exit and see exactly what the module will upload
       if not self._enableModule():
-        self.log.info( 'Module is disabled by control flag, would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
+        self.log.info( 'Module is disabled by control flag, \
+        would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
         for fileName, metadata in final.items():
           self.log.info( '--------%s--------' % fileName )
           for n, v in metadata.items():
@@ -233,8 +238,13 @@ class UserJobFinalization( ModuleBase ):
       failover = {}
       uploaded = []
       for fileName, metadata in final.items():
-        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName, ', '.join( metadata['resolvedSE'] ) ) )
-        result = ft.transferAndRegisterFile( fileName, metadata['localpath'], metadata['lfn'], metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = self.userFileCatalog )
+        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
+                                                                                     ', '.join( metadata['resolvedSE'] ) ) )
+        result = ft.transferAndRegisterFile( fileName, metadata['localpath'],
+                                             metadata['lfn'],
+                                             metadata['resolvedSE'],
+                                             fileGUID = metadata['guid'],
+                                             fileCatalog = self.userFileCatalog )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           failover[fileName] = metadata
@@ -260,7 +270,13 @@ class UserJobFinalization( ModuleBase ):
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
         metadata['resolvedSE'] = self.failoverSEs
-        result = ft.transferAndRegisterFileFailover( fileName, metadata['localpath'], metadata['lfn'], targetSE, metadata['resolvedSE'], fileGUID = metadata['guid'], fileCatalog = self.userFileCatalog )
+        result = ft.transferAndRegisterFileFailover( fileName,
+                                                     metadata['localpath'],
+                                                     metadata['lfn'],
+                                                     targetSE,
+                                                     metadata['resolvedSE'],
+                                                     fileGUID = metadata['guid'],
+                                                     fileCatalog = self.userFileCatalog )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           cleanUp = True
@@ -311,7 +327,8 @@ class UserJobFinalization( ModuleBase ):
       for lfn, repSE in replication.items():
         result = rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
-          self.log.info( 'Replication failed with below error but file already exists in Grid storage with at least one replica:\n%s' % ( result ) )
+          self.log.info( 'Replication failed with below error\
+           but file already exists in Grid storage with at least one replica:\n%s' % ( result ) )
 
       self.workflow_commons['Request'] = self.request
 

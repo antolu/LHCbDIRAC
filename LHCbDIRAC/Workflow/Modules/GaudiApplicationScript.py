@@ -9,13 +9,11 @@
 
 __RCSID__ = "$Id$"
 
-
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment, addCommandDefaults, createDebugScript
-from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
+import re, os, sys
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, shellCall
-
-import re, os, sys
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class GaudiApplicationScript( ModuleBase ):
 
@@ -93,12 +91,17 @@ class GaudiApplicationScript( ModuleBase ):
         return self.result
 
       self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
-      self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName, self.applicationVersion, self.systemConfig ) )
+      self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
+                                                                                   self.applicationVersion,
+                                                                                   self.systemConfig ) )
       self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
 
       #Now obtain the project environment for execution
       if not projectEnvironment:
-        result = getProjectEnvironment( self.systemConfig, self.applicationName, self.applicationVersion, poolXMLCatalogName = self.poolXMLCatName )
+        result = getProjectEnvironment( self.systemConfig,
+                                        self.applicationName,
+                                        self.applicationVersion,
+                                        poolXMLCatalogName = self.poolXMLCatName )
         if not result['OK']:
           self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
           return result # this will distinguish between LbLogin / SetupProject / actual application failures
@@ -118,24 +121,32 @@ class GaudiApplicationScript( ModuleBase ):
       print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
       #Set some parameter names
-      dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName, self.applicationVersion, self.step_number )
-  #    dumpEnvName  = '%s_%s_%s_%s_EnvironmentDump-%s.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.step_number, self.applicationName, self.applicationVersion )
+      dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
+                                                            self.applicationVersion,
+                                                            self.step_number )
       scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName, self.applicationVersion, self.step_number )
-  #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.step_number, self.applicationName, self.applicationVersion )
       coreDumpName = '%s_Step%s' % ( self.applicationName, self.step_number )
 
       #Wrap final execution command with defaults
       finalCommand = addCommandDefaults( command, envDump = dumpEnvName, coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
 
       #Create debug shell script to reproduce the application execution
-      debugResult = createDebugScript( scriptName, command, env = projectEnvironment, envLogFile = dumpEnvName, coreDumpLog = coreDumpName ) #will add command defaults internally
+      debugResult = createDebugScript( scriptName,
+                                       command,
+                                       env = projectEnvironment,
+                                       envLogFile = dumpEnvName,
+                                       coreDumpLog = coreDumpName ) #will add command defaults internally
       if debugResult['OK']:
         self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
-      if os.path.exists( self.applicationLog ): os.remove( self.applicationLog )
+      if os.path.exists( self.applicationLog ):
+        os.remove( self.applicationLog )
 
       self.stdError = ''
-      result = shellCall( 0, finalCommand, env = projectEnvironment, callbackFunction = self.redirectLogOutput, bufferLimit = 20971520 )
+      result = shellCall( 0, finalCommand,
+                          env = projectEnvironment,
+                          callbackFunction = self.redirectLogOutput,
+                          bufferLimit = 20971520 )
       if not result['OK']:
         self.log.error( result )
         return S_ERROR( 'Problem Executing Application' )
@@ -162,9 +173,13 @@ class GaudiApplicationScript( ModuleBase ):
         return S_ERROR( '%s Exited With Status %s' % ( os.path.basename( self.script ), status ) )
 
       #Above can't be removed as it is the last notification for user jobs
-      self.setApplicationStatus( '%s (%s %s) Successful' % ( os.path.basename( self.script ), self.applicationName, self.applicationVersion ) )
+      self.setApplicationStatus( '%s (%s %s) Successful' % ( os.path.basename( self.script ),
+                                                             self.applicationName,
+                                                             self.applicationVersion ) )
 
-      return S_OK( '%s (%s %s) Successful' % ( os.path.basename( self.script ), self.applicationName, self.applicationVersion ) )
+      return S_OK( '%s (%s %s) Successful' % ( os.path.basename( self.script ),
+                                               self.applicationName,
+                                               self.applicationVersion ) )
 
     except Exception, e:
       self.log.exception( e )

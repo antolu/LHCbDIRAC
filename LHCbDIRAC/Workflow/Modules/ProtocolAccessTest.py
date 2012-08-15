@@ -1,23 +1,26 @@
-__RCSID__ = "$Id$"
-
 """ The Protocol Access Test module opens connections to the supplied files for the supplied protocols.
     It measures the times taken to open, close and read events from the files.
     It produced statistics on the observed performance of each of the protocols.
 """
 
-from DIRAC                                                          import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
-from DIRAC.Core.Utilities.List                                      import sortList
-from DIRAC.Core.Utilities.Statistics                                import getMean, getMedian, getVariance, getStandardDeviation
-
-from LHCbDIRAC.Workflow.Modules.ModuleBase                          import ModuleBase
-from LHCbDIRAC.Core.Utilities.ClientTools                           import readFileEvents
+__RCSID__ = "$Id$"
 
 import os, shutil
+
+from DIRAC import S_OK, S_ERROR, gConfig, gLogger
+from DIRAC.Core.Utilities.ModuleFactory import ModuleFactory
+from DIRAC.Core.Utilities.List import sortList
+from DIRAC.Core.Utilities.Statistics import getMean, getMedian, getVariance, getStandardDeviation
+
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.ClientTools import readFileEvents
+
 
 COMPONENT_NAME = 'ProtocolAccessTest'
 
 class ProtocolAccessTest( ModuleBase ):
+  """ Test module
+  """
 
   #############################################################################
   def __init__( self ):
@@ -118,14 +121,18 @@ class ProtocolAccessTest( ModuleBase ):
         return S_ERROR( 'Could not determine local SE list' )
 
       seConfig = {'LocalSEList':localSE, 'DiskSEList' :localSE, 'TapeSEList' :localSE}
-      argumentsDict = {'InputData':self.stepInputData, 'Configuration':seConfig, 'FileCatalog': catalogResult, 'Protocols' : self.protocolsList}
+      argumentsDict = {'InputData':self.stepInputData,
+                       'Configuration':seConfig,
+                       'FileCatalog': catalogResult,
+                       'Protocols' : self.protocolsList}
 
       if self.systemConfig:
         self.log.info( 'Setting system configuration (CMTCONFIG) to %s' % self.systemConfig )
         os.environ['CMTCONFIG'] = self.systemConfig
 
       if self.rootVersion:
-        self.log.info( 'Requested ROOT version %s corresponding to DaVinci version %s' % ( self.rootVersion, self.applicationVersion ) )
+        self.log.info( 'Requested ROOT version %s corresponding to DaVinci version %s' % ( self.rootVersion,
+                                                                                           self.applicationVersion ) )
 
       fileLocations = {}
       failedInitialise = {}
@@ -165,7 +172,13 @@ class ProtocolAccessTest( ModuleBase ):
       timingResults = open( self.applicationLog, 'w' )
       for lfn in sortList( failedInitialise.keys() ):
         for protocol in sortList( failedInitialise[lfn] ):
-          statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ), protocol.ljust( 10 ), 'I'.ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ), str( 0.0 ).ljust( 10 ) )
+          statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ),
+                                                   protocol.ljust( 10 ),
+                                                   'I'.ljust( 10 ),
+                                                   str( 0.0 ).ljust( 10 ),
+                                                   str( 0.0 ).ljust( 10 ),
+                                                   str( 0.0 ).ljust( 10 ),
+                                                   str( 0.0 ).ljust( 10 ) )
           timingResults.write( '%s\n' % statsString )
       timingResults.close()
 
@@ -194,7 +207,13 @@ class ProtocolAccessTest( ModuleBase ):
               mean = "%.7f" % statsDict['Mean']
               stdDev = "%.7f" % statsDict['StdDev']
               median = "%.7f" % statsDict['Median']
-          statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ), protocol.ljust( 10 ), str( openTime ).ljust( 10 ), str( events ).ljust( 10 ), str( mean ).ljust( 10 ), str( stdDev ).ljust( 10 ), str( median ).ljust( 10 ) )
+          statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ),
+                                                   protocol.ljust( 10 ),
+                                                   str( openTime ).ljust( 10 ),
+                                                   str( events ).ljust( 10 ),
+                                                   str( mean ).ljust( 10 ),
+                                                   str( stdDev ).ljust( 10 ),
+                                                   str( median ).ljust( 10 ) )
           statsStrings.append( statsString )
           if os.path.exists( 'full.output' ):
             shutil.move( 'full.output', '%s.output' % protocol )
@@ -205,7 +224,13 @@ class ProtocolAccessTest( ModuleBase ):
           timingResults = open( self.applicationLog, 'a' )
           timingResults.write( '%s\n' % statsString )
           timingResults.close()
-      self.log.info( "%s %s %s %s %s %s %s" % ( 'lfn'.ljust( 70 ), 'protocol'.ljust( 10 ), 'opening'.ljust( 10 ), 'events'.ljust( 10 ), 'mean'.ljust( 10 ), 'stdev'.ljust( 10 ), 'median'.ljust( 10 ) ) )
+      self.log.info( "%s %s %s %s %s %s %s" % ( 'lfn'.ljust( 70 ),
+                                                'protocol'.ljust( 10 ),
+                                                'opening'.ljust( 10 ),
+                                                'events'.ljust( 10 ),
+                                                'mean'.ljust( 10 ),
+                                                'stdev'.ljust( 10 ),
+                                                'median'.ljust( 10 ) ) )
       for statString in statsStrings:
         self.log.info( statString )
 
@@ -223,7 +248,8 @@ class ProtocolAccessTest( ModuleBase ):
   def __getProtocolLocations( self, argumentsDict ):
     protocol = argumentsDict['Configuration']['Protocol']
     moduleFactory = ModuleFactory()
-    moduleInstance = moduleFactory.getModule( 'DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol', argumentsDict )
+    moduleInstance = moduleFactory.getModule( 'DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol',
+                                              argumentsDict )
     if not moduleInstance['OK']:
       return moduleInstance
     module = moduleInstance['Value']
@@ -249,9 +275,11 @@ class ProtocolAccessTest( ModuleBase ):
 
   #############################################################################
   def __downloadInputData( self, argumentsDict ):
-    # Prepare the files to be tested locally so that we have a bench mark of performance
+    """ Prepare the files to be tested locally so that we have a bench mark of performance
+    """
     moduleFactory = ModuleFactory()
-    moduleInstance = moduleFactory.getModule( 'DIRAC.WorkloadManagementSystem.Client.DownloadInputData', argumentsDict )
+    moduleInstance = moduleFactory.getModule( 'DIRAC.WorkloadManagementSystem.Client.DownloadInputData',
+                                              argumentsDict )
     if not moduleInstance['OK']:
       return moduleInstance
     module = moduleInstance['Value']
@@ -278,6 +306,8 @@ class ProtocolAccessTest( ModuleBase ):
   #############################################################################
 
   def __generateStats( self, readTimes ):
+    """ dev function
+    """
     resDict = {}
     resDict['Elements'] = len( readTimes )
     resDict['Median'] = getMedian( readTimes )

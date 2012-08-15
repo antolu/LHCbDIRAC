@@ -1,22 +1,27 @@
 """ Just a module with some utilities
 """
 
-import os
+import os, tarfile
+
+from DIRAC import S_OK, S_ERROR
 
 def tarFiles( outputFile, files = [], compression = '', deleteInput = False ):
   """ just make a tar
   """
-  import tarfile
 
-  tar = tarfile.open( outputFile, 'w:' + compression )
-  for file in files:
-    tar.add( file )
-  tar.close()
+  try:
+    tar = tarfile.open( outputFile, 'w:' + compression )
+    for fileIn in files:
+      tar.add( fileIn )
+    tar.close()
+  except tarfile.CompressionError:
+    return S_ERROR( 'Compression %s not available' )
 
   if deleteInput:
-    for file in files:
-      os.remove( file )
+    for fileIn in files:
+      os.remove( fileIn )
 
+  return S_OK()
 
 #############################################################################
 
@@ -30,8 +35,8 @@ def lowerExtension():
 
   lowers = []
 
-  for file in filesInDir:
-    splitted = file.split( '.' )
+  for fileIn in filesInDir:
+    splitted = fileIn.split( '.' )
     if len( splitted ) > 1:
       lowered = ''
       for toBeLowered in splitted[1:]:
@@ -39,9 +44,9 @@ def lowerExtension():
         final = splitted[0] + lowered
     else:
       final = splitted[0]
-    lowers.append( ( file, final ) )
+    lowers.append( ( fileIn, final ) )
 
-  for file in lowers:
-    os.rename( file[0], file[1] )
+  for fileIn in lowers:
+    os.rename( fileIn[0], fileIn[1] )
 
 #############################################################################

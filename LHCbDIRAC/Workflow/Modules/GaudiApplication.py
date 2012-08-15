@@ -174,7 +174,7 @@ class GaudiApplication( ModuleBase ):
                                                      self.production_id,
                                                      self.prod_job_id,
                                                      self.step_number )
-        p = ProdConf( prodConfFile )
+        prodConfFile = ProdConf( prodConfFile )
 
         optionsDict = {}
 
@@ -244,7 +244,7 @@ class GaudiApplication( ModuleBase ):
         if self.TCK:
           optionsDict['TCK'] = self.TCK
 
-        p.putOptionsIn( optionsDict )
+        prodConfFile.putOptionsIn( optionsDict )
 
       if not projectEnvironment:
         #Now obtain the project environment for execution
@@ -300,7 +300,8 @@ class GaudiApplication( ModuleBase ):
       if debugResult['OK']:
         self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
-      if os.path.exists( self.applicationLog ): os.remove( self.applicationLog )
+      if os.path.exists( self.applicationLog ):
+        os.remove( self.applicationLog )
 
       self.log.info( 'Running %s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
       self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
@@ -355,7 +356,7 @@ class GaudiApplication( ModuleBase ):
     """
 
     try:
-      finalOutputs, bkFileTypes = self._findOutputs( self.stepOutputs )
+      finalOutputs, _bkFileTypes = self._findOutputs( self.stepOutputs )
     except AttributeError:
       self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
       return
@@ -416,12 +417,12 @@ class GaudiApplication( ModuleBase ):
         self.log.error( '%s not found' % output['outputDataName'] )
         raise IOError, 'OutputData not found'
 
-    for f in filesFound:
-      bkFileTypes.append( f['outputDataType'].upper() )
-      finalOutputs.append( {'outputDataName': f['outputDataName'],
-                            'outputDataType': f['outputDataType'].lower(),
-                            'outputDataSE': f['outputDataSE'],
-                            'outputBKType': f['outputDataType'].upper(),
+    for fileFound in filesFound:
+      bkFileTypes.append( fileFound['outputDataType'].upper() )
+      finalOutputs.append( {'outputDataName': fileFound['outputDataName'],
+                            'outputDataType': fileFound['outputDataType'].lower(),
+                            'outputDataSE': fileFound['outputDataSE'],
+                            'outputBKType': fileFound['outputDataType'].upper(),
                             'stepName':self.stepName
                             } )
 
@@ -438,7 +439,7 @@ class GaudiApplication( ModuleBase ):
       if not bkkClient:
         from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkkClient = BookkeepingClient()
-      res = bkkClient.getFileMetadata( self.stepInputData )
+      res = bkkClient.getFileMetadata( [lfn.strip( 'LFN:' ) for lfn in self.stepInputData] )
       if not res['OK']:
         return res
       outputTypes = []

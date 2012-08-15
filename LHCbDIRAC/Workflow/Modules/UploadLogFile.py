@@ -15,6 +15,8 @@ from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
 from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath
 
 class UploadLogFile( ModuleBase ):
+  """ Upload to LogSE
+  """
 
   #############################################################################
 
@@ -34,6 +36,9 @@ class UploadLogFile( ModuleBase ):
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.diracLogo = self.opsH.getValue( 'SAM/LogoURL',
                                          'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
+    self.logFilePath = ''
+    self.logLFNPat = ''
+    self.logdir = ''
 
 ######################################################################
 
@@ -187,10 +192,9 @@ class UploadLogFile( ModuleBase ):
 
     #make a tar file
     tarFileName = os.path.basename( self.logLFNPath )
-    try:
-      tarFiles( tarFileName, selectedFiles, compression = 'gz' )
-    except:
-      self.log.error( 'Failed to create tar of log files' )
+    res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
+    if not res['OK']:
+      self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
       self.setApplicationStatus( 'Failed to create tar of log files' )
       return S_OK()
 
@@ -262,7 +266,7 @@ class UploadLogFile( ModuleBase ):
         else:
           self.log.error( 'Log file found to be greater than maximum of %s bytes' % self.logSizeLimit, candidate )
       return S_OK( selectedFiles )
-    except Exception, x:
+    except OSError, x:
       self.log.exception( 'Exception while determining files to save.', '', str( x ) )
       return S_ERROR( 'Could not determine log files' )
 
@@ -276,21 +280,23 @@ class UploadLogFile( ModuleBase ):
     try:
       if not os.path.exists( self.logdir ):
         os.makedirs( self.logdir )
-    except Exception, x:
+    except OSError, x:
       self.log.exception( 'Exception while trying to create directory.', self.logdir, str( x ) )
       return S_ERROR()
     # Set proper permissions
     self.log.info( 'Changing log directory permissions to 0755' )
     try:
       os.chmod( self.logdir, 0755 )
-    except Exception, x:
+    except OSError, x:
       self.log.error( 'Could not set logdir permissions to 0755:', '%s (%s)' % ( self.logdir, str( x ) ) )
     # Populate the temporary directory
     try:
       for fileS in selectedFiles:
         destinationFile = '%s/%s' % ( self.logdir, os.path.basename( fileS ) )
         shutil.copy ( fileS, destinationFile )
-    except Exception, x:
+    except shutil.Error:
+      self.log.warn( 'scr and dst are the same' )
+    except IOError, x:
       self.log.exception( 'Exception while trying to copy file.', fileS, str( x ) )
       self.log.info( 'File %s will be skipped and can be considered lost.' % fileS )
 
@@ -346,7 +352,7 @@ class UploadLogFile( ModuleBase ):
         if not os.path.islink( '%s/%s' % ( logDir, toChange ) ):
           self.log.debug( 'Changing permissions of %s/%s to 0755' % ( logDir, toChange ) )
           os.chmod( '%s/%s' % ( logDir, toChange ), 0755 )
-    except Exception, x:
+    except OSError, x:
       self.log.error( 'Problem changing shared area permissions', str( x ) )
       return S_ERROR( x )
 
