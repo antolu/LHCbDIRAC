@@ -276,7 +276,6 @@ class ProductionRequest( object ):
     if not self.groupSizes:
       self.groupSizes = [1] * len( self.prodsTypeList )
 
-    print self.inputDataPolicies
     if not self.inputDataPolicies:
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
@@ -289,8 +288,6 @@ class ProductionRequest( object ):
     prodsDict = {}
 
     prodNumber = 1
-
-    print self.inputDataPolicies
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outFileMask, target, groupSize, plugin, idp, previousProd in itertools.izip( self.prodsTypeList,
@@ -313,8 +310,6 @@ class ProductionRequest( object ):
         transformationFamily = self.requestID
       else:
         transformationFamily = self.parentRequestID
-
-      print stepsInProd
 
       prodsDict[ prodNumber ] = {
                                  'productionType': prodType,
