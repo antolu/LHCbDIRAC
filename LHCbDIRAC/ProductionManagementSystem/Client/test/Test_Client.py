@@ -3,6 +3,48 @@ from mock import Mock
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 
+class bkClientFake:
+  def getAvailableSteps( self, stepID ):
+    if stepID == {'StepId':123}:
+      return {'OK': True,
+              'Value': {'TotalRecords': 1,
+                        'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
+                                           'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
+                                           'DDDB', 'CONDDB', 'DQTag'],
+                        'Records': [[123, 'Stripping14-Stripping', 'DaVinci', 'v2r2',
+                                     'optsFiles', 'Yes', 'eps', 'procPass', '',
+                                     '', '', '']]}}
+    elif stepID == {'StepId':456}:
+      return {'OK': True,
+              'Value': {'TotalRecords': 1,
+                        'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
+                                           'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
+                                           'DDDB', 'CONDDB', 'DQTag'],
+                        'Records': [[456, 'Merge', 'LHCb', 'v1r2',
+                                     'optsFiles', 'Yes', 'eps', 'procPass', '',
+                                     '', '', '']]}}
+
+  def getStepInputFiles( self, stepID ):
+    if stepID == 123:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                   'ParameterNames': ['FileType', 'Visible'],
+                                   'Records': [['SDST', 'Y']]}}
+
+    if stepID == 456:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                   'ParameterNames': ['FileType', 'Visible'],
+                                   'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+
+  def getStepOutputFiles( self, stepID ):
+    if stepID == 123:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                   'ParameterNames': ['FileType', 'Visible'],
+                                   'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+    if stepID == 456:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                   'ParameterNames': ['FileType', 'Visible'],
+                                   'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+
 class ClientTestCase( unittest.TestCase ):
   """ Base class for the Client test cases
   """
@@ -10,9 +52,12 @@ class ClientTestCase( unittest.TestCase ):
 
     self.bkClientMock = Mock()
     self.diracProdIn = Mock()
+    self.diracProdIn.launchProduction.return_value = {'OK': True, 'Value': 321}
+
+    self.bkClientFake = bkClientFake()
 
 #############################################################################
-# TemplatesUtilities.py
+# ProductionRequest.py
 #############################################################################
 
 class ProductionRequestSuccess( ClientTestCase ):
@@ -81,17 +126,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
                             'fileTypesIn':[],
                             'fileTypesOut':['SDST', 'CALIBRATION.DST']}] )
-
-  def test_resolveStepsFailure( self ):
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
-    pr.stepsList = ['123']
-    self.bkClientMock.getAvailableSteps.return_value = {'OK': False,
-                                                        'Message': 'error'}
-    self.assertRaises( ValueError, pr.resolveSteps )
-
-    self.bkClientMock.getStepInputFiles.return_value = {'OK': False,
-                                                        'Message': 'error'}
-    self.assertRaises( ValueError, pr.resolveSteps )
 
   def test__applyOptionalCorrections( self ):
 
@@ -562,6 +596,63 @@ class ProductionRequestFailure( ClientTestCase ):
     pr.runsList = ['1', '2']
     self.assertRaises( ValueError, pr._getBKKQuery )
 
+  def test_resolveStepsFailure( self ):
+    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr.stepsList = ['123']
+    self.bkClientMock.getAvailableSteps.return_value = {'OK': False,
+                                                        'Message': 'error'}
+    self.assertRaises( ValueError, pr.resolveSteps )
+
+    self.bkClientMock.getStepInputFiles.return_value = {'OK': False,
+                                                        'Message': 'error'}
+    self.assertRaises( ValueError, pr.resolveSteps )
+
+
+class ProductionRequestFullChain( ClientTestCase ):
+
+  def test_full( self ):
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.logger.setLevel( 'VERBOSE' )
+
+    pr.stepsList.append( '123' )
+    pr.stepsList.append( '456' )
+    pr.stepsList.append( '' )
+    pr.stepsList.append( '' )
+    pr.stepsList.append( '' )
+    pr.resolveSteps()
+
+    pr.appendName = '1'
+    pr.configName = 'MC'
+    pr.configVersion = 'MC11a'
+
+    pr.events = '100'
+    pr.sysConfig = 'i686-slc5-gcc43-opt'
+
+    pr.extend = '100'
+
+    pr.eventType = '11124001'
+    pr.parentRequestID = '34'
+    pr.requestID = '35'
+
+    pr.prodGroup = 'Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged'
+    pr.dataTakingConditions = 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'
+
+    pr.prodsTypeList = ['Stripping', 'Merge']
+    pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
+    pr.stepsInProds = [range( 1, len( pr.stepsList ) ), [len( pr.stepsList )]]
+    pr.removeInputsFlags = [False, True]
+    pr.priorities = [1, 6]
+    pr.cpus = [1000, 100]
+    pr.outputFileMasks = ['FOO', '']
+    pr.targets = ['Tier2', '']
+    pr.groupSizes = [1, 5]
+    pr.plugins = ['', 'BySize']
+    pr.inputDataPolicies = ['', 'protocol']
+
+    res = pr.buildAndLaunchRequest()
+
+    self.assertEqual( res, {'OK':True, 'Value': [321, 321]} )
 
 #############################################################################
 # Test Suite run 
@@ -571,6 +662,7 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ClientTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestFailure ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestFullChain ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

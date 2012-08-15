@@ -663,7 +663,8 @@ class Production():
           return inputPass
         inputPass = inputPass['Value']
         self.LHCbJob.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
-                                                                                                      prodID, inputPass ) )
+                                                                                                      prodID,
+                                                                                                      inputPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
         self.LHCbJob.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,

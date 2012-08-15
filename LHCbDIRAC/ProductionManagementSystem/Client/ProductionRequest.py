@@ -4,7 +4,7 @@
 __RCSID__ = "$Id$"
 
 import itertools, copy
-from DIRAC import gLogger
+from DIRAC import gLogger, S_OK
 from LHCbDIRAC.Interfaces.API.Production import Production
 
 class ProductionRequest( object ):
@@ -128,26 +128,28 @@ class ProductionRequest( object ):
 
     prodsDict = self._getProdsDescriptionDict()
 
-    stepsListDict = copy.deepcopy( self.stepsListDict )
+    stepsListDict = self.stepsListDict
 
-    fromProd = self.previousProdID
+    fromProd = copy.deepcopy( self.previousProdID )
     prodsLaunched = []
 
     self.logger.verbose( prodsDict )
 
     #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
-
       if self.prodsToLaunch:
         if prodIndex not in self.prodsToLaunch:
           continue
-
       #build the list of steps in a production
       stepsInProd = []
       for stepID in prodDict['stepsInProd']:
         for step in stepsListDict:
           if step['StepId'] == stepID:
             stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
+
+      if prodDict['previousProd'] is not None:
+        fromProd = prodsLaunched[prodDict['previousProd'] - 1 ]
+        self.previousProdID = fromProd
 
       prod = self._buildProduction( prodDict['productionType'], stepsInProd, self.extraOptions, prodDict['outputSE'],
                                     prodDict['priority'], prodDict['cpu'], prodDict['input'],
@@ -159,6 +161,7 @@ class ProductionRequest( object ):
                                     bkQuery = prodDict['bkQuery'],
                                     plugin = prodDict['plugin'],
                                     previousProdID = fromProd,
+#                                    previousProdID = fromProd,
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'] )
 
@@ -175,14 +178,13 @@ class ProductionRequest( object ):
 
       prodID = res['Value']
       prodsLaunched.append( prodID )
-      if prodDict['previousProd'] is not None:
-        fromProd = prodsLaunched[prodDict['previousProd'] - 1]
 
       if self.publishFlag:
         self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
                                                                                              prodIndex,
                                                                                              prodDict['productionType'],
                                                                                              str( prodID ) ) )
+    return S_OK( prodsLaunched )
 
   #############################################################################
 
@@ -415,6 +417,8 @@ class ProductionRequest( object ):
     elif bkQuery.lower() == 'frompreviousprod':
       fileType = stepsInProd[0]['fileTypesIn'][0].upper()
       prod.inputBKSelection = self._getBKKQuery( 'frompreviousprod', fileType, previousProdID )
+
+    self.logger.verbose( 'Launching with BK selection %s' % prod.inputBKSelection )
 
     #Adding the application steps
     firstStep = stepsInProd.pop( 0 )
