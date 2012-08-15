@@ -137,9 +137,11 @@ class ProductionRequest( object ):
 
     #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
+
       if self.prodsToLaunch:
         if prodIndex not in self.prodsToLaunch:
           continue
+
       #build the list of steps in a production
       stepsInProd = []
       for stepID in prodDict['stepsInProd']:
@@ -161,7 +163,6 @@ class ProductionRequest( object ):
                                     bkQuery = prodDict['bkQuery'],
                                     plugin = prodDict['plugin'],
                                     previousProdID = fromProd,
-#                                    previousProdID = fromProd,
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'] )
 
