@@ -185,6 +185,7 @@ class BookkeepingWatchAgent( AgentModule ):
             # Add the files to the transformation
             self.__logVerbose( 'Adding %d lfns for transformation' % len( lfnList ), transID=transID )
             result = self.transClient.addFilesToTransformation( transID, sorted( lfnList ) )
+            runDict = {}
             if not result['OK']:
               self.__logWarn( "Failed to add lfns to transformation", result['Message'], transID=transID )
             else:
@@ -199,7 +200,6 @@ class BookkeepingWatchAgent( AgentModule ):
                 if not res['OK']:
                   self.__logError( "Failed to get BK metadata for %d files" % len( addedLfns ), res['Message'], transID=transID )
                 else:
-                  runDict = {}
                   for lfn, metadata in res['Value'].items():
                     runID = metadata.get( 'RunNumber', None )
                     if runID:
