@@ -12,7 +12,7 @@ from DIRAC.Core.Base.AgentModule                                          import
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from DIRAC.Core.Utilities.List                                            import sortList, breakListIntoChunks
+from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 import os, time, datetime, pickle, Queue
 
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
@@ -166,7 +166,6 @@ class BookkeepingWatchAgent( AgentModule ):
         if 'StartDate' not in bkQuery:
           self.fullTimeLog[transID] = now
           self.__dumpLog()
-        self.timeLog[transID] = now
 
         # Perform the query to the Bookkeeping
         self.__logInfo( "Using BK query for transformation: %s" % str( bkQuery ), transID=transID )
@@ -176,38 +175,38 @@ class BookkeepingWatchAgent( AgentModule ):
         if not result['OK']:
           self.__logError( "Failed to get response from the Bookkeeping", result['Message'], transID=transID )
         else:
+          self.timeLog[transID] = now
 
           # Add any new files to the transformation
           for lfnList in breakListIntoChunks( result['Value'], self.chunkSize ):
 
             # Add the RunNumber to the newly inserted files
             start = time.time()
-            res = self.bkClient.getFileMetadata( lfnList )
-            self.__logVerbose( "BK query time for metadata: %.2f seconds." % ( time.time() - start ),
-                               transID=transID )
-            if not res['OK']:
-              self.__logError( "Failed to get BK metadata for %d files" % len( lfnList ), res['Message'],
-                               transID=transID )
+            # Add the files to the transformation
+            self.__logVerbose( 'Adding %d lfns for transformation' % len( lfnList ), transID=transID )
+            result = self.transClient.addFilesToTransformation( transID, sorted( lfnList ) )
+            if not result['OK']:
+              self.__logWarn( "Failed to add lfns to transformation", result['Message'], transID=transID )
             else:
-              runDict = {}
-              for lfn, metadata in res['Value'].items():
-                runID = metadata.get( 'RunNumber', None )
-                if runID:
-                  runDict.setdefault( int( runID ), [] ).append( lfn )
-              # Add the files to the transformation
-              self.__logVerbose( 'Adding %d lfns for transformation' % len( lfnList ), transID=transID )
-              result = self.transClient.addFilesToTransformation( transID, sortList( lfnList ) )
-              if not result['OK']:
-                self.__logWarn( "Failed to add lfns to transformation", result['Message'], transID=transID )
-              else:
-                printFailed = [self.__logWarn( "Failed to add %s to transformation\
-                " % lfn, error, transID=transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
-                addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].items() if status == 'Added']
-                if addedLfns:
-                  self.__logInfo( "Added %d files to transformation, \
-                  now including run information" % len( addedLfns ) , transID=transID )
-                  for runID, lfns in runDict.items():
-                    lfns = [lfn for lfn in lfns if lfn in addedLfns]
+              printFailed = [self.__logWarn( "Failed to add %s to transformation\
+              " % lfn, error, transID=transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
+              addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].items() if status == 'Added']
+              if addedLfns:
+                self.__logInfo( "Added %d files to transformation, now including run information"
+                                % len( addedLfns ) , transID=transID )
+                res = self.bkClient.getFileMetadata( addedLfns )
+                self.__logVerbose( "BK query time for metadata: %.2f seconds." % ( time.time() - start ), transID=transID )
+                if not res['OK']:
+                  self.__logError( "Failed to get BK metadata for %d files" % len( addedLfns ), res['Message'], transID=transID )
+                else:
+                  runDict = {}
+                  for lfn, metadata in res['Value'].items():
+                    runID = metadata.get( 'RunNumber', None )
+                    if runID:
+                      runDict.setdefault( int( runID ), [] ).append( lfn )
+                for runID, lfns in runDict.items():
+                  lfns = [lfn for lfn in lfns if lfn in addedLfns]
+                  if lfns:
                     self.__logVerbose( "Associating %d files to run %d" % ( len( lfns ), runID ), transID=transID )
                     res = self.transClient.addTransformationRunFiles( transID, runID, lfns )
                     if not res['OK']:
