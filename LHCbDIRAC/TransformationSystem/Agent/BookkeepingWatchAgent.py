@@ -120,7 +120,7 @@ class BookkeepingWatchAgent( AgentModule ):
         continue
 
       self.bkQueriesInCheck.append( transID )
-      self.bkQueriesToBeChecked.put( ( transID, transDict ) )
+      self.bkQueriesToBeChecked.put( transID )
       _count += 1
 
     self.__logInfo( "Out of %d transformations, %d put in thread queue" % ( len( result['Value'] ), _count ) )
@@ -138,7 +138,7 @@ class BookkeepingWatchAgent( AgentModule ):
 
       try:
 
-        transID, transDict = self.bkQueriesToBeChecked.get()
+        transID = self.bkQueriesToBeChecked.get()
 
         startTime = time.time()
         self.__logInfo( "Processing transformation %s." % transID, transID=transID )
