@@ -399,45 +399,52 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     inputData = 'previousStep'
     gaudiSteps = ['Brunel_1', 'DaVinci_2']
-    outputList = [{'stepName': 'Brunel_1',
-                    'outputDataType': 'brunelhist',
-                    'outputBKType': 'BRUNELHIST',
-                    'outputDataSE': 'CERN-HIST',
-                    'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
-                   {'stepName': 'Brunel_1',
-                    'outputDataType': 'sdst',
-                    'outputBKType': 'SDST',
-                    'outputDataSE': 'Tier1-BUFFER',
-                    'outputDataName': '00012345_00006789_1.sdst'}
-                   ]
+    self.mb.workflow_commons = {'outputList': [{'stepName': 'Brunel_1',
+                                               'outputDataType': 'brunelhist',
+                                               'outputBKType': 'BRUNELHIST',
+                                               'outputDataSE': 'CERN-HIST',
+                                               'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
+                                              {'stepName': 'Brunel_1',
+                                               'outputDataType': 'sdst',
+                                               'outputBKType': 'SDST',
+                                               'outputDataSE': 'Tier1-BUFFER',
+                                               'outputDataName': '00012345_00006789_1.sdst'}
+                                              ]
+                                }
     bkType = 'SDST'
 
-    first = self.mb._determineStepInputData( inputData, gaudiSteps, outputList, bkType )
+    first = self.mb._determineStepInputData( inputData, gaudiSteps, bkType )
     second = ['00012345_00006789_1.sdst']
     self.assertEqual( first, second )
 
     inputData = 'previousStep'
     gaudiSteps = ['Brunel_1', 'DaVinci_2']
-    outputList = [{'stepName': 'Brunel_1',
-                    'outputDataType': 'brunelhist',
-                    'outputBKType': 'BRUNELHIST',
-                    'outputDataSE': 'CERN-HIST',
-                    'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
-                  {'stepName': 'Brunel_1',
-                    'outputDataType': 'sdst',
-                    'outputBKType': 'SDST',
-                    'outputDataSE': 'Tier1-BUFFER',
-                    'outputDataName': 'some.sdst'},
-                   {'stepName': 'Brunel_1',
-                    'outputDataType': 'sdst',
-                    'outputBKType': 'SDST',
-                    'outputDataSE': 'Tier1-BUFFER',
-                    'outputDataName': '00012345_00006789_1.sdst'}
-                   ]
+    self.mb.workflow_commons['outputList'] = [{'stepName': 'Brunel_1',
+                                               'outputDataType': 'brunelhist',
+                                               'outputBKType': 'BRUNELHIST',
+                                               'outputDataSE': 'CERN-HIST',
+                                               'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
+                                              {'stepName': 'Brunel_1',
+                                               'outputDataType': 'sdst',
+                                               'outputBKType': 'SDST',
+                                               'outputDataSE': 'Tier1-BUFFER',
+                                               'outputDataName': 'some.sdst'},
+                                              {'stepName': 'Brunel_1',
+                                               'outputDataType': 'sdst',
+                                               'outputBKType': 'SDST',
+                                               'outputDataSE': 'Tier1-BUFFER',
+                                               'outputDataName': '00012345_00006789_1.sdst'}
+                                              ]
     bkType = 'SDST'
-    first = self.mb._determineStepInputData( inputData, gaudiSteps, outputList, bkType )
+    first = self.mb._determineStepInputData( inputData, gaudiSteps, bkType )
     second = ['some.sdst', '00012345_00006789_1.sdst']
     self.assertEqual( first, second )
+
+    inputData = 'LFN:123.raw'
+    first = self.mb._determineStepInputData( inputData, gaudiSteps, bkType )
+    second = ['123.raw']
+    self.assertEqual( first, second )
+
 
 #############################################################################
 # GaudiApplication.py

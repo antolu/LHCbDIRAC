@@ -347,7 +347,7 @@ class BookkeepingReport( ModuleBase ):
 
     if self.stepInputData:
       intermediateInputs = False
-      for inputname in self.stepInputData.split( ';' ):
+      for inputname in self.stepInputData:
         for bkLFN in self.bkLFNs:
           if os.path.basename( bkLFN ) == os.path.basename( inputname ):
             jobNode = addChildNode( jobNode, "InputFile", 0, bkLFN )

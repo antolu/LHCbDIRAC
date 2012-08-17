@@ -330,7 +330,6 @@ class ModuleBase( object ):
       if self.step_commons['inputData']:
         self.stepInputData = self._determineStepInputData( self.step_commons['inputData'],
                                                            self.workflow_commons['gaudiSteps'],
-                                                           self.workflow_commons['outputList'],
                                                            self.inputDataType )
 
     if self.step_commons.has_key( 'listoutput' ):
@@ -569,7 +568,7 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def _determineStepInputData( self, inputData, gaudiSteps, outputList, bkType ):
+  def _determineStepInputData( self, inputData, gaudiSteps, bkType ):
     """ determine the input data for the step
     """
     if inputData == 'previousStep':
@@ -577,7 +576,7 @@ class ModuleBase( object ):
       previousStep = gaudiSteps[stepIndex - 1]
 
       stepInputData = []
-      for outputF in outputList:
+      for outputF in self.workflow_commons['outputList']:
         try:
           print outputF
           if outputF['stepName'] == previousStep and outputF['outputBKType'].lower() == bkType.lower():
@@ -588,7 +587,7 @@ class ModuleBase( object ):
       return stepInputData
 
     else:
-      return inputData
+      return [x.strip( 'LFN:' ) for x in inputData.split( ';' )]
 
   #############################################################################
 
