@@ -433,17 +433,24 @@ class BookkeepingClient:
     return result
 
   #############################################################################
-  def getFileDescendents(self, lfns, depth=0, production=0, checkreplica=False):
+  def getFileDescendants(self, lfns, depth=0, production=0, checkreplica=False):
     """
     It returns the descendants of a file or a list of files.
     """
     server = self.__getServer()
     result = None
     if type(lfns) == types.StringType:
-      result = server.getFileDescendents([lfns], depth, production, checkreplica)
+      result = server.getFileDescendants([lfns], depth, production, checkreplica)
     else:
-      result = server.getFileDescendents(lfns, depth, production, checkreplica)
+      result = server.getFileDescendants(lfns, depth, production, checkreplica)
     return result
+
+  #############################################################################
+  def getFileDescendents(self, lfns, depth=0, production=0, checkreplica=False):
+    """
+    It returns the descendants of a file or a list of files.
+    """
+    return self.getFileDescendants(lfns, depth, production, checkreplica)
 
   #############################################################################
   def insertSimConditions(self, simdesc, beamCond, beamEnergy, generator,

@@ -890,6 +890,9 @@ class OracleBookkeepingDB:
         if tables.find('jobs') < 0:
           tables += ',jobs j'
 
+      if tables.find('files') > 0:
+        condition += " and f.gotreplica='Yes'"
+
       if processing != default:
         command = "select distinct j.production from \
                    productionscontainer pcont %s \
