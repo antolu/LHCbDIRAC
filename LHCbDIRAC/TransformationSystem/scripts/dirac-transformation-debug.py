@@ -4,7 +4,7 @@ __RCSID__ = "$Id$"
 
 import sys
 
-def getFilesForRun( id, runID, status=None, lfnList=None ):
+def getFilesForRun( id, runID, status=None, lfnList=None, seList=None ):
   #print id, runID, status, lfnList
   selectDict = {'TransformationID':id}
   if runID:
@@ -13,6 +13,8 @@ def getFilesForRun( id, runID, status=None, lfnList=None ):
       selectDict['Status'] = status
   if lfnList:
       selectDict['LFN'] = lfnList
+  if seList:
+      selectDict['UsedSE'] = seList
   #print selectDict
   res = transClient.getTransformationFiles( selectDict )
   if res['OK']:
@@ -41,6 +43,7 @@ dumpFiles = False
 status = None
 lfnList = []
 taskList = []
+seList = []
 resetRuns = None
 runList = None
 kickRequests = False
@@ -50,11 +53,12 @@ allTasks = False
 from DIRAC.Core.Base import Script
 
 infoList = ["Files", "Runs", "Tasks", 'Jobs', 'Alltasks']
-statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MaxReset"]
+statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MaxReset", "Processed"]
 Script.registerSwitch( 'i:', 'Info=', "Specify what to print out from %s" % str( infoList ) )
 Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
 Script.registerSwitch( 'l:', 'LFNs=', "Specify a (list of) LFNs" )
 Script.registerSwitch( '', 'Runs=', "Specify a (list of) runs" )
+Script.registerSwitch( '', 'SEs=', 'Specify a (list of) target SEs' )
 Script.registerSwitch( '', 'Tasks=', "Specify a (list of) tasks" )
 Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with care!)" )
 Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
@@ -98,6 +102,8 @@ for switch in switches:
         lfnList = val.split( ',' )
     elif opt in ( 'l', 'runs' ):
         runList = val.split( ',' )
+    elif opt == 'ses':
+        seList = val.split( ',' )
     elif opt == 'resetruns':
         resetRuns = "Active"
         byRuns = True
@@ -188,7 +194,7 @@ for id in idList:
 
     # If just statistics are requested
     if justStats:
-        filesList = getFilesForRun( id, None, 'Assigned', [] )
+        filesList = getFilesForRun( id, None, 'Assigned', [], seList )
         statsPerSE = {}
         #print filesList
         statusList = ( 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled' )
@@ -224,7 +230,10 @@ for id in idList:
             else:
                 for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
                     runs.append( run )
-        res = transClient.getTransformationRuns( {'TransformationID':id, 'RunNumber': runs} )
+        selectDict = {'TransformationID':id, 'RunNumber': runs}
+        if seList:
+          selectDict['SelectedSite'] = seList
+        res = transClient.getTransformationRuns( selectDict )
         if res['OK']:
             if not len( res['Value'] ):
                 print "No runs found, set to 0"
@@ -234,7 +243,10 @@ for id in idList:
     elif not byRuns:
         runs = [{'RunNumber': 0}]
     else:
-        res = transClient.getTransformationRuns( {'TransformationID':id} )
+        selectDict = {'TransformationID':id}
+        if seList:
+          selectDict['SelectedSite'] = seList
+        res = transClient.getTransformationRuns( selectDict )
         if res['OK']:
             if not len( res['Value'] ):
                 print "No runs found, set to 0"
@@ -250,7 +262,7 @@ for id in idList:
         SEs = runDict.get( 'SelectedSite', 'None' ).split( ',' )
         runStatus = runDict.get( 'Status' )
         if verbose and byRuns: print '\nRun:', runID, 'SelectedSite:', SEs, 'Status:', runStatus
-        filesList = getFilesForRun( id, runID, status, lfnList )
+        filesList = getFilesForRun( id, runID, status, lfnList, seList )
         filesList.sort()
         if lfnList and len( lfnList ) != len( filesList ):
             foundFiles = [fileDict['LFN'] for fileDict in filesList]
