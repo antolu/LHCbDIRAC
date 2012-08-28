@@ -1,9 +1,14 @@
-""" This is the Data Integrity Client which allows the simple reporting of problematic file and replicas to the IntegrityDB and their status correctly updated in the FileCatalog."""
-__RCSID__ = "$Id$"
+""" 
+    This is the Data Integrity Client which allows the simple reporting of problematic 
+    file and replicas to the IntegrityDB and their status correctly updated in the FileCatalog.
+"""
+
 
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient  import DataIntegrityClient as DIRACDataIntegrityClient
 from DIRAC                                                  import S_OK, S_ERROR, gLogger
 import re, types
+
+__RCSID__ = "$Id$"
 
 class DataIntegrityClient( DIRACDataIntegrityClient ):
 
@@ -43,6 +48,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def __checkCatalogForBKNoReplicas( self, lfns ):
+    ''' checks the catalog existence for given files '''
     gLogger.info( 'Checking the catalog existence of %s files' % len( lfns ) )
 
     res = self.rm.getCatalogFileMetadata( lfns )
@@ -104,7 +110,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
   #
 
   def catalogDirectoryToBK( self, lfnDir ):
-    """ This obtains the replica and metadata information from the catalog for the supplied directory and checks against the BK.
+    """ This obtains the replica and metadata information from the catalog for 
+      the supplied directory and checks against the BK.
     """
     gLogger.info( "-" * 40 )
     gLogger.info( "Performing the LFC->BK check" )
@@ -125,7 +132,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def catalogFileToBK( self, lfns ):
-    """ This obtains the replica and metadata information from the catalog and checks against the storage elements.
+    """ This obtains the replica and metadata information from the catalog and 
+      checks against the storage elements.
     """
     gLogger.info( "-" * 40 )
     gLogger.info( "Performing the LFC->BK check" )
@@ -147,7 +155,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def __checkBKFiles( self, replicas, catalogMetadata ):
-    """ This takes the supplied replica and catalog metadata information and ensures the files exist in the BK with the correct metadata.
+    """ This takes the supplied replica and catalog metadata information and ensures 
+      the files exist in the BK with the correct metadata.
     """
     gLogger.info( 'Checking the bookkeeping existence of %s files' % len( catalogMetadata ) )
 
