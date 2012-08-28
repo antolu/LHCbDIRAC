@@ -10,6 +10,8 @@
      1) LFC->BK
        Missing files: remove from SE and LFC
        No replica flag: set it
+     2) BK->LFC
+       Removes the replica flag in the BK for files not in the LFC
 """
 
 __RCSID__ = "$Id: dirac-dms-check-lfc-bk.py 42387 2011-09-07 13:53:37Z phicharp $"
@@ -62,7 +64,7 @@ if __name__ == "__main__":
 
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+  Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
@@ -99,7 +101,7 @@ if __name__ == "__main__":
     checkLFC2BK( lfns, fixIt )
 
   for bkQuery in bkQueries:
-    print "For BK path:", bkQuery.getPath()
+    print "For BK query:", bkQuery
     if bkQuery.getQueryDict():
       lfns = bkQuery.getLFNs()
       if not lfns:
