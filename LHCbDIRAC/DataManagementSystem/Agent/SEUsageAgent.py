@@ -126,8 +126,8 @@ class SEUsageAgent( AgentModule ):
         continue
 
       # ONLY FOR DEBUGGING
-      DEBUG = False
-      if DEBUG: # get the problematic summary at the beginning (to debug this part without waiting until the end)
+      debug = False
+      if debug: # get the problematic summary at the beginning (to debug this part without waiting until the end)
         res = self.getProblematicDirsSummary( site )
         if not res[ 'OK' ]:
           return S_ERROR( res['Message'] )
@@ -154,11 +154,11 @@ class SEUsageAgent( AgentModule ):
         for line in open( fullPathFileP3, "r" ).readlines():
           splitLine = line.split()
           try:
-            spaceToken = splitLine[ 0 ]
+            spaceToken     = splitLine[ 0 ]
             storageDirPath = splitLine[ 1 ]
-            files = splitLine[ 2 ]
-            size = splitLine[ 3 ]
-          except:
+            files          = splitLine[ 2 ]
+            size           = splitLine[ 3 ]
+          except IndexError:
             self.log.error( "ERROR in input data format. Line is: %s" % line )
             continue
           oneDirDict = {}
@@ -429,7 +429,9 @@ class SEUsageAgent( AgentModule ):
     try:
       previousFiles = os.listdir( targetPathForDownload )
       self.log.info( "In %s found these files: %s" % ( targetPathForDownload, previousFiles ) )
-    except:
+    except TypeError:
+      pass  
+    except OSError:
       self.log.info( "no leftover to remove from %s. Proceed downloading input files..." % targetPathForDownload )
     if previousFiles:
       self.log.info( "delete these files: %s " % previousFiles )
@@ -465,7 +467,9 @@ class SEUsageAgent( AgentModule ):
     try:
       previousParsedFiles = os.listdir( pathToInputFiles )
       self.log.info( "In %s found these files: %s" % ( pathToInputFiles, previousParsedFiles ) )
-    except:
+    except TypeError:
+      pass  
+    except OSError:
       self.log.info( "no leftover to remove from %s . Proceed to parse the input files..." % pathToInputFiles )
     if previousParsedFiles:
       self.log.info( "delete these files: %s " % previousParsedFiles )
@@ -516,13 +520,13 @@ class SEUsageAgent( AgentModule ):
         outputFileMerged[ st ]['pointerToDirSummaryFile' ] = fP3DirSummary
     for st in diskST:
       try:
-        outputFileMerged[ st ] = outputFileMerged[ 'LHCb-Disk']
-      except:
+        outputFileMerged[ st ] = outputFileMerged[ 'LHCb-Disk' ]
+      except KeyError:
         self.log.error( "no pointer to file for st=%s " % st )
     for st in tapeST:
       try:
         outputFileMerged[ st ] = outputFileMerged['LHCb-Tape']
-      except:
+      except KeyError:
         self.log.error( "no pointer to file for st=%s " % st )
     self.log.info( "Parsed output files : " )
     for st in outputFileMerged.keys():
