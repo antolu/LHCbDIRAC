@@ -3,12 +3,13 @@
   The module also provides a function for printing pretty results from DMS queries
 """
 
-__RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
-
 import DIRAC
-from DIRAC import gLogger
+from DIRAC           import gLogger
 from DIRAC.Core.Base import Script
+
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+
+__RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory" ):
   """ Dictionary pretty printing """
@@ -69,9 +70,12 @@ class DMScript():
 
   def registerBKSwitches( self ):
     # BK query switches
-    Script.registerSwitch( "P:", "Productions=", "   Production ID to search (comma separated list)", self.setProductions )
-    Script.registerSwitch( "f:", "FileType=", "   File type (comma separated list, to be used with --Production) [All]", self.setFileType )
-    Script.registerSwitch( '', "ExceptFileType=", "   Exclude the (list of) file types when all are requested", self.setExceptFileTypes )
+    Script.registerSwitch( "P:", "Productions=", 
+                           "   Production ID to search (comma separated list)", self.setProductions )
+    Script.registerSwitch( "f:", "FileType=", 
+                           "   File type (comma separated list, to be used with --Production) [All]", self.setFileType )
+    Script.registerSwitch( '', "ExceptFileType=", 
+                           "   Exclude the (list of) file types when all are requested", self.setExceptFileTypes )
     Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery )
     Script.registerSwitch( "r:", "Runs=", "   Run or range of runs (r1:r2)", self.setRuns )
     Script.registerSwitch( '', "DQFlags=", "   DQ flag used in query", self.setDQFlags )
@@ -81,16 +85,16 @@ class DMScript():
 
 
   def registerNamespaceSwitches( self ):
-    # namespace switches
+    ''' namespace switches '''
     Script.registerSwitch( "D:", "Directory=", "   Directory to search [ALL]", self.setDirectory )
 
   def registerSiteSwitches( self ):
-    # SE switches
+    ''' SE switches '''
     Script.registerSwitch( "g:", "Sites=", "  Sites to consider [ALL] (comma separated list)", self.setSites )
     Script.registerSwitch( "S:", "SEs=", "  SEs to consider [ALL] (comma separated list)", self.setSEs )
 
   def registerFileSwitches( self ):
-    # File switches
+    ''' File switches '''
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
 
@@ -100,14 +104,14 @@ class DMScript():
       self.options['Productions'] = arg
       return DIRAC.S_OK()
     try:
-      for p in arg.split( ',' ):
-        if p.find( ":" ) > 0:
-          pr = p.split( ":" )
+      for prod in arg.split( ',' ):
+        if prod.find( ":" ) > 0:
+          pr = prod.split( ":" )
           for i in range( int( pr[0] ), int( pr[1] ) + 1 ):
             prods.append( i )
         else:
-          prods.append( p )
-      self.options['Productions'] = [int( p ) for p in prods]
+          prods.append( prod )
+      self.options['Productions'] = [int( prod ) for prod in prods]
     except:
       gLogger.error( "Invalid production switch value: %s" % arg )
       self.options['Productions'] = ['Invalid']
