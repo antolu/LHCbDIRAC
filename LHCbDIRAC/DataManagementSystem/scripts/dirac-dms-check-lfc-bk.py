@@ -85,10 +85,10 @@ if __name__ == "__main__":
   rm = ReplicaManager()
   bk = BookkeepingClient()
 
-  bkQueries = [dmScript.getBKQuery( visible=False )]
+  bkQueries = [dmScript.getBKQuery()]
   for lfn in sorted( lfns ):
     if not lfn.startswith( '/lhcb' ):
-      bkQueries.append( BKQuery( lfn, visible=False ) )
+      bkQueries.append( BKQuery( lfn ) )
       lfns.remove( lfn )
 
   if lfns:
