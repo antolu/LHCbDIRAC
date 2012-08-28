@@ -28,12 +28,15 @@ class Dataset:
           self.valid = False
 
   def isOK( self ):
+    ''' return valid '''
     return self.valid
 
   def setLfns( self, lfns ):
+    ''' sets lfns '''
     self.lfns = lfns
 
   def getLfns( self ):
+    ''' gets lfns '''
     if not self.lfns:
       res = self.__retriveDataset()
       if not res['OK']:
@@ -41,14 +44,17 @@ class Dataset:
     return S_OK( self.lfns )
 
   def setHandle( self, handle ):
+    ''' sets handle '''
     self.handle = handle
 
   def getHandle( self ):
+    ''' gets handle '''
     if not self.handle:
       return S_ERROR( "No handle defined" )
     return S_OK( self.handle )
 
   def getReplicas( self ):
+    ''' gets replicas '''
     if not self.replicas:
       res = self.__retriveDataset()
       if not res['OK']:
@@ -56,6 +62,7 @@ class Dataset:
     return S_OK( self.replicas )
 
   def createDataset( self ):
+    ''' creates dataset '''
     if not self.handle:
       return S_ERROR( "No handle defined" )
     if not self.lfns:
@@ -70,6 +77,7 @@ class Dataset:
       return S_OK()
 
   def removeFile( self, lfn ):
+    ''' removes file '''
     if type( lfn ) in types.StringTypes:
       lfn = [lfn]
     if not self.handle:
@@ -85,6 +93,7 @@ class Dataset:
       return res
 
   def removeDataset( self ):
+    ''' removes dataset '''
     if not self.handle:
       return S_ERROR( "No handle defined" )
     lfcDir = "%s%s" % ( self.lfcPath, self.handle )
@@ -99,6 +108,7 @@ class Dataset:
       return S_OK()
 
   def __retriveDataset( self ):
+    ''' retrieves dataset '''
     if not self.handle:
       return S_ERROR( "No handle defined" )
     lfcDir = "%s%s" % ( self.lfcPath, self.handle )
