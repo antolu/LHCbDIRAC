@@ -203,12 +203,12 @@ class StorageHistoryAgent( AgentModule ):
         storageRecord.setValueByKey( "LogicalSize", logicalSize )
         try:
           physicalFiles = seData[ directory ][ se ][ 'Files' ]
-        except:
+        except KeyError:
           self.log.notice( "WARNING! no files replicas for directory %s on SE %s" % ( directory, se ) )
           physicalFiles = 0
         try:
           physicalSize = seData[ directory ][ se ][ 'Size' ]
-        except:
+        except KeyError:
           self.log.notice( "WARNING! no size for replicas for directory %s on SE %s" % ( directory, se ) )
           physicalSize = 0
         storageRecord.setValueByKey( "PhysicalFiles", physicalFiles )
@@ -812,7 +812,7 @@ class StorageHistoryAgent( AgentModule ):
             try:
               physicalFiles = myDirs[ prodID ][ fType ][ seName ][ 'Files' ]
               physicalSize = myDirs[ prodID ][ fType ][ seName ][ 'Size' ]
-            except:
+            except KeyError:
               self.log.warn("The storage usage for production %s fileType %s SE %s was not stored in dictionary!" %\
                               (prodID, fType, seName ) )
               continue
@@ -822,7 +822,7 @@ class StorageHistoryAgent( AgentModule ):
             try:
               logicalSize = myDirs[ prodID ][ fType ]['LfnSize']
               logicalFiles = myDirs[ prodID ][ fType ]['LfnFiles']
-            except:
+            except KeyError:
               self.log.warn("LFN size/files not stored for prod,fileType = %s, %s " %(prodID, fType ))
             # create a record to be sent to the accounting:
             self.log.notice( ">>>>>>>>Send DataStorage record to accounting for fields: " \
@@ -883,7 +883,7 @@ class StorageHistoryAgent( AgentModule ):
           try:
             physicalFiles = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Files' ]
             physicalSize = myDirs[ prodID ][ streamInLFC ][ seName ][ 'Size' ]
-          except:
+          except KeyError:
             self.log.warn("The storage usage for production %s stream %s SE %s was not stored in dictionary!" %\
                             (prodID, streamInLFC, seName ) )
             continue
@@ -893,7 +893,7 @@ class StorageHistoryAgent( AgentModule ):
           try:
             logicalSize = myDirs[ prodID ][ streamInLFC ]['LfnSize']
             logicalFiles = myDirs[ prodID ][ streamInLFC ]['LfnFiles']
-          except:
+          except KeyError:
             self.log.warn("LFN size/files not stored for run,stream = %s, %s " %(prodID, streamInLFC ))
  
           #res = __fillAccountingRecord( )        
