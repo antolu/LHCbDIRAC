@@ -1,15 +1,16 @@
-__RCSID__ = "$Id: $"
 '''
-MergingForDQAgent automatize some operations done by the data quality crew. It looks for Runs that have not been flagged 
-(i.e. that are UNCHECKED). If it finds out some of them it performs a merging of the BRUNELHIST and DAVINCIHIST root files.
+MergingForDQAgent automatize some operations done by the data quality crew. It looks 
+for Runs that have not been flagged (i.e. that are UNCHECKED). If it finds out some 
+of them it performs a merging of the BRUNELHIST and DAVINCIHIST root files.
 The main steps are the following:
 
 - The initialize method gather informations from the CS
 
 - Retrieving the UNCHECKED (or OK) DAVINCIHISTs and BRUNELHISTs by run.
 
-- The files are saved locally and merged in three steps. The first step consists of merging separately the two kinds of histograms 
-  in groups of 50. This grouping is made because the merging is CPU consuming and if you attempt to merge a lot of file in a row 
+- The files are saved locally and merged in three steps. The first step consists of 
+  merging separately the two kinds of histograms in groups of 50. This grouping is 
+  made because the merging is CPU consuming and if you attempt to merge a lot of file in a row 
   you probably stuck the machine. The output files of this first step are then merged as well. 
   Finally DAVINCI and BRUNEL histograms are then put together in a single file.
  
@@ -37,21 +38,23 @@ Systems/DataManagement/Production/Agents/
           
 '''
 
+import os, string, glob, shutil
+
 import DIRAC
-from DIRAC                                                     import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Base.AgentModule                               import AgentModule
-from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ       import *
-from DIRAC.Core.Base                                           import Script
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from   DIRAC.FrameworkSystem.Client.NotificationClient       import NotificationClient
-from DIRAC import gConfig
-import re, os, string, glob, shutil
-import subprocess
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
+
+from DIRAC                                                import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Base.AgentModule                          import AgentModule
+from DIRAC.FrameworkSystem.Client.NotificationClient      import NotificationClient
+
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment       import getProjectEnvironment
+from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ  import GetRuns, GetProductionId, BuildLFNs, \
+  MergeRun, Finalization
 
 from  xml.dom import minidom
 
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
+__RCSID__  = "$Id: $"
 
 class MergingForDQAgent( AgentModule ):
 
@@ -59,7 +62,7 @@ class MergingForDQAgent( AgentModule ):
     self.am_setOption( 'shifterProxy', 'DataManager' )
     self.systemConfiguration = 'x86_64-slc5-gcc43-opt'
     #Dictionary used for check that every configuration have been retrieved
-    Configuration = {'ExeDir' : False,
+    configuration = {'ExeDir' : False,
                      'homeDir' : False,
                      'senderAddress' : False,
                      'mailAddress' : False,
@@ -84,40 +87,42 @@ class MergingForDQAgent( AgentModule ):
       return S_ERROR()
     self.applicationName = gConfig.getValue( "%s/applicationName" % options )
     gLogger.info( 'applicationName %s' % self.applicationName )
-    if self.applicationName: Configuration['applicationName'] = True
+    if self.applicationName: 
+      configuration['applicationName'] = True
     self.homeDir = gConfig.getValue( "%s/homeDir" % options )
     if self.homeDir:
-      Configuration['homeDir'] = True
+      configuration['homeDir'] = True
       gLogger.info( self.homeDir )
-      '''
-      Local directory creation 
-      '''
-      d = os.path.dirname( self.homeDir )
-      gLogger.info( 'Checking temp dir %s' % ( d ) )
-      if not os.path.exists( d ):
-        gLogger.info( '%s not found. Going to create' % ( d ) )
-        os.makedirs(d)
+
+      #Local directory creation 
+      
+      tmpDir = os.path.dirname( self.homeDir )
+      gLogger.info( 'Checking temp dir %s' % ( tmpDir ) )
+      if not os.path.exists( tmpDir ):
+        gLogger.info( '%s not found. Going to create' % ( tmpDir ) )
+        os.makedirs(tmpDir)
       else:
         removal = self.homeDir+'*'
-        r = glob.glob(removal)
-        for i in r:
+        j = glob.glob(removal)
+        for i in j:
           if os.path.isdir(i) == True:
             shutil.rmtree(i)
           else:
             os.remove(i)
       
-    '''
-    Compiled C++ root macros for the three Merging steps. 
-    '''
+    
+    #Compiled C++ root macros for the three Merging steps. 
+    
     self.mergeExeDir = gConfig.getValue( "%s/ExeDir" % options )
 
     if self.mergeExeDir:
-      Configuration['ExeDir'] = True
+      configuration['ExeDir'] = True
       self.mergeStep1Command = self.mergeExeDir + '/Merge'
       self.mergeStep2Command = self.mergeExeDir + '/Merge2'
       self.mergeStep3Command = self.mergeExeDir + '/Merge3'
 
-    if not ( os.path.exists( self.mergeStep1Command ) and os.path.exists( self.mergeStep2Command ) and os.path.exists( self.mergeStep3Command ) ):
+    if not ( os.path.exists( self.mergeStep1Command ) and os.path.exists( self.mergeStep2Command ) 
+             and os.path.exists( self.mergeStep3Command ) ):
       gLogger.error( 'Executables not found' )
       return S_ERROR()
     else :
@@ -125,87 +130,91 @@ class MergingForDQAgent( AgentModule ):
 
 
     self.senderAddress = gConfig.getValue( "%s/senderAddress" % options )
-    if self.senderAddress: Configuration['senderAddress'] = True
+    if self.senderAddress: 
+      configuration['senderAddress'] = True
     self.mailAddress = gConfig.getValue( "%s/mailAddress" % options )
-    if self.mailAddress:Configuration['mailAddress'] = True
+    if self.mailAddress:
+      configuration['mailAddress'] = True
     self.thisEventType = gConfig.getValue( "%s/eventType" % options )
-    if self.thisEventType: Configuration['eventType'] = True
+    if self.thisEventType: 
+      configuration['eventType'] = True
     cfgName = gConfig.getValue( "%s/cfgNameList" % options )
     if cfgName:
-      Configuration['cfgNameList'] = True
-      l = string.join( cfgName.split(), "" )
-      self.cfgNameList = l.split( "," )
-
+      configuration['cfgNameList'] = True
+      cfgNameStr = string.join( cfgName.split(), "" )
+      self.cfgNameList = cfgNameStr.split( "," )
 
     cfgVersion = gConfig.getValue( "%s/cfgVersionList" % options )
     if cfgVersion:
-      Configuration['cfgVersionList'] = True
-      l = string.join( cfgVersion.split(), "" )
-      self.cfgVersionList = l.split( "," )
+      configuration['cfgVersionList'] = True
+      cfgVersionStr = string.join( cfgVersion.split(), "" )
+      self.cfgVersionList = cfgVersionStr.split( "," )
 
     dqFlag = gConfig.getValue( "%s/dqFlag" % options )
     if dqFlag:
-      Configuration['dqFlag'] = True
-      l = string.join( dqFlag.split(), "" )
-      self.dqFlagList = l.split( "," )
+      configuration['dqFlag'] = True
+      dqFlagStr = string.join( dqFlag.split(), "" )
+      self.dqFlagList = dqFlagStr.split( "," )
 
-    self.brunelCount = 0
+    self.brunelCount  = 0
     self.daVinciCount = 0
 
-    TypeDict = gConfig.getValue( "%s/evtTypeDict" % options )
-    if TypeDict:
-      l = string.join( TypeDict.split(), "" )
-      ll = l.split( "," )
+    typeDict = gConfig.getValue( "%s/evtTypeDict" % options )
+    if typeDict:
+      evtStr = string.join( typeDict.split(), "" )
+      ll = evtStr.split( "," )
       self.evtTypeDict = {}
       for t in ll:
         s = t.split( ":" )
         self.evtTypeDict[s[0]] = s[1]
-    Configuration['evtTypeDict'] = True
+    configuration['evtTypeDict'] = True
 
-    List = gConfig.getValue( "%s/histTypeList" % options )
-    if List:
-      l = string.join( List.split(), "" )
-      self.histTypeList = l.split( "," )
-      Configuration['histTypeList'] = True
+    typeList = gConfig.getValue( "%s/histTypeList" % options )
+    if typeList:
+      typeStr = string.join( typeList.split(), "" )
+      self.histTypeList = typeStr.split( "," )
+      configuration['histTypeList'] = True
 
-    List = gConfig.getValue( "%s/ProcessingPasses" % options )
+    passes = gConfig.getValue( "%s/ProcessingPasses" % options )
     self.ProcessingPasses = []
-    if List:
-      l = string.join( List.split(), "" )
-      temp = l.split( "," )
+    if passes:
+      passesStr = string.join( passes.split(), "" )
+      temp = passesStr.split( "," )
       for ll in temp:
         if ll.find( 'RealData' ):
           ll = ll.replace( 'RealData', 'Real Data' )
           self.ProcessingPasses.append( ll )
-      Configuration['ProcessingPasses'] = True
+      configuration['ProcessingPasses'] = True
 
 
-    List = gConfig.getValue( "%s/DataTakingConditions" % options )
-    if List:
-      l = string.join( List.split(), "" )
-      self.DataTakingConditions = l.split( "," )
-      Configuration['DataTakingConditions'] = True
+    conditions = gConfig.getValue( "%s/DataTakingConditions" % options )
+    if conditions:
+      conditionsStr = string.join( conditions.split(), "" )
+      self.DataTakingConditions = conditionsStr.split( "," )
+      configuration['DataTakingConditions'] = True
 
 
     self.testMode = gConfig.getValue( "%s/testMode" % options )
-    print "testmode value ",self.testMode,type(self.testMode) 
-    if self.testMode: Configuration['testMode'] = True
+    print "testmode value ", self.testMode, type(self.testMode) 
+    if self.testMode: 
+      configuration['testMode'] = True
     self.specialMode = gConfig.getValue( "%s/specialMode" % options )
-    if self.specialMode: Configuration['specialMode'] = True
-    Runs = gConfig.getValue( "%s/specialRuns" % options )
-    if Runs:
-      l = string.join( Runs.split(), "" )
-      self.specialRuns = l.split( "," )
-    Configuration['specialRuns'] = True
+    if self.specialMode: 
+      configuration['specialMode'] = True
+    runs = gConfig.getValue( "%s/specialRuns" % options )
+    if runs:
+      runsStr = string.join( runs.split(), "" )
+      self.specialRuns = runsStr.split( "," )
+    configuration['specialRuns'] = True
     
     self.addFlag = gConfig.getValue( "%s/addFlag" % options )
-    if self.addFlag: Configuration['addFlag'] = True
+    if self.addFlag: 
+      configuration['addFlag'] = True
     
-
     #If one of the configuration is missing the initialization fails
     nConf = False
-    for confVar in Configuration:
-      if not Configuration[confVar]:
+    for confVar in configuration:
+      if not configuration[confVar]:
         gLogger.error( '%s not specified in CS' % confVar )
         gLogger.error( '---------------------------------' )
         nConf = True
@@ -217,9 +226,10 @@ class MergingForDQAgent( AgentModule ):
     env = dict( os.environ )
     #Need to set a user to let getProjectEnvironment run correctly. 
     env['USER'] = 'dirac'
-    res = getProjectEnvironment( self.systemConfiguration, self.applicationName, applicationVersion = '', extraPackages = '',
-                                runTimeProject = '', site = '', directory = '', generatorName = '',
-                                poolXMLCatalogName = 'pool_xml_catalog.xml', env = env )
+    res = getProjectEnvironment( self.systemConfiguration, self.applicationName, 
+                                 applicationVersion = '', extraPackages = '',
+                                 runTimeProject = '', site = '', directory = '', generatorName = '',
+                                 poolXMLCatalogName = 'pool_xml_catalog.xml', env = env )
 
     #If the environment cannot be setup the init fails
     if not res['OK']:
@@ -233,8 +243,6 @@ class MergingForDQAgent( AgentModule ):
     self.logFile = ''
 
     self.bkClient = BookkeepingClient()
-
-    evtTypeId = int( self.evtTypeDict[self.thisEventType] )
 
     self.exitStatus = 2
 
@@ -312,8 +320,8 @@ class MergingForDQAgent( AgentModule ):
                   gLogger.error( 'No BRUNELHIST or DAVINCIHIST present for this bkQuery. ' )
                 else:
                   for run in res_0.keys():
-                    ID = self.bkClient.getProcessingPassId( bkDict_brunel[ 'ProcessingPass' ] )
-                    q = self.bkClient.getRunAndProcessingPassDataQuality( run, ID['Value'] )
+                    iD = self.bkClient.getProcessingPassId( bkDict_brunel[ 'ProcessingPass' ] )
+                    q = self.bkClient.getRunAndProcessingPassDataQuality( run, iD['Value'] )
                     if q['OK']:
                       gLogger.info( "Run %s has already been flagged skipping" )
                       continue
@@ -322,12 +330,13 @@ class MergingForDQAgent( AgentModule ):
                     if not resProdId['OK']:
                       gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(run,p))
                       continue
-                    lfns = BuildLFNs( bkDict_brunel, run ,resProdId['prodId'],self.addFlag)
+                    lfns = BuildLFNs( bkDict_brunel, run, resProdId['prodId'], self.addFlag )
                     #If the LFN is already in the BK it will be skipped
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
                     if res['Value']:
                       if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
-                        gLogger.info( "%s already in the bookkeeping. Continue with the other runs." % str( lfns['DATA'] ) )
+                        _msg = "%s already in the bookkeeping. Continue with the other runs."
+                        gLogger.info( _msg % str( lfns['DATA'] ) )
                         continue
                     #log directory that will be uploaded 
                     logDir = self.homeDir + 'MERGEFORDQ_RUN_' + str( run )
@@ -347,11 +356,13 @@ class MergingForDQAgent( AgentModule ):
                       gLogger.error( "Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s" % run )
                       continue
                     #Starting the three step Merging process
-                    gLogger.info( '=======================Starting Merging Process for run %s========================' % run )
-                    res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , resProdId['prodId'] , self.addFlag,
-                                    self.testMode, self.specialMode ,self.mergeExeDir , self.mergeStep1Command, self.mergeStep2Command, 
-                                    self.mergeStep3Command,self.brunelCount , self.daVinciCount , self.logFile , self.logFileName, 
-                                    self.environment )
+                    _msg = '=======================Starting Merging Process for run %s========================'
+                    gLogger.info( _msg % run )
+                    res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , 
+                                    resProdId['prodId'], self.addFlag, self.testMode, self.specialMode,
+                                    self.mergeExeDir, self.mergeStep1Command, self.mergeStep2Command, 
+                                    self.mergeStep3Command,self.brunelCount, self.daVinciCount, 
+                                    self.logFile, self.logFileName, self.environment )
                     #if the Merging process went fine the Finalization method is called
                     if res['Merged']:
                       inputData = res_0[run]['LFNs'] + res_1[run]['LFNs']
@@ -360,11 +371,14 @@ class MergingForDQAgent( AgentModule ):
                       '''
                       #gLogger.info("Finalization")
                       #continue
-                      res = Finalization( self.homeDir, logDir, lfns, res['OutputFile'], ( 'Brunel_DaVinci_%s.log' % run ), inputData, run, bkDict_brunel, rootVersion )
+                      res = Finalization( self.homeDir, logDir, lfns, res['OutputFile'], 
+                                          ( 'Brunel_DaVinci_%s.log' % run ), inputData, 
+                                          run, bkDict_brunel, rootVersion )
                       if res['OK']:
-                        '''
-                        If the finalization went fine an automated message is sent to the relevant mailing list specified in the cfg.
-                        '''
+                        
+                        # If the finalization went fine an automated message is sent to the 
+                        # relevant mailing list specified in the cfg.
+                        
                         outMess = "**********************************************************************************************************************************\n"
                         outMess = outMess + "\nThis is an automatic message:\n"
                         outMess = outMess + "\n**********************************************************************************************************************************\n"
