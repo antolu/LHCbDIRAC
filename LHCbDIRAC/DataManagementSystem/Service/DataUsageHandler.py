@@ -22,7 +22,7 @@ __RCSID__ = "$Id:  $"
 # global instance of the StorageUsageDB class
 gStorageUsageDB = False
 
-def initializeDataUsageHandler( serviceInfo ):
+def initializeDataUsageHandler( _serviceInfo ):
   """ service initalisation """
   global gStorageUsageDB
   gStorageUsageDB = StorageUsageDB()

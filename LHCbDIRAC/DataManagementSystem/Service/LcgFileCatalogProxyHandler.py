@@ -21,7 +21,7 @@ from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 
 __RCSID__ = "$Id$"
 
-def initializeLcgFileCatalogProxyHandler( serviceInfo ):
+def initializeLcgFileCatalogProxyHandler( _serviceInfo ):
   """ service initalisation """
   return S_OK()
 

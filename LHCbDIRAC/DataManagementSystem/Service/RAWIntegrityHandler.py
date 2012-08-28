@@ -21,7 +21,7 @@ __RCSID__ = "$Id$"
 ## global instance of the RAWIntegrityDB
 gRAWIntegrityDB  = False
 
-def initializeRAWIntegrityHandler( serviceInfo ):
+def initializeRAWIntegrityHandler( _serviceInfo ):
   """ handler initialisation """
   global gRAWIntegrityDB
   gRAWIntegrityDB = RAWIntegrityDB()

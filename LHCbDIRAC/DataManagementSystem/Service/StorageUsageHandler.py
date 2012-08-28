@@ -22,7 +22,7 @@ __RCSID__ = "$Id$"
 # This is a global instance of the DataIntegrityDB class
 gStorageUsageDB = False
 
-def initializeStorageUsageHandler( serviceInfo ):
+def initializeStorageUsageHandler( _serviceInfo ):
   """ handlre initialisation """
   global gStorageUsageDB
   gStorageUsageDB = StorageUsageDB()
