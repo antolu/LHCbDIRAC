@@ -235,6 +235,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       transType = res['Value']['Type']
 
+    if transType == 'DataReconstruction':
+      fractionToProcess = self.util.getPluginParam( 'FractionToProcess', 1. )
+      if fractionToProcess != 1.:
+        minFilesToProcess = self.util.getPluginParam( 'MinFilesToProcess', 100 )
+    else:
+      fractionToProcess = 1.
+
     activeRAWSEs = self.util.getActiveSEs( cpuShares.keys() )
     inactiveRAWSEs = [se for se in cpuShares if se not in activeRAWSEs]
     self.util.logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
@@ -296,6 +303,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Choose the destination site for new runs
     for runID in [run for run in sorted( runFileDict ) if run not in runSEDict]:
       runLfns = runFileDict[runID]
+      nbNew = len( runFileDict[runID] )
       distinctSEs = []
       for lfn in runLfns:
         distinctSEs += [se for se in self.transReplicas[lfn].keys() if se not in distinctSEs and se in activeRAWSEs]
@@ -350,6 +358,36 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       lfns = [lfn for lfn in runFileDict[runID] if len( self.transReplicas.get( lfn, [] ) ) >= 2]
       if not lfns:
         continue
+      notConsidered = [lfn for lfn in runFileDict[runID] if lfn not in lfns]
+      if notConsidered:
+        self.util.logVerbose( "Run %s: %d files are not considered (not enough replicas)" % ( runID, len( notConsidered ) ) )
+      if fractionToProcess == 1.:
+        runFraction = 1.
+      else:
+        res = self.transClient.getTransformationFiles( condDict={'TransformationID':self.transID, 'RunNumber':runID} )
+        if not res['OK']:
+          self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
+          continue
+        else:
+          nbRaw = len( res['Value'] )
+        res = self.transClient.getTransformationFiles( condDict={'TransformationID':self.transID, 'RunNumber':runID, 'Status':['Assigned', 'Processed']} )
+        if not res['OK']:
+          self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
+          continue
+        else:
+          nbSubmitted = len( res['Value'] )
+        # Let's compute which fraction should be processed
+        if nbRaw <= minFilesToProcess:
+          runFraction = 1.
+        elif nbRaw < minFilesToProcess / fractionToProcess:
+          runFraction = float( minFilesToProcess ) / nbRaw
+        else:
+          runFraction = fractionToProcess
+        # Now adjust taking into account the files already submitted
+        runFraction = min( max( 0., ( runFraction * nbRaw - nbSubmitted ) / nbNew ), 1. )
+        self.util.logInfo( 'Run %s: %d RAW files, will process %.1f%% of files' % ( runID, nbRaw, 100. * runFraction ) )
+        if runFraction == 0.:
+          continue
       res = self._groupBySize( lfns )
       self.params['Status'] = status
       if res['OK']:
@@ -954,7 +992,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not targetSEs:
           self.util.logVerbose( "%s storage elements not in required list" % replicaSE )
           continue
-        res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':'Processed'} )
+        res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':['Processed', 'Problematic']} )
         if not res['OK']:
           self.util.logError( "Failed to get transformation files for %d files" % len( lfns ) )
           continue
