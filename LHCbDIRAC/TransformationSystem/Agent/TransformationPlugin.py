@@ -303,7 +303,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Choose the destination site for new runs
     for runID in [run for run in sorted( runFileDict ) if run not in runSEDict]:
       runLfns = runFileDict[runID]
-      nbNew = len( runFileDict[runID] )
       distinctSEs = []
       for lfn in runLfns:
         distinctSEs += [se for se in self.transReplicas[lfn].keys() if se not in distinctSEs and se in activeRAWSEs]
@@ -341,8 +340,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     tasks = []
     for runID in sorted( runSEDict ):
       selectedSE = runSEDict[runID]
-      self.util.logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE,
-                                                                              len( runFileDict[runID] ) ) )
+      nbNew = len( runFileDict[runID] )
+      self.util.logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, nbNew ) )
       if not selectedSE:
         self.util.logWarn( "Run %d has no targetSE, skipped..." % runID )
         continue
@@ -391,9 +390,31 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       res = self._groupBySize( lfns )
       self.params['Status'] = status
       if res['OK']:
+        notProcessed = 0
+        total = 0
         for task in res['Value']:
+          total += len( task[1] )
+          if runFraction != 1.:
+            # Decide whether the files should be processed or not
+            rand = random.uniform( 0., 1. )
+            if rand > runFraction:
+              # Don't process this/these file
+              notProcessed += len( task[1] )
+              res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', task[1] )
+              if not res['OK']:
+                self.util.logError( "Error setting file status NotProcessed for %d files" % len( task[1] ), res['Message'] )
+              else:
+                res = self.bkClient.setFilesInvisible( task[1] )
+                if not res['OK']:
+                  self.util.logError( "Error setting %d files invisible in BK" % len( task[1] ), res['Message'] )
+              continue
           if selectedSE in task[0].split( ',' ):
             tasks.append( ( selectedSE, task[1] ) )
+          else:
+            self.util.logVerbose( 'Task not created: %s' % str( task ) )
+        if notProcessed:
+          self.util.logVerbose( 'Run %s: of %d files, only %d will be processed (requested %.1f%%, min %d)' \
+                             % ( runID, total, total - notProcessed, 100. * runFraction, minFilesToProcess ) )
       else:
         self.util.logError( 'Error grouping files by size', res['Message'] )
 
