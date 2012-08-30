@@ -609,7 +609,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST',
                                                            'PIC-DST', 'RAL-DST'] )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 4 )
-    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
+    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun=True )
 
   def _LHCbMCDSTBroadcast( self ):
     """ For replication of MC data (3 copies)
@@ -623,7 +623,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
-  def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies ):
+  def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun=False ):
     """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs
         All files for the same run have the same target
     """
@@ -640,6 +640,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not runFileDict:
       # No files, no tasks!
       return S_OK( [] )
+    if forceRun and runFileDict.pop( 0, None ):
+      self.__logInfo( "Removing run #0, which means it was not set yet" )
 
     # For each of the runs determine the destination of any previous files
     runSEDict = {}
