@@ -64,7 +64,6 @@ for switch in switches[0]:
       Script.showHelp()
     else:
       if ( not (bkDict.has_key( "RunNumbers" ))):
-        endRun = int( res['Value']['EndRun'] )
         runId = int( args[1] )
         res = client.setBookkeepingQueryEndRunForTransformation( prodId, runId )
         if res['OK']:
@@ -100,7 +99,7 @@ for switch in switches[0]:
         else:
           print res['Message']
       else:
-        print "Production %s has StarRun, EndRun or RunNumbers='All'" % str( prodId )
+        print "Production %s has start run and end run" % str( prodId )
 
   if opt in ( 'l', 'list' ):
     if ( len( args ) != 1 ):
