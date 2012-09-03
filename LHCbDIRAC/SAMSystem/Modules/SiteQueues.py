@@ -74,13 +74,22 @@ class SiteQueues( ModuleBaseSAM ):
 
     ldapLog = 'ldap.log'
     fopen = open( ldapLog, 'a' )
-    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] + ' -b "mds-vo-name=local,o=grid" -x -LLL "(GlueSubClusterUniqueID=' + samNode + ')" GlueHostBenchmarkSI00 | grep GlueHostBenchmarkSI00'
+    
+    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] 
+    cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(GlueSubClusterUniqueID=' + samNode 
+    cmd += ')" GlueHostBenchmarkSI00 | grep GlueHostBenchmarkSI00'
+    
     result = self.runCommand( 'Checking current CE GlueHostBenchmarkSI00', cmd )
     if not result['OK']:
       return self.finalize( 'Could not perform ldap query for GlueHostBenchmarkSI00', result['Message'], 'error' )
 
     fopen.write( result['Value'] )
-    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] + ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID=' + samNode + ') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCEUniqueID GlueCEPolicyMaxCPUTime | grep GlueCEPolicyMaxCPUTime'
+    
+    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] 
+    cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID=' 
+    cmd += samNode + ') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCEUniqueID '
+    cmd += 'GlueCEPolicyMaxCPUTime | grep GlueCEPolicyMaxCPUTime'
+    
     result = self.runCommand( 'Checking current CE GlueCEPolicyMaxCPUTime', cmd )
     if not result['OK']:
       return self.finalize( 'Could not perform ldap query for GlueCEPolicyMaxCPUTime', result['Message'], 'error' )
@@ -139,16 +148,27 @@ if ( i == tot ){ \
 
     output = result['Value']
     if not output.strip() == '0':
-      return self.finalize( 'LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI', 'Status INFO (= 20)', 'info' )
+      _msg = 'LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI'
+      return self.finalize( _msg, 'Status INFO (= 20)', 'info' )
 
     fopen = open( ldapLog, 'w' )
-    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] + ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID=' + samNode + ') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCECapability | grep CPUScalingReferenceSI00 | tail -1 | awk -F= \'{printf(\"GlueCECapability: %s\\n\",$2)}\''
+    
+    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] 
+    cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID='
+    cmd += samNode + ') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCECapability | grep ' 
+    cmd += 'CPUScalingReferenceSI00 | tail -1 | awk -F= \'{printf(\"GlueCECapability: %s\\n\",$2)}\''
+    
     result = self.runCommand( 'Checking current CE CPUScalingReferenceSI00', cmd, check = True )
     if not result['OK']:
       return self.finalize( 'Could not perform ldap query for CPUScalingReferenceSI00', result['Message'], 'warning' )
 
     fopen.write( result['Value'] )
-    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] + ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID=' + samNode + ') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCEUniqueID GlueCEPolicyMaxCPUTime | grep GlueCEPolicyMaxCPUTime'
+    
+    cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS']
+    cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID=' 
+    cmd += samNode + ') (GlueCEAccessControlBaseRule=VO:lhcb))" GlueCEUniqueID GlueCEPolicyMaxCPUTime '
+    cmd += '| grep GlueCEPolicyMaxCPUTime'
+    
     result = self.runCommand( 'Checking current CE GlueCEPolicyMaxCPUTime', cmd )
     if not result['OK']:
       return self.finalize( 'Could not perform ldap query for GlueCEPolicyMaxCPUTime', result['Message'], 'error' )
@@ -207,7 +227,8 @@ if ( i == tot ){ \
 
     output = result['Value']
     if not output.strip() == '0':
-      return self.finalize( 'LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI', 'Status INFO (= 20)', 'info' )
+      _msg = 'LHCb queue length does not satisfy the minimum requirement of 39h of 5002KSI'
+      return self.finalize( _msg, 'Status INFO (= 20)', 'info' )
 
     self.log.info( 'Test %s completed successfully' % self.testName )
     self.setApplicationStatus( '%s Successful' % self.testName )

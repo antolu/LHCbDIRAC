@@ -1,19 +1,21 @@
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id$"
-
-import os, re, time
+import os
+import re
+import time
 import DIRAC
-from DIRAC import S_OK, S_ERROR, gLogger
+
+from DIRAC                                               import S_OK, S_ERROR, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, createSharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
+__RCSID__ = "$Id$"
 
 SAM_TEST_NAME = 'CE-lhcb-lock'
-SAM_LOG_FILE = 'sam-lock.log'
+SAM_LOG_FILE  = 'sam-lock.log'
 SAM_LOCK_NAME = 'DIRAC-SAM-Test-Lock'
 
 class LockSharedArea( ModuleBaseSAM ):
@@ -23,13 +25,13 @@ class LockSharedArea( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
+    self.version  = __RCSID__
+    self.runinfo  = {}
+    self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.log = gLogger.getSubLogger( "LockSharedArea" )
-    self.result = S_ERROR()
+    self.log      = gLogger.getSubLogger( "LockSharedArea" )
+    self.result   = S_ERROR()
 
     self.jobID = None
     if 'JOBID' in os.environ:
@@ -38,7 +40,7 @@ class LockSharedArea( ModuleBaseSAM ):
     self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
 
     #Workflow parameters for the test
-    self.enable = True
+    self.enable           = True
     self.forceLockRemoval = False
 
     #Global parameter affecting behaviour
@@ -113,21 +115,22 @@ class LockSharedArea( ModuleBaseSAM ):
         self.log.info( 'Changing current umask to 0002' )
         try:
           os.umask( 0002 )
-        except Exception, x:
+        except OSError, x:
           return self.finalize( 'excepton during umask', x, 'error' )
     else:
       if not result['Value'].count( '0022' ):
         self.log.info( 'Changing current umask to 0022' )
         try:
           os.umask( 0022 )
-        except Exception, x:
+        except OSError, x:
           return self.finalize( 'excepton during umask', x, 'error' )
 
     sharedArea = getSharedArea()
     if not sharedArea:
-      self.log.info( 'Could not determine sharedArea for site %s:\n%s\n trying to create it' % ( DIRAC.siteName(), sharedArea ) )
-      createSharedArea = createSharedArea()
-      if not createSharedArea:
+      _msg = 'Could not determine sharedArea for site %s:\n%s\n trying to create it' 
+      self.log.info( _msg % ( DIRAC.siteName(), sharedArea ) )
+      createsharedArea = createSharedArea()
+      if not createsharedArea:
         return self.finalize( 'Could not create sharedArea for site %s:' % ( DIRAC.siteName() ), sharedArea, 'error' )
       sharedArea = getSharedArea()
     else:
@@ -136,7 +139,8 @@ class LockSharedArea( ModuleBaseSAM ):
     # if yes then return Error
       if os.path.exists( os.path.join( sharedArea, 'etc', 'cernvmfs' ) ):
         self.log.info( 'Software shared area for site %s is using CERNVMFS' % ( DIRAC.siteName() ) )
-        return self.finalize( 'Could not install (CERNVMFS) for site %s:' % ( DIRAC.siteName() ), 'Read-Only volume', 'warning' )
+        _msg = 'Could not install (CERNVMFS) for site %s:'
+        return self.finalize( _msg % ( DIRAC.siteName() ), 'Read-Only volume', 'warning' )
 
 
     #nasty fix but only way to resolve writeable volume at CERN
@@ -144,7 +148,8 @@ class LockSharedArea( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at CERN' )
       if re.search( '.cern.ch', sharedArea ):
         newSharedArea = sharedArea.replace( 'cern.ch', '.cern.ch' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea, newSharedArea ) )
+        _msg = 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s'
+        self.writeToLog( _msg % ( sharedArea, newSharedArea ) )
         sharedArea = newSharedArea
 
     self.log.info( 'Checking shared area contents: %s' % ( sharedArea ) )
@@ -183,18 +188,24 @@ class LockSharedArea( ModuleBaseSAM ):
       if curtime - fileTime > self.lockValidity:
         self.log.info( 'SAM lock file present for > %s secs, deleting' % self.lockValidity )
         cmd = 'rm -fv %s/%s' % ( sharedArea, self.lockFile )
-        result = self.runCommand( 'Current lock file %s present for longer than %s seconds' % ( self.lockFile, self.lockValidity ), cmd, check = True )
+        _msg = 'Current lock file %s present for longer than %s seconds'
+        result = self.runCommand(  _msg % ( self.lockFile, self.lockValidity ), cmd, check = True )
         self.setApplicationStatus( 'Could Not Remove Old Lock File' )
         if not result['OK']:
           self.log.warn( result['Message'] )
-          return self.finalize( 'Could not remove existing lock file exceeding maximum validity', result['Message'], 'critical' )
+          _msg = 'Could not remove existing lock file exceeding maximum validity'
+          return self.finalize( _msg, result['Message'], 'critical' )
         self.setJobParameter( 'ExistingSAMLock', 'Removed on %s after exceeding maximum validity' % ( time.asctime() ) )
       else:
         #unique to this test, prevent execution of software installation via 'notice' status
-        self.log.info( 'Another SAM job has been running at this site for less than %s seconds disabling software installation test' % self.lockValidity )
-        self.writeToLog( 'Another SAM job has been running at this site for less than %s seconds, disabling software installation test' % self.lockValidity )
+        _msg = 'Another SAM job has been running at this site for less than %s'
+        _msg += ' seconds disabling software installation test'
+        self.log.info( _msg % self.lockValidity )
+        self.writeToLog( _msg % self.lockValidity )
         self.setApplicationStatus( 'Shared Area Lock Exists' )
-        return self.finalize( '%s test running at same time as another SAM job' % self.testName, 'Status NOTICE (= 30)', 'notice' )
+        
+        _msg = '%s test running at same time as another SAM job'
+        return self.finalize( _msg % self.testName, 'Status NOTICE (= 30)', 'notice' )
 
     cmd = 'touch %s/%s' % ( sharedArea, self.lockFile )
     result = self.runCommand( 'Creating SAM lock file', cmd, check = True )
@@ -203,7 +214,7 @@ class LockSharedArea( ModuleBaseSAM ):
       self.log.info( 'Trying to change permissions: %s' % ( sharedArea ) )
       try:
         os.chmod( sharedArea, 0775 )
-      except Exception, x:
+      except OSError, x:
         self.setApplicationStatus( 'Could Not Create Lock File' )
         return self.finalize( 'Could not change permissions', '%s' % ( sharedArea ), 'critical' )
       cmd = 'touch %s/%s' % ( sharedArea, self.lockFile )
@@ -237,14 +248,16 @@ class LockSharedArea( ModuleBaseSAM ):
     userID = self.runinfo['identityShort']
 
     try:
-      for dirName, subDirs, files in os.walk( sharedArea ):
+      for dirName, _subDirs, files in os.walk( sharedArea ):
         self.log.debug( 'Changing file permissions in directory %s' % dirName )
         if os.stat( '%s' % ( dirName ) )[4] == userID and not os.path.islink( '%s' % ( dirName ) ):
           os.chmod( '%s' % ( dirName ), 0775 )
         for toChange in files:
-          if os.stat( '%s/%s' % ( dirName, toChange ) )[4] == userID and not os.path.islink( '%s/%s' % ( dirName, toChange ) ):
+          
+          pathIsLink = os.path.islink( '%s/%s' % ( dirName, toChange ) )
+          if os.stat( '%s/%s' % ( dirName, toChange ) )[4] == userID and not pathIsLink:
             os.chmod( '%s/%s' % ( dirName, toChange ), 0775 )
-    except Exception, x:
+    except OSError, x:
       self.log.error( 'Problem changing shared area permissions', str( x ) )
       return S_ERROR( x )
 
@@ -252,4 +265,5 @@ class LockSharedArea( ModuleBaseSAM ):
     self.writeToLog( 'Permissions in shared area %s updated successfully' % ( sharedArea ) )
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

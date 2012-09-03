@@ -151,8 +151,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at IN2P3' )
       if re.search( '.in2p3.fr', sharedArea ):
         newSharedArea = sharedArea.replace( 'in2p3.fr', '.in2p3.fr' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.IN2P3.fr:\n%s => %s' % ( sharedArea,
-                                                                                                        newSharedArea ) )
+        _msg = 'Changing path to shared area writeable volume at LCG.IN2P3.fr:\n%s => %s'
+        self.writeToLog( _msg % ( sharedArea, newSharedArea ) )
         sharedArea = newSharedArea
         os.environ['VO_LHCB_SW_DIR'] = os.environ['VO_LHCB_SW_DIR'].replace( 'in2p3.fr', '.in2p3.fr' )
 
@@ -236,6 +236,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
           if not len( appNameVersion ) == 2:
             if isPoolAccount:
               self.__changePermissions( sharedArea )
+            #FIXME: next warning is a bug !
             return self.finalize( 'Could not determine name and version of package:', installPackage, 'error' )
 
 #          if removePackage in packageList:
@@ -266,7 +267,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
                                                                     appNameVersion[1],
                                                                     systemConfig ) )
 #          else:
-#            self.log.info('%s is not supported for system configuration %s, nothing to remove.' %(removePackage,systemConfig))
+#            _msg = '%s is not supported for system configuration %s, nothing to remove.'
+#            self.log.info(_msg %(removePackage,systemConfig))
     else:
       self.log.info( 'Software installation is disabled via enable flag' )
 
@@ -310,7 +312,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     userID = self.runinfo['identityShort']
 
     try:
-      for dirName, subDirs, files in os.walk( sharedArea ):
+      for dirName, _subDirs, files in os.walk( sharedArea ):
         self.log.debug( 'Changing file permissions in directory %s' % dirName )
         if os.path.isdir( dirName ) and not os.path.islink( dirName ) and os.stat( dirName )[4] == userID:
           try:
@@ -333,7 +335,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
               self.log.error( 'Is link: ', os.path.islink( filename ) )
               self.log.error( 'Is exits:', os.path.exists( filename ) )
               raise x
-    except Exception, x:
+    except OSError, x:
       self.log.error( 'Problem changing shared area permissions', str( x ) )
       return S_ERROR( x )
 

@@ -20,9 +20,9 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME = 'CE-lhcb-softreport'
-SAM_LOG_FILE = 'sam-softreport.log'
-InstallProject = 'install_project.py'
+SAM_TEST_NAME     = 'CE-lhcb-softreport'
+SAM_LOG_FILE      = 'sam-softreport.log'
+InstallProject    = 'install_project.py'
 InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class SoftwareReport( ModuleBaseSAM ):
@@ -89,7 +89,8 @@ class SoftwareReport( ModuleBaseSAM ):
       return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
     if not 'SAMResults' in self.workflow_commons:
-      return self.finalize( 'Problem determining CE-lhcb-lock test result', 'No SAMResults key in workflow commons', 'error' )
+      _msg = 'Problem determining CE-lhcb-lock test result'
+      return self.finalize( _msg, 'No SAMResults key in workflow commons', 'error' )
 
     self.runinfo = self.getRunInfo()
     if not self.enable:
@@ -134,12 +135,14 @@ class SoftwareReport( ModuleBaseSAM ):
 
       localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
       if not localArch:
-        return self.finalize( '/LocalSite/Architecture is not defined in the local configuration', 'Could not get /LocalSite/Architecture', 'error' )
+        _msg = '/LocalSite/Architecture is not defined in the local configuration'
+        return self.finalize( _msg, 'Could not get /LocalSite/Architecture', 'error' )
 
       #must get the list of compatible platforms for this architecture
       localPlatforms = gConfig.getOptionsDict( '/Resources/Computing/OSCompatibility' )
       if not localPlatforms:
-        return self.finalize( 'Could not obtain compatible platforms for /Resources/Computing/OSCompatibility/', 'error' )
+        _msg = 'Could not obtain compatible platforms for /Resources/Computing/OSCompatibility/'
+        return self.finalize( _msg, 'error' )
 
 #
 #to be remove...
@@ -165,7 +168,8 @@ class SoftwareReport( ModuleBaseSAM ):
           #Must check that package to install is supported by LHCb for requested system configuration
 
           if installPackage in packageList:
-            self.log.info( 'Attempting to check %s %s for system configuration %s' % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
+            _msg = 'Attempting to check %s %s for system configuration %s'
+            self.log.info( _msg % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
 #            orig = sys.stdout
 #            catch = open(self.logFile,'a')
 #            catch = open('jojo.log','w')
@@ -183,7 +187,8 @@ class SoftwareReport( ModuleBaseSAM ):
               else:
                 softwareDictPb[installPackage] = [systemConfig]
             else:
-#              self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
+#              _msg = 'Installation of %s %s for %s successful'
+#              self.log.info(_msg %(appNameVersion[0],appNameVersion[1],systemConfig))
               if installPackage in softwareDict:
                 current = softwareDict[installPackage]
                 current.append( systemConfig )
@@ -192,7 +197,8 @@ class SoftwareReport( ModuleBaseSAM ):
                 softwareDict[installPackage] = [systemConfig]
               soft_present.append( ( appNameVersion[0], appNameVersion[1] , systemConfig ) )
 #          else:
-#            self.log.info('%s is not supported for system configuration %s, nothing to check.' %(installPackage,systemConfig))
+#            _msg = '%s is not supported for system configuration %s, nothing to check.' 
+#            self.log.info(_msg %(installPackage,systemConfig))
 
 
     else:
@@ -321,7 +327,8 @@ def CheckPackage( self, app, config, area ):
     self.log.error( 'Software check failed, missing software', '%s %s:\n%s' % ( appName, appVersion, ret['Value'][2] ) )
     return False
   if ret['Value'][0]: # != 0
-    self.log.error( 'Software check failed with non-zero status', '%s %s:\n%s' % ( appName, appVersion, ret['Value'][2] ) )
+    _msg = 'Software check failed with non-zero status'
+    self.log.error( _msg, '%s %s:\n%s' % ( appName, appVersion, ret['Value'][2] ) )
     return False
 
   if ret['Value'][2]:

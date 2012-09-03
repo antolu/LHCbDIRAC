@@ -101,30 +101,40 @@ class TestApplications( ModuleBaseSAM ):
     self.log.info( 'Checking local system configuration is suitable to run the application test' )
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
     if not localArch:
-      return self.finalize( '/LocalSite/Architecture is not defined in the local configuration', 'Could not get /LocalSite/Architecture', 'error' )
+      _msg = '/LocalSite/Architecture is not defined in the local configuration'
+      return self.finalize( _msg, 'Could not get /LocalSite/Architecture', 'error' )
 
     #must get the list of compatible platforms for this architecture
     localPlatforms = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % localArch, [] )
     if not localPlatforms:
-      return self.finalize( 'Could not obtain compatible platforms for %s' % localArch, '/Resources/Computing/OSCompatibility/%s' % localArch, 'error' )
+      _msg = 'Could not obtain compatible platforms for %s' % localArch
+      return self.finalize( _msg, '/Resources/Computing/OSCompatibility/%s' % localArch, 'error' )
 
     if not self.appSystemConfig in localPlatforms:
       if not self.appSystemConfig in localArch:
-        self.log.info( '%s is not in list of supported system configurations at this site: %s' % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
-        self.writeToLog( '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
+        _msg = '%s is not in list of supported system configurations at this site: %s'
+        self.log.info( _msg % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
+        _msg = '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.'
+        self.writeToLog( _msg % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
         return self.finalize( '%s Test Disabled' % self.testName, 'Status NOTICE (=30)', 'notice' )
       else:
         self.appSystemConfig = localPlatforms[0]
 
-    options = self.__getOptions( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1], self.appNameOptions )
+    options = self.__getOptions( self.appNameVersion.split( '.' )[0], 
+                                 self.appNameVersion.split( '.' )[1], self.appNameOptions )
     if not options['OK']:
-      return self.finalize( 'Inputs for %s %s could not be found' % ( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1] ), options['Message'], 'critical' )
+      return self.finalize( 'Inputs for %s %s could not be found' % ( self.appNameVersion.split( '.' )[0], 
+                                                                      self.appNameVersion.split( '.' )[1] ), 
+                                                                      options['Message'], 'critical' )
 
     sys.stdout.flush()
-    result = self.__runApplication( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1], options['Value'] )
+    result = self.__runApplication( self.appNameVersion.split( '.' )[0], 
+                                    self.appNameVersion.split( '.' )[1], options['Value'] )
     sys.stdout.flush()
     if not result['OK']:
-      return self.finalize( 'Failure during %s %s execution' % ( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1] ), result['Message'], 'error' )
+      return self.finalize( 'Failure during %s %s execution' % ( self.appNameVersion.split( '.' )[0], 
+                                                                 self.appNameVersion.split( '.' )[1] ), 
+                                                                 result['Message'], 'error' )
 
     self.log.info( 'Test %s completed successfully' % self.testName )
     self.setApplicationStatus( '%s Successful' % self.testName )

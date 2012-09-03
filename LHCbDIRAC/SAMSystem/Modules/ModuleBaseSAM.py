@@ -29,6 +29,19 @@ class ModuleBaseSAM( object ):
                        'critical'    : '60', 
                        'maintenance' : '100'
                       }
+    
+    self.jobID            = None
+    self.testName         = None
+    self.logFile          = None
+    self.version          = None
+    self.enable           = None
+    self.jobReport        = None
+    
+    # Memebers injected on Workflow.execution.. so ugly !
+    self.stepStatus       = None
+    self.workflowStatus   = None
+    self.step_commons     = None
+    self.workflow_commons = None
 
   def setApplicationStatus( self, status ):
     """Wraps around setJobApplicationStatus of state update client
@@ -61,14 +74,14 @@ class ModuleBaseSAM( object ):
     if not result['OK']:
       return self.finalize( 'Could not get current CE', result['Message'], 'error' )
     else:
-      self.log.info( 'Current CE is %s' % result['Value'] )
+      #self.log.info( 'Current CE is %s' % result['Value'] )
       runInfo['CE'] = result['Value']
 
     result = self.runCommand( 'find worker node name', 'hostname' )
     if not result['OK']:
-        return self.finalise( 'Current worker node does not exist', result['Message'], 'error' )
+      return self.finalize( 'Current worker node does not exist', result['Message'], 'error' )
     else:
-        runInfo['WN'] = result['Value']
+      runInfo['WN'] = result['Value']
 
     result = self.runCommand( 'Checking current proxy', 'voms-proxy-info -all' )
     if not result['OK']:
@@ -114,7 +127,10 @@ class ModuleBaseSAM( object ):
       ce = self.workflow_commons['GridRequiredCEs']
       gLogger.warn( 'As a last resort setting CE to %s from workflow parameters' % ce )
     else:
-      return S_ERROR( 'Could not get CE from local cfg option /Resources/Computing/InProcess/GridCE or broker-info call or workflow parameters' )
+      _msg = 'Could not get CE from local cfg option /Resources/Computing/InProcess/GridCE'
+      _msg += ' or broker-info call or workflow parameters'
+      
+      return S_ERROR( _msg )
 
     return S_OK( ce )
 
@@ -151,16 +167,18 @@ class ModuleBaseSAM( object ):
     if not self.version:
       return S_ERROR( 'CVS version tag is not defined' )
 
-    try:
-      if not self.enable in [True, False]:
-        return S_ERROR( 'Expected boolean for enable flag' )
-    except Exception:
-      return S_ERROR( 'Enable flag is not defined' )
+#    try:
+    if not self.enable in [ True, False ]:
+      return S_ERROR( 'Expected boolean for enable flag' )
+#    except AttributeError:
+#      return S_ERROR( 'Enable flag is not defined' )
 
     gLogger.verbose( message )
     if not os.path.exists( '%s' % ( self.logFile ) ):
       fopen = open( self.logFile, 'w' )
-      header = self.getMessageString( 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ), True )
+      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
+      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ) 
+      header = self.getMessageString( _msg, True )
       fopen.write( header )
       fopen.close()
 
@@ -195,7 +213,8 @@ class ModuleBaseSAM( object ):
     else:
       return S_OK( stdout )
 
-  def getMessageString( self, message, header = False ):
+  @staticmethod
+  def getMessageString( message, header = False ):
     """Return a nicely formatted string for the SAM logs.
     """
     border = ''
@@ -205,11 +224,11 @@ class ModuleBaseSAM( object ):
         if len( line ) > limit:
           limit = len( line )
 
-    max = 100
+    maxLimit = 100
     if limit > 100:
-      limit = max
+      limit = maxLimit
 
-    for i in xrange( limit ):
+    for _i in xrange( limit ):
       if header:
         border += '='
       else:
@@ -241,7 +260,9 @@ class ModuleBaseSAM( object ):
     """
     if not os.path.exists( '%s' % ( self.logFile ) ):
       fopen = open( self.logFile, 'w' )
-      header = self.getMessageString( 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ), True )
+      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
+      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
+      header = self.getMessageString( _msg , True )
       fopen.write( header )
       fopen.close()
 
@@ -268,7 +289,9 @@ class ModuleBaseSAM( object ):
 
     if not os.path.exists( '%s' % ( self.logFile ) ):
       fopen = open( self.logFile, 'w' )
-      header = self.getMessageString( 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ), True )
+      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
+      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
+      header = self.getMessageString( _msg , True )
       fopen.write( header )
       fopen.close()
 

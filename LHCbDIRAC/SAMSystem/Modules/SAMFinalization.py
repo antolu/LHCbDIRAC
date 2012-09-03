@@ -10,6 +10,7 @@ import glob
 import os
 import re
 import shutil
+import stomp
 import sys
 import time
 
@@ -168,7 +169,8 @@ class SAMFinalization( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at CERN' )
       if re.search( '.cern.ch', sharedArea ):
         newSharedArea = sharedArea.replace( 'cern.ch', '.cern.ch' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea, newSharedArea ) )
+        _msg = 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s'
+        self.writeToLog( _msg % ( sharedArea, newSharedArea ) )
         sharedArea = newSharedArea
 
     if os.path.exists( '%s/%s' % ( sharedArea, self.lockFile ) ):
@@ -205,12 +207,16 @@ class SAMFinalization( ModuleBaseSAM ):
       if testName in samLogs:
         logName = samLogs[testName]
         if int( testStatus ) > int( self.samStatus['notice'] ):
-          self.log.warn( '%s test status was %s, writing message to check %s test' % ( testName, testStatus, testName ) )
-          failedMessages.append( '<LI>%s test status was %s = %s, please check <A HREF="%s%s">%s test log</A> for more details<br>' % ( testName, self.__getSAMStatus( testStatus ), testStatus, logURL, logName, testName ) )
+          _msg = '%s test status was %s, writing message to check %s test'
+          self.log.warn( _msg % ( testName, testStatus, testName ) )
+          _msg = '<LI>%s test status was %s = %s, please check <A HREF="%s%s">%s test log</A> for more details<br>'
+          _msgTuple = ( testName, self.__getSAMStatus( testStatus ), testStatus, logURL, logName, testName )
+          failedMessages.append( _msg % _msgTuple )
         else:
           self.log.verbose( 'Test %s completed with status %s' % ( testName, testStatus ) )
       else:
-        self.log.info( '%s Test completed with %s but no SAM log file available in workflow commons' % ( testName, testStatus ) )
+        _msg = '%s Test completed with %s but no SAM log file available in workflow commons'
+        self.log.info( _msg % ( testName, testStatus ) )
 
     if failedMessages:
       failedLogs = """<UL><br>
@@ -406,7 +412,8 @@ EOT
 
     lfnPath = self.__getLFNPathString( samNode )
     rm = ReplicaManager()
-    self.log.verbose( 'Arguments for rm.putDirectory are: %s\n%s\n%s' % ( lfnPath, os.path.realpath( logDir ), self.logSE ) )
+    _msg = 'Arguments for rm.putDirectory are: %s\n%s\n%s'
+    self.log.verbose( _msg % ( lfnPath, os.path.realpath( logDir ), self.logSE ) )
     result = rm.putStorageDirectory( {lfnPath:os.path.realpath( logDir )}, self.logSE, singleDirectory = True )
     self.log.verbose( result )
     if not result['OK']:
@@ -439,7 +446,6 @@ EOT
     detailsData:        Free format text (this could be a link to the logSE if you prefer)
     """
 
-    import stomp
     self.log.verbose ( "Nagios" )
     host = 'egi.msg.cern.ch'
     port = 6163

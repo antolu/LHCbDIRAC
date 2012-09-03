@@ -18,7 +18,7 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 __RCSID__ = "$Id$"
 
 SAM_TEST_NAME = 'CE-lhcb-os'
-SAM_LOG_FILE = 'sam-os.log'
+SAM_LOG_FILE  = 'sam-os.log'
 
 class SystemConfiguration( ModuleBaseSAM ):
 
@@ -196,7 +196,7 @@ class SystemConfiguration( ModuleBaseSAM ):
         if os.path.isfile( check ):
           os.remove( check )
           count += 1
-    except Exception, x:
+    except OSError, x:
       self.log.error( 'Problem deleting shared area ', str( x ) )
       return S_ERROR( x )
 
