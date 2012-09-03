@@ -86,6 +86,7 @@ class SAMFinalization( ModuleBaseSAM ):
   def execute( self ):
     """The main execution method of the SAMFinalization module.
     """
+    
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
     self.runinfo = self.getRunInfo()

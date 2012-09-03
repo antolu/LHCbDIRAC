@@ -62,16 +62,16 @@ class SoftwareReport( ModuleBaseSAM ):
     self.resolveInputVariables()
     self.setSAMLogFile()
 
+    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
+      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
+      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+
     soft_present = []
     softwareDict = {}
     soft_present_pb = []
     softwareDictPb = {}
     soft_remove = []
     softwareDictRemove = {}
-
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
     if not 'SAMResults' in self.workflow_commons:
       _msg = 'Problem determining CE-lhcb-lock test result'

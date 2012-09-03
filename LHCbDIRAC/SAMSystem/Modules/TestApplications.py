@@ -76,12 +76,12 @@ class TestApplications( ModuleBaseSAM ):
     self.resolveInputVariables()
     self.setSAMLogFile()
 
-    if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
-      self.result = S_ERROR( 'No application name / version defined' )
-
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )
       return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+
+    if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
+      self.result = S_ERROR( 'No application name / version defined' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
 

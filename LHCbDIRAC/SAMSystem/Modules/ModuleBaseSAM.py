@@ -85,40 +85,35 @@ class ModuleBaseSAM( object ):
     return jobStatus
 
   def getRunInfo( self ):
-    """ print the basic information about CE, Host, DN, proxy, mapping
-        return a dictionnary with the RUN INFO to be used later if needed
+    """ get the basic information about CE, Host, DN, proxy, mapping
+        return a dictionary with the RUN INFO to be used later if needed
     """
     runInfo = {}
     result = self.getSAMNode()
-    if not result['OK']:
-      return self.finalize( 'Could not get current CE', result['Message'], 'error' )
-    else:
-      #self.log.info( 'Current CE is %s' % result['Value'] )
-      runInfo['CE'] = result['Value']
+    if not result[ 'OK' ]:
+      return self.finalize( 'Could not get current CE', result[ 'Message' ], 'error' )
+    #self.log.info( 'Current CE is %s' % result['Value'] )
+    runInfo[ 'CE' ] = result[ 'Value' ]
 
     result = self.runCommand( 'find worker node name', 'hostname' )
-    if not result['OK']:
-      return self.finalize( 'Current worker node does not exist', result['Message'], 'error' )
-    else:
-      runInfo['WN'] = result['Value']
+    if not result[ 'OK' ]:
+      return self.finalize( 'Current worker node does not exist', result[ 'Message' ], 'error' )
+    runInfo[ 'WN' ] = result[ 'Value' ]
 
     result = self.runCommand( 'Checking current proxy', 'voms-proxy-info -all' )
-    if not result['OK']:
-      return self.finalize( 'voms-proxy-info -all', result, 'error' )
-    else:
-      runInfo['Proxy'] = result['Value']
+    if not result[ 'OK' ]:
+      return self.finalize( 'voms-proxy-info -all', result[ 'Message' ], 'error' )
+    runInfo[ 'Proxy' ] = result[ 'Value' ]
 
     result = self.runCommand( 'Checking current user account mapping', 'id' )
-    if not result['OK']:
-      return self.finalize( 'id', result['Message'], 'error' )
-    else:
-      runInfo['identity'] = result['Value']
+    if not result[ 'OK' ]:
+      return self.finalize( 'id', result[ 'Message' ], 'error' )
+    runInfo[ 'identity' ] = result[ 'Value' ]
 
     result = self.runCommand( 'Checking current user account mapping', 'id -nu' )
-    if not result['OK']:
-      return self.finalize( 'id -nu', result['Message'], 'error' )
-    else:
-      runInfo['identityShort'] = result['Value']
+    if not result[ 'OK' ]:
+      return self.finalize( 'id -nu', result[ 'Message' ], 'error' )
+    runInfo[ 'identityShort' ] = result[ 'Value' ]
 
     return runInfo
 
@@ -259,7 +254,8 @@ class ModuleBaseSAM( object ):
     return message
 
   def setSAMLogFile( self ):
-    """Simple function to store the SAM log file name and test name in the
+    """
+       Simple function to store the SAM log file name and test name in the
        workflow parameters.
     """
     if not self.logFile:
@@ -269,9 +265,9 @@ class ModuleBaseSAM( object ):
       return S_ERROR( 'No SAM test name defined' )
 
     if not 'SAMLogs' in self.workflow_commons:
-      self.workflow_commons['SAMLogs'] = {}
+      self.workflow_commons[ 'SAMLogs' ] = {}
 
-    self.workflow_commons['SAMLogs'][self.testName] = self.logFile
+    self.workflow_commons[ 'SAMLogs' ][ self.testName ] = self.logFile
     return S_OK()
 
   def writeToLog( self, message ):

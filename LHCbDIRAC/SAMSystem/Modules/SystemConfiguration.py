@@ -40,7 +40,7 @@ class SystemConfiguration( ModuleBaseSAM ):
     self.resolveInputVariables()
     self.setSAMLogFile()
 
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
+    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )
       return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
