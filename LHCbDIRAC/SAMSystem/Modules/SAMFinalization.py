@@ -58,7 +58,7 @@ class SAMFinalization( ModuleBaseSAM ):
 #    self.samPublishScript = 'sam/bin/same-publish-tuples'
     self.logSE = 'LogSE'
     self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
+    if 'JOBID' in os.environ:
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
@@ -69,19 +69,19 @@ class SAMFinalization( ModuleBaseSAM ):
   def _resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.step_commons.has_key( 'enable' ):
+    if 'enable' in self.step_commons:
       self.enable = self.step_commons['enable']
       if not type( self.enable ) == type( True ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
 
-    if self.step_commons.has_key( 'publishResultsFlag' ):
+    if 'publishResultsFlag' in self.step_commons:
       self.publishResultsFlag = self.step_commons['publishResultsFlag']
       if not type( self.publishResultsFlag ) == type( True ):
         self.log.warn( 'Publish results flag set to non-boolean value %s, setting to False' % self.publishResultsFlag )
         self.enable = False
 
-    if self.step_commons.has_key( 'uploadLogsFlag' ):
+    if 'uploadLogsFlag' in self.step_commons:
       self.uploadLogsFlag = self.step_commons['uploadLogsFlag']
       if not type( self.uploadLogsFlag ) == type( True ):
         self.log.warn( 'Upload logs flag set to non-boolean value %s, setting to False' % self.uploadLogsFlag )
@@ -111,13 +111,13 @@ class SAMFinalization( ModuleBaseSAM ):
       failed = True
 
     self.log.verbose( self.workflow_commons )
-    if not self.workflow_commons.has_key( 'SAMResults' ):
+    if not 'SAMResults' in self.workflow_commons:
       self.setApplicationStatus( 'No SAM Results Found' )
       return self.finalize( 'No SAM results found', 'Status ERROR (= 50)', 'error' )
 
     samResults = self.workflow_commons['SAMResults']
     #If the lock test has failed or is not OK, another job is running and the lock should not be removed
-    if samResults.has_key( 'CE-lhcb-lock' ):
+    if 'CE-lhcb-lock' in samResults:
       if not int( samResults['CE-lhcb-lock'] ) > int( self.samStatus['info'] ):
         result = self.__removeLockFile( sharedArea )
         if not result['OK']:
@@ -133,7 +133,7 @@ class SAMFinalization( ModuleBaseSAM ):
 
     samNode = self.runinfo['CE']
     samLogs = {}
-    if not self.workflow_commons.has_key( 'SAMLogs' ):
+    if not 'SAMLogs' in self.workflow_commons:
       self.setApplicationStatus( 'No SAM Logs Found' )
       self.log.warn( 'No SAM logs found' )
     else:
@@ -202,7 +202,7 @@ class SAMFinalization( ModuleBaseSAM ):
     logURL = '%s%s/' % ( self.logURL, lfnPath )
     failedMessages = []
     for testName, testStatus in samResults.items():
-      if samLogs.has_key( testName ):
+      if testName in samLogs:
         logName = samLogs[testName]
         if int( testStatus ) > int( self.samStatus['notice'] ):
           self.log.warn( '%s test status was %s, writing message to check %s test' % ( testName, testStatus, testName ) )
@@ -224,7 +224,7 @@ class SAMFinalization( ModuleBaseSAM ):
       return failedLogs
 
     #If software installation test was not run by this job e.g. is 'notice' status, do not add software report.
-    if not samResults.has_key( 'CE-lhcb-install' ):
+    if not 'CE-lhcb-install' in samResults:
       self.log.info( 'Software install test was not run by this job.' )
       return 'Software installation test was disabled for this job (safe mode).'
 
@@ -243,7 +243,7 @@ class SAMFinalization( ModuleBaseSAM ):
       archSw = self.opsH.getValue( 'SoftwareDistribution/%s' % ( architecture ), [] )
       for sw in activeSw:
         if sw in archSw:
-          if softwareDict.has_key( sw ):
+          if sw in softwareDict:
             current = softwareDict[sw]
             current.append( architecture )
             softwareDict[sw] = current

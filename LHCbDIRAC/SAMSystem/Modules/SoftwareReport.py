@@ -40,7 +40,7 @@ class SoftwareReport( ModuleBaseSAM ):
     self.result = S_ERROR()
 
     self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
+    if 'JOBID' in os.environ:
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
@@ -50,13 +50,13 @@ class SoftwareReport( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.step_commons.has_key( 'enable' ):
+    if 'enable' in self.step_commons:
       self.enable = self.step_commons['enable']
       if not type( self.enable ) == type( True ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
 
-    if self.step_commons.has_key( 'installProjectURL' ):
+    if 'installProjectURL' in self.step_commons:
       self.installProjectURL = self.step_commons['installProjectURL']
       if not type( self.installProjectURL ) == type( " " ) or not self.installProjectURL:
         self.log.warn( 'Install project URL not set to non-zero string parameter, setting to None' )
@@ -88,7 +88,7 @@ class SoftwareReport( ModuleBaseSAM ):
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )
       return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
-    if not self.workflow_commons.has_key( 'SAMResults' ):
+    if not 'SAMResults' in self.workflow_commons:
       return self.finalize( 'Problem determining CE-lhcb-lock test result', 'No SAMResults key in workflow commons', 'error' )
 
     self.runinfo = self.getRunInfo()
@@ -176,7 +176,7 @@ class SoftwareReport( ModuleBaseSAM ):
             #result = True
             if not result: #or not result['OK']:
               soft_present_pb.append( ( appNameVersion[0], appNameVersion[1] , systemConfig ) )
-              if softwareDictPb.has_key( installPackage ):
+              if installPackage in softwareDictPb:
                 current = softwareDictPb[installPackage]
                 current.append( systemConfig )
                 softwareDictPb[installPackage] = current
@@ -184,7 +184,7 @@ class SoftwareReport( ModuleBaseSAM ):
                 softwareDictPb[installPackage] = [systemConfig]
             else:
 #              self.log.info('Installation of %s %s for %s successful' %(appNameVersion[0],appNameVersion[1],systemConfig))
-              if softwareDict.has_key( installPackage ):
+              if installPackage in softwareDict:
                 current = softwareDict[installPackage]
                 current.append( systemConfig )
                 softwareDict[installPackage] = current
@@ -351,7 +351,7 @@ def CheckSharedArea( self, area ):
 
   lbenv = ret['outputEnv']
 
-  if not lbenv.has_key( 'LBSCRIPTS_HOME' ):
+  if not 'LBSCRIPTS_HOME' in lbenv:
     self.log.error( 'LBSCRIPTS_HOME is not defined' )
     return S_ERROR( 'LBSCRIPTS_HOME is not defined' )
 
@@ -390,7 +390,7 @@ def CheckSharedArea( self, area ):
   for line in ret['Value'][1].split( '\n' ):
     if line.find( 'remove' ) != -1:
       line = line.split()
-      if software_remove.has_key( line[1] ):
+      if line[1] in software_remove:
         current = software_remove[line[1]]
         current.append( line[3] )
         software_remove[line[1]] = current

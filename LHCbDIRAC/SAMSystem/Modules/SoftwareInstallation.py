@@ -41,7 +41,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.result   = S_ERROR()
 
     self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
+    if 'JOBID' in os.environ:
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
@@ -52,19 +52,19 @@ class SoftwareInstallation( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.step_commons.has_key( 'enable' ):
+    if 'enable' in self.step_commons:
       self.enable = self.step_commons['enable']
       if not type( self.enable ) == type( True ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
 
-    if self.step_commons.has_key( 'purgeSharedAreaFlag' ):
+    if 'purgeSharedAreaFlag' in self.step_commons:
       self.purgeSharedArea = self.step_commons['purgeSharedAreaFlag']
       if not type( self.purgeSharedArea ) == type( True ):
         self.log.warn( 'Purge shared area flag set to non-boolean value %s, setting to False' % self.purgeSharedArea )
         self.enable = False
 
-    if self.step_commons.has_key( 'installProjectURL' ):
+    if 'installProjectURL' in self.step_commons:
       self.installProjectURL = self.step_commons['installProjectURL']
       if not type( self.installProjectURL ) == type( " " ) or not self.installProjectURL:
         self.log.warn( 'Install project URL not set to non-zero string parameter, setting to None' )
@@ -89,7 +89,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )
       return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
-    if not self.workflow_commons.has_key( 'SAMResults' ):
+    if not 'SAMResults' in self.workflow_commons:
       return self.finalize( 'Problem determining CE-lhcb-lock test result',
                             'No SAMResults key in workflow commons', 'error' )
 

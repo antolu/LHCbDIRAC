@@ -41,7 +41,7 @@ class TestApplications( ModuleBaseSAM ):
     self.result          = S_ERROR()
 
     self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
+    if 'JOBID' in os.environ:
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
@@ -57,20 +57,20 @@ class TestApplications( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.step_commons.has_key( 'enable' ):
+    if 'enable' in self.step_commons:
       self.enable = self.step_commons['enable']
       if not type( self.enable ) == type( True ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
 
-    if self.step_commons.has_key( 'samTestName' ):
+    if 'samTestName' in self.step_commons:
       self.testName = self.step_commons['samTestName']
 
-    if self.step_commons.has_key( 'appNameVersion' ):
+    if 'appNameVersion' in self.step_commons:
       self.appNameVersion = self.step_commons['appNameVersion']
       self.logFile = 'sam-job-%s.log' % ( self.appNameVersion.replace( '.', '-' ) )
 
-    if self.step_commons.has_key( 'appNameOptions' ):
+    if 'appNameOptions' in self.step_commons:
       self.appNameOptions = self.step_commons['appNameOptions']
 
     self.log.verbose( 'Enable flag is set to %s' % self.enable )

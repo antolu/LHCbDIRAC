@@ -27,7 +27,7 @@ class SiteQueues( ModuleBaseSAM ):
     self.result   = S_ERROR()
 
     self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
+    if 'JOBID' in os.environ:
       self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
@@ -36,7 +36,7 @@ class SiteQueues( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.step_commons.has_key( 'enable' ):
+    if 'enable' in self.step_commons:
       self.enable = self.step_commons['enable']
       if not type( self.enable ) == type( True ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
@@ -62,12 +62,12 @@ class SiteQueues( ModuleBaseSAM ):
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
 
     result = self.getRunInfo()
-    if result.has_key( 'CE' ):
+    if 'CE' in result:
       samNode = result['CE']
     else:
       return self.finalize( 'Could not get current CE', 'no CE', 'error' )
 
-    if os.environ.has_key( 'LCG_GFAL_INFOSYS' ):
+    if 'LCG_GFAL_INFOSYS' in os.environ:
       self.log.info( 'LCG_GFAL_INFOSYS = %s' % ( os.environ['LCG_GFAL_INFOSYS'] ) )
     else:
       return self.finalize( 'LCG_GFAL_INFOSYS is not defined', 'Could not execute queue check', 'error' )
