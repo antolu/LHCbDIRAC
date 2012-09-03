@@ -188,11 +188,11 @@ class LHCB_BKKDBManager(BaseESManager):
     if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
       return self._listConfigs(path, selectionDict, sortDict, startItem, maxitems)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
-      return self._listEventTypes(path, selectionDict, sortDict, startItem, maxitems)
+      return self._listEventTypes(path, sortDict, startItem, maxitems)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
-      return self._listProduction(path, selectionDict, sortDict, startItem, maxitems)
+      return self._listProduction(path)
     elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
-      return self._listRuns(path, selectionDict, sortDict, startItem, maxitems)
+      return self._listRuns(path)
 
   #############################################################################
   def getLevelAndPath(self, path):
@@ -229,8 +229,8 @@ class LHCB_BKKDBManager(BaseESManager):
           result = type(long(i)) == types.LongType
           if start and result:
             end = True
-        except Exception, ex:
-          pass #print 'i',ex
+        except ValueError, ex:
+          gLogger.warn(ex)
         if start and not end:
           level = startlevel
           processingpath += '/' + i
@@ -254,8 +254,8 @@ class LHCB_BKKDBManager(BaseESManager):
           result = type(long(i)) == types.LongType
           if start and result:
             end = True
-        except Exception, ex:
-          pass #print 'i',ex
+        except ValueError, ex:
+          gLogger.warn(ex)
         if start and not end:
           level = startlevel
           processingpath += '/' + i
@@ -278,7 +278,8 @@ class LHCB_BKKDBManager(BaseESManager):
         level += 1
         try:
           result = (type(long(i)) == types.LongType)
-        except Exception, ex:
+        except ValueError, ex:
+          gLogger.warn(ex)
           result = i in self.__filetypes
         if start and result:
           end = True
@@ -297,41 +298,41 @@ class LHCB_BKKDBManager(BaseESManager):
     levels, processedPath, procpass = self.getLevelAndPath(path)
 
     if levels == 0: #configname
-      self.clevelHeader_0(path, levels, processedPath)
+      self.clevelHeader_0()
       entityList += self.clevelBody_0(path, levels,)
 
     if levels == 1: #config version
-      in_dict = self.clevelHeader_1(path, levels, processedPath)
+      in_dict = self.clevelHeader_1(processedPath)
       entityList += self.clevelBody_1(path, levels, in_dict)
 
     if levels == 2: # sim or data desc
-      in_dict = self.clevelHeader_2(path, levels, processedPath)
+      in_dict = self.clevelHeader_2(processedPath)
       entityList += self.clevelBody_2(path, levels, in_dict)
 
     if levels == 3: #processing
-      in_dict = self.clevelHeader_3(path, levels, processedPath)
+      in_dict = self.clevelHeader_3(processedPath)
       entityList += self.clevelBody_3(path, levels, in_dict, procpass)
 
     if levels == 4 and self.advancedQuery_: #prod
-      in_dict = self.clevelHeader_4(path, levels, processedPath, procpass)
+      in_dict = self.clevelHeader_4(processedPath, procpass)
       entityList += self.clevelBody_4(path, levels, in_dict)
     elif levels == 4 and not self.advancedQuery_:
       processedPath += ['ALL']
-      in_dict = self.clevelHeader_5(path, 5, processedPath, procpass)
+      in_dict = self.clevelHeader_5(processedPath, procpass)
       entityList += self.clevelBody_5(path, 5, in_dict)
 
     if levels == 5 and self.advancedQuery_: #file type
-      in_dict = self.clevelHeader_5(path, levels, processedPath, procpass)
+      in_dict = self.clevelHeader_5(processedPath, procpass)
       entityList += self.clevelBody_5(path, levels, in_dict)
     elif levels == 5 and not self.advancedQuery_:
       levels = 6
 
     if levels == 6 and startItem == 0 and maxitems == 0: #files
-      in_dict = self.clevelHeader_6(path, levels, processedPath, procpass)
+      in_dict = self.clevelHeader_6(processedPath, procpass)
       entityList += self.clevelBody_6(path, levels, in_dict)
     elif levels == 6 and (startItem != 0 or maxitems != 0): #files
-      in_dict = self.clevelHeader_6(path, levels, processedPath, procpass)
-      entityList += self.clevelBodyLimited_6(path, levels, in_dict, selectionDict, sortDict, startItem, maxitems)
+      in_dict = self.clevelHeader_6(processedPath, procpass)
+      entityList += self.clevelBodyLimited_6(path, levels, in_dict, sortDict, startItem, maxitems)
     return entityList
 
   #############################################################################
@@ -356,7 +357,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def clevelHeader_0(path, levels, processedPath):
+  def clevelHeader_0():
     """configuration tree (first tree)"""
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug ("Configurations names:")
@@ -382,7 +383,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def clevelHeader_1(path, levels, processedPath):
+  def clevelHeader_1(processedPath):
     """ second level"""
     gLogger.debug("listing configversions")
     in_dict = {'ConfigName': processedPath[0]}
@@ -411,7 +412,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def clevelHeader_2(path, levels, processedPath):
+  def clevelHeader_2(processedPath):
     """third"""
     gLogger.debug("listing Simulation Conditions!")
     in_dict = {'ConfigName': processedPath[0],
@@ -467,7 +468,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def clevelHeader_3(path, levels, processedPath):
+  def clevelHeader_3(processedPath):
     """fourth level"""
     gLogger.debug("listing processing pass")
     in_dict = {'ConfigName': processedPath[0],
@@ -514,7 +515,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def clevelHeader_4(path, levels, processedPath, procpass):
+  def clevelHeader_4(processedPath, procpass):
     """ 5th level"""
     gLogger.debug("listing event types")
     retVal = procpass.split('/')[1:]
@@ -553,7 +554,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def clevelHeader_5(self, path, levels, processedPath, procpass):
+  def clevelHeader_5(self, processedPath, procpass):
     """6th tree"""
     gLogger.debug("listing event types")
     retVal = procpass.split('/')[1:]
@@ -598,7 +599,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def clevelHeader_6(self, path, levels, processedPath, procpass):
+  def clevelHeader_6(self, processedPath, procpass):
     """7th tree prepare"""
     gLogger.debug("listing event types")
 
@@ -652,7 +653,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def clevelBodyLimited_6(self, path, levels, in_dict, selectionDict, sortDict, startItem, maxitems):
+  def clevelBodyLimited_6(self, path, levels, in_dict, sortDict, startItem, maxitems):
     """7th tree node for web"""
     entityList = list()
     in_dict['Quality'] = self.__getSelectedQualities()
@@ -672,43 +673,43 @@ class LHCB_BKKDBManager(BaseESManager):
 
 
   #############################################################################
-  def _listEventTypes(self, path, selectionDict, sortDict, startItem, maxitems):
+  def _listEventTypes(self, path, sortDict, startItem, maxitems):
     """second tree based on event type"""
     entityList = list()
     levels, processedPath, procpass = self.getLevelAndPath(path)
 
     if levels == 0: #configname
-      self.clevelHeader_0(path, levels, processedPath)
+      self.clevelHeader_0()
       entityList += self.clevelBody_0(path, levels,)
 
     if levels == 1: #config version
-      in_dict = self.clevelHeader_1(path, levels, processedPath)
+      in_dict = self.clevelHeader_1(processedPath)
       entityList += self.clevelBody_1(path, levels, in_dict)
 
     if levels == 2: #event type
-      in_dict = self.clevelHeader_2(path, levels, processedPath)
+      in_dict = self.clevelHeader_2(processedPath)
       entityList += self.elevelBody_2(path, levels, in_dict)
 
     if levels == 3: # sim ot daq desq
-      in_dict = self.elevelHeader_3(path, levels, processedPath)
+      in_dict = self.elevelHeader_3(processedPath)
       entityList += self.elevelBody_3(path, levels, in_dict)
 
     if levels == 4: #processing pass
-      in_dict = self.elevelHeader_4(path, levels, processedPath)
+      in_dict = self.elevelHeader_4(processedPath)
       entityList += self.elevelBody_4(path, levels, in_dict, procpass)
 
     if self.advancedQuery_ and levels == 5:
-      in_dict = self.elevelHedaer_5(path, levels, processedPath, procpass)
+      in_dict = self.elevelHedaer_5(processedPath, procpass)
       entityList += self.clevelBody_5(path, levels, in_dict)
     elif levels == 5:
       levels = 6
 
     if levels == 6 and startItem == 0 and maxitems == 0: #files
-      in_dict = self.elevelHeader_6(path, levels, processedPath, procpass)
+      in_dict = self.elevelHeader_6(processedPath, procpass)
       entityList += self.clevelBody_6(path, levels, in_dict)
     elif levels == 6 and (startItem != 0 or maxitems != 0): #files
-      in_dict = self.elevelHeader_6(path, levels, processedPath, procpass)
-      entityList += self.clevelBodyLimited_6(path, levels, in_dict, selectionDict, sortDict, startItem, maxitems)
+      in_dict = self.elevelHeader_6(processedPath, procpass)
+      entityList += self.clevelBodyLimited_6(path, levels, in_dict, sortDict, startItem, maxitems)
 
     return entityList
 
@@ -736,7 +737,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def elevelHeader_3(path, levels, processedPath):
+  def elevelHeader_3(processedPath):
     """event type based tree node"""
     gLogger.debug("listing simulation conditions")
 
@@ -794,7 +795,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def elevelHeader_4(path, levels, processedPath):
+  def elevelHeader_4(processedPath):
     """prepare the 5th query"""
     gLogger.debug("listing processing pass")
 
@@ -855,7 +856,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   #############################################################################
-  def elevelHedaer_5(self, path, levels, processedPath, procpass):
+  def elevelHedaer_5(self, processedPath, procpass):
     """prepare tree node"""
     retVal = procpass.split('/')[1:]
     for i in retVal:
@@ -884,7 +885,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return in_dict
 
   #############################################################################
-  def elevelHeader_6(self, path, levels, processedPath, procpass):
+  def elevelHeader_6(self, processedPath, procpass):
     """ prepare tree mode"""
     retVal = procpass.split('/')[1:]
     for i in retVal:
@@ -915,57 +916,58 @@ class LHCB_BKKDBManager(BaseESManager):
     return in_dict
 
   #############################################################################
-  def _listProduction(self, path, selectionDict, sortDict, startItem, maxitems):
+  def _listProduction(self, path):
     """production lookup"""
     entityList = list()
     levels, processedPath, procpass = self.getLevelAndPath(path)
+    gLogger.debug(str(procpass))
 
     if levels == 0:
-      self.plevelHeader_0(path, levels, processedPath)
-      entityList += self.plevelBody_0(path, levels, None)
+      self.plevelHeader_0()
+      entityList += self.plevelBody_0(path, levels)
 
     if levels == 1:
-      in_dict = self.plevelHeader_2(path, levels, processedPath)
+      in_dict = self.plevelHeader_2(processedPath)
       entityList += self.plevelBody_2(path, levels, in_dict)
 
     if levels == 2:
-      in_dict = self.plevelHeader_3(path, levels, processedPath)
+      in_dict = self.plevelHeader_3(processedPath)
       entityList += self.plevelBody_3(path, levels, in_dict)
 
     if levels == 3:
-      in_dict = self.plevelHeader_4(path, levels, processedPath)
+      in_dict = self.plevelHeader_4(processedPath)
       entityList += self.plevelBody_4(path, levels, in_dict)
 
     return entityList
 
   #############################################################################
-  def _listRuns(self, path, selectionDict, sortDict, startItem, maxitems):
+  def _listRuns(self, path):
     """run lookup"""
     entityList = list()
 
     levels, processedPath, procpass = self.getLevelAndPath(path)
 
     if levels == 0:
-      self.rlevelHeader_0(path, levels, processedPath)
-      entityList += self.rlevelBody_0(path, levels, None)
+      self.rlevelHeader_0()
+      entityList += self.rlevelBody_0(path, levels)
 
     if levels == 1:
-      in_dict = self.rlevelHeader_2(path, levels, processedPath)
+      in_dict = self.rlevelHeader_2(processedPath)
       entityList += self.rlevelBody_2(path, levels, in_dict, procpass)
 
     if levels == 2:
-      in_dict = self.rlevelHeader_3(path, levels, processedPath, procpass)
+      in_dict = self.rlevelHeader_3(processedPath, procpass)
       entityList += self.rlevelBody_3(path, levels, in_dict)
 
     if levels == 3:
-      in_dict = self.rlevelHeader_4(path, levels, processedPath, procpass)
+      in_dict = self.rlevelHeader_4(processedPath, procpass)
       entityList += self.clevelBody_6(path, levels, in_dict)
 
     return entityList
 
   #############################################################################
   @staticmethod
-  def plevelHeader_0(path, levels, processedPath):
+  def plevelHeader_0():
     """prepare production lookup tree node"""
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug ("productions:")
@@ -975,7 +977,7 @@ class LHCB_BKKDBManager(BaseESManager):
     gLogger.debug("listing productions")
 
   #############################################################################
-  def plevelBody_0(self, path, levels, processedPath):
+  def plevelBody_0(self, path, levels):
     """make the node of the production lookup tree"""
     entityList = list()
     result = self.db_.getAvailableProductions()
@@ -992,7 +994,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def plevelHeader_2(path, levels, processedPath):
+  def plevelHeader_2(processedPath):
     """prepare the tree node"""
     gLogger.debug("listing eventtype")
 
@@ -1032,7 +1034,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def plevelHeader_3(path, levels, processedPath):
+  def plevelHeader_3(processedPath):
     """prepare tree node"""
     gLogger.debug("listing file types")
     in_dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1]}
@@ -1060,7 +1062,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def plevelHeader_4(path, levels, processedPath):
+  def plevelHeader_4(processedPath):
     """prepare the tree node"""
     gLogger.debug("listing file types")
     in_dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
@@ -1099,7 +1101,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return entityList
 
   @staticmethod
-  def rlevelHeader_0(path, levels, processedPath):
+  def rlevelHeader_0():
     """prepare run lookup node"""
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug ("Runs:")
@@ -1109,7 +1111,7 @@ class LHCB_BKKDBManager(BaseESManager):
     gLogger.debug("listing runs")
 
   #############################################################################
-  def rlevelBody_0(self, path, levels, processedPath):
+  def rlevelBody_0(self, path, levels):
     """make tree node"""
     entityList = list()
     result = self.db_.getAvailableRuns()
@@ -1126,7 +1128,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def rlevelHeader_2(path, levels, processedPath):
+  def rlevelHeader_2(processedPath):
     """prepare tree node"""
     gLogger.debug("listing processing pass")
     in_dict = {'RunNumber':processedPath[0]}
@@ -1169,7 +1171,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def rlevelHeader_3(path, levels, processedPath, procpass):
+  def rlevelHeader_3(processedPath, procpass):
     """prepare node of the run lookup tree"""
     gLogger.debug("listing eventtypes")
     retVal = procpass.split('/')[1:]
@@ -1204,7 +1206,7 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   @staticmethod
-  def rlevelHeader_4(path, levels, processedPath, procpass):
+  def rlevelHeader_4(processedPath, procpass):
     """prepare tree"""
     gLogger.debug("listing file types")
     retVal = procpass.split('/')[1:]
@@ -1324,19 +1326,21 @@ class LHCB_BKKDBManager(BaseESManager):
       entityList = [entityList]
     elif not isinstance(entityList, types.ListType):
       # neither entity nor list
-      gLogger.warn("couldn't cache invalid entity(list) of type " + str(entityList.__class))
+      gLogger.warn("couldn't cache invalid entity(list) of type " + str(entityList.__class__))
       return
 
     for entity in entityList:
       # TO IMPLEMENT!! time of the caching
       try:
-        self.__entityCache.update({entity['fullpath']: (entity, 0)})
-      except Exception, ex:
+        if 'fullpath' in entity:
+          self.__entityCache.update({entity['fullpath']: (entity, 0)})
+      except ValueError, ex:
         gLogger.warn("couldn't cache entity(?) " + str(entity)+"  "+str(ex))
         return S_ERROR('couldnt cache entity!')
 
   #############################################################################
-  def getAbsolutePath(self, path):
+  @staticmethod
+  def getAbsolutePath(path):
     """ get current working directory if empty"""
     if path in [ "", ".", None] :
       path = INTERNAL_PATH_SEPARATOR # root
@@ -1367,7 +1371,7 @@ class LHCB_BKKDBManager(BaseESManager):
       entity = self.__entityCache[path][0]
       gLogger.debug("getting " + str(path) + " from the cache")
       return entity
-    except Exception, ex:
+    except ValueError, ex:
       # not cached so far
       gLogger.debug(str(path) + " not in cache. Fetching..."+ex)
 
@@ -1377,7 +1381,7 @@ class LHCB_BKKDBManager(BaseESManager):
       gLogger.debug("getting " + str(path) + " eventually from the cache")
       entity = self.__entityCache[path][0]
       return entity
-    except Exception, ex:
+    except ValueError, ex:
       # still not in the cache... wrong path
       gLogger.warn(str(path) + " seems to be a wrong path"+ex)
       return None
@@ -1431,6 +1435,7 @@ class LHCB_BKKDBManager(BaseESManager):
     """input dictionary"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
+    gLogger.debug(str(levels))
     retVal = procpass.split('/')[1:]
     for i in retVal:
       processedPath.remove(i)
@@ -1464,6 +1469,7 @@ class LHCB_BKKDBManager(BaseESManager):
     """input dictionary of the event type tree"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
+    gLogger.debug(str(levels))
     retVal = procpass.split('/')[1:]
     for i in retVal:
       processedPath.remove(i)
@@ -1496,6 +1502,8 @@ class LHCB_BKKDBManager(BaseESManager):
     """input dictionary"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
+    gLogger.debug(str(levels))
+    gLogger.debug(procpass)
 
     in_dict = { 'Production': processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
     in_dict['fullpath'] = path
@@ -1512,6 +1520,7 @@ class LHCB_BKKDBManager(BaseESManager):
     """input dictionary"""
     path = selectionDict['fullpath']
     levels, processedPath, procpass = self.getLevelAndPath(path)
+    gLogger.debug(str(levels))
     retVal = procpass.split('/')[1:]
     for i in retVal:
       processedPath.remove(i)
@@ -1658,7 +1667,7 @@ class LHCB_BKKDBManager(BaseESManager):
     # get lst of event types
     import time
     evtTypes = {}
-    nbEvts = 0
+
     fileType = None
     for i in files:
       lfn = files[i]
@@ -1676,8 +1685,6 @@ class LHCB_BKKDBManager(BaseESManager):
       else:
         evtTypes[filetype][2] += int(lfn['FileSize']) / 1000000000.
 
-      nbEvts += stat
-
     pythonOpts = None
     if savedType != None:
       pythonOpts = savedType == 'py'
@@ -1694,9 +1701,9 @@ class LHCB_BKKDBManager(BaseESManager):
 
     string += comment + "GAUDI jobOptions generated on " + time.asctime() + "\n"
     string += comment + "Contains event types : \n"
-    types = evtTypes.keys()
-    types.sort()
-    for filetype in types:
+    fileTypes = evtTypes.keys()
+    fileTypes.sort()
+    for filetype in fileTypes:
       string += comment + "  %8d - %d files - %d events - %.2f GBytes\n" % (filetype,
                                                                             evtTypes[filetype][0],
                                                                             evtTypes[filetype][1],
@@ -1774,11 +1781,11 @@ class LHCB_BKKDBManager(BaseESManager):
         string += "\nEventSelector.Input   = {\n"
 
       fileType = fileType.split()[0]
-      # Allow fileType to be of the form XXX.<fileType>
+      # Allow fileType to be of the form XfileType
       try:
         fileType = fileType.split(".")[1]
-      except Exception, ex:
-        pass
+      except AttributeError, ex:
+        gLogger.warn(ex)
       mdfTypes = ["RAW", "MDF"]
       etcTypes = ["SETC", "FETC", "ETC"]
       #lfns = [lfn['FileName'] for lfn in files]

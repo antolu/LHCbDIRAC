@@ -41,7 +41,7 @@ class BaseESManager:
     try:
       path = os.path.abspath(path)
       return S_OK(path)
-    except Exception, ex:
+    except IOError, ex:
       return S_ERROR("getAbsalutePath: "+str(ex))
 
   #############################################################################
@@ -52,9 +52,8 @@ class BaseESManager:
     return path
 
   #############################################################################
-  @staticmethod
-  def get(path = ""):
+  def get(self, path = ""):
     """the path element"""
-    gLogger.warn('not implemented'+path)
+    gLogger.warn('not implemented'+path+str(self.__class__))
     return S_ERROR("Not implemented!")
 

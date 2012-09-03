@@ -62,10 +62,11 @@ def getAncestorFiles( inputData, ancestorDepth ):
   if not res['OK']:
     return res
   inputDataWithAncestors = res['Value'].keys()
-  for input, ancestorList in res['Value'].items():
-    inputDataWithAncestors += ancestorList
+  for ancestorList in res['Value']:
+    inputDataWithAncestors += res['Value'][ancestorList]
   totalFiles = len( inputDataWithAncestors ) - len( inputData )
-  gLogger.verbose( '%s ancestor files retrieved from the bookkeeping for ancestor depth %s' % ( totalFiles, ancestorDepth ) )
+  gLogger.verbose( '%s ancestor files retrieved from the bookkeeping \
+  for ancestor depth %s' % ( totalFiles, ancestorDepth ) )
   return S_OK( inputDataWithAncestors )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
