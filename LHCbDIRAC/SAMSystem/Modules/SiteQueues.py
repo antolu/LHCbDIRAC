@@ -33,18 +33,6 @@ class SiteQueues( ModuleBaseSAM ):
     #Workflow parameters for the test
     self.enable = True
 
-  def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
-    if 'enable' in self.step_commons:
-      self.enable = self.step_commons['enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
-
-    self.log.verbose( 'Enable flag is set to %s' % self.enable )
-    return S_OK()
-
   def execute( self ):
     """The main execution method of the SiteQueues module.
     """

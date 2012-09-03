@@ -40,11 +40,8 @@ class RunTestScript( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if 'enable' in self.step_commons:
-      self.enable = self.step_commons['enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
+    
+    ModuleBaseSAM.resolveInputVariables( self )    
 
     if 'scriptName' in self.step_commons:
       self.scriptName = self.step_commons['scriptName']
@@ -54,7 +51,6 @@ class RunTestScript( ModuleBaseSAM ):
     else:
       self.log.warn( 'Script name not set, setting enable flag to False' )
 
-    self.log.verbose( 'Enable flag is set to %s' % self.enable )
     self.log.verbose( 'Script name is set to %s' % self.scriptName )
     return S_OK()
 

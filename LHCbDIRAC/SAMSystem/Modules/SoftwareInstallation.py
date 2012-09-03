@@ -52,12 +52,9 @@ class SoftwareInstallation( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if 'enable' in self.step_commons:
-      self.enable = self.step_commons['enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
-
+    
+    ModuleBaseSAM.resolveInputVariables( self )
+    
     if 'purgeSharedAreaFlag' in self.step_commons:
       self.purgeSharedArea = self.step_commons['purgeSharedAreaFlag']
       if not type( self.purgeSharedArea ) == type( True ):
@@ -70,7 +67,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
         self.log.warn( 'Install project URL not set to non-zero string parameter, setting to None' )
         self.installProjectURL = None
 
-    self.log.verbose( 'Enable flag is set to %s' % self.enable )
     self.log.verbose( 'Purge shared area flag set to %s' % self.purgeSharedArea )
     self.log.verbose( 'Install project URL set to %s' % ( self.installProjectURL ) )
     return S_OK()

@@ -31,7 +31,6 @@ class LockSharedArea( ModuleBaseSAM ):
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
     self.log      = gLogger.getSubLogger( "LockSharedArea" )
-    self.result   = S_ERROR()
 
     self.jobID = None
     if 'JOBID' in os.environ:
@@ -50,24 +49,20 @@ class LockSharedArea( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if 'enable' in self.step_commons:
-      self.enable = self.step_commons['enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
+
+    ModuleBaseSAM.resolveInputVariables( self )
 
     if 'forceLockRemoval' in self.step_commons:
-      self.forceLockRemoval = self.step_commons['forceLockRemoval']
-      if not type( self.forceLockRemoval ) == type( True ):
+      self.forceLockRemoval = self.step_commons[ 'forceLockRemoval' ]
+      if not isinstance( self.forceLockRemoval, bool ):
         self.log.warn( 'Force lock flag set to non-boolean value %s, setting to False' % self.forceLockRemoval )
-        self.enable = False
+        self.forceLockRemoval = False
 
     if 'SoftwareInstallationTest' in self.workflow_commons:
-      safeFlag = self.workflow_commons['SoftwareInstallationTest']
+      safeFlag = self.workflow_commons[ 'SoftwareInstallationTest' ]
       if safeFlag == 'False':
         self.safeMode = True
 
-    self.log.verbose( 'Enable flag is set to %s' % self.enable )
     self.log.verbose( 'Force lock flag is set to %s' % self.forceLockRemoval )
     return S_OK()
 

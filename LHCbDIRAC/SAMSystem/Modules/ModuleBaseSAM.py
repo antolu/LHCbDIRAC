@@ -30,6 +30,8 @@ class ModuleBaseSAM( object ):
                        'maintenance' : '100'
                       }
     
+    self.log              = gLogger.getSubLogger( self.__class__.__name__ )
+    
     self.jobID            = None
     self.testName         = None
     self.logFile          = None
@@ -42,6 +44,19 @@ class ModuleBaseSAM( object ):
     self.workflowStatus   = None
     self.step_commons     = None
     self.workflow_commons = None
+
+  def resolveInputVariables( self ):
+    """ By convention the workflow parameters are resolved here.
+    """
+    
+    if 'enable' in self.step_commons:
+      self.enable = self.step_commons[ 'enable' ]
+      if not isinstance( self.enable, bool ):
+        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
+        self.enable = False
+    
+    self.log.verbose( 'Enable flag is set to %s' % self.enable )    
+    return S_OK()    
 
   def setApplicationStatus( self, status ):
     """Wraps around setJobApplicationStatus of state update client

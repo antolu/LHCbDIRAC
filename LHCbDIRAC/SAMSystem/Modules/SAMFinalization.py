@@ -70,11 +70,8 @@ class SAMFinalization( ModuleBaseSAM ):
   def _resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if 'enable' in self.step_commons:
-      self.enable = self.step_commons['enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
+
+    ModuleBaseSAM.resolveInputVariables( self )    
 
     if 'publishResultsFlag' in self.step_commons:
       self.publishResultsFlag = self.step_commons['publishResultsFlag']
@@ -88,7 +85,6 @@ class SAMFinalization( ModuleBaseSAM ):
         self.log.warn( 'Upload logs flag set to non-boolean value %s, setting to False' % self.uploadLogsFlag )
         self.enable = False
 
-    self.log.verbose( 'Enable flag is set to %s' % self.enable )
     self.log.verbose( 'Publish results flag set to %s' % self.publishResultsFlag )
     self.log.verbose( 'Upload logs flag set to %s' % self.uploadLogsFlag )
     return S_OK()
