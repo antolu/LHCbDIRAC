@@ -41,7 +41,7 @@ class ModuleBaseSAM( object ):
 
     gLogger.verbose( 'setJobApplicationStatus(%s,%s,%s)' % ( self.jobID, status, self.testName ) )
 
-    if self.workflow_commons.has_key( 'JobReport' ):
+    if 'JobReport' in self.workflow_commons:
       self.jobReport = self.workflow_commons['JobReport']
 
     if not self.jobReport:
@@ -110,7 +110,7 @@ class ModuleBaseSAM( object ):
     if not ce:
       gLogger.warn( 'Could not get CE from broker-info call:\n%s' % output )
 
-    if self.workflow_commons.has_key( 'GridRequiredCEs' ):
+    if 'GridRequiredCEs' in self.workflow_commons:
       ce = self.workflow_commons['GridRequiredCEs']
       gLogger.warn( 'As a last resort setting CE to %s from workflow parameters' % ce )
     else:
@@ -126,7 +126,7 @@ class ModuleBaseSAM( object ):
 
     gLogger.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
-    if self.workflow_commons.has_key( 'JobReport' ):
+    if 'JobReport' in self.workflow_commons:
       self.jobReport = self.workflow_commons['JobReport']
 
     if not self.jobReport:
@@ -230,7 +230,7 @@ class ModuleBaseSAM( object ):
     if not self.testName:
       return S_ERROR( 'No SAM test name defined' )
 
-    if not self.workflow_commons.has_key( 'SAMLogs' ):
+    if not 'SAMLogs' in self.workflow_commons:
       self.workflow_commons['SAMLogs'] = {}
 
     self.workflow_commons['SAMLogs'][self.testName] = self.logFile
@@ -257,7 +257,7 @@ class ModuleBaseSAM( object ):
     if not self.logFile:
       return S_ERROR( 'No LogFile defined' )
 
-    if not self.samStatus.has_key( samResult ):
+    if not samResult in self.samStatus:
       return S_ERROR( '%s is not a valid SAM status' % ( samResult ) )
 
     if not self.testName:
@@ -278,7 +278,7 @@ class ModuleBaseSAM( object ):
     statusCode = self.samStatus[samResult]
     fopen.write( self.getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
     fopen.close()
-    if not self.workflow_commons.has_key( 'SAMResults' ):
+    if not 'SAMResults' in self.workflow_commons:
       self.workflow_commons['SAMResults'] = {}
 
     self.workflow_commons['SAMResults'][self.testName] = statusCode

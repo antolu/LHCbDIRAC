@@ -32,8 +32,8 @@ class LockSharedArea( ModuleBaseSAM ):
     self.result = S_ERROR()
 
     self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
+    if 'JOBID' in os.environ:
+      self.jobID = os.environ[ 'JOBID' ]
 
     self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
 
@@ -48,19 +48,19 @@ class LockSharedArea( ModuleBaseSAM ):
   def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
-    if self.step_commons.has_key( 'enable' ):
+    if 'enable' in self.step_commons:
       self.enable = self.step_commons['enable']
       if not type( self.enable ) == type( True ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
 
-    if self.step_commons.has_key( 'forceLockRemoval' ):
+    if 'forceLockRemoval' in self.step_commons:
       self.forceLockRemoval = self.step_commons['forceLockRemoval']
       if not type( self.forceLockRemoval ) == type( True ):
         self.log.warn( 'Force lock flag set to non-boolean value %s, setting to False' % self.forceLockRemoval )
         self.enable = False
 
-    if self.workflow_commons.has_key( 'SoftwareInstallationTest' ):
+    if 'SoftwareInstallationTest' in self.workflow_commons:
       safeFlag = self.workflow_commons['SoftwareInstallationTest']
       if safeFlag == 'False':
         self.safeMode = True
