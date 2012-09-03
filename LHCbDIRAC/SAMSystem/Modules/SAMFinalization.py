@@ -61,7 +61,7 @@ class SAMFinalization( ModuleBaseSAM ):
     self.publishResultsFlag = False
     self.uploadLogsFlag     = False
 
-  def _resolveInputVariables( self ):
+  def resolveInputVariables( self ):
     """ By convention the workflow parameters are resolved here.
     """
 
@@ -87,7 +87,7 @@ class SAMFinalization( ModuleBaseSAM ):
     """The main execution method of the SAMFinalization module.
     """
     self.log.info( 'Initializing ' + self.version )
-    self._resolveInputVariables()
+    self.resolveInputVariables()
     self.runinfo = self.getRunInfo()
     sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
