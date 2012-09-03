@@ -25,7 +25,6 @@ class RunTestScript( ModuleBaseSAM ):
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.result   = S_ERROR()
 
     #Workflow parameters for the test
     self.enable     = True
@@ -54,9 +53,6 @@ class RunTestScript( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
     self.setSAMLogFile()
-    self.result = S_OK()
-    if not self.result['OK']:
-      return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )

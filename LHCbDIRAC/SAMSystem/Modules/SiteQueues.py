@@ -24,7 +24,6 @@ class SiteQueues( ModuleBaseSAM ):
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.log      = gLogger.getSubLogger( "SiteQueues" )
-    self.result   = S_ERROR()
 
     self.jobID = None
     if 'JOBID' in os.environ:
@@ -39,9 +38,6 @@ class SiteQueues( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
     self.setSAMLogFile()
-    self.result = S_OK()
-    if not self.result['OK']:
-      return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )

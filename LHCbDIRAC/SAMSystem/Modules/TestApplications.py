@@ -36,7 +36,6 @@ class TestApplications( ModuleBaseSAM ):
     self.testName        = SAM_TEST_NAME
 #    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
     self.appSystemConfig = natOS.CMTSupportedConfig()[0]
-    self.result          = S_ERROR()
 
     #Workflow parameters for the test
     self.enable         = True
@@ -76,11 +75,9 @@ class TestApplications( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
     self.setSAMLogFile()
-    self.result = S_OK()
+
     if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
       self.result = S_ERROR( 'No application name / version defined' )
-    if not self.result['OK']:
-      return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )

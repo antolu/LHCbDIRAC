@@ -44,7 +44,6 @@ class SAMFinalization( ModuleBaseSAM ):
     self.testName    = SAM_TEST_NAME
     self.lockFile    = SAM_LOCK_NAME
     self.diracSetup  = gConfig.getValue( '/DIRAC/Setup', 'None' )
-    self.result      = S_ERROR()
     self.opsH        = Operations()
     self.diracLogo   = self.opsH.getValue( 'SAM/LogoURL',
                                            'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )

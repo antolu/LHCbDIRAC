@@ -35,7 +35,6 @@ class SoftwareReport( ModuleBaseSAM ):
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.site = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
-    self.result = S_ERROR()
 
     #Workflow parameters for the test
     self.enable = True
@@ -62,7 +61,6 @@ class SoftwareReport( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
     self.setSAMLogFile()
-    self.result = S_OK()
 
     soft_present = []
     softwareDict = {}
@@ -70,9 +68,6 @@ class SoftwareReport( ModuleBaseSAM ):
     softwareDictPb = {}
     soft_remove = []
     softwareDictRemove = {}
-
-    if not self.result['OK']:
-      return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )
