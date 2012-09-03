@@ -39,13 +39,11 @@ class SAMFinalization( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version     = __RCSID__
     self.runinfo     = {}
     self.logFile     = SAM_LOG_FILE
     self.testName    = SAM_TEST_NAME
     self.lockFile    = SAM_LOCK_NAME
     self.diracSetup  = gConfig.getValue( '/DIRAC/Setup', 'None' )
-    self.log         = gLogger.getSubLogger( "SAMFinalization" )
     self.result      = S_ERROR()
     self.opsH        = Operations()
     self.diracLogo   = self.opsH.getValue( 'SAM/LogoURL',
@@ -58,9 +56,6 @@ class SAMFinalization( ModuleBaseSAM ):
     self.samPublishClient = '%s/LHCbDIRAC/SAMSystem/Distribution/stomp.zip' % ( self.siteRoot )
 #    self.samPublishScript = 'sam/bin/same-publish-tuples'
     self.logSE = 'LogSE'
-    self.jobID = None
-    if 'JOBID' in os.environ:
-      self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
     self.enable             = True

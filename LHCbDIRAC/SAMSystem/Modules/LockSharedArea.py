@@ -25,16 +25,11 @@ class LockSharedArea( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version  = __RCSID__
+
     self.runinfo  = {}
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
-    self.log      = gLogger.getSubLogger( "LockSharedArea" )
-
-    self.jobID = None
-    if 'JOBID' in os.environ:
-      self.jobID = os.environ[ 'JOBID' ]
 
     self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
 
@@ -73,9 +68,6 @@ class LockSharedArea( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
     self.setSAMLogFile()
-    self.result = S_OK()
-    if not self.result['OK']:
-      return self.result
 
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )

@@ -32,17 +32,11 @@ class TestApplications( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version         = __RCSID__
     self.logFile         = SAM_LOG_FILE
     self.testName        = SAM_TEST_NAME
 #    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
     self.appSystemConfig = natOS.CMTSupportedConfig()[0]
-    self.log             = gLogger.getSubLogger( "TestApplications" )
     self.result          = S_ERROR()
-
-    self.jobID = None
-    if 'JOBID' in os.environ:
-      self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
     self.enable         = True

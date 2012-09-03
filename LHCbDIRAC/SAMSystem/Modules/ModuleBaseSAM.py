@@ -20,6 +20,7 @@ class ModuleBaseSAM( object ):
   def __init__( self ):
     """ Initialize some common SAM parameters.
     """
+    
     self.samStatus = {
                        'ok'          : '10', 
                        'info'        : '20', 
@@ -31,8 +32,11 @@ class ModuleBaseSAM( object ):
                       }
     
     self.log              = gLogger.getSubLogger( self.__class__.__name__ )
-    
+    self.version          = __RCSID__
     self.jobID            = None
+    if 'JOBID' in os.environ:
+      self.jobID = os.environ[ 'JOBID' ]
+          
     self.testName         = None
     self.logFile          = None
     self.version          = None
@@ -284,6 +288,17 @@ class ModuleBaseSAM( object ):
     fopen = open( self.logFile, 'a' )
     fopen.write( self.getMessageString( '%s' % ( message ) ) )
     fopen.close()
+    return S_OK()
+
+  def execute( self ):
+    ''' Main execution method for the ModuleBaseSAM. To be extended on the inherited
+        classes. 
+    '''
+    
+    self.log.info( 'Initializing ' + self.version )
+    self.resolveInputVariables()
+    self.setSAMLogFile()
+    
     return S_OK()
 
   def finalize( self, message, result, samResult ):

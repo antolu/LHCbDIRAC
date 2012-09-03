@@ -33,16 +33,10 @@ class SoftwareInstallation( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version  = __RCSID__
     self.runinfo  = {}
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.log      = gLogger.getSubLogger( "SoftwareInstallation" )
     self.result   = S_ERROR()
-
-    self.jobID = None
-    if 'JOBID' in os.environ:
-      self.jobID = os.environ['JOBID']
 
     #Workflow parameters for the test
     self.enable            = True
