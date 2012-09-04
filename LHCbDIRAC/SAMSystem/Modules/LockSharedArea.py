@@ -26,7 +26,6 @@ class LockSharedArea( ModuleBaseSAM ):
     """
     ModuleBaseSAM.__init__( self )
 
-    self.runinfo  = {}
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
@@ -34,7 +33,6 @@ class LockSharedArea( ModuleBaseSAM ):
     self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
 
     #Workflow parameters for the test
-    self.enable           = True
     self.forceLockRemoval = False
 
     #Global parameter affecting behaviour
@@ -66,14 +64,10 @@ class LockSharedArea( ModuleBaseSAM ):
     """The main execution method of the LockSharedArea module.
     """
 
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    
-    self.runinfo = self.getRunInfo()
-
     # Change the permissions on the shared area
-    self.log.info( 'Current account: %s' % self.runinfo['identity'] )
+    self.log.info( 'Current account: %s' % self.runInfo[ 'identity' ] )
     # a username is a POOL account if it finishes with digit
-    if not re.search( '\d$', self.runinfo['identityShort'] ):
+    if not re.search( '\d$', self.runInfo[ 'identityShort' ] ):
       self.log.info( '%s uses static accounts' % DIRAC.siteName() )
       isPoolAccount = False
     else:
@@ -226,7 +220,7 @@ class LockSharedArea( ModuleBaseSAM ):
     self.log.verbose( 'Changing permissions to 0775 in shared area %s' % sharedArea )
     self.writeToLog( 'Changing permissions to 0775 in shared area %s' % sharedArea )
 
-    userID = self.runinfo['identityShort']
+    userID = self.runInfo[ 'identityShort' ]
 
     try:
       for dirName, _subDirs, files in os.walk( sharedArea ):

@@ -57,7 +57,6 @@ class SAMFinalization( ModuleBaseSAM ):
     self.logSE = 'LogSE'
 
     #Workflow parameters for the test
-    self.enable             = True
     self.publishResultsFlag = False
     self.uploadLogsFlag     = False
 

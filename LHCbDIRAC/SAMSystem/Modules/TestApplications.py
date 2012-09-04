@@ -38,7 +38,6 @@ class TestApplications( ModuleBaseSAM ):
     self.appSystemConfig = natOS.CMTSupportedConfig()[0]
 
     #Workflow parameters for the test
-    self.enable         = True
     self.samTestName    = ''
     self.appNameVersion = ''
     self.appNameOptions = ''
@@ -73,12 +72,8 @@ class TestApplications( ModuleBaseSAM ):
     """The main execution method of the TestApplications module.
     """
 
-    #self.runinfo = self.getRunInfo() 
-
     if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
       self.result = S_ERROR( 'No application name / version defined' )
-
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
 
     self.log.info( 'Checking local system configuration is suitable to run the application test' )
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )

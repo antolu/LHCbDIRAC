@@ -21,13 +21,12 @@ class RunTestScript( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.runinfo  = {}
+#    self.runinfo  = {}
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.lockFile = SAM_LOCK_NAME
 
     #Workflow parameters for the test
-    self.enable     = True
     self.scriptName = ''
 
   def resolveInputVariables( self ):
@@ -50,14 +49,6 @@ class RunTestScript( ModuleBaseSAM ):
   def _execute( self ):
     """The main execution method of the RunTestScript module.
     """
-
-#    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-#      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-#      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
-
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    
-    self.runinfo = self.getRunInfo()
 
     #Should fail the test in the case where the script is not locally available on the WN
     if not os.path.exists( '%s/%s' % ( os.getcwd(), self.scriptName ) ):

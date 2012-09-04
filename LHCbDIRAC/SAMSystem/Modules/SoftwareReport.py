@@ -31,13 +31,11 @@ class SoftwareReport( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
     self.site = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
 
     #Workflow parameters for the test
-    self.enable = True
     self.installProjectURL = None
 
   def resolveInputVariables( self ):
@@ -59,7 +57,6 @@ class SoftwareReport( ModuleBaseSAM ):
     """The main execution method of the SoftwareReport module.
     """
 
-    self.runinfo = self.getRunInfo()
 
     soft_present = []
     softwareDict = {}
@@ -75,7 +72,6 @@ class SoftwareReport( ModuleBaseSAM ):
     if not self.enable:
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
     if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )

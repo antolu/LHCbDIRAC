@@ -20,27 +20,15 @@ class SiteQueues( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-#    self.version  = __RCSID__
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-#    self.log      = gLogger.getSubLogger( "SiteQueues" )
-
-    self.jobID = None
-    if 'JOBID' in os.environ:
-      self.jobID = os.environ['JOBID']
-
-    #Workflow parameters for the test
-    self.enable = True
 
   def _execute( self ):
     """The main execution method of the SiteQueues module.
     """
 
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
-
-    runInfo = self.getRunInfo()
-    if 'CE' in runInfo:
-      samNode = runInfo['CE']
+    if 'CE' in self.runInfo:
+      samNode = self.runInfo[ 'CE' ]
     else:
       return self.finalize( 'Could not get current CE', 'no CE', 'error' )
 
@@ -50,7 +38,7 @@ class SiteQueues( ModuleBaseSAM ):
       return self.finalize( 'LCG_GFAL_INFOSYS is not defined', 'Could not execute queue check', 'error' )
 
     ldapLog = 'ldap.log'
-    fopen = open( ldapLog, 'a' )
+    fopen  = open( ldapLog, 'a' )
     
     cmd = 'ldapsearch -h ' + os.environ['LCG_GFAL_INFOSYS'] 
     cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(GlueSubClusterUniqueID=' + samNode 

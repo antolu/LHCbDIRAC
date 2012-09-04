@@ -18,8 +18,9 @@ __RCSID__ = "$Id$"
 class ModuleBaseSAM( object ):
 
   def __init__( self ):
-    """ Initialize some common SAM parameters.
-    """
+    ''' 
+      Initialize some common SAM parameters.
+    '''
     
     self.samStatus = {
                        'ok'          : '10', 
@@ -36,6 +37,8 @@ class ModuleBaseSAM( object ):
     self.jobID            = None
     if 'JOBID' in os.environ:
       self.jobID = os.environ[ 'JOBID' ]
+    self.enable           = True 
+    self.runInfo          = {} 
           
     self.testName         = None
     self.logFile          = None
@@ -50,8 +53,9 @@ class ModuleBaseSAM( object ):
     self.workflow_commons = None
 
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
+    ''' 
+      By convention the workflow parameters are resolved here.
+    '''
     
     if 'enable' in self.step_commons:
       self.enable = self.step_commons[ 'enable' ]
@@ -63,10 +67,11 @@ class ModuleBaseSAM( object ):
     return S_OK()    
 
   def setSAMLogFile( self ):
-    """
+    '''
        Simple function to store the SAM log file name and test name in the
        workflow parameters.
-    """
+    '''
+    
     if not self.logFile:
       return S_ERROR( 'No LogFile defined' )
 
@@ -79,6 +84,55 @@ class ModuleBaseSAM( object ):
     self.workflow_commons[ 'SAMLogs' ][ self.testName ] = self.logFile
     return S_OK()
 
+  def getRunInfo( self ):
+    '''
+       Get the basic information about CE, Host, DN, proxy, mapping
+       return a dictionary with the RUN INFO to be used later if needed
+    '''
+    
+    runInfo = {}
+    result = self._getSAMNode()
+    if not result[ 'OK' ]:
+      result[ 'SamResult'  ]  = 'error'
+      result[ 'Description' ] = 'Could not get current CE'
+      return result
+      #return self.finalize( 'Could not get current CE', result[ 'Message' ], 'error' )
+    runInfo[ 'CE' ] = result[ 'Value' ]
+
+    result = self.runCommand( 'find worker node name', 'hostname' )
+    if not result[ 'OK' ]:
+      result[ 'SamResult'  ]  = 'error'
+      result[ 'Description' ] = 'Current worker node does not exist'
+      return result
+      #return self.finalize( 'Current worker node does not exist', result[ 'Message' ], 'error' )
+    runInfo[ 'WN' ] = result[ 'Value' ]
+
+    result = self.runCommand( 'Checking current proxy', 'voms-proxy-info -all' )
+    if not result[ 'OK' ]:
+      result[ 'SamResult'  ]  = 'error'
+      result[ 'Description' ] = 'voms-proxy-info -all'
+      return result
+      #return self.finalize( 'voms-proxy-info -all', result[ 'Message' ], 'error' )
+    runInfo[ 'Proxy' ] = result[ 'Value' ]
+
+    result = self.runCommand( 'Checking current user account mapping', 'id' )
+    if not result[ 'OK' ]:
+      result[ 'SamResult'  ]  = 'error'
+      result[ 'Description' ] = 'id'
+      return result
+      #return self.finalize( 'id', result[ 'Message' ], 'error' )
+    runInfo[ 'identity' ] = result[ 'Value' ]
+
+    result = self.runCommand( 'Checking current user account mapping', 'id -nu' )
+    if not result[ 'OK' ]:
+      result[ 'SamResult'  ]  = 'error'
+      result[ 'Description' ] = 'id -nu'
+      return result
+      #return self.finalize( 'id -nu', result[ 'Message' ], 'error' )
+    runInfo[ 'identityShort' ] = result[ 'Value' ]
+
+    return S_OK( runInfo )
+
   def setApplicationStatus( self, status ):
     """Wraps around setJobApplicationStatus of state update client
     """
@@ -88,75 +142,127 @@ class ModuleBaseSAM( object ):
     if not self.testName:
       return S_ERROR( 'No SAM test name defined' )
 
-    gLogger.verbose( 'setJobApplicationStatus(%s,%s,%s)' % ( self.jobID, status, self.testName ) )
+    self.log.verbose( 'setJobApplicationStatus(%s,%s,%s)' % ( self.jobID, status, self.testName ) )
 
     if 'JobReport' in self.workflow_commons:
       self.jobReport = self.workflow_commons['JobReport']
 
     if not self.jobReport:
       return S_OK( 'No reporting tool given' )
+    
     jobStatus = self.jobReport.setApplicationStatus( status )
-    if not jobStatus['OK']:
-      gLogger.warn( jobStatus['Message'] )
+    if not jobStatus[ 'OK' ]:
+      self.log.warn( jobStatus['Message'] )
 
     return jobStatus
 
-  def getRunInfo( self ):
-    """ get the basic information about CE, Host, DN, proxy, mapping
-        return a dictionary with the RUN INFO to be used later if needed
+  def execute( self ):
+    ''' Main execution method for the ModuleBaseSAM. To be extended on the inherited
+        classes. 
+    '''
+    
+    self.log.info( 'Initializing ' + self.version )
+    
+    inputVars = self.resolveInputVariables()
+    if not inputVars[ 'OK' ]:
+      self.log.error( inputVars[ 'Message' ] )
+      return inputVars
+    
+    logFile = self.setSAMLogFile()
+    if not logFile[ 'OK' ]:
+      self.log.error( logFile[ 'Message' ] )
+      return logFile
+    
+    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
+      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
+      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+    
+    runInfo = self.getRunInfo()
+    if not runInfo[ 'OK' ]:
+      self.log.info( 'Error occurred while getting run Info' )
+      return self.finalize( runInfo[ 'Description' ], runInfo[ 'Message' ], runInfo[ 'SamResult' ] )
+    self.runInfo = runInfo[ 'OK' ]
+    
+    self.setApplicationStatus( 'Starting %s Test' % self.testName )
+    
+    return self._execute()
+
+  def finalize( self, message, result, samResult ):
+    """Finalize properly by setting the appropriate result at the step level
+       in the workflow, errorDict is an S_ERROR() from a command that failed.
     """
-    runInfo = {}
-    result = self.getSAMNode()
-    if not result[ 'OK' ]:
-      return self.finalize( 'Could not get current CE', result[ 'Message' ], 'error' )
-    #self.log.info( 'Current CE is %s' % result['Value'] )
-    runInfo[ 'CE' ] = result[ 'Value' ]
+    if not self.logFile:
+      return S_ERROR( 'No LogFile defined' )
 
-    result = self.runCommand( 'find worker node name', 'hostname' )
-    if not result[ 'OK' ]:
-      return self.finalize( 'Current worker node does not exist', result[ 'Message' ], 'error' )
-    runInfo[ 'WN' ] = result[ 'Value' ]
+    if not samResult in self.samStatus:
+      return S_ERROR( '%s is not a valid SAM status' % ( samResult ) )
 
-    result = self.runCommand( 'Checking current proxy', 'voms-proxy-info -all' )
-    if not result[ 'OK' ]:
-      return self.finalize( 'voms-proxy-info -all', result[ 'Message' ], 'error' )
-    runInfo[ 'Proxy' ] = result[ 'Value' ]
+    if not self.testName:
+      return S_ERROR( 'No SAM test name defined' )
 
-    result = self.runCommand( 'Checking current user account mapping', 'id' )
-    if not result[ 'OK' ]:
-      return self.finalize( 'id', result[ 'Message' ], 'error' )
-    runInfo[ 'identity' ] = result[ 'Value' ]
+    if not self.version:
+      return S_ERROR( 'CVS version tag is not defined' )
 
-    result = self.runCommand( 'Checking current user account mapping', 'id -nu' )
-    if not result[ 'OK' ]:
-      return self.finalize( 'id -nu', result[ 'Message' ], 'error' )
-    runInfo[ 'identityShort' ] = result[ 'Value' ]
+    if not os.path.exists( '%s' % ( self.logFile ) ):
+      fopen = open( self.logFile, 'w' )
+      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
+      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
+      header = self.getMessageString( _msg , True )
+      fopen.write( header )
+      fopen.close()
 
-    return runInfo
+    self.log.info( '%s\n%s' % ( message, result ) )
+    fopen = open( self.logFile, 'a' )
+    fopen.write( self.getMessageString( '%s\n%s' % ( message, result ) ) )
+    statusCode = self.samStatus[samResult]
+    fopen.write( self.getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
+    fopen.close()
+    if not 'SAMResults' in self.workflow_commons:
+      self.workflow_commons['SAMResults'] = {}
 
-  def getSAMNode( self ):
-    """In case CE isn't defined in the local config file, try to get it through
+    self.workflow_commons['SAMResults'][self.testName] = statusCode
+    if int( statusCode ) < 50:
+      self.setApplicationStatus( '%s Successful (%s)' % ( self.testName, samResult ) )
+      return S_OK( message )
+    else:
+      return S_ERROR( message )
+
+  ##############################################################################
+  # Private methods
+
+  def _execute( self ):
+    '''
+      Method to be overwritten by extended classes
+    ''' 
+    return S_OK() 
+
+  def _getSAMNode( self ):
+    '''
+       In case CE isn't defined in the local config file, try to get it through
        broker info calls.
-    """
+    '''
+    
     csCE = gConfig.getValue( '/LocalSite/GridCE', '' )
     if not csCE:
-      gLogger.warn( 'Could not get CE from local config file in section /LocalSite/GridCE' )
+      self.log.warn( 'Could not get CE from local config file in section /LocalSite/GridCE' )
     else:
       return S_OK( csCE )
 
     cmd = 'edg-brokerinfo getCE || glite-brokerinfo getCE'
     result = self.runCommand( 'Trying to get local CE (SAM node name)', cmd )
-    if not result['OK']:
+    if not result[ 'OK' ]:
       return result
 
-    output = result['Value'].strip()
-    ce = output.split( ':' )[0]
+    output = result[ 'Value' ].strip()
+    ce     = output.split( ':' )[0]
     if not ce:
-      gLogger.warn( 'Could not get CE from broker-info call:\n%s' % output )
+      self.log.warn( 'Could not get CE from broker-info call:\n%s' % output )
+    else:
+      return S_OK( ce )
 
     if 'GridRequiredCEs' in self.workflow_commons:
-      ce = self.workflow_commons['GridRequiredCEs']
-      gLogger.warn( 'As a last resort setting CE to %s from workflow parameters' % ce )
+      ce = self.workflow_commons[ 'GridRequiredCEs' ]
+      self.log.warn( 'As a last resort setting CE to %s from workflow parameters' % ce )
     else:
       _msg = 'Could not get CE from local cfg option /Resources/Computing/InProcess/GridCE'
       _msg += ' or broker-info call or workflow parameters'
@@ -171,7 +277,7 @@ class ModuleBaseSAM( object ):
     if not self.jobID:
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
-    gLogger.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
+    self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
     if 'JobReport' in self.workflow_commons:
       self.jobReport = self.workflow_commons['JobReport']
@@ -180,7 +286,7 @@ class ModuleBaseSAM( object ):
       return S_OK( 'No reporting tool given' )
     jobParam = self.jobReport.setJobParameter( str( name ), str( value ) )
     if not jobParam['OK']:
-      gLogger.warn( jobParam['Message'] )
+      self.log.warn( jobParam['Message'] )
 
     return jobParam
 
@@ -204,7 +310,7 @@ class ModuleBaseSAM( object ):
 #    except AttributeError:
 #      return S_ERROR( 'Enable flag is not defined' )
 
-    gLogger.verbose( message )
+    self.log.verbose( message )
     if not os.path.exists( '%s' % ( self.logFile ) ):
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
@@ -222,22 +328,22 @@ class ModuleBaseSAM( object ):
     status = result['Value'][0]
     stdout = result['Value'][1]
     stderr = result['Value'][2]
-    gLogger.verbose( stdout )
+    self.log.verbose( stdout )
     if stderr:
-      gLogger.warn( stderr )
+      self.log.warn( stderr )
 
     fopen = open( self.logFile, 'a' )
     cmdHeader = self.getMessageString( 'Message: %s\nCommand: %s' % ( message, cmd ) )
     fopen.write( cmdHeader )
     fopen.write( stdout )
-    gLogger.verbose( cmdHeader )
-    gLogger.verbose( stdout )
+    self.log.verbose( cmdHeader )
+    self.log.verbose( stdout )
     if stderr:
-      gLogger.warn( stderr )
+      self.log.warn( stderr )
       fopen.write( stderr )
     fopen.close()
     if status:
-      gLogger.info( 'Non-zero status %s while executing %s' % ( status, cmd ) )
+      self.log.info( 'Non-zero status %s while executing %s' % ( status, cmd ) )
       if check:
         return S_ERROR( stderr )
       return S_OK( stdout )
@@ -290,76 +396,6 @@ class ModuleBaseSAM( object ):
     fopen.close()
     
     return S_OK()
-
-  def execute( self ):
-    ''' Main execution method for the ModuleBaseSAM. To be extended on the inherited
-        classes. 
-    '''
-    
-    self.log.info( 'Initializing ' + self.version )
-    
-    inputVars = self.resolveInputVariables()
-    if not inputVars[ 'OK' ]:
-      self.log.error( inputVars[ 'Message' ] )
-      return inputVars
-    
-    logFile = self.setSAMLogFile()
-    if not logFile[ 'OK' ]:
-      self.log.error( logFile[ 'Message' ] )
-      return logFile
-    
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
-    
-    return self._execute()
-
-  def _execute( self ):
-    '''
-      Method to be overwritten by extended classes
-    ''' 
-    return S_OK()
-        
-
-  def finalize( self, message, result, samResult ):
-    """Finalize properly by setting the appropriate result at the step level
-       in the workflow, errorDict is an S_ERROR() from a command that failed.
-    """
-    if not self.logFile:
-      return S_ERROR( 'No LogFile defined' )
-
-    if not samResult in self.samStatus:
-      return S_ERROR( '%s is not a valid SAM status' % ( samResult ) )
-
-    if not self.testName:
-      return S_ERROR( 'No SAM test name defined' )
-
-    if not self.version:
-      return S_ERROR( 'CVS version tag is not defined' )
-
-    if not os.path.exists( '%s' % ( self.logFile ) ):
-      fopen = open( self.logFile, 'w' )
-      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
-      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
-      header = self.getMessageString( _msg , True )
-      fopen.write( header )
-      fopen.close()
-
-    gLogger.info( '%s\n%s' % ( message, result ) )
-    fopen = open( self.logFile, 'a' )
-    fopen.write( self.getMessageString( '%s\n%s' % ( message, result ) ) )
-    statusCode = self.samStatus[samResult]
-    fopen.write( self.getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
-    fopen.close()
-    if not 'SAMResults' in self.workflow_commons:
-      self.workflow_commons['SAMResults'] = {}
-
-    self.workflow_commons['SAMResults'][self.testName] = statusCode
-    if int( statusCode ) < 50:
-      self.setApplicationStatus( '%s Successful (%s)' % ( self.testName, samResult ) )
-      return S_OK( message )
-    else:
-      return S_ERROR( message )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -26,23 +26,16 @@ class SystemConfiguration( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.runinfo = {}
     self.logFile = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-
-    #Workflow parameters for the test
-    self.enable = True
 
   def _execute( self ):
     """The main execution method of the SystemConfiguration module.
     """
-
-    self.runinfo = self.getRunInfo()
     
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    result = self.__checkMapping( self.runinfo['Proxy'], self.runinfo['identityShort'] )
+    result = self.__checkMapping( self.runInfo['Proxy'], self.runInfo['identityShort'] )
     if not result['OK']:
-      return self.finalize( 'Potentiel problem in the mapping', self.runinfo['identityShort'], 'warning' )
+      return self.finalize( 'Potentiel problem in the mapping', self.runInfo['identityShort'], 'warning' )
 
     self.cwd = os.getcwd()
     localRoot = gConfig.getValue( '/LocalSite/Root', self.cwd )
@@ -90,8 +83,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     if not result['OK']:
       return self.finalize( 'voms-proxy-info -all', result, 'error' )
 
-    self.log.info( 'Current account: %s' % self.runinfo['identity'] )
-    if not re.search( '\d', self.runinfo['identityShort'] ):
+    self.log.info( 'Current account: %s' % self.runInfo['identity'] )
+    if not re.search( '\d', self.runInfo['identityShort'] ):
       self.log.info( '%s uses static accounts' % DIRAC.siteName() )
     else:
       self.log.info( '%s uses pool accounts' % DIRAC.siteName() )

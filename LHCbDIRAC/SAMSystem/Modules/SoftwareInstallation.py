@@ -33,12 +33,10 @@ class SoftwareInstallation( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.runinfo  = {}
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
 
     #Workflow parameters for the test
-    self.enable            = True
     self.purgeSharedArea   = False
     self.installProjectURL = None
 
@@ -68,8 +66,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
     """The main execution method of the SoftwareInstallation module.
     """
 
-    self.runinfo = self.getRunInfo()
-
     if not 'SAMResults' in self.workflow_commons:
       return self.finalize( 'Problem determining CE-lhcb-lock test result',
                             'No SAMResults key in workflow commons', 'error' )
@@ -81,7 +77,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
     if not self.enable:
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
     if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
