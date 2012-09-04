@@ -14,26 +14,27 @@ __RCSID__ = "$Id$"
 class RunTestScript( ModuleBaseSAM ):
 
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+       Standard constructor for SAM Module
+    '''
     ModuleBaseSAM.__init__( self )
     
     self.logFile  = 'sam-run-test-script.log'
     self.testName = 'CE-lhcb-test-script'
-    self.lockFile = 'DIRAC-SAM-Test-Script'
 
     #Workflow parameters for the test
     self.scriptName = ''
 
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
+    '''
+       By convention the workflow parameters are resolved here.
+    '''
     
     ModuleBaseSAM.resolveInputVariables( self )    
 
     if 'scriptName' in self.step_commons:
-      self.scriptName = self.step_commons['scriptName']
-      if not type( self.scriptName ) == type( " " ):
+      self.scriptName = self.step_commons[ 'scriptName' ]
+      if not isinstance( self.scriptName, str ):
         self.log.warn( 'Script name parameter set to non-string value %s, setting enable to False' % self.scriptName )
         self.enable = False
     else:
@@ -43,8 +44,9 @@ class RunTestScript( ModuleBaseSAM ):
     return S_OK()
 
   def _execute( self ):
-    """The main execution method of the RunTestScript module.
-    """
+    '''
+       The main execution method of the RunTestScript module.
+    '''
 
     #Should fail the test in the case where the script is not locally available on the WN
     if not os.path.exists( '%s/%s' % ( os.getcwd(), self.scriptName ) ):
@@ -54,7 +56,7 @@ class RunTestScript( ModuleBaseSAM ):
     cmd = '%s %s' % ( sys.executable, self.scriptName )
     self.log.info( 'Prepended DIRAC python to script, execution command will be "%s"' % ( cmd ) )
     result = self.runCommand( 'Executing script with commmand "%s"' % cmd, cmd, check = True )
-    if not result['OK']:
+    if not result[ 'OK' ]:
       self.log.warn( '%s returned non-zero status' % ( self.scriptName ) )
       return self.finalize( 'Script not found', '%s' % ( self.scriptName ), 'info' )
 

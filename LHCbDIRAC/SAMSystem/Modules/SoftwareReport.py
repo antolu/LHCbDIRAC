@@ -26,8 +26,9 @@ InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 class SoftwareReport( ModuleBaseSAM ):
 
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+       Standard constructor for SAM Module
+    '''
     ModuleBaseSAM.__init__( self )
     
     self.logFile  = 'sam-softreport.log'
@@ -39,8 +40,9 @@ class SoftwareReport( ModuleBaseSAM ):
     self.installProjectURL = None
 
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
+    '''
+       By convention the workflow parameters are resolved here.
+    '''
     
     ModuleBaseSAM.resolveInputVariables( self )
 
@@ -57,12 +59,11 @@ class SoftwareReport( ModuleBaseSAM ):
     """The main execution method of the SoftwareReport module.
     """
 
-
-    soft_present = []
-    softwareDict = {}
-    soft_present_pb = []
-    softwareDictPb = {}
-    soft_remove = []
+    soft_present       = []
+    softwareDict       = {}
+    soft_present_pb    = []
+    softwareDictPb     = {}
+    soft_remove        = []
     softwareDictRemove = {}
 
     if not 'SAMResults' in self.workflow_commons:

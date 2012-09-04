@@ -61,6 +61,11 @@ class ModuleBaseSAM( object ):
         self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
         self.enable = False
     
+    if 'JobReport' in self.workflow_commons:
+      self.jobReport = self.workflow_commons[ 'JobReport' ]
+    else:
+      self.log.warn( 'JobReport tool not given' )  
+    
     self.log.verbose( 'Enable flag is set to %s' % self.enable )    
     return S_OK()    
 
@@ -132,25 +137,20 @@ class ModuleBaseSAM( object ):
     return S_OK( runInfo )
 
   def setApplicationStatus( self, status ):
-    """Wraps around setJobApplicationStatus of state update client
-    """
+    '''
+       Wraps around setJobApplicationStatus of state update client
+    '''
     if not self.jobID:
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
-    if not self.testName:
-      return S_ERROR( 'No SAM test name defined' )
-
     self.log.verbose( 'setJobApplicationStatus(%s,%s,%s)' % ( self.jobID, status, self.testName ) )
-
-    if 'JobReport' in self.workflow_commons:
-      self.jobReport = self.workflow_commons['JobReport']
 
     if not self.jobReport:
       return S_OK( 'No reporting tool given' )
     
     jobStatus = self.jobReport.setApplicationStatus( status )
     if not jobStatus[ 'OK' ]:
-      self.log.warn( jobStatus['Message'] )
+      self.log.warn( jobStatus[ 'Message' ] )
 
     return jobStatus
 
@@ -186,34 +186,27 @@ class ModuleBaseSAM( object ):
     return self._execute()
 
   def finalize( self, message, result, samResult ):
-    """Finalize properly by setting the appropriate result at the step level
+    '''
+       Finalize properly by setting the appropriate result at the step level
        in the workflow, errorDict is an S_ERROR() from a command that failed.
-    """
-    if not self.logFile:
-      return S_ERROR( 'No LogFile defined' )
-
+    '''
+    
     if not samResult in self.samStatus:
       return S_ERROR( '%s is not a valid SAM status' % ( samResult ) )
-
-    if not self.testName:
-      return S_ERROR( 'No SAM test name defined' )
-
-    if not self.version:
-      return S_ERROR( 'CVS version tag is not defined' )
 
     if not os.path.exists( '%s' % ( self.logFile ) ):
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
       _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
-      header = self.getMessageString( _msg , True )
+      header = self._getMessageString( _msg , True )
       fopen.write( header )
       fopen.close()
 
     self.log.info( '%s\n%s' % ( message, result ) )
     fopen = open( self.logFile, 'a' )
-    fopen.write( self.getMessageString( '%s\n%s' % ( message, result ) ) )
+    fopen.write( self._getMessageString( '%s\n%s' % ( message, result ) ) )
     statusCode = self.samStatus[samResult]
-    fopen.write( self.getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
+    fopen.write( self._getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
     fopen.close()
     if not 'SAMResults' in self.workflow_commons:
       self.workflow_commons['SAMResults'] = {}
@@ -269,87 +262,8 @@ class ModuleBaseSAM( object ):
 
     return S_OK( ce )
 
-  def setJobParameter( self, name, value ):
-    """Wraps around setJobParameter of state update client
-    """
-    if not self.jobID:
-      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
-
-    self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
-
-    if 'JobReport' in self.workflow_commons:
-      self.jobReport = self.workflow_commons['JobReport']
-
-    if not self.jobReport:
-      return S_OK( 'No reporting tool given' )
-    jobParam = self.jobReport.setJobParameter( str( name ), str( value ) )
-    if not jobParam['OK']:
-      self.log.warn( jobParam['Message'] )
-
-    return jobParam
-
-  def runCommand( self, message, cmd, check = False ):
-    """Wrapper around shellCall to return S_OK(stdout) or S_ERROR(message) and
-       produce the SAM log files with messages and outputs. The check flag set to True
-       will return S_ERROR for critical calls that should not fail.
-    """
-    if not self.logFile:
-      return S_ERROR( 'No LogFile defined' )
-
-    if not self.testName:
-      return S_ERROR( 'No SAM test name defined' )
-
-    if not self.version:
-      return S_ERROR( 'CVS version tag is not defined' )
-
-#    try:
-    if not self.enable in [ True, False ]:
-      return S_ERROR( 'Expected boolean for enable flag' )
-#    except AttributeError:
-#      return S_ERROR( 'Enable flag is not defined' )
-
-    self.log.verbose( message )
-    if not os.path.exists( '%s' % ( self.logFile ) ):
-      fopen = open( self.logFile, 'w' )
-      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
-      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ) 
-      header = self.getMessageString( _msg, True )
-      fopen.write( header )
-      fopen.close()
-
-    if not self.enable:
-      cmd = 'echo "Enable flag is False, would have executed:"\necho "%s"' % cmd
-
-    result = shellCall( 0, cmd )
-    if not result['OK']:
-      return result
-    status = result['Value'][0]
-    stdout = result['Value'][1]
-    stderr = result['Value'][2]
-    self.log.verbose( stdout )
-    if stderr:
-      self.log.warn( stderr )
-
-    fopen = open( self.logFile, 'a' )
-    cmdHeader = self.getMessageString( 'Message: %s\nCommand: %s' % ( message, cmd ) )
-    fopen.write( cmdHeader )
-    fopen.write( stdout )
-    self.log.verbose( cmdHeader )
-    self.log.verbose( stdout )
-    if stderr:
-      self.log.warn( stderr )
-      fopen.write( stderr )
-    fopen.close()
-    if status:
-      self.log.info( 'Non-zero status %s while executing %s' % ( status, cmd ) )
-      if check:
-        return S_ERROR( stderr )
-      return S_OK( stdout )
-    else:
-      return S_OK( stdout )
-
   @staticmethod
-  def getMessageString( message, header = False ):
+  def _getMessageString( message, header = False ):
     """Return a nicely formatted string for the SAM logs.
     """
     border = ''
@@ -374,6 +288,84 @@ class ModuleBaseSAM( object ):
       message = '%s\n%s\n%s\n' % ( border, message, border )
     return message
 
+
+
+
+
+
+
+
+  def setJobParameter( self, name, value ):
+    """Wraps around setJobParameter of state update client
+    """
+    if not self.jobID:
+      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
+
+    self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
+
+    if 'JobReport' in self.workflow_commons:
+      self.jobReport = self.workflow_commons['JobReport']
+
+    if not self.jobReport:
+      return S_OK( 'No reporting tool given' )
+    jobParam = self.jobReport.setJobParameter( str( name ), str( value ) )
+    if not jobParam['OK']:
+      self.log.warn( jobParam['Message'] )
+
+    return jobParam
+
+  def runCommand( self, message, cmd, check = False ):
+    '''
+       Wrapper around shellCall to return S_OK(stdout) or S_ERROR(message) and
+       produce the SAM log files with messages and outputs. The check flag set to True
+       will return S_ERROR for critical calls that should not fail.
+    '''
+
+    self.log.verbose( message )
+    if not os.path.exists( '%s' % ( self.logFile ) ):
+      fopen = open( self.logFile, 'w' )
+      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
+      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ) 
+      header = self._getMessageString( _msg, True )
+      fopen.write( header )
+      fopen.close()
+
+    if not self.enable:
+      cmd = 'echo "Enable flag is False, would have executed:"\necho "%s"' % cmd
+
+    result = shellCall( 0, cmd )
+    if not result[ 'OK' ]:
+      return result
+    
+    status = result[ 'Value' ][ 0 ]
+    stdout = result[ 'Value' ][ 1 ]
+    stderr = result[ 'Value' ][ 2 ]
+    self.log.verbose( stdout )
+    if stderr:
+      self.log.warn( stderr )
+
+    fopen = open( self.logFile, 'a' )
+    cmdHeader = self._getMessageString( 'Message: %s\nCommand: %s' % ( message, cmd ) )
+    
+    self.log.verbose( cmdHeader )
+    fopen.write( cmdHeader )
+    
+    self.log.verbose( stdout )
+    fopen.write( stdout )
+        
+    if stderr:
+      self.log.warn( stderr )
+      fopen.write( stderr )
+    fopen.close()
+    
+    if status:
+      self.log.info( 'Non-zero status %s while executing %s' % ( status, cmd ) )
+      if check:
+        return S_ERROR( stderr )
+      return S_OK( stdout )
+
+    return S_OK( stdout )
+
   def writeToLog( self, message ):
     '''
       Write to the log file with a printed message, if the log file does not exits,
@@ -385,12 +377,12 @@ class ModuleBaseSAM( object ):
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
       _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
-      header = self.getMessageString( _msg , True )
+      header = self._getMessageString( _msg , True )
       fopen.write( header )
       fopen.close()
 
     fopen = open( self.logFile, 'a' )
-    fopen.write( self.getMessageString( '%s' % ( message ) ) )
+    fopen.write( self._getMessageString( '%s' % ( message ) ) )
     fopen.close()
     
     return S_OK()

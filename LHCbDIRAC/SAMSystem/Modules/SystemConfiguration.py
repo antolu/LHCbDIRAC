@@ -20,16 +20,19 @@ __RCSID__ = "$Id$"
 class SystemConfiguration( ModuleBaseSAM ):
 
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+        Standard constructor for SAM Module
+    '''
+    
     ModuleBaseSAM.__init__( self )
     
     self.logFile  = 'sam-os.log'
     self.testName = 'CE-lhcb-os'
 
   def _execute( self ):
-    """The main execution method of the SystemConfiguration module.
-    """
+    '''
+       The main execution method of the SystemConfiguration module.
+    '''
     
     result = self.__checkMapping( self.runInfo['Proxy'], self.runInfo['identityShort'] )
     if not result['OK']:

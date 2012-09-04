@@ -22,20 +22,23 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM             import ModuleBaseSAM
 __RCSID__ = "$Id$"
 
 class TestApplications( ModuleBaseSAM ):
-  """ Test Application sSAM class """
+  '''
+     Test Application SAM class
+  '''
 
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+       Standard constructor for SAM Module
+    '''
+    
     ModuleBaseSAM.__init__( self )
     
     self.logFile         = ''
     self.testName        = ''
 #    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
-    self.appSystemConfig = NativeMachine().CMTSupportedConfig()[0]
+    self.appSystemConfig = NativeMachine().CMTSupportedConfig()[ 0 ]
 
     #Workflow parameters for the test
-    self.samTestName    = ''
     self.appNameVersion = ''
     self.appNameOptions = ''
 
@@ -44,20 +47,21 @@ class TestApplications( ModuleBaseSAM ):
     gConfig.setOptionValue( '/LocalSite/DisableLocalModeCallback', '1' )
 
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
+    '''
+       By convention the workflow parameters are resolved here.
+    '''
     
     ModuleBaseSAM.resolveInputVariables( self )
 
     if 'samTestName' in self.step_commons:
-      self.testName = self.step_commons['samTestName']
+      self.testName = self.step_commons[ 'samTestName' ]
 
     if 'appNameVersion' in self.step_commons:
-      self.appNameVersion = self.step_commons['appNameVersion']
+      self.appNameVersion = self.step_commons[ 'appNameVersion' ]
       self.logFile = 'sam-job-%s.log' % ( self.appNameVersion.replace( '.', '-' ) )
 
     if 'appNameOptions' in self.step_commons:
-      self.appNameOptions = self.step_commons['appNameOptions']
+      self.appNameOptions = self.step_commons[ 'appNameOptions' ]
 
     self.log.verbose( 'Test Name is: %s' % self.testName )
     self.log.verbose( 'Application name and version are: %s' % self.appNameVersion )
@@ -66,8 +70,9 @@ class TestApplications( ModuleBaseSAM ):
     return S_OK()
 
   def _execute( self ):
-    """The main execution method of the TestApplications module.
-    """
+    '''
+       The main execution method of the TestApplications module.
+    '''
 
     if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
       self.result = S_ERROR( 'No application name / version defined' )

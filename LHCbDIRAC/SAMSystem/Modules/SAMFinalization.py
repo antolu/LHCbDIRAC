@@ -29,13 +29,16 @@ from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 __RCSID__ = '$Id$'
 
 class SAMFinalization( ModuleBaseSAM ):
-  """ SAM Finalization class """
+  '''
+     SAM Finalization class
+  '''
 
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+       Standard constructor for SAM Module
+    '''
+    
     ModuleBaseSAM.__init__( self )
-    self.runinfo     = {}
     
     self.logFile     = 'sam-publish.log'
     self.testName    = 'CE-lhcb-sam-publish'
@@ -59,8 +62,9 @@ class SAMFinalization( ModuleBaseSAM ):
     self.uploadLogsFlag     = False
 
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
+    ''' 
+       By convention the workflow parameters are resolved here.
+    '''
 
     ModuleBaseSAM.resolveInputVariables( self )    
 
@@ -86,7 +90,13 @@ class SAMFinalization( ModuleBaseSAM ):
     
     self.log.info( 'Initializing ' + self.version )
     self.resolveInputVariables()
-    self.runinfo = self.getRunInfo()
+    
+    runInfo = self.getRunInfo()
+    if not runInfo[ 'OK' ]:
+      self.log.info( 'Error occurred while getting run Info' )
+      return self.finalize( runInfo[ 'Description' ], runInfo[ 'Message' ], runInfo[ 'SamResult' ] )
+    self.runInfo = runInfo[ 'OK' ]
+              
     sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
@@ -120,7 +130,7 @@ class SAMFinalization( ModuleBaseSAM ):
     if not failed:
       self.setApplicationStatus( 'Starting %s Test' % self.testName )
 
-    samNode = self.runinfo['CE']
+    samNode = self.runInfo[ 'CE' ]
     samLogs = {}
     if not 'SAMLogs' in self.workflow_commons:
       self.setApplicationStatus( 'No SAM Logs Found' )

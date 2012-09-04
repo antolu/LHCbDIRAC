@@ -1,5 +1,5 @@
-""" LHCb LockSharedArea SAM Test Module
-"""
+''' LHCb LockSharedArea SAM Test Module
+'''
 
 import os
 import re
@@ -16,28 +16,27 @@ __RCSID__ = "$Id$"
 
 class LockSharedArea( ModuleBaseSAM ):
 
-  #############################################################################
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+        Standard constructor for SAM Module
+    '''
     ModuleBaseSAM.__init__( self )
 
     self.logFile  = 'sam-lock.log'
     self.testName = 'CE-lhcb-lock'
     self.lockFile = 'DIRAC-SAM-Test-Lock'
 
-    self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
-
+    # Validity of the lock
+    self.lockValidity     = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
     #Workflow parameters for the test
     self.forceLockRemoval = False
-
     #Global parameter affecting behaviour
-    self.safeMode = False
-
-  #############################################################################
+    self.safeMode         = False
+  
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
+    '''
+        By convention the workflow parameters are resolved here.
+    '''
 
     ModuleBaseSAM.resolveInputVariables( self )
 
@@ -57,8 +56,9 @@ class LockSharedArea( ModuleBaseSAM ):
 
   #############################################################################
   def _execute( self ):
-    """The main execution method of the LockSharedArea module.
-    """
+    '''
+       The main execution method of the LockSharedArea module.
+    '''
 
     # Change the permissions on the shared area
     self.log.info( 'Current account: %s' % self.runInfo[ 'identity' ] )
