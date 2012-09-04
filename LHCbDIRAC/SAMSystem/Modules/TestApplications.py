@@ -73,40 +73,23 @@ class TestApplications( ModuleBaseSAM ):
   def _execute( self ):
     '''
        The main execution method of the TestApplications module.
+       Checks:
+         - appName, appVersion
+         - gets options
+         - runs application
     '''
 
     if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
       return self.finalize( 'No application name / version defined', 'Unknown', 'error' )
-      #self.result = S_ERROR( 'No application name / version defined' )
 
-    self.log.info( 'Checking local system configuration is suitable to run the application test' )
-    localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
-    if not localArch:
-      _msg = '/LocalSite/Architecture is not defined in the local configuration'
-      return self.finalize( _msg, 'Could not get /LocalSite/Architecture', 'error' )
-
-    #must get the list of compatible platforms for this architecture
-    localPlatforms = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % localArch, [] )
-    if not localPlatforms:
-      _msg = 'Could not obtain compatible platforms for %s' % localArch
-      return self.finalize( _msg, '/Resources/Computing/OSCompatibility/%s' % localArch, 'error' )
-
-    if not self.appSystemConfig in localPlatforms:
-      if not self.appSystemConfig in localArch:
-        _msg = '%s is not in list of supported system configurations at this site: %s'
-        self.log.info( _msg % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
-        _msg = '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.'
-        self.writeToLog( _msg % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
-        return self.finalize( '%s Test Disabled' % self.testName, 'Status NOTICE (=30)', 'notice' )
-      else:
-        self.appSystemConfig = localPlatforms[0]
+    result = self.__checkPlatforms()
+    if not result[ 'OK' ]:
+      self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
 
     options = self.__getOptions( self.appNameVersion.split( '.' )[0], 
                                  self.appNameVersion.split( '.' )[1] )
     if not options[ 'OK' ] :
-      return self.finalize( 'Inputs for %s %s could not be found' % ( self.appNameVersion.split( '.' )[0], 
-                                                                      self.appNameVersion.split( '.' )[1] ), 
-                                                                      options[ 'Message' ], 'critical' )
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
 
     sys.stdout.flush()
     result = self.__runApplication( self.appNameVersion.split( '.' )[0], 
@@ -114,16 +97,53 @@ class TestApplications( ModuleBaseSAM ):
                                     options[ 'Value' ] )
     sys.stdout.flush()
     if not result[ 'OK' ]:
-      return self.finalize( 'Failure during %s %s execution' % ( self.appNameVersion.split( '.' )[ 0 ], 
-                                                                 self.appNameVersion.split( '.' )[ 1 ] ), 
-                                                                 result[ 'Message' ], 'error' )
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
 
     self.log.info( 'Test %s completed successfully' % self.testName )
     self.setApplicationStatus( '%s Successful' % self.testName )
+    
     return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
 
   ##############################################################################
   # Protected methods
+
+  def __checkPlatforms( self ):
+    '''
+       Checks local architecture and compares it with supported platforms
+    '''
+    
+    self.log.info( 'Checking local system configuration is suitable to run the application test' )
+    localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
+    if not localArch:
+      result = S_ERROR( 'Could not get /LocalSite/Architecture' )
+      result[ 'Description' ] = '/LocalSite/Architecture is not defined in the local configuration'
+      result[ 'SamResult' ]   = 'error'
+      return result
+
+    #must get the list of compatible platforms for this architecture
+    localPlatforms = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % localArch, [] )
+    if not localPlatforms:
+      result = S_ERROR( '/Resources/Computing/OSCompatibility/%s' % localArch )
+      result[ 'Description' ] = 'Could not obtain compatible platforms for %s' % localArch
+      result[ 'SamResult' ]   = 'error'
+      return result
+
+    if not self.appSystemConfig in localPlatforms:
+      if not self.appSystemConfig in localArch:
+        _msg = '%s is not in list of supported system configurations at this site: %s'
+        self.log.info( _msg % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
+        _msg = '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.'
+        self.writeToLog( _msg % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
+        
+        result = S_ERROR( 'Status NOTICE (=30)' )
+        result[ 'Description' ] = '%s Test Disabled' % self.testName
+        result[ 'SamResult' ]   = 'notice'        
+        return result
+        
+      else:
+        self.appSystemConfig = localPlatforms[0]
+      
+    return S_OK()
 
   def __getOptions( self, appName, appVersion ):
     '''
@@ -134,11 +154,19 @@ class TestApplications( ModuleBaseSAM ):
     sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
-      return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )
+      
+      result                  = S_ERROR( sharedArea )
+      result[ 'Description' ] = 'Could not determine shared area for site'
+      result[ 'SamResult' ]   = 'critical'
+      
+      return result
+
     else:
       self.log.info( 'Software shared area for site %s is %s' % ( DIRAC.siteName(), sharedArea ) )
 
     extraOpts = ''
+    
+    result = None
     
     if appName == 'Gauss':
       extraOpts = 'ApplicationMgr().EvtMax = 2;\n'
@@ -148,8 +176,8 @@ class TestApplications( ModuleBaseSAM ):
 
     elif appName == 'Boole':
       if self.enable:
-        if not os.path.exists( '%s.sim' % self.appSystemConfig ):
-          return S_ERROR( 'No input file %s.sim found for Boole' % ( self.appSystemConfig ) )
+        if not os.path.exists( '%s.sim' % self.appSystemConfig ):         
+          result = S_ERROR( 'No input file %s.sim found for Boole' % ( self.appSystemConfig ) )
 
       extraOpts = '#Boole().useSpillover=False;\n'
       extraOpts += '''EventSelector().Input = ["DATAFILE='PFN:%s/%s.sim' TYP='POOL_ROOTTREE' OPT='READ'"];\n'''
@@ -159,7 +187,7 @@ class TestApplications( ModuleBaseSAM ):
     elif appName == 'Brunel':
       if self.enable:
         if not os.path.exists( '%s.digi' % self.appSystemConfig ):
-          return S_ERROR( 'No input file %s.digi found for Brunel' % ( self.appSystemConfig ) )
+          result = S_ERROR( 'No input file %s.digi found for Brunel' % ( self.appSystemConfig ) )
       
       extraOpts = '''EventSelector().Input = ["DATAFILE='PFN:%s/%s.digi' TYP='POOL_ROOTTREE' OPT='READ'"];\n'''
       extraOpts += '''OutputStream("DstWriter").Output = "DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE' OPT='REC'";'''
@@ -168,7 +196,7 @@ class TestApplications( ModuleBaseSAM ):
     elif appName == 'DaVinci':
       if self.enable:
         if not os.path.exists( '%s.dst' % self.appSystemConfig ):
-          return S_ERROR( 'No input file %s.dst found for DaVinci' % ( self.appSystemConfig ) )
+          result = S_ERROR( 'No input file %s.dst found for DaVinci' % ( self.appSystemConfig ) )
       
       extraOpts = '''EventSelector().Input = ["DATAFILE='PFN:%s/%s.dst' TYP='POOL_ROOTTREE' OPT='READ'"];'''
       extraOpts = extraOpts % ( os.getcwd(), self.appSystemConfig )
@@ -176,6 +204,12 @@ class TestApplications( ModuleBaseSAM ):
       # This was done on purpose, I simply do not know now why  
       appName = 'Gaudi'
 
+    if result is not None:  
+      result[ 'Description' ] = 'Inputs for %s %s could not be found' % ( self.appNameVersion.split( '.' )[0], 
+                                                                          self.appNameVersion.split( '.' )[1] ) 
+      result[ 'SamResult' ]   = 'critical'
+      return result
+       
     newOpts = '%s-Extra.py' % ( appName )
     self.log.verbose( 'Adding extra options for %s %s:\n%s' % ( appName, appVersion, extraOpts ) )
     fopen = open( newOpts, 'w' )
@@ -221,7 +255,9 @@ class TestApplications( ModuleBaseSAM ):
     except SystemError, x:
       
       self.log.warn( 'Problem during %s %s execution: "%s"' % ( appName, appVersion, x ) )
-      return S_ERROR( str( x ) )
+      result = S_ERROR( str( x ) )
+      result[ 'Description' ] = ' Failure during %s %s execution' % ( appName, appVersion ) 
+      result[ 'SamResult' ]   = 'error'    
     
     return result
 

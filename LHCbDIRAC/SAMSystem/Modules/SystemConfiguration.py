@@ -42,7 +42,7 @@ class SystemConfiguration( ModuleBaseSAM ):
     
     result = self.__checkMapping( self.runInfo[ 'Proxy' ], self.runInfo[ 'identityShort' ] )
     if not result[ 'OK' ]:
-      return self.finalize( 'Potential problem in the mapping', self.runInfo[ 'identityShort' ], 'warning' )
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
 
     self.__checkLocalRoot()
     
@@ -81,6 +81,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     self.log.info( ' Check mapping' )
     _errorMsg = 'potential problem in the mapping'
     
+    result = None
+    
     if proxy.find( 'lcgadmin' ) != -1:
       
       if map_name.find( 's' ) != -1 or map_name.find( 'g' ) != -1 or map_name.find( 'm' ) != -1:
@@ -88,20 +90,28 @@ class SystemConfiguration( ModuleBaseSAM ):
         return S_OK()
       else:
         self.log.warn( _errorMsg )
-        return S_ERROR( _errorMsg )
+        result = S_ERROR( self.runInfo[ 'identityShort' ] )
     
     elif proxy.lower().find( 'production' ) != -1:
     
       if map_name.find( 'p' ) != -1 or map_name.find( 'r' ) != -1 or map_name.find( 'd' ) != -1:
         self.log.info( 'correct mapping' )
-        return S_OK()
+        result = S_OK()
       else:
         self.log.warn( _errorMsg )
-        return S_ERROR( _errorMsg )
+        result = S_ERROR( self.runInfo[ 'identityShort' ] )
     
     else:
       self.log.warn( _errorMsg )
-      return S_ERROR( _errorMsg )
+      result = S_ERROR( self.runInfo[ 'identityShort' ] )
+      
+    if result[ 'OK' ]:
+      return result
+    
+    result[ 'Description' ] = 'Potential problem in the mapping'
+    result[ 'SamResult' ]   = 'warning'
+    
+    return result  
 
   def __checkLocalRoot( self ):
     '''
