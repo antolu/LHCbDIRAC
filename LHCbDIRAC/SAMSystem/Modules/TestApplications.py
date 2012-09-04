@@ -11,7 +11,7 @@ import sys
 
 import DIRAC
 
-from DIRAC                      import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                      import S_OK, S_ERROR, gConfig
 from DIRAC.Interfaces.API.Dirac import Dirac
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import getSharedArea
@@ -69,16 +69,11 @@ class TestApplications( ModuleBaseSAM ):
     self.log.verbose( 'Log file name is: %s' % self.logFile )
     return S_OK()
 
-  def execute( self ):
+  def _execute( self ):
     """The main execution method of the TestApplications module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
 
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+    #self.runinfo = self.getRunInfo() 
 
     if not self.testName or not self.appNameVersion or not self.logFile or not self.appNameOptions:
       self.result = S_ERROR( 'No application name / version defined' )

@@ -15,11 +15,11 @@ import urllib
 
 import DIRAC
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gConfig#, gLogger
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import getSharedArea, installApplication
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import  removeApplication, createSharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import removeApplication, createSharedArea
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM             import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
@@ -64,16 +64,11 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.log.verbose( 'Install project URL set to %s' % ( self.installProjectURL ) )
     return S_OK()
 
-  def execute( self ):
+  def _execute( self ):
     """The main execution method of the SoftwareInstallation module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
 
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+    self.runinfo = self.getRunInfo()
 
     if not 'SAMResults' in self.workflow_commons:
       return self.finalize( 'Problem determining CE-lhcb-lock test result',
@@ -83,7 +78,6 @@ class SoftwareInstallation( ModuleBaseSAM ):
       self.writeToLog( 'Another SAM job is running at this site, disabling software installation test for this CE job' )
       return self.finalize( '%s test will be disabled' % self.testName, 'Status INFO (= 20)', 'info' )
 
-    self.runinfo = self.getRunInfo()
     if not self.enable:
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 

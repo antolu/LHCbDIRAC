@@ -6,7 +6,7 @@
 
 import os
 
-from DIRAC                                     import S_OK, S_ERROR, gLogger
+#from DIRAC                                     import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
@@ -20,10 +20,10 @@ class SiteQueues( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.version  = __RCSID__
+#    self.version  = __RCSID__
     self.logFile  = SAM_LOG_FILE
     self.testName = SAM_TEST_NAME
-    self.log      = gLogger.getSubLogger( "SiteQueues" )
+#    self.log      = gLogger.getSubLogger( "SiteQueues" )
 
     self.jobID = None
     if 'JOBID' in os.environ:
@@ -32,22 +32,15 @@ class SiteQueues( ModuleBaseSAM ):
     #Workflow parameters for the test
     self.enable = True
 
-  def execute( self ):
+  def _execute( self ):
     """The main execution method of the SiteQueues module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
-
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
 
-    result = self.getRunInfo()
-    if 'CE' in result:
-      samNode = result['CE']
+    runInfo = self.getRunInfo()
+    if 'CE' in runInfo:
+      samNode = runInfo['CE']
     else:
       return self.finalize( 'Could not get current CE', 'no CE', 'error' )
 

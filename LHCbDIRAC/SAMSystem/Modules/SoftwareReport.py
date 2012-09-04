@@ -13,7 +13,7 @@ import re
 import urllib
 
 import DIRAC
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
+from DIRAC import S_OK, S_ERROR, gConfig, systemCall, gLogger
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
@@ -55,16 +55,11 @@ class SoftwareReport( ModuleBaseSAM ):
     self.log.verbose( 'Install project URL set to %s' % ( self.installProjectURL ) )
     return S_OK()
 
-  def execute( self ):
+  def _execute( self ):
     """The main execution method of the SoftwareReport module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
 
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+    self.runinfo = self.getRunInfo()
 
     soft_present = []
     softwareDict = {}
@@ -77,7 +72,6 @@ class SoftwareReport( ModuleBaseSAM ):
       _msg = 'Problem determining CE-lhcb-lock test result'
       return self.finalize( _msg, 'No SAMResults key in workflow commons', 'error' )
 
-    self.runinfo = self.getRunInfo()
     if not self.enable:
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 

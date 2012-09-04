@@ -5,7 +5,7 @@
 import os
 import sys
 
-from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC import S_OK
 
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
@@ -47,16 +47,13 @@ class RunTestScript( ModuleBaseSAM ):
     self.log.verbose( 'Script name is set to %s' % self.scriptName )
     return S_OK()
 
-  def execute( self ):
+  def _execute( self ):
     """The main execution method of the RunTestScript module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
 
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+#    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
+#      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
+#      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
     

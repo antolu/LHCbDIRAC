@@ -62,6 +62,23 @@ class ModuleBaseSAM( object ):
     self.log.verbose( 'Enable flag is set to %s' % self.enable )    
     return S_OK()    
 
+  def setSAMLogFile( self ):
+    """
+       Simple function to store the SAM log file name and test name in the
+       workflow parameters.
+    """
+    if not self.logFile:
+      return S_ERROR( 'No LogFile defined' )
+
+    if not self.testName:
+      return S_ERROR( 'No SAM test name defined' )
+
+    if not 'SAMLogs' in self.workflow_commons:
+      self.workflow_commons[ 'SAMLogs' ] = {}
+
+    self.workflow_commons[ 'SAMLogs' ][ self.testName ] = self.logFile
+    return S_OK()
+
   def setApplicationStatus( self, status ):
     """Wraps around setJobApplicationStatus of state update client
     """
@@ -253,27 +270,14 @@ class ModuleBaseSAM( object ):
       message = '%s\n%s\n%s\n' % ( border, message, border )
     return message
 
-  def setSAMLogFile( self ):
-    """
-       Simple function to store the SAM log file name and test name in the
-       workflow parameters.
-    """
-    if not self.logFile:
-      return S_ERROR( 'No LogFile defined' )
-
-    if not self.testName:
-      return S_ERROR( 'No SAM test name defined' )
-
-    if not 'SAMLogs' in self.workflow_commons:
-      self.workflow_commons[ 'SAMLogs' ] = {}
-
-    self.workflow_commons[ 'SAMLogs' ][ self.testName ] = self.logFile
-    return S_OK()
-
   def writeToLog( self, message ):
-    """Write to the log file with a printed message.
-    """
+    '''
+      Write to the log file with a printed message, if the log file does not exits,
+      it creates a new one.
+    '''
+    
     if not os.path.exists( '%s' % ( self.logFile ) ):
+    
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
       _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
@@ -284,6 +288,7 @@ class ModuleBaseSAM( object ):
     fopen = open( self.logFile, 'a' )
     fopen.write( self.getMessageString( '%s' % ( message ) ) )
     fopen.close()
+    
     return S_OK()
 
   def execute( self ):
@@ -292,10 +297,29 @@ class ModuleBaseSAM( object ):
     '''
     
     self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
     
+    inputVars = self.resolveInputVariables()
+    if not inputVars[ 'OK' ]:
+      self.log.error( inputVars[ 'Message' ] )
+      return inputVars
+    
+    logFile = self.setSAMLogFile()
+    if not logFile[ 'OK' ]:
+      self.log.error( logFile[ 'Message' ] )
+      return logFile
+    
+    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
+      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
+      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+    
+    return self._execute()
+
+  def _execute( self ):
+    '''
+      Method to be overwritten by extended classes
+    ''' 
     return S_OK()
+        
 
   def finalize( self, message, result, samResult ):
     """Finalize properly by setting the appropriate result at the step level

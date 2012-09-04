@@ -10,7 +10,7 @@ import re
 
 import DIRAC
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import S_OK, S_ERROR, gConfig
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
@@ -33,18 +33,12 @@ class SystemConfiguration( ModuleBaseSAM ):
     #Workflow parameters for the test
     self.enable = True
 
-  def execute( self ):
+  def _execute( self ):
     """The main execution method of the SystemConfiguration module.
     """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
-
-    if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
 
     self.runinfo = self.getRunInfo()
+    
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
     result = self.__checkMapping( self.runinfo['Proxy'], self.runinfo['identityShort'] )
     if not result['OK']:
