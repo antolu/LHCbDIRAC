@@ -3,7 +3,7 @@
 
 __RCSID__ = "$Id$"
 
-import time, datetime, os
+import time, datetime, os, random
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
@@ -118,7 +118,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for lfns in breakListIntoChunks( self.transReplicas.keys(), 500 ):
       # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
       #          may have themselves descendants with replicas
-      res = self.bkClient.getFileDescendants( lfns, production = int( self.transID ), depth = 1, checkreplica = True )
+      res = self.bkClient.getFileDescendants( lfns, production=int( self.transID ), depth=1, checkreplica=True )
       if not res['OK']:
         self.util.logError( "Cannot get descendants of files:", res['Message'] )
       else:
@@ -322,7 +322,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         seProbs[backupSE] = 1.
         distinctSEs.append( backupSE )
       # get a random number between 0 and 1
-      import random
       rand = random.uniform( 0., 1. )
       strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
       self.util.logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
