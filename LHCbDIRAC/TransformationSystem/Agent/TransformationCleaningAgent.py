@@ -36,7 +36,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     :param bool baseAgentName: whatever  
     :param dict properties: whatever else
     """
-    DiracTCAgent.__init__( self, agentName, loadName, baseAgentName, properties )
+    DiracTCAgent.__init__( self, agentName, baseAgentName, properties )
     ## LHCb bookkeeping client
     self.bkClient = BookkeepingClient()
     ## LHCb transformation client 
