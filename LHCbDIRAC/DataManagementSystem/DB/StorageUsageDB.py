@@ -9,7 +9,7 @@
     :synopsis: StorageUsageDB class is a front-end to the Storage Usage Database.
 """
 ## imports
-from types import StringType
+from types import StringType, IntType
 ## from DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
@@ -900,6 +900,54 @@ class StorageUsageDB( DB ):
         continue
       insertedEntries += 1
     return S_OK( insertedEntries )
+
+  def sendDataUsageReport_2( self, directoryDict ):
+    """ Add a new trace in the Popularity table (new version which takes in input a dictionary per trace)  
+        Each trace corresponds to a directory, and the mandatory keys are the site and the count.
+        Optional keys are the status and the creation time 
+    """
+    self.log.info( "in addPopCount: dirDict: %s" % ( directoryDict ) )
+    if not directoryDict:
+      return S_OK()
+    insertedEntries = 0
+    for d in directoryDict.keys():
+      try:
+        site = directoryDict[ d ]['site']
+        count = directoryDict[ d ]['count']
+      except:
+        self.log.error("input directoryDict should specify site and count keys . %s " % ( directoryDict ) )
+        return S_ERROR('wrong arguments format')
+      # set default value for status 
+      status = 'New'
+      if directoryDict[ d ].has_key( 'status' ):
+        status = directoryDict[ d ][ 'status' ]
+     
+      if d[-1] != "/":
+        d = "%s/" % d
+      sqlPath = self._escapeString( d )[ 'Value' ]
+      sqlStatus = self._escapeString( status )[ 'Value' ]
+      sqlSite = self._escapeString( site )[ 'Value' ]
+      if type( count ) != IntType:
+        self.log.warn("in sendDataUsageReport: type is not correct %s" % count )
+        continue
+      # by default, insert the record with the current time, unless the input directoryDict specifies the creation time
+      if directoryDict[ d ].has_key( 'creationTime' ):
+        insertTime = directoryDict[ d ][ 'creationTime' ]
+        sqlInsertTime = self._escapeString( insertTime )[ 'Value' ]      
+        sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \
+               "( %s, %s, %d, %s, %s )" % ( sqlPath, sqlSite, count, sqlStatus, sqlInsertTime )
+      else:
+        sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \
+               "( %s, %s, %d, %s, UTC_TIMESTAMP() )" % ( sqlPath, sqlSite, count, sqlStatus )
+      self.log.info("in sendDataUsageReport_2 sqlCmd = %s " % sqlCmd )
+      result = self._update( sqlCmd )
+      if not result[ 'OK' ]:
+        self.log.error( "Cannot insert entry: %s" % (  result[ 'Message' ] ) )
+        continue
+      insertedEntries += 1
+    return S_OK( insertedEntries )
+
+
 
   def getDataUsageSummary( self, startTime, endTime, status = 'New' ):
     """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
