@@ -815,16 +815,16 @@ class BookkeepingManagerHandler(RequestHandler):
 
   #############################################################################
   types_getFileDescendents = [ListType, IntType, IntType, BooleanType]
-  def export_getFileDescendents(self, lfn, depth, production=0, checkreplica=True):
+  @staticmethod
+  def export_getFileDescendents(lfn, depth, production=0, checkreplica=True):
     """more info in the BookkeepingClient.py"""
-    return self.export_getFileDescendants(lfn, depth, production, checkreplica)
+    return dataMGMT_.getFileDescendents(lfn, depth, production, checkreplica)
 
   #############################################################################
   types_getFileDescendants = [ListType, IntType, IntType, BooleanType]
-  @staticmethod
-  def export_getFileDescendants(lfn, depth, production=0, checkreplica=True):
+  def export_getFileDescendants(self, lfn, depth, production=0, checkreplica=True):
     """more info in the BookkeepingClient.py"""
-    return dataMGMT_.getFileDescendents(lfn, depth, production, checkreplica)
+    return self.export_getFileDescendents(lfn, depth, production, checkreplica)
 
   #############################################################################
   types_checkfile = [StringType]

@@ -25,11 +25,13 @@ class BaseESClient:
       self.__currentDirectory = result['Value']
 
   #############################################################################
-  def list(self, path="", SelectionDict={}, SortDict={}, StartItem=0, Maxitems=0):
+  def list(self, path="", selectionDict=None, sortDict=None, startItem=0, maxitems=0):
     """It lists the database content as a Linux File System"""
+    selectionDict = selectionDict if selectionDict is not None else {}
+    sortDict = sortDict if sortDict is not None else {}
     res = self.getManager().mergePaths(self.__currentDirectory, path)
     if res['OK']:
-      return self.getManager().list(res['Value'], SelectionDict, SortDict, StartItem, Maxitems)
+      return self.getManager().list(res['Value'], selectionDict, sortDict, startItem, maxitems)
     else:
       return S_ERROR(res['Message'])
 

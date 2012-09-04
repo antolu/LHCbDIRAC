@@ -15,25 +15,25 @@ from LHCbDIRAC.BookkeepingSystem.Client.Help                                 imp
 from DIRAC.DataManagementSystem.Client.ReplicaManager                           import ReplicaManager
 import os
 import types
-
+import time
 
 __RCSID__ = "$Id$"
 
 INTERNAL_PATH_SEPARATOR = "/"
 
 #############################################################################
-class LHCB_BKKDBManager(BaseESManager):
+class LHCbBookkeepingManager(BaseESManager):
   """creates the virtual file system"""
-  LHCB_BKDB_FOLDER_TYPE = "LHCB_BKDB_Folder"
-  LHCB_BKDB_FILE_TYPE = "LHCB_BKDB_File"
+  __bookkeepingFolderType = "LHCB_BKDB_Folder"
+  __bookkeepingFileType = "LHCB_BKDB_File"
 
-  LHCB_BKDB_FOLDER_PROPERTIES = ['name',
+  __bookkeepingFolderProperties = ['name',
                                 'fullpath',
                                         ]
     # watch out for this ad hoc solution
     # if any changes made check all functions
     #
-  LHCB_BKDB_PREFIXES_CONFIG = ['ConfigName', # configname
+  __bookkeepingConfigurationPrefixes = ['ConfigName', # configname
                                    'ConfigVersion', #configversion
                                    'Simulation/DataTaking',
                                    'ProcessingPass',
@@ -43,20 +43,20 @@ class LHCB_BKKDBManager(BaseESManager):
                                    ''
                                    ]
 
-  LHCB_BKDB_PREFIXES_PRODUCTION = ['PROD',
+  __bookkeepingProductionPrefixes = ['PROD',
                                    'EVT',
                                    'FTY',
                                    ''
                                   ]
 
-  LHCB_BKDB_PREFIXES_RUN = ['RUN',
+  __bookkeepingRunPrefixes = ['RUN',
                                 'PAS',
                                 'EVT',
                                 'FTY',
                                  ''
                                   ]
 
-  LHCB_BKDB_PREFIXES_EVENTTYPE = ['ConfigName',
+  __bookkeepingEventtypePrefixes = ['ConfigName',
                                   'ConfigVersion',
                                   'EventTypeid',
                                   'Simulation/DataTaking',
@@ -65,15 +65,15 @@ class LHCB_BKKDBManager(BaseESManager):
                                   'FileType',
                                    '',
                                   ]
-  LHCB_BKDB_PREFIXES = []
+  __bookkeepingDatabasePrefixes = []
 
-  LHCB_BKDB_PARAMETERS = ['Configuration', 'Event type' , 'Productions', 'Runlookup' ]
+  __bookkeepingParameters = ['Configuration', 'Event type' , 'Productions', 'Runlookup' ]
 
-  LHCB_BKDB_PARAMETERS_SHORTNAME = {LHCB_BKDB_PARAMETERS[0]:'sim', LHCB_BKDB_PARAMETERS[1]:'evt' ,
-                                    LHCB_BKDB_PARAMETERS[2]:'prod', LHCB_BKDB_PARAMETERS[3]:'run' }
+  __bookkeepingShortparameternames = {__bookkeepingParameters[0]:'sim', __bookkeepingParameters[1]:'evt' ,
+                                    __bookkeepingParameters[2]:'prod', __bookkeepingParameters[3]:'run' }
 
-  LHCB_QUERIES_TYPE = ['adv', 'std']
-  LHCB_BKDB_PREFIX_SEPARATOR = "_"
+  __bookkeepingQueryTypes = ['adv', 'std']
+  __bookkeepingPrefixseparator = "_"
 
   #############################################################################
   def __init__(self, rpcClinet=None):
@@ -86,7 +86,7 @@ class LHCB_BKKDBManager(BaseESManager):
     self.helper_ = Help()
 
     self.__entityCache = {'/':(objects.Entity({'name':'/', 'fullpath':'/', 'expandable':True}), 0)}
-    self.parameter_ = self.LHCB_BKDB_PARAMETERS[0]
+    self.parameter_ = self.__bookkeepingParameters[0]
     self.files_ = []
 
     self.treeLevels_ = -1
@@ -125,46 +125,45 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def help(self):
     """help information"""
-    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+    if self.parameter_ == self.__bookkeepingParameters[0]:
       self.helper_.helpConfig(self._getTreeLevels())
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+    elif self.parameter_ == self.__bookkeepingParameters[1]:
       self.helper_.helpEventType(self._getTreeLevels())
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+    elif self.parameter_ == self.__bookkeepingParameters[2]:
       self.helper_.helpProcessing(self._getTreeLevels())
 
   #############################################################################
   def getPossibleParameters(self):
     """available parameters"""
-    return self.LHCB_BKDB_PARAMETERS
+    return self.__bookkeepingParameters
 
   #############################################################################
   def getCurrentParameter(self):
     """current parameters"""
-    return self.LHCB_BKDB_PARAMETERS_SHORTNAME[self.parameter_]
+    return self.__bookkeepingShortparameternames[self.parameter_]
 
   #############################################################################
   def getQueriesTypes(self):
     """types of queries"""
     if self.advancedQuery_:
-      return self.LHCB_QUERIES_TYPE[0]
+      return self.__bookkeepingQueryTypes[0]
     else:
-      return self.LHCB_QUERIES_TYPE[1]
+      return self.__bookkeepingQueryTypes[1]
 
   #############################################################################
   def setParameter(self, name):
     """query types"""
-    if self.LHCB_BKDB_PARAMETERS.__contains__(name):
+    if self.__bookkeepingParameters.__contains__(name):
       self.parameter_ = name
       self.treeLevels_ = -1
       if name == 'Configuration':
-        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_CONFIG
+        self.__bookkeepingDatabasePrefixes = self.__bookkeepingConfigurationPrefixes
       elif name == 'Productions':
-        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_PRODUCTION
+        self.__bookkeepingDatabasePrefixes = self.__bookkeepingProductionPrefixes
       elif name == 'Event type':
-        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_EVENTTYPE
+        self.__bookkeepingDatabasePrefixes = self.__bookkeepingEventtypePrefixes
       elif name == 'Runlookup':
-        self.LHCB_BKDB_PREFIXES = self.LHCB_BKDB_PREFIXES_RUN
-
+        self.__bookkeepingDatabasePrefixes = self.__bookkeepingRunPrefixes
     else:
       gLogger.error("Wrong Parameter!")
 
@@ -181,17 +180,19 @@ class LHCB_BKKDBManager(BaseESManager):
     return res
 
   #############################################################################
-  def list(self, path="/", selectionDict={}, sortDict={}, startItem=0, maxitems=0):
+  def list(self, path="/", selectionDict=None, sortDict=None, startItem=0, maxitems=0):
     """list a path"""
     gLogger.debug(path)
+    selectionDict = selectionDict if selectionDict is not None else {}
+    sortDict = sortDict if sortDict is not None else {}
 
-    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
-      return self._listConfigs(path, selectionDict, sortDict, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+    if self.parameter_ == self.__bookkeepingParameters[0]:
+      return self._listConfigs(path, sortDict, startItem, maxitems)
+    elif self.parameter_ == self.__bookkeepingParameters[1]:
       return self._listEventTypes(path, sortDict, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+    elif self.parameter_ == self.__bookkeepingParameters[2]:
       return self._listProduction(path)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+    elif self.parameter_ == self.__bookkeepingParameters[3]:
       return self._listRuns(path)
 
   #############################################################################
@@ -202,27 +203,33 @@ class LHCB_BKKDBManager(BaseESManager):
     path = self.getAbsolutePath(path)['Value'] # shall we do this here or in the _processedPath()?
     processedPath = self._processPath(path)
     tmpPath = list(processedPath)
-    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+    if self.parameter_ == self.__bookkeepingParameters[1]:
       level, procpass = self.__getEvtLevel(tmpPath, [], level=0, start=False, end=False,
                                            processingpath='', startlevel=4)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+    elif self.parameter_ == self.__bookkeepingParameters[3]:
       level, procpass = self.__getRunLevel(tmpPath, [], level=0, start=False, end=False,
                                            processingpath='', startlevel=1)
     else:
-      level, procpass = self.__getLevel(tmpPath, [])
+      level, procpass = self.__getLevel(path=tmpPath, visited=[],
+                                        level=0, start=False,
+                                        end=False, processingpath='',
+                                        startlevel=3)
     self._updateTreeLevels(level)
     return level, processedPath, procpass
 
   #############################################################################
   # This method recursive visite all the tree nodes and found the processing pass
-  def __getLevel(self, path, visited=[], level=0, start=False, end=False, processingpath='', startlevel=3):
+  def __getLevel(self, path, visited, level, start, end, processingpath, startlevel):
     """level"""
     for i in path:
       if level == startlevel and start == False:
         for j in visited:
           path.remove(j)
         level += 1
-        return self.__getLevel(path, visited, level, start=True)
+        return self.__getLevel(path, visited,
+                               level, start=True,
+                               end=False, processingpath='',
+                               startlevel=3)
       else:
         level += 1
         try:
@@ -240,14 +247,18 @@ class LHCB_BKKDBManager(BaseESManager):
     return level, processingpath
 
   #############################################################################
-  def __getRunLevel(self, path, visited=[], level=0, start=False, end=False, processingpath='', startlevel=1):
+  def __getRunLevel(self, path, visited, level, start, end, processingpath, startlevel):
     """run level"""
     for i in path:
       if level == startlevel and start == False:
         for j in visited:
           path.remove(j)
         level += 1
-        return self.__getRunLevel(path, visited, level, start=True)
+        return self.__getRunLevel(path, visited,
+                                  level, start=True,
+                                  end = False,
+                                  processingpath='',
+                                  startlevel = 1)
       else:
         level += 1
         try:
@@ -266,14 +277,17 @@ class LHCB_BKKDBManager(BaseESManager):
 
   #############################################################################
   # This method recursive visite all the tree nodes and found the processing pass
-  def __getEvtLevel(self, path, visited=[], level=0, start=False, end=False, processingpath='', startlevel=4):
+  def __getEvtLevel(self, path, visited, level, start, end, processingpath, startlevel):
     """evt level"""
     for i in path:
       if level == startlevel and start == False:
         for j in visited:
           path.remove(j)
         level += 1
-        return self.__getEvtLevel(path, visited, level, start=True)
+        return self.__getEvtLevel(path, visited,
+                                  level, start=True,
+                                  end = False, processingpath='',
+                                  startlevel=4)
       else:
         level += 1
         try:
@@ -292,7 +306,7 @@ class LHCB_BKKDBManager(BaseESManager):
     return level, processingpath
 
   #############################################################################
-  def _listConfigs(self, path, selectionDict, sortDict, startItem, maxitems):
+  def _listConfigs(self, path, sortDict, startItem, maxitems):
     """list 1th tree"""
     entityList = list()
     levels, processedPath, procpass = self.getLevelAndPath(path)
@@ -1419,13 +1433,13 @@ class LHCB_BKKDBManager(BaseESManager):
   #############################################################################
   def getLimitedFiles(self, selectionDict, sortDict, startItem, maxitems):
     """web """
-    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+    if self.parameter_ == self.__bookkeepingParameters[0]:
       return self._getLimitedFilesConfigParams(selectionDict, sortDict, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+    elif self.parameter_ == self.__bookkeepingParameters[1]:
       return self._getLimitedFilesEventTypeParams(selectionDict, sortDict, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+    elif self.parameter_ == self.__bookkeepingParameters[2]:
       return self._getLimitedFilesProductions(selectionDict, sortDict, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+    elif self.parameter_ == self.__bookkeepingParameters[3]:
       return self._getLimitedFilesRuns(selectionDict, sortDict, startItem, maxitems)
 
   #############################################################################
@@ -1595,16 +1609,16 @@ class LHCB_BKKDBManager(BaseESManager):
     """create Gaudi Card"""
     result = None
     dataset = None
-    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+    if self.parameter_ == self.__bookkeepingParameters[0]:
       result = self._getLimitedFilesConfigParams({'fullpath':path}, {}, startItem, maxitems)
       dataset = self._getDataSetTree1({'fullpath':path})
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+    elif self.parameter_ == self.__bookkeepingParameters[1]:
       result = self._getLimitedFilesEventTypeParams({'fullpath':path}, {}, startItem, maxitems)
       dataset = self._getDataSetTree2({'fullpath':path})
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+    elif self.parameter_ == self.__bookkeepingParameters[2]:
       result = self._getLimitedFilesProductions({'fullpath':path}, {}, startItem, maxitems)
       dataset = self._getDataSetTree3({'fullpath':path})
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+    elif self.parameter_ == self.__bookkeepingParameters[3]:
       result = self._getLimitedFilesRuns({'fullpath':path}, {}, startItem, maxitems)
       dataset = self._getDataSetTree4({'fullpath':path})
 
@@ -1629,13 +1643,13 @@ class LHCB_BKKDBManager(BaseESManager):
   def getLimitedInformations(self, startItem, maxitems, path):
     """statistics"""
     result = None
-    if self.parameter_ == self.LHCB_BKDB_PARAMETERS[0]:
+    if self.parameter_ == self.__bookkeepingParameters[0]:
       result = self._getLimitedFilesConfigParams({'fullpath':path}, {'need':0}, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[1]:
+    elif self.parameter_ == self.__bookkeepingParameters[1]:
       result = self._getLimitedFilesEventTypeParams({'fullpath':path}, {'need':0}, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[2]:
+    elif self.parameter_ == self.__bookkeepingParameters[2]:
       result = self._getLimitedFilesProductions({'fullpath':path}, {'need':0}, startItem, maxitems)
-    elif self.parameter_ == self.LHCB_BKDB_PARAMETERS[3]:
+    elif self.parameter_ == self.__bookkeepingParameters[3]:
       result = self._getLimitedFilesRuns({'fullpath':path}, {'need':0}, startItem, maxitems)
 
     if result.has_key('TotalRecords') and result['TotalRecords'] > 0:
@@ -1665,7 +1679,6 @@ class LHCB_BKKDBManager(BaseESManager):
         return fd
 
     # get lst of event types
-    import time
     evtTypes = {}
 
     fileType = None

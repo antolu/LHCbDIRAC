@@ -7,7 +7,7 @@
 ########################################################################
 
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
-from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager                   import LHCB_BKKDBManager
+from LHCbDIRAC.BookkeepingSystem.Client.LHCbBookkeepingManager              import LHCbBookkeepingManager
 
 __RCSID__ = "$Id$"
 
@@ -17,7 +17,7 @@ class LHCB_BKKDBClient(BaseESClient):
   #############################################################################
   def __init__(self, rpcClinet=None):
     """Initialize the basic class"""
-    BaseESClient.__init__(self, LHCB_BKKDBManager(rpcClinet), '/')
+    BaseESClient.__init__(self, LHCbBookkeepingManager(rpcClinet), '/')
   #############################################################################
   def get(self, path=""):
     """get path"""

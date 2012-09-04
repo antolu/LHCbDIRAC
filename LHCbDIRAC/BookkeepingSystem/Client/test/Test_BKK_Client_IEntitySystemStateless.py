@@ -30,10 +30,10 @@ class IEntitySystemStateless_TestCase( unittest.TestCase ):
     '''
 
     # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBManager   as moduleTested
+    import LHCbDIRAC.BookkeepingSystem.Client.LHCbBookkeepingManager   as moduleTested
     moduleTested.gLogger = dummyCallable
 
-    self.iEntity = moduleTested.LHCB_BKKDBManager
+    self.iEntity = moduleTested.LHCbBookkeepingManager
 
   def tearDown( self ):
     '''

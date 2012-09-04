@@ -26,8 +26,16 @@ class BaseESManager:
     return self.__fileSeparator
 
   #############################################################################
-  def list(self, path=""):
+  def list(self, path="/", selectionDict=None, sortDict=None, startItem=0, maxitems=0):
     """list the path"""
+    selectionDict = selectionDict if selectionDict is not None else {}
+    sortDict = sortDict if sortDict is not None else {}
+    gLogger.error('This method is not implemented!'+ (str(self.__class__)))
+    gLogger.error(str(path))
+    gLogger.error(str(selectionDict))
+    gLogger.error(str(sortDict))
+    gLogger.error(str(startItem))
+    gLogger.error(str(maxitems))
     return S_ERROR("Not Implemented!")
 
   #############################################################################
