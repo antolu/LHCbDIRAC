@@ -14,10 +14,6 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME = 'CE-lhcb-lock'
-SAM_LOG_FILE  = 'sam-lock.log'
-SAM_LOCK_NAME = 'DIRAC-SAM-Test-Lock'
-
 class LockSharedArea( ModuleBaseSAM ):
 
   #############################################################################
@@ -26,9 +22,9 @@ class LockSharedArea( ModuleBaseSAM ):
     """
     ModuleBaseSAM.__init__( self )
 
-    self.logFile  = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
-    self.lockFile = SAM_LOCK_NAME
+    self.logFile  = 'sam-lock.log'
+    self.testName = 'CE-lhcb-lock'
+    self.lockFile = 'DIRAC-SAM-Test-Lock'
 
     self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
 

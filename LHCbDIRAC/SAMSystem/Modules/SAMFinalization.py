@@ -16,7 +16,7 @@ import time
 
 import DIRAC
 
-from DIRAC                                               import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                                               import S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Subprocess                     import pythonCall
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping         import getGOCSiteName
@@ -28,10 +28,6 @@ from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 
 __RCSID__ = '$Id$'
 
-SAM_TEST_NAME = 'CE-lhcb-sam-publish'
-SAM_LOG_FILE  = 'sam-publish.log'
-SAM_LOCK_NAME = 'DIRAC-SAM-Test-Lock'
-
 class SAMFinalization( ModuleBaseSAM ):
   """ SAM Finalization class """
 
@@ -40,9 +36,11 @@ class SAMFinalization( ModuleBaseSAM ):
     """
     ModuleBaseSAM.__init__( self )
     self.runinfo     = {}
-    self.logFile     = SAM_LOG_FILE
-    self.testName    = SAM_TEST_NAME
-    self.lockFile    = SAM_LOCK_NAME
+    
+    self.logFile     = 'sam-publish.log'
+    self.testName    = 'CE-lhcb-sam-publish'
+    self.lockFile    = 'DIRAC-SAM-Test-Lock'
+    
     self.diracSetup  = gConfig.getValue( '/DIRAC/Setup', 'None' )
     self.opsH        = Operations()
     self.diracLogo   = self.opsH.getValue( 'SAM/LogoURL',

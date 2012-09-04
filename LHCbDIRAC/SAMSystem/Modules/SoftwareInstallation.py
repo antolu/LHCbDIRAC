@@ -15,16 +15,13 @@ import urllib
 
 import DIRAC
 
-from DIRAC import S_OK, S_ERROR, gConfig#, gLogger
+from DIRAC import S_OK, S_ERROR, gConfig
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import getSharedArea, installApplication
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import removeApplication, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM             import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
-
-SAM_TEST_NAME = 'CE-lhcb-install'
-SAM_LOG_FILE  = 'sam-install.log'
 
 class SoftwareInstallation( ModuleBaseSAM ):
   """ SoftwareInstallation SAM class """
@@ -33,8 +30,9 @@ class SoftwareInstallation( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.logFile  = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
+    
+    self.logFile  = 'sam-install.log'
+    self.testName = 'CE-lhcb-install'
 
     #Workflow parameters for the test
     self.purgeSharedArea   = False
@@ -107,7 +105,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
       shutil.copy( '%s/%s' % ( os.getcwd(), installProjectName ), '%s/%s' % ( sharedArea, installProjectName ) )
 
     # Change the permissions on the shared area (if a pool account is used)
-    if not re.search( '\d$', self.runinfo['identityShort'] ):
+    if not re.search( '\d$', self.runInfo['identityShort'] ):
       isPoolAccount = False
     else:
       isPoolAccount = True
@@ -284,7 +282,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     self.log.verbose( 'Changing permissions to 0775 in shared area %s' % sharedArea )
     self.writeToLog( 'Changing permissions to 0775 in shared area %s' % sharedArea )
 
-    userID = self.runinfo['identityShort']
+    userID = self.runInfo['identityShort']
 
     try:
       for dirName, _subDirs, files in os.walk( sharedArea ):

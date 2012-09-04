@@ -20,8 +20,6 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME     = 'CE-lhcb-softreport'
-SAM_LOG_FILE      = 'sam-softreport.log'
 InstallProject    = 'install_project.py'
 InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
@@ -31,8 +29,10 @@ class SoftwareReport( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.logFile = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
+    
+    self.logFile  = 'sam-softreport.log'
+    self.testName = 'CE-lhcb-softreport'
+    
     self.site = gConfig.getValue( '/LocalSite/Site', 'LCG.Unknown.ch' )
 
     #Workflow parameters for the test

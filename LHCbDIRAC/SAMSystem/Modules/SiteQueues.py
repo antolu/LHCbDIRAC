@@ -6,13 +6,9 @@
 
 import os
 
-#from DIRAC                                     import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
-
-SAM_TEST_NAME = 'CE-lhcb-queues'
-SAM_LOG_FILE  = 'sam-queues.log'
 
 class SiteQueues( ModuleBaseSAM ):
 
@@ -20,8 +16,9 @@ class SiteQueues( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.logFile  = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
+    
+    self.logFile  = 'sam-queues.log'
+    self.testName = 'CE-lhcb-queues'
 
   def _execute( self ):
     """The main execution method of the SiteQueues module.

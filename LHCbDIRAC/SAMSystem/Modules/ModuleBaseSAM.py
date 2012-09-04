@@ -42,8 +42,6 @@ class ModuleBaseSAM( object ):
           
     self.testName         = None
     self.logFile          = None
-    self.version          = None
-    self.enable           = None
     self.jobReport        = None
     
     # Memebers injected on Workflow.execution.. so ugly !

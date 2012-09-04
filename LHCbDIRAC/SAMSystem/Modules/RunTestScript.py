@@ -11,20 +11,16 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME = 'CE-lhcb-test-script'
-SAM_LOG_FILE  = 'sam-run-test-script.log'
-SAM_LOCK_NAME = 'DIRAC-SAM-Test-Script'
-
 class RunTestScript( ModuleBaseSAM ):
 
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-#    self.runinfo  = {}
-    self.logFile  = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
-    self.lockFile = SAM_LOCK_NAME
+    
+    self.logFile  = 'sam-run-test-script.log'
+    self.testName = 'CE-lhcb-test-script'
+    self.lockFile = 'DIRAC-SAM-Test-Script'
 
     #Workflow parameters for the test
     self.scriptName = ''

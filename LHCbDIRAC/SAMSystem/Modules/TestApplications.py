@@ -21,10 +21,6 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM             import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME = '' #Defined in the workflow
-SAM_LOG_FILE  = ''  #Defined using workflow parameters
-natOS         = NativeMachine()
-
 class TestApplications( ModuleBaseSAM ):
   """ Test Application sSAM class """
 
@@ -32,10 +28,11 @@ class TestApplications( ModuleBaseSAM ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.logFile         = SAM_LOG_FILE
-    self.testName        = SAM_TEST_NAME
+    
+    self.logFile         = ''
+    self.testName        = ''
 #    self.appSystemConfig = gConfig.getValue('/Operations/SAM/AppTestSystemConfig','slc4_ia32_gcc34')
-    self.appSystemConfig = natOS.CMTSupportedConfig()[0]
+    self.appSystemConfig = NativeMachine().CMTSupportedConfig()[0]
 
     #Workflow parameters for the test
     self.samTestName    = ''

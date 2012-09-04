@@ -17,17 +17,15 @@ from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-SAM_TEST_NAME = 'CE-lhcb-os'
-SAM_LOG_FILE  = 'sam-os.log'
-
 class SystemConfiguration( ModuleBaseSAM ):
 
   def __init__( self ):
     """ Standard constructor for SAM Module
     """
     ModuleBaseSAM.__init__( self )
-    self.logFile = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
+    
+    self.logFile  = 'sam-os.log'
+    self.testName = 'CE-lhcb-os'
 
   def _execute( self ):
     """The main execution method of the SystemConfiguration module.
