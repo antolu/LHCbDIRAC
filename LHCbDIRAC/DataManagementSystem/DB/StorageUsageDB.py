@@ -912,7 +912,7 @@ class StorageUsageDB( DB ):
     sqlStartTime = self._escapeString( startTime )[ 'Value' ]
     sqlEndTime = self._escapeString( endTime )[ 'Value' ]
     sqlStatus = self._escapeString( status )[ 'Value' ]
-    sqlCmd = "SELECT ID, Path, Site, Count from `Popularity` WHERE " \
+    sqlCmd = "SELECT ID, Path, Site, Count, InsertTime from `Popularity` WHERE " \
         "Status = %s AND InsertTime > %s AND InsertTime < %s " % ( sqlStatus, sqlStartTime, sqlEndTime )
     self.log.info( "sqlCmd = %s " % sqlCmd )
     result = self._query( sqlCmd )
