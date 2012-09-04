@@ -25,6 +25,14 @@ class SiteQueues( ModuleBaseSAM ):
   def _execute( self ):
     '''
       The main execution method of the SiteQueues module.
+      Checks:
+      - config
+      - GlueHostBenchmarkSI00
+      - GlueCEPolicyMaxCPUTime
+      - QueueBenchmark
+      - CPUScalingReferenceSI00
+      - GlueCEPolicyMaxCPUTime
+      - QueueScaling
     '''
 
     result = self.__checkConfig()
