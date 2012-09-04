@@ -225,7 +225,7 @@ class ModuleBaseSAM( object ):
     '''
       Method to be overwritten by extended classes
     ''' 
-    return S_OK() 
+    return S_OK( self.version ) 
 
   def _getSAMNode( self ):
     '''
@@ -288,13 +288,6 @@ class ModuleBaseSAM( object ):
       message = '%s\n%s\n%s\n' % ( border, message, border )
     return message
 
-
-
-
-
-
-
-
   def setJobParameter( self, name, value ):
     """Wraps around setJobParameter of state update client
     """
@@ -304,7 +297,7 @@ class ModuleBaseSAM( object ):
     self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
     if 'JobReport' in self.workflow_commons:
-      self.jobReport = self.workflow_commons['JobReport']
+      self.jobReport = self.workflow_commons[ 'JobReport' ]
 
     if not self.jobReport:
       return S_OK( 'No reporting tool given' )
@@ -322,6 +315,7 @@ class ModuleBaseSAM( object ):
     '''
 
     self.log.verbose( message )
+    
     if not os.path.exists( '%s' % ( self.logFile ) ):
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
