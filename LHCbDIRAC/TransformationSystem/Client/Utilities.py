@@ -194,6 +194,8 @@ class PluginUtilities:
         value = getListFromString( value )
       elif valueType == type( 0 ):
         value = int( value )
+      elif valueType == type( 0. ):
+        value = float( value )
       elif valueType != type( '' ):
         self.logWarn( "Unknown parameter value type %s, passed as string" % str( valueType ) )
     self.logVerbose( "Final plugin param %s: '%s'" % ( name, value ) )
