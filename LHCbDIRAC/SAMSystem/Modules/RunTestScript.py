@@ -5,7 +5,7 @@
 import os
 import sys
 
-from DIRAC import S_OK
+from DIRAC import S_OK, S_ERROR
 
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
@@ -48,9 +48,25 @@ class RunTestScript( ModuleBaseSAM ):
        The main execution method of the RunTestScript module.
     '''
 
+    result = self.__checkScript()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    self.setApplicationStatus( '%s Successful' % self.testName )
+    return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
+
+  def __checkScript( self ):
+    '''
+       Checks script
+    '''
+    
     #Should fail the test in the case where the script is not locally available on the WN
     if not os.path.exists( '%s/%s' % ( os.getcwd(), self.scriptName ) ):
-      return self.finalize( 'Script not found', '%s' % ( self.scriptName ), 'notice' )
+      result = S_ERROR( self.scriptName )
+      result[ 'Description' ] = 'Script not found'
+      result[ 'SamResult' ]   = 'notice'
+      
+      return result
 
     #Assume any status code is ok but report a non-zero status to the logs and report SAM notice status
     cmd = '%s %s' % ( sys.executable, self.scriptName )
@@ -58,10 +74,14 @@ class RunTestScript( ModuleBaseSAM ):
     result = self.runCommand( 'Executing script with commmand "%s"' % cmd, cmd, check = True )
     if not result[ 'OK' ]:
       self.log.warn( '%s returned non-zero status' % ( self.scriptName ) )
-      return self.finalize( 'Script not found', '%s' % ( self.scriptName ), 'info' )
-
-    self.setApplicationStatus( '%s Successful' % self.testName )
-    return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
-
+      
+      result[ 'Message' ]     = self.scriptName
+      result[ 'Description' ] = 'Script not found'
+      result[ 'SamResult' ]   = 'info'
+      
+      return result  
+      
+    return S_OK()
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
