@@ -135,7 +135,7 @@ for id in idList:
   startTime = time.time()
   lfnChunks = breakListIntoChunks( lfns, chunkSize )
   for lfnChunk in lfnChunks:
-    res = bk.getFileDescendents( lfnChunk, depth=1, production=id, checkreplica=False )
+    res = bk.getFileDescendants( lfnChunk, depth = 1, production = id, checkreplica = False )
     if res['OK']:
       descChunk = res['Value']['Successful']
     else:

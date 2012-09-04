@@ -313,7 +313,7 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   count_b = 0
   count_d = 0
 
-  descendants = bkClient.getFileDescendents( rawLFN, 9 )
+  descendants = bkClient.getFileDescendants( rawLFN, 9 )
   gLogger.info( "=== Performing check for multiple run in RAW ancestors ===" )
   
   for rawDescendants in descendants[ 'Value' ][ 'Successful' ].keys():
@@ -483,7 +483,7 @@ def GetDescendants( rawLFN , bkClient ):
   """
   
   descLFN = []
-  res     = bkClient.getFileDescendents( rawLFN, 5 )
+  res = bkClient.getFileDescendants( rawLFN, 5 )
 
   if not res[ 'OK' ]:
     gLogger.error( "Unable to retrieve descendants for RAW %s" % rawLFN )

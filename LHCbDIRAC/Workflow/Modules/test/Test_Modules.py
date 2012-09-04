@@ -939,11 +939,11 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                       ]
           wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                                 '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
-          self.bkc_mock.getFileDescendents.return_value = {'OK': False,
+          self.bkc_mock.getFileDescendants.return_value = {'OK': False,
                                                            'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                         {'skipCACheck': False,
                                                                          'timeout': 3600} ),
-                                                                       'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                                       'getFileDescendants', ( ['foo'], 9, 0, True ) ),
                                                            'Value': {'Successful': {'foo.txt': ['baaar']},
                                                                      'Failed': [],
                                                                      'NotProcessed': []}}
@@ -952,11 +952,11 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
                                              self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
-          self.bkc_mock.getFileDescendents.return_value = {'OK': True,
+          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
                                                            'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                         {'skipCACheck': False,
                                                                          'timeout': 3600} ),
-                                                                       'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                                       'getFileDescendants', ( ['foo'], 9, 0, True ) ),
                                                            'Value': {'Successful': {'foo.txt': ['baaar']},
                                                                      'Failed': [],
                                                                      'NotProcessed': []}}
@@ -965,11 +965,11 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
                                              self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
-          self.bkc_mock.getFileDescendents.return_value = {'OK': True,
+          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
                                                            'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                         {'skipCACheck': False,
                                                                          'timeout': 3600} ),
-                                                                       'getFileDescendents', ( ['foo'], 9, 0, True ) ),
+                                                                       'getFileDescendants', ( ['foo'], 9, 0, True ) ),
                                                            'Value': {'Successful': {},
                                                                      'Failed': [],
                                                                      'NotProcessed': []}}

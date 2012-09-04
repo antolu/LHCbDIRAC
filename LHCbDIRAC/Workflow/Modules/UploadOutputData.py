@@ -9,8 +9,11 @@ import os, random, time, glob, copy
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
+from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyChecks
+
 
 class UploadOutputData( ModuleBase ):
 
@@ -38,6 +41,7 @@ class UploadOutputData( ModuleBase ):
     self.outputList = []
     self.outputDataStep = ''
     self.request = None
+    self.consistencyChecks = consistencyChecks()
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -107,14 +111,18 @@ class UploadOutputData( ModuleBase ):
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
 
+      if not self._checkWFAndStepStatus():
+        return S_OK( 'No output data upload attempted' )
+
       if not bk:
         from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkClient = BookkeepingClient()
       else:
         bkClient = bk
 
-      if not self._checkWFAndStepStatus():
-        return S_OK( 'No output data upload attempted' )
+      if not rm:
+        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+        rm = ReplicaManager()
 
       #Determine the final list of possible output files for the
       #workflow and all the parameters needed to upload them.
@@ -174,7 +182,7 @@ class UploadOutputData( ModuleBase ):
       #'Failed': [], 'NotProcessed': []}}
 
       if inputDataList:
-        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient, rm )
         if not result['OK']:
           return result
 
@@ -260,7 +268,7 @@ class UploadOutputData( ModuleBase ):
 
       #Now double-check prior to final BK replica flag setting that the input files are still not processed 
       if inputDataList:
-        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient, rm )
         if not result['OK']:
           lfns = []
           self.log.error( 'Input files for this job were marked as processed during the \
@@ -312,9 +320,6 @@ class UploadOutputData( ModuleBase ):
             if not result['OK']:
               return result
         else:
-          if not rm:
-            from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-            rm = ReplicaManager()
           result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
           self.log.verbose( result )
           if not result['OK']:
@@ -340,7 +345,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient ):
+  def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient, rm ):
     """ Checks that the input files for the job were not already processed by
         another job i.e. that there are no other descendent files for the
         current productionID having a BK replica flag.
@@ -349,35 +354,79 @@ class UploadOutputData( ModuleBase ):
       self.log.verbose( 'This job has no input data to check for descendents in the BK' )
       return S_OK()
 
-    prodID = str( productionID )
-    prodID = prodID.lstrip( '0' )
-    self.log.info( 'Will check BK descendents for input data of job prior to uploading outputs' )
-    start = time.time()
-    result = bkClient.getFileDescendents( inputData, depth = 1, production = int( prodID ), checkreplica = False )
-    timing = time.time() - start
-    self.log.info( 'BK Descendents Lookup Time: %.2f seconds ' % ( timing ) )
-    if not result['OK']:
-      self.log.error( 'Would have uploaded output data for job but could not check for \
-      descendents of input data from BK with result:\n%s' % ( result ) )
-      return S_ERROR( 'Could Not Contact BK To Check Descendents' )
-    if result['Value']['Failed']:
-      self.log.error( 'BK getFileDescendents returned an error for some files:\n%s\nwill \
-      exit to avoid uploading outputs that have already been processed' % ( result['Value']['Failed'] ) )
-      return S_ERROR( 'BK Descendents Check Was Not Complete' )
+    prodID = str( productionID ).lstrip( '0' )
 
-    inputDataDescDict = result['Value']['Successful']
-    failed = False
-    for inputDataFile, descendents in inputDataDescDict.items():
-      if descendents:
-        failed = True
-        self.log.error( 'Input files: \n%s \nDescendents: %s' % ( '\n'.join( inputDataFile ),
-                                                                  '\n'.join( descendents ) ) )
-    if failed:
-      self.log.error( '!!!!Found descendent files for production %s with \
-      BK replica flag for an input file of this job!!!!' % ( prodID ) )
-      return S_ERROR( 'Input Data Already Processed' )
+    self.log.info( 'Will check BK descendents for input data of job prior to uploading outputs' )
+    result = self.__checkDescendants( bkClient,
+                                      inputData,
+                                      depth = 1,
+                                      production = int( prodID ) )
+
+    if not result['OK']:
+      return result
+    descendants = result['Value']
+
+    if descendants:
+      self.log.warn( '!!!!Found descendant files for production %s' % ( prodID ) )
+      self.log.warn( 'Input files: \n%s \n descendants: %s' % ( '\n'.join( inputData ), '\n'.join( descendants ) ) )
+      self.log.warn( 'Now checking if they have a replica' )
+
+      present, notPresent = self.consistencyChecks.getReplicasPresence( descendants )
+
+      if present:
+        self.log.error( 'Descendant registered also in the LFC, will fail' )
+        return S_ERROR( 'Input Data Already Processed' )
+
+      else:
+        if notPresent:
+          result = self.__checkDescendants( bkClient,
+                                            descendants
+                                            )
+
+          if not result['OK']:
+            return result
+          descendants = result['Value']
+
+          if descendants:
+            self.log.error( 'Found descendants of the descendants, will fail' )
+            return S_ERROR( 'Input Data Already Processed' )
+          else:
+            self.log.error( 'Didn\'t found any descendants of the descendants, will not fail' )
 
     return S_OK( 'Outputs can be uploaded' )
+
+  #############################################################################
+
+  def __checkDescendants( self, bkClient, inputData, depth = 999, production = None, checkReplica = True ):
+    """ Check for descendants
+    """
+    start = time.time()
+    result = bkClient.getFileDescendants( inputData,
+                                          depth = depth,
+                                          production = production,
+                                          checkreplica = checkReplica )
+    timing = time.time() - start
+    self.log.info( 'BK Descendants Lookup Time: %.2f seconds ' % ( timing ) )
+    if not result['OK']:
+      self.log.error( 'Would have uploaded output data for job but could not check for \
+      Descendants of input data from BK with result:\n%s' % ( result ) )
+      return S_ERROR( 'Could Not Contact BK To Check Descendants' )
+    if result['Value']['Failed']:
+      self.log.error( 'BK getFileDescendants returned an error for some files:\n%s \
+      will exit to avoid uploading outputs that have already been processed' % ( result['Value']['Failed'] ) )
+      return S_ERROR( 'BK Descendants Check Was Not Complete' )
+
+    inputDataDescDict = result['Value']['Successful']
+
+    descendantsList = []
+
+    for inputDataFile, descendants in inputDataDescDict.items():
+      if descendants:
+        self.log.warn( 'Input files: \n%s \nDescendents: %s' % ( '\n'.join( inputDataFile ),
+                                                                 '\n'.join( descendants ) ) )
+        descendantsList += descendants
+
+    return S_OK( descendantsList )
 
   #############################################################################
 

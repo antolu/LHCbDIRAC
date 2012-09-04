@@ -118,7 +118,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for lfns in breakListIntoChunks( self.transReplicas.keys(), 500 ):
       # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
       #          may have themselves descendants with replicas
-      res = self.bkClient.getFileDescendents( lfns, production=int( self.transID ), depth=1, checkreplica=True )
+      res = self.bkClient.getFileDescendants( lfns, production = int( self.transID ), depth = 1, checkreplica = True )
       if not res['OK']:
         self.util.logError( "Cannot get descendants of files:", res['Message'] )
       else:

@@ -411,7 +411,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
       self.log.info( 'Checking BK descendents for job %s...' % job )
       #check any input data has descendant files...
-      result = self.bkClient.getFileDescendents( fileList,
+      result = self.bkClient.getFileDescendants( fileList,
                                                  depth = bkDepth,
                                                  production = int( transformation ),
                                                  checkreplica = False )

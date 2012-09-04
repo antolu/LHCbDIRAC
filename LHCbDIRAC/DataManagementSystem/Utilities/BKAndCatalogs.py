@@ -61,14 +61,14 @@ class consistencyChecks( object ):
       # Merging and Reconstruction
       # In principle few files without replica flag, check them in FC
       gLogger.verbose( 'Checking LFC for those files with BKK ReplicaFlag = No' )
-      self.existingLFNsThatAreNotInBKK, self.nonExistingLFNsThatAreNotInBKK = self._getReplicasPresence( self.lfnsReplicaNo )
-      self.existingLFNsThatAreInBKK, self.nonExistingLFNsThatAreInBKK = self._getReplicasPresenceFromDirectoryScan( self.lfnsReplicaYes )
+      self.existingLFNsThatAreNotInBKK, self.nonExistingLFNsThatAreNotInBKK = self.getReplicasPresence( self.lfnsReplicaNo )
+      self.existingLFNsThatAreInBKK, self.nonExistingLFNsThatAreInBKK = self.getReplicasPresenceFromDirectoryScan( self.lfnsReplicaYes )
 
     else:
       # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
       # In principle most files have no replica flag, start from LFC files with replicas
-      self.existingLFNsThatAreNotInBKK, self.nonExistingLFNsThatAreNotInBK = self._getReplicasPresenceFromDirectoryScan( self.lfnsReplicaNo )
-      self.existingLFNsThatAreInBKK, self.nonExistingLFNsThatAreInBKK = self._getReplicasPresence( self.lfnsReplicaYes )
+      self.existingLFNsThatAreNotInBKK, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( self.lfnsReplicaNo )
+      self.existingLFNsThatAreInBKK, self.nonExistingLFNsThatAreInBKK = self.getReplicasPresence( self.lfnsReplicaYes )
 
     if self.existingLFNsThatAreNotInBKK:
       gLogger.info( "For prod %s of type %s, %d files has ReplicaFlag=No,\
@@ -104,7 +104,7 @@ class consistencyChecks( object ):
 
   ################################################################################
 
-  def _getReplicasPresence( self, lfns ):
+  def getReplicasPresence( self, lfns ):
     """ get the replicas using the standard ReplicaManager.getReplicas()
     """
     present = []
@@ -121,7 +121,7 @@ class consistencyChecks( object ):
 
   ################################################################################
 
-  def _getReplicasPresenceFromDirectoryScan( self, lfns ):
+  def getReplicasPresenceFromDirectoryScan( self, lfns ):
     """ Get replicas scanning the directories. Might be faster.
     """
 

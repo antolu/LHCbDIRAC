@@ -47,7 +47,7 @@ except Exception, ex:
   lfns = [filename]
 
 bk = BookkeepingClient()
-result = bk.getFileDescendents(lfns, level, 0, True)
+result = bk.getFileDescendants( lfns, level, 0, True )
 
 if not result['OK']:
   print 'ERROR %s' % (result['Message'])
