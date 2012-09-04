@@ -44,6 +44,12 @@ class DataUsageHandler( RequestHandler ):
     """ export of getDataUsageSummary """
     return gStorageUsageDB.getDataUsageSummary( startTime, endTime, status )
 
+  types_sendDataUsageReport_2 = [ ( DictType ) ]
+  @staticmethod
+  def export_sendDataUsageReport_2( directoryDict ):
+    """ export of sendDataUsageReport (new version) """
+    return gStorageUsageDB.sendDataUsageReport_2( directoryDict )
+
   types_updatePopEntryStatus = [ ( ListType, StringType ) ]
   @staticmethod
   def export_updatePopEntryStatus( idList, newStatus ):
