@@ -1001,9 +1001,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           bkQuery.setEventType( None )
           prods = bkQuery.getBKProductions( visible='ALL' )
           if not prods:
-            self.util.logVerbose( "For procPass %s, found no productions, wait next time" % ( procPass ) )
+            self.util.logInfo( "For procPass %s, found no productions, wait next time" % ( procPass ) )
             return S_OK( [] )
-          self.util.logVerbose( "For procPass %s, found productions %s" % ( procPass, prods ) )
+          self.util.logInfo( "For procPass %s, found productions %s" % ( procPass, prods ) )
           productions[procPass] = [int( p ) for p in prods]
         cachedProductions = productions
         cachedProductions['CacheTime'] = now
@@ -1034,9 +1034,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
         #print lfnsProcessed, lfnsNotProcessed
         if lfnsNotProcessed:
-          self.util.logVerbose( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), targetSEs ) )
+          self.util.logInfo( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), targetSEs ) )
         if lfnsProcessed:
-          self.util.logVerbose( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), targetSEs ) )
+          self.util.logInfo( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), targetSEs ) )
           stringTargetSEs = ','.join( sorted( targetSEs ) )
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
