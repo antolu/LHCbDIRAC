@@ -237,7 +237,7 @@ class LHCbBookkeepingManager(BaseESManager):
           if start and result:
             end = True
         except ValueError, ex:
-          gLogger.warn(ex)
+          gLogger.warn(str(self.__class__)+"__getLevel" + str(ex))
         if start and not end:
           level = startlevel
           processingpath += '/' + i
@@ -266,7 +266,7 @@ class LHCbBookkeepingManager(BaseESManager):
           if start and result:
             end = True
         except ValueError, ex:
-          gLogger.warn(ex)
+          gLogger.warn(str(self.__class__)+"__getRunLevel" + str(ex))
         if start and not end:
           level = startlevel
           processingpath += '/' + i
@@ -293,7 +293,7 @@ class LHCbBookkeepingManager(BaseESManager):
         try:
           result = (type(long(i)) == types.LongType)
         except ValueError, ex:
-          gLogger.warn(ex)
+          gLogger.warn(str(self.__class__)+"__getEvtLevel" + str(ex))
           result = i in self.__filetypes
         if start and result:
           end = True
@@ -1798,7 +1798,7 @@ class LHCbBookkeepingManager(BaseESManager):
       try:
         fileType = fileType.split(".")[1]
       except AttributeError, ex:
-        gLogger.warn(ex)
+        gLogger.warn(str(self.__class__)+"writeJobOptions" + str(ex))
       mdfTypes = ["RAW", "MDF"]
       etcTypes = ["SETC", "FETC", "ETC"]
       #lfns = [lfn['FileName'] for lfn in files]

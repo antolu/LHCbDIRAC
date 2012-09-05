@@ -60,6 +60,8 @@ class ControlerMain(ControlerAbstract):
   #############################################################################
   def messageFromChild(self, sender, message):
     """handles the messages sent by the children controllers"""
+    gLogger.debug(str(self.__class__)+' Sender' + str(sender.__class__))
+    gLogger.debug(str(self.__class__)+' Message'+str(message))
     if sender.__class__.__name__ == 'ControlerTree':
       if message['action'] == 'expande':
         self.getWidget().waitCursor()

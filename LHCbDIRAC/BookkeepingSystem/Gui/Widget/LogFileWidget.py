@@ -8,8 +8,8 @@ Log widget
 __RCSID__ = "$Id$"
 
 
-from PyQt4                                                                  import QtCore, QtGui
-from Ui_HttpWidget                                                          import Ui_HttpWidget
+from PyQt4                                                               import QtCore, QtGui
+from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_HttpWidget                import Ui_HttpWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerLogInfo          import ControlerLogInfo
 
 class LogFileWidget(QtGui.QDialog):
@@ -19,36 +19,35 @@ class LogFileWidget(QtGui.QDialog):
   def __init__(self, parent=None):
     """initialize the widget"""
     QtGui.QDialog.__init__(self, parent)
-    self.ui = Ui_HttpWidget()
-    self.ui.setupUi(self)
-
-        # set margins
-    l = self.layout()
-    l.setMargin(0)
-    self.ui.horizontalLayout.setMargin(5)
+    self.__httpWidget = Ui_HttpWidget()
+    self.__httpWidget.setupUi(self)
+    # set margins
+    layout = self.layout()
+    layout.setMargin(0)
+    self.__httpWidget.horizontalLayout.setMargin(5)
 
     # set the default
     url = 'http://lhcb-logs.cern.ch/storage/lhcb/'
-    self.ui.url.setText(url)
+    self.__httpWidget.url.setText(url)
 
     # load page
-    self.ui.webView.setUrl(QtCore.QUrl(url))
+    self.__httpWidget.webView.setUrl(QtCore.QUrl(url))
 
     self.__controler = ControlerLogInfo(self, parent.getControler())
 
     # history buttons:
-    self.ui.back.setEnabled(False)
-    self.ui.next.setEnabled(False)
+    self.__httpWidget.back.setEnabled(False)
+    self.__httpWidget.next.setEnabled(False)
 
-    QtCore.QObject.connect(self.ui.back, QtCore.SIGNAL("clicked()"), self.back)
-    QtCore.QObject.connect(self.ui.next, QtCore.SIGNAL("clicked()"), self.next)
-    QtCore.QObject.connect(self.ui.url, QtCore.SIGNAL("returnPressed()"), self.url_changed)
-    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("linkClicked (const QUrl&)"), self.link_clicked)
-    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("urlChanged (const QUrl&)"), self.link_clicked)
-    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("loadProgress (int)"), self.load_progress)
-    QtCore.QObject.connect(self.ui.webView, QtCore.SIGNAL("titleChanged (const QString&)"), self.title_changed)
-    QtCore.QObject.connect(self.ui.reload, QtCore.SIGNAL("clicked()"), self.reload_page)
-    QtCore.QObject.connect(self.ui.stop, QtCore.SIGNAL("clicked()"), self.stop_page)
+    QtCore.QObject.connect(self.__httpWidget.back, QtCore.SIGNAL("clicked()"), self.back)
+    QtCore.QObject.connect(self.__httpWidget.next, QtCore.SIGNAL("clicked()"), self.next)
+    QtCore.QObject.connect(self.__httpWidget.url, QtCore.SIGNAL("returnPressed()"), self.url_changed)
+    QtCore.QObject.connect(self.__httpWidget.webView, QtCore.SIGNAL("linkClicked (const QUrl&)"), self.link_clicked)
+    QtCore.QObject.connect(self.__httpWidget.webView, QtCore.SIGNAL("urlChanged (const QUrl&)"), self.link_clicked)
+    QtCore.QObject.connect(self.__httpWidget.webView, QtCore.SIGNAL("loadProgress (int)"), self.load_progress)
+    QtCore.QObject.connect(self.__httpWidget.webView, QtCore.SIGNAL("titleChanged (const QString&)"), self.title_changed)
+    QtCore.QObject.connect(self.__httpWidget.reload, QtCore.SIGNAL("clicked()"), self.reload_page)
+    QtCore.QObject.connect(self.__httpWidget.stop, QtCore.SIGNAL("clicked()"), self.stop_page)
 
     QtCore.QMetaObject.connectSlotsByName(self)
 
@@ -60,14 +59,14 @@ class LogFileWidget(QtGui.QDialog):
   #############################################################################
   def setUrl(self, url):
     """sets the URL"""
-    self.ui.url.setText(url)
+    self.__httpWidget.url.setText(url)
     self.reload_page()
 
   #############################################################################
   def setUrlUsingStorage(self, url):
     """concatenate the URLs"""
     newurl = 'http://lhcb-logs.cern.ch/storage' + url
-    self.ui.url.setText(newurl)
+    self.__httpWidget.url.setText(newurl)
     self.reload_page()
 
   #############################################################################
@@ -75,25 +74,25 @@ class LogFileWidget(QtGui.QDialog):
     """
     Url have been changed by user
     """
-    page = self.ui.webView.page()
+    page = self.__httpWidget.webView.page()
     history = page.history()
     if history.canGoBack():
-      self.ui.back.setEnabled(True)
+      self.__httpWidget.back.setEnabled(True)
     else:
-      self.ui.back.setEnabled(False)
+      self.__httpWidget.back.setEnabled(False)
     if history.canGoForward():
-      self.ui.next.setEnabled(True)
+      self.__httpWidget.next.setEnabled(True)
     else:
-      self.ui.next.setEnabled(False)
+      self.__httpWidget.next.setEnabled(False)
 
-    url = self.ui.url.text()
-    self.ui.webView.setUrl(QtCore.QUrl(url))
+    url = self.__httpWidget.url.text()
+    self.__httpWidget.webView.setUrl(QtCore.QUrl(url))
 
   def stop_page(self):
     """
     Stop loading the page
     """
-    self.ui.webView.stop()
+    self.__httpWidget.webView.stop()
 
   def title_changed(self, title):
     """
@@ -105,55 +104,55 @@ class LogFileWidget(QtGui.QDialog):
     """
     Reload the web page
     """
-    self.ui.webView.setUrl(QtCore.QUrl(self.ui.url.text()))
+    self.__httpWidget.webView.setUrl(QtCore.QUrl(self.__httpWidget.url.text()))
 
   def link_clicked(self, url):
     """
     Update the URL if a link on a web page is clicked
     """
-    page = self.ui.webView.page()
+    page = self.__httpWidget.webView.page()
     history = page.history()
     if history.canGoBack():
-      self.ui.back.setEnabled(True)
+      self.__httpWidget.back.setEnabled(True)
     else:
-      self.ui.back.setEnabled(False)
+      self.__httpWidget.back.setEnabled(False)
     if history.canGoForward():
-      self.ui.next.setEnabled(True)
+      self.__httpWidget.next.setEnabled(True)
     else:
-      self.ui.next.setEnabled(False)
+      self.__httpWidget.next.setEnabled(False)
 
-    self.ui.url.setText(url.toString())
+    self.__httpWidget.url.setText(url.toString())
 
   def load_progress(self, load):
     """
     Page load progress
     """
     if load == 100:
-      self.ui.stop.setEnabled(False)
+      self.__httpWidget.stop.setEnabled(False)
     else:
-      self.ui.stop.setEnabled(True)
+      self.__httpWidget.stop.setEnabled(True)
 
   def back(self):
     """
     Back button clicked, go one page back
     """
-    page = self.ui.webView.page()
+    page = self.__httpWidget.webView.page()
     history = page.history()
     history.back()
     if history.canGoBack():
-      self.ui.back.setEnabled(True)
+      self.__httpWidget.back.setEnabled(True)
     else:
-      self.ui.back.setEnabled(False)
+      self.__httpWidget.back.setEnabled(False)
 
   def next(self):
     """
     Next button clicked, go to next page
     """
-    page = self.ui.webView.page()
+    page = self.__httpWidget.webView.page()
     history = page.history()
     history.forward()
     if history.canGoForward():
-      self.ui.next.setEnabled(True)
+      self.__httpWidget.next.setEnabled(True)
     else:
-      self.ui.next.setEnabled(False)
+      self.__httpWidget.next.setEnabled(False)
 

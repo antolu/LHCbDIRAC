@@ -14,8 +14,9 @@ class ProductionListModel(ListModel):
   ProductionListModel class
   """
   #############################################################################
-  def __init__(self, datain = None, parent=None, *args):
+  def __init__(self, datain=None, parent=None, *args):
     if datain != None:
       datain = datain.getChildren()
-    ListModel.__init__(self,datain, parent, *args)
+    ListModel.__init__(self, datain, parent, *args)
+
 

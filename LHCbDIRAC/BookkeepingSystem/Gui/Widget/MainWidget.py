@@ -22,18 +22,17 @@ __RCSID__ = "$Id$"
 class MainWidget(QMainWindow, Ui_MainWidget):
   """
   MainWidget class
+  Constructor
+
+  @param parent parent widget (QWidget)
+
   """
   #############################################################################
   def __init__(self, fileName, savepath=None, parent=None):
     super(MainWidget, self).__init__()
     QMainWindow.__init__(self, parent)
     Ui_MainWidget.__init__(self)
-    """
-    Constructor
 
-    @param parent parent widget (QWidget)
-
-    """
     #self.__bkClient = LHCB_BKKDBClient()
     self.__controler = ControlerMain(self, None)
     self.setupUi(self)
@@ -64,17 +63,20 @@ class MainWidget(QMainWindow, Ui_MainWidget):
 
   #############################################################################
   def start(self):
+    """
+    It start the bookkeeping gui.
+    """
     self.__controler.start()
-    '''
-    item = self.__bkClient.get()
-    items=Item(item,None)
-    path = item['Value']['fullpath']
-    for entity in self.__bkClient.list(path):
-      childItem = Item(entity,items)
-      items.addItem(childItem)
-    message = Message({'action':'list','items':items})
-    self.getControler().messageFromParent(message)
-    '''
+
+#    item = self.__bkClient.get()
+#    items=Item(item,None)
+#    path = item['Value']['fullpath']
+#    for entity in self.__bkClient.list(path):
+#      childItem = Item(entity,items)
+#      items.addItem(childItem)
+#    message = Message({'action':'list','items':items})
+#    self.getControler().messageFromParent(message)
+#
 
   #############################################################################
   def waitCursor(self):

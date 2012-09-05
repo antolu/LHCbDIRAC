@@ -95,4 +95,7 @@ class Help:
   @staticmethod
   def helpEventType(treeLevels ):
     """ ...."""
+    gLogger.debug(treeLevels)
     gLogger.warn( "Not Implemented!" )
+    return
+

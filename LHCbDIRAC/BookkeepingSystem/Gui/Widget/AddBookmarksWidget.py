@@ -5,7 +5,7 @@ AddBookmarks widget
 # $HeadURL:  $
 ########################################################################
 from PyQt4.QtCore  import SIGNAL, Qt
-from PyQt4.QtGui   import QWidget, QDialog
+from PyQt4.QtGui   import QDialog
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_AddBookmarks           import Ui_AddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAddBookmarks  import ControlerAddBookmarks
@@ -25,7 +25,7 @@ class AddBookmarksWidget(QDialog, Ui_AddBookmarks):
 
     @param parent parent widget (QWidget)
     """
-    QWidget.__init__(self, parent)
+    QDialog.__init__(self, parent)
     Ui_AddBookmarks.__init__(self)
     self.setupUi(self)
 

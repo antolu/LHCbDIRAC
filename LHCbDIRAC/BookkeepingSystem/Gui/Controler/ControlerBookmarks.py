@@ -6,7 +6,7 @@ Controlls the Bookmarks widget
 ########################################################################
 
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id:$"
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
@@ -113,7 +113,7 @@ class ControlerBookmarks(ControlerAbstract):
       return S_ERROR(result["Message"])
 
   #############################################################################
-  def __delBookmark(self, path, title):
+  def __delBookmark(self, title):
     """deletes a bookmark"""
     self.getWidget().waitCursor()
     upc = UserProfileClient("Bookkeeping", RPCClient)
@@ -140,7 +140,7 @@ class ControlerBookmarks(ControlerAbstract):
   def removeBookmarks(self):
     """handles the remove bookmarks"""
     row = self.getWidget().getSelectedRow()
-    retVal = self.__delBookmark(row['Path'], row['Title'])
+    retVal = self.__delBookmark(row['Title'])
     if not retVal['OK']:
       gLogger.error(retVal['Message'])
     else:

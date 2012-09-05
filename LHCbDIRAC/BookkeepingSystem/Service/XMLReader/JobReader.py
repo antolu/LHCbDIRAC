@@ -19,7 +19,7 @@ from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.FileReplica          
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.ReplicaParam           import ReplicaParam
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.Quality                    import Quality
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.QualityParameters          import QualityParameters
-from DIRAC                                                                           import gLogger
+from DIRAC                                                                        import gLogger
 
 __RCSID__ = "$Id$"
 
@@ -157,8 +157,7 @@ class JobReader:
       job.addJobInputFiles(inputFile)
 
   ########################################################################
-  @staticmethod
-  def __readJobOutputFiles(doc, job):
+  def __readJobOutputFiles(self, doc, job):
     """reads the jobs output files"""
     jobOutputFiles = doc.getElementsByTagName('OutputFile')
     for node in jobOutputFiles:
@@ -199,57 +198,68 @@ class JobReader:
           gLogger.error("<Value> outputfile Parameter XML tag is missing!!")
 
         outputFile.addFileParam(outputFileParams)
-
-      replicas = doc.getElementsByTagName('Replica') ## I have to check doc ? no node? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      for replica in replicas:
-        rep = FileReplica()
-        param = ReplicaParam()
-        name = replica.getAttributeNode("Name")
-        location = replica.getAttributeNode("Location")
-        if name != None:
-          param.setName(name.value.encode('ascii'))
-        if location != None:
-          param.setLocation(location.value.encode('ascii'))
-          rep.addParam(param)
-        outputFile.addReplicas(rep)
-
-      qualities = node.getElementsByTagName("Quality")
-
-      for quality in qualities:
-        fileQuality = Quality()
-        group = quality.getAttributeNode("Group")
-        if group != None:
-          fileQuality.setGroup(group.value.encode('ascii'))
-        else:
-          gLogger.warn("<Group> Quality XML tag is missing!!")
-
-        flag = quality.getAttributeNode("Flag")
-        if flag != None:
-          fileQuality.setFlag(flag.value.encode('ascii'))
-        else:
-          gLogger.warn("<Flag> Quality XML tag is missing!!")
-
-        parameters = quality.getElementsByTagName("Parameter")
-        for param in parameters:
-          qualityParameters = QualityParameters()
-          name = param.getAttributeNode("Name")
-          if name != None:
-            qualityParameters.setName(name.value.encode('ascii'))
-          else:
-            gLogger.warn("<Name> Quality XML tag is missing!!")
-
-          value = param.getAttributeNode("Value")
-          if value != None:
-            qualityParameters.setValue(value.value.encode('ascii'))
-          else:
-            gLogger.warn("<Value> Quality XML tag is missing!!")
-
-          fileQuality.addParam(qualityParameters)
-
-        outputFile.addQuality(fileQuality)
-
+      self.__readFilereplica(doc, outputFile)
+      self.__readDataquality(node, outputFile)
       job.addJobOutputFiles(outputFile)
+
+  ########################################################################
+  @staticmethod
+  def __readFilereplica(doc, outputFile):
+    """
+    It creates the replica object and adds to the output file.
+    """
+    replicas = doc.getElementsByTagName('Replica') ## I have to check doc ? no node? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for replica in replicas:
+      rep = FileReplica()
+      param = ReplicaParam()
+      name = replica.getAttributeNode("Name")
+      location = replica.getAttributeNode("Location")
+      if name != None:
+        param.setName(name.value.encode('ascii'))
+      if location != None:
+        param.setLocation(location.value.encode('ascii'))
+        rep.addParam(param)
+      outputFile.addReplicas(rep)
+
+  ########################################################################
+  @staticmethod
+  def __readDataquality(node, outputFile):
+    """
+    It reads the data quality information of a given file.
+    """
+    qualities = node.getElementsByTagName("Quality")
+    for quality in qualities:
+      fileQuality = Quality()
+      group = quality.getAttributeNode("Group")
+      if group != None:
+        fileQuality.setGroup(group.value.encode('ascii'))
+      else:
+        gLogger.warn("<Group> Quality XML tag is missing!!")
+
+      flag = quality.getAttributeNode("Flag")
+      if flag != None:
+        fileQuality.setFlag(flag.value.encode('ascii'))
+      else:
+        gLogger.warn("<Flag> Quality XML tag is missing!!")
+
+      parameters = quality.getElementsByTagName("Parameter")
+      for param in parameters:
+        qualityParameters = QualityParameters()
+        name = param.getAttributeNode("Name")
+        if name != None:
+          qualityParameters.setName(name.value.encode('ascii'))
+        else:
+          gLogger.warn("<Name> Quality XML tag is missing!!")
+
+        value = param.getAttributeNode("Value")
+        if value != None:
+          qualityParameters.setValue(value.value.encode('ascii'))
+        else:
+          gLogger.warn("<Value> Quality XML tag is missing!!")
+
+        fileQuality.addParam(qualityParameters)
+
+      outputFile.addQuality(fileQuality)
 
   ########################################################################
   @staticmethod

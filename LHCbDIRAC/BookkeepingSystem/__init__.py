@@ -1,5 +1,6 @@
-# $HeadURL$
-__RCSID__ = "$Id$"
 """
    DIRAC.BookkeepingSystem package
 """
+
+# $HeadURL$
+__RCSID__ = "$Id$"
