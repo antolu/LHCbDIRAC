@@ -179,7 +179,7 @@ class ModuleBaseSAM( object ):
     if not runInfo[ 'OK' ]:
       self.log.info( 'Error occurred while getting run Info' )
       return self.finalize( runInfo[ 'Description' ], runInfo[ 'Message' ], runInfo[ 'SamResult' ] )
-    self.runInfo = runInfo[ 'OK' ]
+    self.runInfo = runInfo[ 'Value' ]
     
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
     
