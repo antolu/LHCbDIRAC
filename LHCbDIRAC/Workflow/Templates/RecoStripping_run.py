@@ -63,6 +63,8 @@ targetSite = '{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 pr.derivedProduction = '{{AncestorProd#PROD: ancestor production if any#0}}'
 pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
+pr.fractionToProcess = '{{fractionToProcess#GENERAL: fraction to process, per run#100}}'
+pr.minFilesToProcess = '{{minFilesToProcess#GENERAL: minimum number of files to process, per run#100}}'
 
 #reco params
 recoPriority = '{{RecoPriority#PROD-RECO(Stripp): priority#2}}'

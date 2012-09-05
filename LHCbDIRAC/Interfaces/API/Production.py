@@ -468,8 +468,9 @@ class Production():
     parameters = {}
     info = []
 
-    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType',
-                           'configName', 'configVersion', 'outputDataFileMask', 'JobType', 'MaxNumberOfTasks' ):
+    for parameterName in ( 'Priority', 'CondDBTag', 'DDDBTag', 'DQTag', 'eventType', 'FractionToProcess',
+                           'MinFilesToProcess', 'configName', 'configVersion',
+                           'outputDataFileMask', 'JobType', 'MaxNumberOfTasks' ):
       try:
         parameters[parameterName] = prodWorkflow.findParameter( parameterName ).getValue()
         info.append( "%s: %s" % ( parameterName, prodWorkflow.findParameter( parameterName ).getValue() ) )
