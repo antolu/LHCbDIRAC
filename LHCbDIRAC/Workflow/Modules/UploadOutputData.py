@@ -18,7 +18,7 @@ from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyCh
 class UploadOutputData( ModuleBase ):
 
   #############################################################################
-  def __init__( self ):
+  def __init__( self, rm ):
     """Module initialization.
     """
 
@@ -41,7 +41,14 @@ class UploadOutputData( ModuleBase ):
     self.outputList = []
     self.outputDataStep = ''
     self.request = None
-    self.consistencyChecks = consistencyChecks()
+
+    if not rm:
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      self.rm = ReplicaManager()
+    else:
+      self.rm = rm
+
+    self.consistencyChecks = consistencyChecks( self.production_id )
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -95,7 +102,7 @@ class UploadOutputData( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               rm = None, ft = None, bk = None, SEs = None ):
+               ft = None, bk = None, SEs = None ):
     """ Main execution function.
     """
 
@@ -119,10 +126,6 @@ class UploadOutputData( ModuleBase ):
         bkClient = BookkeepingClient()
       else:
         bkClient = bk
-
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
 
       #Determine the final list of possible output files for the
       #workflow and all the parameters needed to upload them.
@@ -182,7 +185,7 @@ class UploadOutputData( ModuleBase ):
       #'Failed': [], 'NotProcessed': []}}
 
       if inputDataList:
-        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient, rm )
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
         if not result['OK']:
           return result
 
@@ -268,7 +271,7 @@ class UploadOutputData( ModuleBase ):
 
       #Now double-check prior to final BK replica flag setting that the input files are still not processed 
       if inputDataList:
-        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient, rm )
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
         if not result['OK']:
           lfns = []
           self.log.error( 'Input files for this job were marked as processed during the \
@@ -320,7 +323,7 @@ class UploadOutputData( ModuleBase ):
             if not result['OK']:
               return result
         else:
-          result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
+          result = self.rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
           self.log.verbose( result )
           if not result['OK']:
             self.log.error( result )
@@ -345,7 +348,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient, rm ):
+  def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient ):
     """ Checks that the input files for the job were not already processed by
         another job i.e. that there are no other descendent files for the
         current productionID having a BK replica flag.

@@ -14,7 +14,7 @@ class consistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, prod, transClient = None, rm = None ):
+  def __init__( self, prod = 0, transClient = None, rm = None ):
     """ c'tor
 
         One object for every production
@@ -42,12 +42,13 @@ class consistencyChecks( object ):
     self.existingLFNsThatAreInBKK = []
     self.nonExistingLFNsThatAreInBKK = []
 
-    res = self.transClient.getTransformation( self.prod, extraParams = False )
-    if not res['OK']:
-      gLogger.error( "Couldn't find transformation %s: %s" % ( self.prod, res['Message'] ) )
-    else:
-      self.transType = res['Value']['Type']
-    gLogger.info( "Production %d: %s" % ( self.prod, self.transType ) )
+    if self.prod:
+      res = self.transClient.getTransformation( self.prod, extraParams = False )
+      if not res['OK']:
+        gLogger.error( "Couldn't find transformation %s: %s" % ( self.prod, res['Message'] ) )
+      else:
+        self.transType = res['Value']['Type']
+      gLogger.info( "Production %d: %s" % ( self.prod, self.transType ) )
 
   ################################################################################
 

@@ -248,7 +248,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.sb = SendBookkeeping()
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
-    self.uod = UploadOutputData()
+    self.uod = UploadOutputData( self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
     self.ujf = UserJobFinalization()
@@ -918,7 +918,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
                                          self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
+                                         self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
 
 
     #no errors, input data
@@ -951,7 +951,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              self.workflowStatus, self.stepStatus,
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
-                                             self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
+                                             self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
           self.bkc_mock.getFileDescendants.return_value = {'OK': True,
                                                            'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                         {'skipCACheck': False,
@@ -964,7 +964,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              self.workflowStatus, self.stepStatus,
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
-                                             self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
+                                             self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
           self.bkc_mock.getFileDescendants.return_value = {'OK': True,
                                                            'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                         {'skipCACheck': False,
@@ -979,7 +979,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                   self.workflowStatus, self.stepStatus,
                                   wf_commons, step_commons,
                                   self.step_number, self.step_id,
-                                  self.rm_mock, self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )
+                                  self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )
           print res, transferAndRegisterFile
           self.assertTrue( res['OK'] )
 #            if transferAndRegisterFileFailover['OK']:
