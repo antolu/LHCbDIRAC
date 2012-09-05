@@ -383,7 +383,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           runFraction = fractionToProcess
         # Now adjust taking into account the files already submitted
         runFraction = min( max( 0., ( runFraction * nbRaw - nbSubmitted ) / nbNew ), 1. )
-        self.util.logInfo( 'Run %s: %d RAW files, will process %.1f%% of files' % ( runID, nbRaw, 100. * runFraction ) )
+        self.util.logInfo( 'Run %s: %d RAW files, %d submitted, will process %.1f%% of %d new files'
+                        % ( runID, nbRaw, nbSubmitted, 100. * runFraction, nbNew ) )
         if runFraction == 0.:
           continue
       res = self._groupBySize( lfns )
