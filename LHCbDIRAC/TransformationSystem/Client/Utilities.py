@@ -7,7 +7,7 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
@@ -106,16 +106,7 @@ class PluginScript( DMScript ):
     for key in [k for k in self.options if k in pluginParams]:
       params[key] = self.options[key]
     for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
-      ses = self.options[key]
-      seList = []
-      for se in ses:
-        seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
-        if seConfig != se:
-          seList += [se.strip() for se in seConfig.split( ',' )]
-          #print seList
-        else:
-          seList.append( se )
-      params[key] = seList
+      params[key] = convertSEs( self.options[key] )
     return params
 
 

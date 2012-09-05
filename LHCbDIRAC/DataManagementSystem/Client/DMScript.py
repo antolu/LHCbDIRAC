@@ -4,7 +4,7 @@
 """
 
 import DIRAC
-from DIRAC           import gLogger
+from DIRAC           import gLogger, gConfig
 from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
@@ -45,6 +45,17 @@ def printDMResult( result, shift=4, empty="Empty directory", script="DMS script"
     print "Error in", script, ":", result['Message']
     return 2
 
+def convertSEs( ses ):
+  seList = []
+  for se in ses:
+    seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
+    if seConfig != se:
+      seList += [se.strip() for se in seConfig.split( ',' )]
+      #print seList
+    else:
+      seList.append( se )
+  return seList
+
 class DMScript():
   """
   DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
@@ -70,11 +81,11 @@ class DMScript():
 
   def registerBKSwitches( self ):
     # BK query switches
-    Script.registerSwitch( "P:", "Productions=", 
+    Script.registerSwitch( "P:", "Productions=",
                            "   Production ID to search (comma separated list)", self.setProductions )
-    Script.registerSwitch( "f:", "FileType=", 
+    Script.registerSwitch( "f:", "FileType=",
                            "   File type (comma separated list, to be used with --Production) [All]", self.setFileType )
-    Script.registerSwitch( '', "ExceptFileType=", 
+    Script.registerSwitch( '', "ExceptFileType=",
                            "   Exclude the (list of) file types when all are requested", self.setExceptFileTypes )
     Script.registerSwitch( "B:", "BKQuery=", "   Bookkeeping query path", self.setBKQuery )
     Script.registerSwitch( "r:", "Runs=", "   Run or range of runs (r1:r2)", self.setRuns )
@@ -199,6 +210,8 @@ class DMScript():
     return self.options
 
   def getOption( self, switch, default=None ):
+    if switch == 'SEs':
+      return convertSEs( self.options.get( switch, default ) )
     return self.options.get( switch, default )
 
   def getBKQuery( self, visible=None ):
