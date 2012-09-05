@@ -12,16 +12,16 @@ import sys
 import re
 import urllib
 
-import DIRAC
-from DIRAC import S_OK, S_ERROR, gConfig, systemCall, gLogger
+from DIRAC                import S_OK, S_ERROR, gConfig, systemCall, gLogger
+from DIRAC.Core.Utilities import Os as DIRACOs
 
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
 __RCSID__ = "$Id$"
 
-InstallProject    = 'install_project.py'
-InstallProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
+installProject    = 'install_project.py'
+installProjectURL = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/'
 
 class SoftwareReport( ModuleBaseSAM ):
 
@@ -47,8 +47,8 @@ class SoftwareReport( ModuleBaseSAM ):
     ModuleBaseSAM.resolveInputVariables( self )
 
     if 'installProjectURL' in self.step_commons:
-      self.installProjectURL = self.step_commons['installProjectURL']
-      if not type( self.installProjectURL ) == type( " " ) or not self.installProjectURL:
+      self.installProjectURL = self.step_commons[ 'installProjectURL' ]
+      if not isinstance( self.installProjectURL, str ) or not self.installProjectURL:
         self.log.warn( 'Install project URL not set to non-zero string parameter, setting to None' )
         self.installProjectURL = None
 
@@ -56,15 +56,9 @@ class SoftwareReport( ModuleBaseSAM ):
     return S_OK()
 
   def _execute( self ):
-    """The main execution method of the SoftwareReport module.
-    """
-
-    soft_present       = []
-    softwareDict       = {}
-    soft_present_pb    = []
-    softwareDictPb     = {}
-    soft_remove        = []
-    softwareDictRemove = {}
+    '''
+       The main execution method of the SoftwareReport module.
+    '''
 
     if not 'SAMResults' in self.workflow_commons:
       _msg = 'Problem determining CE-lhcb-lock test result'
@@ -73,121 +67,196 @@ class SoftwareReport( ModuleBaseSAM ):
     if not self.enable:
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
+    result = self.__checkSharedArea()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+    sharedArea = result[ 'Value' ]
+
+#FIXME: there are bugs here, and it is not anymore used
+#    #Check for optional install project URL
+#    if self.installProjectURL:
+#      self.writeToLog( 'Found specified install_project URL %s' % ( self.installProjectURL ) )
+#      installProjectName = 'install_project.py'
+#      if os.path.exists( '%s/%s' % ( os.getcwd(), installProjectName ) ):
+#        self.writeToLog( 'Removing previous install project script from local area' )
+#        os.remove( '%s/%s' % ( os.getcwd(), installProjectName ) )
+#      installProjectFile = os.path.basename( self.installProjectURL )
+#      localname, headers = urllib.urlretrieve( self.installProjectURL, installProjectFile )
+#      if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
+#        return self.finalize( '%s could not be downloaded to local area' % ( self.installProjectURL ) )
+#      else:
+#        self.writeToLog( 'install_project downloaded from %s to local area' % ( self.installProjectURL ) )
+#      self.writeToLog( 'Copying downloaded install_project to sharedArea %s' % sharedArea )
+#      if not installProjectFile == installProjectName:
+#        shutil.copy( '%s/%s' % ( os.getcwd(), installProjectFile ), '%s/%s' % ( os.getcwd(), installProjectName ) )
+#      shutil.copy( '%s/%s' % ( os.getcwd(), installProjectName ), '%s/%s' % ( sharedArea, installProjectName ) )
+
+    #Check software
+    result = self.__checkSoftware( sharedArea )
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )  
+    softwareDict, softwareDictPb, softwareDictRemove = result[ 'Value' ]
+
+    self.__writeSoftReport( softwareDict, softwareDictPb, softwareDictRemove )
+    
+    self.log.info( 'Test %s completed successfully' % self.testName )
+    self.setApplicationStatus( '%s Successful' % self.testName )
+
+    return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
+
+  ##############################################################################
+
+  def __checkSharedArea( self ):
+    '''
+       Check sharedArea
+    '''
+        
     if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
-      return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
+      result = S_ERROR( 'Status ERROR (=50)' )
+      result[ 'Description' ] = 'Could not determine shared area for site'
+      result[ 'SamResult' ]   = 'error'
+      
+      return result
+    
     sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       # After previous check this error should never occur
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( self.site, sharedArea ) )
-      return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )
+      result = S_ERROR( sharedArea )
+      result[ 'Description' ] = 'Could not determine shared area for site'
+      result[ 'SamResult' ]   = 'critical' 
+      
+      return result
+    
     else:
       self.log.info( 'Software shared area for site %s is %s' % ( self.site, sharedArea ) )
 
-    #Check for optional install project URL
-    if self.installProjectURL:
-      self.writeToLog( 'Found specified install_project URL %s' % ( self.installProjectURL ) )
-      installProjectName = 'install_project.py'
-      if os.path.exists( '%s/%s' % ( os.getcwd(), installProjectName ) ):
-        self.writeToLog( 'Removing previous install project script from local area' )
-        os.remove( '%s/%s' % ( os.getcwd(), installProjectName ) )
-      installProjectFile = os.path.basename( self.installProjectURL )
-      localname, headers = urllib.urlretrieve( self.installProjectURL, installProjectFile )
-      if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
-        return self.finalize( '%s could not be downloaded to local area' % ( self.installProjectURL ) )
-      else:
-        self.writeToLog( 'install_project downloaded from %s to local area' % ( self.installProjectURL ) )
-      self.writeToLog( 'Copying downloaded install_project to sharedArea %s' % sharedArea )
-      if not installProjectFile == installProjectName:
-        shutil.copy( '%s/%s' % ( os.getcwd(), installProjectFile ), '%s/%s' % ( os.getcwd(), installProjectName ) )
-      shutil.copy( '%s/%s' % ( os.getcwd(), installProjectName ), '%s/%s' % ( sharedArea, installProjectName ) )
+    return S_OK( sharedArea )
 
-    #Install the software now
-    if self.enable:
-      activeSoftware = '/Operations/SoftwareDistribution/Active'
-      installList = gConfig.getValue( activeSoftware, [] )
-      if not installList:
-        return self.finalize( 'The active list of software could not be retreived from', activeSoftware, 'error' )
+  def __getSoftware( self, sharedArea ):
+    '''
+       Get software
+    '''
 
-      localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
-      if not localArch:
-        _msg = '/LocalSite/Architecture is not defined in the local configuration'
-        return self.finalize( _msg, 'Could not get /LocalSite/Architecture', 'error' )
+    activeSoftware = '/Operations/SoftwareDistribution/Active'
+    installList = gConfig.getValue( activeSoftware, [] )
+    if not installList:
+      result = S_ERROR( activeSoftware )
+      result[ 'Description' ] = 'The active list of software could not be retreived from'
+      result[ 'SamResult' ]   = 'error'
+      return result    
+    
+    result = self.__checkArea( sharedArea )
+    if not result[ 'OK' ]:
+      result[ 'Description' ] = 'Problem SoftwareReport'
+      result[ 'SamResult' ]   = 'warning'
+      return result
+      
+    softwareDictRemove = {}  
+      
+    for app, vers in result[ 'Value' ].items():
+      for ver in vers:
+        appName = app + '.' + ver
+        softwareDictRemove[ appName ] = 'ALL'    
+    
+    return S_OK( ( installList, softwareDictRemove ) )
 
-      #must get the list of compatible platforms for this architecture
-      localPlatforms = gConfig.getOptionsDict( '/Resources/Computing/OSCompatibility' )
-      if not localPlatforms:
-        _msg = 'Could not obtain compatible platforms for /Resources/Computing/OSCompatibility/'
-        return self.finalize( _msg, 'error' )
+  @staticmethod
+  def __getLocalPlatforms():
+    '''
+       Get local platforms
+    '''
+    
+    localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
+    if not localArch:
+            
+      result = S_ERROR( 'Could not get /LocalSite/Architecture' )
+      result[ 'Description' ] = '/LocalSite/Architecture is not defined in the local configuration' 
+      result[ 'SamResult' ]   = 'error'
+      
+      return result
 
-#
-#to be remove...
-#
-#      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
-      ret_area = CheckSharedArea( self, sharedArea )
-      if not ret_area['OK']:
-        return self.finalize( 'Problem SoftwareReport', ret_area['Message'], 'warning' )
+    #must get the list of compatible platforms for this architecture
+    localPlatforms = gConfig.getOptionsDict( '/Resources/Computing/OSCompatibility' )
+    if not localPlatforms:
+      _msg = 'Could not obtain compatible platforms for /Resources/Computing/OSCompatibility/'
+      result = S_ERROR( 'Could not get /Resources/Computing/OSCompatibility' )
+      result[ 'Description' ] = '/Resources/Computing/OSCompatibility is not defined in the local configuration' 
+      result[ 'SamResult' ]   = 'error'
+      
+      return result
 
-      soft_remove = ret_area['Value']
-      for app in soft_remove.keys():
-        for ver in soft_remove[app]:
-          appName = app + '.' + ver
-          softwareDictRemove[appName] = 'ALL'
+    return S_OK( localPlatforms )
 
-      for systemConfig in localPlatforms['Value'].keys():
-        packageList = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( systemConfig ), [] )
+  def __checkSoftware( self, sharedArea ):
+    '''
+       Check software
+    '''
+    
+    if not self.enable:  
+      self.log.info( 'Software check is disabled via enable flag' )      
+      return S_OK()
+      
+    result = self.__getSoftware( sharedArea )
+    if not result[ 'OK' ]:
+      return result
+    installList, softwareDictRemove = result[ 'Value' ]
 
-        for installPackage in installList:
-          appNameVersion = '.'.split( installPackage )
-          if not len( appNameVersion ) == 2:
-            return self.finalize( 'Could not determine name and version of package:', installPackage, 'warning' )
-          #Must check that package to install is supported by LHCb for requested system configuration
+    result = self.__getLocalPlatforms()
+    if not result[ 'OK' ]:
+      return result
+    localPlatforms = result[ 'Value' ]
+    
+    softwareDict, softwareDictPb = {}, {}
+          
+    for systemConfig in localPlatforms[ 'Value' ].keys():
+      packageList = gConfig.getValue( '/Operations/SoftwareDistribution/%s' % ( systemConfig ), [] )
 
-          if installPackage in packageList:
-            _msg = 'Attempting to check %s %s for system configuration %s'
-            self.log.info( _msg % ( appNameVersion[0], appNameVersion[1], systemConfig ) )
-#            orig = sys.stdout
-#            catch = open(self.logFile,'a')
-#            catch = open('jojo.log','w')
-#            sys.stdout=catch
-            result = CheckPackage( self, appNameVersion, systemConfig, sharedArea )
-#            sys.stdout=orig
-#            catch.close()
-            #result = True
-            if not result: #or not result['OK']:
-              soft_present_pb.append( ( appNameVersion[0], appNameVersion[1] , systemConfig ) )
-              if installPackage in softwareDictPb:
-                current = softwareDictPb[installPackage]
-                current.append( systemConfig )
-                softwareDictPb[installPackage] = current
-              else:
-                softwareDictPb[installPackage] = [systemConfig]
+      for installPackage in installList:
+        
+        appNameVersion = '.'.split( installPackage )
+        if not len( appNameVersion ) == 2:
+          result = S_ERROR( installPackage )
+          result[ 'Description' ] = 'Could not determine name and version of package:'
+          result[ 'SamResult' ]   = 'warning'
+          return result
+          
+        #Must check that package to install is supported by LHCb for requested system configuration
+        if installPackage in packageList:
+          _msg = 'Attempting to check %s %s for system configuration %s'
+          self.log.info( _msg % ( appNameVersion[ 0 ], appNameVersion[ 1 ], systemConfig ) )
+
+          result = self.__checkPackage( appNameVersion, systemConfig, sharedArea )
+
+          if not result:  
+            if installPackage in softwareDictPb:
+              current = softwareDictPb[ installPackage ]
+              current.append( systemConfig )
+              softwareDictPb[ installPackage ] = current
             else:
-#              _msg = 'Installation of %s %s for %s successful'
-#              self.log.info(_msg %(appNameVersion[0],appNameVersion[1],systemConfig))
-              if installPackage in softwareDict:
-                current = softwareDict[installPackage]
-                current.append( systemConfig )
-                softwareDict[installPackage] = current
-              else:
-                softwareDict[installPackage] = [systemConfig]
-              soft_present.append( ( appNameVersion[0], appNameVersion[1] , systemConfig ) )
-#          else:
-#            _msg = '%s is not supported for system configuration %s, nothing to check.' 
-#            self.log.info(_msg %(installPackage,systemConfig))
+              softwareDictPb[ installPackage ] = [ systemConfig ]
+          else:
+            if installPackage in softwareDict:
+              current = softwareDict[ installPackage ]
+              current.append( systemConfig )
+              softwareDict[ installPackage ] = current
+            else:
+              softwareDict[ installPackage ] = [ systemConfig ]
 
-
-    else:
-      self.log.info( 'Software installation is disabled via enable flag' )
-
-
+    return S_OK( ( softwareDict, softwareDictPb, softwareDictRemove ) )
+      
+    
+  def __writeSoftReport( self, softwareDict, softwareDictPb, softwareDictRemove ):
+    '''
+       Write soft report
+    '''
+    
     fd = open( 'Soft_install.html', 'w' )
     self.log.info( 'Applications properly installed in the area' )
     fd.write( '<H1>Applications properly installed in the area</H1>' )
-#        self.log.info(soft_present)
     self.log.info( softwareDict )
     fd.write( self.getSoftwareReport( softwareDict ) )
-#        self.log.info(soft_present_pb)
     self.log.info( 'Applications NOT properly installed in the area' )
     fd.write( '<H1>Applications NOT properly installed in the area</H1>' )
     self.log.info( softwareDictPb )
@@ -197,191 +266,180 @@ class SoftwareReport( ModuleBaseSAM ):
     self.log.info( softwareDictRemove )
     fd.write( self.getSoftwareReport( softwareDictRemove ) )
     fd.close()
-    self.log.info( 'Test %s completed successfully' % self.testName )
-    self.setApplicationStatus( '%s Successful' % self.testName )
-    return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
+
+  ##############################################################################
 
   def getSoftwareReport( self, softwareDict ):
-    """Returns the list of software installed at the site organized by platform.
+    '''
+       Returns the list of software installed at the site organized by platform.
        If the test status is not successful, returns a link to the install test
        log.  Creates an html table for the results.
-    """
+    '''
 
     #If software installation test was not run by this job e.g. is 'notice' status, do not add software report.
 
     self.log.verbose( softwareDict )
-    rows = """
-    <br><br><br>
-    Software summary from job running on node with system configuration :
-    <br><br><br>
-    """
+    rows = '<br><br><br>\n'
+    rows += 'Software summary from job running on node with system configuration :\n'
+    rows += '<br><br><br>'
+    
     sortedKeys = softwareDict.keys()
     sortedKeys.sort()
     for appNameVersion in sortedKeys:
-      archList = softwareDict[appNameVersion]
-      name = appNameVersion.split( '.' )[0]
-      version = appNameVersion.split( '.' )[1]
+      archList   = softwareDict[appNameVersion]
+      name       = appNameVersion.split( '.' )[0]
+      version    = appNameVersion.split( '.' )[1]
       sysConfigs = ', '.join( archList )
-      rows += """
-
-<tr>
-<td> %s </td>
-<td> %s </td>
-<td> %s </td>
-</tr>
-      """ % ( name, version, sysConfigs )
+      rows += '<tr><td> %s </td><td> %s </td><td> %s </td></tr>' % ( name, version, sysConfigs )
 
     self.log.debug( rows )
 
-    table = """
+    table = '<table border="1" bordercolor="#000000" width="50%" bgcolor="#BCCDFE">'
+    table += '<tr><td>Project Name</td><td>Project Version</td>'
+    table += '<td>System Configurations</td></tr>' + rows + '</table>'
 
-<table border='1' bordercolor='#000000' width='50%' bgcolor='#BCCDFE'>
-<tr>
-<td>Project Name</td>
-<td>Project Version</td>
-<td>System Configurations</td>
-</tr>""" + rows + """
-</table>
-"""
     self.log.debug( table )
     return table
 
-def CheckPackage( self, app, config, area ):
-  """
-   check if given application is available in the given area
-  """
-  if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
-    localname, headers = urllib.urlretrieve( '%s%s' % ( InstallProjectURL, InstallProject ), InstallProject )
-    if not os.path.exists( '%s/%s' % ( os.getcwd(), InstallProject ) ):
-      self.log.error( '%s/%s could not be downloaded' % ( InstallProjectURL, InstallProject ) )
+  def __checkPackage( self, app, config, area ):
+    '''
+      check if given application is available in the given area
+    '''
+    if not os.path.exists( '%s/%s' % ( os.getcwd(), installProject ) ):
+      _localname, _headers = urllib.urlretrieve( '%s%s' % ( installProjectURL, installProject ), installProject )
+      if not os.path.exists( '%s/%s' % ( os.getcwd(), installProject ) ):
+        self.log.error( '%s/%s could not be downloaded' % ( installProjectURL, installProject ) )
+        return False
+
+    if not area:
       return False
 
-  if not area:
-    return False
+    localArea = area
+    if re.search( ':', area ):
+      localArea = ':'.split( area )[0]
 
-  localArea = area
-  if re.search( ':', area ):
-    localArea = ':'.split( area )[0]
+    appName = app[0]
+    appVersion = app[1]
 
-  appName = app[0]
-  appVersion = app[1]
+    installProject = os.path.join( localArea, installProject )
+    if not os.path.exists( installProject ):
+      try:
+        shutil.copy( installProject, localArea )
+      except shutil.Error:
+        self.log.error( 'Failed (Error) to get:', installProject )
+        return False
+      except IOError:
+        self.log.error( 'Failed (IOError) to get:', installProject )
+        return False
 
-  installProject = os.path.join( localArea, InstallProject )
-  if not os.path.exists( installProject ):
-    try:
-      shutil.copy( InstallProject, localArea )
-    except:
-      self.log.error( 'Failed to get:', installProject )
+    # Now run the installation
+    curDir = os.getcwd()
+    #NOTE: must cd to LOCAL area directory (install_project requirement)
+    os.chdir( localArea )
+
+    cmtEnv = dict( os.environ )
+    cmtEnv['MYSITEROOT'] = area
+    self.log.info( 'Defining MYSITEROOT = %s' % area )
+    cmtEnv['CMTCONFIG'] = config
+    self.log.info( 'Defining CMTCONFIG = %s' % config )
+    cmtEnv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR']
+    self.log.info( 'Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'] )
+
+    cmdTuple = [ sys.executable ]
+    cmdTuple += [ installProject ]
+    cmdTuple += [ '-d' ]
+    cmdTuple += [ '-p', appName ]
+    cmdTuple += [ '-v', appVersion ]
+    cmdTuple += [ '--check' ]
+
+    self.log.info( 'Executing %s' % ' '.join( cmdTuple ) )
+    timeout = 300
+    ret = systemCall( timeout, cmdTuple, env = cmtEnv )
+
+    os.chdir( curDir )
+    if not ret[ 'OK' ]:
+      _msg = 'Software check failed, missing software', '%s %s:\n%s'
+      self.log.error( _msg % ( appName, appVersion, ret[ 'Value' ][ 2 ] ) )
+      return False
+    if ret[ 'Value' ][ 0 ]: # != 0
+      _msg = 'Software check failed with non-zero status'
+      self.log.error( _msg, '%s %s:\n%s' % ( appName, appVersion, ret[ 'Value' ][ 2 ] ) )
       return False
 
-  # Now run the installation
-  curDir = os.getcwd()
-  #NOTE: must cd to LOCAL area directory (install_project requirement)
-  os.chdir( localArea )
+    if ret[ 'Value' ][ 2 ]:
+      self.log.debug( 'Error reported with ok status for install_project check:\n%s' % ret[ 'Value' ][ 2 ] )
 
-  cmtEnv = dict( os.environ )
-  cmtEnv['MYSITEROOT'] = area
-  self.log.info( 'Defining MYSITEROOT = %s' % area )
-  cmtEnv['CMTCONFIG'] = config
-  self.log.info( 'Defining CMTCONFIG = %s' % config )
-  cmtEnv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR']
-  self.log.info( 'Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'] )
+    return True
 
-  cmdTuple = [sys.executable]
-  cmdTuple += [InstallProject]
-  cmdTuple += ['-d']
-  cmdTuple += [ '-p', appName ]
-  cmdTuple += [ '-v', appVersion ]
-  cmdTuple += [ '--check' ]
+  def __checkArea( self, area ):
+    '''
+       Check if all application  in the  area are used or not
+    '''
 
-  self.log.info( 'Executing %s' % ' '.join( cmdTuple ) )
-  timeout = 300
-  ret = systemCall( timeout, cmdTuple, env = cmtEnv )
-#  self.log.debug(ret)
-  os.chdir( curDir )
-  if not ret['OK']:
-    self.log.error( 'Software check failed, missing software', '%s %s:\n%s' % ( appName, appVersion, ret['Value'][2] ) )
-    return False
-  if ret['Value'][0]: # != 0
-    _msg = 'Software check failed with non-zero status'
-    self.log.error( _msg, '%s %s:\n%s' % ( appName, appVersion, ret['Value'][2] ) )
-    return False
+    if not area:
+      return S_ERROR( 'No shared area' )
 
-  if ret['Value'][2]:
-    self.log.debug( 'Error reported with ok status for install_project check:\n%s' % ret['Value'][2] )
+    localArea = area
+    if re.search( ':', area ):
+      localArea = ':'.split( area )[0]
 
-  return True
+    lbLogin = '%s/LbLogin' % localArea
+    ret = DIRACOs.sourceEnv( 300, [ lbLogin ], dict( os.environ ) )
+    if not ret['OK']:
+      gLogger.warn( 'Error during lbLogin\n%s' % ret )
+      self.log.error( 'Error during lbLogin\n%s' % ret )
 
-def CheckSharedArea( self, area ):
-  """
-   check if all application  in the  area are used or not
-  """
+      return S_ERROR( 'Error during lbLogin' )
 
-  if not area:
-    return S_ERROR( 'No shared area' )
+    lbenv = ret[ 'outputEnv' ]
 
-  localArea = area
-  if re.search( ':', area ):
-    localArea = ':'.split( area )[0]
+    if not 'LBSCRIPTS_HOME' in lbenv:
+      self.log.error( 'LBSCRIPTS_HOME is not defined' )
+      return S_ERROR( 'LBSCRIPTS_HOME is not defined' )
 
-  lbLogin = '%s/LbLogin' % localArea
-  ret = DIRAC.Os.sourceEnv( 300, [lbLogin], dict( os.environ ) )
-  if not ret['OK']:
-    gLogger.warn( 'Error during lbLogin\n%s' % ret )
-    self.log.error( 'Error during lbLogin\n%s' % ret )
+    if not os.path.exists( lbenv['LBSCRIPTS_HOME'] + '/InstallArea/scripts/usedProjects' ):
+      self.log.error( 'UsedProjects is not in the path' )
+      return S_ERROR( 'UsedProjects is not in the path' )
 
-    return S_ERROR( 'Error during lbLogin' )
+    # Now run the installation
+    curDir = os.getcwd()
+    #NOTE: must cd to LOCAL area directory (install_project requirement)
+    os.chdir( localArea )
+    software_remove    = {}
+    lbenv[ 'LHCBTAR' ] = os.environ[ 'VO_LHCB_SW_DIR' ] + '/lib'
+    self.log.info( 'Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'] )
 
-  lbenv = ret['outputEnv']
+    cmdTuple = ['usedProjects']
+    cmdTuple += ['-r']
+    cmdTuple += ['-v']
 
-  if not 'LBSCRIPTS_HOME' in lbenv:
-    self.log.error( 'LBSCRIPTS_HOME is not defined' )
-    return S_ERROR( 'LBSCRIPTS_HOME is not defined' )
+    self.log.info( 'Executing %s' % ' '.join( cmdTuple ) )
+    timeout = 300
+    ret = systemCall( timeout, cmdTuple, env = lbenv )
+    self.log.info( ret )
+    os.chdir( curDir )
+    if not ret[ 'OK' ]:
+      self.log.error( 'Software check failed, missing software', '\n%s' % ( ret[ 'Value' ][ 2 ] ) )
+      return S_ERROR( 'Software check failed, missing software \n%s' % ( ret[ 'Value' ][ 2 ] ) )
+    if ret[ 'Value' ][ 0 ]: # != 0
+      self.log.error( 'Software check failed with non-zero status', '\n%s' % ( ret[ 'Value' ][ 2 ] ) )
+      return S_ERROR( 'Software check failed with non-zero status \n%s' % ( ret[ 'Value' ][ 2 ] ) )
 
-  if not os.path.exists( lbenv['LBSCRIPTS_HOME'] + '/InstallArea/scripts/usedProjects' ):
-    self.log.error( 'UsedProjects is not in the path' )
-    return S_ERROR( 'UsedProjects is not in the path' )
+    if ret[ 'Value' ][ 2 ]:
+      self.log.debug( 'Error reported with ok status for install_project check:\n%s' % ret[ 'Value' ][ 2 ] )
 
-
-  # Now run the installation
-  curDir = os.getcwd()
-  #NOTE: must cd to LOCAL area directory (install_project requirement)
-  os.chdir( localArea )
-  software_remove = {}
-  lbenv['LHCBTAR'] = os.environ['VO_LHCB_SW_DIR'] + '/lib'
-  self.log.info( 'Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'] )
-
-  cmdTuple = ['usedProjects']
-  cmdTuple += ['-r']
-  cmdTuple += ['-v']
-
-  self.log.info( 'Executing %s' % ' '.join( cmdTuple ) )
-  timeout = 300
-  ret = systemCall( timeout, cmdTuple, env = lbenv )
-  self.log.info( ret )
-  os.chdir( curDir )
-  if not ret['OK']:
-    self.log.error( 'Software check failed, missing software', '\n%s' % ( ret['Value'][2] ) )
-    return S_ERROR( 'Software check failed, missing software \n%s' % ( ret['Value'][2] ) )
-  if ret['Value'][0]: # != 0
-    self.log.error( 'Software check failed with non-zero status', '\n%s' % ( ret['Value'][2] ) )
-    return S_ERROR( 'Software check failed with non-zero status \n%s' % ( ret['Value'][2] ) )
-
-  if ret['Value'][2]:
-    self.log.debug( 'Error reported with ok status for install_project check:\n%s' % ret['Value'][2] )
-
-  for line in ret['Value'][1].split( '\n' ):
-    if line.find( 'remove' ) != -1:
-      line = line.split()
-      if line[1] in software_remove:
-        current = software_remove[line[1]]
-        current.append( line[3] )
-        software_remove[line[1]] = current
-      else:
-        software_remove[line[1]] = [line[3]]
-  self.log.info( 'Applications that could be remove' )
-  self.log.info( software_remove )
-  return S_OK( software_remove )
+    for line in ret[ 'Value' ][ 1 ].split( '\n' ):
+      if line.find( 'remove' ) != -1:
+        line = line.split()
+        if line[1] in software_remove:
+          current = software_remove[ line[ 1 ] ]
+          current.append( line[ 3 ] )
+          software_remove[ line[ 1 ] ] = current
+        else:
+          software_remove[ line[ 1 ] ] = [ line[ 3 ] ]
+    self.log.info( 'Applications that could be remove' )
+    self.log.info( software_remove )
+    return S_OK( software_remove )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

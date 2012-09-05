@@ -46,13 +46,13 @@ class SoftwareInstallation( ModuleBaseSAM ):
     
     if 'purgeSharedAreaFlag' in self.step_commons:
       self.purgeSharedArea = self.step_commons['purgeSharedAreaFlag']
-      if not type( self.purgeSharedArea ) == type( True ):
+      if not isinstance( self.purgeSharedArea, bool ):
         self.log.warn( 'Purge shared area flag set to non-boolean value %s, setting to False' % self.purgeSharedArea )
         self.enable = False
 
     if 'installProjectURL' in self.step_commons:
       self.installProjectURL = self.step_commons['installProjectURL']
-      if not type( self.installProjectURL ) == type( " " ) or not self.installProjectURL:
+      if not isinstance( self.installProjectURL, str ) or not self.installProjectURL:
         self.log.warn( 'Install project URL not set to non-zero string parameter, setting to None' )
         self.installProjectURL = None
 
@@ -205,6 +205,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
       os.remove( '%s/%s' % ( os.getcwd(), installProjectName ) )
     
     installProjectFile = os.path.basename( self.installProjectURL )
+    _localname, _headers = urllib.urlretrieve( self.installProjectURL, installProjectFile )
     
     if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
       
