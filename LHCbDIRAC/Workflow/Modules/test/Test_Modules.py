@@ -957,19 +957,6 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                                                         {'skipCACheck': False,
                                                                          'timeout': 3600} ),
                                                                        'getFileDescendants', ( ['foo'], 9, 0, True ) ),
-                                                           'Value': {'Successful': {'foo.txt': ['baaar']},
-                                                                     'Failed': [],
-                                                                     'NotProcessed': []}}
-          self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                             self.workflowStatus, self.stepStatus,
-                                             wf_commons, step_commons,
-                                             self.step_number, self.step_id,
-                                             self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
-          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
-                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                        {'skipCACheck': False,
-                                                                         'timeout': 3600} ),
-                                                                       'getFileDescendants', ( ['foo'], 9, 0, True ) ),
                                                            'Value': {'Successful': {},
                                                                      'Failed': [],
                                                                      'NotProcessed': []}}
