@@ -78,7 +78,7 @@ class SystemConfiguration( ModuleBaseSAM ):
        Return warning if the mapping is not the one expected..
     '''
 
-    self.log.info( ' Check mapping' )
+    self.log.info( '>> __checkMapping' )
     _errorMsg = 'potential problem in the mapping'
     
     result = None
@@ -117,6 +117,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     '''
        Checks local root
     '''
+       
+    self.log.info( '>> __checkLocalRoot' )   
         
     localRoot = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
     self.log.info( "Root directory for job is %s" % ( localRoot ) )
@@ -127,6 +129,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     '''
        Determines shared area and performs few basic operations
     '''
+
+    self.log.info( '>> __checkSharedArea' )
 
     sharedArea = getSharedArea()
     
@@ -187,6 +191,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     '''
        Checks proxy
     '''
+
+    self.log.info( '>> __checkProxy' )
     
     result = self.runCommand( 'Checking current proxy', 'voms-proxy-info -all' )
     if not result[ 'OK' ]:
@@ -199,6 +205,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     '''
        Checks the type of account used on the site
     '''
+        
+    self.log.info( '>> __checkAccounts' )    
         
     self.log.info( 'Current account: %s' % self.runInfo[ 'identity' ] )
     
@@ -214,6 +222,8 @@ class SystemConfiguration( ModuleBaseSAM ):
        Checks current platform and compares it with the supported ones. Then checks
        compatibility of libraries with that architecture.
     '''
+    
+    self.log.info( '>> __checkArchitecture' )
     
     systemConfigs = gConfig.getValue( '/LocalSite/Architecture', [] )
     self.log.info( 'Current system configurations are: %s ' % ( ', '.join( systemConfigs ) ) )
@@ -260,6 +270,8 @@ class SystemConfiguration( ModuleBaseSAM ):
     '''
        Checks RPM version of LCG Utils
     '''
+    
+    self.log.info( '>> __checkRPMs' )
     
     cmd = 'rpm -qa | grep lcg_util | cut -f 2 -d "-"'
     result = self.runCommand( 'Checking RPM for LCG Utilities', cmd )
