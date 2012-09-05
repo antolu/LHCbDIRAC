@@ -342,6 +342,7 @@ class LockSharedArea( ModuleBaseSAM ):
         result = S_ERROR( 'Status NOTICE (= 30)' )
         result[ 'Description' ] = '%s test running at same time as another SAM job' % self.testName
         result[ 'SamResult' ]   = 'notice'
+        return result
 
     return S_OK()
 
