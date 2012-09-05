@@ -968,6 +968,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not processingPasses:
       self.util.logInfo( "No processing pass(es)" )
       return S_OK( [] )
+    skip = False
     try:
       now = datetime.datetime.utcnow()
       cacheOK = False
@@ -983,6 +984,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if cacheOK:
         if transStatus != 'Flush' and ( now - cachedProductions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours=period ):
           self.util.logInfo( "Skip this loop (less than %s hours since last call)" % period )
+          skip = True
           return S_OK( [] )
       else:
         self.util.logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
@@ -1047,7 +1049,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_ERROR( error )
     finally:
       self.util.writeCacheFile()
-      if self.pluginCallback:
+      if not skip and self.pluginCallback:
         self.pluginCallback( self.transID, invalidateCache=True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
