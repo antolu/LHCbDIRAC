@@ -73,8 +73,8 @@ class ProductionRequest( object ):
     self.previousProds = [None] #list of productions from which to take the inputs (the first is always None)
     self.prodsToLaunch = [] #productions to launch
     self.previousProdID = 0 #optional prod from which to start
-    self.fractionToProcess = 100
-    self.minFilesToProcess = 100
+    self.fractionToProcess = 0
+    self.minFilesToProcess = 0
 
   #############################################################################
 
@@ -390,8 +390,6 @@ class ProductionRequest( object ):
     prod.setJobParameters( { 'CPUTime': cpu } )
     prod.setParameter( 'generatorName', 'string', str( self.generatorName ), 'Generator Name' )
     prod.plugin = plugin
-    prod.setParameter( 'FractionToProcess', 'string', str( self.fractionToProcess ), 'Fraction to process' )
-    prod.setParameter( 'MinFilesToProcess', 'string', str( self.minFilesToProcess ), 'Min N of Files to process' )
 
     #optional parameters
     prod.jobFileGroupSize = groupSize
@@ -415,6 +413,10 @@ class ProductionRequest( object ):
       prod.ancestorProduction = derivedProdID
     if transformationFamily:
       prod.transformationFamily = transformationFamily
+    if self.fractionToProcess:
+      prod.setParameter( 'FractionToProcess', 'string', str( self.fractionToProcess ), 'Fraction to process' )
+    if self.minFilesToProcess:
+      prod.setParameter( 'MinFilesToProcess', 'string', str( self.minFilesToProcess ), 'Min N of Files to process' )
 
     #Adding optional input BK query
     if bkQuery.lower() == 'full':
