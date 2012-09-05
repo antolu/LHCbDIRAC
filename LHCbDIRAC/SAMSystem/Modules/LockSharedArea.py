@@ -113,6 +113,7 @@ class LockSharedArea( ModuleBaseSAM ):
        Checks Accounts
     '''
     
+    self.log.info( '>> __checkAccounts' )
     self.log.info( 'Current account: %s' % self.runInfo[ 'identity' ] )
     
     # a username is a POOL account if it finishes with digit
@@ -129,6 +130,8 @@ class LockSharedArea( ModuleBaseSAM ):
     '''
        Checks safe mode, exits if it is on
     '''
+    
+    self.log.info( '>> __checkSafeMode' )
     
     result = S_OK()
     
@@ -148,6 +151,8 @@ class LockSharedArea( ModuleBaseSAM ):
        Checks umask
     '''
     
+    self.log.info( '>> __checkUmask' )
+    
     result = self.runCommand( 'Checking current umask', 'umask' )
     if not result[ 'OK' ]:
       result[ 'Description' ] = 'umask returned non-zero status'
@@ -157,6 +162,7 @@ class LockSharedArea( ModuleBaseSAM ):
     self.log.info( 'Current umask: %s' % result[ 'Value' ] )
     
     if isPoolAccount:
+      self.log.info( 'Is poolAccount' )
       if not result[ 'Value' ].count( '0002' ):
         self.log.info( 'Changing current umask to 0002' )
         try:
@@ -167,6 +173,7 @@ class LockSharedArea( ModuleBaseSAM ):
           result[ 'SamResult' ]   = 'error'
           return result
     else:
+      self.log.info( 'Is NOT poolAccount' )
       if not result[ 'Value' ].count( '0022' ):
         self.log.info( 'Changing current umask to 0022' )
         try:
@@ -184,11 +191,13 @@ class LockSharedArea( ModuleBaseSAM ):
        Checks sharedArea
     '''
     
+    self.log.info( '>> __checkSharedArea' )
+    
     sharedArea = getSharedArea()
     
     if not sharedArea:
-      _msg = 'Could not determine sharedArea for site %s:\n%s\n trying to create it' 
-      self.log.info( _msg % ( DIRAC.siteName(), sharedArea ) )
+      self.log.info( 'Could not determine sharedArea for site %s' % DIRAC.siteName() ) 
+      self.log.info( '%s trying to create it' % sharedArea )
       createsharedArea = createSharedArea()
       if not createsharedArea:
         result = S_ERROR( sharedArea )
@@ -203,9 +212,8 @@ class LockSharedArea( ModuleBaseSAM ):
     # if yes then return Error
       if os.path.exists( os.path.join( sharedArea, 'etc', 'cernvmfs' ) ):
         self.log.info( 'Software shared area for site %s is using CERNVMFS' % ( DIRAC.siteName() ) )
-        _msg = 'Could not install (CERNVMFS) for site %s:'
         result = S_ERROR( 'Read-Only volume' )
-        result[ 'Description' ] = _msg % DIRAC.siteName()
+        result[ 'Description' ] = 'Could not install (CERNVMFS) for site %s:' % DIRAC.siteName()
         result[ 'SamResult' ]   = 'warning'
         return result
 
@@ -225,6 +233,8 @@ class LockSharedArea( ModuleBaseSAM ):
        Checks sharedAreaContents
     '''
     
+    self.log.info( '>> __checkSharedAreaContents' )
+    
     self.log.info( 'Checking shared area contents: %s' % ( sharedArea ) )
     result = self.runCommand( 'Checking contents of shared area directory: %s' % sharedArea, 'ls -al %s' % sharedArea )
     if not result['OK']:
@@ -237,6 +247,8 @@ class LockSharedArea( ModuleBaseSAM ):
     '''
        Checks sharedAreaLink
     '''
+
+    self.log.info( '>> __checkSharedAreaLink' )
 
     self.log.verbose( 'Trying to resolve shared area link problem' )
     
@@ -261,6 +273,8 @@ class LockSharedArea( ModuleBaseSAM ):
     '''
        Checks forceLockRemoval
     '''
+    
+    self.log.info( '>> __checkForceLockRemoval' )
     
     if self.forceLockRemoval:
 
@@ -287,6 +301,8 @@ class LockSharedArea( ModuleBaseSAM ):
     '''
        Checks SAMLockFile
     '''
+    
+    self.log.info( '>> __checkSAMLockFile' )
     
     self.log.info( 'Checking SAM lock file: %s' % self.lockFile )
     
@@ -334,6 +350,8 @@ class LockSharedArea( ModuleBaseSAM ):
        Checks Lock file
     '''
     
+    self.log.info( '>> __checkLockFile' )
+    
     cmd = 'touch %s/%s' % ( sharedArea, self.lockFile )
     result = self.runCommand( 'Creating SAM lock file', cmd, check = True )
     
@@ -369,6 +387,8 @@ class LockSharedArea( ModuleBaseSAM ):
     '''
        Checks InstallProject
     '''
+    
+    self.log.info( '>> __checkInstallProject' )
     
     if os.path.exists( '%s/install_project.py' % ( sharedArea ) ):
       
