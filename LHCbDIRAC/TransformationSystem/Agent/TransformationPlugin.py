@@ -640,7 +640,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # No files, no tasks!
       return S_OK( [] )
     if forceRun and runFileDict.pop( 0, None ):
-      self.__logInfo( "Removing run #0, which means it was not set yet" )
+      self.util.logInfo( "Removing run #0, which means it was not set yet" )
 
     # For each of the runs determine the destination of any previous files
     runSEDict = {}
