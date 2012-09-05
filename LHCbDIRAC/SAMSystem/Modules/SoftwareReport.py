@@ -44,6 +44,7 @@ class SoftwareReport( ModuleBaseSAM ):
        By convention the workflow parameters are resolved here.
     '''
     
+    #FIXME: looks to me like a wrong and old copy/paste from SoftwareInstallation
     ModuleBaseSAM.resolveInputVariables( self )
 
     if 'installProjectURL' in self.step_commons:
