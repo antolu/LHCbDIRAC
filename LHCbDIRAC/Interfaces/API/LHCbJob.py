@@ -1119,7 +1119,7 @@ class LHCbJob( Job ):
         else:
           typeVersion = ''
 
-    self._addParameter( self.workflow, 'runNumber', 'String', runNumber, 'Input run number' )
+    self._addParameter( self.workflow, 'runNumber', 'JDL', runNumber, 'Input run number' )
     self._addParameter( self.workflow, 'persistency', 'String', typeVersion, 'Persistency type of the inputs' )
 
   #############################################################################
