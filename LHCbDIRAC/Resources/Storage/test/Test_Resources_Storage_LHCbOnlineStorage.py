@@ -181,7 +181,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( {}, res['Value']['Failed'] )
 
     #side_effect does not work very well, cooked a workaround
-    _myValues = [ (1, 0), (0, 1) ]
+    _myValues = [ (0, 1), (1, 0) ]
     def _side_effect( _pfn ):
       return _myValues.pop()
     resource.server.endMigratingFile.side_effect = _side_effect
@@ -220,7 +220,7 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     self.assertEqual( {}, res['Value']['Failed'] )
 
     #side_effect does not work very well, cooked a workaround
-    _myValues = [ (1, 0), (0, 1) ]
+    _myValues = [ (0, 1), (1, 0) ]
     def _side_effect( _pfn ):
       return _myValues.pop()
     resource.server.errorMigratingFile.side_effect = _side_effect
