@@ -1,60 +1,55 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '../qt_resources/HttpWidget.ui'
+# Form implementation generated from reading ui file 'HttpWidget.ui'
 #
-# Created: Fri Jun 29 16:02:08 2012
-#      by: PyQt4 UI code generator snapshot-4.9-86ab82ddf2a6
+# Created: Fri Sep  7 13:23:59 2012
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
 
-try:
-  _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-  _fromUtf8 = lambda s: s
-
 class Ui_HttpWidget(object):
   def setupUi(self, HttpWidget):
-    HttpWidget.setObjectName(_fromUtf8("HttpWidget"))
+    HttpWidget.setObjectName("HttpWidget")
     HttpWidget.resize(636, 336)
     self.verticalLayout = QtGui.QVBoxLayout(HttpWidget)
-    self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+    self.verticalLayout.setObjectName("verticalLayout")
     self.horizontalLayout = QtGui.QHBoxLayout()
-    self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+    self.horizontalLayout.setObjectName("horizontalLayout")
     self.back = QtGui.QPushButton(HttpWidget)
     icon = QtGui.QIcon()
-    icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/images/back.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    icon.addPixmap(QtGui.QPixmap(":/icons/images/back.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     self.back.setIcon(icon)
-    self.back.setObjectName(_fromUtf8("back"))
+    self.back.setObjectName("back")
     self.horizontalLayout.addWidget(self.back)
     self.next = QtGui.QPushButton(HttpWidget)
     self.next.setEnabled(True)
     self.next.setLayoutDirection(QtCore.Qt.RightToLeft)
     icon1 = QtGui.QIcon()
-    icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/images/next.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    icon1.addPixmap(QtGui.QPixmap(":/icons/images/next.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     self.next.setIcon(icon1)
-    self.next.setObjectName(_fromUtf8("next"))
+    self.next.setObjectName("next")
     self.horizontalLayout.addWidget(self.next)
     self.stop = QtGui.QPushButton(HttpWidget)
     icon2 = QtGui.QIcon()
-    icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/images/close.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    icon2.addPixmap(QtGui.QPixmap(":/icons/images/close.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     self.stop.setIcon(icon2)
-    self.stop.setObjectName(_fromUtf8("stop"))
+    self.stop.setObjectName("stop")
     self.horizontalLayout.addWidget(self.stop)
     self.reload = QtGui.QPushButton(HttpWidget)
     icon3 = QtGui.QIcon()
-    icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/images/reload.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    icon3.addPixmap(QtGui.QPixmap(":/icons/images/reload.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     self.reload.setIcon(icon3)
-    self.reload.setObjectName(_fromUtf8("reload"))
+    self.reload.setObjectName("reload")
     self.horizontalLayout.addWidget(self.reload)
     self.url = QtGui.QLineEdit(HttpWidget)
-    self.url.setObjectName(_fromUtf8("url"))
+    self.url.setObjectName("url")
     self.horizontalLayout.addWidget(self.url)
     self.verticalLayout.addLayout(self.horizontalLayout)
     self.webView = QtWebKit.QWebView(HttpWidget)
-    self.webView.setUrl(QtCore.QUrl(_fromUtf8("about:blank")))
-    self.webView.setObjectName(_fromUtf8("webView"))
+    self.webView.setUrl(QtCore.QUrl("about:blank"))
+    self.webView.setObjectName("webView")
     self.verticalLayout.addWidget(self.webView)
 
     self.retranslateUi(HttpWidget)

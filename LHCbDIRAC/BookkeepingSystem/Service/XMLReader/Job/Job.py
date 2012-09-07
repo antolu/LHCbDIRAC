@@ -193,27 +193,25 @@ class Job:
     string += '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
     string += '<!DOCTYPE Job SYSTEM "book.dtd">\n'
 
-    string += self.getJobConfiguration().writeToXML()
+    string = "%s%s" % (string, self.getJobConfiguration().writeToXML())
     for param in  self.jobParameters_:
-      string += param.writeToXML()
+      string = "%s%s" % (string, param.writeToXML())
 
     for inputFile in self.jobInputFiles_:
-      string += inputFile.writeToXML()
+      string = "%s%s" % (string, inputFile.writeToXML())
 
     for output in self.jobOutputfiles_:
-      string += output.writeToXML()
+      string = "%s%s" % (string, output.writeToXML())
 
     sim = self.getSimulationCond()
     if sim != None:
-      string += sim.writeToXML()
+      string = "%s%s" % (string, sim.writeToXML())
 
     daq = self.getDataTakingCond()
     if daq != None:
-      string += daq.writeToXML()
+      string = "%s%s" % (string, daq.writeToXML())
 
     string += '</Job>'
 
     return string
-
-
 #############################################################################

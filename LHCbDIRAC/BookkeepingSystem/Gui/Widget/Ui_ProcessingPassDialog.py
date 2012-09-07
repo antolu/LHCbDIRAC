@@ -1,55 +1,49 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '../qt_resources/ProcessingPassDialog.ui'
+# Form implementation generated from reading ui file 'ProcessingPassDialog.ui'
 #
-# Created: Fri Jun 29 16:03:20 2012
-#      by: PyQt4 UI code generator snapshot-4.9-86ab82ddf2a6
+# Created: Fri Sep  7 13:28:17 2012
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
 
-try:
-  _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-  _fromUtf8 = lambda s: s
-
 class Ui_ProcessingPassDialog(object):
   def setupUi(self, ProcessingPassDialog):
-    ProcessingPassDialog.setObjectName(_fromUtf8("ProcessingPassDialog"))
+    ProcessingPassDialog.setObjectName("ProcessingPassDialog")
     ProcessingPassDialog.resize(813, 342)
     self.gridlayout = QtGui.QGridLayout(ProcessingPassDialog)
-    self.gridlayout.setObjectName(_fromUtf8("gridlayout"))
+    self.gridlayout.setObjectName("gridlayout")
     self.widget = QtGui.QWidget(ProcessingPassDialog)
-    self.widget.setObjectName(_fromUtf8("widget"))
+    self.widget.setObjectName("widget")
     self.gridlayout1 = QtGui.QGridLayout(self.widget)
-    self.gridlayout1.setMargin(0)
-    self.gridlayout1.setObjectName(_fromUtf8("gridlayout1"))
+    self.gridlayout1.setObjectName("gridlayout1")
     self.tabwidget = QtGui.QTabWidget(self.widget)
-    self.tabwidget.setObjectName(_fromUtf8("tabwidget"))
+    self.tabwidget.setObjectName("tabwidget")
     self.tab = QtGui.QWidget()
-    self.tab.setObjectName(_fromUtf8("tab"))
+    self.tab.setObjectName("tab")
     self.hboxlayout = QtGui.QHBoxLayout(self.tab)
-    self.hboxlayout.setObjectName(_fromUtf8("hboxlayout"))
-    self.tabwidget.addTab(self.tab, _fromUtf8(""))
+    self.hboxlayout.setObjectName("hboxlayout")
+    self.tabwidget.addTab(self.tab, "")
     self.gridlayout1.addWidget(self.tabwidget, 0, 0, 1, 1)
     self.gridlayout.addWidget(self.widget, 0, 0, 1, 1)
     self.groupBox = QtGui.QGroupBox(ProcessingPassDialog)
-    self.groupBox.setObjectName(_fromUtf8("groupBox"))
+    self.groupBox.setObjectName("groupBox")
     self.hboxlayout1 = QtGui.QHBoxLayout(self.groupBox)
-    self.hboxlayout1.setObjectName(_fromUtf8("hboxlayout1"))
+    self.hboxlayout1.setObjectName("hboxlayout1")
     self.label = QtGui.QLabel(self.groupBox)
-    self.label.setObjectName(_fromUtf8("label"))
+    self.label.setObjectName("label")
     self.hboxlayout1.addWidget(self.label)
     self.lineEdit = QtGui.QLineEdit(self.groupBox)
     self.lineEdit.setReadOnly(True)
-    self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
+    self.lineEdit.setObjectName("lineEdit")
     self.hboxlayout1.addWidget(self.lineEdit)
     self.closeButton = QtGui.QPushButton(self.groupBox)
     icon = QtGui.QIcon()
-    icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/images/close.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    icon.addPixmap(QtGui.QPixmap(":/icons/images/close.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     self.closeButton.setIcon(icon)
-    self.closeButton.setObjectName(_fromUtf8("closeButton"))
+    self.closeButton.setObjectName("closeButton")
     self.hboxlayout1.addWidget(self.closeButton)
     self.gridlayout.addWidget(self.groupBox, 1, 0, 1, 1)
 

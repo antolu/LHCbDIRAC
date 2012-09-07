@@ -99,7 +99,7 @@ class ControlerTree(ControlerAbstract):
     """handles the action of the standard query check box"""
     widget = self.getWidget()
 
-    if not widget.runLookupRadioButtonIsChecked() and not widget.productionLookupradiobuttonIsChecked():
+    if not widget.runLookupRadioButtonIsChecked() and not widget.productionLookupradiobuttonIschecked():
       message = Message({'action':'StandardQuery'})
       self.getParent().messageFromChild(self, message)
       self.getWidget().setAdvancedQueryValue()
@@ -111,7 +111,7 @@ class ControlerTree(ControlerAbstract):
     """handles the action of the advanced query check box"""
     widget = self.getWidget()
 
-    if not widget.runLookupRadioButtonIsChecked() and not widget.productionLookupradiobuttonIsChecked():
+    if not widget.runLookupRadioButtonIsChecked() and not widget.productionLookupradiobuttonIschecked():
       message = Message({'action':'AdvancedQuery'})
       self.getParent().messageFromChild(self, message)
       self.getWidget().setStandardQueryValue()
@@ -156,8 +156,7 @@ class ControlerTree(ControlerAbstract):
           message = Message({'action':'arrowCursor', 'type':None})
           self.getParent().messageFromChild(self, message)
         else:
-          self.getWidget().waitCursor()
-          message = Message({'action':'expande', 'node':path})
+          message = Message({'action':'expande','node':path})
           feedback = self.getParent().messageFromChild(self, message)
           if feedback.action() == 'showNode':
             if feedback['items'].childnum() > 0:
@@ -176,7 +175,8 @@ class ControlerTree(ControlerAbstract):
                 self.getParent().messageFromChild(self, message)
               else:
                 self.getWidget().getTree().showTree(feedback['items'], parentItem)
-          self.getWidget().arrowCursor()
+
+
 
   #############################################################################
   def _on_item_clicked(self, parentItem):

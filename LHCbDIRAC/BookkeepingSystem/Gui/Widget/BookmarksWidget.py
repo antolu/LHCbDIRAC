@@ -15,7 +15,6 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarksWidget                  
 
 __RCSID__ = " $"
 
-
 #############################################################################
 class BookmarksWidget(QWidget, Ui_BookmarksWidget):
   """
@@ -33,7 +32,8 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
     self.setupUi(self)
 
     self.__model = None
-
+    self.__controler = None
+    self.__addBookmarks = None
 
   #############################################################################
   def getControler(self):
@@ -99,7 +99,7 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
     # set row height
     nrows = len(tabledata)
     for row in xrange(nrows):
-        self.bookmarks.setRowHeight(row, 18)
+      self.bookmarks.setRowHeight(row, 18)
 
     # enable sorting
     # this doesn't work
@@ -109,9 +109,9 @@ class BookmarksWidget(QWidget, Ui_BookmarksWidget):
   def getSelectedRow(self):
     """returns the selected rows"""
     for i in self.bookmarks.selectedIndexes():
-        row = i.row()
-        title = i.model().arraydata[row][0]
-        path = i.model().arraydata[row][1]
+      row = i.row()
+      title = i.model().arraydata[row][0]
+      path = i.model().arraydata[row][1]
     return {'Title':title, 'Path':path}
 
   #############################################################################

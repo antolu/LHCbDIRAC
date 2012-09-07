@@ -1,52 +1,47 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '../qt_resources/MainWidget.ui'
+# Form implementation generated from reading ui file 'MainWidget.ui'
 #
-# Created: Fri Jun 29 16:02:57 2012
-#      by: PyQt4 UI code generator snapshot-4.9-86ab82ddf2a6
+# Created: Fri Sep  7 13:28:34 2012
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
 
-try:
-  _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-  _fromUtf8 = lambda s: s
-
 class Ui_MainWidget(object):
   def setupUi(self, MainWidget):
-    MainWidget.setObjectName(_fromUtf8("MainWidget"))
+    MainWidget.setObjectName("MainWidget")
     MainWidget.setWindowModality(QtCore.Qt.NonModal)
     MainWidget.setEnabled(True)
     MainWidget.resize(400, 500)
-    MainWidget.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+    MainWidget.setCursor(QtCore.Qt.ArrowCursor)
     self.centralwidget = QtGui.QWidget(MainWidget)
-    self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+    self.centralwidget.setObjectName("centralwidget")
     self.vboxlayout = QtGui.QVBoxLayout(self.centralwidget)
-    self.vboxlayout.setObjectName(_fromUtf8("vboxlayout"))
+    self.vboxlayout.setObjectName("vboxlayout")
     self.tree = TreeWidget(self.centralwidget)
     self.tree.setEnabled(True)
-    self.tree.setObjectName(_fromUtf8("tree"))
+    self.tree.setObjectName("tree")
     self.vboxlayout.addWidget(self.tree)
     MainWidget.setCentralWidget(self.centralwidget)
     self.menubar = QtGui.QMenuBar(MainWidget)
     self.menubar.setGeometry(QtCore.QRect(0, 0, 400, 20))
-    self.menubar.setObjectName(_fromUtf8("menubar"))
+    self.menubar.setObjectName("menubar")
     self.menuFile = QtGui.QMenu(self.menubar)
-    self.menuFile.setObjectName(_fromUtf8("menuFile"))
+    self.menuFile.setObjectName("menuFile")
     self.menuSetings = QtGui.QMenu(self.menubar)
-    self.menuSetings.setObjectName(_fromUtf8("menuSetings"))
+    self.menuSetings.setObjectName("menuSetings")
     MainWidget.setMenuBar(self.menubar)
     self.statusbar = QtGui.QStatusBar(MainWidget)
-    self.statusbar.setObjectName(_fromUtf8("statusbar"))
+    self.statusbar.setObjectName("statusbar")
     MainWidget.setStatusBar(self.statusbar)
     self.actionExit = QtGui.QAction(MainWidget)
-    self.actionExit.setObjectName(_fromUtf8("actionExit"))
+    self.actionExit.setObjectName("actionExit")
     self.actionFile_dialog_paging_size = QtGui.QAction(MainWidget)
-    self.actionFile_dialog_paging_size.setObjectName(_fromUtf8("actionFile_dialog_paging_size"))
+    self.actionFile_dialog_paging_size.setObjectName("actionFile_dialog_paging_size")
     self.actionDataQuality = QtGui.QAction(MainWidget)
-    self.actionDataQuality.setObjectName(_fromUtf8("actionDataQuality"))
+    self.actionDataQuality.setObjectName("actionDataQuality")
     self.menuFile.addAction(self.actionExit)
     self.menuSetings.addAction(self.actionDataQuality)
     self.menubar.addAction(self.menuFile.menuAction())

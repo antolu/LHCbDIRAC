@@ -1,26 +1,21 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '../qt_resources/TableWidget.ui'
+# Form implementation generated from reading ui file 'TableWidget.ui'
 #
-# Created: Fri Jun 29 16:04:12 2012
-#      by: PyQt4 UI code generator snapshot-4.9-86ab82ddf2a6
+# Created: Fri Sep  7 13:27:20 2012
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
 
-try:
-  _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-  _fromUtf8 = lambda s: s
-
 class Ui_TableWidget(object):
   def setupUi(self, TableWidget):
-    TableWidget.setObjectName(_fromUtf8("TableWidget"))
+    TableWidget.setObjectName("TableWidget")
     TableWidget.resize(764, 694)
     self.tableWidget = QtGui.QTableWidget(TableWidget)
     self.tableWidget.setGeometry(QtCore.QRect(10, 10, 741, 671))
-    self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
+    self.tableWidget.setObjectName("tableWidget")
     self.tableWidget.setColumnCount(0)
     self.tableWidget.setRowCount(0)
 

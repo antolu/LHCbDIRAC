@@ -5,7 +5,6 @@ main controller of the widgets.
 # $Id$
 ########################################################################
 
-
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import Item
@@ -62,246 +61,9 @@ class ControlerMain(ControlerAbstract):
     """handles the messages sent by the children controllers"""
     gLogger.debug(str(self.__class__)+' Sender' + str(sender.__class__))
     gLogger.debug(str(self.__class__)+' Message'+str(message))
+
     if sender.__class__.__name__ == 'ControlerTree':
-      if message['action'] == 'expande':
-        self.getWidget().waitCursor()
-        path = message['node']
-        items = Item({'fullpath':path}, None)
-        #, self.__SelectionDict, self.__SortDict, self.__StartItem, self.__Maxitems
-        if message.has_key('StartItem') and message.has_key('MaxItem'):
-          self.__StartItem = message['StartItem']
-          self.__Maxitems = message['MaxItem']
-        for entity in self.__bkClient.list(str(path),
-                                           self.__SelectionDict,
-                                           self.__SortDict,
-                                           self.__StartItem,
-                                           self.__Maxitems):
-          childItem = Item(entity, items)
-          items.addItem(childItem)
-        #self.__progressBar.stop()
-        #self.__progressBar.wait()
-
-        self.getWidget().arrowCursor()
-        message = Message({'action':'showNode', 'items':items})
-        return message
-
-      elif message['action'] == 'configbuttonChanged':
-        self.__bkClient.setParameter('Configuration')
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        items = self.root()
-        message = Message({'action':'removeTree', 'items':items})
-        ct.messageFromParent(message)
-
-      elif message['action'] == 'eventbuttonChanged':
-        self.__bkClient.setParameter('Event type')
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        items = self.root()
-        message = Message({'action':'removeTree', 'items':items})
-        ct.messageFromParent(message)
-
-      elif message['action'] == 'productionButtonChanged':
-        self.__bkClient.setParameter('Productions')
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        items = self.root()
-        ctProd = controlers['ProductionLookup']
-        message = Message({'action':'list', 'items':items})
-        ctProd.messageFromParent(message)
-
-      elif message['action'] == 'runLookup':
-        self.__bkClient.setParameter('Runlookup')
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        items = self.root()
-        ctProd = controlers['ProductionLookup']
-        message = Message({'action':'list', 'items':items})
-        ctProd.messageFromParent(message)
-
-      elif message.action() == 'SaveAs':
-        dataset = message['dataset']
-        if self.__fileName != '':
-          fileName = self.__fileName
-        else:
-          fileName = message['fileName']
-
-        lfns = message['lfns']
-        self.__bkClient.writeJobOptions(lfns,
-                                        str(fileName),
-                                        savedType=None,
-                                        catalog=None,
-                                        savePfn=None,
-                                        dataset=dataset)
-        return True
-      elif message.action() == 'SaveToTxt':
-        if self.__fileName != '':
-          fileName = self.__fileName
-          lfns = message['lfns']
-          filedescriptor = open(fileName, 'w')
-          for lfn in lfns:
-            filedescriptor.write(lfn + '\n')
-          sys.exit(0)
-        else:
-          fileName = message['fileName']
-          lfns = message['lfns']
-          filedescriptor = open(fileName, 'w')
-          for lfn in lfns:
-            filedescriptor.write(lfn + '\n')
-        return True
-
-      elif message.action() == 'JobInfo':
-        files = self.__bkClient.getJobInfo(message['fileName'])
-        message = Message({'action':'showJobInfos', 'items':files})
-        return message
-        #controlers = self.getChildren()
-        #ct = controlers['TreeWidget']
-        #feedback = ct.messageFromParent(message)
-        #return feedback
-      elif message.action() == 'waitCursor':
-        self.getWidget().waitCursor()
-        return True
-      elif message.action() == 'arrowCursor':
-        self.getWidget().arrowCursor()
-        return True
-
-      elif message.action() == 'getNbEventsAndFiles':
-        path = message['node']
-        result = self.__bkClient.getLimitedFiles({'fullpath':str(path)}, ['nb'], -1, -1)
-        return result
-      elif message.action() == 'StandardQuery':
-        self.__bkClient.setAdvancedQueries(False)
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        items = self.root()
-        message = Message({'action':'removeTree', 'items':items})
-        ct.messageFromParent(message)
-
-      elif message.action() == 'AdvancedQuery':
-        self.__bkClient.setAdvancedQueries(True)
-        items = self.root()
-        controlers = self.getChildren()
-        ct = controlers['TreeWidget']
-        message = Message({'action':'removeTree', 'items':items})
-        ct.messageFromParent(message)
-
-      elif message.action() == 'GetFileName':
-        return self.__fileName
-      elif message.action() == 'GetPathFileName':
-        return self.__pathfilename
-      elif message.action() == 'getAnccestors':
-        files = message['files']
-        if len(files) == 0:
-          message = Message({'action':'error', 'message':'Please select a file or files!'})
-          return message
-        res = self.__bkClient.getFileHistory(files)
-        if not res['OK']:
-          message = Message({'action':'error', 'message':res['Message']})
-          return message
-        else:
-          return Message({'action':'showAncestors', 'files':res['Value']})
-
-      elif message.action() == 'logfile':
-        files = message['fileName']
-        if len(files) == 0:
-          message = Message({'action':'error', 'message':'Please select a file'})
-          return message
-        else:
-          res = self.__bkClient.getLogfile(files[0])
-          if not res['OK']:
-            message = Message({'action':'error', 'message':res['Message']})
-            return message
-          else:
-            value = res['Value']
-            files = value.split('/')
-            logfile = ''
-            for i in range(len(files) - 1):
-              if files[i] != '':
-                logfile += '/' + str(files[i])
-
-            name = files[len(files) - 1].split('_')
-
-            if logfile.find('/' + str(name[2])) < 0:
-              logfile += '/' + str(name[2])
-
-            message = Message({'action':'showLog', 'fileName':logfile})
-            return message
-      elif message.action() == 'procDescription':
-        desc = message['groupdesc']
-        retVal = self.__bkClient.getProcessingPassSteps({'StepName':desc})
-        if not retVal['OK']:
-          gLogger.error(retVal['Message'])
-          return None
-        else:
-          return retVal['Value']
-
-      elif message.action() == 'createCatalog':
-        if self.__fileName != '':
-          lfnList = message['lfns'].keys()
-          filedescriptor = open(self.__fileName, 'w')
-          for i in lfnList:
-            filedescriptor.write(i)
-            filedescriptor.write('\n')
-          filedescriptor.close()
-          sys.exit(0)
-        else:
-          dataset = message['dataset']
-          site = message['selection']['Site']
-          filename = message['fileName']
-          lfnList = message['lfns'].keys()
-          totalFiles = len(lfnList)
-          ff = filename.split('.')
-          catalog = ff[0] + '.xml'
-          retVal = self.__diracAPI.getInputDataCatalog(lfnList, site, catalog, True)
-          nbofsuccsessful = 0
-          if retVal['OK']:
-            slist = retVal['Successful']
-            faild = retVal['Failed']
-            nbofsuccsessful = len(slist)
-            nboffaild = len(faild)
-            exist = {}
-            lfns = message['lfns']
-
-            for i in slist.keys():
-              exist[i] = lfns[i]
-            if message['selection']['pfn']:
-              self.__bkClient.writeJobOptions(exist,
-                                              filename,
-                                              savedType=None,
-                                              catalog=catalog,
-                                              savePfn=slist,
-                                              dataset=dataset)
-            else:
-              self.__bkClient.writeJobOptions(exist,
-                                              filename,
-                                              catalog=catalog,
-                                              dataset=dataset)
-            message = 'Total files:' + str(totalFiles) + '\n'
-            if site != None:
-              message += str(nbofsuccsessful) + ' found ' + str(site.split('.')[1]) + '\n'
-              message += str(nboffaild) + ' not found ' + str(site.split('.')[1])
-            QMessageBox.information(self.getWidget(), "Information", message , QMessageBox.Ok)
-          else:
-            QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
-
-      elif message.action() == 'ProductionInformations':
-        res = self.__bkClient.getProductionProcessingPassSteps({'Production':int(message['production'])})
-        if res['OK']:
-          return res['Value']
-        else:
-          QMessageBox.information(self.getWidget(), "Error", res['Message'], QMessageBox.Ok)
-          return S_ERROR()
-
-      elif message.action() == 'BookmarksPrefices':
-        param = self.__bkClient.getCurrentParameter()
-        querytype = self.__bkClient.getQueriesTypes()
-        prefix = param + '+' + querytype
-        return S_OK(prefix)
-      else:
-        gLogger.error('Unknown message!', str(message.action()) + str(message))
-        return S_ERROR('Unknown message!' + str(message.action()) + str(message))
-
-
+      return self.handleControllertreeMessages(sender, message)
     elif sender.__class__.__name__ == 'ControlerProductionLookup':
       if message.action() == 'showAllProduction':
         items = message['items']
@@ -345,6 +107,246 @@ class ControlerMain(ControlerAbstract):
     else:
       gLogger.error('Unkown message!', message)
       return S_ERROR()
+
+  #############################################################################
+  def handleControllertreeMessages(self, sender, message):
+    if message['action'] == 'expande':
+      self.getWidget().waitCursor()
+      path = message['node']
+      items = Item({'fullpath':path}, None)
+      #, self.__SelectionDict, self.__SortDict, self.__StartItem, self.__Maxitems
+      if message.has_key('StartItem') and message.has_key('MaxItem'):
+        self.__StartItem = message['StartItem']
+        self.__Maxitems = message['MaxItem']
+      for entity in self.__bkClient.list(str(path),
+                                         self.__SelectionDict,
+                                         self.__SortDict,
+                                         self.__StartItem,
+                                         self.__Maxitems):
+        childItem = Item(entity, items)
+        items.addItem(childItem)
+      #self.__progressBar.stop()
+      #self.__progressBar.wait()
+
+      self.getWidget().arrowCursor()
+      message = Message({'action':'showNode', 'items':items})
+      return message
+
+    elif message['action'] == 'configbuttonChanged':
+      self.__bkClient.setParameter('Configuration')
+      controlers = self.getChildren()
+      ct = controlers['TreeWidget']
+      items = self.root()
+      message = Message({'action':'removeTree', 'items':items})
+      ct.messageFromParent(message)
+
+    elif message['action'] == 'eventbuttonChanged':
+      self.__bkClient.setParameter('Event type')
+      controlers = self.getChildren()
+      ct = controlers['TreeWidget']
+      items = self.root()
+      message = Message({'action':'removeTree', 'items':items})
+      ct.messageFromParent(message)
+
+    elif message['action'] == 'productionButtonChanged':
+      self.__bkClient.setParameter('Productions')
+      controlers = self.getChildren()
+      ct = controlers['TreeWidget']
+      items = self.root()
+      ctProd = controlers['ProductionLookup']
+      message = Message({'action':'list', 'items':items})
+      ctProd.messageFromParent(message)
+
+    elif message['action'] == 'runLookup':
+      self.__bkClient.setParameter('Runlookup')
+      controlers = self.getChildren()
+      ct = controlers['TreeWidget']
+      items = self.root()
+      ctProd = controlers['ProductionLookup']
+      message = Message({'action':'list', 'items':items})
+      ctProd.messageFromParent(message)
+
+    elif message.action() == 'SaveAs':
+      dataset = message['dataset']
+      if self.__fileName != '':
+        fileName = self.__fileName
+      else:
+        fileName = message['fileName']
+
+      lfns = message['lfns']
+      self.__bkClient.writeJobOptions(lfns,
+                                      str(fileName),
+                                      savedType=None,
+                                      catalog=None,
+                                      savePfn=None,
+                                      dataset=dataset)
+      return True
+    elif message.action() == 'SaveToTxt':
+      if self.__fileName != '':
+        fileName = self.__fileName
+        lfns = message['lfns']
+        filedescriptor = open(fileName, 'w')
+        for lfn in lfns:
+          filedescriptor.write(lfn + '\n')
+        sys.exit(0)
+      else:
+        fileName = message['fileName']
+        lfns = message['lfns']
+        filedescriptor = open(fileName, 'w')
+        for lfn in lfns:
+          filedescriptor.write(lfn + '\n')
+      return True
+
+    elif message.action() == 'JobInfo':
+      files = self.__bkClient.getJobInfo(message['fileName'])
+      message = Message({'action':'showJobInfos', 'items':files})
+      return message
+      #controlers = self.getChildren()
+      #ct = controlers['TreeWidget']
+      #feedback = ct.messageFromParent(message)
+      #return feedback
+    elif message.action() == 'waitCursor':
+      self.getWidget().waitCursor()
+      return True
+    elif message.action() == 'arrowCursor':
+      self.getWidget().arrowCursor()
+      return True
+
+    elif message.action() == 'getNbEventsAndFiles':
+      path = message['node']
+      result = self.__bkClient.getLimitedFiles({'fullpath':str(path)}, ['nb'], -1, -1)
+      return result
+    elif message.action() == 'StandardQuery':
+      self.__bkClient.setAdvancedQueries(False)
+      controlers = self.getChildren()
+      ct = controlers['TreeWidget']
+      items = self.root()
+      message = Message({'action':'removeTree', 'items':items})
+      ct.messageFromParent(message)
+
+    elif message.action() == 'AdvancedQuery':
+      self.__bkClient.setAdvancedQueries(True)
+      items = self.root()
+      controlers = self.getChildren()
+      ct = controlers['TreeWidget']
+      message = Message({'action':'removeTree', 'items':items})
+      ct.messageFromParent(message)
+
+    elif message.action() == 'GetFileName':
+      return self.__fileName
+    elif message.action() == 'GetPathFileName':
+      return self.__pathfilename
+    elif message.action() == 'getAnccestors':
+      files = message['files']
+      if len(files) == 0:
+        message = Message({'action':'error', 'message':'Please select a file or files!'})
+        return message
+      res = self.__bkClient.getFileHistory(files)
+      if not res['OK']:
+        message = Message({'action':'error', 'message':res['Message']})
+        return message
+      else:
+        return Message({'action':'showAncestors', 'files':res['Value']})
+
+    elif message.action() == 'logfile':
+      files = message['fileName']
+      if len(files) == 0:
+        message = Message({'action':'error', 'message':'Please select a file'})
+        return message
+      else:
+        res = self.__bkClient.getLogfile(files[0])
+        if not res['OK']:
+          message = Message({'action':'error', 'message':res['Message']})
+          return message
+        else:
+          value = res['Value']
+          files = value.split('/')
+          logfile = ''
+          for i in range(len(files) - 1):
+            if files[i] != '':
+              logfile += '/' + str(files[i])
+
+          name = files[len(files) - 1].split('_')
+
+          if logfile.find('/' + str(name[2])) < 0:
+            logfile += '/' + str(name[2])
+
+          message = Message({'action':'showLog', 'fileName':logfile})
+          return message
+    elif message.action() == 'procDescription':
+      desc = message['groupdesc']
+      retVal = self.__bkClient.getProcessingPassSteps({'StepName':desc})
+      if not retVal['OK']:
+        gLogger.error(retVal['Message'])
+        return None
+      else:
+        return retVal['Value']
+
+    elif message.action() == 'createCatalog':
+      if self.__fileName != '':
+        lfnList = message['lfns'].keys()
+        filedescriptor = open(self.__fileName, 'w')
+        for i in lfnList:
+          filedescriptor.write(i)
+          filedescriptor.write('\n')
+        filedescriptor.close()
+        sys.exit(0)
+      else:
+        dataset = message['dataset']
+        site = message['selection']['Site']
+        filename = message['fileName']
+        lfnList = message['lfns'].keys()
+        totalFiles = len(lfnList)
+        ff = filename.split('.')
+        catalog = ff[0] + '.xml'
+        retVal = self.__diracAPI.getInputDataCatalog(lfnList, site, catalog, True)
+        nbofsuccsessful = 0
+        if retVal['OK']:
+          slist = retVal['Successful']
+          faild = retVal['Failed']
+          nbofsuccsessful = len(slist)
+          nboffaild = len(faild)
+          exist = {}
+          lfns = message['lfns']
+
+          for i in slist.keys():
+            exist[i] = lfns[i]
+          if message['selection']['pfn']:
+            self.__bkClient.writeJobOptions(exist,
+                                            filename,
+                                            savedType=None,
+                                            catalog=catalog,
+                                            savePfn=slist,
+                                            dataset=dataset)
+          else:
+            self.__bkClient.writeJobOptions(exist,
+                                            filename,
+                                            catalog=catalog,
+                                            dataset=dataset)
+          message = 'Total files:' + str(totalFiles) + '\n'
+          if site != None:
+            message += str(nbofsuccsessful) + ' found ' + str(site.split('.')[1]) + '\n'
+            message += str(nboffaild) + ' not found ' + str(site.split('.')[1])
+          QMessageBox.information(self.getWidget(), "Information", message , QMessageBox.Ok)
+        else:
+          QMessageBox.information(self.getWidget(), "Error", retVal['Message'], QMessageBox.Ok)
+
+    elif message.action() == 'ProductionInformations':
+      res = self.__bkClient.getProductionProcessingPassSteps({'Production':int(message['production'])})
+      if res['OK']:
+        return res['Value']
+      else:
+        QMessageBox.information(self.getWidget(), "Error", res['Message'], QMessageBox.Ok)
+        return S_ERROR()
+
+    elif message.action() == 'BookmarksPrefices':
+      param = self.__bkClient.getCurrentParameter()
+      querytype = self.__bkClient.getQueriesTypes()
+      prefix = param + '+' + querytype
+      return S_OK(prefix)
+    else:
+      gLogger.error('Unknown message!', str(message.action()) + str(message))
+      return S_ERROR('Unknown message!' + str(message.action()) + str(message))
 
   #############################################################################
   def root(self):

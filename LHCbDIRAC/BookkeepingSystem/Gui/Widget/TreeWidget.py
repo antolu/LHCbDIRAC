@@ -136,7 +136,7 @@ class TreeWidget(QWidget, Ui_TreeWidget):
     return self.runLookup.isChecked()
 
   #############################################################################
-  def productionLookupradiobuttonIsChecked(self):
+  def productionLookupradiobuttonIschecked(self):
     """is the production lookup ticked"""
     return self.productionRadioButton.isChecked()
 
@@ -176,13 +176,3 @@ class TreeWidget(QWidget, Ui_TreeWidget):
   def headerItem(self):
     """returns the elements of the header"""
     return self.tree.headerItem()
-
-  #############################################################################
-  def waitCursor(self):
-    """shows the wait cursor"""
-    self.setCursor(Qt.WaitCursor)
-
-  #############################################################################
-  def arrowCursor(self):
-    """shows the normal cursor"""
-    self.setCursor(Qt.ArrowCursor)
