@@ -305,8 +305,14 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
-    mock_RPC.exists.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } }, 
-                                      { 'OK' : False, 'Message' : 'Bo!' } ]
+    
+    #side_effect does not work very well, cooked a workaround
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } } ]
+    def _side_effect( _pfn ):
+      return _myValues.pop()    
+    mock_RPC.exists.side_effect = _side_effect
+    #mock_RPC.exists.side_effect = [ { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } }, 
+    #                                  { 'OK' : False, 'Message' : 'Bo!' } ]
 
     self.moduleTested.RPCClient.return_value = mock_RPC
     
@@ -316,6 +322,8 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     res = catalog._BookkeepingDBClient__exists( [] )
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } } ]
     
     res = catalog._BookkeepingDBClient__exists( ['A','C','B'] )
     self.assertEqual( True, res['OK'] )
