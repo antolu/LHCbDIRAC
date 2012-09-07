@@ -13,54 +13,70 @@ from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob import LHCbSAMJob
 __RCSID__ = '$Id$'
 
 class DiracSAM( Dirac ):
+  '''
+    DiracSAM: extension of Dirac Interface for SAM jobs
+    
+    It provides the following methods:
+    - submitAllSAMJobs
+    - submitAllSAMTestJobs
+    - submitSAMJob
+  '''
 
   def __init__( self ):
-    """Instantiates the Workflow object and some default parameters.
-    """
+    '''
+       Instantiates the Workflow object and some default parameters.
+    '''
     Dirac.__init__( self )
-    self.gridType = 'LCG'
-    opsH = Operations()
+    
+    self.gridType    = 'LCG'
+    opsH             = Operations()
     self.bannedSites = opsH.getValue( 'SAM/BannedSites', [] )
-    self.samRole = opsH.getValue( 'SAM/DefaultRole', 'lhcb_admin' )
-    self.log = gLogger.getSubLogger( "DiracSAM" )
+    self.samRole     = opsH.getValue( 'SAM/DefaultRole', 'lhcb_admin' )
+    self.log         = gLogger.getSubLogger( "DiracSAM" )
 
   def submitAllSAMJobs( self, softwareEnableFlag = True, scriptName = '' ):
-    """Submit SAM tests to all possible CEs as defined in the CS.
-    """
+    '''
+       Submit SAM tests to all possible CEs as defined in the CS.
+    '''
+    
     result = getCESiteMapping( self.gridType )
-    if not result['OK']:
+    if not result[ 'OK' ]:
       return result
+    
     ceSiteMapping = {}
     self.log.verbose( 'Banned SAM sites are: %s' % ( ', '.join( self.bannedSites ) ) )
-    for ce, site in result['Value'].items():
+    for ce, site in result[ 'Value' ].items():
       if not site in self.bannedSites:
-        ceSiteMapping[ce] = site
+        ceSiteMapping[ ce ] = site
 
     self.log.info( 'Preparing jobs for %s CEs' % ( len( ceSiteMapping.keys() ) ) )
     for ce in ceSiteMapping.keys():
       result = self.submitSAMJob( ce, softwareEnable = softwareEnableFlag, script = scriptName )
-      if not result['OK']:
-        self.log.info( 'Submission of SAM job to CE %s failed with message:\n%s' % ( ce, result['Message'] ) )
+      if not result[ 'OK' ]:
+        self.log.info( 'Submission of SAM job to CE %s failed with message:\n%s' % ( ce, result[ 'Message' ] ) )
 
     return S_OK()
 
   def submitAllSAMTestJobs( self, softwareEnableFlag = True, publishFlag = False, scriptName = '' ):
-    """Submit SAM tests to all possible CEs as defined in the CS.
-    """
+    '''
+       Submit SAM tests to all possible CEs as defined in the CS.
+    '''
+    
     result = getCESiteMapping( self.gridType )
-    if not result['OK']:
+    if not result[ 'OK' ]:
       return result
     ceSiteMapping = {}
     self.log.verbose( 'Banned SAM sites are: %s' % ( ', '.join( self.bannedSites ) ) )
-    for ce, site in result['Value'].items():
+    for ce, site in result[ 'Value' ].items():
       if not site in self.bannedSites:
-        ceSiteMapping[ce] = site
+        ceSiteMapping[ ce ] = site
 
     self.log.info( 'Preparing jobs for %s CEs' % ( len( ceSiteMapping.keys() ) ) )
     for ce in ceSiteMapping.keys():
-      result = self.submitSAMJob( ce, softwareEnable = softwareEnableFlag, publishFlag = False, script = scriptName )
-      if not result['OK']:
-        self.log.info( 'Submission of SAM job to CE %s failed with message:\n%s' % ( ce, result['Message'] ) )
+      result = self.submitSAMJob( ce, softwareEnable = softwareEnableFlag, publishFlag = publishFlag, 
+                                  script = scriptName )
+      if not result[ 'OK' ]:
+        self.log.info( 'Submission of SAM job to CE %s failed with message:\n%s' % ( ce, result[ 'Message' ] ) )
 
     return S_OK()
 
@@ -68,12 +84,15 @@ class DiracSAM( Dirac ):
                     logFlag = True, publishFlag = True, mode = 'wms', enable = True, 
                     softwareEnable = True, reportEnable = True, install_project = None, 
                     script = '' ):
-    """Submit a SAM test job to an individual CE.
-    """
+    '''
+       Submit a SAM test job to an individual CE.
+    '''
+    
     job = None
     # if we install the applications we do not run the report
     if softwareEnable:
       reportEnable = False
+      
     try:
       job = LHCbSAMJob()
       job.setDestinationCE( ce )
@@ -96,9 +115,18 @@ class DiracSAM( Dirac ):
       job.finalizeAndPublish( logUpload = logFlag, publishResults = publishFlag, enableFlag = enable )
       if softwareEnable:
         job.setSAMGroup( "SAMsw" )
+        
+    except TypeError, x:
+      self.log.warn( 'Creating SAM job failed with TypeError: %s' % x )
+      return S_ERROR( str( x ) )
+    except KeyError, x:
+      self.log.warn( 'Creating SAM job failed with KeyError: %s' % x )
+      return S_ERROR( str( x ) )
+    #FIXME: delete this part when 100% sure
     except Exception, x:
       self.log.warn( 'Creating SAM job failed with exception: %s' % x )
       return S_ERROR( str( x ) )
+    
     self.log.verbose( 'Job JDL is: \n%s' % job._toJDL() )
 
     if not job:
