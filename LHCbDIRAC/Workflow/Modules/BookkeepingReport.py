@@ -54,7 +54,7 @@ class BookkeepingReport( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None, saveOnFile = True,
-               bk = None, xf_o = None ):
+               xf_o = None ):
     """ Usual executor
     """
 
@@ -67,7 +67,7 @@ class BookkeepingReport( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK()
 
-      result = self._resolveInputVariables( bk, xf_o )
+      result = self._resolveInputVariables( xf_o )
       if not result['OK']:
         self.log.error( result['Message'] )
         return result
@@ -98,7 +98,7 @@ class BookkeepingReport( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self, bk = None, xf_o = None ):
+  def _resolveInputVariables( self, xf_o = None ):
     """ By convention the module parameters are resolved here.
     """
 
@@ -129,7 +129,7 @@ class BookkeepingReport( ModuleBase ):
 
     else:
       self.log.info( 'LogFilePath / BookkeepingLFNs parameters not found, creating on the fly' )
-      result = constructProductionLFNs( self.workflow_commons, bk )
+      result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create production LFNs', result['Message'] )
         return result

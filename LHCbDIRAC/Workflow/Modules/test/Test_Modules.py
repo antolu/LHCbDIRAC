@@ -216,18 +216,24 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
     self.alf = AnalyseLogFile()
+    self.alf.bkClient = self.bkc_mock
+    self.alf.rm = self.rm_mock
 
     from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
     self.axlf = AnalyseXMLSummary()
+    self.axlf.bkClient = self.bkc_mock
+    self.axlf.rm = self.rm_mock
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
     self.ga = GaudiApplication()
+    self.ga.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
     self.gas = GaudiApplicationScript()
 
     from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
     self.bkr = BookkeepingReport()
+    self.bkr.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
     self.el = ErrorLogging()
@@ -240,15 +246,20 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.ProtocolAccessTest import ProtocolAccessTest
     self.pat = ProtocolAccessTest()
+    self.pat.rm = self.rm_mock
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
     self.rid = RemoveInputData()
+    self.rid.rm = self.rm_mock
 
     from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
     self.sb = SendBookkeeping()
+    self.sb.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
-    self.uod = UploadOutputData( self.rm_mock )
+    self.uod = UploadOutputData()
+    self.uod.bkClient = self.bkc_mock
+    self.uod.rm = self.rm_mock
 
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
     self.ujf = UserJobFinalization()
@@ -469,10 +480,10 @@ class GaudiApplicationSuccess( ModulesTestCase ):
     self.ga.stepInputData = ['foo', 'bar']
     self.ga.stepOutputsType = ['SDST', 'HIST']
     self.ga.jobType = 'merge'
-    outft = self.ga._determineOutputFileType( self.bkc_mock )
+    outft = self.ga._determineOutputFileType()
     self.assertEqual( outft, ['SDST'] )
     self.ga.jobType = 'reco'
-    outft = self.ga._determineOutputFileType( self.bkc_mock )
+    outft = self.ga._determineOutputFileType()
     self.assertEqual( outft, ['SDST'] )
 
   def test__findOutputs( self ):
@@ -571,8 +582,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
                                             self.step_number, self.step_id,
-                                            self.nc_mock, self.rm_mock, logAnalyser,
-                                            self.bkc_mock, self.xf_o_mock )['OK'] )
+                                            self.nc_mock, logAnalyser, self.xf_o_mock )['OK'] )
 
 
     #logAnalyser gives errors
@@ -586,8 +596,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
                                             self.step_number, self.step_id,
-                                            self.nc_mock, self.rm_mock, logAnalyser,
-                                            self.bkc_mock, self.xf_o_mock )['OK'] )
+                                            self.nc_mock, logAnalyser, self.xf_o_mock )['OK'] )
 
 
   def test__updateFileStatus( self ):
@@ -596,7 +605,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
               {'i1':'Unused', 'i2':'Unused'}
               ]
     for input in inputs:
-      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.rm_mock, self.fr_mock )
+      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.fr_mock )
 
 #############################################################################
 # AnalyseLogFile.py
@@ -619,7 +628,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
                                             self.step_number, self.step_id,
-                                            self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
+                                            self.nc_mock, logAnalyser )['OK'] )
 
 
     #logAnalyser gives errors
@@ -633,7 +642,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
+                                          self.nc_mock, logAnalyser )['OK'] )
 
     #there's a core dump
     logAnalyser.return_value = {'OK':True, 'Message':''}
@@ -644,7 +653,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, self.rm_mock, logAnalyser, self.bkc_mock )['OK'] )
+                                          self.nc_mock, logAnalyser )['OK'] )
 
 
   def test__updateFileStatus( self ):
@@ -653,7 +662,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
               {'i1':'Unused', 'i2':'Unused'}
               ]
     for input in inputs:
-      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.rm_mock, self.fr_mock )
+      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.fr_mock )
 
 
 #############################################################################
@@ -673,7 +682,7 @@ class BookkeepingReportSuccess( ModulesTestCase ):
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
                                          self.step_number, self.step_id, False,
-                                         self.bkc_mock, self.xf_o_mock )['OK'] )
+                                         self.xf_o_mock )['OK'] )
 
 
 class BookkeepingReportFailure( ModulesTestCase ):
@@ -687,15 +696,13 @@ class BookkeepingReportFailure( ModulesTestCase ):
         self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
-                                          self.step_number, self.step_id, False,
-                                          self.bkc_mock )['OK'] )
+                                          self.step_number, self.step_id, False )['OK'] )
       step_commons_1 = copy.deepcopy( step_commons )
       step_commons_1.pop( 'XMLSummary' )
       self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons_1,
-                                          self.step_number, self.step_id, False,
-                                          self.bkc_mock )['OK'] )
+                                          self.step_number, self.step_id, False )['OK'] )
 
 
 ##############################################################################
@@ -779,18 +786,18 @@ class ProtocolAccessTestSuccess( ModulesTestCase ):
         self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons_1,
-                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
+                                          self.step_number, self.step_id )['OK'] )
       step_commons_1['protocols'] = ['pr1', 'pr2']
       self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons_1,
-                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
+                                          self.step_number, self.step_id )['OK'] )
       step_commons_1['applicationVersion'] = 'v1'
 #      wf_commons['InputData'] = ['lfn1', 'lfn2']
 #      self.assertTrue( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
 #                                          self.workflowStatus, self.stepStatus,
 #                                          wf_commons, step_commons,
-#                                          self.step_number, self.step_id, self.rm_mock )['OK'] )
+#                                          self.step_number, self.step_id )['OK'] )
 
     #TODO: make others cases tests!
 
@@ -812,7 +819,7 @@ class RemoveInputDataSuccess( ModulesTestCase ):
         self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
-                                         self.step_number, self.step_id, self.rm_mock )['OK'] )
+                                         self.step_number, self.step_id )['OK'] )
 
     #no errors, input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -822,7 +829,7 @@ class RemoveInputDataSuccess( ModulesTestCase ):
         self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
-                                         self.step_number, self.step_id, self.rm_mock )['OK'] )
+                                         self.step_number, self.step_id )['OK'] )
 
 
 
@@ -842,7 +849,7 @@ class SendBookkeepingSuccess( ModulesTestCase ):
         self.assertTrue( self.sb.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                         self.workflowStatus, self.stepStatus,
                                         wf_commons, step_commons,
-                                        self.step_number, self.step_id, self.bkc_mock )['OK'] )
+                                        self.step_number, self.step_id )['OK'] )
 
 #############################################################################
 # StepAccounting.py
@@ -918,7 +925,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
                                          self.step_number, self.step_id,
-                                         self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
+                                         self.ft_mock, SEs = ['SomeSE'] )['OK'] )
 
 
     #no errors, input data
@@ -951,7 +958,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              self.workflowStatus, self.stepStatus,
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
-                                             self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )['OK'] )
+                                             self.ft_mock, SEs = ['SomeSE'] )['OK'] )
           self.bkc_mock.getFileDescendants.return_value = {'OK': True,
                                                            'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
                                                                         {'skipCACheck': False,
@@ -966,7 +973,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                   self.workflowStatus, self.stepStatus,
                                   wf_commons, step_commons,
                                   self.step_number, self.step_id,
-                                  self.ft_mock, self.bkc_mock, SEs = ['SomeSE'] )
+                                  self.ft_mock, SEs = ['SomeSE'] )
           print res, transferAndRegisterFile
           self.assertTrue( res['OK'] )
 #            if transferAndRegisterFileFailover['OK']:
@@ -994,7 +1001,7 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
                                          self.step_number, self.step_id,
-                                         self.rm_mock, self.ft_mock )['OK'] )
+                                         self.ft_mock )['OK'] )
       #with input data - would require correct CS settings...
 #      wf_commons['UserOutputData'] = ['i1', 'i2']
 #      wf_commons['OwnerName'] = 'fstagni'
@@ -1004,7 +1011,7 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
 #                                         self.workflowStatus, self.stepStatus,
 #                                         wf_commons, self.step_commons,
 #                                         self.step_number, self.step_id,
-#                                         self.rm_mock, self.ft_mock )['OK'] )
+#                                         self.ft_mock )['OK'] )
 #      os.remove( 'i1' )
 #      os.remove( 'i2' )
     #TODO: make others cases tests!

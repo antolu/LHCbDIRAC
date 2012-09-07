@@ -45,7 +45,7 @@ class RemoveInputData( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                 workflowStatus = None, stepStatus = None,
                 wf_commons = None, step_commons = None,
-                step_number = None, step_id = None, rm = None ):
+                step_number = None, step_id = None ):
     """ Main execution function.
     """
 
@@ -70,10 +70,7 @@ class RemoveInputData( ModuleBase ):
       #Try to remove the file list with failover if necessary
       failover = []
       self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputDataList ) )
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
-      result = rm.removeFile( self.inputDataList )
+      result = self.rm.removeFile( self.inputDataList )
       self.log.verbose( result )
       if not result['OK']:
         self.log.error( 'Could not remove files with message:\n"%s"\n\

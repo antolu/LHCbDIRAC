@@ -6,9 +6,18 @@ __RCSID__ = "$Id$"
 
 import os, copy
 
-from DIRAC  import S_OK, S_ERROR
-from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Adler import fileAdler
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
+from DIRAC.WorkloadManagementSystem.Client.JobReport import JobReport
+from DIRAC.TransformationSystem.Client.FileReport import FileReport
+from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
+
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
 
 class ModuleBase( object ):
   """ Base class for Modules - works only within DIRAC workflows
@@ -16,21 +25,29 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def __init__( self, loggerIn = None, operationsHelperIn = None ):
+  def __init__( self, loggerIn = None, operationsHelperIn = None, bkClientIn = None, rm = None ):
     """ Initialization of module base.
     """
 
     if not loggerIn:
-      from DIRAC import gLogger
       self.log = gLogger.getSubLogger( 'ModuleBase' )
     else:
       self.log = loggerIn
 
     if not operationsHelperIn:
-      from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
       self.opsH = Operations()
     else:
       self.opsH = operationsHelperIn
+
+    if not bkClientIn:
+      self.bkClient = BookkeepingClient()
+    else:
+      self.bkClient = bkClientIn
+
+    if not rm:
+      self.rm = ReplicaManager()
+    else:
+      self.rm = rm
 
     self.production_id = ''
     self.prod_job_id = ''
@@ -358,7 +375,6 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'JobReport' ):
       return self.workflow_commons['JobReport']
     else:
-      from DIRAC.WorkloadManagementSystem.Client.JobReport import JobReport
       jobReport = JobReport( self.jobID )
       self.workflow_commons['JobReport'] = jobReport
       return jobReport
@@ -372,7 +388,6 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'FileReport' ):
       return self.workflow_commons['FileReport']
     else:
-      from DIRAC.TransformationSystem.Client.FileReport import FileReport
       fileReport = FileReport()
       self.workflow_commons['FileReport'] = fileReport
       return fileReport
@@ -386,7 +401,6 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'Request' ):
       return self.workflow_commons['Request']
     else:
-      from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
       request = RequestContainer()
       self.workflow_commons['Request'] = request
       return request

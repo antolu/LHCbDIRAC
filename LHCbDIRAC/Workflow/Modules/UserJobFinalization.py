@@ -10,6 +10,7 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.File import getGlobbedFiles
+from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructUserLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
@@ -70,7 +71,7 @@ class UserJobFinalization( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               rm = None, ft = None ):
+               ft = None ):
     """ Main execution function.
     """
     #Have to work out if the module is part of the last step i.e.
@@ -230,7 +231,6 @@ class UserJobFinalization( ModuleBase ):
 
       #Instantiate the failover transfer client with the global request object
       if not ft:
-        from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
         ft = FailoverTransfer( self.request )
 
       #One by one upload the files with failover if necessary
@@ -320,12 +320,8 @@ class UserJobFinalization( ModuleBase ):
             self.log.verbose( 'Setting "%s" to "InActive" in local configuration' % tierCfg )
             gConfig.setOptionValue( tierCfg, 'InActive' )
 
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
-
       for lfn, repSE in replication.items():
-        result = rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
+        result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
           self.log.info( 'Replication failed with below error\
            but file already exists in Grid storage with at least one replica:\n%s' % ( result ) )

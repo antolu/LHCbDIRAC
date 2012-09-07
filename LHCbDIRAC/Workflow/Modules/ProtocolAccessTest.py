@@ -74,7 +74,7 @@ class ProtocolAccessTest( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, rm = None ):
+               step_number = None, step_id = None ):
     """ The main execution method of the protocol access test module.
     """
 
@@ -89,13 +89,9 @@ class ProtocolAccessTest( ModuleBase ):
         self.log.error( result['Message'] )
         return result
 
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
-
       self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( '\n'.join( self.stepInputData ) ) )
 
-      replicaRes = rm.getReplicas( self.stepInputData )
+      replicaRes = self.rm.getReplicas( self.stepInputData )
       if not replicaRes['OK']:
         self.log.error( replicaRes )
         return S_ERROR( 'Could not obtain replica information' )
@@ -103,7 +99,7 @@ class ProtocolAccessTest( ModuleBase ):
         self.log.error( replicaRes )
         return S_ERROR( 'Could not obtain replica information' )
 
-      metadataRes = rm.getCatalogFileMetadata( self.stepInputData )
+      metadataRes = self.rm.getCatalogFileMetadata( self.stepInputData )
       if not metadataRes['OK']:
         self.log.error( metadataRes )
         return S_ERROR( 'Could not obtain metadata information' )

@@ -8,17 +8,18 @@ import os, random, time, glob, copy
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
+from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyChecks
 
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 class UploadOutputData( ModuleBase ):
 
   #############################################################################
-  def __init__( self, rm ):
+  def __init__( self ):
     """Module initialization.
     """
 
@@ -41,12 +42,6 @@ class UploadOutputData( ModuleBase ):
     self.outputList = []
     self.outputDataStep = ''
     self.request = None
-
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      self.rm = ReplicaManager()
-    else:
-      self.rm = rm
 
     self.consistencyChecks = consistencyChecks( self.production_id )
 
@@ -102,7 +97,7 @@ class UploadOutputData( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               ft = None, bk = None, SEs = None ):
+               ft = None, SEs = None ):
     """ Main execution function.
     """
 
@@ -120,12 +115,6 @@ class UploadOutputData( ModuleBase ):
 
       if not self._checkWFAndStepStatus():
         return S_OK( 'No output data upload attempted' )
-
-      if not bk:
-        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-        bkClient = BookkeepingClient()
-      else:
-        bkClient = bk
 
       #Determine the final list of possible output files for the
       #workflow and all the parameters needed to upload them.
@@ -153,7 +142,6 @@ class UploadOutputData( ModuleBase ):
 
       for fileName, metadata in fileMetadata.items():
         if not SEs:
-          from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
           result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
           if not result['OK']:
             self.log.error( 'Could not resolve output data SE: ', result['Message'] )
@@ -185,7 +173,7 @@ class UploadOutputData( ModuleBase ):
       #'Failed': [], 'NotProcessed': []}}
 
       if inputDataList:
-        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id )
         if not result['OK']:
           return result
 
@@ -197,7 +185,6 @@ class UploadOutputData( ModuleBase ):
 
       #Instantiate the failover transfer client with the global request object
       if not ft:
-        from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
         failoverTransfer = FailoverTransfer( self.request )
       else:
         failoverTransfer = ft
@@ -271,7 +258,7 @@ class UploadOutputData( ModuleBase ):
 
       #Now double-check prior to final BK replica flag setting that the input files are still not processed 
       if inputDataList:
-        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id, bkClient )
+        result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id )
         if not result['OK']:
           lfns = []
           self.log.error( 'Input files for this job were marked as processed during the \
@@ -302,7 +289,7 @@ class UploadOutputData( ModuleBase ):
         bkXML = fopen.read()
         fopen.close()
         self.log.info( 'Sending BK record:\n%s' % ( bkXML ) )
-        result = bkClient.sendXMLBookkeepingReport( bkXML )
+        result = self.bkClient.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )
@@ -348,7 +335,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def checkInputsNotAlreadyProcessed( self, inputData, productionID, bkClient ):
+  def checkInputsNotAlreadyProcessed( self, inputData, productionID ):
     """ Checks that the input files for the job were not already processed by
         another job i.e. that there are no other descendent files for the
         current productionID having a BK replica flag.
@@ -360,8 +347,7 @@ class UploadOutputData( ModuleBase ):
     prodID = str( productionID ).lstrip( '0' )
 
     self.log.info( 'Will check BK descendents for input data of job prior to uploading outputs' )
-    result = self.__checkDescendants( bkClient,
-                                      inputData,
+    result = self.__checkDescendants( inputData,
                                       depth = 1,
                                       production = int( prodID ) )
 
@@ -382,9 +368,7 @@ class UploadOutputData( ModuleBase ):
 
       else:
         if notPresent:
-          result = self.__checkDescendants( bkClient,
-                                            descendants
-                                            )
+          result = self.__checkDescendants( descendants )
 
           if not result['OK']:
             return result
@@ -400,14 +384,14 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def __checkDescendants( self, bkClient, inputData, depth = 999, production = None, checkReplica = True ):
+  def __checkDescendants( self, inputData, depth = 999, production = None, checkReplica = True ):
     """ Check for descendants
     """
     start = time.time()
-    result = bkClient.getFileDescendants( inputData,
-                                          depth = depth,
-                                          production = production,
-                                          checkreplica = checkReplica )
+    result = self.bkClient.getFileDescendants( inputData,
+                                               depth = depth,
+                                               production = production,
+                                               checkreplica = checkReplica )
     timing = time.time() - start
     self.log.info( 'BK Descendants Lookup Time: %.2f seconds ' % ( timing ) )
     if not result['OK']:

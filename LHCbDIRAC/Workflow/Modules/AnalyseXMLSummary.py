@@ -34,9 +34,8 @@ class AnalyseXMLSummary( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               nc = None, rm = None, logAnalyser = None,
-               bk = None, xf_o = None ):
-    """ Main execution method. 
+               nc = None, logAnalyser = None, xf_o = None ):
+    """ Main execution method.
     """
 
     try:
@@ -47,10 +46,6 @@ class AnalyseXMLSummary( ModuleBase ):
                                                 step_number, step_id )
 
       dictOfInputData = self._resolveInputVariables()
-
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
 
       if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
         self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
@@ -78,9 +73,9 @@ class AnalyseXMLSummary( ModuleBase ):
 
       if not analyseXMLSummaryResult['OK']:
         self.log.error( analyseXMLSummaryResult['Message'] )
-        self._finalizeWithErrors( analyseXMLSummaryResult['Message'], nc, rm, bk )
+        self._finalizeWithErrors( analyseXMLSummaryResult['Message'], nc )
 
-        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -89,7 +84,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         return S_OK()
 
       else:
@@ -97,7 +92,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.info( 'XML summary %s, %s' % ( self.XMLSummary, analyseXMLSummaryResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), self.fileReport )
 
         return S_OK()
 
@@ -138,7 +133,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
 ################################################################################
 
-  def _updateFileStatus( self, inputs, defaultStatus, prod_id, rm, fr ):
+  def _updateFileStatus( self, inputs, defaultStatus, prod_id, fr ):
     """ Allows to update file status to a given default, important statuses are
         not overwritten.
     """
@@ -154,13 +149,9 @@ class AnalyseXMLSummary( ModuleBase ):
 
 ################################################################################
 
-  def _finalizeWithErrors( self, subj, nc, rm, bk = None ):
+  def _finalizeWithErrors( self, subj, nc ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
-
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
 
     #Have to check that the output list is defined in the workflow commons, this is
     #done by the first BK report module that executes at the end of a step but in 
@@ -172,7 +163,7 @@ class AnalyseXMLSummary( ModuleBase ):
     else:
       self.workflow_commons['outputList'] = self.step_commons['listoutput']
 
-    result = constructProductionLFNs( self.workflow_commons, bk )
+    result = constructProductionLFNs( self.workflow_commons, self.bkClient )
 
     if not result['OK']:
       self.log.error( 'Could not create production LFNs with message "%s"' % ( result['Message'] ) )
@@ -214,8 +205,8 @@ class AnalyseXMLSummary( ModuleBase ):
       if self._WMSJob():
         self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"'
                        % ( fname, lfn, guidInput ) )
-        result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
-                                    guidInput, catalog = 'LcgFileCatalogCombined' )
+        result = self.rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
+                                         guidInput, catalog = 'LcgFileCatalogCombined' )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result['Message'] ) )

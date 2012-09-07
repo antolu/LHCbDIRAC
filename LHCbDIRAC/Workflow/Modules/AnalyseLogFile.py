@@ -35,8 +35,8 @@ class AnalyseLogFile( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               nc = None, rm = None, logAnalyser = None, bk = None ):
-    """ Main execution method. 
+               nc = None, logAnalyser = None ):
+    """ Main execution method.
     """
 
     try:
@@ -46,11 +46,7 @@ class AnalyseLogFile( ModuleBase ):
                                              wf_commons, step_commons,
                                              step_number, step_id )
 
-      dictOfInputData = self._resolveInputVariables( bk )
-
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
+      dictOfInputData = self._resolveInputVariables()
 
       if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
         self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
@@ -76,9 +72,9 @@ class AnalyseLogFile( ModuleBase ):
       if not analyseLogResult['OK']:
         self.log.error( analyseLogResult['Message'] )
 
-        self._finalizeWithErrors( analyseLogResult['Message'], nc, rm, bk )
+        self._finalizeWithErrors( analyseLogResult['Message'], nc )
 
-        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -87,7 +83,7 @@ class AnalyseLogFile( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         return S_OK()
 
       else:
@@ -95,7 +91,7 @@ class AnalyseLogFile( ModuleBase ):
         self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), rm, self.fileReport )
+        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), self.fileReport )
 
         return S_OK()
 
@@ -111,7 +107,7 @@ class AnalyseLogFile( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self, bk = None ):
+  def _resolveInputVariables( self ):
     """ By convention any workflow parameters are resolved here.
     """
 
@@ -139,7 +135,7 @@ class AnalyseLogFile( ModuleBase ):
         self.logFilePath = self.logFilePath[0]
     else:
       self.log.info( 'LogFilePath parameter not found, creating on the fly' )
-      result = getLogPath( self.workflow_commons, bk )
+      result = getLogPath( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         raise Exception, result['Message']
@@ -149,7 +145,7 @@ class AnalyseLogFile( ModuleBase ):
 
 ################################################################################
 
-  def _updateFileStatus( self, inputs, defaultStatus, prod_id, rm, fr ):
+  def _updateFileStatus( self, inputs, defaultStatus, prod_id, fr ):
     """ Allows to update file status to a given default, important statuses are
         not overwritten.
     """
@@ -164,13 +160,9 @@ class AnalyseLogFile( ModuleBase ):
 
 ################################################################################
 
-  def _finalizeWithErrors( self, subj, nc, rm, bk = None ):
+  def _finalizeWithErrors( self, subj, nc ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
-
-    if not rm:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-      rm = ReplicaManager()
 
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     #Have to check that the output list is defined in the workflow commons, this is
@@ -183,7 +175,7 @@ class AnalyseLogFile( ModuleBase ):
     else:
       self.workflow_commons['outputList'] = self.step_commons['listoutput']
 
-    result = constructProductionLFNs( self.workflow_commons, bk )
+    result = constructProductionLFNs( self.workflow_commons, self.bkClient )
 
     if not result['OK']:
       self.log.error( 'Could not create production LFNs with message "%s"' % ( result['Message'] ) )
@@ -213,8 +205,8 @@ class AnalyseLogFile( ModuleBase ):
         if coreLFN:
           self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"'
                          % ( coreLFN, self.coreFile ) )
-          result = rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG',
-                                      catalog = 'LcgFileCatalogCombined' )
+          result = self.rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG',
+                                           catalog = 'LcgFileCatalogCombined' )
           self.log.info( result )
           if not result['OK']:
             self.log.error( 'Could not save core dump file', result['Message'] )
@@ -247,8 +239,8 @@ class AnalyseLogFile( ModuleBase ):
       if self._WMSJob():
         self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"'
                        % ( fname, lfn, guidInput ) )
-        result = rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
-                                    guidInput, catalog = 'LcgFileCatalogCombined' )
+        result = self.rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
+                                         guidInput, catalog = 'LcgFileCatalogCombined' )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result ) )

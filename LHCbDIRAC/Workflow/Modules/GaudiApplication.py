@@ -429,16 +429,13 @@ class GaudiApplication( ModuleBase ):
 
   #############################################################################
 
-  def _determineOutputFileType( self, bkkClient = None ):
+  def _determineOutputFileType( self ):
     """ Determines the correct output file type.
         For merging jobs the output has to be the same as the input.
         For the others, we use what is in the step definition, removing 'HIST' when present
     """
     if self.jobType.lower() == 'merge':
-      if not bkkClient:
-        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-        bkkClient = BookkeepingClient()
-      res = bkkClient.getFileMetadata( [lfn.strip( 'LFN:' ) for lfn in self.stepInputData] )
+      res = self.bkClient.getFileMetadata( [lfn.strip( 'LFN:' ) for lfn in self.stepInputData] )
       if not res['OK']:
         return res
       outputTypes = []

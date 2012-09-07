@@ -33,7 +33,7 @@ class SendBookkeeping( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, bk = None ):
+               step_number = None, step_id = None ):
 
     """ Main execution function.
     """
@@ -50,10 +50,6 @@ class SendBookkeeping( ModuleBase ):
 
       if not self._enableModule():
         return S_OK()
-
-      if not bk:
-        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-        bk = BookkeepingClient()
 
       self._resolveInputVariables()
 
@@ -80,7 +76,7 @@ class SendBookkeeping( ModuleBase ):
         bkXML = fopen.read()
         fopen.close()
         self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-        result = bk.sendXMLBookkeepingReport( bkXML )
+        result = self.bk.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )
