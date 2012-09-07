@@ -42,22 +42,39 @@ __RCSID__      = '$Id$'
 COMPONENT_NAME = 'LHCbDIRAC/SAMSystem/Client/LHCbSAMJob'
 
 class LHCbSAMJob( Job ):
+  '''
+     LHCbSAMJob implementation of API Job
+     
+     It provides the following methods:
+     - setSAMGroup
+     - setPriority
+     - setSharedAreaLock
+     - checkSystemConfiguration
+     - checkSiteQueues
+     - installSoftware
+     - reportSoftware
+     - testApplications
+     - finalizeAndPublish
+     - runTestScript
+     - setDestinationCE
+  '''
 
   def __init__( self, script = None, stdout = 'std.out', stderr = 'std.err' ):
     """Instantiates the Workflow object and some default parameters.
     """
     Job.__init__( self, script, stdout, stderr )
-    self.gaudiStepCount = 0
-    self.opsH = Operations()
-    self.samLogLevel = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
+    self.gaudiStepCount    = 0
+    self.opsH              = Operations()
+    self.samLogLevel       = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
     self.samDefaultCPUTime = self.opsH.getValue( 'SAM/CPUTime', 50000 )
-    self.samPlatform = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
-    self.samGroup = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
-    self.samType = self.opsH.getValue( 'SAM/JobType', 'SAM' )
+    self.samPlatform       = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
+    self.samGroup          = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
+    self.samType           = self.opsH.getValue( 'SAM/JobType', 'SAM' )
     #self.samOwnerGroup = self.opsH.getValue('SAM/OwnerGroup','lhcb_admin')
-    self.samOutputFiles = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
-    self.appTestPath = 'SAM/TestApplications'
-    self.samPriority = self.opsH.getValue( 'SAM/Priority', 1 )
+    self.samOutputFiles    = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
+    self.appTestPath       = 'SAM/TestApplications'
+    self.samPriority       = self.opsH.getValue( 'SAM/Priority', 1 )
+    
     self.importLine = """
 try:
   from LHCbDIRAC.SAMSystem.Modules.<MODULE> import <MODULE>
@@ -170,7 +187,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'LockSharedArea', name )
+    _moduleInstance = step.createModuleInstance( 'LockSharedArea', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "forceLockRemoval", "", "bool", "", "", False, False, "lock deletion flag" ) )
@@ -224,7 +241,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'SystemConfiguration', name )
+    _moduleInstance = step.createModuleInstance( 'SystemConfiguration', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     return step
@@ -275,7 +292,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'SiteQueues', name )
+    _moduleInstance = step.createModuleInstance( 'SiteQueues', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     return step
@@ -337,11 +354,13 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'SoftwareInstallation', name )
+    _moduleInstance = step.createModuleInstance( 'SoftwareInstallation', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "purgeSharedAreaFlag", "", "bool", "", "", False, False, "Remove all software in shared area" ) )
-    step.addParameter( Parameter( "installProjectURL", "", "string", "", "", False, False, "Optional install_project URL" ) )
+    step.addParameter( Parameter( "purgeSharedAreaFlag", "", "bool", "", "", False, 
+                                  False, "Remove all software in shared area" ) )
+    step.addParameter( Parameter( "installProjectURL", "", "string", "", "", False, 
+                                  False, "Optional install_project URL" ) )
     return step
 
   def reportSoftware( self, enableFlag = True, installProjectURL = None ):
@@ -394,7 +413,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'SoftwareReport', name )
+    _moduleInstance = step.createModuleInstance( 'SoftwareReport', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
@@ -460,11 +479,13 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'TestApplications', name )
+    _moduleInstance = step.createModuleInstance( 'TestApplications', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
-    step.addParameter( Parameter( "appNameVersion", "", "string", "", "", False, False, "Appliciation name and version" ) )
+    step.addParameter( Parameter( "samTestName", "", "string", "", "", False, 
+                                  False, "TestApplication SAM Test Name" ) )
+    step.addParameter( Parameter( "appNameVersion", "", "string", "", "", False, 
+                                  False, "Appliciation name and version" ) )
     step.addParameter( Parameter( "appNameOptions", "", "string", "", "", False, False, "Appliciation Options" ) )
     return step
 
@@ -518,11 +539,13 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'SAMFinalization', name )
+    _moduleInstance = step.createModuleInstance( 'SAMFinalization', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "publishResultsFlag", "", "bool", "", "", False, False, "Flag to trigger publishing of results to SAM DB" ) )
-    step.addParameter( Parameter( "uploadLogsFlag", "", "bool", "", "", False, False, "Flag to trigger upload of SAM logs to LogSE" ) )
+    step.addParameter( Parameter( "publishResultsFlag", "", "bool", "", "", False, 
+                                  False, "Flag to trigger publishing of results to SAM DB" ) )
+    step.addParameter( Parameter( "uploadLogsFlag", "", "bool", "", "", False, 
+                                  False, "Flag to trigger upload of SAM logs to LogSE" ) )
     return step
 
   def runTestScript( self, scriptName = '', enableFlag = True ):
@@ -580,7 +603,7 @@ except Exception,x:
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'RunTestScript', name )
+    _moduleInstance = step.createModuleInstance( 'RunTestScript', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "scriptName", "", "string", "", "", False, False, "script name to execute" ) )
