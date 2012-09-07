@@ -111,6 +111,7 @@ class TestApplications( ModuleBaseSAM ):
     '''
        Checks local architecture and compares it with supported platforms
     '''
+    self.log.info( '>> __checkPlatforms' )
     
     self.log.info( 'Checking local system configuration is suitable to run the application test' )
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
@@ -150,7 +151,8 @@ class TestApplications( ModuleBaseSAM ):
        Method to set the correct options for the LHCb project that will be executed.
        By convention the inputs / outputs are the system configuration + file extension.
     '''
-    
+    self.log.info( '>> __getOptions' )
+        
     sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
@@ -226,6 +228,7 @@ class TestApplications( ModuleBaseSAM ):
     '''
        Method to run a test job locally.
     '''
+    self.log.info( '>> __runApplication' )
     
     result = S_OK()
     dirac  = Dirac()

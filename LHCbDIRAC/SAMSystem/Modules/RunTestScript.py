@@ -59,6 +59,7 @@ class RunTestScript( ModuleBaseSAM ):
     '''
        Checks script
     '''
+    self.log.info( '>> __checkScript' )
     
     #Should fail the test in the case where the script is not locally available on the WN
     if not os.path.exists( '%s/%s' % ( os.getcwd(), self.scriptName ) ):

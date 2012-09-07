@@ -111,6 +111,8 @@ class SoftwareReport( ModuleBaseSAM ):
     '''
        Check sharedArea
     '''
+    
+    self.log.info( '>> __checkSharedArea' )
         
     if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
@@ -139,6 +141,7 @@ class SoftwareReport( ModuleBaseSAM ):
     '''
        Get software
     '''
+    self.log.verbose( '>> __getSoftware' )
 
     activeSoftware = '/Operations/SoftwareDistribution/Active'
     installList = gConfig.getValue( activeSoftware, [] )
@@ -163,11 +166,11 @@ class SoftwareReport( ModuleBaseSAM ):
     
     return S_OK( ( installList, softwareDictRemove ) )
 
-  @staticmethod
-  def __getLocalPlatforms():
+  def __getLocalPlatforms( self ):
     '''
        Get local platforms
     '''
+    self.log.verbose( '>> __getLocalPlatforms' )
     
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
     if not localArch:
@@ -194,6 +197,7 @@ class SoftwareReport( ModuleBaseSAM ):
     '''
        Check software
     '''
+    self.log.info( '>> __checkSoftware' )
     
     if not self.enable:  
       self.log.info( 'Software check is disabled via enable flag' )      
@@ -252,6 +256,7 @@ class SoftwareReport( ModuleBaseSAM ):
     '''
        Write soft report
     '''
+    self.log.info( '>> __writeSoftReport' )
     
     fd = open( 'Soft_install.html', 'w' )
     self.log.info( 'Applications properly installed in the area' )
@@ -276,6 +281,7 @@ class SoftwareReport( ModuleBaseSAM ):
        If the test status is not successful, returns a link to the install test
        log.  Creates an html table for the results.
     '''
+    self.log.info( '>> __getSoftwareReport' )
 
     #If software installation test was not run by this job e.g. is 'notice' status, do not add software report.
 
@@ -306,6 +312,8 @@ class SoftwareReport( ModuleBaseSAM ):
     '''
       check if given application is available in the given area
     '''
+    self.log.verbose( '>> __checkPackage' )
+    
     if not os.path.exists( '%s/%s' % ( os.getcwd(), installProject ) ):
       _localname, _headers = urllib.urlretrieve( '%s%s' % ( installProjectURL, installProject ), installProject )
       if not os.path.exists( '%s/%s' % ( os.getcwd(), installProject ) ):
@@ -322,15 +330,15 @@ class SoftwareReport( ModuleBaseSAM ):
     appName = app[0]
     appVersion = app[1]
 
-    installProject = os.path.join( localArea, installProject )
-    if not os.path.exists( installProject ):
+    _installProject = os.path.join( localArea, installProject )
+    if not os.path.exists( _installProject ):
       try:
-        shutil.copy( installProject, localArea )
+        shutil.copy( _installProject, localArea )
       except shutil.Error:
-        self.log.error( 'Failed (Error) to get:', installProject )
+        self.log.error( 'Failed (Error) to get:', _installProject )
         return False
       except IOError:
-        self.log.error( 'Failed (IOError) to get:', installProject )
+        self.log.error( 'Failed (IOError) to get:', _installProject )
         return False
 
     # Now run the installation
@@ -347,7 +355,7 @@ class SoftwareReport( ModuleBaseSAM ):
     self.log.info( 'Defining LHCBTAR = %s' % os.environ['VO_LHCB_SW_DIR'] )
 
     cmdTuple = [ sys.executable ]
-    cmdTuple += [ installProject ]
+    cmdTuple += [ _installProject ]
     cmdTuple += [ '-d' ]
     cmdTuple += [ '-p', appName ]
     cmdTuple += [ '-v', appVersion ]

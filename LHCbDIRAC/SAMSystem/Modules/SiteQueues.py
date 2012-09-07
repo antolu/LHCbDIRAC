@@ -90,7 +90,8 @@ class SiteQueues( ModuleBaseSAM ):
   def __checkConfig( self ):
     '''
        Checks LCG_GFAL_INFOSYS and CE
-    '''
+    '''   
+    self.log.info( '>> __checkConfig' )
 
     if 'LCG_GFAL_INFOSYS' in os.environ:
       self.log.info( 'LCG_GFAL_INFOSYS = %s' % ( os.environ[ 'LCG_GFAL_INFOSYS' ] ) )
@@ -114,6 +115,7 @@ class SiteQueues( ModuleBaseSAM ):
     '''
        Checks GlueHostBenchmarkSI00
     '''
+    self.log.info( '>> __checkGlueHostBenchmarkSI00' )
     
     cmd = 'ldapsearch -h ' + os.environ[ 'LCG_GFAL_INFOSYS' ] 
     cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(GlueSubClusterUniqueID=' + samNode 
@@ -130,6 +132,7 @@ class SiteQueues( ModuleBaseSAM ):
     '''
        Checks GlueCEPolicyMaxCPUTime
     '''
+    self.log.info( '>> __checkGlueCEPolicyMaxCPUTime' )
 
     cmd = 'ldapsearch -h ' + os.environ[ 'LCG_GFAL_INFOSYS' ] 
     cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID=' 
@@ -147,6 +150,7 @@ class SiteQueues( ModuleBaseSAM ):
     '''
        Analyzes logs of GlueCEPolicyMaxCPUTime and GlueCEPolicyMaxCPUTime 
     '''
+    self.log.info( '>> __checkQueueBenchmark' )
     
     queueCount = 1
     for line in open( ldapLog, 'r' ):
@@ -206,6 +210,7 @@ class SiteQueues( ModuleBaseSAM ):
     '''
        Checks CPUScalingReferenceSI00
     '''
+    self.log.info( '>> __checkCPUScalingReferenceSI00' )
     
     cmd = 'ldapsearch -h ' + os.environ[ 'LCG_GFAL_INFOSYS' ] 
     cmd += ' -b "mds-vo-name=local,o=grid" -x -LLL "(& (GlueForeignKey=GlueClusterUniqueID='
@@ -223,7 +228,8 @@ class SiteQueues( ModuleBaseSAM ):
     '''
        Analyzes logs of CPUScalingReferenceSI00 and GlueCEPolicyMaxCPUTime 
     '''
-    
+    self.log.info( '>> __checkQueueScaling' )
+        
     queueCount = 1
     for line in open( ldapLog, 'r' ):
       queueCount = queueCount + line.count( 'Time' )

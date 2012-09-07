@@ -116,6 +116,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Checks SAMResults
     '''
+    self.log.info( '>> __checkSAMResults' )    
 
     if not 'SAMResults' in self.workflow_commons:
       
@@ -140,6 +141,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Checks SharedArea
     '''
+    self.log.info( '>> __checkSharedArea' )
     
     if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
@@ -168,7 +170,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        nasty fix but only way to resolve writeable volume at CERN
     '''
-         
+    self.log.info( '>> __checkWrittableSharedArea' )
+             
     if DIRAC.siteName() in [ 'LCG.CERN.ch', 'LCG.CERN5.ch' ]:
       self.log.info( 'Changing shared area path to writeable volume at CERN' )
       if re.search( '.cern.ch', sharedArea ):
@@ -193,6 +196,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Check InstallProjectURL
     '''
+    self.log.info( '>> __checkInstallProjectURL' )
+    
     #Check for optional install project URL
     if not self.installProjectURL:
       return S_OK()
@@ -230,6 +235,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Check purgeSharedArea
     '''
+    self.log.info( '>> __checkPurgeSharedArea' )
         
     # Purge shared area if requested.
     if not self.purgeSharedArea:
@@ -255,6 +261,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Check package version
     '''
+    self.log.info( '>> __checkVersion' )
   
     appNameVersion = candidatePackage.split( '.' )
     if not len( appNameVersion ) == 2:
@@ -268,11 +275,11 @@ class SoftwareInstallation( ModuleBaseSAM ):
     
     return S_OK( appNameVersion )
   
-  @staticmethod
-  def __getSofwtare():
+  def __getSofwtare( self ):
     '''
        Get lists of active and deprecared software
     '''
+    self.log.verbose( '>> __getSoftware' )
 
     activeSoftware = '/Operations/SoftwareDistribution/Active'
     installList = gConfig.getValue( activeSoftware, [] )
@@ -287,11 +294,11 @@ class SoftwareInstallation( ModuleBaseSAM ):
     
     return S_OK( ( installList, removeList ) )
   
-  @staticmethod
-  def __getLocalPlatforms():
+  def __getLocalPlatforms( self ):
     '''
        Gets local platforms
     '''
+    self.log.verbose( '>> __getLocalPlatforms' )
 
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
     if not localArch:
@@ -315,6 +322,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Installs and removes software
     '''
+    self.log.info( '>> __installSoftware' )
     
     if not self.enable:
       self.log.info( 'Software installation is disabled via enable flag' )
@@ -361,6 +369,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Install a package
     '''
+    self.log.verbose( '>> __installPackage' )  
     
     appNameVersion = self.__checkVersion( installPackage, isPoolAccount, sharedArea )
     if not appNameVersion[ 'OK' ]:
@@ -407,6 +416,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Remove a package
     '''
+    self.log.info( '>> __removePackage' )
     
     appNameVersion = self.__checkVersion( removePackage, isPoolAccount, sharedArea )
     if not appNameVersion[ 'OK' ]:
@@ -452,6 +462,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
     '''
        Change permissions for pool SGM account case in python.
     '''
+    self.log.info( '>> __changePermissions' )    
     
     self.log.verbose( 'Changing permissions to 0775 in shared area %s' % sharedArea )
     self.writeToLog( 'Changing permissions to 0775 in shared area %s' % sharedArea )
@@ -498,6 +509,8 @@ class SoftwareInstallation( ModuleBaseSAM ):
   def __deleteSharedArea( self, sharedArea ):
     """Remove all files in shared area.
     """
+    self.log.info( '>> __deleteSharedArea' )
+    
     self.log.verbose( 'Removing all files in shared area %s' % sharedArea )
     self.writeToLog( 'Removing all files in shared area %s' % sharedArea )
     try:
