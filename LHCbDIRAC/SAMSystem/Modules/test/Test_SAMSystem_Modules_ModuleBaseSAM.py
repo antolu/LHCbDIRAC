@@ -20,6 +20,8 @@ class ModuleBaseSAM_TestCase( unittest.TestCase ):
          
     mock_os = mock.Mock()
     mock_os.environ = { 'JOBID' : '123' }     
+    
+    moduleTested.os = mock_os
          
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.ModuleBaseSAM
@@ -54,12 +56,12 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     ''' tests the method resolveInputVariables
     '''  
     
+    # By default the *_commons members are None, we expect them to be dictionaries
     module = self.testClass()
     self.assertRaises( TypeError, module.resolveInputVariables )
     
     module.step_commons     = {}
     module.workflow_commons = {}
-    
     module.resolveInputVariables()
     
     self.assertEqual( True, module.enable )
@@ -99,6 +101,25 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
       
     self.assertEqual( False, module.enable )
     self.assertEqual( 123, module.jobReport )
+
+  def test_setSAMLogFile( self ):
+    ''' tests the method samLogFile
+    '''
+    
+    module = self.testClass()
+    res = module.setSAMLogFile()
+    self.assertEqual( False, res[ 'OK' ] )
+    
+    module.logFile = 'logFile'
+    res = module.setSAMLogFile()
+    self.assertEqual( False, res[ 'OK' ] )
+    
+    module.testName = 'testName'
+    self.assertEquals( TypeError, module.setSAMLogFile )
+    
+    module.workflow_commons = {}
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEquals( 'logFile', module.workflow_commons[ 'SAMLogs' ][ 'testName' ] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
