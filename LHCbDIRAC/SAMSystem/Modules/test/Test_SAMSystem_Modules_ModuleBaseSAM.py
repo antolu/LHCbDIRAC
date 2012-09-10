@@ -127,6 +127,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     '''  
     
     module = self.testClass()
+    module.jobID = None
     res = module.setApplicationStatus( False )
     self.assertEqual( True, res[ 'OK' ] )
     self.assertEqual( 'JobID not defined', res[ 'Value' ] )
