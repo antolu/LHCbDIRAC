@@ -45,6 +45,11 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     '''  
     
     module = self.testClass()
+    self.assertRaises( TypeError, module.resolveInputVariables )
+    
+    module.step_commons     = {}
+    module.workflow_commons = {}
+    
     module.resolveInputVariables()
     
     self.assertEqual( True, module.enable )
