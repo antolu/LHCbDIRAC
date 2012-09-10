@@ -17,7 +17,7 @@ class LockSharedArea_TestCase( unittest.TestCase ):
     '''
     Setup
     '''
-
+         
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.LockSharedArea
 

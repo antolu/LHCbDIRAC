@@ -39,6 +39,49 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module = self.testClass()
     self.assertEqual( 'ModuleBaseSAM', module.__class__.__name__ )
+    
+  def test_resolveInputVariables( self ):
+    ''' tests the medhot resolveInputVariables
+    '''  
+    
+    module = self.testClass()
+    module.resolveInputVariables()
+    
+    self.assertEqual( True, module.enable )
+    self.assertEqual( None, module.jobReport )
+    
+    module.enable = False
+    module.resolveInputVariables()
+
+    self.assertEqual( False, module.enable )
+    self.assertEqual( None, module.jobReport )    
+    
+    module.step_commons[ 'enable' ] = 123
+    module.resolveInputVariables()
+
+    self.assertEqual( False, module.enable )
+    self.assertEqual( None, module.jobReport )  
+
+    module.step_commons[ 'enable' ] = True
+    module.resolveInputVariables()
+
+    self.assertEqual( True, module.enable )
+    self.assertEqual( None, module.jobReport )  
+
+    module.step_commons[ 'enable' ] = False
+    module.resolveInputVariables()
+
+    self.assertEqual( False, module.enable )
+    self.assertEqual( None, module.jobReport )
+    
+    module.jobReport = 1
+    module.resolveInputVariables()
+        
+    module.workflow_commons[ 'JobReport' ] = 1
+      
+    self.assertEqual( False, module.enable )
+    self.assertEqual( 1, module.jobReport )
+    
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
