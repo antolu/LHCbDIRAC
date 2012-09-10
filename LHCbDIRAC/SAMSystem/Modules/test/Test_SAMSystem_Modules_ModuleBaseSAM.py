@@ -95,6 +95,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEqual( 1, module.jobReport )
             
     module.workflow_commons[ 'JobReport' ] = 123
+    module.resolveInputVariables()
       
     self.assertEqual( False, module.enable )
     self.assertEqual( 123, module.jobReport )
