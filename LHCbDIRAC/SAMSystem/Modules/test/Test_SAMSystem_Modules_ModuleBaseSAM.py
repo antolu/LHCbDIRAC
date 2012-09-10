@@ -145,13 +145,56 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEqual( True, res[ 'OK' ] )
     self.assertEqual( 'X', res[ 'Value' ] )
     
-    jobReport = mock.Mock()
     jobReport.setApplicationStatus.return_value = { 'OK' : False, 'Message' : 'Y' }
     module.jobReport = jobReport
     
     res = module.setApplicationStatus( False )
     self.assertEqual( False, res[ 'OK' ] )
     self.assertEqual( 'Y', res[ 'Message' ] )
+
+  def test_setJobParameter( self ):
+    ''' tests the method setJobParameter
+    '''
+
+    module       = self.testClass()
+    module.jobID = None
+    
+    res = module.setJobParameter( 'name', 'value' )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'JobID not defined', res[ 'Value' ] )
+    
+    module.jobID = 123
+    self.assertRaises( TypeError, module.setJobParameter )
+    
+    module.workflow_commons = {}
+    
+    res = module.setJobParameter( 'name', 'value' )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'No reporting tool given', res[ 'Value' ] )
+
+    jobReport = mock.Mock()
+    jobReport.setJobParameter.return_value = { 'OK' : True, 'Value' : 'X' } 
+    module.workflow_commons[ 'JobReport' ] = jobReport
+
+    res = module.setJobParameter( 'name', 'value' )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'X', res[ 'Value' ] )    
+
+    jobReport.setJobParameter.return_value = { 'OK' : False, 'Message' : 'Y' } 
+    module.workflow_commons[ 'JobReport' ] = jobReport
+
+    res = module.setJobParameter( 'name', 'value' )
+    self.assertEqual( False, res[ 'OK' ] )
+    self.assertEqual( 'Y', res[ 'Message' ] )    
+
+  def test__execute( self ):
+    ''' tests the method _execute
+    '''
+    
+    module = self.testClass()
+    res    = module._execute()
+    
+    self.assertEqual( True, res[ 'OK' ] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
