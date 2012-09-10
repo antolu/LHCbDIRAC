@@ -115,7 +115,9 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEqual( False, res[ 'OK' ] )
     
     module.testName = 'testName'
-    self.assertEquals( TypeError, module.setSAMLogFile )
+    res = module.setSAMLogFile()
+    self.assertEqual( True, res[ 'OK' ] )
+    #self.assertEquals( TypeError, module.setSAMLogFile )
     
     module.workflow_commons = {}
     self.assertEqual( True, res[ 'OK' ] )
