@@ -18,6 +18,9 @@ class ModuleBaseSAM_TestCase( unittest.TestCase ):
     Setup
     '''
          
+    mock_os = mock.Mock()
+    mock_os.environ = { 'JOBID' : '123' }     
+         
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.ModuleBaseSAM
 
@@ -39,9 +42,16 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module = self.testClass()
     self.assertEqual( 'ModuleBaseSAM', module.__class__.__name__ )
+  
+  def test_init( self ):
+    ''' tests the __init__ method
+    '''
     
+    module = self.testClass()
+    module.jobID = '123'
+        
   def test_resolveInputVariables( self ):
-    ''' tests the medhot resolveInputVariables
+    ''' tests the method resolveInputVariables
     '''  
     
     module = self.testClass()
@@ -81,12 +91,13 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module.jobReport = 1
     module.resolveInputVariables()
-        
-    module.workflow_commons[ 'JobReport' ] = 1
-      
     self.assertEqual( False, module.enable )
     self.assertEqual( 1, module.jobReport )
+            
+    module.workflow_commons[ 'JobReport' ] = 123
+      
+    self.assertEqual( False, module.enable )
+    self.assertEqual( 123, module.jobReport )
     
-
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
