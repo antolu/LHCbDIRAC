@@ -19,7 +19,7 @@ class ModuleBaseSAM_TestCase( unittest.TestCase ):
     '''
          
     mock_os = mock.Mock()
-    mock_os.environ = { 'JOBID' : '123' }     
+    mock_os.environ = { 'JOBID' : '123' }    
     
     moduleTested.os = mock_os
          
@@ -121,6 +121,36 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     res = module.setSAMLogFile()
     self.assertEqual( True, res[ 'OK' ] )
     self.assertEquals( 'logFile', module.workflow_commons[ 'SAMLogs' ][ 'testName' ] )
+    
+  def test_setApplicationStatus( self ):
+    ''' tests the method setApplicationStatus
+    '''  
+    
+    module = self.testClass()
+    res = module.setApplicationStatus( False )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'JobID not defined', res[ 'Value' ] )
+    
+    module.jobID = 123
+    res = module.setApplicationStatus( False )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'No reporting tool given', res[ 'Value' ] )
+    
+    jobReport = mock.Mock()
+    jobReport.setApplicationStatus.return_value = { 'OK' : True, 'Value' : 'X' }
+    module.jobReport = jobReport
+    
+    res = module.setApplicationStatus( False )
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'X', res[ 'Value' ] )
+    
+    jobReport = mock.Mock()
+    jobReport.setApplicationStatus.return_value = { 'OK' : False, 'Message' : 'Y' }
+    module.jobReport = jobReport
+    
+    res = module.setApplicationStatus( False )
+    self.assertEqual( False, res[ 'OK' ] )
+    self.assertEqual( 'Y', res[ 'Message' ] )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
