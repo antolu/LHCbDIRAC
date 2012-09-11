@@ -47,8 +47,8 @@ class ModuleBaseSAM( object ):
     # Memebers injected on Workflow.execution.. so ugly !
     self.stepStatus       = None
     self.workflowStatus   = None
-    self.step_commons     = None
-    self.workflow_commons = None
+    self.step_commons     = {}
+    self.workflow_commons = {}
 
   def resolveInputVariables( self ):
     ''' 
@@ -161,10 +161,8 @@ class ModuleBaseSAM( object ):
     
     self.log.info( 'Initializing ' + self.version )
     
-    inputVars = self.resolveInputVariables()
-    if not inputVars[ 'OK' ]:
-      self.log.error( inputVars[ 'Message' ] )
-      return inputVars
+    # Always return S_OK, no need to check
+    self.resolveInputVariables()
     
     logFile = self.setSAMLogFile()
     if not logFile[ 'OK' ]:

@@ -70,8 +70,6 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     module = self.testClass()
     self.assertRaises( TypeError, module.resolveInputVariables )
     
-    module.step_commons     = {}
-    module.workflow_commons = {}
     module.resolveInputVariables()
     
     self.assertEqual( True, module.enable )
@@ -126,8 +124,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module.testName = 'testName'
     self.assertRaises( TypeError, module.setSAMLogFile )
-    
-    module.workflow_commons = {}
+
     res = module.setSAMLogFile()
     self.assertEqual( True, res[ 'OK' ] )
     self.assertEquals( 'logFile', module.workflow_commons[ 'SAMLogs' ][ 'testName' ] )
@@ -175,8 +172,6 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module.jobID = 123
     self.assertRaises( TypeError, module.setJobParameter )
-    
-    module.workflow_commons = {}
     
     res = module.setJobParameter( 'name', 'value' )
     self.assertEqual( True, res[ 'OK' ] )
@@ -420,11 +415,23 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( False, res[ 'OK' ] )
     self.assertEquals( 'samResult is not a valid SAM status', res[ 'Message' ] )            
 
-    module.workflow_commons = {}
-
     res = module.finalize( 'message', 'result', 'ok' )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'message', res[ 'Value' ] )            
+
+    res = module.finalize( 'message', 'result', 'maintenance' )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'message', res[ 'Message' ] )      
+
+  def test_execute( self ):
+    ''' tests the method execute
+    '''
+    
+    module = self.testClass()
+    module.logFile = '/dev/null'
+    
+    res = module.execute()
+    print res
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
