@@ -96,6 +96,30 @@ class RunTestScript_Success( RunTestScript_TestCase ):
     res = module._execute()
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'CE-lhcb-test-script Test Successful', res[ 'Value' ] )
+    
+  def test_resolveInputVariables( self ):
+    ''' tests the method resolveInputVariables
+    '''  
+
+    module = self.testClass()
+    
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( '', module.scriptName )
+    self.assertEquals( True, module.enable )
+    
+    module.step_commons[ 'scriptName' ] = 'scriptName'
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'scriptName', module.scriptName )    
+    self.assertEquals( True, module.enable )    
         
+    module.scriptName                   = ''    
+    module.step_commons[ 'scriptName' ] = 123
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 123, module.scriptName )
+    self.assertEquals( False, module.enable )
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
