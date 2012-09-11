@@ -218,9 +218,9 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEqual( '----\nabc\ndefg\n----\n', res )
     
     res = module._getMessageString( '1\n2', True ) 
-    self.assertEqual( '=\n1\n2\n=\n', res )
+    self.assertEqual( '\n=\n1\n2\n=\n', res )
     res = module._getMessageString( 'abc\ndefg', True )
-    self.assertEqual( '====\nabc\ndefg\n====\n', res )
+    self.assertEqual( '\n====\nabc\ndefg\n====\n', res )
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
