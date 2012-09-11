@@ -194,29 +194,24 @@ class ModuleBaseSAM( object ):
     if not samResult in self.samStatus:
       return S_ERROR( '%s is not a valid SAM status' % ( samResult ) )
 
-    if not os.path.exists( '%s' % ( self.logFile ) ):
-      fopen = open( self.logFile, 'w' )
-      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
-      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() )
-      header = self._getMessageString( _msg , True )
-      fopen.write( header )
-      fopen.close()
+    self.writeToLog( '%s\n%s' % ( message, result ) )
 
     self.log.info( '%s\n%s' % ( message, result ) )
     fopen = open( self.logFile, 'a' )
-    fopen.write( self._getMessageString( '%s\n%s' % ( message, result ) ) )
-    statusCode = self.samStatus[samResult]
+    
+    statusCode = self.samStatus[ samResult ]
     fopen.write( self._getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
     fopen.close()
+    
     if not 'SAMResults' in self.workflow_commons:
-      self.workflow_commons['SAMResults'] = {}
+      self.workflow_commons[ 'SAMResults' ] = {}
 
-    self.workflow_commons['SAMResults'][self.testName] = statusCode
+    self.workflow_commons[ 'SAMResults' ][ self.testName ] = statusCode
     if int( statusCode ) < 50:
       self.setApplicationStatus( '%s Successful (%s)' % ( self.testName, samResult ) )
       return S_OK( message )
-    else:
-      return S_ERROR( message )
+    
+    return S_ERROR( message )
 
   ##############################################################################
   # Private methods
