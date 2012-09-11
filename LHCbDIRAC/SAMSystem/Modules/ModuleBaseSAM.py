@@ -45,8 +45,8 @@ class ModuleBaseSAM( object ):
     self.jobReport        = None
     
     # Memebers injected on Workflow.execution.. so ugly !
-    self.stepStatus       = None
-    self.workflowStatus   = None
+    self.stepStatus       = {}
+    self.workflowStatus   = {}
     self.step_commons     = {}
     self.workflow_commons = {}
 
@@ -167,7 +167,7 @@ class ModuleBaseSAM( object ):
     logFile = self.setSAMLogFile()
     if not logFile[ 'OK' ]:
       self.log.error( logFile[ 'Message' ] )
-      return logFile
+      return logFile 
     
     if not self.workflowStatus[ 'OK' ] or not self.stepStatus[ 'OK' ]:
       self.log.info( 'An error was detected in a previous step, exiting with status error.' )

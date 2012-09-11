@@ -423,10 +423,15 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     '''
     
     module = self.testClass()
-    module.logFile = '/dev/null'
-    
+    module.logFile  = '/dev/null'
+        
     res = module.execute()
-    print res
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'No SAM test name defined', res[ 'Message' ] )
+    
+    module.testName = 'testName'
+    self.assertRaises( KeyError, module.execute )
+    
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
