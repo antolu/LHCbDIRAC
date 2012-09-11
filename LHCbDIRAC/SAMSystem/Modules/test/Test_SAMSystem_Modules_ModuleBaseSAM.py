@@ -66,10 +66,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     ''' tests the method resolveInputVariables
     '''  
     
-    # By default the *_commons members are None, we expect them to be dictionaries
-    module = self.testClass()
-    self.assertRaises( TypeError, module.resolveInputVariables )
-    
+    module = self.testClass()   
     module.resolveInputVariables()
     
     self.assertEqual( True, module.enable )
@@ -121,9 +118,6 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     module.logFile = 'logFile'
     res = module.setSAMLogFile()
     self.assertEqual( False, res[ 'OK' ] )
-    
-    module.testName = 'testName'
-    self.assertRaises( TypeError, module.setSAMLogFile )
 
     res = module.setSAMLogFile()
     self.assertEqual( True, res[ 'OK' ] )
