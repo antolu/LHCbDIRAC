@@ -443,5 +443,14 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( True, 'ModuleBaseSAM.py' in res[ 'Value' ])
     
+    self.moduleTested.gConfig.getValue.return_value = ''
+    self.moduleTested.shellCall.return_value = { 'OK' : False, 'Message' : 'Bo!' } 
+    res = module.execute()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Could not get current CE', res[ 'Message' ] )
+    
+    self.moduleTested.gConfig.getValue.return_value = 'GridCE'
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 'Value' : [ 0, 'stdout', 'stderr' ] }    
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
