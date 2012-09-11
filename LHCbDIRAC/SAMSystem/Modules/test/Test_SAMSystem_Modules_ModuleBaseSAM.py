@@ -287,6 +287,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'stdout', res[ 'Value' ] )
     
+    self.moduleTested.os.path.exists.return_value = True
     os.remove( '/tmp/test_runCommand' )
     
   def test_writeToLog( self ):
@@ -294,6 +295,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     '''
        
     module = self.testClass()
+    module.logFile = '/dev/null'
     
     res = module.writeToLog( 'message' )
     self.assertEquals( True, res[ 'OK' ] )
@@ -301,6 +303,8 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.moduleTested.os.path.exists.return_value = False
     res = module.writeToLog( 'message' )
     self.assertEquals( True, res[ 'OK' ] )
+                
+    self.moduleTested.os.path.exists.return_value = True
                 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
