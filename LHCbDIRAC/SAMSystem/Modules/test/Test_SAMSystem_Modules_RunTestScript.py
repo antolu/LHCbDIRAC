@@ -21,11 +21,11 @@ class RunTestScript_TestCase( unittest.TestCase ):
     mock_os = mock.Mock()
     mock_os.path.exists.return_value = False    
          
-    mock_shell = mock.Mock()
-    mock_shell.return_value = { 'OK' : False, 'Message' : 'Bo!' }     
+#    mock_shell = mock.Mock()
+#    mock_shell.return_value = { 'OK' : False, 'Message' : 'Bo!' }     
          
     moduleTested.os        = mock_os     
-    moduleTested.shellCall = mock_shell
+#    moduleTested.shellCall = mock_shell
          
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.RunTestScript
@@ -61,9 +61,21 @@ class RunTestScript_Success( RunTestScript_TestCase ):
     self.assertEquals( 'Script not found', res[ 'Description' ] )
     self.assertEquals( 'notice', res[ 'SamResult' ] )
     
+    module.runCommand = mock.Mock()
+    module.runCommand.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+    
     self.moduleTested.os.path.exists.return_value = True
+    
     res = module._RunTestScript__checkScript()
-    self.assertEquals( False, res )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( '', res[ 'Message' ] )
+    self.assertEquals( 'Script not found', res[ 'Description' ] )
+    self.assertEquals( 'info', res[ 'SamResult' ] )
+    
+    module.runCommand.return_value = { 'OK' : True, 'Value' : 1 }
+    res = module._RunTestScript__checkScript()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( '', res[ 'Value' ] )
     
     self.moduleTested.os.path.exists.return_value = False
     
