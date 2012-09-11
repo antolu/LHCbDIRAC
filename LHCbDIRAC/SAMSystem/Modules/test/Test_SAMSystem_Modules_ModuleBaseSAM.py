@@ -315,6 +315,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     '''
     
     module = self.testClass()
+    module.logFile = '/dev/null'
     res = module._getSAMNode()
     
     self.assertEqual( True, res[ 'OK' ] )
