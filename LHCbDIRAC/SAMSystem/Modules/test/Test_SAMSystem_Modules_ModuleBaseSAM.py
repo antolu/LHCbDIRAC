@@ -322,7 +322,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     self.moduleTested.gConfig.getValue.return_value = ''
     
-    self.assertEqual( False, res[ 'OK' ] )
+    self.assertEqual( True, res[ 'OK' ] )
     self.assertEquals( True, 'Could not get CE from local' in res[ 'Message' ] )
                 
 ################################################################################
