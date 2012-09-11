@@ -328,7 +328,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( 'stdout', res[ 'Value' ] )
     
     self.moduleTested.shellCall.return_value = { 'OK' : True, 'Value' : [ 0, '', 'stderr' ] }
-    module.workflow_commons[ 'GridRequiredCEs' ] = {}
+    module.workflow_commons = {}
     res = module._getSAMNode()    
     self.assertEqual( False, res[ 'OK' ] )
     self.assertEqual( True, 'Could not get CE from' in res[ 'Message' ] )
@@ -353,6 +353,58 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEqual( {'identity': 'stdout', 'WN': 'stdout', 'Proxy': 'stdout', 
                        'CE': 'GridCE', 'identityShort': 'stdout'}, res[ 'Value' ] )
     
+    self.moduleTested.gConfig.getValue.return_value = ''
+    self.moduleTested.shellCall.return_value = { 'OK' : False, 'Message' : 'Bo!' } 
+    res = module.getRunInfo()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Bo!', res[ 'Message' ] )
+    self.assertEquals( 'error', res[ 'SamResult' ] )
+    self.assertEquals( 'Could not get current CE', res[ 'Description' ] )
+
+    #side_effect does not work very well, cooked a workaround
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] } ]
+    def _side_effect( *args ):
+      return _myValues.pop()   
+
+    self.moduleTested.shellCall.side_effect = _side_effect 
+    res = module.getRunInfo()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Bo!', res[ 'Message' ] )
+    self.assertEquals( 'error', res[ 'SamResult' ] )
+    self.assertEquals( 'Current worker node does not exist', res[ 'Description' ] )
+    
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] },
+                  { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] } ]
+    
+    self.moduleTested.shellCall.side_effect = _side_effect 
+    res = module.getRunInfo()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Bo!', res[ 'Message' ] )
+    self.assertEquals( 'error', res[ 'SamResult' ] )
+    self.assertEquals( 'voms-proxy-info -all', res[ 'Description' ] )
+
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] },
+                  { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] },
+                  { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] } ]
+    
+    self.moduleTested.shellCall.side_effect = _side_effect 
+    res = module.getRunInfo()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Bo!', res[ 'Message' ] )
+    self.assertEquals( 'error', res[ 'SamResult' ] )
+    self.assertEquals( 'id', res[ 'Description' ] ) 
+
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] },
+                  { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] },
+                  { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] },
+                  { 'OK' : True, 'Value' : [ 0,'stdout','stderr' ] } ]
+    
+    self.moduleTested.shellCall.side_effect = _side_effect 
+    res = module.getRunInfo()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Bo!', res[ 'Message' ] )
+    self.assertEquals( 'error', res[ 'SamResult' ] )
+    self.assertEquals( 'id -nu', res[ 'Description' ] ) 
                 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
