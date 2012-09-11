@@ -434,8 +434,14 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module.workflowStatus[ 'OK' ] = False
     res = module.execute()
-    
-    print res
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Problem during execution', res[ 'Message' ] )
 
+    module.workflowStatus[ 'OK' ] = True
+    module.stepStatus[ 'OK' ]     = True  
+    res = module.execute()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( True, 'ModuleBaseSAM.py' in res[ 'Value' ])
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
