@@ -406,5 +406,25 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( 'error', res[ 'SamResult' ] )
     self.assertEquals( 'id -nu', res[ 'Description' ] ) 
                 
+    self.moduleTested.gConfig.getValue.return_value = 'GridCE'
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 'Value' : [ 0, 'stdout', 'stderr' ] }
+
+  def test_finalize( self ):
+    ''' tests the method finalize
+    '''
+       
+    module = self.testClass()
+    module.logFile = '/dev/null'
+    
+    res = module.finalize( 'message', 'result', 'samResult' )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'samResult is not a valid SAM status', res[ 'Message' ] )            
+
+    module.workflow_commons = {}
+
+    res = module.finalize( 'message', 'result', 'ok' )
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'message', res[ 'Value' ] )            
+
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
