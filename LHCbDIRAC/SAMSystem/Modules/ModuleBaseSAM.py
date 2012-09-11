@@ -317,15 +317,12 @@ class ModuleBaseSAM( object ):
     '''
 
     self.log.verbose( message )
-    
-    if not os.path.exists( self.logFile ):
-      fopen = open( self.logFile, 'w' )
-      _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
-      _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ) 
-      header = self._getMessageString( _msg, True )
-      fopen.write( header )
-      fopen.close()
 
+    if not self.enable:
+      cmd = 'echo "Enable flag is False, would have executed:"\necho "%s"' % cmd
+    
+    self.writeToLog( 'Message: %s\nCommand: %s' % ( message, cmd ) )
+    
     if not self.enable:
       cmd = 'echo "Enable flag is False, would have executed:"\necho "%s"' % cmd
 
@@ -343,9 +340,6 @@ class ModuleBaseSAM( object ):
 
     fopen = open( self.logFile, 'a' )
     
-    cmdHeader = self._getMessageString( 'Message: %s\nCommand: %s' % ( message, cmd ) )
-    self.log.verbose( cmdHeader )
-    fopen.write( cmdHeader )
     self.log.verbose( stdout )
     fopen.write( stdout )
     if stderr:
@@ -367,7 +361,7 @@ class ModuleBaseSAM( object ):
       it creates a new one.
     '''
     
-    if not os.path.exists( '%s' % ( self.logFile ) ):
+    if not os.path.exists( self.logFile ):
     
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]'
@@ -377,8 +371,10 @@ class ModuleBaseSAM( object ):
       fopen.close()
 
     fopen = open( self.logFile, 'a' )
-    fopen.write( self._getMessageString( '%s' % ( message ) ) )
+    fopen.write( self._getMessageString( message ) )
     fopen.close()
+    
+    self.log.verbose( message )
     
     return S_OK()
 
