@@ -1,10 +1,6 @@
-########################################################################
-# $HeadURL$
-########################################################################
-
-""" :mod: TransformationCleaningAgent 
+""" :mod: TransformationCleaningAgent
     =================================
- 
+
     .. module: TransformationCleaningAgent
     :synopsis: clean up of finalised transformations
 """
@@ -34,8 +30,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
     :param self: self reference
     :param str agentName: name of agent
     :param str loadName: name of module ???
-    :param bool baseAgentName: whatever  
-    :param dict properties: whatever else 
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
     """
     DiracTCAgent.__init__( self, agentName, loadName, baseAgentName, properties )
     ## LHCb bookkeeping client
@@ -45,7 +41,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
   #############################################################################
   def initialize( self ):
-    """ initialize 
+    """ initialize
 
     :param self: self reference
     """

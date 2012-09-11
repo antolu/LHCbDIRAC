@@ -74,7 +74,6 @@ class DataRecoveryAgent( AgentModule ):
     """
     #Configuration settings
     self.enableFlag = self.am_getOption( 'EnableFlag', True )
-#    self.enableFlag = self.am_getOption('EnableFlag',False)
     self.log.info( 'Enable flag is %s' % self.enableFlag )
     self.removalOKFlag = self.am_getOption( 'RemovalOKFlag', True )
 
@@ -91,7 +90,7 @@ class DataRecoveryAgent( AgentModule ):
 
     transformationDict = {}
     for transStatus in transformationStatus:
-      result = self.getEligibleTransformations( transStatus, transformationTypes )
+      result = self._getEligibleTransformations( transStatus, transformationTypes )
       if not result['OK']:
         self.log.error( result )
         return S_ERROR( 'Could not obtain eligible transformations for status "%s"' % ( transStatus ) )
@@ -139,7 +138,7 @@ class DataRecoveryAgent( AgentModule ):
       self.log.info( '='*len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
       self.log.info( 'Looking at transformation %s:' % ( transformation ) )
 
-      result = self.selectTransformationFiles( transformation, fileSelectionStatus )
+      result = self._selectTransformationFiles( transformation, fileSelectionStatus )
       if not result['OK']:
         self.log.error( result )
         self.log.error( 'Could not select files for transformation %s' % transformation )
@@ -151,7 +150,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       fileDict = result['Value']
-      result = self.obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
+      result = self._obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
       if not result['OK']:
         self.log.error( result )
         self.log.error( 'Could not obtain WMS jobIDs for files of transformation %s' % ( transformation ) )
@@ -172,7 +171,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       self.log.info( '%s files are selected after examining related WMS jobs' % ( fileCount ) )
-      result = self.checkOutstandingRequests( jobFileDict )
+      result = self._checkOutstandingRequests( jobFileDict )
       if not result['OK']:
         self.log.error( result )
         continue
@@ -187,7 +186,7 @@ class DataRecoveryAgent( AgentModule ):
         fileCount += len( lfnList )
 
       self.log.info( '%s files are selected after removing any relating to jobs with pending requests' % ( fileCount ) )
-      result = self.checkDescendents( transformation, jobFileNoRequestsDict, bkDepth )
+      result = self._checkDescendents( transformation, jobFileNoRequestsDict, bkDepth )
       if not result['OK']:
         self.log.error( result )
         continue
@@ -209,7 +208,7 @@ class DataRecoveryAgent( AgentModule ):
         filesToUpdate += fileList
 
       if filesToUpdate:
-        result = self.updateFileStatus( transformation, filesToUpdate, updateStatus )
+        result = self._updateFileStatus( transformation, filesToUpdate, updateStatus )
         if not result['OK']:
           self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result ) )
           continue
@@ -219,7 +218,7 @@ class DataRecoveryAgent( AgentModule ):
 
       if problematicFiles:
         if self.removalOKFlag:
-          result = self.removeOutputs( problematicFiles )
+          result = self._removeOutputs( problematicFiles )
           if not result['OK']:
             self.log.error( 'Could not remove all problematic files with result\n%s' % ( result ) )
             continue
@@ -240,7 +239,7 @@ class DataRecoveryAgent( AgentModule ):
         problematicFilesToUpdate += fileList
 
       if problematicFilesToUpdate:
-        result = self.updateFileStatus( transformation, problematicFilesToUpdate, updateStatus )
+        result = self._updateFileStatus( transformation, problematicFilesToUpdate, updateStatus )
         if not result['OK']:
           self.log.warn( 'Problematic files without replica flags were not updated \
           with result:\n%s' % ( result ) )
@@ -264,7 +263,7 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK()
 
   #############################################################################
-  def getEligibleTransformations( self, status, typeList ):
+  def _getEligibleTransformations( self, status, typeList ):
     """ Select transformations of given status and type.
     """
     res = self.transClient.getTransformations( condDict = {'Status':status, 'Type':typeList} )
@@ -278,7 +277,7 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK( transformations )
 
   #############################################################################
-  def selectTransformationFiles( self, transformation, statusList ):
+  def _selectTransformationFiles( self, transformation, statusList ):
     """ Select files, production jobIDs in specified file status for a given transformation.
     """
     #Until a query for files with timestamp can be obtained must rely on the
@@ -294,14 +293,14 @@ class DataRecoveryAgent( AgentModule ):
         continue
       lfn = fileDict['LFN']
       jobID = fileDict['TaskID']
-      lastUpdate = fileDict['LastUpdate']
+#      lastUpdate = fileDict['LastUpdate']
       resDict[lfn] = jobID
     if resDict:
       self.log.info( 'Selected %s files overall for transformation %s' % ( len( resDict.keys() ), transformation ) )
     return S_OK( resDict )
 
   #############################################################################
-  def obtainWMSJobIDs( self, transformation, fileDict, selectDelay, wmsStatusList ):
+  def _obtainWMSJobIDs( self, transformation, fileDict, selectDelay, wmsStatusList ):
     """ Group files by the corresponding WMS jobIDs, check the corresponding
         jobs have not been updated for the delay time.  Can't get into any
         mess because we start from files only in MaxReset / Assigned and check
@@ -372,7 +371,7 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK( jobFileDict )
 
   #############################################################################
-  def checkOutstandingRequests( self, jobFileDict ):
+  def _checkOutstandingRequests( self, jobFileDict ):
     """ Before doing anything check that no outstanding requests are pending
         for the set of WMS jobIDs.
     """
@@ -400,7 +399,7 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK( jobFileDict )
 
   #############################################################################
-  def checkDescendents( self, transformation, jobFileDict, bkDepth ):
+  def _checkDescendents( self, transformation, jobFileDict, bkDepth ):
     """ Check BK descendents for input files, prepare list of actions to be
         taken for recovery.
     """
@@ -489,7 +488,7 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK( result )
 
   ############################################################################
-  def removeOutputs( self, problematicFiles ):
+  def _removeOutputs( self, problematicFiles ):
     """ Remove outputs from any catalog / storages.
     """
     if not self.enableFlag:
@@ -510,7 +509,7 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK()
 
   #############################################################################
-  def updateFileStatus( self, transformation, fileList, fileStatus ):
+  def _updateFileStatus( self, transformation, fileList, fileStatus ):
     """ Update file list to specified status.
     """
     if not self.enableFlag:

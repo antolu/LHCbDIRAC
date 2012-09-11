@@ -1,19 +1,13 @@
-#######################################################################
-# $HeadURL $
-# File:  WorkflowTaskAgent.py
-########################################################################
-
 """ :mod:  WorkflowTaskAgent
     ========================
- 
+
   .. module:  WorkflowTaskAgent
-  :synopsis:  Extension of the DIRAC WorkflowTaskAgent, to use LHCb clients. 
+  :synopsis:  Extension of the DIRAC WorkflowTaskAgent, to use LHCb clients.
 
 """
 
 __RCSID__ = "$Id $"
 
-## imports
 from DIRAC import S_OK, gConfig
 from DIRAC.TransformationSystem.Agent.WorkflowTaskAgent import WorkflowTaskAgent as DIRACWorkflowTaskAgent
 from DIRAC.TransformationSystem.Agent.TaskManagerAgentBase import TaskManagerAgentBase
@@ -24,11 +18,11 @@ from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 AGENT_NAME = 'Transformation/WorkflowTaskAgent'
 
 class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
-  """ 
+  """
   .. class:: WorkflowTaskAgent
- 
-  An agent to submit workflow tasks, using LHCbWorklowTasks, which extends the DIRAC base class.  
- 
+
+  An agent to submit workflow tasks, using LHCbWorklowTasks, which extends the DIRAC base class.
+
   :param list transType: Transformation types list
   """
   transType = None

@@ -17,6 +17,8 @@ def initializeTransformationManagerHandler( serviceInfo ):
 class TransformationManagerHandler( TransformationManagerHandlerBase ):
 
   def __init__( self, *args, **kargs ):
+    """ c'tor
+    """
     self.setDatabase( database )
     TransformationManagerHandlerBase.__init__( self, *args, **kargs )
 
@@ -99,7 +101,8 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
 
   types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
   def export_getTransformationRunsSummaryWeb( self, selectDict, sortList, startItem, maxItems ):
-    """ Get the summary of the transformation run information for a given page in the generic format """
+    """ Get the summary of the transformation run information for a given page in the generic format
+    """
 
     # Obtain the timing information from the selectDict
     last_update = selectDict.get( 'LastUpdate', None )
@@ -220,8 +223,12 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
 
   types_addRunsMetadata = [[LongType, IntType], DictType]
   def export_addRunsMetadata( self, runID, metadataDict ):
+    """ insert run metadata
+    """
     return database.setRunsMetadata( runID, metadataDict )
 
   types_getRunsInCache = []
   def export_getRunsInCache( self ):
+    """ gets what's in
+    """
     return database.getRunsInCache()

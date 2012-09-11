@@ -1,13 +1,8 @@
-########################################################################
-# $HeadURL $
-# File: MCReplicationCleaningAgent.py
-########################################################################
-
-""" :mod: MCReplicationCleaningAgent 
+""" :mod: MCReplicationCleaningAgent
     ================================
- 
+
   .. module: MCReplicationCleaningAgent
-  :synopsis: Clean up of completed all MC Replication transformations which 
+  :synopsis: Clean up of completed all MC Replication transformations which
   have enough replicas for Done requests.
 
 """
@@ -48,8 +43,8 @@ class MCReplicationCleaningAgent( AgentModule ):
     self.replicaManager = ReplicaManager()
     self.requestClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
 
-    self.reqARCHIVE = 1 
-    self.reqDST = 3 
+    self.reqARCHIVE = 1
+    self.reqDST = 3
 
 
   #############################################################################

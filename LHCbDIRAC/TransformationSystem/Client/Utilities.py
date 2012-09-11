@@ -133,22 +133,22 @@ class PluginUtilities:
     self.cachedProductions = {}
     self.cacheFile = ''
 
-  def logVerbose( self, message, param='' ):
+  def logVerbose( self, message, param = '' ):
     if self.debug:
       gLogger.info( self.plugin + ": [%s] " % str( self.transID ) + message, param )
     else:
       gLogger.verbose( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
-  def logDebug( self, message, param='' ):
+  def logDebug( self, message, param = '' ):
     gLogger.debug( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
-  def logInfo( self, message, param='' ):
+  def logInfo( self, message, param = '' ):
     gLogger.info( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
-  def logWarn( self, message, param='' ):
+  def logWarn( self, message, param = '' ):
     gLogger.warn( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
-  def logError( self, message, param='' ):
+  def logError( self, message, param = '' ):
     gLogger.error( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
   def setParameters( self, params ):
@@ -158,7 +158,7 @@ class PluginUtilities:
   def setDebug( self, val ):
     self.debug = val
 
-  def getPluginParam( self, name, default=None ):
+  def getPluginParam( self, name, default = None ):
     """ Get plugin parameters using specific settings or settings defined in the CS
         Caution: the type returned is that of the default value
     """
@@ -193,9 +193,9 @@ class PluginUtilities:
     return value
 
   def getCPUShares( self , transID, backupSE ):
-    return self.getShares( transID=transID, backupSE=backupSE )
+    return self.getShares( transID = transID, backupSE = backupSE )
 
-  def getShares( self, section=None, transID=None, backupSE=None ):
+  def getShares( self, section = None, transID = None, backupSE = None ):
     if not section:
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
       res = self.transClient.getTransformation( transID )
@@ -212,7 +212,7 @@ class PluginUtilities:
     if backupSE:
       rawFraction = res['Value']
       targetSEs = sorted( rawFraction )
-      result = getShares( 'RAW', normalise=True )
+      result = getShares( 'RAW', normalise = True )
       if result['OK']:
         rawShares = result['Value']
         tier1Fraction = 0.
@@ -234,7 +234,7 @@ class PluginUtilities:
         self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
 
     # Get the existing destinations from the transformationDB, just for printing
-    res = self.getExistingCounters( transID, requestedSEs=sorted( shares ) )
+    res = self.getExistingCounters( transID, requestedSEs = sorted( shares ) )
     if not res['OK']:
       self.logError( "Failed to get used share", res['Message'] )
       return res
@@ -252,7 +252,7 @@ class PluginUtilities:
     else:
       return S_OK( ( existingCount, shares ) )
 
-  def getExistingCounters( self, transID, normalise=False, requestedSEs=None ):
+  def getExistingCounters( self, transID, normalise = False, requestedSEs = None ):
     """
     Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
     """
@@ -290,7 +290,7 @@ class PluginUtilities:
     activeSE = []
 
     try:
-      res = self.resourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
+      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
       if res[ 'OK' ]:
         for k, v in res[ 'Value' ].items():
           if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
@@ -342,7 +342,7 @@ class PluginUtilities:
         self.freeSpace[se] = {'site':site, 'token':token, 'freeSpace':value['freeSpace']}
         return self.freeSpace[se]['freeSpace']
     # if not get the information from RSS
-    res = self.rmClient.getSLSStorage( site=site, token=token )
+    res = self.rmClient.getSLSStorage( site = site, token = token )
     if res['OK']:
       if len( res['Value'] ) == 0 or len( res['Value'][0] ) < 9:
         self.logError( "Incorrect return value from RSS for site %s, token %s: %s" % ( site, token, res['Value'] ) )
@@ -389,7 +389,7 @@ class PluginUtilities:
     return rankedSEs
 
   def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs,
-                      exclusiveSEs=False ):
+                      exclusiveSEs = False ):
     """ Decide on which SEs to target from lists and current status of replication
         Policy is max one archive1, one archive 2, all mandatory SEs and required number of copies elsewhere
     """
@@ -509,7 +509,7 @@ class PluginUtilities:
         return True
     return False
 
-  def getRAWAncestorsForRun( self, runID, param='', paramValue='' ):
+  def getRAWAncestorsForRun( self, runID, param = '', paramValue = '' ):
     """ Determine from BK how many ancestors files from a given runs do have
         This is used for deciding when to flush a run (when all RAW files have been processed)
     """
@@ -536,7 +536,7 @@ class PluginUtilities:
       lfns = [f for f in metadata if metadata[f][param] == paramValue]
     if lfns:
       startTime = time.time()
-      res = self.bkClient.getFileAncestors( lfns, depth=10 )
+      res = self.bkClient.getFileAncestors( lfns, depth = 10 )
       self.logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ),
                                                                                                   time.time() - startTime ) )
       if res['OK']:
@@ -551,7 +551,7 @@ class PluginUtilities:
     self.logVerbose( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
     return ancestors
 
-  def groupByRunAndParam( self, lfns, files, param='' ):
+  def groupByRunAndParam( self, lfns, files, param = '' ):
     """ Group files by run and another BK parameter (e.g. file type or event type)
     """
     runDict = {}
@@ -585,7 +585,7 @@ class PluginUtilities:
     for replicaSE, lfns in getFileGroups( files ).items():
       taskLfns = []
       taskSize = 0
-      lfns = sorted( lfns, key=fileSizes.get )
+      lfns = sorted( lfns, key = fileSizes.get )
       for lfn in lfns:
         size = fileSizes.get( lfn, 0 )
         if size:
@@ -605,7 +605,7 @@ class PluginUtilities:
         self.clearCachedFileSize( taskLfns )
     return S_OK( tasks )
 
-  def createTasks( self, storageElementGroups, chunkSize=100 ):
+  def createTasks( self, storageElementGroups, chunkSize = 100 ):
     """ Create reasonable size tasks
     """
     tasks = []
@@ -735,7 +735,7 @@ def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset",
            "RAWShares", 'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
 
-def getShares( sType, normalise=False ):
+def getShares( sType, normalise = False ):
   """
   Get the shares from the Resources section of the CS
   """
@@ -768,7 +768,7 @@ def normaliseShares( shares ):
     shares[site] = 100.0 * ( float( shares[site] ) / total )
   return shares
 
-def sortExistingSEs( lfnSEs, lfns=None ):
+def sortExistingSEs( lfnSEs, lfns = None ):
   """ Sort SEs according to the number of files in each (most first)
   """
   seFrequency = {}
@@ -784,7 +784,7 @@ def sortExistingSEs( lfnSEs, lfns=None ):
       seFrequency[se] = seFrequency.setdefault( se, 0 ) + 1
   sortedSEs = seFrequency.keys()
   # sort SEs in reverse order of frequency
-  sortedSEs.sort( key=seFrequency.get, reverse=True )
+  sortedSEs.sort( key = seFrequency.get, reverse = True )
   # add the archive SEs at the end
   return sortedSEs + archiveSEs
 
@@ -816,7 +816,7 @@ def getFileGroups( fileReplicas ):
 def getSiteForSE( se ):
   """ Get site name for the given SE
   """
-  result = getSitesForSE( se, gridName='LCG' )
+  result = getSitesForSE( se, gridName = 'LCG' )
   if not result['OK']:
     return result
   if result['Value']:
@@ -828,7 +828,7 @@ def getSitesForSEs( seList ):
   """
   sites = []
   for se in seList:
-    result = getSitesForSE( se, gridName='LCG' )
+    result = getSitesForSE( se, gridName = 'LCG' )
     if result['OK']:
       sites += result['Value']
   return sites
@@ -858,7 +858,7 @@ def getListFromString( strParam ):
     return ll
   return strParam
 
-def closerSEs( existingSEs, targetSEs, local=False ):
+def closerSEs( existingSEs, targetSEs, local = False ):
   """ Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
   """
   sameSEs = [se for se in targetSEs if se in existingSEs]

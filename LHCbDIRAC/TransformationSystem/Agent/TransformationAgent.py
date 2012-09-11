@@ -40,10 +40,6 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.bkk = BookkeepingClient()
     self.rmClient = ResourceManagementClient()
 
-  def initialize( self ):
-    """ Augments base class initialize
-    """
-    DIRACTransformationAgent.initialize( self )
     self.workDirectory = self.am_getWorkDirectory()
     self.cacheFile = os.path.join( self.workDirectory, 'ReplicaCache.pkl' )
     self.debug = self.am_getOption( 'verbosePlugin', False )
@@ -52,6 +48,10 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.replicaCacheValidity = 2
     self.__readCache()
 
+  def initialize( self ):
+    """ Augments base class initialize
+    """
+    DIRACTransformationAgent.initialize( self )
     # Get it threaded
     maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
     threadPool = ThreadPool( maxNumberOfThreads, maxNumberOfThreads )
@@ -59,7 +59,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     self.log.debug( "Hello! This is the LHCbDirac TransformationAgent!" )
     self.log.debug( "*************************************************" )
     self.log.info( "Multithreaded with %d threads" % maxNumberOfThreads )
-    for i in xrange( maxNumberOfThreads ):
+    for _i in xrange( maxNumberOfThreads ):
       threadPool.generateJobAndQueueIt( self._execute )
     return S_OK()
 
@@ -71,22 +71,27 @@ class TransformationAgent( DIRACTransformationAgent ):
       self.log.info( "Queue is empty, terminating the agent..." )
     return S_OK()
 
+  @classmethod
   def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
     """ verbose """
     gLogger.verbose( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
+  @classmethod
   def __logDebug( self, message, param = '', method = "execute", transID = 'None' ):
     """ debug """
     gLogger.debug( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
+  @classmethod
   def __logInfo( self, message, param = '', method = "execute", transID = 'None' ):
     """ info """
     gLogger.info( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
+  @classmethod
   def __logWarn( self, message, param = '', method = "execute", transID = 'None' ):
     """ warn """
     gLogger.warn( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
+  @classmethod
   def __logError( self, message, param = '', method = "execute", transID = 'None' ):
     """ error """
     gLogger.error( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
@@ -192,17 +197,19 @@ class TransformationAgent( DIRACTransformationAgent ):
   def __readCache( self, lock = True ):
     """ Reads from the cache
     """
-    if lock: self.lock.acquire()
+    if lock:
+      self.lock.acquire()
     try:
-      f = open( self.cacheFile, 'r' )
-      self.replicaCache = pickle.load( f )
-      f.close()
+      cacheFile = open( self.cacheFile, 'r' )
+      self.replicaCache = pickle.load( cacheFile )
+      cacheFile.close()
       self.log.verbose( "Successfully loaded replica cache from file %s" % self.cacheFile )
     except:
       self.log.verbose( "Failed to load replica cache from file %s" % self.cacheFile )
       self.replicaCache = {}
     finally:
-      if lock: self.lock.release()
+      if lock:
+        self.lock.release()
 
   def __writeCache( self, lock = True ):
     """ Writes the cache
