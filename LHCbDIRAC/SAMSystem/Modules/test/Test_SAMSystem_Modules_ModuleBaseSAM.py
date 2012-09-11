@@ -432,6 +432,10 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     module.testName = 'testName'
     self.assertRaises( KeyError, module.execute )
     
+    module.workflowStatus[ 'OK' ] = False
+    res = module.execute()
+    
+    print res
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
