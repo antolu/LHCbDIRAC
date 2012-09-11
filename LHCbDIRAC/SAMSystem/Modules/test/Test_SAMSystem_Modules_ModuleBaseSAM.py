@@ -339,7 +339,20 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEqual( 'GridRequiredCEs', res[ 'Value' ] )
                 
     self.moduleTested.shellCall.return_value = { 'OK' : True, 
-                                                 'Value' : [ 0, 'stdout', 'stderr' ] }            
+                                                 'Value' : [ 0, 'stdout', 'stderr' ] }     
+    
+  def test_getRunInfo( self ):
+    ''' tests the method getRunInfo
+    '''         
+    
+    module = self.testClass()
+    module.logFile = '/dev/null'
+    
+    res = module.getRunInfo()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEqual( {'identity': 'stdout', 'WN': 'stdout', 'Proxy': 'stdout', 
+                       'CE': 'GridCE', 'identityShort': 'stdout'}, res[ 'Value' ] )
+    
                 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
