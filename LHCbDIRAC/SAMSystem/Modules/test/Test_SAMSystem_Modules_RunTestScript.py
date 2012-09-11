@@ -17,9 +17,18 @@ class RunTestScript_TestCase( unittest.TestCase ):
     '''
     Setup
     ''' 
+    
+    mock_os = mock.Mock()
+    mock_os.path.exists.return_value = False    
+         
+    mock_shell = mock.Mock()
+    mock_shell.return_value = { 'OK' : False, 'Message' : 'Bo!' }     
+         
+    moduleTested.os        = mock_os     
+    moduleTested.shellCall = mock_shell
          
     self.moduleTested = moduleTested
-    self.testClass    = self.moduleTested.ModuleBaseSAM
+    self.testClass    = self.moduleTested.RunTestScript
 
   def tearDown( self ):
     '''
@@ -39,6 +48,24 @@ class RunTestScript_Success( RunTestScript_TestCase ):
     
     module = self.testClass()
     self.assertEqual( 'RunTestScript', module.__class__.__name__ )
+    
+  def test_checkScript( self ):
+    ''' tests the method _checkScript
+    '''   
+    
+    module = self.testClass()
+    
+    res = module._RunTestScript__checkScript()
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( '', res[ 'Message' ] )
+    self.assertEquals( 'Script not found', res[ 'Description' ] )
+    self.assertEquals( 'notice', res[ 'SamResult' ] )
+    
+    self.moduleTested.os.path.exists.return_value = True
+    res = module._RunTestScript__checkScript()
+    self.assertEquals( False, res )
+    
+    self.moduleTested.os.path.exists.return_value = False
     
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
