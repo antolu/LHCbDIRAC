@@ -328,6 +328,7 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( 'stdout', res[ 'Value' ] )
     
     self.moduleTested.shellCall.return_value = { 'OK' : True, 'Value' : [ 0, '', 'stderr' ] }
+    module.workflow_commons[ 'GridRequiredCEs' ] = {}
     res = module._getSAMNode()    
     self.assertEqual( False, res[ 'OK' ] )
     self.assertEqual( True, 'Could not get CE from' in res[ 'Message' ] )
