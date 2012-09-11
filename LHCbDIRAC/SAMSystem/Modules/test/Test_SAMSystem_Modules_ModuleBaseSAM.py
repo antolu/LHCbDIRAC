@@ -325,7 +325,20 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
 
     res = module._getSAMNode()    
     self.assertEqual( True, res[ 'OK' ] )
-    self.assertEquals( True, 'Could not get CE from local' in res[ 'Message' ] )
+    self.assertEquals( 'stdout', res[ 'Value' ] )
+    
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 'Value' : [ 0, '', 'stderr' ] }
+    res = module._getSAMNode()    
+    self.assertEqual( False, res[ 'OK' ] )
+    self.assertEqual( True, 'Could not get CE from' in res[ 'Message' ] )
+    
+    module.workflow_commons[ 'GridRequiredCEs' ] = 'GridRequiredCEs'
+    res = module._getSAMNode()    
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEqual( 'GridRequiredCEs', res[ 'Value' ] )
+                
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 
+                                                 'Value' : [ 0, 'stdout', 'stderr' ] }            
                 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
