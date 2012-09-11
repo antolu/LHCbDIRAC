@@ -269,14 +269,22 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     res = module.runCommand( 'message', 'command', True )
     self.assertEquals( False, res[ 'OK' ] )
     self.assertEquals( 'stderr', res[ 'Message' ] )
-
     
+    # Propper log file
     module.logFile = '/tmp/test_runCommand'    
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 
+                                                 'Value' : [ 1, 'stdout', 'stderr' ] }
     res = module.runCommand( 'message', 'command' )
-    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'stdout', res[ 'Value' ] )
     
-    os.remove( '/tmp/test_runCommand' )
+    #enable == False
+    module.enable = False
+    res = module.runCommand( 'message', 'command' )
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'stdout', res[ 'Value' ] )
+    
+    os.remove( '/tmp/test_runCommand' )    
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
