@@ -970,10 +970,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
     skip = False
     try:
+      res = self.transClient.getBookkeepingQueryForTransformation( self.transID )
+      if not res['OK']:
+        self.util.logError( "Failed to get BK query for transformation", res['Message'] )
+        return S_OK( [] )
+      bkQuery = BKQuery( res['Value'] )
+      self.util.logVerbose( "BKQuery: %s" % bkQuery )
+      transProcPass = bkQuery.getProcessingPass()
+      processingPasses = [os.path.join( transProcPass, procPass ) for procPass in processingPasses]
+
       now = datetime.datetime.utcnow()
       cacheOK = False
-      if self.cachedProductions and ( now - self.cachedProductions['CacheTime'] ) < datetime.timedelta( hours=cacheLifeTime ):
-        productions = self.util.getCachedProductions()
+      productions = self.util.getCachedProductions()
+      activeProds = productions.get( 'Active', {} )
+      archivedProds = productions.get( 'Archived', {} )
+      if productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours=cacheLifeTime ):
         if 'Active' not in productions:
           cacheOK = False
         else:
@@ -986,24 +997,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               cacheOK = False
               break
       if cacheOK:
-        if transStatus != 'Flush' and ( now - self.cachedProductions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours=period ):
+        if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours=period ):
           self.util.logInfo( "Skip this loop (less than %s hours since last call)" % period )
           skip = True
           return S_OK( [] )
       else:
         self.util.logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
-        activeProds = {}
-        archivedProds = {}
-        res = self.transClient.getBookkeepingQueryForTransformation( self.transID )
-        if not res['OK']:
-          self.util.logError( "Failed to get BK query for transformation", res['Message'] )
-          return S_OK( [] )
-        bkQuery = BKQuery( res['Value'] )
-        self.util.logVerbose( "BKQuery: %s" % bkQuery )
-        transProcPass = bkQuery.getProcessingPass()
         bkQuery.setFileType( None )
         for procPass in processingPasses:
-          bkQuery.setProcessingPass( os.path.join( transProcPass, procPass ) )
+          bkQuery.setProcessingPass( procPass )
           # Temporary work around for getting Stripping production from merging (parent should be set to False)
           bkQuery.setEventType( None )
           prods = bkQuery.getBKProductions( visible='ALL' )
@@ -1022,10 +1024,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 activeProds[procPass].append( int( prod ) )
           self.util.logInfo( "For procPass %s, found productions: %s, archived %s"
                           % ( procPass, activeProds[procPass], archivedProds[procPass] ) )
-        self.cachedProductions = {'Active':activeProds, 'Archived':archivedProds}
-        self.cachedProductions['CacheTime'] = now
+        productions = {'Active':activeProds, 'Archived':archivedProds}
+        productions['CacheTime'] = now
 
-      self.cachedProductions['LastCall_%s' % self.transID] = now
+      productions['LastCall_%s' % self.transID] = now
+      self.util.setCachedProductions( productions )
       replicaGroups = self._getFileGroups( self.data )
       storageElementGroups = {}
       newGroups = {}
