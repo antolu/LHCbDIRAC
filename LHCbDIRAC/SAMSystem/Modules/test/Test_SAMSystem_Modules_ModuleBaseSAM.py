@@ -2,6 +2,7 @@
 ''' Test_SAMSystem_Modules_ModuleBaseSAM
 '''
 
+import os
 import mock
 import unittest
 
@@ -232,10 +233,50 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module = self.testClass()
     module.logFile = '/dev/null'
-    
+
+    # Check == False    
     res = module.runCommand( 'message', 'command' )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'stdout', res[ 'Value' ] )
+
+    self.moduleTested.shellCall.return_value = { 'OK' : False, 
+                                                 'Message' : 'Ups' }
+    res = module.runCommand( 'message', 'command' )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Ups', res[ 'Message' ] )
+        
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 
+                                                 'Value' : [ 1, 'stdout', 'stderr' ] }
+    res = module.runCommand( 'message', 'command' )
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'stdout', res[ 'Value' ] )
+
+    # Check == True    
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 
+                                                 'Value' : [ 0, 'stdout', 'stderr' ] }
+    res = module.runCommand( 'message', 'command', True )
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'stdout', res[ 'Value' ] )
+
+    self.moduleTested.shellCall.return_value = { 'OK' : False, 
+                                                 'Message' : 'Ups' }
+    res = module.runCommand( 'message', 'command', True )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'Ups', res[ 'Message' ] )
+        
+    self.moduleTested.shellCall.return_value = { 'OK' : True, 
+                                                 'Value' : [ 1, 'stdout', 'stderr' ] }
+    res = module.runCommand( 'message', 'command', True )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'stderr', res[ 'Message' ] )
+
+    
+    module.logFile = '/tmp/test_runCommand'    
+    res = module.runCommand( 'message', 'command' )
+    self.assertEquals( False, res[ 'OK' ] )
+    self.assertEquals( 'stdout', res[ 'Value' ] )
+    
+    os.remove( '/tmp/test_runCommand' )
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
