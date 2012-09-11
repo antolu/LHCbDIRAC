@@ -20,7 +20,8 @@ class ModuleBaseSAM_TestCase( unittest.TestCase ):
     '''
          
     mock_os = mock.Mock()
-    mock_os.environ = { 'JOBID' : '123' }    
+    mock_os.environ     = { 'JOBID' : '123' }
+    mock_os.path.exists.return_value = True    
     
     mock_shell = mock.Mock()
     mock_shell.return_value = { 'OK' : True, 'Value' : [ 0, 'stdout', 'stderr' ] }
@@ -277,6 +278,8 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     res = module.runCommand( 'message', 'command' )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'stdout', res[ 'Value' ] )
+    
+    self.moduleTested.os.path.exists.return_value = False
     
     #enable == False
     module.enable = False
