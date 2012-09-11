@@ -79,5 +79,23 @@ class RunTestScript_Success( RunTestScript_TestCase ):
     
     self.moduleTested.os.path.exists.return_value = False
     
+  def test_execute( self ):
+    ''' tests the method _execute
+    '''    
+    
+    module = self.testClass()
+    
+    res = module._execute()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'Script not found', res[ 'Value' ] )
+
+    module.runCommand = mock.Mock()
+    module.runCommand.return_value = { 'OK' : True, 'Value' : 1 }
+    self.moduleTested.os.path.exists.return_value = True    
+    
+    res = module._execute()
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'CE-lhcb-test-script Test Successful', res[ 'Value' ] )
+        
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

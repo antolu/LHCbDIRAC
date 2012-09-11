@@ -50,6 +50,8 @@ class RunTestScript( ModuleBaseSAM ):
 
     result = self.__checkScript()
     if not result[ 'OK' ]:
+      #FIXME: this is really weird. Finalize will return S_OK ( 'Script not found' )
+      #because SamResult has info level. As I understand it, should be something else.
       return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
 
     self.setApplicationStatus( '%s Successful' % self.testName )
