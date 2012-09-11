@@ -318,7 +318,7 @@ class ModuleBaseSAM( object ):
 
     self.log.verbose( message )
     
-    if not os.path.exists( '%s' % ( self.logFile ) ):
+    if not os.path.exists( self.logFile ):
       fopen = open( self.logFile, 'w' )
       _msg = 'DIRAC SAM Test: %s\nSite Name: %s\nLogFile: %s\nVersion: %s\nTest Executed On: %s [UTC]' 
       _msg = _msg % ( self.logFile, DIRAC.siteName(), self.testName, self.version, time.asctime() ) 
@@ -336,30 +336,29 @@ class ModuleBaseSAM( object ):
     status = result[ 'Value' ][ 0 ]
     stdout = result[ 'Value' ][ 1 ]
     stderr = result[ 'Value' ][ 2 ]
+    
     self.log.verbose( stdout )
     if stderr:
       self.log.warn( stderr )
 
     fopen = open( self.logFile, 'a' )
-    cmdHeader = self._getMessageString( 'Message: %s\nCommand: %s' % ( message, cmd ) )
     
+    cmdHeader = self._getMessageString( 'Message: %s\nCommand: %s' % ( message, cmd ) )
     self.log.verbose( cmdHeader )
     fopen.write( cmdHeader )
-    
     self.log.verbose( stdout )
     fopen.write( stdout )
-        
     if stderr:
       self.log.warn( stderr )
       fopen.write( stderr )
+      
     fopen.close()
     
     if status:
       self.log.info( 'Non-zero status %s while executing %s' % ( status, cmd ) )
       if check:
         return S_ERROR( stderr )
-      return S_OK( stdout )
-
+      
     return S_OK( stdout )
 
   def writeToLog( self, message ):

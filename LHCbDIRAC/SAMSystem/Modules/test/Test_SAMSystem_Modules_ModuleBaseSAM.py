@@ -21,7 +21,11 @@ class ModuleBaseSAM_TestCase( unittest.TestCase ):
     mock_os = mock.Mock()
     mock_os.environ = { 'JOBID' : '123' }    
     
-    moduleTested.os = mock_os
+    mock_shell = mock.Mock()
+    mock_shell.return_value = { 'OK' : True, 'Value' : [ 0, 'stdout', 'stderr' ] }
+    
+    moduleTested.os        = mock_os
+    moduleTested.shellCall = mock_shell
          
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.ModuleBaseSAM
@@ -222,5 +226,16 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     res = module._getMessageString( 'abc\ndefg', True )
     self.assertEqual( '\n====\nabc\ndefg\n====\n', res )
     
+  def test_runCommand( self ):
+    ''' tests the method runCommand
+    '''
+    
+    module = self.testClass()
+    module.logFile = '/dev/null'
+    
+    res = module.runCommand( 'message', 'command' )
+    self.assertEquals( True, res[ 'OK' ] )
+    self.assertEquals( 'stdout', res[ 'Value' ] )
+        
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
