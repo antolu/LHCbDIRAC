@@ -219,6 +219,8 @@ if __name__ == "__main__":
   # Create the transformation
   transformation = Transformation()
   transType = None
+  if plugin == "DestroyDatasetWhenProcessed":
+    plugin = "DeleteReplicasWhenProcessed"
   if plugin in getRemovalPlugins():
     transType = "Removal"
   elif plugin in getReplicationPlugins():
