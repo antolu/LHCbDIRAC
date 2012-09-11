@@ -8,7 +8,7 @@ import unittest
 
 import LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM as moduleTested 
 
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id$'
 
 ################################################################################
 
@@ -26,8 +26,12 @@ class ModuleBaseSAM_TestCase( unittest.TestCase ):
     mock_shell = mock.Mock()
     mock_shell.return_value = { 'OK' : True, 'Value' : [ 0, 'stdout', 'stderr' ] }
     
+    mock_gConfig = mock.Mock()
+    mock_gConfig.getValue.return_value = 'GridCE'
+    
     moduleTested.os        = mock_os
     moduleTested.shellCall = mock_shell
+    moduleTested.gConfig   = mock_gConfig
          
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.ModuleBaseSAM
@@ -305,6 +309,21 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( True, res[ 'OK' ] )
                 
     self.moduleTested.os.path.exists.return_value = True
+
+  def test_getSAMNode( self ):
+    ''' tests the method _getSAMNode
+    '''
+    
+    module = self.testClass()
+    res = module._getSAMNode()
+    
+    self.assertEqual( True, res[ 'OK' ] )
+    self.assertEquals( 'GridCE', res[ 'Value' ] )
+    
+    self.moduleTested.gConfig.getValue.return_value = ''
+    
+    self.assertEqual( False, res[ 'OK' ] )
+    self.assertEquals( True, 'Could not get CE from local' in res[ 'Message' ] )
                 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
