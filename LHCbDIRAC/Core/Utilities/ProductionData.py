@@ -107,7 +107,11 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
       gLogger.verbose( 'BookkeepingLFN(s) are:\n%s' % ( '\n'.join( bkLFNs ) ) )
     if debugLFNs:
       gLogger.verbose( 'DebugLFN(s) are:\n%s' % ( '\n'.join( debugLFNs ) ) )
-    jobOutputs = {'ProductionOutputData':outputData, 'LogFilePath':logFilePath, 'LogTargetPath':logTargetPath, 'BookkeepingLFNs':bkLFNs, 'DebugLFNs':debugLFNs}
+    jobOutputs = {'ProductionOutputData':outputData,
+                  'LogFilePath':logFilePath,
+                  'LogTargetPath':logTargetPath,
+                  'BookkeepingLFNs':bkLFNs,
+                  'DebugLFNs':debugLFNs}
     return S_OK( jobOutputs )
 
   except Exception, e:

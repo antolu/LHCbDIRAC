@@ -93,7 +93,7 @@ class GaudiApplication( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_id = None, step_number = None,
-               projectEnvironment = None, bkkClient = None ):
+               projectEnvironment = None ):
     """ The main execution method of GaudiApplication.
     """
 
@@ -188,7 +188,7 @@ class GaudiApplication( ModuleBase ):
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
 
-        stepOutTypes = self._determineOutputFileType( bkkClient )
+        stepOutTypes = self._determineOutputFileType()
 
         optionsDict['OutputFileTypes'] = stepOutTypes
 
@@ -372,7 +372,7 @@ class GaudiApplication( ModuleBase ):
       self.workflow_commons['outputList'] = finalOutputs
 
     self.log.info( 'Attempting to recreate the production output LFNs...' )
-    result = constructProductionLFNs( self.workflow_commons )
+    result = constructProductionLFNs( self.workflow_commons, self.bkClient )
     if not result['OK']:
       self.log.error( 'Could not create production LFNs', result['Message'] )
       return result

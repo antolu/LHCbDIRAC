@@ -351,7 +351,12 @@ class ModuleBase( object ):
 
     if self.step_commons.has_key( 'listoutput' ):
       self.stepOutputs = self.step_commons['listoutput']
-      self.stepOutputsType = [x['outputDataType'].upper() for x in self.stepOutputs]
+      stepOutputsType = [x['outputDataType'] for x in self.stepOutputs]
+      self.stepOutputsType = []
+      for fts in stepOutputsType:
+        for ft in fts.split( ';' ):
+          if ft and ft not in self.stepOutputsType:
+            self.stepOutputsType.append( ft.upper() )
 
     if self.step_commons.has_key( 'optionsFormat' ):
       self.optionsFormat = self.step_commons['optionsFormat']

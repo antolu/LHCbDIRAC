@@ -73,7 +73,7 @@ class UploadOutputData( ModuleBase ):
         self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]
     else:
       self.log.info( 'ProductionOutputData parameter not found, creating on the fly' )
-      result = constructProductionLFNs( self.workflow_commons )
+      result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create production LFNs', result['Message'] )
         return result

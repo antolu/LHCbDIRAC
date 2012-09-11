@@ -75,7 +75,7 @@ class RootApplication( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_id = None, step_number = None,
-               projectEnvironment = None, bkkClient = None ):
+               projectEnvironment = None ):
     """The main execution method of the RootApplication module.
     """
 
