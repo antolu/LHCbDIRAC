@@ -196,5 +196,31 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     self.assertEqual( True, res[ 'OK' ] )
     
+  def test_getMessageString( self ):
+    ''' tests the method _getMessageString
+    '''  
+    
+    module = self.testClass()
+    
+    res = module._getMessageString( '' ) 
+    self.assertEqual( '\n\n\n', res )
+    res = module._getMessageString( 'abc' )
+    self.assertEqual( '---\nabc\n---\n', res )
+    
+    res = module._getMessageString( '', True ) 
+    self.assertEqual( '\n\n\n\n', res )
+    res = module._getMessageString( 'abc', True )
+    self.assertEqual( '\n===\nabc\n===\n', res )
+
+    res = module._getMessageString( '1\n2' ) 
+    self.assertEqual( '-\n1\n2\n-\n', res )
+    res = module._getMessageString( 'abc\ndefg' )
+    self.assertEqual( '----\nabc\ndefg\n----\n', res )
+    
+    res = module._getMessageString( '1\n2', True ) 
+    self.assertEqual( '=\n1\n2\n=\n', res )
+    res = module._getMessageString( 'abc\ndefg', True )
+    self.assertEqual( '====\nabc\ndefg\n====\n', res )
+    
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

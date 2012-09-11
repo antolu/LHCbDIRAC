@@ -264,28 +264,30 @@ class ModuleBaseSAM( object ):
 
   @staticmethod
   def _getMessageString( message, header = False ):
-    """Return a nicely formatted string for the SAM logs.
-    """
-    border = ''
-    limit = 0
+    '''
+       Return a nicely formatted string for the SAM logs.
+    '''
+    
+    # Get the length of the longest string
+    limit  = 0
     for line in message.split( '\n' ):
-      if line:
-        if len( line ) > limit:
-          limit = len( line )
+      limit = max( limit, len( line ) )
 
-    maxLimit = 100
-    if limit > 100:
-      limit = maxLimit
-
-    for _i in xrange( limit ):
-      if header:
-        border += '='
-      else:
-        border += '-'
+    #Max length of 100 characters
+    limit = min( limit, 100 )
+    
+    if header:
+      separator = '='
+    else:
+      separator = '-'
+        
+    border = separator * limit
+        
     if header:
       message = '\n%s\n%s\n%s\n' % ( border, message, border )
     else:
       message = '%s\n%s\n%s\n' % ( border, message, border )
+      
     return message
 
   def setJobParameter( self, name, value ):
