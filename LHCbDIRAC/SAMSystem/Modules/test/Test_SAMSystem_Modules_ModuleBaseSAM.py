@@ -321,7 +321,8 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     self.assertEquals( 'GridCE', res[ 'Value' ] )
     
     self.moduleTested.gConfig.getValue.return_value = ''
-    
+
+    res = module._getSAMNode()    
     self.assertEqual( True, res[ 'OK' ] )
     self.assertEquals( True, 'Could not get CE from local' in res[ 'Message' ] )
                 
