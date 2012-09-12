@@ -18,7 +18,7 @@ class LockSharedArea_TestCase( unittest.TestCase ):
     Setup
     '''
        
-    mock_ops = mock.Mock()
+    mock_ops  = mock.Mock()
     mock_ops2 = mock.Mock()
     mock_ops2.getValue.return_value = 10
     mock_ops.return_value = mock_ops2
@@ -48,6 +48,8 @@ class LockSharedArea_Success( LockSharedArea_TestCase ):
     self.assertEqual( 'LockSharedArea', module.__class__.__name__ )
     
   def test_init( self ):
+    ''' tests the method __init__
+    '''
     
     module = self.testClass()  
     self.assertEquals( 'sam-lock.log', module.logFile )
@@ -55,8 +57,46 @@ class LockSharedArea_Success( LockSharedArea_TestCase ):
     self.assertEquals( 'DIRAC-SAM-Test-Lock', module.lockFile )
     self.assertEquals( False, module.forceLockRemoval )
     self.assertEquals( False, module.safeMode )
-  
     
+  def test_resolveInputVariables( self ):
+    ''' tests the method resolveInputVariables
+    '''  
+  
+    module = self.testClass()
+    
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )  
+    self.assertEquals( False, module.forceLockRemoval )
+    self.assertEquals( False, module.safeMode )
+    self.assertEquals( True, module.enable )
+    
+    module.step_commons[ 'forceLockRemoval' ] = 123
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )  
+    self.assertEquals( False, module.forceLockRemoval )
+    self.assertEquals( False, module.safeMode )
+    self.assertEquals( True, module.enable )
+    
+    module.step_commons[ 'forceLockRemoval' ] = True
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )  
+    self.assertEquals( True, module.forceLockRemoval )
+    self.assertEquals( False, module.safeMode )
+    self.assertEquals( True, module.enable )
+    
+    module.workflow_commons[ 'SoftwareInstallationTest' ] = 123
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )  
+    self.assertEquals( True, module.forceLockRemoval )
+    self.assertEquals( False, module.safeMode )
+    self.assertEquals( True, module.enable )
+    
+    module.workflow_commons[ 'SoftwareInstallationTest' ] = 'False'
+    res = module.resolveInputVariables()
+    self.assertEquals( True, res[ 'OK' ] )  
+    self.assertEquals( True, module.forceLockRemoval )
+    self.assertEquals( True, module.safeMode )
+    self.assertEquals( True, module.enable )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
