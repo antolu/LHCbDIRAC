@@ -98,7 +98,7 @@ class SEUsageAgent( AgentModule ):
     also exists for the given SE in the su_SEUsage table, then the directory and its usage are 
     stored in the replica table (the se_Usage table) together with the insertion time, otherwise 
     it is added to the problematic data table (problematicDirs) """
-    
+
     self.log.info( "Starting the execute method" )
     self.log.info( "Sites active for checks: %s " % self.activeSites )
     siteList = self.activeSites.split( ',' )
@@ -139,7 +139,7 @@ class SEUsageAgent( AgentModule ):
           self.log.error( "Error for site %s: Could not remove old entries from the problematicDirs table! %s:" % \
                             ( site, res['Message'] ) )
           continue
-        self.log.info( "Removed %d entries from the problematic directories table for site %s" % ( res['Value'], 
+        self.log.info( "Removed %d entries from the problematic directories table for site %s" % ( res['Value'],
                                                                                                    site ) )
       # END OF DEBUGGING MODIFICATION ###########
 
@@ -154,10 +154,10 @@ class SEUsageAgent( AgentModule ):
         for line in open( fullPathFileP3, "r" ).readlines():
           splitLine = line.split()
           try:
-            spaceToken     = splitLine[ 0 ]
+            spaceToken = splitLine[ 0 ]
             storageDirPath = splitLine[ 1 ]
-            files          = splitLine[ 2 ]
-            size           = splitLine[ 3 ]
+            files = splitLine[ 2 ]
+            size = splitLine[ 3 ]
           except IndexError:
             self.log.error( "ERROR in input data format. Line is: %s" % line )
             continue
@@ -169,10 +169,10 @@ class SEUsageAgent( AgentModule ):
             prefix = '/lhcb/' + sr
             if prefix in dirPath:
               # strip the initial prefix, to get the LFN as registered in the LFC
-              dirPath = storageDirPath.split( prefix )[1] 
+              dirPath = storageDirPath.split( prefix )[1]
               replicaType = sr
               self.log.info( "prefix: %s \n storageDirPath: %s\n dirPath: %s" % ( prefix, storageDirPath, dirPath ) )
-          oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size , 
+          oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size ,
                                     'Updated': 'na', 'Site': site, 'ReplicaType': replicaType }
           # the format of the entry to be processed must be a dictionary with LFN path as key
           # use this format for consistency with already existing methods of StorageUsageDB 
@@ -243,7 +243,7 @@ class SEUsageAgent( AgentModule ):
               seFiles = int( oneDirDict[ dirPath ]['Files'] )
               self.log.info( "Matched SE: %s" % matchedSE )
               oneDirDict[ dirPath ]['SEName'] = matchedSE
-              self.log.info( "lfcFiles = %d lfcSize = %d seFiles = %d seSize = %d" % ( lfcFiles, lfcSize, 
+              self.log.info( "lfcFiles = %d lfcSize = %d seFiles = %d seSize = %d" % ( lfcFiles, lfcSize,
                                                                                        seFiles, seSize ) )
               if seSize > lfcSize:
                 self.log.info( "Data on SE exceeds what reported in LFC! some data not registered in LFC" )
@@ -325,17 +325,18 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
 
+
   def setupSiteConfig( self, lcgSite ):
     """ Setup the configuration for the site
     """
     site = lcgSite.split( '.' )[1]
-    self.spaceTokens[ site ] = { 'LHCb-Tape' : { 'year': '2011', 'DiracSEs': [ site + '-RAW', 
-                                                                               site + '-RDST', 
+    self.spaceTokens[ site ] = { 'LHCb-Tape' : { 'year': '2011', 'DiracSEs': [ site + '-RAW',
+                                                                               site + '-RDST',
                                                                                site + '-ARCHIVE']},
-                                 'LHCb-Disk' : { 'year': '2011', 'DiracSEs': [ site + '-DST', 
-                                                                               site + '_M-DST', 
-                                                                               site + '_MC_M-DST', 
-                                                                               site + '_MC-DST', 
+                                 'LHCb-Disk' : { 'year': '2011', 'DiracSEs': [ site + '-DST',
+                                                                               site + '_M-DST',
+                                                                               site + '_MC_M-DST',
+                                                                               site + '_MC-DST',
                                                                                site + '-FAILOVER']},
                                  'LHCb_USER' : { 'year': '2011', 'DiracSEs': [ site + '-USER']},
                                  'LHCb_RAW' : { 'year': '2010', 'DiracSEs': [ site + '-RAW']},
@@ -415,9 +416,9 @@ class SEUsageAgent( AgentModule ):
     if pathToInputFiles[-1] != "/":
       pathToInputFiles = "%s/" % pathToInputFiles
     self.log.info( "Reading input files for site %s " % site )
-    self.log.info( "originFileName: %s, originURL: %s, targetPath: %s, pathToInputFiles: %s " % ( originFileName, 
-                                                                                                  originURL, 
-                                                                                                  targetPath, 
+    self.log.info( "originFileName: %s, originURL: %s, targetPath: %s, pathToInputFiles: %s " % ( originFileName,
+                                                                                                  originURL,
+                                                                                                  targetPath,
                                                                                                   pathToInputFiles ) )
 
     if targetPath[-1] != "/":
@@ -430,7 +431,7 @@ class SEUsageAgent( AgentModule ):
       previousFiles = os.listdir( targetPathForDownload )
       self.log.info( "In %s found these files: %s" % ( targetPathForDownload, previousFiles ) )
     except TypeError:
-      pass  
+      pass
     except OSError:
       self.log.info( "no leftover to remove from %s. Proceed downloading input files..." % targetPathForDownload )
     if previousFiles:
@@ -468,7 +469,7 @@ class SEUsageAgent( AgentModule ):
       previousParsedFiles = os.listdir( pathToInputFiles )
       self.log.info( "In %s found these files: %s" % ( pathToInputFiles, previousParsedFiles ) )
     except TypeError:
-      pass  
+      pass
     except OSError:
       self.log.info( "no leftover to remove from %s . Proceed to parse the input files..." % pathToInputFiles )
     if previousParsedFiles:
@@ -530,7 +531,7 @@ class SEUsageAgent( AgentModule ):
         self.log.error( "no pointer to file for st=%s " % st )
     self.log.info( "Parsed output files : " )
     for st in outputFileMerged.keys():
-      self.log.info( "space token: %s -> \n  %s\n %s  " % ( st, outputFileMerged[ st ]['MergedFileName'], 
+      self.log.info( "space token: %s -> \n  %s\n %s  " % ( st, outputFileMerged[ st ]['MergedFileName'],
                                                             outputFileMerged[ st ]['DirSummaryFileName'] ) )
 
     for inputFileP1 in inputFilesListP1:
@@ -606,23 +607,23 @@ class SEUsageAgent( AgentModule ):
 #          continue
       fP2.flush()
 
-      self.log.info( "Cleaning the STSummary table entries for site %s and space token %s ..." % ( site, 
+      self.log.info( "Cleaning the STSummary table entries for site %s and space token %s ..." % ( site,
                                                                                                    completeSTId ) )
       res = self.storageUsage.removeSTSummary( site, completeSTId )
       if not res['OK']:
-        self.log.error( "Unable to remove old entries from the STSummary table for site %s: %s " % ( site, 
+        self.log.error( "Unable to remove old entries from the STSummary table for site %s: %s " % ( site,
                                                                                                      res['Message'] ) )
         continue
       self.log.info( "Removed %d entries from the STSummary table for site %s" % ( res['Value'], site ) )
 
-      self.log.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % ( site, completeSTId, 
+      self.log.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % ( site, completeSTId,
                                                                                            totalSize, totalFiles ) )
       res = self.storageUsage.publishTose_STSummary( site, completeSTId, totalSize, totalFiles )
       if not res['OK']:
         self.log.error( "failed to publish %s - %s summary " % ( site, st ) )
         return S_ERROR( res )
-      self.log.info( "Total lines: %d , correctly processed: %d, dirac_directory found %d " % ( totalLines, 
-                                                                                                processedLines, 
+      self.log.info( "Total lines: %d , correctly processed: %d, dirac_directory found %d " % ( totalLines,
+                                                                                                processedLines,
                                                                                                 dirac_dir_lines ) )
     # close output files:
     for st in outputFileMerged.keys():
@@ -682,8 +683,8 @@ class SEUsageAgent( AgentModule ):
       fP3 = outputFileMerged[ st ]['pointerToDirSummaryFile' ]
       self.log.info( "Writing to file %s" % fileP3 )
       for basePath in self.dirDict.keys():
-        summaryLine = " ".join( [ st, basePath, str(self.dirDict[ basePath ][ 'Files' ]), 
-                                  str(self.dirDict[ basePath ][ 'Size' ]) ] )
+        summaryLine = " ".join( [ st, basePath, str( self.dirDict[ basePath ][ 'Files' ] ),
+                                  str( self.dirDict[ basePath ][ 'Size' ] ) ] )
         self.log.debug( "Writing summaryLine %s" % summaryLine )
         fP3.write( "%s\n" % summaryLine )
       fP3.flush()
@@ -691,8 +692,8 @@ class SEUsageAgent( AgentModule ):
 
       self.log.debug( "-------------------------summary of ReadInputFile-------------------------" )
       for k in self.dirDict.keys():
-        self.log.debug( "(lfn,st): %s-%s files=%d size=%d updated=%s" % ( k, st , self.dirDict[ k ][ 'Files' ], 
-                                                                          self.dirDict[ k ][ 'Size' ], 
+        self.log.debug( "(lfn,st): %s-%s files=%d size=%d updated=%s" % ( k, st , self.dirDict[ k ][ 'Files' ],
+                                                                          self.dirDict[ k ][ 'Size' ],
                                                                           self.dirDict[ k ][ 'Updated' ] ) )
 
     return S_OK( retCode )
@@ -956,8 +957,8 @@ class SEUsageAgent( AgentModule ):
     else:
       repsResult = self.replicaManager.getReplicas( filesInProblematicDirs )
     timing = time.time() - start
-    self.log.info( '%d replicas Lookup Time: %.2f s -> %.2f s/replica' % ( len( filesInProblematicDirs ), timing, 
-                                                                           float(timing)/len(filesInProblematicDirs) ) )
+    self.log.info( '%d replicas Lookup Time: %.2f s -> %.2f s/replica' % ( len( filesInProblematicDirs ), timing,
+                                                                           float( timing ) / len( filesInProblematicDirs ) ) )
     if not repsResult['OK']:
       return S_ERROR( repsResult['Message'] )
     goodFiles = repsResult['Value']['Successful']
@@ -1022,9 +1023,9 @@ class SEUsageAgent( AgentModule ):
     totSizeMissingFromFC = 0 # to be implemented!!!
     totSizeReplicasMissingFromSite = 0 # to be implemented!!!
     fp.write( "Total number of LFN at site not registered in the FC: %d , " \
-                "total size: %.2f GB \n" % ( len( filesMissingFromFC ), totSizeMissingFromFC/1.0e9 ) )
+                "total size: %.2f GB \n" % ( len( filesMissingFromFC ), totSizeMissingFromFC / 1.0e9 ) )
     fp.write( "Total number of replicas  at site not registered in the FC: %d , " \
-                "total size: %.2f GB \n" % ( len( replicasMissingFromSite ), totSizeReplicasMissingFromSite/1.0e9 ) )
+                "total size: %.2f GB \n" % ( len( replicasMissingFromSite ), totSizeReplicasMissingFromSite / 1.0e9 ) )
     fp.close()
 
     return S_OK()
@@ -1144,18 +1145,18 @@ class SEUsageAgent( AgentModule ):
     for fileName in os.listdir( directory ):
       fullPath = os.path.join( directory, fileName )
       ## ( mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime ) = os.stat( fullPath )
-      mtime = os.path.getmtime( fullPath ) 
+      mtime = os.path.getmtime( fullPath )
       now = time.time()
       elapsedTime = now - mtime
       self.log.info( "creation time: %s, elapsed time: %d h " \
-                       "(max delay allowed : %d h ) " % ( time.ctime( mtime ), 
-                                                          elapsedTime/3600, 
-                                                          self.maximumDelaySinceSD/3600 ) )
+                       "(max delay allowed : %d h ) " % ( time.ctime( mtime ),
+                                                          elapsedTime / 3600,
+                                                          self.maximumDelaySinceSD / 3600 ) )
 
       if elapsedTime > self.maximumDelaySinceSD:
         self.log.warn( "storage dump creation date is older " \
-                         "than maximum limit! %s s ( %d h ) - %s " % ( self.maximumDelaySinceSD, 
-                                                                       self.maximumDelaySinceSD/3600,
+                         "than maximum limit! %s s ( %d h ) - %s " % ( self.maximumDelaySinceSD,
+                                                                       self.maximumDelaySinceSD / 3600,
                                                                        fullPath ) )
         retCode = -1
         return S_OK( retCode )
