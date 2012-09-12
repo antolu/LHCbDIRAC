@@ -60,7 +60,9 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     '''
     
     module = self.testClass()
-    module.jobID = '123'
+    self.assertEquals( '123', module.jobID )
+    self.assertEquals( None, module.logFile )
+    self.assertEquals( None, module.testName )
         
   def test_resolveInputVariables( self ):
     ''' tests the method resolveInputVariables

@@ -19,13 +19,9 @@ class RunTestScript_TestCase( unittest.TestCase ):
     ''' 
     
     mock_os = mock.Mock()
-    mock_os.path.exists.return_value = False    
-         
-#    mock_shell = mock.Mock()
-#    mock_shell.return_value = { 'OK' : False, 'Message' : 'Bo!' }     
+    mock_os.path.exists.return_value = False      
          
     moduleTested.os        = mock_os     
-#    moduleTested.shellCall = mock_shell
          
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.RunTestScript
@@ -48,6 +44,14 @@ class RunTestScript_Success( RunTestScript_TestCase ):
     
     module = self.testClass()
     self.assertEqual( 'RunTestScript', module.__class__.__name__ )
+  
+  def test_init( self ):
+    ''' test the init method
+    '''
+    
+    module = self.testClass()
+    self.assertEqual( 'sam-run-test-script.log', module.logFile )
+    self.assertEqual( 'CE-lhcb-test-script', module.testName )
     
   def test_checkScript( self ):
     ''' tests the method _checkScript

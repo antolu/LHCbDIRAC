@@ -39,6 +39,13 @@ class LockSharedArea_Success( LockSharedArea_TestCase ):
     
     module = self.testClass()
     self.assertEqual( 'LockSharedArea', module.__class__.__name__ )
+    
+  def test_init( self ):
+    
+    module = self.testClass()  
+    self.assertEquals( 'sam-lock.log', module.logFile )
+    self.assertEquals( 'CE-lhcb-lock', module.testName )
+    self.assertEquals( 'DIRAC-SAM-Test-Lock', module.lockFile )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
