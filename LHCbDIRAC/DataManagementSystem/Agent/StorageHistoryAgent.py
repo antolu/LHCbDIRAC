@@ -723,7 +723,9 @@ class StorageHistoryAgent( AgentModule ):
        97000000 : 'BEAMGAS',
        97000001 : 'BEAMGAS',
        96000000 : 'NOBIAS',
-       96000001 : 'NOBIAS'
+       96000001 : 'NOBIAS',
+       98000000 : 'HLTONE',
+       98000001 : 'HLTONE'
     }
 
     now = Time.dateTime()
@@ -873,7 +875,12 @@ class StorageHistoryAgent( AgentModule ):
           continue
         self.runsInLFC[ prodID ][ 'InBkk' ] = True
         fType = 'RAW'
-        streamInLFC = mapBkk2LFC[ dict3[ 'EventTypeId' ] ]
+        try:
+          streamInLFC = mapBkk2LFC[ dict3[ 'EventTypeId' ] ]
+        except KeyError:
+          self.log.warn("This event type is not mapped to any LFC directory: %s " % dict3[ 'EventTypeId' ] )
+          continue
+
         if streamInLFC not in myDirs[ prodID ].keys():
           self.log.warn("The stream %s is not in the storage dictionary for run %s " %(dict3[ 'EventTypeId' ], prodID))
           continue
