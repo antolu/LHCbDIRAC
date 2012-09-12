@@ -99,7 +99,6 @@ class DiracSAM( Dirac ):
       self.log.verbose( 'Flag to remove lock on shared area is %s' % ( removeLock ) )
       job.setSharedAreaLock( forceDeletion = removeLock, enableFlag = enable )
       job.checkSystemConfiguration( enableFlag = enable )
-      job.checkSiteQueues( enableFlag = enable )
       self.log.verbose( 'Flag to force deletion of shared area is %s' % ( deleteSharedArea ) )
 #      if not enable and softwareEnable:
 #        self.log.verbose('Software distribution flag cannot be True if enableFlag is disabled')
