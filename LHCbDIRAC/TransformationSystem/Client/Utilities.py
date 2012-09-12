@@ -730,7 +730,7 @@ class PluginUtilities:
 #=================================================================
 
 def getRemovalPlugins():
-  return ( "DestroyDataset", "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed' )
+  return ( "DestroyDataset", "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed', 'DestroyDatasetWhenProcessed' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset",
            "RAWShares", 'FakeReplication', 'ReplicateToLocalSE', 'Healing' )

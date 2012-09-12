@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript, getRemovalPlugins, getReplicationPlugins
   import time
 
   pluginScript = PluginScript()
@@ -69,14 +69,14 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
 
   transType = None
-  if plugin in pluginScript.getRemovalPlugins():
+  if plugin in getRemovalPlugins():
     transType = "Removal"
-  elif plugin in pluginScript.getReplicationPlugins():
+  elif plugin in getReplicationPlugins():
     transType = "Replication"
   else:
     print "This script can only create Removal or Replication plugins"
-    print "Replication :", str( replicationPlugins )
-    print "Removal     :", str( removalPlugins )
+    print "Replication :", str( getReplicationPlugins() )
+    print "Removal     :", str( getRemovalPlugins() )
     print "If needed, ask for adding %s to the known list of plugins" % plugin
     DIRAC.exit( 2 )
 
@@ -84,9 +84,9 @@ if __name__ == "__main__":
   transformation = Transformation()
 
   visible = True
-  if plugin == "DestroyDataset" or prods:
+  if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
     visible = False
-
+    
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery( visible=visible )
     transBKQuery = bkQuery.getQueryDict()
@@ -138,6 +138,11 @@ if __name__ == "__main__":
   if transType == "Removal":
     if plugin == "DestroyDataset":
       transBody = "removal;removeFile"
+    elif plugin == "DestroyDatasetWhenProcessed":
+      plugin = "DeleteReplicasWhenProcessed"
+      transBody = "removal;removeFile"
+      # Set the polling period to 0 if not defined
+      pluginParams.setdefault( 'Period', 0 )
     else:
       transBody = "removal;replicaRemoval"
     transformation.setBody( transBody )
