@@ -17,7 +17,14 @@ class LockSharedArea_TestCase( unittest.TestCase ):
     '''
     Setup
     '''
-         
+       
+    mock_ops = mock.Mock()
+    mock_ops2 = mock.Mock()
+    mock_ops2.getValue.return_value = 10
+    mock_ops.return_value = mock_ops2
+       
+    moduleTested.Operations = mock_ops   
+                
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.LockSharedArea
 
@@ -46,6 +53,10 @@ class LockSharedArea_Success( LockSharedArea_TestCase ):
     self.assertEquals( 'sam-lock.log', module.logFile )
     self.assertEquals( 'CE-lhcb-lock', module.testName )
     self.assertEquals( 'DIRAC-SAM-Test-Lock', module.lockFile )
+    self.assertEquals( False, module.forceLockRemoval )
+    self.assertEquals( False, module.safeMode )
+  
+    
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -52,6 +52,7 @@ class RunTestScript_Success( RunTestScript_TestCase ):
     module = self.testClass()
     self.assertEqual( 'sam-run-test-script.log', module.logFile )
     self.assertEqual( 'CE-lhcb-test-script', module.testName )
+    self.assertEqual( '', module.scriptName )
     
   def test_checkScript( self ):
     ''' tests the method _checkScript

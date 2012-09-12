@@ -61,8 +61,16 @@ class ModuleBaseSAM_Success( ModuleBaseSAM_TestCase ):
     
     module = self.testClass()
     self.assertEquals( '123', module.jobID )
+    self.assertEquals( True, module.enable )
+    self.assertEquals( {}, module.runInfo )
     self.assertEquals( None, module.logFile )
     self.assertEquals( None, module.testName )
+    self.assertEquals( None, module.jobReport )
+    
+    self.assertEquals( {}, module.stepStatus )
+    self.assertEquals( {}, module.step_commons )
+    self.assertEquals( {}, module.workflowStatus )
+    self.assertEquals( {}, module.workflow_commons )
         
   def test_resolveInputVariables( self ):
     ''' tests the method resolveInputVariables
