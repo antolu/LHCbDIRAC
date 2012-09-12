@@ -92,6 +92,8 @@ if __name__ == "__main__":
       lfns.remove( lfn )
 
   if lfns:
+    bkQueries = []
+    directories = []
     checkLFC2BK( lfns, fixIt )
 
   for dir in directories:
