@@ -39,29 +39,7 @@ class Configurations_TestCase( unittest.TestCase ):
     '''
     TearDown
     '''
-    del self.configurations  
-
-################################################################################  
-
-class Configurations_Success( Configurations_TestCase ):
-
-  def test_getPolicyParameters( self ):
-    ''' test we can execute function getPolicyParameters
-    '''
-    
-    global dummyResults
-    
-    dummyResults[ 'dCS' ] = None
-    res = self.configurations.getPolicyParameters()
-    self.assertEquals( res, None )
-    
-    dummyResults[ 'dCS' ] = [ 1,2 ]
-    res = self.configurations.getPolicyParameters()
-    self.assertEquals( res, [ 1, 2 ] )
-        
-    dummyResults[ 'dCS' ] = 'HastaLaVistaBaby'
-    res = self.configurations.getPolicyParameters()
-    self.assertEquals( res, 'HastaLaVistaBaby' )    
+    del self.configurations
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
