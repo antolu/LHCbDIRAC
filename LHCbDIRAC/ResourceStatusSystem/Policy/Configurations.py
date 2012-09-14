@@ -6,6 +6,7 @@
 '''
 
 #from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
+from DIRAC.ResourceStatusSystem.Policy.Configurations import getPolicyParameters, Policies
 
 __RCSID__ = '$Id$'
 
@@ -60,7 +61,7 @@ POLICIESMETA_LHCb = {
     }                                    
 }
 
-Policies = {
+LHCbPolicies = {
                   
   'DTScheduled' :
     { 
@@ -463,6 +464,8 @@ Policies = {
 
 #Update DIRAC policies with LHCbDIRAC policies
 #POLICIESMETA.update( POLICIESMETA_LHCb )
+
+Policies.update( LHCbPolicies )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
