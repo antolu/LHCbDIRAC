@@ -38,7 +38,8 @@ class ShiftDBAgent( AgentModule ):
    
     self.user         = 'lbdirac'
     self.lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
-    self.wsdl         = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService?WSDL'
+    # preprod wdsl: 'https://preprodcra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
+    self.wsdl         = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
     # Future me, forgive me for this
     self.pwfile = os.path.join( self.am_getWorkDirectory(), '.passwd' )
    
@@ -53,7 +54,6 @@ class ShiftDBAgent( AgentModule ):
 
     # Moved down to avoid crash   
     from DIRAC.Interfaces.API.DiracAdmin import DiracAdmin
-    #self.notification = NotificationClient()
     self.diracAdmin   = DiracAdmin()
    
     return S_OK()
@@ -181,35 +181,26 @@ class ShiftDBAgent( AgentModule ):
       return S_ERROR( wError )  
 
     members = []
-    if wgroup.Members:
-      members = wgroup.Members[ 0 ]
-
-    if len( members ) > 1 :
-      self.log.error( 'The eGroup has more than one member, deleting ...' )  
-
-      for _i in range( len( members ) ):
-        self.log.error( 'Deleting member %s' % members[ 0 ].Email )
-        del members[ 0 ]
+    if wgroup.result.Members:
+      members = wgroup.result.Members[ 0 ]
      
-      self.__syncGroup( client, wgroup )  
-     
-    elif len( members ) == 0:
-      self.log.info( 'eGroup is empty, adding member')    
-
-    else :
+    if len( members ) == 0:
+      self.log.info( 'eGroup is empty' )
+          
+    elif len( members ) > 1:
+      self.log.info( 'More than one user in the eGroup' )
+      
+    else:
       if email is None:
-        self.log.info( 'Get email returned None, deleting previous ... %s' % members[ 0 ].Email )
-        del members[ 0 ]
-        return self.__syncGroup( client, wgroup )
-#        return S_OK()
+        self.log.warn( 'Get email returned None, deleting previous ... %s' % members[ 0 ].Email )
+        return self.__deleteMembers( client, wgroup )
       elif members[ 0 ].Email.strip() == email.strip():
         self.log.info( '%s has not changed as shifter, no changes needed' % email )      
-        return S_OK()
+        return S_OK()     
       else:
         self.log.info( '%s is not anymore shifter, deleting ...' % members[ 0 ].Email )
-        del members[ 0 ]
-        self.__syncGroup( client, wgroup )
 
+    # Adding a member means it will be the only one in the eGroup, as it is overwritten
     res = self.__addMember( email, client, wgroup )
     if not res[ 'OK' ]:
       self.log.error( res[ 'Message' ] )
@@ -219,6 +210,17 @@ class ShiftDBAgent( AgentModule ):
     self.newShifters[ role ] = eGroup
        
     return S_OK()
+  
+  def __deleteMembers( self, client, wgroup ):
+    '''
+    Creates a new MembersType type and pushes it
+    '''
+    
+    self.log.info( 'Creating a new MembersType type' )
+      
+    emptyMembers = client.factory.create( 'ns1:MembersType' )  
+      
+    return self.__syncGroupMembers( client, wgroup, emptyMembers )
    
   def __addMember( self, email, client, wgroup ):
     '''
@@ -227,25 +229,27 @@ class ShiftDBAgent( AgentModule ):
    
     self.log.info( 'Adding member %s to eGroup' % email )
    
-    newmember       = client.factory.create( 'ns0:MemberType' )
+    members         = client.factory.create( 'ns1:MembersType' )
+   
+    newmember       = client.factory.create( 'ns1:MemberType' )
     newmember.ID    = email
     newmember.Type  = "External"
     newmember.Email = email
 
-    if not wgroup.Members:
-      wgroup.Members = client.factory.create( 'ns0:MembersType' )  
-
-    wgroup.Members[ 0 ].append( newmember )
+    members.Member.append( newmember )
    
-    return self.__syncGroup( client, wgroup )
+    return self.__syncGroupMembers( client, wgroup, members )
 
-  def __syncGroup( self, client, wgroup ):
+  def __syncGroupMembers( self, client, wgroup, members ):
     '''
-    Synchronizes new group
+    Synchronizes new group members
     '''
+
+    wgroupName = wgroup.result.Name
 
     try:
-      client.service.synchronizeEgroup( self.user, self.passwd, wgroup )
+      # The last boolean flag is to overwrite
+      client.service.addEgroupMembers( self.user, self.passwd, wgroupName, members, True )
     except suds.WebFault, wError:
       return S_ERROR( wError )  
 
@@ -281,7 +285,9 @@ class ShiftDBAgent( AgentModule ):
       geocRole = self.roles[ 'Grid Expert' ]
       body = body % ( self.roleShifters[ prodRole ][0], self.roleShifters[ geocRole ][0] )
    
-    res = self.diracAdmin.sendMail( '%s@cern.ch' % eGroup, 'Shifter information', body )
+    # Hardcoded Joel's email to avoid dirac@mail.cern.ch be rejected by smtp server 
+    res = self.diracAdmin.sendMail( '%s@cern.ch' % eGroup, 'Shifter information', 
+                                    body, fromAddress = 'joel@mail.cern.ch' )
     return res    
  
 ################################################################################
