@@ -109,6 +109,7 @@ if __name__ == "__main__":
 
   gLogger.always( '' )
   repsDict = {}
+  repsMultDict = {}
   transDict = {}
   notFound = []
   bkToggle = []
@@ -127,7 +128,10 @@ if __name__ == "__main__":
         notFoundAtSE.append( lfn )
         continue
       # Set the file problematic in the LFC
-      repsDict[lfn] = {'SE': overlapSEs[0], 'Status':'-' if reset else 'P', 'PFN': reps[overlapSEs[0]]}
+      if len( overlapSEs ) == 1:
+        repsDict[lfn] = {'SE': overlapSEs[0], 'Status':'-' if reset else 'P', 'PFN': reps[overlapSEs[0]]}
+      else:
+        repsMultDict[lfn] = [{'SE': se, 'Status':'-' if reset else 'P', 'PFN': reps[se] } for se in overlapSEs]
       # Now see if the file is present in a transformation
       otherSEs = [se for se in reps if se not in targetSEs]
       if not otherSEs:
@@ -166,14 +170,26 @@ if __name__ == "__main__":
     for lfn in notFoundAtSE:
       gLogger.info( '\t%s' % lfn )
 
+  status = '-' if reset else 'P'
   if repsDict:
     res = rm.setCatalogReplicaStatus( repsDict ) if action else {'OK':True}
-    status = '-' if reset else 'P'
     if not res['OK']:
       gLogger.error( "\nError setting replica status to %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
     else:
       gLogger.always( "\nReplicas set (%s) in FC for %d files" % ( status, len( repsDict ) ) )
     for lfn in repsDict:
+      gLogger.info( '\t%s' % lfn )
+  if repsMultDict:
+    nbReps = 0
+    for lfn in repsMultDict:
+      for repDict in repsMultDict[lfn]:
+        res = rm.setCatalogReplicaStatus( {lfn:repDict} ) if action else {'OK':True}
+        if not res['OK']:
+          gLogger.error( "\nError setting replica status to %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
+        else:
+          nbReps += 1
+    gLogger.always( "\n%d replicas set (%s) in FC for %d files" % ( nbReps, status, len( repsMultDict ) ) )
+    for lfn in repsMultDict:
       gLogger.info( '\t%s' % lfn )
 
   if bkToggle:
@@ -213,8 +229,8 @@ if __name__ == "__main__":
     status = "Unused" if reset else "Problematic"
     gLogger.always( "\n%d files could not be set %s a they were not in an acceptable status:" % ( n, status ) )
     for status in sorted( transNotSet ):
-      gLogger.always( "\t%d files were in status %s" % ( len( transNotSet[status] ), status ) )
+      gLogger.verbose( "\t%d files were in status %s" % ( len( transNotSet[status] ), status ) )
       for lfn, transID in transNotSet[status]:
-        gLogger.always( '\t\t%s (%s)' % ( lfn, transID ) )
+        gLogger.verbose( '\t\t%s (%s)' % ( lfn, transID ) )
 
   gLogger.always( "Execution completed in %.2f seconds" % ( time.time() - startTime ) )
