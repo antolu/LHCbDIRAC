@@ -73,7 +73,11 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
 
-    self.stepOutputs, self.stepOutputTypes, self.histogram = self._determineOutputs()
+    if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+      self.log.debug( "Won't get any setp outputs (SAM or USER jobs)" )
+    else:
+      self.log.debug( "Getting the step outputs" )
+      self.stepOutputs, self.stepOutputTypes, self.histogram = self._determineOutputs()
 
   #############################################################################
 

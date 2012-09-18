@@ -414,7 +414,7 @@ class ProductionRequest( object ):
     if transformationFamily:
       prod.transformationFamily = transformationFamily
     if self.fractionToProcess:
-      prod.setParameter( 'FractionToProcess', 'string', str( self.fractionToProcess ), 'Fraction to process' )
+      prod.setParameter( 'FractionToProcess', 'string', str( self.fractionToProcess / 100 ), 'Fraction to process' )
     if self.minFilesToProcess:
       prod.setParameter( 'MinFilesToProcess', 'string', str( self.minFilesToProcess ), 'Min N of Files to process' )
 

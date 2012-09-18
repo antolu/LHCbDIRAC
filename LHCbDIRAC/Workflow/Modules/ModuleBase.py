@@ -389,7 +389,8 @@ class ModuleBase( object ):
       stepOutTypes = [outputType.lower()]
       stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
                       'outputDataType': outputType.lower(),
-                      'outputDataSE': self.step_commons['listoutput'][0]['outputDataSE']}]
+                      'outputDataSE': self.step_commons['listoutput'][0]['outputDataSE'],
+                      'outputBKType': outputType.upper()}]
 
 
     else:

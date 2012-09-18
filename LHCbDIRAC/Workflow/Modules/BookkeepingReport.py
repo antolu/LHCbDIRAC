@@ -460,7 +460,8 @@ class BookkeepingReport( ModuleBase ):
         if not guidResult[ 'OK' ]:
           self.log.error( 'Could not find GUID for %s with message' % ( output ), guidResult[ 'Message' ] )
         elif guidResult[ 'generated' ]:
-          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ', ', '.join( guidResult[ 'generated' ] ) )
+          self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ',
+                         ', '.join( guidResult[ 'generated' ] ) )
           guid = guidResult[ 'Value' ][ output ]
         else:
           guid = guidResult[ 'Value' ][ output ]
