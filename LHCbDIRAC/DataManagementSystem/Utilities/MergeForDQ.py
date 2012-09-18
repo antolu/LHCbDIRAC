@@ -272,31 +272,32 @@ def GetTargetFile( run , prodId, homeDir , addFlag ):
   return targetFile
 
 def _fromBKK( bkDict, run, bkClient ):
-    # ToDO: pick from the transformation parameters the percentage (if present)
-    # if not present: look in the CS if there is still something (warning: NOT precise at all)
+  """ WARNING: lacking precision in case this wasn't reconstructed completely (can't do anything about it!)
+  """
 
-#    rawBkDict = {}
-#    rawBkDict[ 'EventType' ] = bkDict[ 'EventTypeId' ]
-#    rawBkDict[ 'ConfigName' ] = 'LHCb'
-#    rawBkDict[ 'ConfigVersion' ] = bkDict[ 'ConfigVersion' ]
-#    rawBkDict[ 'StartRun' ] = run
-#    rawBkDict[ 'EndRun' ] = run
-#    rawBkDict[ 'FileType' ] = 'RAW'
-#    rawBkDict[ 'ProcessingPass' ] = 'Real Data'
-#    rawBkDict[ 'ReplicaFlag' ] = 'All'
-#
-#    gLogger.info( "=====VerifyReconstructionStatus=====" )
-#    gLogger.info( str( rawBkDict ) )
-#    gLogger.info( "====================================" )
-#
-#    reconstructedRAWFiles = bkClient.getFiles( rawBkDict )
-#    if not reconstructedRAWFiles['OK']:
-#      gLogger.error( "Cannot get RAW files for run %s" % str( run ) )
-#      gLogger.error( reconstructedRAWFiles[ 'Message' ] )
-#
-#    reconstructedRAWFiles = reconstructedRAWFiles['Value']
-    pass
+  rawBkDict = {}
+  rawBkDict[ 'EventType' ] = bkDict[ 'EventTypeId' ]
+  rawBkDict[ 'ConfigName' ] = 'LHCb'
+  rawBkDict[ 'ConfigVersion' ] = bkDict[ 'ConfigVersion' ]
+  rawBkDict[ 'StartRun' ] = run
+  rawBkDict[ 'EndRun' ] = run
+  rawBkDict[ 'FileType' ] = 'RAW'
+  rawBkDict[ 'ProcessingPass' ] = 'Real Data'
+  rawBkDict[ 'ReplicaFlag' ] = 'All'
 
+  gLogger.info( "=====VerifyReconstructionStatus=====" )
+  gLogger.info( str( rawBkDict ) )
+  gLogger.info( "====================================" )
+
+  reconstructedRAWFiles = bkClient.getFiles( rawBkDict )
+  if not reconstructedRAWFiles['OK']:
+    gLogger.error( "Cannot get RAW files for run %s" % str( run ) )
+    gLogger.error( reconstructedRAWFiles[ 'Message' ] )
+    return False
+
+  reconstructedRAWFiles = reconstructedRAWFiles['Value']
+
+  return reconstructedRAWFiles
 
 def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
   """ Try to get from the TransformationDB
@@ -310,7 +311,7 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
   transfForRun = tc.getTransformationRuns( {'RunNumber':run} )
   if not transfForRun['OK'] or not transfForRun['Records']:
     gLogger.warn( "Cannot get transformation that are processing run %s" % str( run ) )
-    return False
+    return False, 0
 
   prodIDs = [transf[0] for transf in transfForRun['Records']]
   transfIDs = []
@@ -323,7 +324,7 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
         transfIDs.append( prodID )
 
   if len( transfIDs ) != 1:
-    return False
+    return False, 0
   else:
     transfID = transfIDs[0]
 
@@ -332,9 +333,9 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
                                     'RunNumber':run} )
 
   if res['OK']:
-    return [raw['LFN'] for raw in res['Value']]
+    return [raw['LFN'] for raw in res['Value']], transfID
   else:
-    return False
+    return False, 0
 
 def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , specialMode ):
   """
@@ -344,20 +345,29 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   is generated for each one of them.
   """
 
+  tc = TransformationClient()
+
   retVal = {}
   retVal[ 'OK' ] = False
   retVal[ 'BRUNELHIST' ] = []
   retVal[ 'DAVINCIHIST' ] = []
 
-  reconstructedRAWFiles = _fromTransformationDB( bkDict, run, bkClient )
+  fraction = 1.0
+  reconstructedRAWFiles, transfID = _fromTransformationDB( bkDict, run, bkClient, tc )
   if not reconstructedRAWFiles:
     #if not present, try to re-calculate the fraction
-    reconstructedRAWFiles = _fromBKK( bkDict, run, bkClient )
+    if transfID:
+      reconstructedRAWFiles = _fromBKK( bkDict, run, bkClient )
+      res = tc.getTransformationParameters( transfID, [''] )
+      if not res['OK']:
+        gLogger.error( 'Problem getting from Transformation Parameters: %s' % res['Message'] )
+      else:
+        fraction = float( res['Value'] )
 
   if not reconstructedRAWFiles:
     return ( retVal, [] )
 
-  countRAW = len( reconstructedRAWFiles )
+  countRAW = int( len( reconstructedRAWFiles ) * fraction )
   countBrunel = len( runData[ 'BRUNELHIST' ] )
 
   count_b = 0
