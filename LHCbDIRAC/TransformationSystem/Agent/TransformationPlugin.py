@@ -305,7 +305,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runLfns = runFileDict[runID]
       distinctSEs = []
       for lfn in runLfns:
-        distinctSEs += [se for se in self.transReplicas[lfn].keys() if se not in distinctSEs and se in activeRAWSEs]
+        distinctSEs += [se for se in self.transReplicas.get( lfn, [] ).keys() if se not in distinctSEs and se in activeRAWSEs]
       if len( distinctSEs ) < 2:
         self.util.logInfo( "Not found two active candidate SEs for run %d, skipped" % runID )
         continue
