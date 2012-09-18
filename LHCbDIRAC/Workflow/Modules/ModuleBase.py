@@ -343,11 +343,15 @@ class ModuleBase( object ):
         if type( self.extraPackages ) != type( [] ):
           self.extraPackages = self.extraPackages.split( ';' )
 
+    stepInputData = []
     if self.step_commons.has_key( 'inputData' ):
       if self.step_commons['inputData']:
-        self.stepInputData = self._determineStepInputData( self.step_commons['inputData'],
-                                                           self.workflow_commons['gaudiSteps'],
-                                                           self.inputDataType )
+        stepInputData = self.step_commons['inputData']
+    elif self.InputData:
+      stepInputData = copy.deepcopy( self.InputData )
+    if stepInputData:
+      stepInputData = stepInputData.split( ';' )
+      self.stepInputData = [sid.strip( 'LFN:' ) for sid in stepInputData]
 
     if self.step_commons.has_key( 'optionsFormat' ):
       self.optionsFormat = self.step_commons['optionsFormat']
@@ -371,7 +375,7 @@ class ModuleBase( object ):
     """
 
     if self.jobType.lower() == 'merge':
-      res = self.bkClient.getFileMetadata( [lfn.strip( 'LFN:' ) for lfn in self.stepInputData] )
+      res = self.bkClient.getFileMetadata( self.stepInputData )
       if not res['OK']:
         return res
 
@@ -398,14 +402,16 @@ class ModuleBase( object ):
           if ft and ft not in stepOutTypes:
             stepOutTypes.append( ft.lower() )
 
-      for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST']:
-        try:
-          stepOutTypes.remove( hist )
-          stepOutTypes.remove( hist.lower() )
-        except ValueError:
-          continue
 
-    return stepOutputs, stepOutTypes
+    histogram = False
+    for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'hist', 'brunelhist', 'davincihist']:
+      try:
+        stepOutTypes.remove( hist )
+        histogram = True
+      except ValueError:
+        continue
+
+    return stepOutputs, stepOutTypes, histogram
 
   #############################################################################
 

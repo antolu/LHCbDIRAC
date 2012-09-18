@@ -42,6 +42,7 @@ class BookkeepingReport( ModuleBase ):
     self.firstStepInput = ''
     self.jobType = ''
     self.stepOutputs = []
+    self.histogram = False
 
     self.ldate = None
     self.ltime = None
@@ -105,7 +106,7 @@ class BookkeepingReport( ModuleBase ):
     super( BookkeepingReport, self )._resolveInputVariables()
     super( BookkeepingReport, self )._resolveInputStep()
 
-    self.stepOutputs, _sot = self._determineOutputs()
+    self.stepOutputs, _sot, _hist = self._determineOutputs()
 
     ## VARS FROM WORKFLOW_COMMONS ##
 

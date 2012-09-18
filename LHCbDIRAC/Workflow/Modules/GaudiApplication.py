@@ -54,6 +54,7 @@ class GaudiApplication( ModuleBase ):
     self.stepOutputsType = []
     self.optionsFormat = ''
     self.histoName = ''
+    self.histogram = False
     self.jobType = ''
     self.stdError = ''
     self.DDDBTag = ''
@@ -72,7 +73,7 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
 
-    self.stepOutputs, self.stepOutputsType = self._determineOutputs()
+    self.stepOutputs, self.stepOutputsType, self.histogram = self._determineOutputs()
 
   #############################################################################
 
@@ -182,11 +183,8 @@ class GaudiApplication( ModuleBase ):
 
         optionsDict['XMLFileCatalog'] = self.poolXMLCatName
 
-        if self.histoName:
-          if ( 'HIST' in self.stepOutputsType ) or\
-          ( 'BRUNELHIST' in self.stepOutputsType ) or\
-          ( 'DAVINCIHIST' in self.stepOutputsType ):
-            optionsDict['HistogramFile'] = self.histoName
+        if self.histogram:
+          optionsDict['HistogramFile'] = self.histoName
 
         if self.DDDBTag:
           if self.DDDBTag.lower() == 'online':
