@@ -41,23 +41,23 @@ if __name__ == "__main__":
     if switch[0] == 'NoAction':
       action = False
 
-  siteShortNames = { 'CERN':'LCG.CERN.ch', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de', 'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es', 'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr' }
   targetSEs = dmScript.getOption( 'SEs', [] )
   if not targetSEs:
-    site = dmScript.getOption( 'Sites', '' )
-    if type( site ) == type( [] ):
-      site = site[0]
-    if not site:
+    sites = dmScript.getOption( 'Sites', '' )
+    if type( sites ) != type( [] ):
+      sites = [sites]
+    if not sites:
       print "Site or SE switch is mandatory"
       Script.showHelp()
       DIRAC.exit( 1 )
-    site = siteShortNames.get( site.upper(), site )
     from DIRAC.Core.Utilities.SiteSEMapping                                import getSEsForSite
-    res = getSEsForSite( site )
-    if not res['OK']:
-      print "Can't get SEs associated to %s:" % site, res['Message']
-      DIRAC.exit( 1 )
-    targetSEs = [t for t in res['Value'] if not t.endswith( '-ARCHIVE' )]
+    targetSEs = []
+    for site in sites:
+      res = getSEsForSite( site )
+      if not res['OK']:
+        print "Can't get SEs associated to %s:" % site, res['Message']
+        DIRAC.exit( 1 )
+      targetSEs += res['Value']
   lfns = dmScript.getOption( 'LFNs', [] )
   lfns += Script.getPositionalArgs()
   file = dmScript.getOption( 'File', '' )
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         repsMultDict[lfn] = [{'SE': se, 'Status':'-' if reset else 'P', 'PFN': reps[se] } for se in overlapSEs]
       # Now see if the file is present in a transformation
       otherSEs = [se for se in reps if se not in targetSEs]
-      if not otherSEs:
+      if not otherSEs or reset:
         bkToggle.append( lfn )
 
   if bkToggle:
