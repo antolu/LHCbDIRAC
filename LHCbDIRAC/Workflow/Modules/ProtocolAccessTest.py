@@ -30,7 +30,7 @@ class ProtocolAccessTest( ModuleBase ):
     super( ProtocolAccessTest, self ).__init__( self.log )
 
     self.version = __RCSID__
-    self.stepInputData = ''
+    self.stepInputData = []
     self.systemConfig = ''
     self.applicationLog = ''
     self.applicationVersion = ''
@@ -44,13 +44,6 @@ class ProtocolAccessTest( ModuleBase ):
     """
     super( ProtocolAccessTest, self )._resolveInputVariables()
     result = S_OK()
-
-    if not self.stepInputData and not self.stepInputData:
-      result = S_ERROR( 'No Input Data Defined' )
-
-    if type( self.stepInputData ) != type( [] ):
-      self.stepInputData = self.stepInputData.split( ';' )
-    self.stepInputData = [x.replace( 'LFN:', '' ) for x in self.stepInputData]
 
     if not self.applicationLog:
       if self.step_commons.has_key( 'STEP_NUMBER' ):

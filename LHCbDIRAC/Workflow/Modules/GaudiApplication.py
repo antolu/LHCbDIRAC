@@ -1,4 +1,4 @@
-""" Gaudi Application module - main module: creates the environment, 
+""" Gaudi Application module - main module: creates the environment,
     executes gaudirun with the right options
 """
 
@@ -41,7 +41,7 @@ class GaudiApplication( ModuleBase ):
     self.runTimeProjectName = ''
     self.runTimeProjectVersion = ''
     self.inputDataType = 'MDF'
-    self.stepInputData = '' # to be resolved
+    self.stepInputData = [] # to be resolved
     self.outputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name = ''
@@ -50,6 +50,7 @@ class GaudiApplication( ModuleBase ):
     self.extraOptionsLine = ''
     self.extraPackages = ''
     self.applicationType = ''
+    self.stepOutputs = []
     self.stepOutputsType = []
     self.optionsFormat = ''
     self.histoName = ''
@@ -71,21 +72,7 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
 
-    #Input data resolution has two cases. Either there is explicitly defined
-    #input data for the application step (a subset of total workflow input data reqt)
-    #*or* this is defined at the job level and the job wrapper has created a
-    #pool_xml_catalog.xml slice for all requested files.
-
-    if self.stepInputData:
-      self.log.info( 'Input data defined in workflow for this Gaudi Application step' )
-    elif self.InputData:
-      self.log.info( 'Input data defined taken from workflow/JDL parameter' )
-      self.stepInputData = copy.deepcopy( self.InputData )
-    if self.stepInputData:
-      if type( self.stepInputData ) != type( [] ):
-        self.stepInputData = self.stepInputData.split( ';' )
-      else:
-        self.log.verbose( 'Job has no input data requirement' )
+    self.stepOutputs, self.stepOutputsType = self._determineOutputs()
 
   #############################################################################
 
@@ -182,15 +169,14 @@ class GaudiApplication( ModuleBase ):
 
         if self.optionsFormat:
           optionsDict['OptionFormat'] = self.optionsFormat
+
         if self.stepInputData:
-          optionsDict['InputFiles'] = ['LFN:' + x.lstrip( 'LFN:' ) for x in self.stepInputData]
+          optionsDict['InputFiles'] = self.stepInputData
 
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
 
-        stepOutTypes = self._determineOutputFileType()
-
-        optionsDict['OutputFileTypes'] = stepOutTypes
+        optionsDict['OutputFileTypes'] = self.stepOutTypes
 
         optionsDict['XMLSummaryFile'] = self.XMLSummary
 
@@ -350,7 +336,7 @@ class GaudiApplication( ModuleBase ):
   #############################################################################
 
   def _manageGaudiAppOutput( self ):
-    """ Calls self._findOuputs to find what's produced, 
+    """ Calls self._findOuputs to find what's produced,
         then creates the LFNs
     """
 
@@ -429,42 +415,10 @@ class GaudiApplication( ModuleBase ):
 
   #############################################################################
 
-  def _determineOutputFileType( self ):
-    """ Determines the correct output file type.
-        For merging jobs the output has to be the same as the input.
-        For the others, we use what is in the step definition, removing 'HIST' when present
-    """
-    if self.jobType.lower() == 'merge':
-      res = self.bkClient.getFileMetadata( [lfn.strip( 'LFN:' ) for lfn in self.stepInputData] )
-      if not res['OK']:
-        return res
-      outputTypes = []
-      for mdDict in res['Value'].values():
-        if mdDict['FileType'] not in outputTypes:
-          outputTypes.append( mdDict['FileType'] )
-      if len( outputTypes ) != 1:
-        raise ValueError, "Not all input files have the same type"
-      outputType = outputTypes[0].upper()
-      if outputType not in self.stepOutputsType:
-        raise RuntimeError, "Could not find the output type desired"
-      stepOutTypes = [outputType]
-    else:
-      stepOutTypes = copy.deepcopy( self.stepOutputsType )
-      for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST']:
-        try:
-          stepOutTypes.remove( hist )
-        except ValueError:
-          continue
-
-
-    return stepOutTypes
-
-  #############################################################################
-
   def redirectLogOutput( self, fd, message ):
     """ Callback function for the Subprocess.shellcall
         Manages log files
-    
+
         fd is stdin/stderr
         message is every line (?)
     """

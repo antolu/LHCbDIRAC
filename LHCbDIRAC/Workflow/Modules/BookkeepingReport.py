@@ -36,7 +36,7 @@ class BookkeepingReport( ModuleBase ):
     self.simDescription = 'NoSimConditions'
     self.eventType = ''
     self.poolXMLCatName = ''
-    self.stepInputData = ''
+    self.stepInputData = []
     self.applicationName = ''
     self.applicationLog = ''
     self.firstStepInput = ''
@@ -104,6 +104,8 @@ class BookkeepingReport( ModuleBase ):
 
     super( BookkeepingReport, self )._resolveInputVariables()
     super( BookkeepingReport, self )._resolveInputStep()
+
+    self.stepOutputs, _sot = self._determineOutputs()
 
     ## VARS FROM WORKFLOW_COMMONS ##
 
@@ -353,7 +355,7 @@ class BookkeepingReport( ModuleBase ):
             jobNode = addChildNode( jobNode, "InputFile", 0, bkLFN )
             intermediateInputs = True
         if not intermediateInputs:
-          jobNode = addChildNode( jobNode, "InputFile", 0, inputname.replace( 'LFN:', '' ) )
+          jobNode = addChildNode( jobNode, "InputFile", 0, inputname )
 
     return jobNode
 

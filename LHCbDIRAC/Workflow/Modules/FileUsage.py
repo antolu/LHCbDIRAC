@@ -19,12 +19,6 @@ class FileUsage( ModuleBase ):
     self.log = gLogger.getSubLogger( "FileUsage" )
     super( FileUsage, self ).__init__( self.log )
     self.version = __RCSID__
-    #Resolved to be the input data of the current step
-    #self.stepInputData = []
-    #Dict of input data for the job and status
-    #self.jobInputData = {}
-    #Always allow any files specified by users
-#    self.dirDict = {}
     self.dataUsageClient = DataUsageClient()
 
   #############################################################################
@@ -111,7 +105,7 @@ class FileUsage( ModuleBase ):
       if currentStep == totalSteps:
         self.lastStep = True
       else:
-        self.log.verbose( 'Current step = %s, total steps of workflow = %s, \ 
+        self.log.verbose( 'Current step = %s, total steps of workflow = %s, \
         FileUsage will enable itself only at the last workflow step.' % ( currentStep, totalSteps ) )
 
       if not self.lastStep:
@@ -149,7 +143,7 @@ class FileUsage( ModuleBase ):
 
   def _reportFileUsage( self, dirDict ):
     """Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
-    example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1, 
+    example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1,
     '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
     """
     self.log.verbose( 'FileUsage._reportFileUsage' )

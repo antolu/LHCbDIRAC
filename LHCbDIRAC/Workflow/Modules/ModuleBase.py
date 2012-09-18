@@ -349,15 +349,6 @@ class ModuleBase( object ):
                                                            self.workflow_commons['gaudiSteps'],
                                                            self.inputDataType )
 
-    if self.step_commons.has_key( 'listoutput' ):
-      self.stepOutputs = self.step_commons['listoutput']
-      stepOutputsType = [x['outputDataType'] for x in self.stepOutputs]
-      self.stepOutputsType = []
-      for fts in stepOutputsType:
-        for ft in fts.split( ';' ):
-          if ft and ft not in self.stepOutputsType:
-            self.stepOutputsType.append( ft.upper() )
-
     if self.step_commons.has_key( 'optionsFormat' ):
       self.optionsFormat = self.step_commons['optionsFormat']
 
@@ -370,6 +361,51 @@ class ModuleBase( object ):
 
     if self.step_commons.has_key( 'DQTag' ):
       self.DQTag = self.step_commons['DQTag']
+
+  #############################################################################
+
+  def _determineOutputs( self ):
+    """ Determines the correct outputs.
+        For merging jobs the output has to be the same as the input.
+        For the others, we use what is in the step definition, removing 'HIST' when present
+    """
+
+    if self.jobType.lower() == 'merge':
+      res = self.bkClient.getFileMetadata( [lfn.strip( 'LFN:' ) for lfn in self.stepInputData] )
+      if not res['OK']:
+        return res
+
+      outputTypes = []
+      for mdDict in res['Value'].values():
+        if mdDict['FileType'] not in outputTypes:
+          outputTypes.append( mdDict['FileType'] )
+      if len( outputTypes ) != 1:
+        raise ValueError, "Not all input files have the same type"
+      outputType = outputTypes[0].lower()
+      stepOutTypes = [outputType.lower()]
+      stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
+                      'outputDataType': outputType.lower(),
+                      'outputDataSE': self.step_commons['listoutput'][0]['outputDataSE']}]
+
+
+    else:
+      stepOutputs = self.step_commons['listoutput']
+
+      stepOutputsT = [x['outputDataType'] for x in stepOutputs]
+      stepOutTypes = []
+      for fts in stepOutputsT:
+        for ft in fts.split( ';' ):
+          if ft and ft not in stepOutTypes:
+            stepOutTypes.append( ft.lower() )
+
+      for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST']:
+        try:
+          stepOutTypes.remove( hist )
+          stepOutTypes.remove( hist.lower() )
+        except ValueError:
+          continue
+
+    return stepOutputs, stepOutTypes
 
   #############################################################################
 

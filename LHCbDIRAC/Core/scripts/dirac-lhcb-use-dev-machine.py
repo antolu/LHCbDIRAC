@@ -45,6 +45,7 @@ result = client.updateSoftware( 'DEV' )
 if not result['OK']:
   gLogger.error( "Failed to update the software" )
   print result['Message']
+  DIRAC.exit( 2 )
 else:
   print "Software successfully updated."
   print "Now, we'll restart the services to use the new software version."

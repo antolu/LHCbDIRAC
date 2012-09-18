@@ -34,13 +34,6 @@ class FailoverRequest( ModuleBase ):
     super( FailoverRequest, self )._resolveInputVariables()
     super( FailoverRequest, self )._resolveInputStep()
 
-    if self.stepInputData:
-      if type( self.stepInputData ) != type( [] ):
-        self.stepInputData = self.stepInputData.split( ';' )
-      self.stepInputData = [x.replace( 'LFN:', '' ) for x in self.stepInputData]
-    else:
-      self.stepInputData = []
-
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,

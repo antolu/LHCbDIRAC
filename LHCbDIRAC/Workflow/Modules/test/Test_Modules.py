@@ -111,73 +111,73 @@ class ModulesTestCase( unittest.TestCase ):
     self.workflowStatus = {'OK':True}
     self.stepStatus = {'OK':True}
     self.wf_commons = [
-                       {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id, 'eventType': '123456789',
+                       {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id, 'eventType': '123456789', 'jobType': 'merge',
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
                         'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'] },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
                         'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': '', 'gaudiSteps': ['someApp_1'] },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'gaudiSteps': ['someApp_1'] },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'' ,
                         'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
-                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
+                        'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
@@ -213,6 +213,7 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
     self.mb = ModuleBase()
+    self.mb.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
     self.alf = AnalyseLogFile()
@@ -237,20 +238,25 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
     self.el = ErrorLogging()
+    self.el.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
     self.fr = FailoverRequest()
+    self.fr.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.MergeMDF import MergeMDF
     self.mm = MergeMDF()
+    self.mm.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.ProtocolAccessTest import ProtocolAccessTest
     self.pat = ProtocolAccessTest()
     self.pat.rm = self.rm_mock
+    self.pat.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
     self.rid = RemoveInputData()
     self.rid.rm = self.rm_mock
+    self.rid.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
     self.sb = SendBookkeeping()
@@ -263,18 +269,23 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
     self.ujf = UserJobFinalization()
+    self.ujf.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
     self.sa = StepAccounting()
+    self.sa.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
     self.ulf = UploadLogFile()
+    self.ulf.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
     self.fu = FileUsage()
+    self.fu.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
     self.cdf = CreateDataFile()
+    self.cdf.bkClient = self.bkc_mock
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst',
@@ -456,6 +467,34 @@ class ModuleBaseSuccess( ModulesTestCase ):
     second = ['123.raw']
     self.assertEqual( first, second )
 
+  def test__determineOutputs( self ):
+    self.mb.stepInputData = ['foo', 'bar']
+
+    self.mb.jobType = 'merge'
+    self.mb.step_id = '00000123_00000456_1'
+    for step_commons in self.step_commons:
+      self.mb.step_commons = step_commons
+      self.mb.step_commons['listoutput'] = [{'outputDataType': 'bhadron.dst;sdst',
+                                              'outputDataSE': 'Tier1_M-DST',
+                                              'outputDataName': '00000123_00000456_1.bhadron.dst;sdst'}]
+      outF, outft = self.mb._determineOutputs()
+      self.assertEqual( outF, [{'outputDataType': 'sdst',
+                                'outputDataName': '00000123_00000456_1.sdst',
+                                'outputDataSE': 'Tier1_M-DST'}] )
+      self.assertEqual( outft, ['sdst'] )
+
+    self.mb.jobType = 'reco'
+    for step_commons in self.step_commons:
+      self.mb.step_commons = step_commons
+      self.mb.step_commons['listoutput'] = [{'outputDataType': 'sdst',
+                                             'outputDataSE': 'Tier1_M-DST',
+                                             'outputDataName': '00000123_00000456_1.sdst'}]
+      outF, outft = self.mb._determineOutputs()
+      self.assertEqual( outF, [{'outputDataType': 'sdst',
+                                'outputDataName': '00000123_00000456_1.sdst',
+                                'outputDataSE': 'Tier1_M-DST'}] )
+      self.assertEqual( outft, ['sdst'] )
+
 
 #############################################################################
 # GaudiApplication.py
@@ -475,16 +514,6 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
 #                                        Mock() )['OK'] )
-
-  def test__determineOutputFileType( self ):
-    self.ga.stepInputData = ['foo', 'bar']
-    self.ga.stepOutputsType = ['SDST', 'HIST']
-    self.ga.jobType = 'merge'
-    outft = self.ga._determineOutputFileType()
-    self.assertEqual( outft, ['SDST'] )
-    self.ga.jobType = 'reco'
-    outft = self.ga._determineOutputFileType()
-    self.assertEqual( outft, ['SDST'] )
 
   def test__findOutputs( self ):
     open( 'aaa.Bhadron.dst', 'w' ).close()
@@ -571,6 +600,10 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
 
   def test_execute( self ):
 
+    self.axlf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
+    self.axlf.jobType = 'merge'
+
+
     logAnalyser = Mock()
 
     logAnalyser.return_value = {'OK':True, 'Value':''}
@@ -586,6 +619,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
 
 
     #logAnalyser gives errors
+    self.axlf.jobType = 'reco'
+
     logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -604,8 +639,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
               {'i1':'OK', 'i2':'Unused'},
               {'i1':'Unused', 'i2':'Unused'}
               ]
-    for input in inputs:
-      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.fr_mock )
+    for inp in inputs:
+      self.axlf._updateFileStatus( inp, 'Processed', self.prod_id, self.fr_mock )
 
 #############################################################################
 # AnalyseLogFile.py
@@ -617,10 +652,11 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
 
   def test_execute( self ):
 
+    self.alf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
+    self.alf.jobType = 'merge'
+
     logAnalyser = Mock()
-
     logAnalyser.return_value = {'OK':True, 'Value':''}
-
 #    no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
@@ -630,6 +666,8 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                             self.step_number, self.step_id,
                                             self.nc_mock, logAnalyser )['OK'] )
 
+
+    self.alf.jobType = 'reco'
 
     #logAnalyser gives errors
     logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
@@ -661,8 +699,8 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
               {'i1':'OK', 'i2':'Unused'},
               {'i1':'Unused', 'i2':'Unused'}
               ]
-    for input in inputs:
-      self.axlf._updateFileStatus( input, 'Processed', self.prod_id, self.fr_mock )
+    for inp in inputs:
+      self.axlf._updateFileStatus( inp, 'Processed', self.prod_id, self.fr_mock )
 
 
 #############################################################################
@@ -734,6 +772,9 @@ class FailoverRequestSuccess( ModulesTestCase ):
   #################################################
 
   def test_execute( self ):
+
+    self.fr.jobType = 'merge'
+    self.fr.stepInputData = ['foo', 'bar']
 
     #no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -861,6 +902,9 @@ class StepAccountingSuccess( ModulesTestCase ):
 
   def test_execute( self ):
 
+    self.sa.jobType = 'merge'
+    self.sa.stepInputData = ['foo', 'bar']
+
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.sa.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
@@ -880,7 +924,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
   def test_execute( self ):
 
     #no errors, no input data
-#    for wf_commons in copy.deepcopy( self.wf_commons ):
+#    for wf_commons in copy.deepcopy( self.wf_commons ): 
 #      for step_commons in self.step_commons:
 #        self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
 #                                           self.workflowStatus, self.stepStatus,
@@ -1075,6 +1119,9 @@ class CreateDataFileSuccess( ModulesTestCase ):
   #################################################
 
   def test_execute( self ):
+
+    self.cdf.jobType = 'merge'
+    self.cdf.stepInputData = ['foo', 'bar']
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
