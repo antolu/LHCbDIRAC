@@ -51,7 +51,7 @@ class GaudiApplication( ModuleBase ):
     self.extraPackages = ''
     self.applicationType = ''
     self.stepOutputs = []
-    self.stepOutputsType = []
+    self.stepOutputTypes = []
     self.optionsFormat = ''
     self.histoName = ''
     self.histogram = False
@@ -73,7 +73,7 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
 
-    self.stepOutputs, self.stepOutputsType, self.histogram = self._determineOutputs()
+    self.stepOutputs, self.stepOutputTypes, self.histogram = self._determineOutputs()
 
   #############################################################################
 
@@ -177,7 +177,7 @@ class GaudiApplication( ModuleBase ):
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
 
-        optionsDict['OutputFileTypes'] = self.stepOutTypes
+        optionsDict['OutputFileTypes'] = self.stepOutputTypes
 
         optionsDict['XMLSummaryFile'] = self.XMLSummary
 

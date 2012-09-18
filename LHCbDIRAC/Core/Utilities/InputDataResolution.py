@@ -69,6 +69,8 @@ class InputDataResolution:
     resolvedData = result['Successful']
 
     resolvedData = self._addPfnType( resolvedData )
+    if not resolvedData['OK']:
+      return resolvedData
 
     #TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
     #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.

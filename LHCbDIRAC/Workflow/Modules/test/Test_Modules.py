@@ -477,11 +477,12 @@ class ModuleBaseSuccess( ModulesTestCase ):
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'bhadron.dst;sdst',
                                               'outputDataSE': 'Tier1_M-DST',
                                               'outputDataName': '00000123_00000456_1.bhadron.dst;sdst'}]
-      outF, outft = self.mb._determineOutputs()
+      outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
                                 'outputDataSE': 'Tier1_M-DST'}] )
       self.assertEqual( outft, ['sdst'] )
+      self.assertFalse( histos )
 
     self.mb.jobType = 'reco'
     for step_commons in self.step_commons:
@@ -489,11 +490,12 @@ class ModuleBaseSuccess( ModulesTestCase ):
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'sdst',
                                              'outputDataSE': 'Tier1_M-DST',
                                              'outputDataName': '00000123_00000456_1.sdst'}]
-      outF, outft = self.mb._determineOutputs()
+      outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
                                 'outputDataSE': 'Tier1_M-DST'}] )
       self.assertEqual( outft, ['sdst'] )
+      self.assertFalse( histos )
 
 
 #############################################################################
