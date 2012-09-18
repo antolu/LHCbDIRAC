@@ -114,7 +114,7 @@ for id in idList:
     runStr = ', runs %s' % str( runs )
   else:
     runStr = ''
-  print "Input dataset for production %d%s: %d files (executed in %.3f s)" % ( id, runStr, len( lfns ), time.time() - startTime )
+  print "Input dataset from BK for production %d%s: %d files (executed in %.3f s)" % ( id, runStr, len( lfns ), time.time() - startTime )
   # Now get the transformation files
   selectDict = { 'TransformationID': id}
   if runList:
@@ -125,6 +125,15 @@ for id in idList:
     transFiles = {}
   else:
     transFiles = res['Value']
+  # Check if all files from BK are in the transformation table
+  transLFNs = [fileDict['LFN'] for fileDict in transFiles]
+  lfnsNotInTrans = [lfn for lfn in lfns if lfn not in transLFNs]
+  if lfnsNotInTrans:
+    print "Found %d files that are in the BK query and not in the transformation table" % len( lfnsNotInTrans )
+  lfnsNotInBK = [fileDict['LFN'] for fileDict in transFiles if fileDict['LFN'] not in lfns]
+  if lfnsNotInBK:
+    print "Found %d files that are in the transformation table but not in the BK, will be added to the list" % len( lfnsNotInBK )
+    lfns += lfnsNotInBK
   lfnsWithoutDescendants = []
   descendants = {}
   metadata = {}
