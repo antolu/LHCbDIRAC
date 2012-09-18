@@ -955,6 +955,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                       import BKQuery
 
     listSEs = self.util.getPluginParam( 'FromSEs', [] )
+    keepSEs = self.util.getPluginParam( 'KeepSEs', [] )
     processingPasses = self.util.getPluginParam( 'ProcessingPasses', [] )
     period = self.util.getPluginParam( 'Period', 6 )
     cacheLifeTime = self.util.getPluginParam( 'CacheLifeTime', 24 )
@@ -1034,6 +1035,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       newGroups = {}
       for replicaSEs, lfns in replicaGroups.items():
         replicaSE = replicaSEs.split( ',' )
+        if [se for se in replicaSE if se in keepSEs]:
+          self.util.logInfo( "%d files found in %s, not deleted... Delete them first from there" % ( len( lfns ), str( keepSEs ) ) )
+          continue
         targetSEs = [se for se in listSEs if se in replicaSE]
         if not targetSEs:
           self.util.logVerbose( "%s storage elements not in required list" % replicaSE )
