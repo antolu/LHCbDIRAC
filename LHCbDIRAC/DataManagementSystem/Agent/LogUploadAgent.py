@@ -131,12 +131,22 @@ class LogUploadAgent( AgentModule ):
           if res['OK']:
             self.log.info( "Successfully uploaded %s to %s for job %s." % ( lfn, targetSE, jobID ) )
             oRequest.setSubRequestStatus( ind, 'logupload', 'Done' )
+            oRequest.setSubRequestFileAttributeValue( ind, 'logupload', lfn, "Status", "Done" )
             gMonitor.addMark( "Successful", 1 )
             modified = True
             work_done = True
           else:
             gMonitor.addMark( "Failed", 1 )
             self.log.error( "Failed to upload log file: ", res['Message'] )
+            ## put error to subrequest 
+            oRequest.setSubRequestAttributeValue( ind, 'logupload', 'Error', res["Message"] )
+            ## source doesn't exist? 
+            if "source local file does not exist" in res["Message"]:
+              modified = True
+              work_done = True
+              oRequest.setSubRequestStatus( ind, 'logupload', 'Done' )
+              oRequest.setSubRequestFileAttributeValue( ind, 'logupload', lfn, "Status", "Failed" )
+              oRequest.setSubRequestFileAttributeValue( ind, 'logupload', lfn, "Error", res["Message"] )
         else:
           self.log.info( "Subrequest %s status is '%s', skipping." % ( ind, 
                                                                        subRequestAttributes['Status'] ) )
