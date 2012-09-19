@@ -3525,14 +3525,14 @@ and files.qualityid= dataquality.qualityid'
                'OutputFileTypes':[{'FileType':'RAW',
                                    'Visible':'Y'}]}
     condition = ''
-    if conddb == None:
+    if conddb == None or conddb == '':
       condition += " and CondDB is NULL "
       dataset['Step'].pop('CONDDB')
     else:
       condition += " and CondDB='%s' " % (conddb)
       dataset['Step']['CONDDB'] = conddb
 
-    if dddb == None:
+    if dddb == None or dddb == '':
       condition += " and DDDB is NULL "
       dataset['Step'].pop('DDDB')
     else:
