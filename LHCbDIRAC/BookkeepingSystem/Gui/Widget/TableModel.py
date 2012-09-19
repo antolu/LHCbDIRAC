@@ -5,7 +5,7 @@ Table model used most of the widget
 # $Id$
 ########################################################################
 
-from PyQt4.QtCore                import Qt, SIGNAL, QAbstractTableModel,QVariant
+from PyQt4.QtCore                import Qt, SIGNAL, QAbstractTableModel, QVariant
 
 import operator, datetime
 
@@ -36,12 +36,12 @@ class TableModel(QAbstractTableModel):
   def data(self, index, role):
     """retuns an element of the table"""
     if not index.isValid():
-        return QVariant()
+      return QVariant()
     elif role != Qt.DisplayRole:
-        return QVariant()
+      return QVariant()
 
     data = self.arraydata[index.row()][index.column()]
-    if type(data)== datetime.datetime:
+    if type(data) == datetime.datetime:
       return QVariant(str(data))
 
     return QVariant(data)
@@ -51,17 +51,17 @@ class TableModel(QAbstractTableModel):
   def headerData(self, col, orientation, role):
     """returns the header data"""
     if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-        return QVariant(self.headerdata[col])
+      return QVariant(self.headerdata[col])
     elif orientation == Qt.Vertical and role == Qt.DisplayRole:
-      return QVariant(col+1)
+      return QVariant(col + 1)
     return QVariant()
 
   #############################################################################
-  def sort(self, Ncol, order):
+  def sort(self, ncol, order):
     """Sort table by given column number.
     """
     self.emit(SIGNAL("layoutAboutToBeChanged()"))
-    self.arraydata = sorted(self.arraydata, key=operator.itemgetter(Ncol))
+    self.arraydata = sorted(self.arraydata, key=operator.itemgetter(ncol))
     if order == Qt.DescendingOrder:
-        self.arraydata.reverse()
+      self.arraydata.reverse()
     self.emit(SIGNAL("layoutChanged()"))

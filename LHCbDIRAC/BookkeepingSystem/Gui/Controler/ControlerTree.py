@@ -125,7 +125,7 @@ class ControlerTree(ControlerAbstract):
     self.getParent().messageFromChild(self, message)
 
   #############################################################################
-  def _on_item_expanded(self, parentItem):
+  def on_item_expanded(self, parentItem):
     """expand on node of the tree"""
     gLogger.debug('On item expanded', parentItem.getUserObject())
     node = parentItem.getUserObject()
@@ -288,7 +288,7 @@ class ControlerTree(ControlerAbstract):
       self._on_item_clicked(node)
 
   #############################################################################
-  def _on_itemDuble_clicked(self, parentItem):
+  def on_itemDuble_clicked(self, parentItem):
     """handles the action of the double click"""
     self._on_item_clicked(parentItem)
 

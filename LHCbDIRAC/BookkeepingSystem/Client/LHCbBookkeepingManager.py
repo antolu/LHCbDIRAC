@@ -24,8 +24,6 @@ INTERNAL_PATH_SEPARATOR = "/"
 #############################################################################
 class LHCbBookkeepingManager(BaseESManager):
   """creates the virtual file system"""
-  __bookkeepingFolderType = "LHCB_BKDB_Folder"
-  __bookkeepingFileType = "LHCB_BKDB_File"
 
   __bookkeepingFolderProperties = ['name',
                                 'fullpath',
@@ -73,7 +71,6 @@ class LHCbBookkeepingManager(BaseESManager):
                                     __bookkeepingParameters[2]:'prod', __bookkeepingParameters[3]:'run' }
 
   __bookkeepingQueryTypes = ['adv', 'std']
-  __bookkeepingPrefixseparator = "_"
 
   #############################################################################
   def __init__(self, rpcClinet=None):
@@ -1679,24 +1676,7 @@ class LHCbBookkeepingManager(BaseESManager):
         return fd
 
     # get lst of event types
-    evtTypes = {}
-
-    fileType = None
-    for i in files:
-      lfn = files[i]
-      filetype = int(lfn['EventTypeId'])
-      stat = 0
-      if lfn['EventStat'] != None:
-        stat = int(lfn['EventStat'])
-
-      if not evtTypes.has_key(filetype):
-        evtTypes[filetype] = [0, 0, 0.]
-      evtTypes[filetype][0] += 1
-      evtTypes[filetype][1] += stat
-      if files[i]['FileSize'] == None:
-        evtTypes[filetype][2] += 0
-      else:
-        evtTypes[filetype][2] += int(lfn['FileSize']) / 1000000000.
+    evtTypes = self.__createEventtypelist(files)
 
     pythonOpts = None
     if savedType != None:
@@ -1705,6 +1685,161 @@ class LHCbBookkeepingManager(BaseESManager):
       fd = open(optionsFile, 'w')
       ext = os.path.splitext(optionsFile)
       pythonOpts = ext == '.py'
+
+
+    string, comment = self.__addGaudiheader(pythonOpts, evtTypes)
+
+    string = self.__addDatasetcreationmetadata(string, dataset, comment)
+
+
+    filesandformats, rootFormat, lfn = self.__getFilesandFormats(savePfn, files)
+
+    if rootFormat:
+      string = self.__createRootformatstring(string, filesandformats)
+    else:
+      fileType = self.__getFileType(files)
+
+      string = self.__addEventselector(string, pythonOpts)
+
+      fileType = fileType.split()[0]
+
+      # Allow fileType to be of the form XfileType
+      try:
+        fileType = fileType.split(".")[1]
+      except AttributeError, ex:
+        gLogger.warn(str(self.__class__)+"writeJobOptions" + str(ex))
+
+      string = self.__generatePoolBody(string, files, fileType, savePfn)
+
+      string = self.__addEndcatalog(string, pythonOpts)
+
+    if catalog != None:
+      string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
+
+    if fd:
+      fd.write(string)
+      fd.close()
+    else:
+      return string
+
+  #############################################################################
+  @staticmethod
+  def __getFileType(files):
+    """it returns the file type. We assume we did not miss the file types.
+    """
+    allfiletypes = [i['FileType'] for i in files.values()]
+    result = allfiletypes.pop() if len(allfiletypes) > 0 else ''
+    return result
+
+  #############################################################################
+  def __addDatasetcreationmetadata(self, string, dataset, comment):
+    """it adds the metadata information about the dataset creation.
+    """
+    if dataset:
+      string += "\n\n%s Extra information about the data processing phases:\n" % (comment)
+      retVal = self.db_.getStepsMetadata(dataset)
+      if retVal['OK']:
+        for record in retVal['Value']['Records']:
+          string += "\n\n%s Processing Pass %s \n\n" % (comment, record)
+          for i in retVal['Value']['Records'][record]:
+            string += "%s %s : %s \n" % (comment, i[0], i[1])
+    return string
+
+  #############################################################################
+  @staticmethod
+  def __addEventselector(string, pythonOpts):
+    """It adds the first line of the catalog
+    """
+    # Now write the event selector option
+    if pythonOpts:
+      string += "\nfrom Gaudi.Configuration import * \n"
+      string += "\nEventSelector().Input   = [\n"
+    else:
+      string += "\nEventSelector.Input   = {\n"
+    return string
+
+  #############################################################################
+  @staticmethod
+  def __addEndcatalog(string, pythonOpts ):
+    """it adds the end of the catalog
+    """
+    if pythonOpts:
+      string += "]\n"
+    else:
+      string += "\n};\n"
+    return string
+
+  #############################################################################
+  @staticmethod
+  def __createRootformatstring(string, filesandformats):
+    """It generates the Root format option file.
+    """
+    string += "\nfrom Gaudi.Configuration import * "
+    string += "\nfrom GaudiConf import IOHelper"
+    ioCounter = 0
+    fileformat = None
+    for i in sorted(filesandformats.items()):
+      if ioCounter == 0:
+        fileformat = i[1]
+        string += "\nIOHelper('%s').inputFiles([" % (fileformat)
+        string += "'LFN:%s',\n" % (i[0])
+        ioCounter += 1
+      elif ioCounter > 0  and fileformat == i[1]:
+        string += "'LFN:%s',\n" % (i[0])
+      elif ioCounter > 0 and fileformat != i[1]:
+        fileformat = i[1]
+        string = string[:-2]
+        if ioCounter == 1 :
+          string += '\n], clear=True)\n'
+          ioCounter += 1
+        else:
+          string += '\n])\n'
+        string += "\nIOHelper('%s').inputFiles([" % (fileformat)
+        string += "'LFN:%s',\n" % (i[0])
+
+    string = string[:-2]
+    if ioCounter == 1 :
+      string += '\n], clear=True)\n'
+    else:
+      string += '\n])\n'
+    return string
+
+  #############################################################################
+  @staticmethod
+  def __generatePoolBody(string, files, fileType, savePfn):
+    """it adds the lfns to the pool catalog
+    """
+    mdfTypes = ["RAW", "MDF"]
+    etcTypes = ["SETC", "FETC", "ETC"]
+    keys = files.keys()
+    keys.sort()
+    first = True
+    for lfn in keys:
+      filename = files[lfn]
+      if not first:
+        string += ",\n"
+      first = False
+      if savePfn:
+        if fileType in mdfTypes:
+          string += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\""
+        elif fileType in etcTypes:
+          string += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\""
+        else:
+          string += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+      else:
+        if fileType in mdfTypes:
+          string += "\"   DATAFILE='LFN:" + filename['FileName'] + "' SVC='LHCb::MDFSelector'\""
+        elif fileType in etcTypes:
+          string += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + filename['FileName'] + "' TYP='POOL_ROOT'\""
+        else:
+          string += "\"   DATAFILE='LFN:" + filename['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
+    return string
+
+  #############################################################################
+  @staticmethod
+  def __addGaudiheader(pythonOpts, evtTypes):
+    """it creates the header of the job option
+    """
 
     string = ''
     if pythonOpts:
@@ -1721,18 +1856,14 @@ class LHCbBookkeepingManager(BaseESManager):
                                                                             evtTypes[filetype][0],
                                                                             evtTypes[filetype][1],
                                                                             evtTypes[filetype][2])
+    return string, comment
 
-    if dataset:
-      string += "\n\n%s Extra information about the data processing phases:\n" % (comment)
-      retVal = self.db_.getStepsMetadata(dataset)
-      if retVal['OK']:
-        for record in retVal['Value']['Records']:
-          string += "\n\n%s Processing Pass %s \n\n" % (comment, record)
-          for i in retVal['Value']['Records'][record]:
-            string += "%s %s : %s \n" % (comment, i[0], i[1])
-
-    rootFormat = True
+  #############################################################################
+  def __getFilesandFormats(self, savePfn, files):
+    """It returns the format of the lfns and false if the file format is not ROOT type.
+    """
     filesandformats = {}
+    rootFormat = True
     if savePfn: # we have to decide the file type version.
       #This variable contains the file type version, if it is empty I check in the bkk
       lfn = savePfn.keys()[0]
@@ -1749,95 +1880,31 @@ class LHCbBookkeepingManager(BaseESManager):
         if 'ROOT_All' in filesandformats.values():
           rootFormat = False
       else:
-        return S_ERROR(retVal)
+        return retVal
+    return filesandformats, rootFormat, lfn
 
-    if rootFormat:
-      string += "\nfrom Gaudi.Configuration import * "
-      string += "\nfrom GaudiConf import IOHelper"
-      ioCounter = 0
-      fileformat = None
-      for i in sorted(filesandformats.items()):
-        if ioCounter == 0:
-          fileformat = i[1]
-          string += "\nIOHelper('%s').inputFiles([" % (fileformat)
-          string += "'LFN:%s',\n" % (i[0])
-          ioCounter += 1
-        elif ioCounter > 0  and fileformat == i[1]:
-          string += "'LFN:%s',\n" % (i[0])
-        elif ioCounter > 0 and fileformat != i[1]:
-          fileformat = i[1]
-          string = string[:-2]
-          if ioCounter == 1 :
-            string += '\n], clear=True)\n'
-            ioCounter += 1
-          else:
-            string += '\n])\n'
-          string += "\nIOHelper('%s').inputFiles([" % (fileformat)
-          string += "'LFN:%s',\n" % (i[0])
+  #############################################################################
+  @staticmethod
+  def __createEventtypelist(files):
+    """It creates a dictionary which contains the event types and the size of the data set.
+    """
+    evtTypes = {}
+    for i in files:
+      lfn = files[i]
+      filetype = int(lfn['EventTypeId'])
+      stat = 0
+      if lfn['EventStat'] != None:
+        stat = int(lfn['EventStat'])
 
-      string = string[:-2]
-      if ioCounter == 1 :
-        string += '\n], clear=True)\n'
+      if not evtTypes.has_key(filetype):
+        evtTypes[filetype] = [0, 0, 0.]
+      evtTypes[filetype][0] += 1
+      evtTypes[filetype][1] += stat
+      if files[i]['FileSize'] == None:
+        evtTypes[filetype][2] += 0
       else:
-        string += '\n])\n'
-    else:
-      if not fileType:
-        fileType = lfn['FileType']
-        if lfn['FileType'] != fileType:
-          print "All files don't have the same type, impossible to write jobOptions"
-          return 1
-    # Now write the event selector option
-      if pythonOpts:
-        string += "\nfrom Gaudi.Configuration import * \n"
-        string += "\nEventSelector().Input   = [\n"
-      else:
-        string += "\nEventSelector.Input   = {\n"
-
-      fileType = fileType.split()[0]
-      # Allow fileType to be of the form XfileType
-      try:
-        fileType = fileType.split(".")[1]
-      except AttributeError, ex:
-        gLogger.warn(str(self.__class__)+"writeJobOptions" + str(ex))
-      mdfTypes = ["RAW", "MDF"]
-      etcTypes = ["SETC", "FETC", "ETC"]
-      #lfns = [lfn['FileName'] for lfn in files]
-      #lfns.sort()
-      keys = files.keys()
-      keys.sort()
-      first = True
-      for lfn in keys:
-        filename = files[lfn]
-        if not first:
-          string += ",\n"
-        first = False
-        if savePfn:
-          if fileType in mdfTypes:
-            string += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' SVC='LHCb::MDFSelector'\""
-          elif fileType in etcTypes:
-            string += "\"   COLLECTION='TagCreator/1' DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOT'\""
-          else:
-            string += "\"   DATAFILE=\'" + savePfn[lfn]['turl'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
-        else:
-          if fileType in mdfTypes:
-            string += "\"   DATAFILE='LFN:" + filename['FileName'] + "' SVC='LHCb::MDFSelector'\""
-          elif fileType in etcTypes:
-            string += "\"   COLLECTION='TagCreator/1' DATAFILE='LFN:" + filename['FileName'] + "' TYP='POOL_ROOT'\""
-          else:
-            string += "\"   DATAFILE='LFN:" + filename['FileName'] + "' TYP='POOL_ROOTTREE' OPT='READ'\""
-
-
-      if pythonOpts:
-        string += "]\n"
-      else:
-        string += "\n};\n"
-    if catalog != None:
-      string += "FileCatalog().Catalogs += [ 'xmlcatalog_file:" + catalog + "' ]\n"
-    if fd:
-      fd.write(string)
-      fd.close()
-    else:
-      return string
+        evtTypes[filetype][2] += int(lfn['FileSize']) / 1000000000.
+    return evtTypes
 
   #############################################################################
   def getProcessingPassSteps(self, in_dict):

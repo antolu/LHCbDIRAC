@@ -6,6 +6,7 @@ It interprets the XML reports and make a job, file, or replica object
 # $Id$
 ########################################################################
 
+from xml.parsers.expat                                                                  import ExpatError
 from xml.dom.minidom                                                                    import parse, parseString
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader                            import JobReader
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
@@ -62,7 +63,7 @@ class XMLFilesReaderManager:
 
       docType = doc.doctype #job or replica
       xmltype = docType.name.encode('ascii')
-    except Exception, ex:
+    except NameError, ex:
       gLogger.error("XML reading error", filename)
       return S_ERROR(ex)
 
@@ -90,7 +91,7 @@ class XMLFilesReaderManager:
           return result
         else:
           gLogger.error("unknown XML file!!!")
-    except Exception, ex:
+    except ExpatError, ex:
       gLogger.error("XML reading error", ex)
       return S_ERROR(ex)
 

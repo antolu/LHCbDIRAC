@@ -5,8 +5,8 @@ Queries creation
 # $Id$
 ########################################################################
 
-
 __RCSID__ = "$Id$"
+
 from types                                                           import LongType, StringType
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
@@ -3526,14 +3526,14 @@ and files.qualityid= dataquality.qualityid'
                                    'Visible':'Y'}]}
     condition = ''
     if conddb == None:
-      condition += " and CondDB='NULL' "
+      condition += " and CondDB is NULL "
       dataset['Step'].pop('CONDDB')
     else:
       condition += " and CondDB='%s' " % (conddb)
       dataset['Step']['CONDDB'] = conddb
 
     if dddb == None:
-      condition += " and DDDB = 'NULL'"
+      condition += " and DDDB is NULL "
       dataset['Step'].pop('DDDB')
     else:
       condition += " and DDDB='%s'" % (dddb)

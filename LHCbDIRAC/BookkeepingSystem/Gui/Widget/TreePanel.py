@@ -12,9 +12,9 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeNode         import TreeNode
 
 
 try:
-    _fromUtf8 = QString.fromUtf8
+  _fromUtf8 = QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+  _fromUtf8 = lambda s: s
 
 __RCSID__ = "$Id$"
 
@@ -45,7 +45,7 @@ class TreePanel(QTreeWidget):
 
 
 #    self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem *)'),
-#            self._on_item_expanded)
+#            self.on_item_expanded)
 #
 #    self.connect(self,
 #            SIGNAL('itemActivated(QTreeWidgetItem *, int)'),
@@ -61,7 +61,15 @@ class TreePanel(QTreeWidget):
     self.filesIcon_ = QIcon()
     self.filesIcon_.addPixmap(QPixmap(_fromUtf8(":/icons/images/files1.png")), QIcon.Normal, QIcon.Off)
 
+    self.__popUp = None
+    self.__jobAction = None
+    self.__bookmarksAction = None
 
+  #############################################################################
+  def getController(self):
+    """it returns the controller of this widget
+    """
+    return self.__controler
 
   #############################################################################
   def setupControler(self):
@@ -69,14 +77,14 @@ class TreePanel(QTreeWidget):
     self.__controler = self.parentWidget().getControler()
 
     self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem *)'),
-            self.__controler._on_item_expanded)
+            self.__controler.on_item_expanded)
 
 
 #    self.connect(self,
 #            SIGNAL('itemClicked(QTreeWidgetItem *, int)'),
 #            self.__controler._on_item_clicked)
 
-    self.connect(self, SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'), self.__controler._on_itemDuble_clicked)
+    self.connect(self, SIGNAL('itemDoubleClicked(QTreeWidgetItem *, int)'), self.__controler.on_itemDuble_clicked)
 
     self.__createPopUpMenu()
 
@@ -145,7 +153,7 @@ class TreePanel(QTreeWidget):
   #############################################################################
   def addLeaf(self, element, parentItem=None):
     """adds a leaf to the current node"""
-    item = self.createItem(element, parentItem)
+    item = self.createItem(parentItem)
     item.setUserObject(element)
     #print '!!!!!!!!!',parentItem.getUserObject()
     nbfiles = element['Number of files']
@@ -164,7 +172,7 @@ class TreePanel(QTreeWidget):
   def parseFolderElement(self, element, parentItem=None):
     """creates the elements of the tree"""
 
-    item = self.createItem(element, parentItem)
+    item = self.createItem(parentItem)
     item.setUserObject(element)
     title = element.name()
     if element.has_key('level'):
@@ -188,7 +196,7 @@ class TreePanel(QTreeWidget):
           item.setText(1, userobj['Description'])
         else:
           item.setText(1, '')
-    dumy = self.createItem({'name':'Nb of Files/Events'}, item)
+    dumy = self.createItem(item)
     self.setItemExpanded(dumy, True)
     dumy.setFlags(item.flags() | Qt.ItemIsEnabled)
 
@@ -221,7 +229,7 @@ class TreePanel(QTreeWidget):
   def createdumyNode(self, element, parent):
     """creates a dumy node"""
     if parent != None:
-      dumy = self.createItem(element, parent)
+      dumy = self.createItem(parent)
       dumy.setUserObject(None)
       self.setItemExpanded(dumy, False)
       title = element['name']
@@ -231,14 +239,14 @@ class TreePanel(QTreeWidget):
       return dumy
 
   #############################################################################
-  def createItem(self, element, parentItem=None):
+  def createItem(self, parentItem=None):
     """create an item"""
     item = TreeNode()#QTreeWidgetItem()
 
     if parentItem is not None:
-        item = TreeNode(parentItem)#QtGui.QTreeWidgetItem(parentItem)
+      item = TreeNode(parentItem)#QtGui.QTreeWidgetItem(parentItem)
     else:
-        item = TreeNode(self)#QtGui.QTreeWidgetItem(self)
+      item = TreeNode(self)#QtGui.QTreeWidgetItem(self)
     return item
 
   #############################################################################
