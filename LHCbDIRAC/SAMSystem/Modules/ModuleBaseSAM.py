@@ -183,30 +183,30 @@ class ModuleBaseSAM( object ):
     
     return self._execute()
 
-  def finalize( self, message, result, samResult ):
+  def finalize( self, message, result, nagiosResult ):
     '''
        Finalize properly by setting the appropriate result at the step level
        in the workflow, errorDict is an S_ERROR() from a command that failed.
     '''
     
-    if not samResult in self.samStatus:
-      return S_ERROR( '%s is not a valid SAM status' % ( samResult ) )
+    if not nagiosResult in self.nagiosStatus:
+      return S_ERROR( '%s is not a valid NAGIOS status' % nagiosResult )
+    statusCode = self.nagiosStatus[ nagiosResult ]
 
     self.writeToLog( '%s\n%s' % ( message, result ) )
 
     self.log.info( '%s\n%s' % ( message, result ) )
     fopen = open( self.logFile, 'a' )
     
-    statusCode = self.samStatus[ samResult ]
-    fopen.write( self._getMessageString( 'Exiting with SAM status %s=%s' % ( samResult, statusCode ), True ) )
+    fopen.write( self._getMessageString( 'Exiting with NAGIOS status %s=%s' % ( nagiosResult, statusCode ), True ) )
     fopen.close()
     
     if not 'SAMResults' in self.workflow_commons:
       self.workflow_commons[ 'SAMResults' ] = {}
 
     self.workflow_commons[ 'SAMResults' ][ self.testName ] = statusCode
-    if int( statusCode ) < 50:
-      self.setApplicationStatus( '%s Successful (%s)' % ( self.testName, samResult ) )
+    if statusCode == 0:
+      self.setApplicationStatus( '%s Successful (%s)' % ( self.testName, nagiosResult ) )
       return S_OK( message )
     
     return S_ERROR( message )
