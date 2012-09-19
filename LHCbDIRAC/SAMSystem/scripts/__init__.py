@@ -3,9 +3,8 @@
 ############################################################
 
 """
-   LHCbDIRAC.SAMSystem.Client package
+   LHCbDIRAC.SAMSystem.scripts package
 
-   This contains the LHCb specific SAM job modules.
 """
 
 __RCSID__ = "$Id$"

@@ -1,5 +1,10 @@
+########################################################################
 # $HeadURL$
-''' LHCb SAM Job Class
+# File :   LHCbSAMJob.py
+# Author : Stuart Paterson
+########################################################################
+
+"""LHCb SAM Job Class
 
    The LHCb SAM Job class inherits generic VO functionality from the Job base class
    and provides VO-specific functionality to aid in the construction of
@@ -18,6 +23,7 @@
     j.setDestinationCE('LCG.PIC.es')
     j.setSharedAreaLock(forceDeletion=False,enableFlag=False)
     j.checkSystemConfiguration(enableFlag=False)
+    j.checkSiteQueues(enableFlag=False)
     j.installSoftware(forceDeletion=False,enableFlag=False)
     j.reportSoftware(enableFalg=False)
     j.testApplications(enableFlag=False)
@@ -26,53 +32,41 @@
     print j._toJDL()
     jobID = dirac.submit(j,mode='Local')
     print 'Submission Result: ',jobID
-'''
+"""
 
-import os
+__RCSID__ = "$Id$"
 
+import string, os
+
+from DIRAC.Core.Workflow.Parameter                  import Parameter
+from DIRAC.Core.Workflow.Module                     import ModuleDefinition
+from DIRAC.Core.Workflow.Step                       import StepDefinition
+from DIRAC.Interfaces.API.Job                       import Job
+from DIRAC.Core.Utilities.SiteCEMapping             import getSiteForCE
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Utilities.SiteCEMapping                  import getSiteForCE
-from DIRAC.Core.Workflow.Module                          import ModuleDefinition
-from DIRAC.Core.Workflow.Parameter                       import Parameter
-from DIRAC.Core.Workflow.Step                            import StepDefinition
-from DIRAC.Interfaces.API.Job                            import Job
 
-__RCSID__      = '$Id$'
+
 COMPONENT_NAME = 'LHCbDIRAC/SAMSystem/Client/LHCbSAMJob'
 
 class LHCbSAMJob( Job ):
-  '''
-     LHCbSAMJob implementation of API Job
-     
-     It provides the following methods:
-     - setSAMGroup
-     - setPriority
-     - setSharedAreaLock
-     - checkSystemConfiguration
-     - installSoftware
-     - reportSoftware
-     - testApplications
-     - finalizeAndPublish
-     - runTestScript
-     - setDestinationCE
-  '''
+
+  #############################################################################
 
   def __init__( self, script = None, stdout = 'std.out', stderr = 'std.err' ):
     """Instantiates the Workflow object and some default parameters.
     """
     Job.__init__( self, script, stdout, stderr )
-    self.gaudiStepCount    = 0
-    self.opsH              = Operations()
-    self.samLogLevel       = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
+    self.gaudiStepCount = 0
+    self.opsH = Operations()
+    self.samLogLevel = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
     self.samDefaultCPUTime = self.opsH.getValue( 'SAM/CPUTime', 50000 )
-    self.samPlatform       = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
-    self.samGroup          = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
-    self.samType           = self.opsH.getValue( 'SAM/JobType', 'SAM' )
+    self.samPlatform = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
+    self.samGroup = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
+    self.samType = self.opsH.getValue( 'SAM/JobType', 'SAM' )
     #self.samOwnerGroup = self.opsH.getValue('SAM/OwnerGroup','lhcb_admin')
-    self.samOutputFiles    = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
-    self.appTestPath       = 'SAM/TestApplications'
-    self.samPriority       = self.opsH.getValue( 'SAM/Priority', 1 )
-    
+    self.samOutputFiles = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
+    self.appTestPath = 'SAM/TestApplications'
+    self.samPriority = self.opsH.getValue( 'SAM/Priority', 1 )
     self.importLine = """
 try:
   from LHCbDIRAC.SAMSystem.Modules.<MODULE> import <MODULE>
@@ -81,6 +75,7 @@ except Exception,x:
 """
     self.__setDefaults()
 
+  #############################################################################
   def __setDefaults( self ):
     """ Set some SAM specific defaults.
     """
@@ -94,6 +89,7 @@ except Exception,x:
     self.setPriority( self.samPriority )
     self._addJDLParameter( 'SubmitPools', 'SAM' )
 
+  #############################################################################
   def setSAMGroup( self, samGroup ):
     """ Helper function. Set the SAM group and pilot types as required.
 
@@ -114,6 +110,7 @@ except Exception,x:
       self.setJobGroup( 'SAMsw' )
       self._addJDLParameter( 'PilotTypes', 'private' )
 
+  #############################################################################
   def setPriority( self, priority ):
     """Helper function.
 
@@ -135,6 +132,8 @@ except Exception,x:
 
     self._addParameter( self.workflow, 'Priority', 'JDL', priority, 'User Job Priority' )
 
+
+  #############################################################################
   def setSharedAreaLock( self, forceDeletion = False, enableFlag = True ):
     """Helper function.
 
@@ -171,6 +170,7 @@ except Exception,x:
     stepInstance.setValue( "enable", enableFlag )
     stepInstance.setValue( "forceLockRemoval", forceDeletion )
 
+  #############################################################################
   def __getSAMLockStep( self, name = 'LockSharedArea' ):
     """Internal function.
 
@@ -180,17 +180,18 @@ except Exception,x:
     moduleName = 'LockSharedArea'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module to manage the lock in the shared area of a Grid site for LHCb' )
-    body = self.importLine.replace( '<MODULE>', 'LockSharedArea' )
+    body = string.replace( self.importLine, '<MODULE>', 'LockSharedArea' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'LockSharedArea', name )
+    moduleInstance = step.createModuleInstance( 'LockSharedArea', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "forceLockRemoval", "", "bool", "", "", False, False, "lock deletion flag" ) )
     return step
 
+  #############################################################################
   def checkSystemConfiguration( self, enableFlag = True ):
     """Helper function.
 
@@ -225,6 +226,7 @@ except Exception,x:
       stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
       stepInstance.setValue( "enable", enableFlag )
 
+  #############################################################################
   def __getSystemConfigStep( self, name = 'SystemConfiguration' ):
     """Internal function.
 
@@ -234,16 +236,70 @@ except Exception,x:
     moduleName = 'SystemConfiguration'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module to check the system configuration of a Grid site for LHCb' )
-    body = self.importLine.replace( '<MODULE>', 'SystemConfiguration' )
+    body = string.replace( self.importLine, '<MODULE>', 'SystemConfiguration' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'SystemConfiguration', name )
+    moduleInstance = step.createModuleInstance( 'SystemConfiguration', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     return step
 
+  #############################################################################
+  def checkSiteQueues( self, enableFlag = True ):
+    """Helper function.
+
+       Add the SiteQueues test.
+
+       Example usage:
+
+       >>> job = LHCbSAMJob()
+       >>> job.checkSiteQueues('True')
+
+       @param enableFlag: Flag to enable / disable calls for testing purposes
+       @type enableFlag: boolean
+
+    """
+    if not enableFlag in [True, False]:
+      raise TypeError, 'Expected boolean value for enableFlag'
+
+    if enableFlag:
+      self.gaudiStepCount += 1
+      stepNumber = self.gaudiStepCount
+      stepDefn = '%sStep%s' % ( 'SAM', stepNumber )
+      step = self.__getSiteQueuesStep( stepDefn )
+
+      self._addJDLParameter( 'SiteQueuesTest', str( enableFlag ) )
+      stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
+      self.addToOutputSandbox.append( '*.log' )
+      self.workflow.addStep( step )
+
+    # Define Step and its variables
+      stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
+      stepInstance.setValue( "enable", enableFlag )
+
+  #############################################################################
+  def __getSiteQueuesStep( self, name = 'SiteQueues' ):
+    """Internal function.
+
+        This method controls the definition for a SiteQueues step.
+    """
+    # Create the GaudiApplication module first
+    moduleName = 'SiteQueues'
+    module = ModuleDefinition( moduleName )
+    module.setDescription( 'A module to check the LHCb queues for the given CE' )
+    body = string.replace( self.importLine, '<MODULE>', 'SiteQueues' )
+    module.setBody( body )
+    # Create Step definition
+    step = StepDefinition( name )
+    step.addModule( module )
+    moduleInstance = step.createModuleInstance( 'SiteQueues', name )
+    # Define step parameters
+    step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
+    return step
+
+  #############################################################################
   def installSoftware( self, forceDeletion = False, enableFlag = True, installProjectURL = None ):
     """Helper function.
 
@@ -287,6 +343,7 @@ except Exception,x:
         self._addJDLParameter( 'installProjectURL', str( installProjectURL ) )
         stepInstance.setValue( "installProjectURL", installProjectURL )
 
+  #############################################################################
   def __getSoftwareInstallationStep( self, name = 'SoftwareInstallation' ):
     """Internal function.
 
@@ -296,20 +353,19 @@ except Exception,x:
     moduleName = 'SoftwareInstallation'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module to install LHCb software' )
-    body = self.importLine.replace( '<MODULE>', 'SoftwareInstallation' )
+    body = string.replace( self.importLine, '<MODULE>', 'SoftwareInstallation' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'SoftwareInstallation', name )
+    moduleInstance = step.createModuleInstance( 'SoftwareInstallation', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "purgeSharedAreaFlag", "", "bool", "", "", False, 
-                                  False, "Remove all software in shared area" ) )
-    step.addParameter( Parameter( "installProjectURL", "", "string", "", "", False, 
-                                  False, "Optional install_project URL" ) )
+    step.addParameter( Parameter( "purgeSharedAreaFlag", "", "bool", "", "", False, False, "Remove all software in shared area" ) )
+    step.addParameter( Parameter( "installProjectURL", "", "string", "", "", False, False, "Optional install_project URL" ) )
     return step
 
+  #############################################################################
   def reportSoftware( self, enableFlag = True, installProjectURL = None ):
     """Helper function.
 
@@ -346,6 +402,7 @@ except Exception,x:
         self._addJDLParameter( 'installProjectURL', str( installProjectURL ) )
         stepInstance.setValue( "installProjectURL", installProjectURL )
 
+  #############################################################################
   def __getReportSoftwareStep( self, name = 'ReportSoftware' ):
     """Internal function.
 
@@ -355,17 +412,18 @@ except Exception,x:
     moduleName = 'SoftwareReport'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module to check the content of the SHARED area for the given CE' )
-    body = self.importLine.replace( '<MODULE>', 'SoftwareReport' )
+    body = string.replace( self.importLine, '<MODULE>', 'SoftwareReport' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'SoftwareReport', name )
+    moduleInstance = step.createModuleInstance( 'SoftwareReport', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
     return step
 
+  #############################################################################
   def testApplications( self, enableFlag = True ):
     """Helper function.
 
@@ -391,7 +449,7 @@ except Exception,x:
       if not testList:
         raise TypeError, 'Could not get list of tests from /Operations /SAM/ApplicationTestList'
 
-      self.log.verbose( 'Will generate tests for: %s' % ( ', '.join( testList ) ) )
+      self.log.verbose( 'Will generate tests for: %s' % ( string.join( testList, ', ' ) ) )
       for testName in testList:
         appNameVersion = result['Value'][testName]
         appNameOptions = result['Value'][testName + '-opts']
@@ -412,6 +470,7 @@ except Exception,x:
         stepInstance.setValue( "appNameVersion", appNameVersion )
         stepInstance.setValue( "appNameOptions", appNameOptions )
 
+  #############################################################################
   def __getTestApplicationsStep( self, name = 'TestApplications' ):
     """Internal function.
 
@@ -421,21 +480,20 @@ except Exception,x:
     moduleName = 'TestApplications'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module to check the LHCb queues for the given CE' )
-    body = self.importLine.replace( '<MODULE>', 'TestApplications' )
+    body = string.replace( self.importLine, '<MODULE>', 'TestApplications' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'TestApplications', name )
+    moduleInstance = step.createModuleInstance( 'TestApplications', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "samTestName", "", "string", "", "", False, 
-                                  False, "TestApplication SAM Test Name" ) )
-    step.addParameter( Parameter( "appNameVersion", "", "string", "", "", False, 
-                                  False, "Appliciation name and version" ) )
+    step.addParameter( Parameter( "samTestName", "", "string", "", "", False, False, "TestApplication SAM Test Name" ) )
+    step.addParameter( Parameter( "appNameVersion", "", "string", "", "", False, False, "Appliciation name and version" ) )
     step.addParameter( Parameter( "appNameOptions", "", "string", "", "", False, False, "Appliciation Options" ) )
     return step
 
+  #############################################################################
   def finalizeAndPublish( self, logUpload = True, publishResults = True, enableFlag = True ):
     """Helper function.
 
@@ -472,6 +530,7 @@ except Exception,x:
     stepInstance.setValue( "publishResultsFlag", publishResults )
     stepInstance.setValue( "uploadLogsFlag", logUpload )
 
+  #############################################################################
   def __getSAMFinalizationStep( self, name = 'SAMFinalization' ):
     """Internal function.
 
@@ -481,20 +540,19 @@ except Exception,x:
     moduleName = 'SAMFinalization'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module for LHCb SAM job finalization, reports to SAM DB' )
-    body = self.importLine.replace( '<MODULE>', 'SAMFinalization' )
+    body = string.replace( self.importLine, '<MODULE>', 'SAMFinalization' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'SAMFinalization', name )
+    moduleInstance = step.createModuleInstance( 'SAMFinalization', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    step.addParameter( Parameter( "publishResultsFlag", "", "bool", "", "", False, 
-                                  False, "Flag to trigger publishing of results to SAM DB" ) )
-    step.addParameter( Parameter( "uploadLogsFlag", "", "bool", "", "", False, 
-                                  False, "Flag to trigger upload of SAM logs to LogSE" ) )
+    step.addParameter( Parameter( "publishResultsFlag", "", "bool", "", "", False, False, "Flag to trigger publishing of results to SAM DB" ) )
+    step.addParameter( Parameter( "uploadLogsFlag", "", "bool", "", "", False, False, "Flag to trigger upload of SAM logs to LogSE" ) )
     return step
 
+  #############################################################################
   def runTestScript( self, scriptName = '', enableFlag = True ):
     """Helper function.
 
@@ -536,6 +594,7 @@ except Exception,x:
     stepInstance.setValue( "enable", enableFlag )
     stepInstance.setValue( "scriptName", os.path.basename( scriptName ) )
 
+  #############################################################################
   def __getRunTestScriptStep( self, name = 'RunTestScript' ):
     """Internal function.
 
@@ -545,17 +604,18 @@ except Exception,x:
     moduleName = 'RunTestScript'
     module = ModuleDefinition( moduleName )
     module.setDescription( 'A module for LHCb SAM job finalization, reports to SAM DB' )
-    body = self.importLine.replace( '<MODULE>', 'RunTestScript' )
+    body = string.replace( self.importLine, '<MODULE>', 'RunTestScript' )
     module.setBody( body )
     # Create Step definition
     step = StepDefinition( name )
     step.addModule( module )
-    _moduleInstance = step.createModuleInstance( 'RunTestScript', name )
+    moduleInstance = step.createModuleInstance( 'RunTestScript', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     step.addParameter( Parameter( "scriptName", "", "string", "", "", False, False, "script name to execute" ) )
     return step
 
+  #############################################################################
   def setDestinationCE( self, ceName ):
     """ Sets the Grid requirements for the pilot job to be directed to a particular SE.
         At the same time this adds a requirement for the DIRAC site name for matchmaking.
@@ -572,5 +632,4 @@ except Exception,x:
     self.setName( 'SAM-%s' % ( ceName ) )
     self.log.verbose( 'Set GridRequiredCEs to %s and destination to %s' % ( ceName, diracSite ) )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

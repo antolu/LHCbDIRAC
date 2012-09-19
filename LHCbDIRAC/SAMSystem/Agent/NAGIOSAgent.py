@@ -1,60 +1,55 @@
+########################################################################
 # $HeadURL$
-''' SAM Agent submits SAM jobs
-'''
+########################################################################
 
-import os
-import time
+__RCSID__ = "$Id$"
 
-from DIRAC                       import gConfig, gLogger, gMonitor, S_OK, S_ERROR
+"""  SAM Agent submits SAM jobs
+"""
+
+from DIRAC  import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.DISET.RPCClient  import RPCClient
-from DIRAC.Core.Utilities        import List, shellCall
-from DIRAC.Interfaces.API.Dirac  import Dirac
-
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
-__RCSID__  = "$Id$"
-AGENT_NAME = 'SAM/NAGIOSAgent'
+from DIRAC.Core.Utilities import shellCall
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Core.Utilities import List
+
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC  import gMonitor
+
+import os, time
+
+AGENT_NAME = "SAM/NAGIOSAgent"
 
 class SAMPublisher:
-  '''
-    SAMPublisher
-  '''
 
   def __init__( self ):
-    
-    self.script = None
+    self.Script = None
     self.samPublishClient = os.getenv( 'DIRAC', '/opt/dirac/pro' ) + '/LHCbDIRAC/SAMSystem/Distribution/nagios.tgz'
 
   def install( self, dest = None ):
-    '''
-       Install the software
-    '''
-    
     cmd = 'tar -zxvf %s' % ( self.samPublishClient )
     if dest:
       gLogger.info( "Publisher", "Try to install in %s " % ( dest ) )
       if not os.path.isdir( dest ):
-        return S_ERROR( "Publisher: No such directory: %s" % ( dest ) )
+        return S_ERROR( "Publisher", "No such directory: %s" % ( dest ) )
       cmd += " --directory %s" % ( dest )
     res = shellCall( 0, cmd )
-    if not res[ 'OK' ]:
+    if not res['OK']:
       return res
-    if res[ 'Value' ][ 0 ]:
-      return S_ERROR( res[ 'Value' ][ 2 ] )
+    if res['Value'][0]:
+      return S_ERROR( res['Value'][2] )
     if dest:
       dirname = dest
     else:
       dirname = os.getcwd()
-    self.script = os.path.join( dirname, "publisher/exp_test_result_publisher.py" )
+    self.Script = os.path.join( dirname, "publisher/exp_test_result_publisher.py" )
     return S_OK()
 
   def publish( self, testName, ce, status, detailedData = None ):
-    '''
-       Runs the nagios publisher script
-    '''
 
-    if not self.script:
+    if not self.Script:
       return S_ERROR( "NAGIOSPublisher is not installed" )
 
     if not detailedData:
@@ -62,11 +57,9 @@ class SAMPublisher:
 
     timeStr = time.strftime( "%Y-%m-%d-%H-%M-%S", time.gmtime() )
 
-    defFile    = "testName: %(TestName)s\ntestAbbr: LHCb %(TestName)s\ntestTitle: LHCb SAM %(TestName)s\nEOT\n"
-    defFile    = defFile % { 'TestName' : testName }
-    envFile    = "envName: CE-%s\nname: LHCbSAMTest\nvalue: OK\n" % ( timeStr )
-    resultFile = "nodename: %s\ntestname: %s\nenvName: CE-%s\nvoname: lhcb\nstatus: %d\ndetaileddata: %s\n"
-    resultFile = resultFile % ( ce, testName, timeStr, status, detailedData )
+    defFile = "testName: %(TestName)s\ntestAbbr: LHCb %(TestName)s\ntestTitle: LHCb SAM %(TestName)s\nEOT\n" % {'TestName':testName}
+    envFile = "envName: CE-%s\nname: LHCbSAMTest\nvalue: OK\n" % ( timeStr )
+    resultFile = "nodename: %s\ntestname: %s\nenvName: CE-%s\nvoname: lhcb\nstatus: %d\ndetaileddata: %s\n" % ( ce, testName, timeStr, status, detailedData )
 
     publishFlag = True
 
@@ -75,13 +68,13 @@ class SAMPublisher:
       fopen = open( fname, 'w' )
       fopen.write( cont )
       fopen.close()
-      cmd = '%s %s %s' % ( self.script, test, fname )
+      cmd = '%s %s %s' % ( self.Script, test, fname )
       result = shellCall( 0, cmd )
-      if not result[ 'OK' ]:
-        gLogger.warn( "Publishing %s" % ( test ), result[ 'Message' ] )
+      if not result['OK']:
+        gLogger.warn( "Publishing %s" % ( test ), result['Message'] )
         publishFlag = False
-      elif result[ 'Value' ][ 0 ]:
-        gLogger.warn( "Publishing %s" % ( test ), result[ 'Value' ][ 2 ] )
+      elif result['Value'][0]:
+        gLogger.warn( "Publishing %s" % ( test ), result['Value'][2] )
         publishFlag = False
 
       os.remove( fname )
@@ -92,9 +85,6 @@ class SAMPublisher:
       return S_ERROR( "Publishing error" )
 
 class NAGIOSAgent( AgentModule ):
-  '''
-     NAGIOSAgent
-  '''
 
   def initialize( self ):
     self.pollingTime = self.am_getOption( 'PollingTime', 3600 * 6 )
@@ -134,9 +124,6 @@ class NAGIOSAgent( AgentModule ):
     return result
 
   def _siteAccount( self ):
-    '''
-       Adds site markers to gMonitor
-    '''
 
     gLogger.debug( "Executing %s" % ( AGENT_NAME ) )
 
@@ -152,7 +139,7 @@ class NAGIOSAgent( AgentModule ):
     if not result[ 'OK' ]:
       self.log.error( "Can't get Sites: %s" % result[ 'Message' ] )
       return result
-    sites = result[ 'Value' ]
+    sites = result['Value']
     numsites = len( sites )
 
     gMonitor.addMark( "TotalSites", numsites )
@@ -165,41 +152,39 @@ class NAGIOSAgent( AgentModule ):
     return S_OK()
 
   def _clearSAMjobs( self, days = 2 ):
-    '''
-       Clear SAM jobs older than <days> days
-    '''
 
     gLogger.info( "Clear SAM jobs for last %d day(s)" % days )
-    dirac    = Dirac()
-    samPub   = self.samPub
+    dirac = Dirac()
+
+    samPub = self.samPub
     testName = 'CE-lhcb-availability'
 
-    sites = gConfig.getSections( '/Resources/Sites/LCG' )[ 'Value' ]
 
-    allces     = []
-    jobIDs     = []
+    sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
+
+    allces = []
+    jobIDs = []
     conditions = {}
-    
-    conditions[ 'JobGroup' ] = 'SAM'
+    conditions['JobGroup'] = 'SAM'
 
     days_ago = time.gmtime( time.time() - 60 * 60 * 24 * days )
-    date = '%s-%s-%s' % ( days_ago[0], str( days_ago[1] ).zfill( 2 ), str( days_ago[2] ).zfill( 2 ) )
+    Date = '%s-%s-%s' % ( days_ago[0], str( days_ago[1] ).zfill( 2 ), str( days_ago[2] ).zfill( 2 ) )
 
     for site in sites:
 
-      opt = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )[ 'Value' ]
+      opt = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )['Value']
       ces = List.fromChar( opt.get( 'CE', '' ) )
       allces += ces
 
-      conditions[ 'Site' ] = site
+      conditions['Site'] = site
       monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
 
-      result = monitoring.getJobs( conditions, date )
-      if not result[ 'OK' ]:
-        gLogger.warn( "Error get Jobs for Site %s" % ( site ), result[ 'Message' ] )
+      result = monitoring.getJobs( conditions, Date )
+      if not result['OK']:
+        gLogger.warn( "Error get Jobs for Site %s" % ( site ), result['Message'] )
         continue
-      gLogger.debug( "Jobs for site %s" % site, repr( result[ 'Value' ] ) )
-      jobIDs += result[ 'Value' ]
+      gLogger.debug( "Jobs for site %s" % site, repr( result['Value'] ) )
+      jobIDs += result['Value']
 
     ceOldWaitingJobs = {}
     ceNewStartedJobs = {}
@@ -209,16 +194,16 @@ class NAGIOSAgent( AgentModule ):
     for j in jobIDs:
 
       result = monitoring.getJobAttributes( int( j ) )
-      if not result[ 'OK' ]:
-        gLogger.warn( "getJobAttributes", result[ 'Message' ] )
+      if not result['OK']:
+        gLogger.warn( "getJobAttributes", result['Message'] )
         continue
 
-      attr        = result[ 'Value' ]
-      ce          = attr[ "JobName" ].replace( "SAM-", "" )
-      submitTime  = time.strptime( attr[ "SubmissionTime" ] + "[UTC]", "%Y-%m-%d %H:%M:%S[%Z]" )
-      deltat      = time.time() - time.mktime( submitTime )
+      attr = result['Value']
+      ce = attr["JobName"].replace( "SAM-", "" )
+      submitTime = time.strptime( attr["SubmissionTime"] + "[UTC]", "%Y-%m-%d %H:%M:%S[%Z]" )
+      deltat = time.time() - time.mktime( submitTime )
       dayAndNight = bool( int( deltat ) / ( 60 * 60 * 24 ) )
-      status      = attr[ 'Status' ]
+      status = attr['Status']
       gLogger.debug( "Job %s from CE %s %s" % ( j, ce, status ) )
 
       if dayAndNight and status == 'Waiting':
@@ -256,7 +241,6 @@ class NAGIOSAgent( AgentModule ):
       if not res['OK']:
         gLogger.warn( "SAM publisher error for CE %s" % ce, res['Message'] )
 
+
+
     return S_OK()
-  
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

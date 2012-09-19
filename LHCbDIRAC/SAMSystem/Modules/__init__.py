@@ -1,8 +1,11 @@
+############################################################
 # $HeadURL$
-''' LHCbDIRAC.SAMSystem.Modules package
-'''
+############################################################
 
-__RCSID__  = '$Id$'
+"""
+   LHCbDIRAC.SAMSystem.Modules package
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+   This contains the LHCb specific SAM job modules.
+"""
+
+__RCSID__ = "$Id$"
