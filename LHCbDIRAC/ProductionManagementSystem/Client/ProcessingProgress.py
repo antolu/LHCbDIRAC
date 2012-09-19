@@ -319,7 +319,10 @@ class ProcessingProgress:
     for prod in bkQuery.getBKProductions( visible=False ):
       prodBKDict = self.__getProdBkDict( prod )
       gLogger.verbose( "BK query for production %s: %s" % ( prod, str( prodBKDict ) ) )
-      if prodBKDict.get( 'FileType' ) in bkQuery.getFileTypeList() and 'ProductionID' in prodBKDict:
+      mergedTypes = prodBKDict.get( 'FileType' )
+      if type( mergedTypes ) != type( [] ):
+        mergedTypes = [mergedTypes]
+      if [ft for ft in bkQuery.getFileTypeList() if ft in mergedTypes] and 'ProductionID' in prodBKDict:
         mergeList.append( prod )
         prods = prodBKDict['ProductionID']
         if type( prods ) != type( [] ):
@@ -368,6 +371,7 @@ class ProcessingProgress:
         for p in [p for p in recoList if p != prod and recoRunRanges[prod] != recoRunRanges[p]]:
           if recoRunRanges[prod][0] < recoRunRanges[p][1] and recoRunRanges[p][1] != sys.maxint:
             openProd = False
+            gLogger.verbose( "Production %s was removed as redundant..." % str( prod ) )
             recoList.remove( prod )
             break
         if not openProd: continue
