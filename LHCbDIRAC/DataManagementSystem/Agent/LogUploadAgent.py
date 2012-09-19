@@ -2,7 +2,6 @@
 # $HeadURL $
 # File: LogUploadAgent.py
 ########################################################################
-
 """  
     :mod: LogUplaodAgent
     ====================
@@ -13,6 +12,8 @@
     .. moduleauthor:: Krzysztof.Ciba@NOSPAMgmail.com
 
 """
+## too many public methods
+# pylint: disable=R0904
 
 __RCSID__ = "$Id$"
 
@@ -168,5 +169,4 @@ class LogUploadAgent( AgentModule ):
           return result
         else:
           self.log.info("Request '%s' has been finalised." % requestName )
-
     return S_OK()
