@@ -358,7 +358,7 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
     #if not present, try to re-calculate the fraction
     if transfID:
       reconstructedRAWFiles = _fromBKK( bkDict, run, bkClient )
-      res = tc.getTransformationParameters( transfID, [''] )
+      res = tc.getTransformationParameters( transfID, ['FractionToProcess'] )
       if not res['OK']:
         gLogger.error( 'Problem getting from Transformation Parameters: %s' % res['Message'] )
       else:
