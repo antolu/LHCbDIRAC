@@ -346,7 +346,7 @@ class TransformationDB( DIRACTransformationDB ):
     req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
     candidates = False
     for ft in fileTuples:
-      lfn, originalID, fileID, status, taskID, targetSE, usedSE, errorCount, lastUpdate, insertTime, runNumber = ft[:11]
+      _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber = ft[:11]
       if status != 'Unused':
         candidates = True
         if not re.search( '-', status ):
@@ -432,13 +432,17 @@ class TransformationDB( DIRACTransformationDB ):
   # Managing the TransformationRuns table
   #
 
-  def getTransformationRuns( self, condDict = {}, older = None, newer = None, timeStamp = 'LastUpdate',
+  def getTransformationRuns( self, condDict = None, older = None, newer = None, timeStamp = 'LastUpdate',
                              orderAttribute = None, limit = None, connection = False ):
+    """ Gets the transformation runs registered (usual query)
+    """
+
     connection = self.__getConnection( connection )
-    selectDict = {}
-    for key in condDict.keys():
-      if key in self.transRunParams:
-        selectDict[key] = condDict[key]
+    selectDict = None
+    if condDict:
+      for key in condDict.keys():
+        if key in self.transRunParams:
+          selectDict[key] = condDict[key]
     req = "SELECT %s FROM TransformationRuns %s" % ( intListToString( self.transRunParams ),
                                                      self.buildCondition( selectDict,
                                                                           older = older,
@@ -471,6 +475,8 @@ class TransformationDB( DIRACTransformationDB ):
     return result
 
   def getTransformationRunStats( self, transIDs, connection = False ):
+    """ Gets counters of runs (taken from the TransformationFiles table)
+    """
     connection = self.__getConnection( connection )
     res = self.getCounters( 'TransformationFiles',
                             ['TransformationID', 'RunNumber', 'Status'],
@@ -492,7 +498,8 @@ class TransformationDB( DIRACTransformationDB ):
     return S_OK( transRunStatusDict )
 
   def addTransformationRunFiles( self, transName, runID, lfns, connection = False ):
-    """ Add the RunID to the TransformationFiles table """
+    """ Adds the RunID to the TransformationFiles table
+    """
     if not lfns:
       return S_ERROR( 'Zero length LFN list' )
     res = self._getConnectionTransID( connection, transName )
@@ -503,7 +510,7 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.__getFileIDsForLfns( lfns, connection = connection )
     if not res['OK']:
       return res
-    fileIDs, lfnFilesIDs = res['Value']
+    fileIDs, _lfnFilesIDs = res['Value']
     req = "UPDATE TransformationFiles SET RunNumber = %d \
     WHERE TransformationID = %d AND FileID IN (%s)" % ( runID, transID, intListToString( fileIDs.keys() ) )
     res = self._update( req, connection )
@@ -529,6 +536,8 @@ class TransformationDB( DIRACTransformationDB ):
     return S_OK( resDict )
 
   def setTransformationRunStatus( self, transName, runIDs, status, connection = False ):
+    """ Sets a status in the TransformationRuns table
+    """
     if not runIDs:
       return S_OK()
     if type( runIDs ) != ListType:
@@ -546,6 +555,8 @@ class TransformationDB( DIRACTransformationDB ):
     return res
 
   def setTransformationRunsSite( self, transName, runID, selectedSite, connection = False ):
+    """ Sets the site for Transformation Runs
+    """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
       return res
@@ -561,6 +572,8 @@ class TransformationDB( DIRACTransformationDB ):
     return res
 
   def __insertTransformationRun( self, transID, runID, selectedSite = '', connection = False ):
+    """ Inserts a new Run
+    """
     req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) \
     VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % ( transID, runID )
     if selectedSite:
