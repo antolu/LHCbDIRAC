@@ -480,7 +480,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
       outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
-                                'outputDataSE': 'Tier1_M-DST'}] )
+                                'outputDataSE': 'Tier1_M-DST',
+                                'outputBKType': 'SDST'}] )
       self.assertEqual( outft, ['sdst'] )
       self.assertFalse( histos )
 
@@ -489,11 +490,13 @@ class ModuleBaseSuccess( ModulesTestCase ):
       self.mb.step_commons = step_commons
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'sdst',
                                              'outputDataSE': 'Tier1_M-DST',
-                                             'outputDataName': '00000123_00000456_1.sdst'}]
+                                             'outputDataName': '00000123_00000456_1.sdst',
+                                             'outputBKType': 'SDST'}]
       outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
-                                'outputDataSE': 'Tier1_M-DST'}] )
+                                'outputDataSE': 'Tier1_M-DST',
+                                'outputBKType': 'SDST'}] )
       self.assertEqual( outft, ['sdst'] )
       self.assertFalse( histos )
 
