@@ -1,22 +1,25 @@
-###################################################################
 # $HeadURL$
-########################################################################
-__RCSID__ = "$Id$"
-"""
+'''
   Update Users and Groups from VOMS on CS
-"""
+'''
+
 import os
+from DIRAC                                           import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule                     import AgentModule
-from DIRAC.ConfigurationSystem.Client.CSAPI          import CSAPI
-from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.Security.VOMSService                 import VOMSService
 from DIRAC.Core.Security                             import Locations, X509Chain
 from DIRAC.Core.Utilities                            import List, Subprocess
-from DIRAC                                           import S_OK, S_ERROR, gConfig
+from DIRAC.ConfigurationSystem.Client.CSAPI          import CSAPI
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+
+__RCSID__ = "$Id$"
 
 class UsersAndGroups( AgentModule ):
 
   def initialize( self ):
+    ''' Initialize method
+    '''
+    
     self.am_setOption( "PollingTime", 3600 * 6 ) # Every 6 hours
     self.vomsSrv = VOMSService()
     self.proxyLocation = os.path.join( self.am_getWorkDirectory(), ".volatileId" )
@@ -24,77 +27,101 @@ class UsersAndGroups( AgentModule ):
     return S_OK()
 
   def __generateProxy( self ):
+    ''' Generate proxy, returns False if it fails.
+    ''' 
+    
     self.log.info( "Generating proxy..." )
     certLoc = Locations.getHostCertificateAndKeyLocation()
     if not certLoc:
       self.log.error( "Can not find certificate!" )
       return False
+    
     chain = X509Chain.X509Chain()
     result = chain.loadChainFromFile( certLoc[0] )
     if not result[ 'OK' ]:
       self.log.error( "Can not load certificate file", "%s : %s" % ( certLoc[0], result[ 'Message' ] ) )
       return False
+    
     result = chain.loadKeyFromFile( certLoc[1] )
     if not result[ 'OK' ]:
       self.log.error( "Can not load key file", "%s : %s" % ( certLoc[1], result[ 'Message' ] ) )
       return False
+    
     result = chain.generateProxyToFile( self.proxyLocation, 3600 )
     if not result[ 'OK' ]:
       self.log.error( "Could not generate proxy file", result[ 'Message' ] )
       return False
+    
     self.log.info( "Proxy generated" )
     return True
 
   def getLFCRegisteredDNs( self ):
-    lfcUIDs = {}
+    ''' Gets list of users registered with their DNs
+    '''
+    
     retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = self.cmdEnv )
-    if not retlfc['OK']:
+    if not retlfc[ 'OK' ]:
       self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
       return retlfc
-    if retlfc['Value'][0]:
-      self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
+    
+    if retlfc[ 'Value' ][ 0 ]:
+      self.log.fatal( 'Can not get LFC User List', retlfc[ 'Value' ][ 2 ] )
       return S_ERROR( "lfc-listusrmap failed" )
-    else:
-      for item in List.fromChar( retlfc['Value'][1], '\n' ):
-        dn = item.split( ' ', 1 )[1]
-        uid = item.split( ' ', 1 )[0]
-        lfcUIDs[dn] = uid
+    
+    lfcUIDs = {}
+    
+    for item in List.fromChar( retlfc[ 'Value' ][ 1 ], '\n' ):
+      dn  = item.split( ' ', 1 )[ 1 ]
+      uid = item.split( ' ', 1 )[ 0 ]
+      lfcUIDs[ dn ] = uid
+      
     return S_OK( lfcUIDs )
 
   def getLFCRegisteredBANDNs( self ):
-    self.lfcBANDNs = []
-    lfcBANUIDs = {}
+    ''' Gets list of users registered and banned with their DNs
+    '''   
+    
     retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = self.cmdEnv )
-    if not retlfc['OK']:
-      self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
+    if not retlfc[ 'OK' ]:
+      self.log.fatal( 'Can not get LFC User List', retlfc[ 'Message' ] )
       return retlfc
-    if retlfc['Value'][0]:
-      self.log.fatal( 'Can not get LFC User List', retlfc['Value'][2] )
+    
+    if retlfc[ 'Value' ][ 0 ]:
+      self.log.fatal( 'Can not get LFC User List', retlfc[ 'Value' ][ 2 ] )
       return S_ERROR( "lfc-listusrmap failed" )
-    else:
-      for item in List.fromChar( retlfc['Value'][1], '\n' ):
-        dn = item.split( ' ', 1 )[1]
-        if str( dn ).find( 'LOCAL_BAN' ) != -1:
-          uid = item.split( ' ', 1 )[0]
-          lfcBANUIDs[dn] = uid
+    
+    lfcBANUIDs = {}
+    
+    for item in List.fromChar( retlfc[ 'Value' ][ 1 ], '\n' ):
+      dn = item.split( ' ', 1 )[ 1 ]
+      if str( dn ).find( 'LOCAL_BAN' ) != -1:
+        uid = item.split( ' ', 1 )[ 0 ]
+        lfcBANUIDs[ dn ] = uid
+    
     return S_OK( lfcBANUIDs )
 
   def checkLFCRegisteredUsers( self, usersData ):
+    ''' Registers and re-registers users in the LFC
+    '''
+    
     self.log.info( "Checking LFC registered users" )
-    usersToBeRegistered = {}
     result = self.getLFCRegisteredDNs()
     if not result[ 'OK' ]:
       self.log.error( "Could not get a list of registered DNs from LFC", result[ 'Message' ] )
       return result
     self.lfcDNs = result[ 'Value' ]
+    
     self.log.info( "Checking LFC registered but BAN users" )
-    usersToBeRegisteredAgain = {}
     result = self.getLFCRegisteredBANDNs()
     if not result[ 'OK' ]:
       self.log.error( "Could not get a list of registered but BAN DNs from LFC", result[ 'Message' ] )
       return result
     self.lfcBANDNs = result[ 'Value' ]
-    found = False
+
+    usersToBeRegistered      = {}
+    usersToBeRegisteredAgain = {}
+    found                    = False
+    
     for user in usersData:
       for userDN in usersData[ user ][ 'DN' ]:
         for dn in self.lfcBANDNs:
@@ -114,13 +141,13 @@ class UsersAndGroups( AgentModule ):
 
     if usersToBeRegistered:
       result = self.changeLFCRegisteredUsers( usersToBeRegistered, 'add' )
-      if not result['OK']:
-        self.log.error( 'Problem to add a new user : %s' % result['Message'] )
+      if not result[ 'OK' ]:
+        self.log.error( 'Problem to add a new user : %s' % result[ 'Message' ] )
 
     if usersToBeRegisteredAgain:
       result = self.changeLFCRegisteredUsers( usersToBeRegisteredAgain, 'change' )
-      if not result['OK']:
-        self.log.error( 'Problem to add a new user : %s' % result['Message'] )
+      if not result[ 'OK' ]:
+        self.log.error( 'Problem to add a new user : %s' % result[ 'Message' ] )
 
     return S_OK()
 
@@ -211,17 +238,22 @@ class UsersAndGroups( AgentModule ):
 
 
   def execute( self ):
+    ''' Main method: execute
+    '''
+    
     result = self.__syncCSWithVOMS()
+    
     mailMsg = ""
     if self.__adminMsgs[ 'Errors' ]:
       mailMsg += "\nErrors list:\n  %s" % "\n  ".join( self.__adminMsgs[ 'Errors' ] )
+      
     if self.__adminMsgs[ 'Info' ]:
       mailMsg += "\nRun result:\n  %s" % "\n  ".join( self.__adminMsgs[ 'Info' ] )
+      
     NotificationClient().sendMail( self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' ),
                                    "UsersAndGroupsAgent run log", mailMsg,
                                    self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' ) )
     return result
-
 
   def __syncCSWithVOMS( self ):
     self.__adminMsgs = { 'Errors' : [], 'Info' : [] }
@@ -454,8 +486,6 @@ class UsersAndGroups( AgentModule ):
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
       csapi.deleteUsers( obsoleteUserNames )
 
-
-
     result = csapi.commitChanges()
     if not result[ 'OK' ]:
       self.log.error( "Could not commit configuration changes", result[ 'Message' ] )
@@ -487,3 +517,5 @@ class UsersAndGroups( AgentModule ):
 
     return S_OK()
 
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
