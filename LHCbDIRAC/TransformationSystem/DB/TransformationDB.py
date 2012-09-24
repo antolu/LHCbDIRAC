@@ -69,6 +69,11 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
 
+    res = self.__cleanTransformationRuns( transID, connection = connection )
+    if not res['OK']:
+      return res
+
+
     # delete files, tasks, taskinputs and parameters as for base DIRAC class 
     res = self.__deleteTransformationFiles( transID, connection = connection )
     if not res['OK']:
@@ -582,6 +587,13 @@ class TransformationDB( DIRACTransformationDB ):
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to insert to TransformationRuns table", res['Message'] )
+    return res
+  
+  def __cleanTransformationRuns( self, transID, connection = False ):
+    req = "DELETE * FROM TransformationRuns WHERE TransformationID = %s" % transID
+    res = self._update( req ,connection)
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
     return res
 
   #############################################################################
