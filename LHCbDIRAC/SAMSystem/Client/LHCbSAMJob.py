@@ -23,7 +23,6 @@
     j.setDestinationCE('LCG.PIC.es')
     j.setSharedAreaLock(forceDeletion=False,enableFlag=False)
     j.checkSystemConfiguration(enableFlag=False)
-    j.checkSiteQueues(enableFlag=False)
     j.installSoftware(forceDeletion=False,enableFlag=False)
     j.reportSoftware(enableFalg=False)
     j.testApplications(enableFlag=False)
@@ -242,59 +241,6 @@ except Exception,x:
     step = StepDefinition( name )
     step.addModule( module )
     moduleInstance = step.createModuleInstance( 'SystemConfiguration', name )
-    # Define step parameters
-    step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
-    return step
-
-  #############################################################################
-  def checkSiteQueues( self, enableFlag = True ):
-    """Helper function.
-
-       Add the SiteQueues test.
-
-       Example usage:
-
-       >>> job = LHCbSAMJob()
-       >>> job.checkSiteQueues('True')
-
-       @param enableFlag: Flag to enable / disable calls for testing purposes
-       @type enableFlag: boolean
-
-    """
-    if not enableFlag in [True, False]:
-      raise TypeError, 'Expected boolean value for enableFlag'
-
-    if enableFlag:
-      self.gaudiStepCount += 1
-      stepNumber = self.gaudiStepCount
-      stepDefn = '%sStep%s' % ( 'SAM', stepNumber )
-      step = self.__getSiteQueuesStep( stepDefn )
-
-      self._addJDLParameter( 'SiteQueuesTest', str( enableFlag ) )
-      stepName = 'Run%sStep%s' % ( 'SAM', stepNumber )
-      self.addToOutputSandbox.append( '*.log' )
-      self.workflow.addStep( step )
-
-    # Define Step and its variables
-      stepInstance = self.workflow.createStepInstance( stepDefn, stepName )
-      stepInstance.setValue( "enable", enableFlag )
-
-  #############################################################################
-  def __getSiteQueuesStep( self, name = 'SiteQueues' ):
-    """Internal function.
-
-        This method controls the definition for a SiteQueues step.
-    """
-    # Create the GaudiApplication module first
-    moduleName = 'SiteQueues'
-    module = ModuleDefinition( moduleName )
-    module.setDescription( 'A module to check the LHCb queues for the given CE' )
-    body = string.replace( self.importLine, '<MODULE>', 'SiteQueues' )
-    module.setBody( body )
-    # Create Step definition
-    step = StepDefinition( name )
-    step.addModule( module )
-    moduleInstance = step.createModuleInstance( 'SiteQueues', name )
     # Define step parameters
     step.addParameter( Parameter( "enable", "", "bool", "", "", False, False, "enable flag" ) )
     return step
