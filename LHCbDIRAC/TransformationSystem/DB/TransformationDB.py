@@ -590,7 +590,7 @@ class TransformationDB( DIRACTransformationDB ):
     return res
   
   def __cleanTransformationRuns( self, transID, connection = False ):
-    req = "DELETE * FROM TransformationRuns WHERE TransformationID = %s" % transID
+    req = "DELETE  FROM TransformationRuns WHERE TransformationID = %s" % transID
     res = self._update( req ,connection)
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
