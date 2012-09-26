@@ -567,13 +567,14 @@ class PluginUtilities:
       lfns = [f for f in paramValues if paramValues[f] == paramValue]
 
     # Get number of ancestors for known files
-    cachedLFNs = [lfn for lfn in lfns if lfn in self.cachedLFNAncestors.get( runID )]
-    if cachedLFNs:
+    cachedLFNs = self.cachedLFNAncestors.get( runID )
+    hitLFNs = [lfn for lfn in lfns if lfn in cachedLFNs]
+    if hitLFNs:
       self.logVerbose( "Ancestors cache hit for run %d: %d files cached" % \
-                       ( runID, len( cachedLFNs ) ) )
-      for lfn in cachedLFNs:
+                       ( runID, len( hitLFNs ) ) )
+      for lfn in hitLFNs:
         ancestors += cachedLFNs[lfn]
-      lfns = [lfn for lfn in lfns if lfn not in cachedLFNs]
+      lfns = [lfn for lfn in lfns if lfn not in hitLFNs]
 
     # If some files are unknown, get the ancestors from BK
     if lfns:
