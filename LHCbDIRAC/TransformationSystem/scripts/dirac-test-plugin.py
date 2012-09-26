@@ -140,6 +140,9 @@ class fakeClient:
         runID = metadata.get( 'RunNumber', 0 )
         runDict = {"RunNumber":runID, "LFN":lfn}
         files.append( runDict )
+    else:
+      print "Error getting BK metadata", res['Message']
+      return ( [], {} )
     replicas = {}
     startTime = time.time()
     from DIRAC.Core.Utilities.List                        import breakListIntoChunks
@@ -151,7 +154,9 @@ class fakeClient:
         res = self.rm.getActiveReplicas( lfnChunk )
       #print res
       if res['OK']:
-        replicas.update( res['Value']['Successful'] )
+        for lfn, ses in res['Value']['Successful'].items():
+          if ses:
+            replicas[lfn] = ses
     print "Obtained replicas of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime )
     return ( files, replicas )
 
