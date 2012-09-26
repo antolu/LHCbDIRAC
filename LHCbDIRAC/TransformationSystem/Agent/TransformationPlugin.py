@@ -123,7 +123,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logError( "Cannot get descendants of files:", res['Message'] )
       else:
         descendants.update( res['Value']['Successful'] )
-    self.util.logVerbose( "Got descendants of %d files in %.3f seconds" % ( len( self.transReplicas ), time.time() - startTime ) )
+    self.util.logVerbose( "Got descendants of %d files in %.3f seconds" % ( len( self.transReplicas ),
+                                                                            time.time() - startTime ) )
     if descendants:
       processedLfns = [lfn for lfn in descendants if descendants[lfn]]
       if processedLfns:
@@ -490,9 +491,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if runFlush:
           if not runEvtType.get( paramValue ):
             lfn = runParamLfns[0]
-            res = self.util.getBookkeepingMetadata( [lfn] )
+            res = self.util.getBookkeepingMetadata( [lfn], 'EventTypeId' )
             if res['OK']:
-              runEvtType[paramValue] = res['Value'][lfn].get( 'EventTypeId', 90000000 )
+              runEvtType[paramValue] = res['Value'].get( lfn, 90000000 )
               self.util.logVerbose( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
             else:
               self.util.logWarn( "Can't determine event type for transformation%s, can't flush" % paramStr,
@@ -528,7 +529,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             status = 'Flush'
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
           else:
-            self.util.logVerbose( "Only %d files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
+            self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
         self.params['Status'] = status
         # Now calling the helper plugin
         res = eval( 'self._%s()' % plugin )
@@ -1040,7 +1041,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
         targetSEs = [se for se in listSEs if se in replicaSE]
         if not targetSEs:
-          self.util.logVerbose( "%s storage elements not in required list" % replicaSE )
+          self.util.logInfo( "%d files are not in required list (only at %s)" % ( len( lfns ), replicaSE ) )
         else:
           newGroups.setdefault( ','.join( targetSEs ), [] ).extend( lfns )
       for stringTargetSEs, lfns in newGroups.items():
