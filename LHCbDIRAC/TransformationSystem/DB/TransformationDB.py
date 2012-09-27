@@ -443,7 +443,7 @@ class TransformationDB( DIRACTransformationDB ):
     """
 
     connection = self.__getConnection( connection )
-    selectDict = None
+    selectDict = {}
     if condDict:
       for key in condDict.keys():
         if key in self.transRunParams:
