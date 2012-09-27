@@ -116,7 +116,7 @@ class MCReplicationCleaningAgent( AgentModule ):
     if not res['OK']:
       return S_ERROR( "getTransformationFiles for %d: %s" % ( transformationID, res["Message"] ) )
 
-    lfns = res["LFNs"]
+    lfns = [lfn['LFN'] for lfn in res['Value']]
 
     res = self.replicaManager.getReplicas( lfns )
     if not res['OK']:
