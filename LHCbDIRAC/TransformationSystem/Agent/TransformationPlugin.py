@@ -910,32 +910,26 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         secondarySEs = [se for se in existingSEs if se in mandatorySEs]
         if secondarySEs:
           existingSEs = [se for se in existingSEs if se not in secondarySEs]
-          toKeep = minKeep - len( secondarySEs )
-        else:
-          toKeep = minKeep
-        if len( existingSEs ) > toKeep:
+        #print existingSEs, listSEs, minKeep
+        if len( existingSEs ) > minKeep:
           # explicit deletion
           if listSEs:
             # check how  many replicas would be left if we remove from listSEs
             nLeft = len( [se for se in existingSEs if se not in listSEs] )
             # we can delete all replicas in listSEs
-            targetSEs = [se for se in listSEs if se in existingSEs] + \
-                        randomize( [se for se in existingSEs if se not in listSEs] )
-            if nLeft < toKeep:
+            targetSEs = [se for se in listSEs if se in existingSEs]
+            if nLeft < minKeep:
               # we should keep some in listSEs, too bad
-              targetSEs = targetSEs[0:toKeep - nLeft]
+              targetSEs = randomize( targetSEs )[0:minKeep - nLeft]
               self.util.logInfo( "Found %d files that could only be deleted in %d of the requested SEs" % ( len( lfns ),
-                                                                                                         toKeep - nLeft ) )
-            else:
-              targetSEs = targetSEs[0:-toKeep]
+                                                                                                         minKeep - nLeft ) )
           else:
-            # remove all replicas and keep only toKeep
+            # remove all replicas and keep only minKeep
             targetSEs = randomize( existingSEs )
-            if toKeep:
-              targetSEs = targetSEs[0:-toKeep]
+            targetSEs = targetSEs[0:-minKeep]
         elif [se for se in listSEs if se in existingSEs]:
-          nLeft = len( [se for se in existingSEs if not se in listSEs] )
-          self.util.logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ), nLeft, toKeep ) )
+          nLeft = len( [se for se in existingSEs if se not in listSEs] )
+          self.util.logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ), nLeft, minKeep ) )
           self.util.logVerbose( "First files at %s are: %s" % ( str( existingSEs ), str( lfns[0:10] ) ) )
           self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
           continue
