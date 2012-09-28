@@ -18,6 +18,9 @@ from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
 from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
+from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 __RCSID__ = "$Id$"
 
@@ -35,19 +38,16 @@ class Production():
     if lhcbJobIn is not None:
       self.LHCbJob = lhcbJobIn
     else:
-      from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
       self.LHCbJob = LHCbJob( script )
 
     if BKKClientIn is not None:
       self.BKKClient = BKKClientIn
     else:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       self.BKKClient = BookkeepingClient()
 
     if transClientIn is not None:
       self.transClient = transClientIn
     else:
-      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
       self.transClient = TransformationClient()
 
     self.histogramName = self.LHCbJob.opsHelper.getValue( 'Productions/HistogramName',
