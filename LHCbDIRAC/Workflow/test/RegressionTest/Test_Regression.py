@@ -14,7 +14,7 @@ class RegressionTestCase( unittest.TestCase ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    self.j_mc_201060 = LHCbJob( '20160.xml' )
+
 
   def tearDown( self ):
     for fileIn in os.listdir( '.' ):
