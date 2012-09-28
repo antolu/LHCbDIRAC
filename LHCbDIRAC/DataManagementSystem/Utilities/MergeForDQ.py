@@ -351,6 +351,8 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   retVal[ 'OK' ] = False
   retVal[ 'BRUNELHIST' ] = []
   retVal[ 'DAVINCIHIST' ] = []
+  res={}
+  res['OK']=False
 
   fraction = 1.0
   reconstructedRAWFiles, transfID = _fromTransformationDB( bkDict, run, bkClient, tc )
@@ -442,6 +444,13 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
   #
   missing = { 'BRUNELHIST'  : [],
               'DAVINCIHIST' : []}
+  res={}
+  res[ 'BRUNELHIST' ] = []
+  res[ 'DAVINCIHIST' ] = []
+
+  res[ 'BRUNELHIST' ][0]=''
+  res[ 'DAVINCIHIST' ][0]=''
+
 
   for raw in sortList( reconstructedRAWFiles ):
     res = DescendantIsDownloaded( raw, runData , bkClient )
@@ -484,6 +493,7 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
       gLogger.info( _msg % ( str( run ), bkDict[ 'ProcessingPass' ], count_b ) )
       retVal[ 'OK' ] = True
       return ( retVal, res )
+  return ( retVal, res )  
 
 def check_Multiple ( checkDict, lfn ):
   '''
@@ -506,7 +516,7 @@ def check_Multiple ( checkDict, lfn ):
       run = splittedRaw[ -1 ].split( '_' )[ 0 ]
       if not ( run == run_ref ):
         gLogger.error( "Histograms created from MIXED RUNs!!!" )
-        return S_ERROR()
+        return S_OK()
 
   return S_OK()
 
