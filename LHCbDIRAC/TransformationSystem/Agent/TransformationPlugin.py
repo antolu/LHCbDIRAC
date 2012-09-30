@@ -498,7 +498,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if runFlush:
           if not runEvtType.get( paramValue ):
             lfn = runParamLfns[0]
-            res = self.util.getBookkeepingMetadata( [lfn], 'EventTypeId' )
+            res = self.util.getBookkeepingMetadata( [lfn], 'EventType' )
             if res['OK']:
               runEvtType[paramValue] = res['Value'].get( lfn, 90000000 )
               self.util.logVerbose( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
