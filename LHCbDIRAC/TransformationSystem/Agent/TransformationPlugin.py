@@ -220,6 +220,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logInfo( "Starting execution of plugin" )
     delay = self.util.getPluginParam( 'RunDelay', 1 )
+    minNbReplicas = 2
     self._removeProcessedFiles()
     # Get the requested shares from the CS
     backupSE = 'CERN-RAW'
@@ -227,7 +228,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not res['OK']:
       return res
     else:
-      ( rawFraction, cpuShares ) = res['Value']
+      rawFraction, cpuShares = res['Value']
+      outsideFraction = 0.
+      for frac in rawFraction.values():
+        outsideFraction += frac
+      if outsideFraction == 0.:
+        minNbReplicas = 1
 
     res = self.transClient.getTransformation( self.transID )
     if not res['OK']:
@@ -307,8 +313,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       distinctSEs = []
       for lfn in runLfns:
         distinctSEs += [se for se in self.transReplicas.get( lfn, [] ).keys() if se not in distinctSEs and se in activeRAWSEs]
-      if len( distinctSEs ) < 2:
-        self.util.logInfo( "Not found two active candidate SEs for run %d, skipped" % runID )
+      if len( distinctSEs ) < minNbReplicas:
+        self.util.logInfo( "Not found %d active candidate SEs for run %d, skipped" \
+                           % ( minNbReplicas, runID ) )
         continue
       seProbs = {}
       prob = 0.
@@ -316,21 +323,25 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
         backupSE = None
       distinctSEs = sorted( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
-      for se in distinctSEs:
-        prob += rawFraction[se] / len( distinctSEs )
-        seProbs[se] = prob
-      if backupSE:
-        seProbs[backupSE] = 1.
-        distinctSEs.append( backupSE )
-      # get a random number between 0 and 1
-      rand = random.uniform( 0., 1. )
-      strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
-      self.util.logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
-      for se in distinctSEs:
-        if rand <= seProbs[se]:
-          selectedSE = se
-          break
-      self.util.logVerbose( "Selected SE for reconstruction is %s", selectedSE )
+      if not distinctSEs:
+        # If the file is at a single SE, and OK, it must be backupSE
+        selectedSE = backupSE
+      else:
+        for se in distinctSEs:
+          prob += rawFraction[se] / len( distinctSEs )
+          seProbs[se] = prob
+        if backupSE:
+          seProbs[backupSE] = 1.
+          distinctSEs.append( backupSE )
+        # get a random number between 0 and 1
+        rand = random.uniform( 0., 1. )
+        strProbs = ','.join( [' %s:%.3f' % ( se, prob ) for se, prob in seProbs.items()] )
+        self.util.logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
+        for se, prob in seProbs.items():
+          if rand <= prob:
+            selectedSE = se
+            break
+        self.util.logVerbose( "Selected SE for reconstruction is %s", selectedSE )
       if selectedSE:
         runSEDict[runID] = selectedSE
         runUpdate[runID] = True
@@ -354,7 +365,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           continue
       status = self.params['Status']
       self.params['Status'] = 'Flush'
-      lfns = [lfn for lfn in runFileDict[runID] if len( self.transReplicas.get( lfn, [] ) ) >= 2]
+      lfns = [lfn for lfn in runFileDict[runID] \
+              if len( self.transReplicas.get( lfn, [] ) ) >= minNbReplicas]
       if not lfns:
         continue
       notConsidered = [lfn for lfn in runFileDict[runID] if lfn not in lfns]
