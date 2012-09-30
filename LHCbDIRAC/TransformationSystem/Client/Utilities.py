@@ -309,7 +309,7 @@ class PluginUtilities:
       if res['OK']:
         for lfn in res['Value']:
           filesParam[lfn] = res['Value'][lfn]
-          self.filesParam.setdefault( lfn, {} ).update( {param:filesParam[lfn]} )
+          self.filesParam[lfn] = filesParam[lfn]
         else:
           return res
       self.logVerbose( "Obtained BK metadata of %d files in %.3f seconds" % ( len( newLFNs ), time.time() - start ) )
