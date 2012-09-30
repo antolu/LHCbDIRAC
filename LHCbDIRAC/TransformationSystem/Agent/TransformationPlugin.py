@@ -235,12 +235,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if outsideFraction == 0.:
         minNbReplicas = 1
 
-    res = self.transClient.getTransformation( self.transID )
-    if not res['OK']:
-      self.util.logError( "Cannot get information on transformation" )
-      return res
-    else:
-      transType = res['Value']['Type']
+    transType = self.util.getPluginParam( 'Type' )
 
     if transType == 'DataReconstruction':
       fractionToProcess = self.util.getPluginParam( 'FractionToProcess', 1. )
@@ -460,6 +455,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.logInfo( "Starting execution of plugin" )
     allTasks = []
     self._removeProcessedFiles()
+    self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
       self.util.logVerbose( "No data to be processed by plugin" )
       return S_OK( allTasks )
@@ -476,7 +472,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runSites = dict( [ ( r['RunNumber'], r['SelectedSite'] ) for r in res['Value'] if r['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
-    self.util.readCacheFile( self.workDirectory )
     runEvtType = {}
     for run in res['Value']:
       runID = run['RunNumber']

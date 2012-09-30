@@ -295,6 +295,7 @@ if __name__ == "__main__":
   transID = -9999
   pluginParams['TransformationID'] = transID
   pluginParams['Status'] = "Active"
+  pluginParams['Type'] = transType
   # Create a fake transformation client
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
