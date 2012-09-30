@@ -302,7 +302,7 @@ class PluginUtilities:
         for paramValue in self.cachedRunLfns[run]:
           for lfn in self.cachedRunLfns[run][paramValue]:
             self.filesParam[lfn] = paramValue
-    filesParam = dict( zip( lfns, [self.filesParam.get( lfn, {} ).get( param ) for lfn in lfns] ) )
+    filesParam = dict( zip( lfns, [self.filesParam.get( lfn ) for lfn in lfns] ) )
     newLFNs = [lfn for lfn in lfns if not filesParam[lfn]]
     if newLFNs:
       res = self.getBookkeepingMetadata( newLFNs, param )
