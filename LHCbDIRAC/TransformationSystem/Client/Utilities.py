@@ -196,10 +196,12 @@ class PluginUtilities:
     self.logVerbose( "Final plugin param %s: '%s'" % ( name, value ) )
     return value
 
-  def getCPUShares( self , transID, backupSE ):
+  def getCPUShares( self , transID=None, backupSE=None ):
     return self.getShares( transID=transID, backupSE=backupSE )
 
   def getShares( self, section=None, transID=None, backupSE=None ):
+    if not transID:
+      transID = self.transID
     if not section:
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
       res = self.transClient.getTransformation( transID )
