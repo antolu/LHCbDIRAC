@@ -603,9 +603,10 @@ class PluginUtilities:
     """ Group files by run and another BK parameter (e.g. file type or event type)
     """
     runDict = {}
-    if type( lfns ) == type( {} ):
-      lfns = lfns.keys()
-    res = groupByRun( [ fileDict for fileDict in files if fileDict['LFN'] in lfns] )
+    startTime = time.time()
+    lfns = [ fileDict for fileDict in files if fileDict['LFN'] in lfns]
+    res = groupByRun( lfns )
+    self.logVerbose( "Grouped %d files by run in %.1f seconds" % ( len( lfns ), time.time() - startTime ) )
     # no need to query the BK as we have the answer from files
     runGroups = res['Value']
     for runNumber, runLFNs in runGroups.items():
@@ -616,9 +617,12 @@ class PluginUtilities:
         res = self.getFilesParam( runLFNs, param )
         for lfn, paramValue in res['Value'].items():
           runDict[runNumber].setdefault( paramValue, [] ).append( lfn )
+    if param:
+      self.logVerbose( "Grouped %d files by run and %s in %.1f seconds" % ( len( lfns ), param, time.time() - startTime ) )
     return S_OK( runDict )
 
   def groupBySize( self, files, status ):
+    startTime = time.time()
     if not self.groupSize:
       self.groupSize = float( self.getPluginParam( 'GroupSize', 1 ) ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
     requestedSize = self.groupSize
@@ -653,6 +657,7 @@ class PluginUtilities:
       if ( status == 'Flush' ) and taskLfns:
         tasks.append( ( replicaSE, taskLfns ) )
         self.clearCachedFileSize( taskLfns )
+    self.logVerbose( "Grouped %d files by size in %.1f seconds" % ( len( files ), time.time() - startTime ) )
     return S_OK( tasks )
 
   def createTasks( self, storageElementGroups, chunkSize=100 ):
