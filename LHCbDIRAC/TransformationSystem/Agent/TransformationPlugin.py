@@ -461,7 +461,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logInfo( "Starting execution of plugin" )
     allTasks = []
-    self._removeProcessedFiles()
+    if self.util.getPluginParam( "CheckProcessedFiles", False ):
+      self._removeProcessedFiles()
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
       self.util.logVerbose( "No data to be processed by plugin" )
@@ -480,7 +481,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
     runEvtType = {}
-    for run in res['Value']:
+    for run in sorted( res['Value'] ):
       runID = run['RunNumber']
       runStatus = run['Status']
       if transStatus == 'Flush':

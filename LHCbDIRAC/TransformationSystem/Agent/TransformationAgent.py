@@ -178,8 +178,8 @@ class TransformationAgent( DIRACTransformationAgent ):
         dataReplicas.update( newReplicas )
       else:
         self.__logWarn( "Failed to get replicas for %d files" % len( newLFNs ), res['Message'] )
+      self.__logInfo( "Obtained %d replicas from catalog in %.1f seconds" % ( len( newLFNs ), time.time() - startTime ), method='__getDataReplicas' )
     self.__cleanCache()
-    self.__logInfo( "Obtained %d replicas in %.1f seconds" % ( len( dataReplicas ), time.time() - startTime ), method='__getDataReplicas' )
     return S_OK( dataReplicas )
 
   def __cleanCache( self ):
