@@ -155,6 +155,9 @@ class PluginUtilities:
   def logError( self, message, param='' ):
     gLogger.error( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
+  def logException( self, message, param='' ):
+    gLogger.exception( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+
   def setParameters( self, params ):
     self.params = params
     self.transID = params['TransformationID']

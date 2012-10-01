@@ -450,6 +450,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self._groupByReplicas()
 
   def _ByRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
+    try:
+      return self.__byRun( param, plugin, requireFlush )
+    except Exception, x:
+      self.util.logException( "Exception in _ByRun plugin:", x )
+      return S_ERROR( [] )
+
+  def __byRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
     """ Basic plugin for when you want to group files by run
     """
     self.util.logInfo( "Starting execution of plugin" )

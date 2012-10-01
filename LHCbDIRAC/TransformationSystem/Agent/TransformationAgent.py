@@ -127,11 +127,10 @@ class TransformationAgent( DIRACTransformationAgent ):
         res = self.processTransformation( transDict )
         if not res['OK']:
           self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID=transID )
-        else:
-          self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID=transID )
       except Exception, x:
         gLogger.exception( '[%s] %s.execute %s' % ( str( transID ), AGENT_NAME, x ) )
       finally:
+        self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID=transID )
         if transID in self.transInQueue:
           self.transInQueue.remove( transID )
     return S_OK()
@@ -139,14 +138,13 @@ class TransformationAgent( DIRACTransformationAgent ):
   def __getDataReplicas( self, transID, lfns, active=True ):
     """ Redefine base class one
     """
+    startTime = time.time()
     self.__logVerbose( "Getting replicas for %d files" % len( lfns ), method='__getDataReplicas', transID=transID )
     self.lock.acquire()
+    dataReplicas = {}
     try:
       cachedReplicaSets = self.replicaCache.get( transID, {} )
-      dataReplicas = {}
-      newLFNs = []
-      for crs in cachedReplicaSets:
-        cachedReplicas = cachedReplicaSets[crs]
+      for crs, cachedReplicas in cachedReplicaSets.items():
         for lfn in [lfn for lfn in lfns if lfn in cachedReplicas]:
           dataReplicas[lfn] = cachedReplicas[lfn]
         # Remove files from the cache that are not in the required list
@@ -159,13 +157,21 @@ class TransformationAgent( DIRACTransformationAgent ):
     if dataReplicas:
       self.__logVerbose( "ReplicaCache hit for %d out of %d LFNs" % ( len( dataReplicas ), len( lfns ) ),
                          method='__getDataReplicas', transID=transID )
-    newLFNs += [lfn for lfn in lfns if lfn not in dataReplicas]
+    newLFNs = [lfn for lfn in lfns if lfn not in dataReplicas]
     if newLFNs:
       self.__logVerbose( "Getting replicas for %d files from catalog" % len( newLFNs ),
                          method='__getDataReplicas', transID=transID )
       res = DIRACTransformationAgent.__getDataReplicas( self, transID, newLFNs, active=active )
       if res['OK']:
-        newReplicas = res['Value']
+        newReplicas = {}
+        noReplicas = []
+        for lfn in res['Value']:
+          if res['Value'][lfn]:
+            newReplicas[lfn] = res['Value'][lfn]
+          else:
+            noReplicas.append( lfn )
+        if noReplicas:
+          self.__logWarn( "Found %d files without replicas" % len( noReplicas ) )
         self.lock.acquire()
         self.replicaCache.setdefault( transID, {} )[datetime.datetime.utcnow()] = newReplicas
         self.lock.release()
@@ -173,6 +179,7 @@ class TransformationAgent( DIRACTransformationAgent ):
       else:
         self.__logWarn( "Failed to get replicas for %d files" % len( newLFNs ), res['Message'] )
     self.__cleanCache()
+    self.__logInfo( "Obtained %d replicas in %.1f seconds" % ( len( dataReplicas ), time.time() - startTime ), method='__getDataReplicas' )
     return S_OK( dataReplicas )
 
   def __cleanCache( self ):
