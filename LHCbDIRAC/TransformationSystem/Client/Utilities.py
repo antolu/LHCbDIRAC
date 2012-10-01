@@ -233,7 +233,7 @@ class PluginUtilities:
       for se in targetSEs:
         self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
     else:
-      shares = res['Value']
+      shares = normaliseShares( res['Value'] )
       rawFraction = None
       self.logInfo( "Obtained the following target distribution shares (%):" )
       for se in sorted( shares ):
