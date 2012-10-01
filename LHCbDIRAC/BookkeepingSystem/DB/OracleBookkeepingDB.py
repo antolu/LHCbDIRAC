@@ -2061,49 +2061,24 @@ class OracleBookkeepingDB:
 #          result[record[0]] = row
 
 #    #2 type
-    for lfnList in breakListIntoChunks( lfns, 999 ):
-      inputlfns = ''
-      if len(lfnList) == 1:
-        inputlfns = "(%s)" % str(tuple(lfnList))[1:-2]
-      else:
-        inputlfns = "(%s)" % str(tuple(lfnList))[1:-1]
-
-      command = " select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT, \
-      files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, \
-      files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid,\
-      jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity \
-      from files,filetypes,dataquality,jobs where\
-         filename in %s and \
-         jobs.jobid=files.jobid and\
-         files.filetypeid=filetypes.filetypeid and\
-         files.QUALITYID=DataQuality.qualityID " % (inputlfns)
-
-      retVal = self.dbR_.query(command)
-      if not retVal['OK']:
-        result = retVal
-      else:
-        for record in retVal['Value']:
-          row = {'ADLER32':record[1],
-                 'CreationDate':record[2],
-                 'EventStat':record[3],
-                 'FullStat':record[10],
-                 'EventType':record[4],
-                 'FileType':record[5],
-                 'GotReplica':record[6],
-                 'GUID':record[7],
-                 'MD5SUM':record[8],
-                 'FileSize':record[9],
-                 'DQFlag':record[11],
-                 'JobId':record[12],
-                 'RunNumber':record[13],
-                 'InsertTimeStamp':record[14],
-                 'Luminosity':record[15],
-                 'InstLuminosity':record[16]}
-          result[record[0]] = row
-
-    # 3 type
-#    for lfnList in breakListIntoChunks( lfns, 5000 ):
-#      retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData3', [], True, lfnList )
+#    for lfnList in breakListIntoChunks( lfns, 999 ):
+#      inputlfns = ''
+#      if len(lfnList) == 1:
+#        inputlfns = "(%s)" % str(tuple(lfnList))[1:-2]
+#      else:
+#        inputlfns = "(%s)" % str(tuple(lfnList))[1:-1]
+#
+#      command = " select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT, \
+#      files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, \
+#      files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid,\
+#      jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity \
+#      from files,filetypes,dataquality,jobs where\
+#         filename in %s and \
+#         jobs.jobid=files.jobid and\
+#         files.filetypeid=filetypes.filetypeid and\
+#         files.QUALITYID=DataQuality.qualityID " % (inputlfns)
+#
+#      retVal = self.dbR_.query(command)
 #      if not retVal['OK']:
 #        result = retVal
 #      else:
@@ -2125,6 +2100,31 @@ class OracleBookkeepingDB:
 #                 'Luminosity':record[15],
 #                 'InstLuminosity':record[16]}
 #          result[record[0]] = row
+
+    # 3 type
+    for lfnList in breakListIntoChunks( lfns, 5000 ):
+      retVal = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData3', [], True, lfnList )
+      if not retVal['OK']:
+        result = retVal
+      else:
+        for record in retVal['Value']:
+          row = {'ADLER32':record[1],
+                 'CreationDate':record[2],
+                 'EventStat':record[3],
+                 'FullStat':record[10],
+                 'EventType':record[4],
+                 'FileType':record[5],
+                 'GotReplica':record[6],
+                 'GUID':record[7],
+                 'MD5SUM':record[8],
+                 'FileSize':record[9],
+                 'DQFlag':record[11],
+                 'JobId':record[12],
+                 'RunNumber':record[13],
+                 'InsertTimeStamp':record[14],
+                 'Luminosity':record[15],
+                 'InstLuminosity':record[16]}
+          result[record[0]] = row
 #    4 type
 #    for lfn in lfns:
 #      res = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData', [lfn])
@@ -2853,8 +2853,13 @@ and files.qualityid= dataquality.qualityid'
           qualityid = retVal['Value']
         else:
           return retVal
-    return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getRunByQflagAndProcId',
-                                            LongType, [processingid, qualityid])
+    retVal = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunByQflagAndProcId',
+                                              [processingid, qualityid])
+    if not retVal['OK']:
+      return retVal
+    else:
+      result = [ i[0] for i in retVal['Value']]
+    return S_OK(result)
 
   #############################################################################
   def setFilesInvisible(self, lfns):

@@ -30,7 +30,7 @@ procedure getJobInfo(lfn varchar2, a_Cursor out udt_RefCursor);
 procedure insertTag(V_name varchar2, V_tag varchar2);
 function getDataQualityId(name varchar2) return number;
 function getQFlagByRunAndProcId(rnumber number, procid number) return varchar2;
-function getRunByQflagAndProcId(procid number, flag number) return number;
+Procedure getRunByQflagAndProcId(procid number, flag number, a_Cursor out udt_RefCursor);
 procedure getLFNsByProduction(prod number, a_Cursor out udt_RefCursor);
 function getFileID(v_FileName VARCHAR2) RETURN number;
 procedure getJobIdFromInputFiles(v_FileId number, a_Cursor out udt_RefCursor);
@@ -665,18 +665,13 @@ WHEN OTHERS THEN
 ecode := SQLERRM;
 end;
 
-function getRunByQflagAndProcId(procid number, flag number) return number is
-result number;
-ecode number(38);
+Procedure getRunByQflagAndProcId(procid number, flag number, a_Cursor                out udt_RefCursor ) is
 begin
-result:= -1;
 if flag is not null then
-select runnumber into result  from newrunquality where processingid=procid and qualityid=flag;
+open a_Cursor for select runnumber   from newrunquality where processingid=procid and qualityid=flag;
 else
-select runnumber into result  from newrunquality where processingid=procid;
+open a_Cursor for select runnumber   from newrunquality where processingid=procid;
 end if;
-return  result; EXCEPTION WHEN OTHERS THEN
-ecode := SQLERRM;
 end;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
