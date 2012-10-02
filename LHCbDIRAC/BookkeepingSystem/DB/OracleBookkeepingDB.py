@@ -4249,3 +4249,161 @@ and files.qualityid= dataquality.qualityid'
       result = retVal
     return result
 
+  #############################################################################
+  def getListOfFills(self, configName=default,
+                     configVersion=default,
+                     conddescription=default):
+    """
+    It returns a list of fills for a given condition.
+    """
+    result = None
+    condition = ''
+    if configName != default:
+      condition += " and c.configname='%s' " % (configName)
+
+    if configVersion != default:
+      condition += " and c.configversion='%s' " % (configVersion)
+
+    if conddescription != default:
+      retVal = self._getConditionString(conddescription, 'prod')
+      if retVal['OK']:
+        condition += retVal['Value']
+      else:
+        return retVal
+
+    command = "select distinct j.FillNumber from jobs j, productionscontainer prod,\
+     configurations c where \
+    j.configurationid=c.configurationid %s and \
+    prod.production=j.production and j.production<0" % (condition)
+    retVal = self.dbR_.query(command)
+    if not retVal['OK']:
+      result = retVal
+    else:
+      result = S_OK([i[0] for i in retVal['Value']])
+    return result
+
+  #############################################################################
+  def getRunsForFill(self, fillid):
+    """
+    It returns a list of runs for a given FILL
+    """
+
+    result = None
+    command = "select distinct j.runnumber from jobs j where j.production<0 and j.fillnumber=%d" % (fillid)
+    retVal = self.dbR_.query(command)
+    if not retVal['OK']:
+      result = retVal
+    else:
+      result = S_OK([i[0] for i in retVal['Value']])
+    return result
+
+  #############################################################################
+  def getListOfRuns(self, configName=default, configVersion=default,
+                     conddescription=default, processing=default,
+                     evt=default, quality=default):
+    """return the runnumbers for a given dataset"""
+    #### MUST BE REIMPLEMNETED!!!!!!
+    ####
+    ####
+    command = ''
+    if quality.upper().startswith('A'):
+      condition = ''
+      if configName != default:
+        condition += " and bview.configname='%s'" % (configName)
+      if configVersion != default:
+        condition += " and bview.configversion='%s'" % (configVersion)
+
+      if conddescription != default:
+        retVal = self._getConditionString(conddescription, 'pcont')
+        if retVal['OK']:
+          condition += retVal['Value']
+        else:
+          return retVal
+
+      if evt != default:
+        condition += ' and bview.eventtypeid=%d' % (int(evt))
+
+      if processing != default:
+        command = "select /*+ NOPARALLEL(bview) */ distinct rview.runnumber from \
+                   productionscontainer pcont,prodview bview, prodrunview rview \
+                   where pcont.processingid in \
+                      (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                             FROM processing v   START WITH id in \
+                                             (select distinct id from processing where \
+                                             name='" + str(processing.split('/')[1]) + "') \
+                                                CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                       where v.path='" + processing + "') \
+                    and bview.production=pcont.production  and bview.production=rview.production" + condition
+      else:
+        command = "select /*+ NOPARALLEL(bview) */ distinct rview.runnumber from \
+        productionscontainer pcont,prodview bview, prodrunview rview where \
+                   bview.production=pcont.production and bview.production=rview.production " + condition
+    else:
+      condition = ''
+      tables = ''
+      if configName != default:
+        condition += " and c.configname='%s'" % (configName)
+      if configVersion != default:
+        condition += " and c.configversion='%s'" % (configVersion)
+      if condition.find('and c.') >= 0:
+        tables += ',configurations c, jobs j'
+        condition += ' and j.configurationid=c.configurationid '
+
+      if conddescription != default:
+        retVal = self._getConditionString(conddescription, 'pcont')
+        if retVal['OK']:
+          condition += retVal['Value']
+        else:
+          return retVal
+
+      if type(quality) == types.StringType:
+        command = "select QualityId from dataquality where dataqualityflag='%s'" % (quality)
+        res = self.dbR_.query(command)
+        if not res['OK']:
+          gLogger.error('Data quality problem:', res['Message'])
+        elif len(res['Value']) == 0:
+          return S_ERROR('Dataquality is missing!')
+        else:
+          quality = res['Value'][0][0]
+        condition += ' and f.qualityid=' + str(quality)
+      else:
+        if len(quality) > 0:
+          conds = ' ('
+          for i in quality:
+            quality = None
+            command = "select QualityId from dataquality where dataqualityflag='" + str(i) + "'"
+            res = self.dbR_.query(command)
+            if not res['OK']:
+              gLogger.error('Data quality problem:', res['Message'])
+            elif len(res['Value']) == 0:
+              return S_ERROR('Dataquality is missing!')
+            else:
+              quality = res['Value'][0][0]
+            conds += ' f.qualityid=' + str(quality) + ' or'
+          condition += 'and' + conds[:-3] + ')'
+
+      if evt != default:
+        if tables.find('files') < 0:
+          tables += ',files f'
+        condition += ' and f.eventtypeid=%d and j.jobid=f.jobid' % (int(evt))
+        if tables.find('jobs') < 0:
+          tables += ',jobs j'
+
+      if tables.find('files') > 0:
+        condition += " and f.gotreplica='Yes'"
+
+      if processing != default:
+        command = "select distinct j.runnumber from \
+                   productionscontainer pcont %s \
+                   where pcont.processingid in (select v.id from \
+                   (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
+                                             FROM processing v   START WITH id in \
+                                             (select distinct id from processing where name='%s') \
+                                                CONNECT BY NOCYCLE PRIOR  id=parentid) v \
+                       where v.path='%s') and j.production=pcont.production\
+                        %s" % (tables, str(processing.split('/')[1]), processing, condition)
+      else:
+        command = "select distinct j.runnumber from productionscontainer pcont %s where \
+         pcont.production=j.production %s " % (condition)
+    return self.dbR_.query(command)
+

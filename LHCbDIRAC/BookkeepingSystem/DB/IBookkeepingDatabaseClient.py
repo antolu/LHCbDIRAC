@@ -658,3 +658,18 @@ class IBookkeepingDatabaseClient(object):
   def getRunsGroupedByDataTaking(self):
     "more info in the BookkeepingClient.py"
     return self.getManager().getRunsGroupedByDataTaking()
+
+  #############################################################################
+  def getListOfFills(self, configName, configVersion, conddescription):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getListOfFills(configName, configVersion, conddescription)
+
+  #############################################################################
+  def getRunsForFill(self, fillid):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getRunsForFill(fillid)
+
+  #############################################################################
+  def getListOfRuns(self, configName, configVersion, conddescription, processing, evt, quality):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getListOfRuns(configName, configVersion, conddescription, processing, evt, quality)

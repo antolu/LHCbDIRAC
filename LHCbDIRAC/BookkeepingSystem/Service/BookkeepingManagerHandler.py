@@ -1751,3 +1751,44 @@ class BookkeepingManagerHandler(RequestHandler):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.getRunsGroupedByDataTaking()
 
+  #############################################################################
+  types_getListOfFills = [DictType]
+  @staticmethod
+  def export_getListOfFills(in_dict):
+    """
+    It returns a list of FILL numbers for a given Configuration name,
+    Configuration version and data taking description.
+    """
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    return dataMGMT_.getListOfFills(configName, configVersion, conddescription)
+
+  #############################################################################
+  types_getRunsForFill = [LongType]
+  @staticmethod
+  def export_getRunsForFill(fillid):
+    """
+    It returns a list of runs for a given FILL
+    """
+    return dataMGMT_.getRunsForFill(fillid)
+
+  #############################################################################
+  types_getListOfRuns = [DictType]
+  @staticmethod
+  def export_getListOfRuns(in_dict):
+    """return the runnumbers for a given dataset"""
+    result = S_ERROR()
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
+    conddescription = in_dict.get('ConditionDescription', default)
+    processing = in_dict.get('ProcessingPass', default)
+    evt = in_dict.get('EventType', default)
+    quality = in_dict.get('DataQuality', default)
+
+    retVal = dataMGMT_.getListOfRuns(configName, configVersion, conddescription, processing, evt, quality)
+    if not retVal['OK']:
+      result = retVal
+    else:
+      result = S_OK([i[0] for i in retVal['Value']])
+    return result

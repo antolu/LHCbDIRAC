@@ -930,6 +930,36 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getRunsGroupedByDataTaking()
 
+  #############################################################################
+  def getListOfFills(self, in_dict):
+    """
+    It returns a list of FILL numbers for a given Configuration name,
+    Configuration version and data taking description.
+    """
+    server = self.__getServer()
+    return server.getListOfFills(in_dict)
+
+  #############################################################################
+  def getRunsForFill(self, fillid):
+    """
+    It returns a list of runs for a given FILL
+    """
+    server = self.__getServer()
+    try:
+      fill = long(fillid)
+    except ValueError, ex:
+      return S_ERROR(ex)
+    return server.getRunsForFill(fill)
+
+  #############################################################################
+  def getListOfRuns(self, in_dict):
+    """
+    It returns a list of runs for a given conditions.
+    Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass'
+    """
+    server = self.__getServer()
+    return server.getListOfRuns(in_dict)
+
 
 
 
