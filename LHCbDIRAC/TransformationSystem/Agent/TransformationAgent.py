@@ -225,12 +225,16 @@ class TransformationAgent( DIRACTransformationAgent ):
     """
     if lock: self.lock.acquire()
     try:
-      f = open( self.cacheFile, 'w' )
+      # write to a temporary file in order to avoid corrupted files
+      tmpFile = self.cacheFile + '.tmp'
+      f = open( tmpFile, 'w' )
       pickle.dump( self.replicaCache, f )
       f.close()
-      self.log.verbose( "Successfully wrote replica cache file %s" % self.cacheFile )
-    except:
-      self.log.error( "Could not write replica cache file %s" % self.cacheFile )
+      # Now rename the file as it shold
+      os.rename( tmpFile, self.cacheFile )
+      self.__logVerbose( "Successfully wrote replica cache file %s" % self.cacheFile )
+    except Exception, x:
+      self.__logError( "Could not write replica cache file %s: %s" % ( self.cacheFile, x ) )
     finally:
       if lock: self.lock.release()
 
