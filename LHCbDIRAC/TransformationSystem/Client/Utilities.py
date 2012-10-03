@@ -156,7 +156,7 @@ class PluginUtilities:
     gLogger.error( self.plugin + ": [%s] " % str( self.transID ) + message, param )
 
   def logException( self, message, param='' ):
-    gLogger.exception( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+    gLogger.exception( self.plugin + ": [%s] " % str( self.transID ) + message, '', param )
 
   def setParameters( self, params ):
     self.params = params
@@ -303,10 +303,13 @@ class PluginUtilities:
   def getFilesParam( self, lfns, param ):
     start = time.time()
     if not self.filesParam:
+      nCached = 0
       for run in self.cachedRunLfns:
         for paramValue in self.cachedRunLfns[run]:
           for lfn in self.cachedRunLfns[run][paramValue]:
             self.filesParam[lfn] = paramValue
+            nCached += 1
+      self.logVerbose( 'Found %d files cached for param %s' % ( nCached, param ) )
     filesParam = dict( zip( lfns, [self.filesParam.get( lfn ) for lfn in lfns] ) )
     newLFNs = [lfn for lfn in lfns if not filesParam[lfn]]
     if newLFNs:
@@ -315,9 +318,9 @@ class PluginUtilities:
         for lfn in res['Value']:
           filesParam[lfn] = res['Value'][lfn]
           self.filesParam[lfn] = filesParam[lfn]
-        else:
-          return res
-      self.logVerbose( "Obtained BK metadata of %d files in %.3f seconds" % ( len( newLFNs ), time.time() - start ) )
+      else:
+        return res
+      self.logVerbose( "Obtained BK %s of %d files in %.3f seconds" % ( param, len( newLFNs ), time.time() - start ) )
     return S_OK( filesParam )
 
   def getActiveSEs( self, selist ):
@@ -566,7 +569,7 @@ class PluginUtilities:
     if param:
       res = self.getFilesParam( lfns, param )
       if not res['OK']:
-        self.logError( "Error getting BK metadata: %s" % res['Message'] )
+        self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
       lfns = [f for f in paramValues if paramValues[f] == paramValue]
@@ -604,10 +607,11 @@ class PluginUtilities:
     """
     runDict = {}
     startTime = time.time()
+    # no need to query the BK as we have the answer from files
     lfns = [ fileDict for fileDict in files if fileDict['LFN'] in lfns]
+    self.logVerbose( "Starting groupByRunAndParam for %d files, %s" % ( len( lfns ), 'by %s' % param if param else 'no param' ) )
     res = groupByRun( lfns )
     self.logVerbose( "Grouped %d files by run in %.1f seconds" % ( len( lfns ), time.time() - startTime ) )
-    # no need to query the BK as we have the answer from files
     runGroups = res['Value']
     for runNumber, runLFNs in runGroups.items():
       if not param:
@@ -615,8 +619,11 @@ class PluginUtilities:
       else:
         runDict[runNumber] = {}
         res = self.getFilesParam( runLFNs, param )
-        for lfn, paramValue in res['Value'].items():
-          runDict[runNumber].setdefault( paramValue, [] ).append( lfn )
+        if not res['OK']:
+          self.logError( 'Error getting %s for %d files of run %d' % ( param, len( runLFNs ), runNumber ), res['Message'] )
+        else:
+          for lfn, paramValue in res['Value'].items():
+            runDict[runNumber].setdefault( paramValue, [] ).append( lfn )
     if param:
       self.logVerbose( "Grouped %d files by run and %s in %.1f seconds" % ( len( lfns ), param, time.time() - startTime ) )
     return S_OK( runDict )

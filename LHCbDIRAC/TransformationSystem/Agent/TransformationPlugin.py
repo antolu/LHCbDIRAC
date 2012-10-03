@@ -461,7 +461,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logInfo( "Starting execution of plugin" )
     allTasks = []
-    if self.util.getPluginParam( "CheckProcessedFiles", False ):
+    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge'] )
+    if self.params['Type'] not in typesWithNoCheck:
       self._removeProcessedFiles()
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
@@ -473,22 +474,27 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     runDict = res['Value']
     transStatus = self.params['Status']
+    startTime = time.time()
     res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runDict.keys()} )
     if not res['OK']:
       self.util.logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
+    self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( res['Value'] ), time.time() - startTime ) )
     runSites = dict( [ ( r['RunNumber'], r['SelectedSite'] ) for r in res['Value'] if r['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
     runEvtType = {}
-    for run in sorted( res['Value'] ):
+    nRunsLeft = len( res['Value'] )
+    for run in sorted( res['Value'], cmp=( lambda d1, d2: d1['RunNumber'] - d2['RunNumber'] ) ):
       runID = run['RunNumber']
+      self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
+      nRunsLeft -= 1
       runStatus = run['Status']
       if transStatus == 'Flush':
         runStatus = 'Flush'
       paramDict = runDict.get( runID, {} )
       targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
-      for paramValue in sorted( paramDict.keys() ):
+      for paramValue in sorted( paramDict ):
         if paramValue:
           paramStr = " (%s : %s) " % ( param, paramValue )
         else:
@@ -538,8 +544,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
             self.util.logInfo( "All RAW files (%d) ready for run %d%s- Flushing %d files" % ( rawFiles,
-                                                                                           runID,
-                                                                                           paramStr,
+                                                                                           runID, paramStr,
                                                                                            len( runParamReplicas ) ) )
             status = 'Flush'
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
@@ -547,11 +552,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
         self.params['Status'] = status
         # Now calling the helper plugin
+        startTime = time.time()
         res = eval( 'self._%s()' % plugin )
+        self.util.logVerbose( "Executed helper plugin %s for %d files (Run %d%s) in %.1f seconds" % ( plugin,
+                                                                                                      len( self.data ), runID,
+                                                                                                      paramStr,
+                                                                                                      time.time() - startTime ) )
         self.params['Status'] = transStatus
         if not res['OK']:
           return res
         tasks = res['Value']
+        self.util.logVerbose( "Created %d tasks for run %d%s" % ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
         # Cache the left-over LFNs
         taskLfns = []
