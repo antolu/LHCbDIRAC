@@ -1499,7 +1499,7 @@ procedure getRunFiles(v_runNumber number, a_Cursor out udt_RefCursor)
 is
 begin
 open a_Cursor for
-select f.filename, f.gotreplica, f.filesize,f.guid
+select f.filename, f.gotreplica, f.filesize,f.guid, f.luminosity, f.INSTLUMINOSITY, f.eventstat, f.fullstat
 from jobs j ,files f, filetypes ft
 where j.jobid=f.jobid and ft.filetypeid=f.filetypeid and ft.name='RAW' and  j.production<0 and j.runnumber=v_runNumber;
 end;

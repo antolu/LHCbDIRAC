@@ -1325,7 +1325,14 @@ class OracleBookkeepingDB:
     if res['OK']:
       dbResult = res['Value']
       for record in dbResult:
-        value[record[0]] = {'GotReplica':record[1], 'FileSize':record[2], 'GUID':record[3]}
+        value[record[0]] = {'GotReplica':record[1],
+                            'FileSize':record[2],
+                            'GUID':record[3],
+                            'Luminosity':record[4],
+                            'InstLuminosity':record[5],
+                            'EventStat':record[6],
+                            'FullStat':record[7]
+                            }
       result = S_OK(value)
     else:
       result = res
@@ -4340,7 +4347,7 @@ and files.qualityid= dataquality.qualityid'
                    bview.production=pcont.production and bview.production=rview.production " + condition
     else:
       condition = ''
-      tables = ''
+      tables = ',files f'
       if configName != default:
         condition += " and c.configname='%s'" % (configName)
       if configVersion != default:
@@ -4383,8 +4390,6 @@ and files.qualityid= dataquality.qualityid'
           condition += 'and' + conds[:-3] + ')'
 
       if evt != default:
-        if tables.find('files') < 0:
-          tables += ',files f'
         condition += ' and f.eventtypeid=%d and j.jobid=f.jobid' % (int(evt))
         if tables.find('jobs') < 0:
           tables += ',jobs j'
