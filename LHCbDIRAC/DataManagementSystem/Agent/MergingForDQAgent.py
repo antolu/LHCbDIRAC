@@ -52,6 +52,8 @@ from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ  import GetRuns, GetPro
   MergeRun, Finalization
 
 from  xml.dom import minidom
+import datetime
+import time
 
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
 __RCSID__  = "$Id: $"
@@ -358,6 +360,15 @@ class MergingForDQAgent( AgentModule ):
                     #Starting the three step Merging process
                     _msg = '=======================Starting Merging Process for run %s========================'
                     gLogger.info( _msg % run )
+                    res = self.bkClient.getRunInformations(run)
+                    run_end = time.mktime(res['Value']['RunEnd'].timetuple())
+                    now = time.mktime(datetime.datetime.utcnow().timetuple())
+                    if (int(now-run_end)/86400 < 1):
+                      gLogger.error("Run %s not yet finished"%run)
+                      continue
+                    else:
+                      delta = int((now-run_end)/86400)
+                      gLogger.info("Time after EndRun %s"%delta)
                     res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , 
                                     resProdId['prodId'], self.addFlag, self.testMode, self.specialMode,
                                     self.mergeExeDir, self.mergeStep1Command, self.mergeStep2Command, 
