@@ -371,31 +371,55 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
 
   countRAW = int( len( reconstructedRAWFiles ) * fraction )
   countBrunel = len( runData[ 'BRUNELHIST' ] )
-
-  count_b = 0
-  count_d = 0
-
+  
+  counter = 0
   descendants = bkClient.getFileDescendants( reconstructedRAWFiles, 9 )
   gLogger.info( "=== Performing check for multiple run in RAW ancestors ===" )
+  descendants_cleaned={}
+  for raw in reconstructedRAWFiles:
+    if not raw in descendants[ 'Value' ][ 'Successful' ].keys(): continue
+    descendants_cleaned[raw]=[]
+    for brunel_lfn in runData[ 'BRUNELHIST' ]:
+      if brunel_lfn in descendants[ 'Value' ][ 'Successful' ][ raw ]:
+        descendants_cleaned[raw].append(brunel_lfn)
+        #Check for file mde from multiple run RAWs. Only for Brunel histograms.
+        ancestors = bkClient.getFileAncestors( brunel_lfn, 2 )
+        res = check_Multiple( ancestors, brunel_lfn )
+        if not res['OK']:
+          return ( retVal, res )
+    for davinci_lfn in runData[ 'DAVINCIHIST' ]:
+      if davinci_lfn in descendants[ 'Value' ][ 'Successful' ][ raw ]:
+        descendants_cleaned[raw].append(davinci_lfn)
+    if len(descendants_cleaned[raw])==2:
+      counter=counter + 1
 
-  for rawDescendants in descendants[ 'Value' ][ 'Successful' ].keys():
-    for lfn in descendants[ 'Value' ][ 'Successful' ][ rawDescendants ]:
 
-      if lfn.endswith( ".root" ):
-        if  ( string.find( lfn, '/Brunel_' ) != -1 ):
-          ancestors = bkClient.getFileAncestors( lfn, 2 )
-          res = check_Multiple( ancestors, lfn )
-          if res[ 'OK' ]:
-            count_b = count_b + 1
-          else:
-            return ( retVal, res )
-        if  ( string.find( lfn, '/DaVinci_' ) != -1 ):
-          ancestors = bkClient.getFileAncestors( lfn, 2 )
-          res = check_Multiple( ancestors, lfn )
-          if res[ 'OK' ]:
-            count_d = count_d + 1
-          else:
-            return ( retVal, res )
+#  count_b = 0
+#  count_d = 0
+
+##  descendants = bkClient.getFileDescendants( reconstructedRAWFiles, 9 )
+#  gLogger.info( "=== Performing check for multiple run in RAW ancestors ===" )
+  
+  
+
+#  for rawDescendants in descendants[ 'Value' ][ 'Successful' ].keys():
+#    for lfn in descendants[ 'Value' ][ 'Successful' ][ rawDescendants ]:
+
+#      if lfn.endswith( ".root" ):
+#        if  ( string.find( lfn, '/Brunel_' ) != -1 ):
+#          ancestors = bkClient.getFileAncestors( lfn, 2 )
+#          res = check_Multiple( ancestors, lfn )
+#          if res[ 'OK' ]:
+#            count_b = count_b + 1
+#          else:
+#            return ( retVal, res )
+#        if  ( string.find( lfn, '/DaVinci_' ) != -1 ):
+#          ancestors = bkClient.getFileAncestors( lfn, 2 )
+#          res = check_Multiple( ancestors, lfn )
+#          if res[ 'OK' ]:
+#            count_d = count_d + 1
+#          else:
+#            return ( retVal, res )
 
   # Make sure enough files have been reconstructed in the run.
 
@@ -418,12 +442,11 @@ def VerifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , spe
       #
       # New 95% or hist = RAW - 1 selection
       #
-
-      if ( countBrunel < 0.95 * countRAW ) and ( countBrunel < ( countRAW - 1 ) ):
+      if ( counter < 0.95 * countRAW ) and ( counter < ( countRAW - 1 ) ):
         gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. Trying to count the number of histogram from the RAW descendants." % ( run, bkDict['ProcessingPass'], int( countRAW ), int( countBrunel ) ) )
-        gLogger.info( "Found %s BRUNELHIST descendants." % count_b )
-        gLogger.info( "Found %s DAVINCIHIST descendants." % count_d )
-        if ( count_b == countRAW ) and ( count_d == countRAW ):
+        gLogger.info( "Found %s BRUNELHIST descendants." % counter )
+        gLogger.info( "Found %s DAVINCIHIST descendants." % counter )
+        if ( counter == countRAW ):
           alt_counting = True
         else:
           _msg = "Run %s in pass %s is not completed. Number of RAW = %d"
