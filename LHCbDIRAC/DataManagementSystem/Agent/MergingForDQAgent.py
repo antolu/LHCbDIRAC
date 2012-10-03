@@ -48,8 +48,8 @@ from DIRAC.FrameworkSystem.Client.NotificationClient      import NotificationCli
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment       import getProjectEnvironment
-from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ  import GetRuns, GetProductionId, BuildLFNs, \
-  MergeRun, Finalization
+from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ  import getRuns, getProductionId, buildLFNs, \
+  mergeRun, finalization
 
 from  xml.dom import minidom
 import datetime
@@ -166,8 +166,8 @@ class MergingForDQAgent( AgentModule ):
       evtStr = string.join( typeDict.split(), "" )
       ll = evtStr.split( "," )
       self.evtTypeDict = {}
-      for t in ll:
-        s = t.split( ":" )
+      for tt in ll:
+        s = tt.split( ":" )
         self.evtTypeDict[s[0]] = s[1]
     configuration['evtTypeDict'] = True
 
@@ -178,26 +178,25 @@ class MergingForDQAgent( AgentModule ):
       configuration['histTypeList'] = True
 
     passes = gConfig.getValue( "%s/ProcessingPasses" % options )
-    self.ProcessingPasses = []
+    self.processingPasses = []
     if passes:
       passesStr = string.join( passes.split(), "" )
       temp = passesStr.split( "," )
       for ll in temp:
         if ll.find( 'RealData' ):
           ll = ll.replace( 'RealData', 'Real Data' )
-          self.ProcessingPasses.append( ll )
+          self.processingPasses.append( ll )
       configuration['ProcessingPasses'] = True
 
 
     conditions = gConfig.getValue( "%s/DataTakingConditions" % options )
     if conditions:
       conditionsStr = string.join( conditions.split(), "" )
-      self.DataTakingConditions = conditionsStr.split( "," )
+      self.dataTakingConditions = conditionsStr.split( "," )
       configuration['DataTakingConditions'] = True
 
 
     self.testMode = gConfig.getValue( "%s/testMode" % options )
-    print "testmode value ", self.testMode, type(self.testMode) 
     if self.testMode: 
       configuration['testMode'] = True
     self.specialMode = gConfig.getValue( "%s/specialMode" % options )
@@ -220,7 +219,8 @@ class MergingForDQAgent( AgentModule ):
         gLogger.error( '%s not specified in CS' % confVar )
         gLogger.error( '---------------------------------' )
         nConf = True
-    if nConf: return S_ERROR()
+    if nConf: 
+      return S_ERROR()
 
     gLogger.info( '=====All informations from dirac.cfg retrieved=====' )
 
@@ -246,8 +246,6 @@ class MergingForDQAgent( AgentModule ):
 
     self.bkClient = BookkeepingClient()
 
-    self.exitStatus = 2
-
     return S_OK()
 
   def execute( self ):
@@ -269,26 +267,26 @@ class MergingForDQAgent( AgentModule ):
     lfns = {}
 
     #Loop over all the possible bk queries the can be build given the configurations present in dirac.cfg
-    for n in self.cfgNameList:
+    for name in self.cfgNameList:
       gLogger.info( self.cfgNameList )
-      for v in self.cfgVersionList:
+      for version in self.cfgVersionList:
         gLogger.info( self.cfgVersionList )
-        for e in self.evtTypeDict.values():
-          gLogger.info( e )
-          for p in self.ProcessingPasses:
-            gLogger.info( p )
-            for d in self.DataTakingConditions:
-              gLogger.info( d )
-              for q in self.dqFlagList:
-                gLogger.info( q )
-                bkDict_brunel[ 'ConfigName' ] = n
-                bkDict_brunel[ 'ConfigVersion' ] = v
-                bkDict_brunel[ 'EventTypeId' ] = e
+        for event in self.evtTypeDict.values():
+          gLogger.info( event )
+          for processing in self.processingPasses:
+            gLogger.info( processing )
+            for dataTaking in self.dataTakingConditions:
+              gLogger.info( dataTaking )
+              for dqFlag in self.dqFlagList:
+                gLogger.info( dqFlag )
+                bkDict_brunel[ 'ConfigName' ] = name
+                bkDict_brunel[ 'ConfigVersion' ] = version
+                bkDict_brunel[ 'EventTypeId' ] = event
                 bkDict_brunel['FileType'] = self.histTypeList[0]
-                bkDict_brunel[ 'EventTypeDescription' ] = evtTypeRef[e]
-                bkDict_brunel[ 'ProcessingPass' ] = p
-                bkDict_brunel['DataTakingConditions'] = d
-                bkDict_brunel['DataQualityFlag'] = q
+                bkDict_brunel[ 'EventTypeDescription' ] = evtTypeRef[event]
+                bkDict_brunel[ 'ProcessingPass' ] = processing
+                bkDict_brunel['DataTakingConditions'] = dataTaking
+                bkDict_brunel['DataQualityFlag'] = dqFlag
 
 
 
@@ -299,7 +297,7 @@ class MergingForDQAgent( AgentModule ):
                 gLogger.info( '==================================================' )
                 gLogger.info( '==================================================' )
                 #Retrieve the of file and order them per run
-                res_0 = GetRuns( bkDict_brunel, self.bkClient )
+                res_0 = getRuns( bkDict_brunel, self.bkClient )
                 gLogger.info( "Number of Runs found %s" % len( res_0.keys() ) )
 
                 bkDict_davinci = bkDict_brunel
@@ -314,7 +312,7 @@ class MergingForDQAgent( AgentModule ):
                 gLogger.info( '==================================================' )
 
                 #Retrieve the of file and order them per run
-                res_1 = GetRuns( bkDict_davinci, self.bkClient )
+                res_1 = getRuns( bkDict_davinci, self.bkClient )
                 gLogger.info( "Number of Runs found %s" % len( res_1.keys() ) )
 
                 #If the number of BrunelHist and DaVinciHist is not equal it skips the run
@@ -323,21 +321,22 @@ class MergingForDQAgent( AgentModule ):
                 else:
                   for run in res_0.keys():
                     iD = self.bkClient.getProcessingPassId( bkDict_brunel[ 'ProcessingPass' ] )
-                    q = self.bkClient.getRunAndProcessingPassDataQuality( run, iD['Value'] )
-                    if q['OK']:
+                    quality = self.bkClient.getRunAndProcessingPassDataQuality( run, iD['Value'] )
+                    if quality['OK']:
                       gLogger.info( "Run %s has already been flagged skipping" )
                       continue
                     
-                    resProdId  = GetProductionId(run, p, e , self.bkClient)
+                    resProdId  = getProductionId(run, processing, event , self.bkClient)
                     if not resProdId['OK']:
-                      gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(run,p))
+                      gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(run , processing))
                       continue
-                    lfns = BuildLFNs( bkDict_brunel, run, resProdId['prodId'], self.addFlag )
+                    lfns = buildLFNs( bkDict_brunel, run, resProdId['prodId'], self.addFlag )
                     #If the LFN is already in the BK it will be skipped
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
                     if res['Value']:
                       if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
+                        
                         gLogger.info( _msg % str( lfns['DATA'] ) )
                         continue
                     #log directory that will be uploaded 
@@ -369,9 +368,9 @@ class MergingForDQAgent( AgentModule ):
                     else:
                       delta = int((now-run_end)/86400)
                       gLogger.info("Time after EndRun %s"%delta)
-                    res = MergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , 
+                    res = mergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , 
                                     resProdId['prodId'], self.addFlag, self.testMode, self.specialMode,
-                                    self.mergeExeDir, self.mergeStep1Command, self.mergeStep2Command, 
+                                    self.mergeStep1Command, self.mergeStep2Command, 
                                     self.mergeStep3Command,self.brunelCount, self.daVinciCount, 
                                     self.logFile, self.logFileName, self.environment )
                     #if the Merging process went fine the Finalization method is called
@@ -382,7 +381,7 @@ class MergingForDQAgent( AgentModule ):
                       '''
                       #gLogger.info("Finalization")
                       #continue
-                      res = Finalization( self.homeDir, logDir, lfns, res['OutputFile'], 
+                      res = finalization( self.homeDir, logDir, lfns, res['OutputFile'], 
                                           ( 'Brunel_DaVinci_%s.log' % run ), inputData, 
                                           run, bkDict_brunel, rootVersion )
                       if res['OK']:
@@ -393,7 +392,7 @@ class MergingForDQAgent( AgentModule ):
                         outMess = "**********************************************************************************************************************************\n"
                         outMess = outMess + "\nThis is an automatic message:\n"
                         outMess = outMess + "\n**********************************************************************************************************************************\n"
-                        outMess = outMess + '\nRun: %s\n Processing Pass: %s\n Stream: %s\n DataTaking Conditions: %s\n\n' % ( str( run ), p, evtTypeRef[e], d )
+                        outMess = outMess + '\nRun: %s\n Processing Pass: %s\n Stream: %s\n DataTaking Conditions: %s\n\n' % ( str( run ), processing, evtTypeRef[event], dataTaking )
                         xmldoc = minidom.parse( res['XML'] )
                         node = xmldoc.getElementsByTagName( 'Replica' )[0]
                         web = node.attributes['Name'].nodeValue
@@ -401,24 +400,22 @@ class MergingForDQAgent( AgentModule ):
                         outMess = outMess + '\nLocation of logfile %s\n' % str( web )
                         outMess = outMess + "\n**********************************************************************************************************************************"
                         notifyClient = NotificationClient()
-                        subject = 'New %s merged ROOT file for run %s ready' % ( evtTypeRef[e], str( run ) )
+                        subject = 'New %s merged ROOT file for run %s ready' % ( evtTypeRef[event], str( run ) )
 
                         res = notifyClient.sendMail( self.mailAddress, subject, outMess, self.senderAddress, localAttempt = False )
 
-                        #res = notifyClient.sendMail( 'falabella@fe.infn.it', subject, outMess, self.senderAddress, localAttempt = False )
-
                         #Cleaning of all the local files and directories.
                         removal = self.homeDir + '*'
-                        r = glob.glob( removal )
-                        for i in r:
+                        toremove = glob.glob( removal )
+                        for i in toremove:
                           if os.path.isdir( i ) == True:
                             shutil.rmtree( i )
                           else:
                             os.remove( i )
                       else:
                         removal = self.homeDir + '*'
-                        r = glob.glob( removal )
-                        for i in r:
+                        toremove = glob.glob( removal )
+                        for i in toremove:
                           if os.path.isdir( i ) == True:
                             shutil.rmtree( i )
                           else:
@@ -426,8 +423,4 @@ class MergingForDQAgent( AgentModule ):
                         DIRAC.exit( 2 )
 
                   else: gLogger.error( 'The number of runs selected by the bkQuery for %s in diffent from the one selected by the bkQuery for %s' % ( self.histTypeList[0], self.histTypeList[1] ) )
-
-    if self.exitStatus:
-      gLogger.info( 'No file available for the selected bkQueries' )
-
     return S_OK()
