@@ -227,6 +227,19 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     """
     return database.setRunsMetadata( runID, metadataDict )
 
+  types_getRunsMetadata = [[LongType, IntType]]
+  def export_getRunsMetadata( self, runID ):
+    """ retrieve run metadata
+    """
+    return database.getRunsMetadata( runID )
+
+  types_deleteRunsMetadata = [[LongType, IntType]]
+  def export_deleteRunsMetadata( self, runID ):
+    """ delete run metadata
+    """
+    return database.deleteRunsMetadata( runID )
+
+
   types_getRunsInCache = []
   def export_getRunsInCache( self ):
     """ gets what's in
