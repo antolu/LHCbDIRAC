@@ -114,7 +114,7 @@ class PluginUtilities:
   """
   Utility class used by plugins
   """
-  def __init__( self, plugin, transClient, replicaManager, bkClient, rmClient, resourceStatus, debug ):
+  def __init__( self, plugin, transClient, replicaManager, bkClient, rmClient, resourceStatus, debug, transInThread ):
     self.plugin = plugin
     self.transClient = transClient
     self.bkClient = bkClient
@@ -136,31 +136,34 @@ class PluginUtilities:
     self.transRunFiles = {}
     self.groupSize = 0
     self.maxFiles = 0
+    self.transInThread = transInThread
+    self.transString = ''
 
   def logVerbose( self, message, param='' ):
     if self.debug:
-      gLogger.info( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+      gLogger.info( '(V)' + self.transString + message, param )
     else:
-      gLogger.verbose( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+      gLogger.verbose( self.transString + message, param )
 
   def logDebug( self, message, param='' ):
-    gLogger.debug( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+    gLogger.debug( self.transString + message, param )
 
   def logInfo( self, message, param='' ):
-    gLogger.info( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+    gLogger.info( self.transString + message, param )
 
   def logWarn( self, message, param='' ):
-    gLogger.warn( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+    gLogger.warn( self.transString + message, param )
 
   def logError( self, message, param='' ):
-    gLogger.error( self.plugin + ": [%s] " % str( self.transID ) + message, param )
+    gLogger.error( self.transString + message, param )
 
   def logException( self, message, param='' ):
-    gLogger.exception( self.plugin + ": [%s] " % str( self.transID ) + message, '', param )
+    gLogger.exception( self.transString + message, '', param )
 
   def setParameters( self, params ):
     self.params = params
     self.transID = params['TransformationID']
+    self.transString = self.transInThread.get( self.transID, ' [None] [None] ' ) + '%s: ' % self.plugin
 
   def setDebug( self, val ):
     self.debug = val
@@ -511,7 +514,7 @@ class PluginUtilities:
     alreadyCompleted = []
     fileTargetSEs = {}
     for lfn in lfns:
-      existingSEs = [se for se in replicas.get( lfn, {} ).keys() if not isFailover( se )]
+      existingSEs = [se for se in replicas.get( lfn, [] ) if not isFailover( se )]
       if not existingSEs:
         self.logWarn( 'File found without replicas', lfn )
         continue

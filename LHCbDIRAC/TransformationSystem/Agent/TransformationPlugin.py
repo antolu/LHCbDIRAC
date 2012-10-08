@@ -19,7 +19,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __init__( self, plugin,
                 transClient=None, replicaManager=None,
                 bkkClient=None, rmClient=None, rss=None,
-                debug=False ):
+                debug=False, transInThread=None ):
     """ The clients can be passed in.
     """
     DIRACTransformationPlugin.__init__( self, plugin, transClient=transClient, replicaManager=replicaManager )
@@ -49,13 +49,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transReplicas = {}
     self.transFiles = []
     self.transID = None
-    self.util = PluginUtilities( plugin, self.transClient, self.rm, self.bkClient, self.rmClient, self.resourceStatus, debug )
+    self.debug = debug
+    self.util = PluginUtilities( plugin, self.transClient, self.rm, self.bkClient,
+                                 self.rmClient, self.resourceStatus, debug,
+                                 transInThread if transInThread else {} )
 
   def setInputData( self, data ):
     """
-    self.transReplicas are the replicas of the transformation files.
+    self.transReplicas are the replica location of the transformation files.
     However if some don't have a replica, it is not in this dictionary
-    self.transReplicas[lfn] == { SE1:PFN1, SE2:PFN2...}
+    self.transReplicas[lfn] == [ SE1, SE2...]
     """
     # data is a synonym as used in DIRAC
     self.transReplicas = data.copy()
@@ -106,6 +109,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.pluginCallback = callback
 
   def setDebug( self, val=True ):
+    self.debug = val
     self.util.setDebug( val )
 
   def _removeProcessedFiles( self ):
@@ -307,7 +311,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runLfns = runFileDict[runID]
       distinctSEs = []
       for lfn in runLfns:
-        distinctSEs += [se for se in self.transReplicas.get( lfn, [] ).keys() if se not in distinctSEs and se in activeRAWSEs]
+        distinctSEs += [se for se in self.transReplicas.get( lfn, {} ) if se not in distinctSEs and se in activeRAWSEs]
       if len( distinctSEs ) < minNbReplicas:
         self.util.logInfo( "Not found %d active candidate SEs for run %d, skipped" \
                            % ( minNbReplicas, runID ) )
@@ -330,9 +334,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           distinctSEs.append( backupSE )
         # get a random number between 0 and 1
         rand = random.uniform( 0., 1. )
-        strProbs = ','.join( [' %s:%.3f' % ( se, prob ) for se, prob in seProbs.items()] )
+        strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
         self.util.logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
-        for se, prob in seProbs.items():
+        for se in distinctSEs:
+          prob = seProbs[se]
           if rand <= prob:
             selectedSE = se
             break
@@ -447,9 +452,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Plugin grouping files at same sites based on number of files,
         used for example for WG productions
     """
-    return self._groupByReplicas()
+    status = self.params['Status']
+    groupSize = self.util.getPluginParam( 'GroupSize', 10 )
+    tasks = []
+    # Group files by SE
+    for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
+      tasksLfns = breakListIntoChunks( lfns, groupSize )
+      # Create tasks based on the group size
+      for taskLfns in tasksLfns:
+        if ( status == 'Flush' ) or ( len( taskLfns ) >= groupSize ):
+          tasks.append( ( replicaSE, taskLfns ) )
+    return S_OK( tasks )
 
   def _ByRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
+    if self.debug:
+      return self.__byRun( param, plugin, requireFlush )
     try:
       return self.__byRun( param, plugin, requireFlush )
     except Exception, x:
@@ -485,7 +502,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     inputData = self.transReplicas.copy()
     runEvtType = {}
     nRunsLeft = len( res['Value'] )
-    for run in sorted( res['Value'], cmp=( lambda d1, d2: d1['RunNumber'] - d2['RunNumber'] ) ):
+    for run in sorted( res['Value'], cmp=( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
       runID = run['RunNumber']
       self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
@@ -525,10 +542,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             runFlush = False
         runParamReplicas = {}
         for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
-          runParamReplicas[lfn ] = {}
-          for se in inputData[lfn]:
-            if not isArchive( se ):
-              runParamReplicas[lfn][se] = inputData[lfn][se]
+          runParamReplicas[lfn ] = [se for se in inputData[lfn] if not isArchive( se )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
@@ -671,6 +685,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
     if forceRun and runFileDict.pop( 0, None ):
       self.util.logInfo( "Removing run #0, which means it was not set yet" )
+    if not runFileDict:
+      return S_OK( [] )
 
     # For each of the runs determine the destination of any previous files
     runSEDict = {}
@@ -1051,7 +1067,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
       productions['LastCall_%s' % self.transID] = now
       self.util.setCachedProductions( productions )
-      replicaGroups = self._getFileGroups( self.data )
+      replicaGroups = getFileGroups( self.data )
       storageElementGroups = {}
       newGroups = {}
       for replicaSEs, lfns in replicaGroups.items():
@@ -1085,7 +1101,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           for prod in sorted( prods ):
             if not lfnsToCheck:
               break
-            res = self.bkClient.getFileDescendents( lfnsToCheck, production=prod, depth=1 )
+            res = self.bkClient.getFileDescendants( lfnsToCheck, production=prod, depth=1 )
             if res['OK']:
               for lfn in [lfn for lfn in lfnsToCheck if lfn in res['Value']['Successful']]:
                 lfnsNotProcessed[lfn].remove( procPass )

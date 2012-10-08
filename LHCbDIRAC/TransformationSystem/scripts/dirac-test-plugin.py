@@ -156,7 +156,9 @@ class fakeClient:
       if res['OK']:
         for lfn, ses in res['Value']['Successful'].items():
           if ses:
-            replicas[lfn] = ses
+            replicas[lfn] = sorted( ses )
+      else:
+        print "Error getting replicas of %d files:" % len( lfns ), res['Message']
     print "Obtained replicas of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime )
     return ( files, replicas )
 
@@ -332,7 +334,7 @@ if __name__ == "__main__":
       i += 1
       location = []
       for lfn in task[1]:
-        l = ','.join( sortList( replicas[lfn].keys() ) )
+        l = ','.join( sortList( replicas[lfn] ) )
         #print "LFN", lfn, l
         if not l in location:
           location.append( l )
