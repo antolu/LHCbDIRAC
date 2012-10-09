@@ -106,8 +106,8 @@ class TransformationAgent( DIRACTransformationAgent ):
     """ error """
     gLogger.error( self.__threadForTrans( transID ) + method + ' ' + message, param )
 
-  def __logException( self, message, param='', method="execute", transID='None' ):
-    gLogger.exception( self.__threadForTrans( transID ) + method + ' ' + message, '', param )
+  def __logException( self, message, param='', lException=False, method="execute", transID='None' ):
+    gLogger.exception( self.__threadForTrans( transID ) + method + ' ' + message, param, lException )
 
   def execute( self ):
     """ Just puts threads in the queue
@@ -143,8 +143,8 @@ class TransformationAgent( DIRACTransformationAgent ):
         res = self.processTransformation( transDict )
         if not res['OK']:
           self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID=transID )
-      except Exception, x:
-        self.__logException( '', x, transID=transID )
+      except Exception:
+        self.__logException( '', transID=transID )
       finally:
         if not transID:
           transID = 'None'
@@ -190,8 +190,8 @@ class TransformationAgent( DIRACTransformationAgent ):
             cachedReplicaSets[crs].pop( cacheLfn, None )
       # Add what is left as new files
       newLFNs += lfns
-    except Exception, x:
-      self.__logException( "Exception when browsing cache", x, method=method, transID=transID )
+    except Exception:
+      self.__logException( "Exception when browsing cache", method=method, transID=transID )
       pass
     finally:
       self.__releaseLock( transID=transID, method=method )
@@ -254,16 +254,16 @@ class TransformationAgent( DIRACTransformationAgent ):
         # Remove empty transformations
         if not self.replicaCache[transID]:
           self.replicaCache.pop( transID )
-    except Exception, x:
-      self.__logError( "Exception when cleaning replica cache: %s" % str( x ) )
+    except Exception:
+      self.__logException( "Exception when cleaning replica cache:" )
     finally:
       self.__releaseLock( method=method )
 
     # Write the cache file
     try:
       self.__writeCache()
-    except Exception, x:
-      self.__logException( "While writing replica cache", x )
+    except Exception:
+      self.__logException( "While writing replica cache" )
 
   def __readCache( self ):
     """ Reads from the cache
@@ -273,8 +273,8 @@ class TransformationAgent( DIRACTransformationAgent ):
       self.replicaCache = pickle.load( cacheFile )
       cacheFile.close()
       self.__logInfo( "Successfully loaded replica cache from file %s" % self.cacheFile )
-    except Exception, x:
-      self.__logException( "Failed to load replica cache from file %s" % self.cacheFile, x, method='__readCache' )
+    except Exception:
+      self.__logException( "Failed to load replica cache from file %s" % self.cacheFile, method='__readCache' )
       self.replicaCache = {}
 
   def __writeCache( self, force=False ):
@@ -308,8 +308,8 @@ class TransformationAgent( DIRACTransformationAgent ):
       os.rename( tmpFile, self.cacheFile )
       self.__logVerbose( "Successfully wrote replica cache file %s in %.1f seconds" \
                         % ( self.cacheFile, time.time() - startTime ), method=method )
-    except Exception, x:
-      self.__logException( "Could not write replica cache file %s" % self.cacheFile, x, method=method )
+    except Exception:
+      self.__logException( "Could not write replica cache file %s" % self.cacheFile, method=method )
     finally:
       if lock:
         self.__releaseLock( method=method )
@@ -321,8 +321,8 @@ class TransformationAgent( DIRACTransformationAgent ):
     """
     try:
       plugModule = __import__( self.pluginLocation, globals(), locals(), ['TransformationPlugin'] )
-    except Exception, x:
-      gLogger.exception( "%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME, '', x )
+    except Exception:
+      gLogger.exception( "%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME )
       return S_ERROR()
     try:
       oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
@@ -332,8 +332,8 @@ class TransformationAgent( DIRACTransformationAgent ):
                                                                rmClient=self.rmClient,
                                                                rss=self.resourceStatus,
                                                                transInThread=self.transInThread )
-    except Exception, x:
-      gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
+    except Exception:
+      gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ) )
       return S_ERROR()
     oPlugin.setDirectory( self.workDirectory )
     oPlugin.setCallback( self.pluginCallback )

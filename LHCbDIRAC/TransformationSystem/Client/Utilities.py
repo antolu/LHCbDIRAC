@@ -157,8 +157,8 @@ class PluginUtilities:
   def logError( self, message, param='' ):
     gLogger.error( self.transString + message, param )
 
-  def logException( self, message, param='' ):
-    gLogger.exception( self.transString + message, '', param )
+  def logException( self, message, param='', lException=False ):
+    gLogger.exception( self.transString + message, param, lException )
 
   def setParameters( self, params ):
     self.params = params

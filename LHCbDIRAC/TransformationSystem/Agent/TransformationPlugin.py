@@ -469,8 +469,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return self.__byRun( param, plugin, requireFlush )
     try:
       return self.__byRun( param, plugin, requireFlush )
-    except Exception, x:
-      self.util.logException( "Exception in _ByRun plugin:", x )
+    except Exception:
+      self.util.logException( "Exception in _ByRun plugin:" )
       return S_ERROR( [] )
 
   def __byRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
@@ -1117,9 +1117,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
         return S_OK( [] )
-    except Exception, x:
-      error = 'Exception while executing the plugin: %s' % x
-      self.util.logError( error )
+    except Exception:
+      self.util.logException( 'Exception while executing the plugin' )
       return S_ERROR( error )
     finally:
       self.util.writeCacheFile()
