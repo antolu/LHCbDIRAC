@@ -45,7 +45,7 @@ import DIRAC
 from DIRAC                                                import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.FrameworkSystem.Client.NotificationClient      import NotificationClient
-
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment       import getProjectEnvironment
 from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ  import getRuns, getProductionId, buildLFNs, \
@@ -79,6 +79,7 @@ class MergingForDQAgent( AgentModule ):
                      'ProcessingPasses' : False,
                      'testMode' : False,
                      'specialMode' : False,
+                     'threshold' : False,
                      'specialRuns' : False,
                      'addFlag' : False}
 
@@ -211,6 +212,19 @@ class MergingForDQAgent( AgentModule ):
     self.addFlag = gConfig.getValue( "%s/addFlag" % options )
     if self.addFlag: 
       configuration['addFlag'] = True
+      
+    self.threshold = gConfig.getValue( "%s/threshold" % options )
+    try:
+      self.threshold = float(self.threshold)
+      if self.threshold>1.0 or self.threshold<0.0:
+        gLogger.error("Threshold should be between [0,1]!")
+        configuration['threshold'] = False
+      else:
+        configuration['threshold'] = True
+    except ValueError:
+      gLogger.error("Threshold bad defined!") 
+      configuration['threshold'] = False
+
     
     #If one of the configuration is missing the initialization fails
     nConf = False
@@ -245,7 +259,9 @@ class MergingForDQAgent( AgentModule ):
     self.logFile = ''
 
     self.bkClient = BookkeepingClient()
-
+    
+    self.transClient = TransformationClient()
+    
     return S_OK()
 
   def execute( self ):
@@ -332,13 +348,23 @@ class MergingForDQAgent( AgentModule ):
                       continue
                     lfns = buildLFNs( bkDict_brunel, run, resProdId['prodId'], self.addFlag )
                     #If the LFN is already in the BK it will be skipped
-                    res = self.bkClient.getFileMetadata( [lfns['DATA']] )
-                    if res['Value']:
-                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
+                    res = self.transClient.getRunsMetadata(run)
+                    if res['OK'] and res['Value'].has_key(run):
+                      if res['Value'][run]['DQFlag']=='M':
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
-                        
                         gLogger.info( _msg % str( lfns['DATA'] ) )
                         continue
+                      if res['Value'][run]['DQFlag']=='P':
+                        _msg = "Run %s problematic: %s"
+                        gLogger.info( _msg %(run,res['Value']['Info']) )
+                        continue
+#                    res = self.bkClient.getFileMetadata( [lfns['DATA']] )
+#                    if res['Value']:
+#                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
+#                        _msg = "%s already in the bookkeeping. Continue with the other runs."
+#                        
+#                        gLogger.info( _msg % str( lfns['DATA'] ) )
+#                        continue
                     #log directory that will be uploaded 
                     logDir = self.homeDir + 'MERGEFORDQ_RUN_' + str( run )
                     if not os.path.exists( logDir ):
@@ -355,6 +381,10 @@ class MergingForDQAgent( AgentModule ):
                       continue
                     if not ( len( res_0[run]['LFNs'] ) == len( res_1[run]['LFNs'] ) ):
                       gLogger.error( "Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s" % run )
+                      metaDataDict={}
+                      metaDataDict['DQFlag']='P'
+                      metaDataDict['Info']='Different number of DAVINCI and BRUNEL hists'
+                      self.transClient..addRunsMetadata(run,metaDataDict)
                       continue
                     #Starting the three step Merging process
                     _msg = '=======================Starting Merging Process for run %s========================'
@@ -368,10 +398,10 @@ class MergingForDQAgent( AgentModule ):
                     else:
                       delta = int((now-run_end)/86400)
                       gLogger.info("Time after EndRun %s"%delta)
-                    res = mergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.homeDir , 
+                    res = mergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.transClient,self.homeDir , 
                                     resProdId['prodId'], self.addFlag, self.testMode, self.specialMode,
-                                    self.mergeStep1Command, self.mergeStep2Command, 
-                                    self.mergeStep3Command,self.brunelCount, self.daVinciCount, 
+                                    self.mergeStep1Command, self.mergeStep2Command,self.mergeStep3Command,
+                                    self.brunelCount, self.daVinciCount,self.threshold, 
                                     self.logFile, self.logFileName, self.environment )
                     #if the Merging process went fine the Finalization method is called
                     if res['Merged']:
@@ -422,5 +452,5 @@ class MergingForDQAgent( AgentModule ):
                             os.remove( i )
                         DIRAC.exit( 2 )
 
-                  else: gLogger.error( 'The number of runs selected by the bkQuery for %s in diffent from the one selected by the bkQuery for %s' % ( self.histTypeList[0], self.histTypeList[1] ) )
+                  gLogger.info( '=== End of Loop over Runs ===')
     return S_OK()
