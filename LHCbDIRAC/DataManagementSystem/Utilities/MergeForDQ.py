@@ -121,9 +121,9 @@ def getProductionId( run, procPass, eventTypeId , bkClient ):
   res['prodId'] = retVal
   return res
 
-def mergeRun( bkDict, res_0, res_1, run, bkClient, homeDir, prodId , addFlag,
+def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId , addFlag,
               testMode, specialMode, mergeStep1Command, mergeStep2Command,
-              mergeStep3Command, brunelCount, daVinciCount, logFile, logFileName,
+              mergeStep3Command, brunelCount, daVinciCount, threshold, logFile, logFileName,
               environment ):
 
   """
@@ -192,7 +192,7 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, homeDir, prodId , addFlag,
 
   # Check if enough files have been reconstructed
   retVal, res = _verifyReconstructionStatus( run, runData, bkDict, eventType ,
-                                            bkClient , specialMode )
+                                            bkClient ,transClient, specialMode , threshold)
   if not res[ 'OK' ]:
     results[ 'OK' ] = False
     return results
@@ -220,9 +220,8 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, homeDir, prodId , addFlag,
       if res[ 'OK' ] and res[ 'Value' ][ 'Successful' ].has_key( lfn ):
         brunelLocal.append( res[ 'Value' ][ 'Successful' ][ lfn ] )
       else:
-        if not res[ 'Value' ][ 'Successful' ].has_key( lfn ):
-          gLogger.error( "Cannot retrieve %s" % lfn )
-          return results
+        gLogger.error( "Cannot retrieve %s" % lfn )
+        return results
 
   gLogger.info( '===>Retrieving DaVinci histograms locally' )
   for lfn in davinciList:
@@ -241,9 +240,8 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, homeDir, prodId , addFlag,
       if res[ 'OK' ] and res[ 'Value' ][ 'Successful' ].has_key( lfn ):
         davinciLocal.append( res[ 'Value' ][ 'Successful' ][ lfn ] )
       else:
-        if not res[ 'Value' ][ 'Successful' ].has_key( lfn ):
-          gLogger.error( "Cannot retrieve %s" % lfn )
-          return results
+        gLogger.error( "Cannot retrieve %s" % lfn )
+        return results
 
 
   # Real Merging part
@@ -323,6 +321,7 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
         transfIDs.append( prodID )
 
   if len( transfIDs ) != 1:
+    gLogger.error("More than one Transformation found")
     return False, 0
   else:
     transfID = transfIDs[0]
@@ -336,15 +335,13 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
   else:
     return False, 0
 
-def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , specialMode ):
+def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , transClient, specialMode , threshold):
   """
   VerifyReconstructionStatus:
 
     Check that enough RAW data have been reconstructed and one and only one output
   is generated for each one of them.
   """
-
-  tc = TransformationClient()
 
   retVal = {}
   retVal[ 'OK' ] = False
@@ -359,11 +356,13 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , sp
     #if not present, try to re-calculate the fraction
     if transfID:
       reconstructedRAWFiles = _fromBKK( bkDict, run, bkClient )
-      res = tc.getTransformationParameters( transfID, ['FractionToProcess'] )
+      res = transClient.getTransformationParameters( transfID, ['FractionToProcess'] )
       if not res['OK']:
         gLogger.error( 'Problem getting from Transformation Parameters: %s' % res['Message'] )
       else:
         fraction = float( res['Value'] )
+    else:
+      reconstructedRAWFiles = _fromBKK( bkDict, run, bkClient )
 
   if not reconstructedRAWFiles:
     return ( retVal, [] )
@@ -372,7 +371,7 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , sp
   countBrunel = len( runData[ 'BRUNELHIST' ] )
   
   counter = 0
-  descendants = bkClient.getFileDescendants( reconstructedRAWFiles, 9 )
+  descendants = bkClient.getFileDescendants( reconstructedRAWFiles, 2 )
   gLogger.info( "=== Performing check for multiple run in RAW ancestors ===" )
   descendants_cleaned = {}
   for raw in reconstructedRAWFiles:
@@ -408,30 +407,38 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , sp
       #
       if not eventType == "Full stream":
         gLogger.info( "Run %s in pass %s is not completed." % ( run, bkDict[ 'ProcessingPass' ] ) )
+        metaDataDict={}
+        metaDataDict['DQFlag']='P'
+        metaDataDict['Info']='Not Completed'
+        transClient.addRunsMetadata(run,metaDataDict)
         res[ 'OK' ] = False
         return ( retVal , res )
 
       #
       # New 95% or hist = RAW - 1 selection
       #
-      if ( counter < 0.95 * countRAW ) and ( counter < ( countRAW - 1 ) ):
+      if ( counter < threshold * countRAW ) and ( counter < ( countRAW - 1 ) ):
         gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. Trying to count the number of histogram from the RAW descendants." % ( run, bkDict['ProcessingPass'], int( countRAW ), int( countBrunel ) ) )
         gLogger.info( "Found %s BRUNELHIST descendants." % counter )
         gLogger.info( "Found %s DAVINCIHIST descendants." % counter )
-        if ( counter == countRAW ):
+        if ( counter >= threshold * countRAW ) or ( counter == ( countRAW - 1 ) ):
           alt_counting = True
         else:
-          _msg = "Run %s in pass %s is not completed. Number of RAW = %d"
-          gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], int( countRAW ) ) )
+          _msg = "Run %s in pass %s is not completed. Number of RAW = %d, Number of HISTS = %d"
+          gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], int( countRAW ) , int( counter ) ) )
+          metaDataDict={}
+          metaDataDict['DQFlag']='P'
+          metaDataDict['Info']='Not Completed'
+          transClient.addRunsMetadata(run,metaDataDict)
           res[ 'OK' ] = False
           return ( retVal , res )
 
       if not alt_counting:
-        _msg = "Run %s in pass %s accepted by -1 or 0.95 selection: Number of BRUNEL hist = %d Number of RAW = %d"
-        gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], countBrunel, countRAW ) )
+        _msg = "Run %s in pass %s accepted by -1 or %s selection: Number of RAW = %d Number of HISTS = %d"
+        gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], threshold, countRAW , countBrunel) )
       else:
-        _msg = "Run %s in pass %s accepted by directly counting of RAW descendants: Number of BRUNEL hist = %d Number of RAW = %d"
-        gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], countBrunel, countRAW ) )
+        _msg = "Run %s in pass %s accepted by directly counting of RAW descendants: Number of RAW = %d Number of HISTS = %d"
+        gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], countRAW , countBrunel) )
 
   #
   # Make sure the RAW have one and one only BRUNELHIST and
