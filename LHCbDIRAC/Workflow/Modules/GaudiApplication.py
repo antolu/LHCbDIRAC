@@ -74,7 +74,7 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputStep()
 
     if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
-      self.log.debug( "Won't get any setp outputs (SAM or USER jobs)" )
+      self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
     else:
       self.log.debug( "Getting the step outputs" )
       self.stepOutputs, self.stepOutputTypes, self.histogram = self._determineOutputs()
@@ -438,6 +438,5 @@ class GaudiApplication( ModuleBase ):
         self.log.error( "Application Log file not defined" )
       if fd == 1:
         self.stdError += message
-
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

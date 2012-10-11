@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: dirac-transformation-debug.py 56083 2012-09-11 07:55:18Z phicharp $"
 
 import sys
 
 def getFilesForRun( id, runID, status=None, lfnList=None, seList=None ):
   #print id, runID, status, lfnList
-  selectDict = {'TransformationID':id}
+  selectDict = {}
   if runID:
       selectDict["RunNumber"] = runID
   if status:
@@ -15,10 +15,13 @@ def getFilesForRun( id, runID, status=None, lfnList=None, seList=None ):
       selectDict['LFN'] = lfnList
   if seList:
       selectDict['UsedSE'] = seList
+  if not selectDict:
+    return []
+  selectDict['TransformationID'] = id
   #print selectDict
   res = transClient.getTransformationFiles( selectDict )
   if res['OK']:
-      return res['Value']
+    return res['Value']
   else:
     print "Error getting TransformationFiles:", res['Message']
   return []
@@ -166,31 +169,33 @@ timeLimit = now - datetime.timedelta( hours=2 )
 for id in idList:
     res = transClient.getTransformation( id, extraParams=False )
     if not res['OK']:
-        print "Couldn't find transformation", id
-        continue
+      print "Couldn't find transformation", id
+      continue
     else:
-        transName = res['Value']['TransformationName']
-        transType = res['Value']['Type']
-        transBody = res['Value']['Body']
-        transPlugin = res['Value']['Plugin']
-        strPlugin = transPlugin
-        if transType in ( 'Merge', 'DataStripping' ):
-            strPlugin += ', GroupSize: %s' % str( res['Value']['GroupSize'] )
-        if transType in dmTransTypes:
-            taskType = "Request"
-        else:
-            taskType = "Job"
-        transGroup = res['Value']['TransformationGroup']
-    print "\n==============================\nTransformation", id, ":", transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
-    #if verbose:
-        #print "Transformation body:", transBody
+      transName = res['Value']['TransformationName']
+      transStatus = res['Value']['Status']
+      transType = res['Value']['Type']
+      transBody = res['Value']['Body']
+      transPlugin = res['Value']['Plugin']
+      strPlugin = transPlugin
+      if transType in ( 'Merge', 'DataStripping' ):
+        strPlugin += ', GroupSize: %s' % str( res['Value']['GroupSize'] )
+      if transType in dmTransTypes:
+        taskType = "Request"
+      else:
+        taskType = "Job"
+      transGroup = res['Value']['TransformationGroup']
+    print "\n==============================\nTransformation", \
+          id, "(%s) :" % transStatus, transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
+    if transType == 'Removal':
+      print "Transformation body:", transBody
     res = transClient.getBookkeepingQueryForTransformation( id )
     if res['OK'] and res['Value']:
-        print "BKQuery:", res['Value']
-        queryProduction = res['Value'].get( 'ProductionID' )
+      print "BKQuery:", res['Value']
+      queryProduction = res['Value'].get( 'ProductionID' )
     else:
-        print "No BKQuery for this transformation"
-        queryProduction = None
+      print "No BKQuery for this transformation"
+      queryProduction = None
 
     # If just statistics are requested
     if justStats:
@@ -371,7 +376,12 @@ for id in idList:
                     targetSE = task.get( 'TargetSE', None )
                     # Accounting per SE
                     listSEs = targetSE.split( ',' )
-                    statComment = ''
+                    if transType == "Replication":
+                      statComment = "missing"
+                    elif transType == "Removal":
+                      statComment = "remaining"
+                    else:
+                      statComment = "absent"
                     taskCompleted = True
                     for rep in replicas:
                         if status == 'Problematic':
@@ -386,20 +396,18 @@ for id in idList:
                             SEStat[None] = SEStat.setdefault( None, 0 ) + 1
                         for se in listSEs:
                             if transType == "Replication":
-                                statComment = "missing"
                                 if se not in replicas[rep]:
                                     SEStat[se] = SEStat.setdefault( se, 0 ) + 1
                                     taskCompleted = False
                             elif transType == "Removal":
-                                statComment = "remaining"
                                 if se in replicas[rep]:
                                     SEStat[se] = SEStat.setdefault( se, 0 ) + 1
                                     taskCompleted = False
                             else:
-                                statComment = "absent"
                                 if se not in replicas[rep]:
                                     SEStat[se] = SEStat.setdefault( se, 0 ) + 1
                     if byTasks:
+                        #print task
                         prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
                         if byFiles and lfns:
                             prString += " (" + str( taskDict[taskID] ) + ")"

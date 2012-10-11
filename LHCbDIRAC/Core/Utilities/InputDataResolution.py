@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: InputDataResolution.py 56344 2012-09-14 13:18:10Z fstagni $"
 
 import DIRAC
 from DIRAC                                                          import S_OK, S_ERROR, gLogger
@@ -71,6 +71,7 @@ class InputDataResolution:
     resolvedData = self._addPfnType( resolvedData )
     if not resolvedData['OK']:
       return resolvedData
+    resolvedData = resolvedData['Value']
 
     #TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
     #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
@@ -126,7 +127,7 @@ class InputDataResolution:
       for lfn in typeVersions.keys():
         tmpDict[lfn]['pfntype'] = typeVersions[lfn]
 
-    return tmpDict
+    return S_OK( tmpDict )
 
   #############################################################################
 

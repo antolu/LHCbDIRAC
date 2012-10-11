@@ -1,9 +1,3 @@
-########################################################################
-# $HeadURL$
-# File :   InputDataAgent.py
-# Author : Stuart Paterson
-########################################################################
-
 """   The BK Input Data Agent queries the bookkeeping for specified job input data and adds the
       file GUID to the job optimizer parameters.
 
