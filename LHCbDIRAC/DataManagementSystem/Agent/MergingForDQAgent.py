@@ -384,7 +384,7 @@ class MergingForDQAgent( AgentModule ):
                       metaDataDict={}
                       metaDataDict['DQFlag']='P'
                       metaDataDict['Info']='Different number of DAVINCI and BRUNEL hists'
-                      self.transClient..addRunsMetadata(run,metaDataDict)
+                      self.transClient.addRunsMetadata( run, metaDataDict )
                       continue
                     #Starting the three step Merging process
                     _msg = '=======================Starting Merging Process for run %s========================'
