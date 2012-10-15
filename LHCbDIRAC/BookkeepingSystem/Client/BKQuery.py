@@ -50,7 +50,7 @@ class BKQuery():
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
 
-    gLogger.verbose( "Path %s, Dict %s, Prods %s, Runs %s, FileTypes %s, Visible %s" % ( bkPath,
+    gLogger.verbose( "BKQUERY.buildBKQuery: Path %s, Dict %s, Prods %s, Runs %s, FileTypes %s, Visible %s" % ( bkPath,
                                                                                          str( bkQueryDict ),
                                                                                          str( prods ),
                                                                                          str( runs ),
@@ -180,7 +180,7 @@ class BKQuery():
           if runs[1].isdigit():
             bkQuery['EndRun'] = int( runs[1] )
         except IndexError, ex: # The runs must be a list
-          gLogger.warn(ex)
+          gLogger.warn( ex )
           print runs, 'is an invalid run range'
           return self.__bkQueryDict
       else:
@@ -194,7 +194,7 @@ class BKQuery():
       try:
         bkQuery.setdefault( 'Production', [] ).extend( [int( prod ) for prod in prods] )
       except ValueError, ex: # The prods list does not contains numbers
-        gLogger.warn(ex)
+        gLogger.warn( ex )
         print prods, 'invalid as production list'
         return self.__bkQueryDict
 
@@ -225,7 +225,7 @@ class BKQuery():
                                      bkQuery.get( 'DataTakingConditions',
                                                   bkQuery.get( 'SimulationConditions' )
                                                   )
-                                    ))
+                                    ) )
     #print self.__bkQueryDict
     return self.__bkQueryDict
 
@@ -301,7 +301,7 @@ class BKQuery():
       try:
         eventTypes = [str( int( et ) ) for et in eventTypes]
       except ValueError, ex:
-        gLogger.warn(ex)
+        gLogger.warn( ex )
         print eventTypes, 'invalid as list of event types'
         return {}
       if type( eventTypes ) == type( [] ) and len( eventTypes ) == 1:
@@ -388,7 +388,7 @@ class BKQuery():
     """
     return the file types taking into account the expected file types
     """
-    #print "Call __fileType:", self, fileType
+    gLogger.verbose( "BKQuery.__fileType: %s, fileType: %s" % ( self, fileType ) )
     if not fileType:
       return []
     self.__getAllBKFileTypes()
@@ -400,7 +400,7 @@ class BKQuery():
     if fileTypes[0].lower() == "all":
       allRequested = True
       bkTypes = self.getBKFileTypes()
-      #print 'bkTypes:',bkTypes
+      gLogger.verbose( 'BKQuery.__fileType: bkTypes %s' % str( bkTypes ) )
       if bkTypes:
         fileTypes = [t for t in bkTypes if t not in self.__exceptFileTypes]
       else:
@@ -415,10 +415,10 @@ class BKQuery():
       else:
         expandedTypes.append( fileType )
     # Remove __exceptFileTypes only if not explicitly required
-    #print allRequested, expandedTypes, self.__exceptFileTypes
+    gLogger.verbose( "BKQuery.__fileType: requested %s, expanded %s, except %s" % ( allRequested, expandedTypes, self.__exceptFileTypes ) )
     if allRequested or not [t for t in self.__exceptFileTypes if t in expandedTypes]:
       expandedTypes = [t for t in expandedTypes if t not in self.__exceptFileTypes and t in self.__bkFileTypes]
-    #print expandedTypes
+    gLogger.verbose( "BKQuery.__fileType: result %s" % str( expandedTypes ) )
     if len( expandedTypes ) == 1 and not returnList:
       return expandedTypes[0]
     else:
@@ -598,7 +598,7 @@ class BKQuery():
     return dirs
 
   @staticmethod
-  def __getProdStatus(prod ):
+  def __getProdStatus( prod ):
     """
     Returns the status of a given transformation
     """
