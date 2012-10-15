@@ -274,22 +274,21 @@ if __name__ == "__main__":
   if not dirs:
     dirs = ['']
     bkQuery = dmScript.getBKQuery( visible=False )
-    fileTypes = bkQuery.getFileTypeList()
-    if fileTypes:
-      print 'FileTypes:', fileTypes
-    else:
-      fileTypes = ['']
-    # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
-    if 'DST' not in fileTypes:
-      fileTypes.append( 'DST' )
+    bkFileTypes = bkQuery.getFileTypeList()
+    if bkFileTypes:
+      fileTypes = bkFileTypes
     if bkQuery.getQueryDict().keys() not in ( [], ['Visible'], ['FileType'], ['Visible', 'FileType'] ):
       print "BK query:", bkQuery
-      prods = bkQuery.getBKProductions()
+      prods = sorted( bkQuery.getBKProductions() )
       if not prods:
         print 'No productions found for bkQuery %s' % str( bkQuery )
         DIRAC.exit( 0 )
-      prods.sort()
+      # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
+      if fileTypes and 'FULL.DST' not in fileTypes and 'DST' not in fileTypes:
+        fileTypes.append( 'DST' )
       print "Looking for %d productions:" % len( prods ), prods
+    elif fileTypes:
+      print 'FileTypes:', fileTypes
 
   rpc = RPCClient( 'DataManagement/StorageUsage' )
 
@@ -297,6 +296,14 @@ if __name__ == "__main__":
     prods = ['']
   if not fileTypes:
     fileTypes = ['']
+  prString = "Storage usage for "
+  if prods[0] != '':
+    prString += 'productions %s ' % str( prods )
+  if fileTypes[0] != '':
+    prString += 'file types %s ' % str( fileTypes )
+  if dirs[0] != '':
+    prString += 'directories %s' % str( dirs )
+  print prString
   if full:
     dirData = {}
     for prodID in sortList( prods ):
