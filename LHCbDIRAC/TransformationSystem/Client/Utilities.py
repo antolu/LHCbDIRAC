@@ -537,7 +537,7 @@ class PluginUtilities:
         if res['OK']:
           params = res['Value']
           for item in ( 'Host', 'Path' ):
-            self.seConfig[se][item] = params[item]
+            self.seConfig[se][item] = params[item].replace( 't1d1', 't0d1' )
         else:
           self.logError( "Error getting StorageElement parameters for %s" % se, res['Message'] )
 

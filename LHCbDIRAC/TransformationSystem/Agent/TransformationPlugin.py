@@ -897,7 +897,40 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _DestroyDataset( self ):
     """ Plugin setting all existing SEs as targets
     """
-    return self._removeReplicas( keepSEs=[], minKeep=0 )
+    res = self._removeReplicas( keepSEs=[], minKeep=0 )
+    if not res['OK'] or not res['Value']:
+      return res
+    tasks = res['Value']
+    lfns = []
+    for task in tasks:
+      lfns += task[1]
+    # Check if some of these files are used by transformations
+    selectDict = { 'LFN':lfns }
+    res = self.transClient.getTransformationFiles( selectDict )
+    if not res['OK']:
+      self.util.logError( "Error getting transformation files for %d files" % len( lfns ), res['Message'] )
+    else:
+      self.util.logVerbose( "From %d files, %d were found in transformations" % ( len( lfns ), len( res['Value'] ) ) )
+      transDict = {}
+      runList = []
+      for fileDict in res['Value']:
+        if not fileDict['Status'] == 'Processed':
+          transDict.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+          run = fileDict['RunNumber']
+          if run not in runList:
+            runList.append( run )
+      self.util.logVerbose( "Found files in transformations for runs %s" % str( sorted( runList ) ) )
+      for trans, lfns in transDict.items():
+        if self.transID > 0:
+          res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns )
+        else:
+          res = {'OK':True}
+        if not res['OK']:
+          self.util.logError( "Error setting %d files in transformation %d to status Removed" % ( len( lfns ), trans ), res['Message'] )
+        else:
+          self.util.logInfo( "%d files set as 'Removed' in transformation %d" % ( len( lfns ), trans ) )
+
+    return S_OK( tasks )
 
   def _DeleteDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
@@ -1111,7 +1144,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
         #print lfnsProcessed, lfnsNotProcessed
         if lfnsNotProcessed:
-          self.util.logInfo( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ), stringTargetSEs ) )
+          self.util.logInfo( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ),
+                                                                                     stringTargetSEs ) )
         if lfnsProcessed:
           self.util.logInfo( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), stringTargetSEs ) )
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )

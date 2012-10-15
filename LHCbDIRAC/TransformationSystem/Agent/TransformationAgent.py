@@ -121,6 +121,12 @@ class TransformationAgent( DIRACTransformationAgent ):
     count = 0
     for transDict in res['Value']:
       transID = long( transDict['TransformationID'] )
+      if transDict['Status'] == 'Completing':
+        # Try and move datasets from the ancestor production
+        res = self.transClient.moveFilesToDerivedTransformation( transID )
+        if not res['OK']:
+          self.log.error( "Error moving files from an inherited transformation", res['Message'] )
+        continue
       if transID not in self.transInQueue:
         count += 1
         self.transInQueue.append( transID )
@@ -192,7 +198,6 @@ class TransformationAgent( DIRACTransformationAgent ):
       newLFNs += lfns
     except Exception:
       self.__logException( "Exception when browsing cache", method=method, transID=transID )
-      pass
     finally:
       self.__releaseLock( transID=transID, method=method )
       self.__logVerbose( "Lock released after %.1f seconds" % ( time.time() - startTime ), method=method, transID=transID )
