@@ -64,7 +64,8 @@ if __name__ == "__main__":
     if not lfns and ( not len( queryDict ) or queryDict.keys() == ['Visible'] ):
       print "Invalid query", queryDict
       DIRAC.exit( 1 )
-    if not lfns and queryDict.get( 'Visible', 'No' ) == 'Yes':
+    if not lfns and queryDict.get( 'Visible', 'No' ) == 'Yes' and 'StartDate' not in queryDict and 'EndDate' not in queryDict:
+      print "Getting info from filesSummary..."
       if 'Visible' in queryDict: queryDict.pop( 'Visible' )
       query = queryDict.copy()
       if len( query ) <= 3:
@@ -108,6 +109,7 @@ if __name__ == "__main__":
         #print fileType, records, 'Total'
       paramNames += ['EvtsPerLumi', 'SizePerLumi' ]
     else:
+      print "Getting info from files..."
       # To be replaced with getFilesWithMetadata when it allows invisible files
       paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity']
       nbFiles = 0
