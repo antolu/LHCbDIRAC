@@ -433,6 +433,11 @@ class MergingForDQAgent( AgentModule ):
                         subject = 'New %s merged ROOT file for run %s ready' % ( evtTypeRef[event], str( run ) )
 
                         res = notifyClient.sendMail( self.mailAddress, subject, outMess, self.senderAddress, localAttempt = False )
+                        
+                        metaDataDict={}
+                        metaDataDict['DQFlag']='M'
+                        self.transClient.addRunsMetadata( run, metaDataDict )
+
 
                         #Cleaning of all the local files and directories.
                         removal = self.homeDir + '*'
