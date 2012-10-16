@@ -42,6 +42,12 @@ class ProductionLookup(QDialog, Ui_ProductionLookup):
     return self.__controler
 
   #############################################################################
+  def closeEvent(self, event):
+    """ it close the window and change the query type"""
+    event.accept()
+    self.__controler.cancel()
+
+  #############################################################################
   def setModel(self, data):
     """sets the model"""
     self.__model.setData(data)

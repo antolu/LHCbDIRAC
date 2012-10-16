@@ -62,7 +62,7 @@ class ControlerMain(ControlerAbstract):
     gLogger.debug(str(self.__class__)+' Sender' + str(sender.__class__))
     gLogger.debug(str(self.__class__)+' Message'+str(message))
 
-    if sender.__class__.__name__ == 'ControlerTree':
+    if sender.__class__.__name__  in ['ControlerTree', 'ControlerProductionLookup']:
       return self.handleTreewidget(sender, message)
     elif sender.__class__.__name__ == 'ControlerProductionLookup':
       return self.handleProductionlookup(sender, message)
@@ -117,6 +117,7 @@ class ControlerMain(ControlerAbstract):
       ct.messageFromParent(message)
     else:
       message = "Unknown message sent by %s. Message:%s" % (str(sender.__class__), str(message))
+      gLogger.error(message)
       return S_ERROR(message)
 
   #############################################################################
@@ -226,6 +227,7 @@ class ControlerMain(ControlerAbstract):
     ct = controlers['TreeWidget']
     items = self.root()
     message = Message({'action':'removeTree', 'items':items})
+    gLogger.debug('ControlerMain:Remove Tree')
     return ct.messageFromParent(message)
 
   #############################################################################

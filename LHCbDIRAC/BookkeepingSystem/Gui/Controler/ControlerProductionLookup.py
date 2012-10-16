@@ -78,6 +78,9 @@ class ControlerProductionLookup(ControlerAbstract):
     """handles the cancel button action"""
     self.getWidget().getListView().reset()
     self.getWidget().close()
+    message = Message({'action':'configbuttonChanged'})
+    print self.getParent()
+    self.getParent().messageFromChild(self, message)
 
 
   def all(self):
