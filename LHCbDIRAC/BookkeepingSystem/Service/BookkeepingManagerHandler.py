@@ -463,7 +463,8 @@ class BookkeepingManagerHandler(RequestHandler):
       startrun = in_dict.get('StartRun', default)
       endrun = in_dict.get('EndRun', default)
       visible = in_dict.get('Visible', 'Y')
-
+      startDate = in_dict.get('StartDate', None)
+      endDate = in_dict.get('EndDate', None)
       if 'EventTypeId' in in_dict:
         gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
@@ -481,7 +482,9 @@ class BookkeepingManagerHandler(RequestHandler):
                                          runnb,
                                          startrun,
                                          endrun,
-                                         visible)
+                                         visible,
+                                         startDate,
+                                         endDate)
       if retVal['OK']:
         records = []
         parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
