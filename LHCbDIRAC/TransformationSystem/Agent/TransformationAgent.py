@@ -121,17 +121,22 @@ class TransformationAgent( DIRACTransformationAgent ):
     count = 0
     for transDict in res['Value']:
       transID = long( transDict['TransformationID'] )
-      if transDict['Status'] == 'Completing':
+      if transDict.get( 'InheritedFrom' ):
         # Try and move datasets from the ancestor production
-        res = self.transClient.moveFilesToDerivedTransformation( transID )
+        res = self.transClient.moveFilesToDerivedTransformation( transDict )
         if not res['OK']:
-          self.log.error( "Error moving files from an inherited transformation", res['Message'] )
-        continue
+          self.__logError( "Error moving files from an inherited transformation", res['Message'], transID=transID )
+        else:
+          parentProd, movedFiles = res['Value']
+          if movedFiles:
+            self.__logInfo( "Successfully moved files from %d to %d:" % ( parentProd, transID ), transID=transID )
+            for status, val in movedFiles.items():
+              self.__logInfo( "\t%d files to status %s" % ( val, status ), transID=transID )
       if transID not in self.transInQueue:
         count += 1
         self.transInQueue.append( transID )
         self.transQueue.put( transDict )
-    self.log.info( "Out of %d transformations, %d put in thread queue" % ( len( res['Value'] ), count ) )
+    self.__logInfo( "Out of %d transformations, %d put in thread queue" % ( len( res['Value'] ), count ) )
     return S_OK()
 
   def _execute( self, threadID ):

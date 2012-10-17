@@ -43,16 +43,15 @@ class TransformationClient( DIRACTransformationClient ):
       if not res['OK']:
         gLogger.error( "Failed to publish BKQuery for transformation", "%s %s" % ( transID, res['Message'] ) )
     return S_OK( transID )
-  def moveFilesToDerivedTransformation( self, prod, resetUnused=True ):
-    statusToMove = [ 'Unused', 'MaxReset' ]
-    res = self.getTransformation( prod, extraParams=True )
-    if not res['OK']:
-      gLogger.error( "Couldn't find transformation %s" % str( prod ), res['Message'] )
-      return res
-    parentProd = int( res['Value'].get( 'InheritedFrom', 0 ) )
+
+  def moveFilesToDerivedTransformation( self, transDict, resetUnused=True ):
+    prod = transDict['TransformationID']
+    parentProd = int( transDict.get( 'InheritedFrom', 0 ) )
+    movedFiles = {}
     if not parentProd:
       gLogger.warn( "Transformation %d was not derived..." % prod )
-      return S_OK()
+      return S_OK( ( parentProd, movedFiles ) )
+    statusToMove = [ 'Unused', 'MaxReset' ]
     selectDict = {'TransformationID': parentProd, 'Status': statusToMove}
     res = self.getTransformationFiles( selectDict )
     if not res['OK']:
@@ -70,7 +69,6 @@ class TransformationClient( DIRACTransformationClient ):
       return res
     derivedFiles = res['Value']
     suffix = '-%d' % parentProd
-    movedFiles = {}
     errorFiles = {}
     for parentDict in parentFiles:
       lfn = parentDict['LFN']
@@ -104,9 +102,5 @@ class TransformationClient( DIRACTransformationClient ):
       gLogger.error( "Some files didn't have the expected status in derived transformation %d" % prod )
       for err, val in errorFiles.items():
         gLogger.error( "\t%d files were in status %s" % ( val, err ) )
-    if movedFiles:
-      gLogger.info( "Successfully moved files from %d to %d:" % ( parentProd, prod ) )
-      for status, val in movedFiles.items():
-        gLogger.info( "\t%d files to status %s" % ( val, status ) )
 
-    return S_OK()
+    return S_OK( ( parentProd, movedFiles ) )

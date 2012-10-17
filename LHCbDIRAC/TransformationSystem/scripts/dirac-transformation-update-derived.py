@@ -43,7 +43,16 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import
 transClient = TransformationClient()
 
 for prod in idList:
-  res = transClient.moveFilesToDerivedTransformation( prod, resetUnused )
+  res = transClient.getTransformation( prod, extraParams=True )
   if not res['OK']:
-    print "Error updating a derived transformation %d:" % prod, res['Message']
-
+    print "Error getting transformation %s" % prod, res['Message']
+  else:
+    res = transClient.moveFilesToDerivedTransformation( res['Value'], resetUnused )
+    if not res['OK']:
+      print "Error updating a derived transformation %d:" % prod, res['Message']
+    else:
+      parentProd, movedFiles = res['Value']
+      if movedFiles:
+        print "Successfully moved files from %d to %d:" % ( parentProd, prod )
+        for status, val in movedFiles.items():
+          print "\t%d files to status %s" % ( val, status )
