@@ -335,7 +335,7 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
   else:
     return False, 0
 
-def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , transClient, specialMode , threshold):
+def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, transClient, specialMode , threshold ):
   """
   VerifyReconstructionStatus:
 
@@ -351,7 +351,7 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType , bkClient , tr
   res['OK'] = False
 
   fraction = 1.0
-  reconstructedRAWFiles, transfID = _fromTransformationDB( bkDict, run, bkClient, tc )
+  reconstructedRAWFiles, transfID = _fromTransformationDB( bkDict, run, bkClient, transClient )
   if not reconstructedRAWFiles:
     #if not present, try to re-calculate the fraction
     if transfID:

@@ -276,8 +276,12 @@ def printResults( request, mergeAction ):
     elif filesDict[ 'Total' ] == 0:
       filesMsg = '..No files at all..'
     else:      
-      processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
-      filesMsg = '%.2f %% ( %d total files )' % ( processed, filesDict['Total'] )
+      try:
+        processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+        filesMsg = '%.2f %% ( %d total files )' % ( processed, filesDict['Total'] )
+      except KeyError:
+        print "No files processed"
+
              
     msgTuple = ( ( '%s [%s] %s' % ( transformationID, transformation[ 'transformationStatus' ], 
                  transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg)

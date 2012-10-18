@@ -158,7 +158,15 @@ class Production():
 
   #############################################################################
 
-  def addApplicationStep( self, stepDict, outputSE, optionsLine, inputData = None ):
+  def addGenericApplicationStep( self, modules = [], outputSE, inputData = None ):
+    """ building a generic application step, that does not use
+    """
+
+  #############################################################################
+
+  def addApplicationStep( self, stepDict, outputSE, optionsLine, inputData = None,
+                          modules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                                     'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
@@ -230,10 +238,11 @@ class Production():
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
-      gaudiModules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
-      gaudiPath = 'Productions/GaudiStep_Modules'
-      modulesNameList = self.LHCbJob.opsHelper.getValue( gaudiPath, gaudiModules )
+      if 'GaudiApplication' in modules:
+        gaudiPath = 'Productions/GaudiStep_Modules'
+        modulesNameList = self.LHCbJob.opsHelper.getValue( gaudiPath, modules )
+      else:
+        modulesNameList = modules
       #pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],

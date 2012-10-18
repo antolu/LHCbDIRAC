@@ -52,8 +52,6 @@ class ModuleBase( object ):
     self.production_id = ''
     self.prod_job_id = ''
     self.jobID = ''
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
     self.step_number = ''
     self.step_id = ''
 
@@ -79,6 +77,9 @@ class ModuleBase( object ):
       self.prod_job_id = prod_job_id
     else:
       self.prod_job_id = self.JOB_ID
+
+    if os.environ.has_key( 'JOBID' ):
+      self.jobID = os.environ['JOBID']
 
     if wms_job_id:
       self.jobID = wms_job_id

@@ -12,6 +12,8 @@ from DIRAC.Core.Utilities import Time
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
+from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
+
 class StepAccounting( ModuleBase ):
   """ StepAccounting class
   """
@@ -42,7 +44,6 @@ class StepAccounting( ModuleBase ):
         return S_OK()
 
       if not js:
-        from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
         jobStep = JobStep()
       else:
         jobStep = js

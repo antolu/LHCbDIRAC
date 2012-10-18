@@ -1151,9 +1151,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
         return S_OK( [] )
-    except Exception:
+    except Exception, e:
       self.util.logException( 'Exception while executing the plugin' )
-      return S_ERROR( error )
+      return S_ERROR( e )
     finally:
       self.util.writeCacheFile()
       if not skip and self.pluginCallback:

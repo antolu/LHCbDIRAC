@@ -15,7 +15,7 @@ from DIRAC.Resources.Catalog.PoolXMLFile import getGUID, getType
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummaryError
+from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
 
@@ -153,7 +153,6 @@ class BookkeepingReport( ModuleBase ):
         self.xf_o = self.step_commons['XMLSummary_o']
       except KeyError:
         self.log.warn( 'XML Summary object not found, will try to create it (again?)' )
-        from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
         try:
           xmlSummaryFile = self.step_commons['XMLSummary']
         except KeyError:
@@ -479,7 +478,8 @@ class BookkeepingReport( ModuleBase ):
           if os.path.basename( outputLFN ) == output:
             lfn = outputLFN
         if not lfn:
-          raise NameError, 'Could not find LFN for %s' % output
+          self.log.error( 'Could not find LFN for %s' % output )
+          raise NameError, 'Could not find LFN of output file'
       else:
         lfn = '%s/%s' % ( self.logFilePath, self.applicationLog )
 
