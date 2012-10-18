@@ -349,22 +349,31 @@ class MergingForDQAgent( AgentModule ):
                     lfns = buildLFNs( bkDict_brunel, run, resProdId['prodId'], self.addFlag )
                     #If the LFN is already in the BK it will be skipped
                     res = self.transClient.getRunsMetadata(run)
+
                     if res['OK'] and res['Value'].has_key(run):
-                      if res['Value'][run]['DQFlag']=='M':
+                      try:                            
+                        if res['Value'][run]['DQFlag']=='M':
+                          _msg = "%s already in the bookkeeping. Continue with the other runs."
+                          gLogger.info( _msg % str( lfns['DATA'] ) )
+                          continue
+                        if res['Value'][run]['DQFlag']=='P':
+                          _msg = "Run %s problematic: %s"
+                          gLogger.info( _msg %(run,res['Value'][run]['Info']) )
+            
+                      except KeyError:
+                        _msg = "No info saved for run %s"%run
+                        gLogger.info(_msg)
+
+                    res = self.bkClient.getFileMetadata( [lfns['DATA']] )
+                    if res['Value']:
+                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
+                        metaDataDict={}
+                        metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
+                        metaDataDict['DQFlag']='M'
+                        self.transClient.addRunsMetadata( run, metaDataDict )
                         gLogger.info( _msg % str( lfns['DATA'] ) )
                         continue
-                      if res['Value'][run]['DQFlag']=='P':
-                        _msg = "Run %s problematic: %s"
-                        gLogger.info( _msg %(run,res['Value']['Info']) )
-                        continue
-#                    res = self.bkClient.getFileMetadata( [lfns['DATA']] )
-#                    if res['Value']:
-#                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
-#                        _msg = "%s already in the bookkeeping. Continue with the other runs."
-#                        
-#                        gLogger.info( _msg % str( lfns['DATA'] ) )
-#                        continue
                     #log directory that will be uploaded 
                     logDir = self.homeDir + 'MERGEFORDQ_RUN_' + str( run )
                     if not os.path.exists( logDir ):
@@ -435,6 +444,7 @@ class MergingForDQAgent( AgentModule ):
                         res = notifyClient.sendMail( self.mailAddress, subject, outMess, self.senderAddress, localAttempt = False )
                         
                         metaDataDict={}
+                        metaDataDict['ProcessingPass']=bkDict[ 'ProcessingPass' ]
                         metaDataDict['DQFlag']='M'
                         self.transClient.addRunsMetadata( run, metaDataDict )
 
