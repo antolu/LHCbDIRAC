@@ -21,7 +21,7 @@ class TransformationAgent( DIRACTransformationAgent ):
   """ Extends base class
   """
 
-  def __init__( self, agentName, loadName, baseAgentName=False, properties=dict() ):
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
     """ c'tor
 
     :param self: self reference
@@ -73,40 +73,36 @@ class TransformationAgent( DIRACTransformationAgent ):
       while self.transInThread:
         time.sleep( 2 )
       self.log.info( "Threads are empty, terminating the agent..." )
-    self.__writeCache( force=True )
+    self.__writeCache( force = True )
     return S_OK()
 
   def __threadForTrans( self, transID ):
     return self.transInThread.get( transID, ' [None] [None] ' ) + AGENT_NAME + '.'
 
-  def __logVerbose( self, message, param='', method="execute", transID='None' ):
+  def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
     """ verbose """
     if self.debug:
       gLogger.info( '(V) ' + self.__threadForTrans( transID ) + method + ' ' + message, param )
     else:
       gLogger.verbose( self.__threadForTrans( transID ) + method + ' ' + message, param )
 
-  @classmethod
-  def __logDebug( self, message, param='', method="execute", transID='None' ):
+  def __logDebug( self, message, param = '', method = "execute", transID = 'None' ):
     """ debug """
     gLogger.debug( self.__threadForTrans( transID ) + method + ' ' + message, param )
 
-  @classmethod
-  def __logInfo( self, message, param='', method="execute", transID='None' ):
+  def __logInfo( self, message, param = '', method = "execute", transID = 'None' ):
     """ info """
     gLogger.info( self.__threadForTrans( transID ) + method + ' ' + message, param )
 
-  @classmethod
-  def __logWarn( self, message, param='', method="execute", transID='None' ):
+  def __logWarn( self, message, param = '', method = "execute", transID = 'None' ):
     """ warn """
     gLogger.warn( self.__threadForTrans( transID ) + method + ' ' + message, param )
 
-  @classmethod
-  def __logError( self, message, param='', method="execute", transID='None' ):
+  def __logError( self, message, param = '', method = "execute", transID = 'None' ):
     """ error """
     gLogger.error( self.__threadForTrans( transID ) + method + ' ' + message, param )
 
-  def __logException( self, message, param='', lException=False, method="execute", transID='None' ):
+  def __logException( self, message, param = '', lException = False, method = "execute", transID = 'None' ):
     gLogger.exception( self.__threadForTrans( transID ) + method + ' ' + message, param, lException )
 
   def execute( self ):
@@ -149,41 +145,41 @@ class TransformationAgent( DIRACTransformationAgent ):
         if transID not in self.transInQueue:
           break
         self.transInThread[transID] = ' [Thread%d] [%s] ' % ( threadID, str( transID ) )
-        self.__logInfo( "Processing transformation %s." % transID, transID=transID )
+        self.__logInfo( "Processing transformation %s." % transID, transID = transID )
         startTime = time.time()
         res = self.processTransformation( transDict )
         if not res['OK']:
-          self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID=transID )
+          self.__logInfo( "Failed to process transformation: %s" % res['Message'], transID = transID )
       except Exception:
-        self.__logException( '', transID=transID )
+        self.__logException( '', transID = transID )
       finally:
         if not transID:
           transID = 'None'
-        self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID=transID )
+        self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
         self.__logVerbose( "%d transformations still in queue" % ( len( self.transInQueue ) - 1 ) )
         self.transInThread.pop( transID, None )
         if transID in self.transInQueue:
           self.transInQueue.remove( transID )
     return S_OK()
 
-  def __getDataReplicas( self, transID, lfns, active=True ):
+  def __getDataReplicas( self, transID, lfns, active = True ):
     """ Redefine base class one
     """
     method = '__getDataReplicas'
     startTime = time.time()
     dataReplicas = {}
-    self.__logVerbose( "Getting replicas for %d files" % len( lfns ), method=method, transID=transID )
+    self.__logVerbose( "Getting replicas for %d files" % len( lfns ), method = method, transID = transID )
     lfns.sort()
     newLFNs = []
     nLfns = len( lfns )
-    self.__acquireLock( transID=transID, method=method )
+    self.__acquireLock( transID = transID, method = method )
     try:
       cachedReplicaSets = self.replicaCache.get( transID, {} )
       cachedReplicas = {}
       # Merge all sets of replicas
       for crs in cachedReplicaSets:
         cachedReplicas.update( cachedReplicaSets[crs] )
-      self.__logVerbose( "Number of cached replicas: %d" % len( cachedReplicas ), method=method, transID=transID )
+      self.__logVerbose( "Number of cached replicas: %d" % len( cachedReplicas ), method = method, transID = transID )
       # Sorted browsing
       for cacheLfn in sorted( cachedReplicas ):
         while lfns and lfns[0] < cacheLfn:
@@ -202,20 +198,21 @@ class TransformationAgent( DIRACTransformationAgent ):
       # Add what is left as new files
       newLFNs += lfns
     except Exception:
-      self.__logException( "Exception when browsing cache", method=method, transID=transID )
+      self.__logException( "Exception when browsing cache", method = method, transID = transID )
+      pass
     finally:
-      self.__releaseLock( transID=transID, method=method )
-      self.__logVerbose( "Lock released after %.1f seconds" % ( time.time() - startTime ), method=method, transID=transID )
+      self.__releaseLock( transID = transID, method = method )
+      self.__logVerbose( "Lock released after %.1f seconds" % ( time.time() - startTime ), method = method, transID = transID )
     self.__logVerbose( "ReplicaCache hit for %d out of %d LFNs" % ( len( dataReplicas ), nLfns ),
-                        method=method, transID=transID )
+                        method = method, transID = transID )
     if newLFNs:
       startTime = time.time()
       self.__logVerbose( "Getting replicas for %d files from catalog" % len( newLFNs ),
-                         method=method, transID=transID )
+                         method = method, transID = transID )
       newReplicas = {}
       noReplicas = []
       for chunk in breakListIntoChunks( newLFNs, 1000 ):
-        res = DIRACTransformationAgent.__getDataReplicas( self, transID, chunk, active=active )
+        res = DIRACTransformationAgent.__getDataReplicas( self, transID, chunk, active = active )
         if res['OK']:
           for lfn in res['Value']:
             if res['Value'][lfn]:
@@ -225,26 +222,26 @@ class TransformationAgent( DIRACTransformationAgent ):
               noReplicas.append( lfn )
         else:
           self.__logWarn( "Failed to get replicas for %d files" % len( chunk ), res['Message'],
-                          method=method, transID=transID )
+                          method = method, transID = transID )
       if noReplicas:
         self.__logWarn( "Found %d files without replicas" % len( noReplicas ),
-                         method=method, transID=transID )
-      self.__acquireLock( transID=transID, method=method )
+                         method = method, transID = transID )
+      self.__acquireLock( transID = transID, method = method )
       self.replicaCache.setdefault( transID, {} )[datetime.datetime.utcnow()] = newReplicas
-      self.__releaseLock( transID=transID, method=method )
+      self.__releaseLock( transID = transID, method = method )
       dataReplicas.update( newReplicas )
       self.__logInfo( "Obtained %d replicas from catalog in %.1f seconds" \
                       % ( len( newReplicas ), time.time() - startTime ),
-                      method=method, transID=transID )
+                      method = method, transID = transID )
     self.__cleanCache()
     return S_OK( dataReplicas )
 
-  def __acquireLock( self, transID='None', method='None' ):
+  def __acquireLock( self, transID = 'None', method = 'None' ):
     self.lock.acquire()
-    self.__logVerbose( "Lock acquired", method=method, transID=transID )
+    self.__logVerbose( "Lock acquired", method = method, transID = transID )
     return True
-  def __releaseLock( self, transID='None', method='None' ):
-    self.__logVerbose( "Lock released", method=method, transID=transID )
+  def __releaseLock( self, transID = 'None', method = 'None' ):
+    self.__logVerbose( "Lock released", method = method, transID = transID )
     self.lock.release()
     return False
 
@@ -252,14 +249,14 @@ class TransformationAgent( DIRACTransformationAgent ):
     """ Cleans the cache
     """
     method = 'cleanCache'
-    self.__acquireLock( method=method )
+    self.__acquireLock( method = method )
     try:
-      timeLimit = datetime.datetime.utcnow() - datetime.timedelta( days=self.replicaCacheValidity )
+      timeLimit = datetime.datetime.utcnow() - datetime.timedelta( days = self.replicaCacheValidity )
       for transID in self.replicaCache.keys():
         for updateTime in self.replicaCache[transID].keys():
           if updateTime < timeLimit or not self.replicaCache[transID][updateTime]:
             self.__logVerbose( "Clear %d cached replicas for transformation %s" % ( len( self.replicaCache[transID][updateTime] ),
-                                                                                    str( transID ) ), method='__cleanCache' )
+                                                                                    str( transID ) ), method = '__cleanCache' )
             self.replicaCache[transID].pop( updateTime )
         # Remove empty transformations
         if not self.replicaCache[transID]:
@@ -267,7 +264,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     except Exception:
       self.__logException( "Exception when cleaning replica cache:" )
     finally:
-      self.__releaseLock( method=method )
+      self.__releaseLock( method = method )
 
     # Write the cache file
     try:
@@ -284,14 +281,14 @@ class TransformationAgent( DIRACTransformationAgent ):
       cacheFile.close()
       self.__logInfo( "Successfully loaded replica cache from file %s" % self.cacheFile )
     except Exception:
-      self.__logException( "Failed to load replica cache from file %s" % self.cacheFile, method='__readCache' )
+      self.__logException( "Failed to load replica cache from file %s" % self.cacheFile, method = '__readCache' )
       self.replicaCache = {}
 
-  def __writeCache( self, force=False ):
+  def __writeCache( self, force = False ):
     """ Writes the cache
     """
     now = datetime.datetime.now()
-    if ( now - self.dateWriteCache ) < datetime.timedelta( minutes=60 ) and not force:
+    if ( now - self.dateWriteCache ) < datetime.timedelta( minutes = 60 ) and not force:
       return
     while force and self.writingCache:
       #If writing is forced, wait until the previous write is over
@@ -301,13 +298,13 @@ class TransformationAgent( DIRACTransformationAgent ):
       self.dateWriteCache = now
       # Protect the copy of the cache
       method = '__writeCache'
-      self.__acquireLock( method=method )
+      self.__acquireLock( method = method )
       lock = True
       if self.writingCache:
         return
       self.writingCache = True
       tmpCache = self.replicaCache.copy()
-      self.__releaseLock( method=method )
+      self.__releaseLock( method = method )
       lock = False
       # write to a temporary file in order to avoid corrupted files
       tmpFile = self.cacheFile + '.tmp'
@@ -317,12 +314,12 @@ class TransformationAgent( DIRACTransformationAgent ):
       # Now rename the file as it shold
       os.rename( tmpFile, self.cacheFile )
       self.__logVerbose( "Successfully wrote replica cache file %s in %.1f seconds" \
-                        % ( self.cacheFile, time.time() - startTime ), method=method )
+                        % ( self.cacheFile, time.time() - startTime ), method = method )
     except Exception:
-      self.__logException( "Could not write replica cache file %s" % self.cacheFile, method=method )
+      self.__logException( "Could not write replica cache file %s" % self.cacheFile, method = method )
     finally:
       if lock:
-        self.__releaseLock( method=method )
+        self.__releaseLock( method = method )
 
     self.writingCache = False
 
@@ -336,12 +333,12 @@ class TransformationAgent( DIRACTransformationAgent ):
       return S_ERROR()
     try:
       oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
-                                                               replicaManager=self.rm,
-                                                               transClient=self.transClient,
-                                                               bkkClient=self.bkk,
-                                                               rmClient=self.rmClient,
-                                                               rss=self.resourceStatus,
-                                                               transInThread=self.transInThread )
+                                                               replicaManager = self.rm,
+                                                               transClient = self.transClient,
+                                                               bkkClient = self.bkk,
+                                                               rmClient = self.rmClient,
+                                                               rss = self.resourceStatus,
+                                                               transInThread = self.transInThread )
     except Exception:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ) )
       return S_ERROR()
@@ -351,22 +348,22 @@ class TransformationAgent( DIRACTransformationAgent ):
       oPlugin.setDebug()
     return S_OK( oPlugin )
 
-  def pluginCallback( self, transID, invalidateCache=False ):
+  def pluginCallback( self, transID, invalidateCache = False ):
     """ Standard plugin callback
     """
     method = 'pluginCallback'
     save = False
     if invalidateCache:
       try:
-        self.__acquireLock( transID=transID, method=method )
+        self.__acquireLock( transID = transID, method = method )
         if transID in self.replicaCache:
-          self.__logInfo( "Removed cached replicas for transformation" , method='pluginCallBack', transID=transID )
+          self.__logInfo( "Removed cached replicas for transformation" , method = 'pluginCallBack', transID = transID )
           self.replicaCache.pop( transID )
           save = True
       except:
         pass
       finally:
-        self.__releaseLock( transID=transID, method=method )
+        self.__releaseLock( transID = transID, method = method )
 
       if save:
         self.__writeCache()
