@@ -409,6 +409,7 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
         gLogger.info( "Run %s in pass %s is not completed." % ( run, bkDict[ 'ProcessingPass' ] ) )
         metaDataDict={}
         metaDataDict['DQFlag']='P'
+        metaDataDict['ProcessingPass']=bkDict[ 'ProcessingPass' ]
         metaDataDict['Info']='Not Completed'
         transClient.addRunsMetadata(run,metaDataDict)
         res[ 'OK' ] = False
@@ -428,6 +429,7 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
           gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], int( countRAW ) , int( counter ) ) )
           metaDataDict={}
           metaDataDict['DQFlag']='P'
+          metaDataDict['ProcessingPass']=bkDict[ 'ProcessingPass' ]
           metaDataDict['Info']='Not Completed'
           transClient.addRunsMetadata(run,metaDataDict)
           res[ 'OK' ] = False
