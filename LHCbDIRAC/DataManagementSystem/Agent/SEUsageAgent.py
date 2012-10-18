@@ -55,6 +55,7 @@ class SEUsageAgent( AgentModule ):
   spaceTokToIgnore = None
   inputFilesLocation = None
   workDirectory = None
+  specialReplicas = None
 
   def initialize( self ):
     """ agent initialisation """
@@ -87,6 +88,15 @@ class SEUsageAgent( AgentModule ):
       self.log.info( "ERROR! could not create directory %s" % self.inputFilesLocation )
       return S_ERROR()
     self.spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )# STs to skip during checks
+    self.specialReplicas = self.am_getOption( 'SpecialReplicas' )
+    if self.specialReplicas:
+      specialReplicasList = self.specialReplicas.split( ',' )
+      self.specialReplicas = []
+      for sr in specialReplicasList:
+        self.specialReplicas.append( sr.lstrip() )
+      self.log.info( "Special replica types: %s" % self.specialReplicas )
+    else:
+      self.log.info( "No special replica configured." )
     return S_OK()
 
   def execute( self ):
@@ -105,7 +115,6 @@ class SEUsageAgent( AgentModule ):
     timingPerSite = {}
     self.spaceTokens = {}
     self.siteConfig = {}
-    self.specialReplicas = ['archive', 'freezer', 'failover']
     siteList.sort()
     for lcgSite in siteList:
       site = lcgSite.split( '.' )[1]
@@ -167,11 +176,13 @@ class SEUsageAgent( AgentModule ):
           replicaType = 'normal'
           for sr in self.specialReplicas:
             prefix = '/lhcb/' + sr
+            self.log.verbose( "Trying to match prefix %s " % prefix )
             if prefix in dirPath:
               # strip the initial prefix, to get the LFN as registered in the LFC
               dirPath = storageDirPath.split( prefix )[1]
               replicaType = sr
               self.log.info( "prefix: %s \n storageDirPath: %s\n dirPath: %s" % ( prefix, storageDirPath, dirPath ) )
+              break
           oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size ,
                                     'Updated': 'na', 'Site': site, 'ReplicaType': replicaType }
           # the format of the entry to be processed must be a dictionary with LFN path as key
@@ -337,7 +348,8 @@ class SEUsageAgent( AgentModule ):
                                                                                site + '_M-DST',
                                                                                site + '_MC_M-DST',
                                                                                site + '_MC-DST',
-                                                                               site + '-FAILOVER']},
+                                                                               site + '-FAILOVER',
+                                                                               site + '-BUFFER']},
                                  'LHCb_USER' : { 'year': '2011', 'DiracSEs': [ site + '-USER']},
                                  'LHCb_RAW' : { 'year': '2010', 'DiracSEs': [ site + '-RAW']},
                                  'LHCb_RDST' : { 'year': '2010', 'DiracSEs': [ site + '-RDST']},
@@ -535,6 +547,12 @@ class SEUsageAgent( AgentModule ):
                                                             outputFileMerged[ st ]['DirSummaryFileName'] ) )
 
     for inputFileP1 in inputFilesListP1:
+      #DEBUG OCT 2012
+      if 'LHCb-Tape.txt' in inputFileP1:
+        self.log.info( "skip this file!!" )
+        continue
+      #DEBUG OCT 2012 TO REMOVE!!!!!!!!
+
       self.log.info( "+++++ input file: %s ++++++" % inputFileP1 )
       # the expected input file line is: pfn | size | date
       # manipulate the input file to create a directory summary file (one row per directory)
@@ -991,7 +1009,7 @@ class SEUsageAgent( AgentModule ):
       else:
         for se in goodFiles[lfn].keys():
           if se in specialReplicasSEs:
-            self.log.info( "Replica type is %s, skip this SE: %s " % ( replicaType, se ) )
+            self.log.verbose( "Replica type is %s, skip this SE: %s " % ( replicaType, se ) )
             continue
           if site in se:
             self.log.verbose( "matching se: %s " % se )
