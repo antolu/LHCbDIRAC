@@ -53,6 +53,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util = PluginUtilities( plugin, self.transClient, self.rm, self.bkClient,
                                  self.rmClient, self.resourceStatus, debug,
                                  transInThread if transInThread else {} )
+    self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
   def setInputData( self, data ):
     """
@@ -79,6 +80,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.params = params
     self.transID = params['TransformationID']
     self.util.setParameters( params )
+    self.setDebug( self.util.getPluginParam( 'Debug', False ) )
+
+  def setDirectory( self, directory ):
+    self.workDirectory = directory
+
+  def setCallback( self, callback ):
+    self.pluginCallback = callback
+
+  def setDebug( self, val=True ):
+    self.debug = val or self.debug
+    self.util.setDebug( val )
 
   def __cleanFiles( self, status=None ):
     """
@@ -101,16 +113,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __del__( self ):
     self.util.logInfo( "Execution finished, timing: %.3f seconds" % ( time.time() - self.startTime ) )
-
-  def setDirectory( self, directory ):
-    self.workDirectory = directory
-
-  def setCallback( self, callback ):
-    self.pluginCallback = callback
-
-  def setDebug( self, val=True ):
-    self.debug = val
-    self.util.setDebug( val )
 
   def _removeProcessedFiles( self ):
     """
@@ -465,8 +467,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( tasks )
 
   def _ByRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
-    if self.debug:
-      return self.__byRun( param, plugin, requireFlush )
     try:
       return self.__byRun( param, plugin, requireFlush )
     except Exception:
@@ -901,34 +901,44 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not res['OK'] or not res['Value']:
       return res
     tasks = res['Value']
-    lfns = []
-    for task in tasks:
-      lfns += task[1]
-    # Check if some of these files are used by transformations
-    selectDict = { 'LFN':lfns }
-    res = self.transClient.getTransformationFiles( selectDict )
-    if not res['OK']:
-      self.util.logError( "Error getting transformation files for %d files" % len( lfns ), res['Message'] )
-    else:
-      self.util.logVerbose( "From %d files, %d were found in transformations" % ( len( lfns ), len( res['Value'] ) ) )
-      transDict = {}
-      runList = []
-      for fileDict in res['Value']:
-        if not fileDict['Status'] == 'Processed':
-          transDict.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
-          run = fileDict['RunNumber']
-          if run not in runList:
-            runList.append( run )
-      self.util.logVerbose( "Found files in transformations for runs %s" % str( sorted( runList ) ) )
-      for trans, lfns in transDict.items():
-        if self.transID > 0:
-          res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns )
-        else:
-          res = {'OK':True}
-        if not res['OK']:
-          self.util.logError( "Error setting %d files in transformation %d to status Removed" % ( len( lfns ), trans ), res['Message'] )
-        else:
-          self.util.logInfo( "%d files set as 'Removed' in transformation %d" % ( len( lfns ), trans ) )
+    if self.util.getPluginParam( 'CleanTransformations', False ):
+      lfns = []
+      for task in tasks:
+        lfns += task[1]
+      # Check if some of these files are used by transformations
+      selectDict = { 'LFN':lfns }
+      res = self.transClient.getTransformationFiles( selectDict )
+      if not res['OK']:
+        self.util.logError( "Error getting transformation files for %d files" % len( lfns ), res['Message'] )
+      else:
+        processedFiles = []
+        self.util.logVerbose( "Out of %d files, %d were found in transformations" % ( len( lfns ), len( res['Value'] ) ) )
+        transDict = {}
+        runList = []
+        for fileDict in res['Value']:
+          # Processed files are immutable, and don't kill yourself!
+          if fileDict['TransformationID'] != self.transID:
+            if fileDict['Status'] not in ( 'Processed', 'Removed' ):
+              transDict.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+              run = fileDict['RunNumber']
+              if run not in runList:
+                runList.append( run )
+            else:
+              processedFiles.append( fileDict['LFN'] )
+        self.util.logVerbose( "Found files in transformations for runs %s" % str( sorted( runList ) ) )
+        if processedFiles:
+          self.util.logInfo( "%d files are removed but were already processed" % len( processedFiles ) )
+        for trans, lfns in transDict.items():
+          if self.transID > 0:
+            res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns )
+            action = 'set'
+          else:
+            res = {'OK':True}
+            action = 'to be set'
+          if not res['OK']:
+            self.util.logError( "Error setting %d files in transformation %d to status Removed" % ( len( lfns ), trans ), res['Message'] )
+          else:
+            self.util.logInfo( "%d files %s as 'Removed' in transformation %d" % ( len( lfns ), action, trans ) )
 
     return S_OK( tasks )
 
@@ -982,9 +992,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         targetSEs = []
         # Take into account the mandatory SEs
-        secondarySEs = [se for se in existingSEs if se in mandatorySEs]
-        if secondarySEs:
-          existingSEs = [se for se in existingSEs if se not in secondarySEs]
+        existingSEs = [se for se in existingSEs if se not in mandatorySEs]
+        self.util.logVerbose( "%d files, non-keep SEs: %s, removal from %s, keep %d" % ( len( lfns ), existingSEs, listSEs, minKeep ) )
         #print existingSEs, listSEs, minKeep
         if len( existingSEs ) > minKeep:
           # explicit deletion
@@ -993,11 +1002,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             nLeft = len( [se for se in existingSEs if se not in listSEs] )
             # we can delete all replicas in listSEs
             targetSEs = [se for se in listSEs if se in existingSEs]
+            self.util.logVerbose( "Target SEs, 1st level: %s, number of left replicas: %d" % ( targetSEs, nLeft ) )
             if nLeft < minKeep:
               # we should keep some in listSEs, too bad
               targetSEs = randomize( targetSEs )[0:minKeep - nLeft]
               self.util.logInfo( "Found %d files that could only be deleted in %d of the requested SEs" % ( len( lfns ),
                                                                                                          minKeep - nLeft ) )
+              self.util.logVerbose( "Target SEs, 2nd level: %s" % targetSEs )
           else:
             # remove all replicas and keep only minKeep
             targetSEs = randomize( existingSEs )
@@ -1005,13 +1016,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         elif [se for se in listSEs if se in existingSEs]:
           nLeft = len( [se for se in existingSEs if se not in listSEs] )
           self.util.logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ), nLeft, minKeep ) )
-          self.util.logVerbose( "First files at %s are: %s" % ( str( existingSEs ), str( lfns[0:10] ) ) )
+          self.util.logVerbose( "First file at %s are: %s" % ( str( existingSEs ), lfns[0] ) )
           self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
           continue
 
       if targetSEs:
         stringTargetSEs = ','.join( sorted( targetSEs ) )
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
+        self.util.logVerbose( "%d files to be removed at %s" % ( len( lfns ), stringTargetSEs ) )
       else:
         self.util.logInfo( "Found %s files that don't need any replica deletion" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
