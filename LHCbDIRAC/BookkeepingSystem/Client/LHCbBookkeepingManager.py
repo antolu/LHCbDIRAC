@@ -1864,6 +1864,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """
     filesandformats = {}
     rootFormat = True
+    lfn = []
     if savePfn: # we have to decide the file type version.
       #This variable contains the file type version, if it is empty I check in the bkk
       lfn = savePfn.keys()[0]
