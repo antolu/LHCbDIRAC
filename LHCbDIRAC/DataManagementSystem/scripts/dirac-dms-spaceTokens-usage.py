@@ -10,7 +10,7 @@ __RCSID__ = "$Id:  $"
 from DIRAC.Core.Base import Script
 unit = 'TB'
 sites = []
-Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" %unit )
+Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit )
 Script.registerSwitch( "S:", "Sites=", "  Sites to consider [ALL] (space or comma separated list, e.g. LCG.CERN.ch, LCG.CNAF.it" )
 #Script.registerSwitch( "l:", "Site=", "   LCG Site list to check [%s] (e.g. LCG.CERN.ch, LCG.CNAF.it, ... )" %sites )
 
@@ -51,13 +51,13 @@ scaleFactor = scaleDict[unit]
 spaceTokens = ['LHCb-Tape', 'LHCb-Disk', 'LHCb_USER' ]
 SitesSEs = {}
 for lcgSite in sites:
-  site = lcgSite.split('.')[1]
+  site = lcgSite.split( '.' )[1]
   SitesSEs[site] = {}
   for st in spaceTokens:
     SitesSEs[ site ][ st ] = {}
     SitesSEs[ site ][ st ]['SEs'] = []
-  SitesSEs[ site ]['LHCb-Tape']['SEs'] =[site + '-RAW', site + '-RDST', site + '-ARCHIVE']
-  SitesSEs[ site ]['LHCb-Disk']['SEs'] = [site + '-DST', site + '_M-DST', site + '_MC_M-DST', site + '_MC-DST', site + '-FAILOVER']
+  SitesSEs[ site ]['LHCb-Tape']['SEs'] = [site + '-RAW', site + '-RDST', site + '-ARCHIVE']
+  SitesSEs[ site ]['LHCb-Disk']['SEs'] = [site + '-BUFFER', site + '-DST', site + '_M-DST', site + '_MC_M-DST', site + '_MC-DST', site + '-FAILOVER']
   SitesSEs[ site ]['LHCb_USER']['SEs'] = [ site + '-USER']
   SitesSEs[ site ]['LHCb-Tape']['type'] = 't1d0'
   SitesSEs[ site ]['LHCb-Disk']['type'] = 't0d1'
@@ -73,15 +73,15 @@ except:
 import lcg_util
 def getSrmUsage( lcgSite ):
   """Get space usage via SRM interface
-  """  
+  """
   try:
-    site = lcgSite.split('.')[ 1 ]
+    site = lcgSite.split( '.' )[ 1 ]
   except:
-    print("Site name is not correct. Should be given in Dirac format: e.g. LCG.CERN.ch")
+    print( "Site name is not correct. Should be given in Dirac format: e.g. LCG.CERN.ch" )
     return -1
   if site not in spaceTokenInfo.keys():
-    print("ERROR: information not available for site %s. Space token information from CS: %s " %(site, spaceTokenInfo))
-    return -1 
+    print( "ERROR: information not available for site %s. Space token information from CS: %s " % ( site, spaceTokenInfo ) )
+    return -1
   try:
     ep = spaceTokenInfo[ site ]['Endpoint']
   except:
@@ -90,16 +90,16 @@ def getSrmUsage( lcgSite ):
 
   result = {}
   for st in spaceTokens:
-    result[ st ] = {}    
-    srm = lcg_util.lcg_stmd( st, ep , True, 0)
+    result[ st ] = {}
+    srm = lcg_util.lcg_stmd( st, ep , True, 0 )
     if srm[0]:
-      print 'ERROR! for ep = %s and st = %s' %(ep, st)
+      print 'ERROR! for ep = %s and st = %s' % ( ep, st )
       continue
     srmVal = srm[1][0]
     srmTotSpace = srmVal['totalsize']
     # correct for the 6% overhead due to castor setup at RAL
     if 'gridpp' in ep:
-      srmTotSpace = (srmVal['totalsize'])*0.94
+      srmTotSpace = ( srmVal['totalsize'] ) * 0.94
       print 'WARNING! apply a 0.94 factor to total space for RAL!'
     srmFree = srmVal['unusedsize']
     srmUsed = srmTotSpace - srmFree
@@ -114,17 +114,17 @@ def getSDUsage( lcgSite ):
   """ get storage usage from storage dumps
   """
   try:
-    site = lcgSite.split('.')[ 1 ]
+    site = lcgSite.split( '.' )[ 1 ]
   except:
-    print("Site name is not correct. Should be given in Dirac format: e.g. LCG.CERN.ch")
+    print( "Site name is not correct. Should be given in Dirac format: e.g. LCG.CERN.ch" )
     return -1
   res = storageUsage.getSTSummary( site )
   if not res['OK']:
-    print("ERROR: Cannot get storage dump information for site %s : %s " % (site, res['Message']))
+    print( "ERROR: Cannot get storage dump information for site %s : %s " % ( site, res['Message'] ) )
     return -1
   sdUsage = {}
   if not res['Value']:
-    print(" No information available for site %s from storage dumps" % site )
+    print( " No information available for site %s from storage dumps" % site )
     return -1
   for row in res['Value']:
     site, spaceTokenWithID, totalSpace, totalFiles, lastUpdate = row
@@ -143,8 +143,8 @@ def getSDUsage( lcgSite ):
 def getLFCUsage( lcgSite ):
   """ get storage usage from LFC
   """
-  site = lcgSite.split('.')[ 1 ]
-  res = storageUsage.getStorageSummary( )
+  site = lcgSite.split( '.' )[ 1 ]
+  res = storageUsage.getStorageSummary()
   if not res[ 'OK' ]:
     print 'ERROR! ', res
     DIRAC.exit( 1 )
@@ -154,15 +154,15 @@ def getLFCUsage( lcgSite ):
   for se in res['Value'].keys():
     for st in spaceTokens:
       if se in SitesSEs[ site ][ st ]['SEs']:
-        usage[ st ]['Files'] += res['Value'][ se ][ 'Files' ]    
-        usage[ st ]['Size'] += res['Value'][ se ][ 'Size' ]    
+        usage[ st ]['Files'] += res['Value'][ se ][ 'Files' ]
+        usage[ st ]['Size'] += res['Value'][ se ][ 'Size' ]
         break
-      
+
   return usage
 
 #......................................................................................
 
-                  
+
 lfcUsage = {}
 srmUsage = {}
 sdUsage = {}
@@ -174,23 +174,23 @@ for site in sites:
   srmResult = getSrmUsage( site )
   if srmResult != -1:
     srmUsage[ site ] = srmResult
- 
+
   # retrieve space usage from storage dumps:
   sdResult = getSDUsage( site )
   if sdResult != -1:
     sdUsage[ site ] = sdResult
-  
-  print("Storage usage summary for site %s - %s " % (site, time.asctime()) )
+
+  print( "Storage usage summary for site %s - %s " % ( site, time.asctime() ) )
   for st in spaceTokens:
-    print("Space token %s " % st)
-    print("From LFC: Files: %d, Size: %.2f %s" % ( lfcUsage[ site ][ st ]['Files'], lfcUsage[ site ][ st ]['Size']/scaleFactor, unit ))
+    print( "Space token %s " % st )
+    print( "From LFC: Files: %d, Size: %.2f %s" % ( lfcUsage[ site ][ st ]['Files'], lfcUsage[ site ][ st ]['Size'] / scaleFactor, unit ) )
     if site in srmUsage.keys():
-      print("From SRM: Total Assigned Space: %.2f, Used Space: %.2f, Free Space: %.2f %s " % (srmUsage[ site ][ st ]['SRMTotal']/scaleFactor, srmUsage[ site ][ st ]['SRMUsed']/scaleFactor, srmUsage[ site ][ st ]['SRMFree']/scaleFactor, unit ) )
+      print( "From SRM: Total Assigned Space: %.2f, Used Space: %.2f, Free Space: %.2f %s " % ( srmUsage[ site ][ st ]['SRMTotal'] / scaleFactor, srmUsage[ site ][ st ]['SRMUsed'] / scaleFactor, srmUsage[ site ][ st ]['SRMFree'] / scaleFactor, unit ) )
     else:
-      print("From SRM: Information not available")
+      print( "From SRM: Information not available" )
     if site in sdUsage.keys():
-      print("From storage dumps: Files: %d, Size: %.2f %s - last update %s " % (sdUsage[ site ][ st ]['Files'], sdUsage[ site ][ st ]['Size']/scaleFactor, unit, sdUsage[ site ][ st ]['LastUpdate']) )
+      print( "From storage dumps: Files: %d, Size: %.2f %s - last update %s " % ( sdUsage[ site ][ st ]['Files'], sdUsage[ site ][ st ]['Size'] / scaleFactor, unit, sdUsage[ site ][ st ]['LastUpdate'] ) )
     else:
-      print("From storage dumps: Information not available")
+      print( "From storage dumps: Information not available" )
 DIRAC.exit( 0 )
 
