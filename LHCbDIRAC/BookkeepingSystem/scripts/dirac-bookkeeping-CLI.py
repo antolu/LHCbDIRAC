@@ -1,12 +1,13 @@
-"""
-Bookkeeping Command line interface
-"""
 #!/usr/bin/env python
 ########################################################################
 # $HeadURL:  $
 # File :    dirac-bookkeeping-CLI.py
 # Author :  Zoltan Mathe
 ########################################################################
+
+"""
+Bookkeeping Command line interface
+"""
 
 from DIRAC.Core.Base                                      import Script
 Script.parseCommandLine( ignoreErrors = True )
