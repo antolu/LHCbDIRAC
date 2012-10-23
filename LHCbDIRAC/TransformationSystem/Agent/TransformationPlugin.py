@@ -912,7 +912,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logError( "Error getting transformation files for %d files" % len( lfns ), res['Message'] )
       else:
         processedFiles = []
-        self.util.logVerbose( "Out of %d files, %d were found in transformations" % ( len( lfns ), len( res['Value'] ) ) )
+        self.util.logVerbose( "Out of %d files, %d occurrences were found in transformations" % ( len( lfns ), len( res['Value'] ) ) )
         transDict = {}
         runList = []
         for fileDict in res['Value']:
@@ -925,11 +925,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 runList.append( run )
             else:
               processedFiles.append( fileDict['LFN'] )
-        self.util.logVerbose( "Found files in transformations for runs %s" % str( sorted( runList ) ) )
+        if runList:
+          self.util.logVerbose( "Files to be set Removed in other transformations for runs %s" % str( sorted( runList ) ) )
+        else:
+          self.util.logVerbose( "No files to be set Removed in other transformations" )
         if processedFiles:
-          self.util.logInfo( "%d files are removed but were already processed" % len( processedFiles ) )
+          self.util.logInfo( "%d files are being removed but were already Processed or Removed" % len( processedFiles ) )
         for trans, lfns in transDict.items():
           if self.transID > 0:
+            # Do not actually take action for a fake transformation (dirac-test-plugin)
             res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns )
             action = 'set'
           else:

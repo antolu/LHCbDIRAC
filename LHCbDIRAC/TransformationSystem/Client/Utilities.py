@@ -56,6 +56,9 @@ class PluginScript( DMScript ):
                            "   List of processing passes for the DeleteReplicasWhenProcessed plugin", self.setProcessingPasses )
     Script.registerSwitch( "", "Period=",
                            "   minimal period at which a plugin is executed (if instrumented)", self.setPeriod )
+    Script.registerSwitch( "", "CleanTransformations",
+                           "   (only for DestroyDataset) clean transformations from the files being destroyed", self.setCleanTransformations )
+    Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin', self.setDebug )
 
   def setPlugin( self, val ):
     self.options['Plugin'] = val
@@ -96,12 +99,20 @@ class PluginScript( DMScript ):
     self.options['Period'] = val
     return DIRAC.S_OK()
 
+  def setCleanTransformations( self, val ):
+    self.options['CleanTransformations'] = True
+    return DIRAC.S_OK()
+
+  def setDebug( self, val ):
+    self.options['Debug'] = True
+    return DIRAC.S_OK()
+
   def getPluginParameters( self ):
     if 'Parameters' in self.options:
       params = eval( self.options['Parameters'] )
     else:
       params = {}
-    pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period' )
+    pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period', 'CleanTransformations', 'Debug' )
     #print self.options
     for key in [k for k in self.options if k in pluginParams]:
       params[key] = self.options[key]
@@ -163,7 +174,7 @@ class PluginUtilities:
   def setParameters( self, params ):
     self.params = params
     self.transID = params['TransformationID']
-    self.transString = self.transInThread.get( self.transID, ' [None] [None] ' ) + '%s: ' % self.plugin
+    self.transString = self.transInThread.get( self.transID, ' [NoThread] [%d] ' % self.transID ) + '%s: ' % self.plugin
 
   def setDebug( self, val ):
     self.debug = val
@@ -197,8 +208,13 @@ class PluginUtilities:
         value = int( value )
       elif valueType == type( 0. ):
         value = float( value )
+      elif valueType == type( True ):
+        if value in ( 'False', 'No' ):
+          value = False
+        else:
+          value = bool( value )
       elif valueType != type( '' ):
-        self.logWarn( "Unknown parameter value type %s, passed as string" % str( valueType ) )
+        self.logWarn( "Unknown parameter type (%s) for %s, passed as string" % ( str( valueType ), name ) )
     self.logVerbose( "Final plugin param %s: '%s'" % ( name, value ) )
     return value
 
