@@ -6,6 +6,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from DIRAC.Interfaces.API.Dirac                       import Dirac
 
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
@@ -159,3 +160,99 @@ class consistencyChecks( object ):
     return present, notPresent
 
   ################################################################################
+  def compareChecksum( self, lfns ):
+    """compare the checksum of the file in the FC and the checksum of the physical replicas.
+       Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with 
+       files with all replicas corrupted, and one with files with some replicas corrupted and at least 
+       one good replica 
+    """
+    retDict = {}
+
+    retDict['AllReplicasCorrupted'] = {}
+    retDict['SomeReplicasCorrupted'] = {}
+
+    dirac = Dirac()
+    gLogger.info( "Get lfn meta-data for files to be checked.." )
+    res = dirac.getMetadata( lfns )
+    if not res['OK']:
+      gLogger.error( "error %s" % res['Message'] )
+      DIRAC.exit( -1 )
+
+    gLogger.info( "Get all replicas.." )
+    replicasRes = dirac.getAllReplicas( lfns )
+    if not replicasRes[ 'OK' ]:
+      gLogger.error( "error:  %s" % res['Message'] )
+      DIRAC.exit( -1 )
+
+    gLogger.info( "compare checksum file by file ..." )
+    csDict = {}
+    checkSumMismatch = []
+    pfnNotAvailable = []
+    val = res['Value']
+    for lfn in lfns:
+    # get the lfn checksum from LFC
+      if lfn in val['Failed']:
+        gLogger.info( "failed request for %s" % ( lfn, val['Failed'][lfn] ) )
+        continue
+      elif lfn in val['Successful']:
+        if lfn not in csDict.keys():
+          csDict[ lfn ] = {}
+        csDict[ lfn ][ 'LFCChecksum' ] = val['Successful'][lfn][ 'Checksum']
+      else:
+        gLogger.error( "LFN not in return values! %s " % lfn )
+        continue
+
+      if lfn not in replicasRes['Value']['Successful'].keys():
+        gLogger.error( "did not get replicas for this LFN: %s " % lfn )
+        continue
+      replicaDict = replicasRes['Value']['Successful'][ lfn ]
+      for se in replicaDict.keys():
+        surl = replicaDict[ se ]
+        # get the surls metadata and compare the checksum
+        surlRes = self.rm.getStorageFileMetadata( surl, se )
+        if not surlRes[ 'OK' ]:
+          gLogger.error( "error replicaManager.getStorageFileMetadata returns %s" % ( surlRes['Message'] ) )
+          continue
+        if surl not in surlRes['Value']['Successful']:
+          gLogger.error( "SURL was not in the return value! %s " % surl )
+          pfnNotAvailable.append( surl )
+          continue
+        surlChecksum = surlRes['Value']['Successful'][ surl ]['Checksum']
+        csDict[ lfn ][ surl ] = {}
+        csDict[ lfn ][ surl ]['PFNChecksum'] = surlChecksum
+        lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
+        if lfcChecksum != surlChecksum:
+          gLogger.info( "Check if the difference is just leading zeros" )
+          #if lfcChecksum not in surlChecksum and surlChecksum not in lfcChecksum:
+          if lfcChecksum.lstrip( '0' ) != surlChecksum.lstrip( '0' ):
+            gLogger.error( "ERROR!! checksum mismatch at %s for LFN \
+            %s:  LFC checksum: %s , PFN checksum : %s " % ( se, lfn, csDict[ lfn ][ 'LFCChecksum' ], surlChecksum ) )
+            if lfn not in checkSumMismatch:
+              checkSumMismatch.append( lfn )
+          else:
+            gLogger.info( "checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " % ( lfcChecksum, surlChecksum ) )
+
+    for lfn in checkSumMismatch:
+      oneGoodReplica = False
+      gLogger.info( "LFN: %s, LFC Checksum: %s " % ( lfn, csDict[ lfn ][ 'LFCChecksum'] ) )
+      lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
+      for k in csDict[ lfn ].keys():
+        if k == 'LFCChecksum':
+          continue
+        for kk in csDict[ lfn ][ k ].keys():
+          if 'PFNChecksum' == kk:
+            pfnChecksum = csDict[ lfn ][ k ]['PFNChecksum']
+            pfn = k
+            gLogger.info( "%s %s " % ( pfn, pfnChecksum ) )
+            if pfnChecksum == lfcChecksum:
+              oneGoodReplica = True
+      if oneGoodReplica:
+        gLogger.info( "=> At least one replica with good Checksum" )
+        retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
+      else:
+        gLogger.info( "=> All replicas have bad checksum" )
+        retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
+    retDict[ 'MissingPFN'] = pfnNotAvailable
+
+    return retDict
+
