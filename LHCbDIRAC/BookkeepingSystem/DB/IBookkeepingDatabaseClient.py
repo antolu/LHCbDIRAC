@@ -103,13 +103,13 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getFilesWithMetadata(self, configName, configVersion, conddescription,
                            processing, evt, production, filetype, quality,
-                           runnb, visible, replicaflag):
+                           runnb, visible, replicaflag, startDate, endDate):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFilesWithMetadata(configName, configVersion,
                                                   conddescription, processing,
                                                   evt, production, filetype,
                                                   quality, runnb,
-                                                  visible, replicaflag)
+                                                  visible, replicaflag, startDate, endDate)
 
   #############################################################################
   def getFilesSummary(self, configName, configVersion,

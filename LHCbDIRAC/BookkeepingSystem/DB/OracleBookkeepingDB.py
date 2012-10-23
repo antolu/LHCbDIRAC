@@ -1004,11 +1004,21 @@ class OracleBookkeepingDB:
   def getFilesWithMetadata(self, configName, configVersion, conddescription=default,
                            processing=default, evt=default, production=default,
                            filetype=default, quality=default, runnb=default,
-                           visible=default, replicaflag=default):
+                           visible=default, replicaflag=default,
+                           startDate = None, endDate = None):
     """return a list of files with their metadata"""
     condition = ''
 
     tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
+    if startDate != None:
+      condition += " and f.inserttimestamp >= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(startDate))
+
+    if endDate != None:
+      condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(endDate))
+    elif startDate != None and endDate == None:
+      currentTimeStamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+      condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(currentTimeStamp))
+
     if not visible.upper().startswith('A'):
       if visible.upper().startswith('Y'):
         condition += "and f.visibilityFlag='Y' "

@@ -383,6 +383,8 @@ class BookkeepingManagerHandler(RequestHandler):
     runnb = in_dict.get('RunNumber', default)
     visible = in_dict.get('Visible', 'Y')
     replicaFlag = in_dict.get('ReplicaFlag', 'Yes')
+    startDate = in_dict.get('StartDate', None)
+    endDate = in_dict.get('EndDate', None)
 
     if 'EventTypeId' in in_dict:
       gLogger.verbose('The EventTypeId has to be replaced by EventType!')
@@ -400,7 +402,9 @@ class BookkeepingManagerHandler(RequestHandler):
                                             quality,
                                             runnb,
                                             visible,
-                                            replicaFlag)
+                                            replicaFlag,
+                                            startDate,
+                                            endDate)
     if retVal['OK']:
       records = []
       parameters = ['FileName', 'EventStat', 'FileSize',

@@ -225,7 +225,9 @@ class BookkeepingClient:
   def getFilesWithMetadata(in_dict):
     """
     It returns the files for a given conditions.
-    Input parameter is a dictionary which has the following keys: 'ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType','ProcessingPass','Production','RunNumber', 'FileType', DataQuality
+    Input parameter is a dictionary which has the following keys: 'ConfigName',
+    'ConfigVersion', 'ConditionDescription', 'EventType',
+    'ProcessingPass','Production','RunNumber', 'FileType', DataQuality, StartDate, EndDate
     """
     result = S_ERROR()
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
