@@ -365,12 +365,9 @@ class MergingForDQAgent( AgentModule ):
                         gLogger.info(_msg)
 
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
-                    from DIRAC.DataManagementSystem.Client.ReplicaManager  import ReplicaManager
-                    rm = ReplicaManager()
-                    res = rm.getCatalogReplicas([lfns['DATA']])
 
-                    if res['OK']:
-                      if lfns['DATA'] in res['Value']['Successful'].keys() :
+                    if res['Value']:
+                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
                         metaDataDict={}
                         metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
