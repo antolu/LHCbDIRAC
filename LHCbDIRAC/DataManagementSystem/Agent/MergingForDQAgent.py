@@ -352,7 +352,7 @@ class MergingForDQAgent( AgentModule ):
 
                     if res['OK'] and res['Value'].has_key(run):
                       try:                            
-                        if res['Value'][run]['DQFlag']=='M':
+                        if (res['Value'][run]['DQFlag']=='M') and (res['Value'][run]['ProcessingPass']==bkDict_brunel[ 'ProcessingPass' ]):
                           _msg = "%s already in the bookkeeping. Continue with the other runs."
                           gLogger.info( _msg % str( lfns['DATA'] ) )
                           continue
@@ -365,8 +365,12 @@ class MergingForDQAgent( AgentModule ):
                         gLogger.info(_msg)
 
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
-                    if res['Value']:
-                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
+                    from DIRAC.DataManagementSystem.Client.ReplicaManager  import ReplicaManager
+                    rm = ReplicaManager()
+                    res = rm.getCatalogReplicas([lfns['DATA']])
+
+                    if res['OK']:
+                      if lfns['DATA'] in res['Value']['Successful'].keys() :
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
                         metaDataDict={}
                         metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
@@ -392,9 +396,9 @@ class MergingForDQAgent( AgentModule ):
                       gLogger.error( "Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s" % run )
                       metaDataDict={}
                       metaDataDict['DQFlag']='P'
+                      metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
                       metaDataDict['Info']='Different number of DAVINCI and BRUNEL hists'
                       self.transClient.addRunsMetadata( run, metaDataDict )
-                      continue
                     #Starting the three step Merging process
                     _msg = '=======================Starting Merging Process for run %s========================'
                     gLogger.info( _msg % run )
@@ -444,7 +448,7 @@ class MergingForDQAgent( AgentModule ):
                         res = notifyClient.sendMail( self.mailAddress, subject, outMess, self.senderAddress, localAttempt = False )
                         
                         metaDataDict={}
-                        metaDataDict['ProcessingPass']=bkDict[ 'ProcessingPass' ]
+                        metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
                         metaDataDict['DQFlag']='M'
                         self.transClient.addRunsMetadata( run, metaDataDict )
 
