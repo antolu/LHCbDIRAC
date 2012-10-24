@@ -838,7 +838,7 @@ def finalization( homeDir, logDir, lfns, outputFileName, logFileName, inputData,
 
   #Uploading data and logs
   results = _upLoadOutputData( homeDir, outputFileName, lfns[ 'DATA' ], res[ 'XML' ], logDict )
-
+  results[ 'XML' ] = res[ 'XML' ]
   return results
 
 def buildLFNs( bkDict, run , prodId , addFlag ):
