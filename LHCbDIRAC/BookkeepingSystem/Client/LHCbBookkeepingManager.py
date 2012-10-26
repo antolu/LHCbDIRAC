@@ -1684,7 +1684,11 @@ class LHCbBookkeepingManager(BaseESManager):
     else:
       fd = open(optionsFile, 'w')
       ext = os.path.splitext(optionsFile)
-      pythonOpts = ext == '.py'
+      try:
+        pythonOpts = ext[1] == '.py'
+      except IndexError, ex:
+        gLogger.warn(ex)
+        pythonOpts = True
 
 
     string, comment = self.__addGaudiheader(pythonOpts, evtTypes)
