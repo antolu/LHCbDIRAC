@@ -11,19 +11,32 @@ import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
+seSvcClassDict = {}
+
+def seSvcClass( se ):
+  if se not in seSvcClassDict:
+    from DIRAC.Resources.Storage.StorageElement import StorageElement
+    try:
+      if se.endswith( 'HIST' ):
+        seSvcClass[se] = 'Hist'
+      else:
+        seSvcClassDict[se] = 'Tape' if StorageElement( se ).getStatus()['Value']['TapeSE'] else 'Disk'
+    except:
+      seSvcClassDict[se] = 'LFN'
+  return seSvcClassDict[se]
+
 def orderSEs( listSEs ):
   listSEs = sortList( listSEs )
-  orderedSEs = [se for se in listSEs if se == 'LFN']
-  orderedSEs += [se for se in listSEs if se.endswith( '-HIST' )]
-  orderedSEs += [se for se in listSEs if se.endswith( "-ARCHIVE" ) and se not in orderedSEs]
-  orderedSEs += [se for se in listSEs if se not in orderedSEs]
+  orderedSEs = ['LFN'] if 'LFN' in listSEs else []
+  orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs and se.endswith( '-HIST' )] )
+  orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs and ( seSvcClass( se ) == 'Tape' )] )
+  orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs] )
   return orderedSEs
 
 def printSEUsage( totalUsage, grandTotal, scaleFactor ):
   line = '-' * 48
   print line
   print '%s %s %s' % ( 'DIRAC SE'.ljust( 20 ), ( 'Size (%s)' % unit ).ljust( 20 ), 'Files'.ljust( 20 ) )
-  print line
   format = '%.1f'
   for se in orderSEs( totalUsage.keys() ):
     dict = totalUsage[se]
@@ -31,13 +44,12 @@ def printSEUsage( totalUsage, grandTotal, scaleFactor ):
     if size < 1.:
       format = '%.3f'
       break
-  suffix = ''
+  svcClass = ''
   for se in orderSEs( totalUsage.keys() ):
-    newSuffix = se.split( '-' )
-    newSuffix = newSuffix[-1]
-    if newSuffix != suffix and suffix in ( 'LFN', 'HIST', 'ARCHIVE' ):
+    newSvcClass = seSvcClass( se )
+    if newSvcClass != svcClass:
       print line
-    suffix = newSuffix
+    svcClass = newSvcClass
     dict = totalUsage[se]
     files = dict['Files']
     size = dict['Size'] / scaleFactor
@@ -200,7 +212,7 @@ def getStorageSummary( totalUsage, grandTotal, dir, fileTypes, prodID, ses ):
         totalUsage.setdefault( se, {'Files':0, 'Size':0} )
         totalUsage[se]['Files'] += res['Value'][se]['Files']
         totalUsage[se]['Size'] += res['Value'][se]['Size']
-        if not se.endswith( '-ARCHIVE' ) and not se.endswith( '-HIST' ):
+        if seSvcClass( se ) == 'Disk' and not se.endswith( '-HIST' ):
           grandTotal['Files'] += res['Value'][se]['Files']
           grandTotal['Size'] += res['Value'][se]['Size']
   return totalUsage, grandTotal
