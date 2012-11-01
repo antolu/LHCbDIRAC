@@ -647,11 +647,52 @@ class PluginUtilities:
       self.logVerbose( "Grouped %d files by run and %s in %.1f seconds" % ( len( lfns ), param, time.time() - startTime ) )
     return S_OK( runDict )
 
+  def groupByReplicas( self, files, status ):
+    if not self.groupSize:
+      self.groupSize = self.getPluginParam( 'GroupSize', 10 )
+    tasks = []
+    flush = ( status == 'Flush' )
+    self.logVerbose( "groupByReplicas: %d files, groupSize %d, flush %s" % ( len( files ), self.groupSize, flush ) )
+    nTasks = 0
+    files = files.copy()
+    # Consider files by groups of SEs, a file is only in one group
+    # Then consider files site by site, but a file can now be at more than one site
+    for groupSE in ( True, False ):
+      if not files:
+        break
+      seFiles = getFileGroups( files, groupSE=groupSE )
+      # Consider disk SEs first
+      for replicaSE in sortSEs( seFiles ):
+        lfns = seFiles[replicaSE]
+        if lfns:
+          tasksLfns = breakListIntoChunks( lfns, self.groupSize )
+          lfnsInTasks = []
+          for taskLfns in tasksLfns:
+            if ( flush and not groupSE ) or ( len( taskLfns ) >= self.groupSize ):
+              tasks.append( ( replicaSE, taskLfns ) )
+              lfnsInTasks += taskLfns
+          # In case the file was at more than one site, remove it from the other sites' list
+          # Remove files from global list
+          for lfn in lfnsInTasks:
+            files.pop( lfn )
+          if not groupSE:
+            # Remove files from other SEs
+            for se in [se for se in seFiles if se != replicaSE]:
+              seFiles[se] = [lfn for lfn in seFiles[se] if lfn not in lfnsInTasks]
+      self.logVerbose( "groupByReplicas: %d tasks created with groupSE %s" % ( len( tasks ) - nTasks, str( groupSE ) ) )
+      self.logVerbose( "groupByReplicas: %d files have not been included in tasks" % len( files ) )
+      nTasks = len( tasks )
+
+    return S_OK( tasks )
+
+
   def groupBySize( self, files, status ):
     startTime = time.time()
     if not self.groupSize:
       self.groupSize = float( self.getPluginParam( 'GroupSize', 1 ) ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
     requestedSize = self.groupSize
+    flush = ( status == 'Flush' )
+    self.logVerbose( "groupBySize: %d files, groupSize %d, flush %s" % ( len( files ), self.groupSize, flush ) )
     if not self.maxFiles:
       self.maxFiles = self.getPluginParam( 'MaxFiles', 100 )
     maxFiles = self.maxFiles
@@ -661,28 +702,47 @@ class PluginUtilities:
       return res
     fileSizes = res['Value']
     tasks = []
+    nTasks = 0
     # Group files by SE
-    for replicaSE, lfns in getFileGroups( files ).items():
-      taskLfns = []
-      taskSize = 0
-      lfns = sorted( lfns, key=fileSizes.get )
-      for lfn in lfns:
-        size = fileSizes.get( lfn, 0 )
-        if size:
-          if size > requestedSize:
-            tasks.append( ( replicaSE, [lfn] ) )
-            self.clearCachedFileSize( [lfn] )
-          else:
-            taskSize += size
-            taskLfns.append( lfn )
-            if ( taskSize > requestedSize ) or ( len( taskLfns ) >= maxFiles ):
-              tasks.append( ( replicaSE, taskLfns ) )
-              self.clearCachedFileSize( taskLfns )
-              taskLfns = []
-              taskSize = 0
-      if ( status == 'Flush' ) and taskLfns:
-        tasks.append( ( replicaSE, taskLfns ) )
-        self.clearCachedFileSize( taskLfns )
+    files = files.copy()
+    for groupSE in ( True, False ):
+      seFiles = getFileGroups( files, groupSE=groupSE )
+      for replicaSE in sorted( seFiles ) if groupSE else sortSEs( seFiles ):
+        lfns = seFiles[replicaSE]
+        lfnsInTasks = []
+        taskLfns = []
+        taskSize = 0
+        lfns = sorted( lfns, key=fileSizes.get )
+        for lfn in lfns:
+          size = fileSizes.get( lfn, 0 )
+          if size:
+            if size > requestedSize:
+              tasks.append( ( replicaSE, [lfn] ) )
+              lfnsInTasks.append( lfn )
+            else:
+              taskSize += size
+              taskLfns.append( lfn )
+              if ( taskSize > requestedSize ) or ( len( taskLfns ) >= maxFiles ):
+                tasks.append( ( replicaSE, taskLfns ) )
+                lfnsInTasks += taskLfns
+                taskLfns = []
+                taskSize = 0
+        # Remove files from global list
+        for lfn in lfnsInTasks:
+          files.pop( lfn )
+        if not groupSE:
+          if flush and taskLfns:
+            tasks.append( ( replicaSE, taskLfns ) )
+            lfnsInTasks += taskLfns
+          # Remove files from other SEs
+          for se in [se for se in seFiles if se != replicaSE]:
+            seFiles[se] = [lfn for lfn in seFiles[se] if lfn not in lfnsInTasks]
+        # Remove the selected files from the size cache
+        self.clearCachedFileSize( lfnsInTasks )
+      self.logVerbose( "groupBySize: %d tasks created with groupSE %s" % ( len( tasks ) - nTasks, str( groupSE ) ) )
+      self.logVerbose( "groupBySize: %d files have not been included in tasks" % len( files ) )
+      nTasks = len( tasks )
+
     self.logVerbose( "Grouped %d files by size in %.1f seconds" % ( len( files ), time.time() - startTime ) )
     return S_OK( tasks )
 
@@ -887,10 +947,19 @@ def isArchive( se ):
 def isFailover( se ):
   return se.endswith( "-FAILOVER" )
 
-def getFileGroups( fileReplicas ):
+def getFileGroups( fileReplicas, groupSE=True ):
+  """
+  Group files by set of SEs
+  If groupSE == False, group by SE, in which case a file can be in more than one element
+  """
   fileGroups = {}
   for lfn, replicas in fileReplicas.items():
-    if replicas:
+    if not replicas:
+      continue
+    if not groupSE or len( replicas ) == 1:
+      for rep in replicas:
+        fileGroups.setdefault( rep, [] ).append( lfn )
+    else:
       replicaSEs = str.join( ',', sorted( replicas ) )
       fileGroups.setdefault( replicaSEs, [] ).append( lfn )
   return fileGroups
@@ -905,15 +974,17 @@ def getSiteForSE( se ):
     return S_OK( result['Value'][0] )
   return S_OK( '' )
 
-def getSitesForSEs( seList ):
-  """ Get all the sites for the given SE list
-  """
-  sites = []
-  for se in seList:
-    result = getSitesForSE( se, gridName='LCG' )
-    if result['OK']:
-      sites += result['Value']
-  return sites
+seSvcClass = {}
+def sortSEs( ses ):
+  for se in ses:
+    if len( se.split( ',' ) ) != 1:
+      return sorted( ses )
+    if se not in seSvcClass:
+      from DIRAC.Resources.Storage.StorageElement import StorageElement
+      seSvcClass[se] = StorageElement( se ).getStatus()['Value']['DiskSE']
+  diskSEs = [se for se in ses if seSvcClass[se]]
+  tapeSEs = [se for se in ses if se not in diskSEs]
+  return sorted( diskSEs ) + sorted( tapeSEs )
 
 def getListFromString( strParam ):
   """ Converts a string representing a list into a list

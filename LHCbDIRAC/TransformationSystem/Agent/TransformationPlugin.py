@@ -452,19 +452,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _LHCbStandard( self ):
     """ Plugin grouping files at same sites based on number of files,
-        used for example for WG productions
+        used for example for stripping or WG productions
     """
-    status = self.params['Status']
-    groupSize = self.util.getPluginParam( 'GroupSize', 10 )
-    tasks = []
-    # Group files by SE
-    for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
-      tasksLfns = breakListIntoChunks( lfns, groupSize )
-      # Create tasks based on the group size
-      for taskLfns in tasksLfns:
-        if ( status == 'Flush' ) or ( len( taskLfns ) >= groupSize ):
-          tasks.append( ( replicaSE, taskLfns ) )
-    return S_OK( tasks )
+    return self.util.groupByReplicas( self.transReplicas, self.params['Status'] )
 
   def _ByRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
     try:
@@ -545,8 +535,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           runParamReplicas[lfn ] = [se for se in inputData[lfn] if not isArchive( se )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
-        self.transReplicas = runParamReplicas
-        self.data = self.transReplicas
+        self.data = self.transReplicas = runParamReplicas
         status = runStatus
         if status != 'Flush' and runFlush:
           # If all files in that run have been processed and received, flush
