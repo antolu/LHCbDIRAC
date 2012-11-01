@@ -20,7 +20,7 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
   Script.registerSwitch( 'a', "All", "  Also show inactive replicas" )
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+  Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
@@ -39,8 +39,7 @@ if __name__ == "__main__":
   active = True
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
-    opt = switch[0].lower()
-    if opt in ( "a", "all" ):
+    if switch[0] in ( "a", "All" ):
       active = False
 
   if not lfnList or len( lfnList ) < 1:

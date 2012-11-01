@@ -92,36 +92,42 @@ if __name__ == "__main__":
       lfns.remove( lfn )
 
   if lfns:
-    bkQueries = []
-    directories = []
     checkLFC2BK( lfns, fixIt )
 
-  for dir in directories:
-    res = rm.getFilesFromDirectory( dir )
-    if not res['OK']: continue
-    lfns = res['Value']
-    checkLFC2BK( lfns, fixIt )
+  elif directories:
+    for dir in directories:
+      print "######### Checking directory", dir
+      res = rm.getFilesFromDirectory( dir )
+      if res['OK']:
+        lfns = res['Value']
+        if lfns:
+          checkLFC2BK( lfns, fixIt )
+        else:
+          print "No files found"
+      else:
+        print "Error getting files from directory", res['Message']
 
-  for bkQuery in bkQueries:
-    print "For BK query:", bkQuery
-    if bkQuery.getQueryDict():
-      lfns = bkQuery.getLFNs()
-      if not lfns:
-        print "No files found in BK"
-        continue
-      print len( lfns ), 'files found in BK'
-      success = 0
-      missingLFNs = []
-      for chunk in breakListIntoChunks( lfns, 500 ):
-        res = rm.getCatalogExists( chunk )
-        if res['OK']:
-          success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
-          missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
-      print '\t%d are in the LFC, %d are not' % ( success, len( missingLFNs ) )
-      if fixIt and missingLFNs:
-        print "Attempting to remove GotReplica for %d files:" % len( missingLFNs )
-        res = bk.removeFiles( missingLFNs )
-        if res['OK']:
-          print "\tReplica flag successfully removed in BK"
+  else:
+    for bkQuery in bkQueries:
+      print "For BK query:", bkQuery
+      if bkQuery.getQueryDict():
+        lfns = bkQuery.getLFNs()
+        if not lfns:
+          print "No files found in BK"
+          continue
+        print len( lfns ), 'files found in BK'
+        success = 0
+        missingLFNs = []
+        for chunk in breakListIntoChunks( lfns, 500 ):
+          res = rm.getCatalogExists( chunk )
+          if res['OK']:
+            success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
+            missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
+        print '\t%d are in the LFC, %d are not' % ( success, len( missingLFNs ) )
+        if fixIt and missingLFNs:
+          print "Attempting to remove GotReplica for %d files:" % len( missingLFNs )
+          res = bk.removeFiles( missingLFNs )
+          if res['OK']:
+            print "\tReplica flag successfully removed in BK"
 
 
