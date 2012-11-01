@@ -227,6 +227,12 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     """
     return database.setRunsMetadata( runID, metadataDict )
 
+  types_updateRunsMetadata = [[LongType, IntType], DictType]
+  def export_updateRunsMetadata( self, runID, metadataDict ):
+    """ insert run metadata
+    """
+    return database.updateRunsMetadata( runID, metadataDict )
+
   types_getRunsMetadata = [[LongType, IntType]]
   def export_getRunsMetadata( self, runID ):
     """ retrieve run metadata
