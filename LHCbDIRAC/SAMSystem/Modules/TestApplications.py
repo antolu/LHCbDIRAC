@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/TestApplications.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -10,11 +10,11 @@
 
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: TestApplications.py 57656 2012-10-17 15:18:50Z fstagni $"
 
 import DIRAC
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
@@ -115,21 +115,28 @@ class TestApplications( ModuleBaseSAM ):
 
     if not self.appSystemConfig in localPlatforms:
       if not self.appSystemConfig in localArch:
-        self.log.info( '%s is not in list of supported system configurations at this site: %s' % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
+        self.log.info( '%s is not in list of supported system configurations at this site: %s' % ( self.appSystemConfig,
+                                                                                                   ','.join( localPlatforms ) ) )
         self.writeToLog( '%s is not in list of supported system configurations at this site CE: %s\nDisabling application test.' % ( self.appSystemConfig, ','.join( localPlatforms ) ) )
         return self.finalize( '%s Test Disabled' % self.testName, 'Status NOTICE (=30)', 'notice' )
       else:
         self.appSystemConfig = localPlatforms[0]
 
-    options = self.__getOptions( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1], self.appNameOptions )
+    options = self.__getOptions( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1],
+                                 self.appNameOptions )
     if not options['OK']:
-      return self.finalize( 'Inputs for %s %s could not be found' % ( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1] ), options['Message'], 'critical' )
+      return self.finalize( 'Inputs for %s %s could not be found' % ( self.appNameVersion.split( '.' )[0],
+                                                                      self.appNameVersion.split( '.' )[1] ),
+                           options['Message'], 'critical' )
 
     sys.stdout.flush()
-    result = self.__runApplication( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1], options['Value'] )
+    result = self.__runApplication( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1],
+                                    options['Value'] )
     sys.stdout.flush()
     if not result['OK']:
-      return self.finalize( 'Failure during %s %s execution' % ( self.appNameVersion.split( '.' )[0], self.appNameVersion.split( '.' )[1] ), result['Message'], 'error' )
+      return self.finalize( 'Failure during %s %s execution' % ( self.appNameVersion.split( '.' )[0],
+                                                                 self.appNameVersion.split( '.' )[1] ),
+                           result['Message'], 'error' )
 
     self.log.info( 'Test %s completed successfully' % self.testName )
     self.setApplicationStatus( '%s Successful' % self.testName )
@@ -140,7 +147,7 @@ class TestApplications( ModuleBaseSAM ):
     """Method to set the correct options for the LHCb project that will be executed.
        By convention the inputs / outputs are the system configuration + file extension.
     """
-    sharedArea = SharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )

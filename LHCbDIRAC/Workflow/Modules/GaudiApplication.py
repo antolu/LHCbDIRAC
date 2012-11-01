@@ -9,12 +9,10 @@ import re, os, sys, time, copy
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
 
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-#from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
 
 
 class GaudiApplication( ModuleBase ):
@@ -319,7 +317,7 @@ class GaudiApplication( ModuleBase ):
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       try:
-        self._manageGaudiAppOutput()
+        self._manageAppOutput()
       except IOError, e:
         return S_ERROR( e )
 
@@ -334,86 +332,6 @@ class GaudiApplication( ModuleBase ):
 
     finally:
       super( GaudiApplication, self ).finalize( self.version )
-
-  #############################################################################
-
-  def _manageGaudiAppOutput( self ):
-    """ Calls self._findOuputs to find what's produced,
-        then creates the LFNs
-    """
-
-    try:
-      finalOutputs, _bkFileTypes = self._findOutputs( self.stepOutputs )
-    except AttributeError:
-      self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
-      return
-
-    self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
-    self.step_commons['listoutput'] = finalOutputs
-#    self.step_commons['outputData'] = finalOutputs[0]['outputDataName']
-
-    if self.workflow_commons.has_key( 'outputList' ):
-      for outFile in finalOutputs:
-        if outFile not in self.workflow_commons['outputList']:
-          self.workflow_commons['outputList'].append( outFile )
-    else:
-      self.workflow_commons['outputList'] = finalOutputs
-
-    self.log.info( 'Attempting to recreate the production output LFNs...' )
-    result = constructProductionLFNs( self.workflow_commons, self.bkClient )
-    if not result['OK']:
-      self.log.error( 'Could not create production LFNs', result['Message'] )
-      return result
-    self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
-    self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
-    self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
-
-  #############################################################################
-
-  def _findOutputs( self, stepOutput ):
-    """ Find which outputs of those in stepOutput (what are expected to be produced) are effectively produced.
-        stepOutput, as called here, corresponds to step_commons['listoutput']
-
-        stepOutput =
-        [{'outputDataType': 'BHADRON.DST',
-        'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.BHADRON.DST'},
-        {'outputDataType': 'CALIBRATION.DST',
-        'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
-
-    """
-
-    bkFileTypes = []
-    finalOutputs = []
-
-    filesFound = []
-
-    for output in stepOutput:
-
-      found = False
-      for fileOnDisk in os.listdir( '.' ):
-        if output['outputDataName'].lower() == fileOnDisk.lower():
-          found = True
-          break
-
-      if found:
-        self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk,
-                                                                                       output['outputDataName'] ) )
-        output['outputDataName'] = fileOnDisk
-        filesFound.append( output )
-      else:
-        self.log.error( '%s not found' % output['outputDataName'] )
-        raise IOError, 'OutputData not found'
-
-    for fileFound in filesFound:
-      bkFileTypes.append( fileFound['outputDataType'].upper() )
-      finalOutputs.append( {'outputDataName': fileFound['outputDataName'],
-                            'outputDataType': fileFound['outputDataType'].lower(),
-                            'outputDataSE': fileFound['outputDataSE'],
-                            'outputBKType': fileFound['outputDataType'].upper(),
-                            'stepName':self.stepName
-                            } )
-
-    return ( finalOutputs, bkFileTypes )
 
   #############################################################################
 

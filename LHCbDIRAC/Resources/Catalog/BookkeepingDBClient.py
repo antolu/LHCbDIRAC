@@ -1,30 +1,35 @@
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/Resources/Catalog/BookkeepingDBClient.py $
+
 """ Client for BookkeepingDB file catalog
 """
 
-import types
+__RCSID__ = "$Id: BookkeepingDBClient.py 57373 2012-10-10 14:45:28Z fstagni $"
 
-from DIRAC                                     import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient                import RPCClient
-from DIRAC.Core.Utilities.List                 import breakListIntoChunks
-from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
-
-__RCSID__ = "$Id$"
+from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC.ConfigurationSystem.Client                               import PathFinder
+from DIRAC.Core.DISET.RPCClient                                     import RPCClient
+from DIRAC.Core.Utilities.List                                      import breakListIntoChunks, randomize
+from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
+import types, os
 
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
   """
-  def __init__( self, url = False ):
+  def __init__( self, url=False ):
     """ Constructor of the Bookkeeping catalogue client
     """
     self.splitSize = 1000
-    self.name      = 'BookkeepingDB'
-    self.valid     = True
-    if not url:
-      self.url = 'Bookkeeping/BookkeepingManager'
-    else:
-      self.url = url
-    gLogger.verbose( "BK catalog URLs: %s" % self.url )
+    self.name = 'BookkeepingDB'
+    self.valid = True
+    try:
+      if not url:
+        self.url = 'Bookkeeping/BookkeepingManager'
+      else:
+        self.url = url
+      gLogger.verbose( "BK catalog URLs: %s" % self.url )
+    except Exception, exceptionMessage:
+      gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.', '', exceptionMessage )
+      self.valid = False
 
   def isOK( self ):
     '''
@@ -188,7 +193,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
     #FIXME: why value is False ? Just a default ?
     if type( path ) in types.StringTypes:
-      urls = { path:False }
+      urls = {path:False}
     elif type( path ) == types.ListType:
       urls = {}
       for url in path:
@@ -290,6 +295,5 @@ class BookkeepingDBClient( FileCatalogueBase ):
             successful[lfn] = res['Value'][lfn]
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
-
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

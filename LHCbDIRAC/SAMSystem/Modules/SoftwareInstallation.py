@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/SoftwareInstallation.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,11 +11,11 @@
 
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: SoftwareInstallation.py 57656 2012-10-17 15:18:50Z fstagni $"
 
 import DIRAC
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, InstallApplication, RemoveApplication, CreateSharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, installApplication, removeApplication, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -101,10 +101,10 @@ class SoftwareInstallation( ModuleBaseSAM ):
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    if not CreateSharedArea():
+    if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
-    sharedArea = SharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       # After previous check this error should never occur
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
@@ -204,7 +204,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
             sys.stdout = catch
             result = False
             try:
-              result = InstallApplication( appNameVersion, systemConfig, sharedArea )
+              result = installApplication( appNameVersion, systemConfig, sharedArea )
             except Exception, x:
               self.log.error( 'InstallApplication("%s","%s","%s") failed with exception:\n%s' % ( appNameVersion, systemConfig, sharedArea, x ) )
             sys.stdout = orig
@@ -234,7 +234,7 @@ class SoftwareInstallation( ModuleBaseSAM ):
           sys.stdout = catch
           result = False
           try:
-            result = RemoveApplication( appNameVersion, systemConfig, sharedArea )
+            result = removeApplication( appNameVersion, systemConfig, sharedArea )
           except Exception, x:
             self.log.error( 'RemoveApplication("%s","%s","%s") failed with exception:\n%s' % ( appNameVersion, systemConfig, sharedArea, x ) )
           sys.stdout = orig

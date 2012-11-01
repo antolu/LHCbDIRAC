@@ -1,14 +1,14 @@
 """ LHCb LockSharedArea SAM Test Module
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: LockSharedArea.py 57594 2012-10-17 07:58:13Z fstagni $"
 
 import os, re, time
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 
@@ -123,13 +123,13 @@ class LockSharedArea( ModuleBaseSAM ):
         except Exception, x:
           return self.finalize( 'excepton during umask', x, 'error' )
 
-    sharedArea = SharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea:
       self.log.info( 'Could not determine sharedArea for site %s:\n%s\n trying to create it' % ( DIRAC.siteName(), sharedArea ) )
-      createSharedArea = CreateSharedArea()
+      createSharedArea = createSharedArea()
       if not createSharedArea:
         return self.finalize( 'Could not create sharedArea for site %s:' % ( DIRAC.siteName() ), sharedArea, 'error' )
-      sharedArea = SharedArea()
+      sharedArea = getSharedArea()
     else:
       self.log.info( 'Software shared area for site %s is %s' % ( DIRAC.siteName(), sharedArea ) )
     # Check if the shared area is cernvmfs one.

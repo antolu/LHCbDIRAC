@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/SystemConfiguration.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,10 +8,10 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: SystemConfiguration.py 57656 2012-10-17 15:18:50Z fstagni $"
 
 import DIRAC
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
@@ -79,7 +79,7 @@ class SystemConfiguration( ModuleBaseSAM ):
     localRoot = gConfig.getValue( '/LocalSite/Root', self.cwd )
     self.log.info( "Root directory for job is %s" % ( localRoot ) )
 
-    sharedArea = SharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return self.finalize( 'Could not determine shared area for site', sharedArea, 'critical' )
@@ -91,7 +91,8 @@ class SystemConfiguration( ModuleBaseSAM ):
       self.log.info( 'Changing shared area path to writeable volume at CERN' )
       if re.search( '.cern.ch', sharedArea ):
         newSharedArea = sharedArea.replace( 'cern.ch', '.cern.ch' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea, newSharedArea ) )
+        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea,
+                                                                                                       newSharedArea ) )
         sharedArea = newSharedArea
 
     self.log.info( 'Checking shared area contents: %s' % ( sharedArea ) )

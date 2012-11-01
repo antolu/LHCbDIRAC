@@ -75,8 +75,10 @@ class DiracSAM( Dirac ):
 
     return S_OK()
 
-  #############################################################################
-  def submitSAMJob( self, ce, removeLock = False, deleteSharedArea = False, logFlag = True, publishFlag = True, mode = 'wms', enable = True, softwareEnable = True, reportEnable = True, install_project = None, script = '' ):
+  def submitSAMJob( self, ce, removeLock = False, deleteSharedArea = False,
+                    logFlag = True, publishFlag = True, mode = 'wms', enable = True,
+                    softwareEnable = True, reportEnable = True, install_project = None,
+                    script = '' ):
     """Submit a SAM test job to an individual CE.
     """
     job = None
@@ -95,7 +97,8 @@ class DiracSAM( Dirac ):
 #        return S_ERROR('Enable flag is disabled but software flag is enabled')
       if install_project:
         self.log.verbose( 'Optional install_project URL is set to %s' % ( install_project ) )
-      job.installSoftware( forceDeletion = deleteSharedArea, enableFlag = softwareEnable, installProjectURL = install_project )
+      job.installSoftware( forceDeletion = deleteSharedArea, enableFlag = softwareEnable,
+                           installProjectURL = install_project )
       job.reportSoftware( enableFlag = reportEnable, installProjectURL = install_project )
       job.testApplications( enableFlag = enable )
       if script:

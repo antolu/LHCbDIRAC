@@ -5,14 +5,14 @@
 
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: SoftwareReport.py 57656 2012-10-17 15:18:50Z fstagni $"
 
 import string, os, sys, re, shutil, urllib
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig, systemCall
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea, CreateSharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, createSharedArea
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
 
 SAM_TEST_NAME = 'CE-lhcb-softreport'
@@ -94,10 +94,10 @@ class SoftwareReport( ModuleBaseSAM ):
       return self.finalize( '%s test is disabled via control flag' % self.testName, 'Status INFO (= 20)', 'info' )
 
     self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    if not CreateSharedArea():
+    if not createSharedArea():
       self.log.info( 'Can not get access to Shared Area for SW installation' )
       return self.finalize( 'Could not determine shared area for site', 'Status ERROR (=50)', 'error' )
-    sharedArea = SharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       # After previous check this error should never occur
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( self.site, sharedArea ) )
@@ -143,7 +143,7 @@ class SoftwareReport( ModuleBaseSAM ):
 #to be remove...
 #
 #      sharedArea = '/afs/.cern.ch/project/gd/apps/lhcb/lib'
-      ret_area = CheckSharedArea( self, sharedArea )
+      ret_area = checkSharedArea( self, sharedArea )
       if not ret_area['OK']:
         return self.finalize( 'Problem SoftwareReport', ret_area['Message'], 'warning' )
 
@@ -169,7 +169,7 @@ class SoftwareReport( ModuleBaseSAM ):
 #            catch = open(self.logFile,'a')
 #            catch = open('jojo.log','w')
 #            sys.stdout=catch
-            result = CheckPackage( self, appNameVersion, systemConfig, sharedArea )
+            result = checkPackage( self, appNameVersion, systemConfig, sharedArea )
 #            sys.stdout=orig
 #            catch.close()
             #result = True
@@ -267,7 +267,7 @@ class SoftwareReport( ModuleBaseSAM ):
 
 
 
-def CheckPackage( self, app, config, area ):
+def checkPackage( self, app, config, area ):
   """
    check if given application is available in the given area
   """
@@ -332,7 +332,7 @@ def CheckPackage( self, app, config, area ):
 
   return True
 
-def CheckSharedArea( self, area ):
+def checkSharedArea( self, area ):
   """
    check if all application  in the  area are used or not
   """

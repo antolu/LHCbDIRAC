@@ -7,6 +7,7 @@
 """
 import sys, os
 from DIRAC import gLogger
+from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyChecks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient

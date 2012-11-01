@@ -17,6 +17,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 
 
 class ModuleBase( object ):
@@ -286,11 +287,15 @@ class ModuleBase( object ):
 
     self.stepName = self.step_commons['STEP_INSTANCE_NAME']
 
-    if self.step_commons.has_key( 'applicationName' ):
+    if self.step_commons.has_key( 'applicationName' ) and self.step_commons['applicationName']:
       self.applicationName = self.step_commons['applicationName']
+    else:
+      self.applicationName = 'Unknown'
 
-    if self.step_commons.has_key( 'applicationVersion' ):
+    if self.step_commons.has_key( 'applicationVersion' ) and self.step_commons['applicationVersion']:
       self.applicationVersion = self.step_commons['applicationVersion']
+    else:
+      self.applicationVersion = 'Unknown'
 
     if self.step_commons.has_key( 'applicationLog' ):
       self.applicationLog = self.step_commons['applicationLog']
@@ -651,6 +656,85 @@ class ModuleBase( object ):
 
     else:
       return [x.strip( 'LFN:' ) for x in inputData.split( ';' )]
+
+  #############################################################################
+
+  def _manageAppOutput( self ):
+    """ Calls self._findOuputs to find what's produced,
+        then creates the LFNs
+    """
+
+    try:
+      finalOutputs, _bkFileTypes = self._findOutputs( self.stepOutputs )
+    except AttributeError:
+      self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
+      return
+
+    self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
+    self.step_commons['listoutput'] = finalOutputs
+#    self.step_commons['outputData'] = finalOutputs[0]['outputDataName']
+
+    if self.workflow_commons.has_key( 'outputList' ):
+      for outFile in finalOutputs:
+        if outFile not in self.workflow_commons['outputList']:
+          self.workflow_commons['outputList'].append( outFile )
+    else:
+      self.workflow_commons['outputList'] = finalOutputs
+
+    self.log.info( 'Attempting to recreate the production output LFNs...' )
+    result = constructProductionLFNs( self.workflow_commons, self.bkClient )
+    if not result['OK']:
+      self.log.error( 'Could not create production LFNs', result['Message'] )
+      return result
+    self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
+    self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
+    self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
+
+  #############################################################################
+
+  def _findOutputs( self, stepOutput ):
+    """ Find which outputs of those in stepOutput (what are expected to be produced) are effectively produced.
+        stepOutput, as called here, corresponds to step_commons['listoutput']
+
+        stepOutput =
+        [{'outputDataType': 'BHADRON.DST',
+        'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.BHADRON.DST'},
+        {'outputDataType': 'CALIBRATION.DST',
+        'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
+
+    """
+
+    bkFileTypes = []
+    finalOutputs = []
+
+    filesFound = []
+
+    for output in stepOutput:
+
+      found = False
+      for fileOnDisk in os.listdir( '.' ):
+        if output['outputDataName'].lower() == fileOnDisk.lower():
+          found = True
+          break
+
+      if found:
+        self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk,
+                                                                                       output['outputDataName'] ) )
+        output['outputDataName'] = fileOnDisk
+        filesFound.append( output )
+      else:
+        self.log.error( '%s not found' % output['outputDataName'] )
+        raise IOError, 'OutputData not found'
+
+    for fileFound in filesFound:
+      bkFileTypes.append( fileFound['outputDataType'].upper() )
+      finalOutputs.append( {'outputDataName': fileFound['outputDataName'],
+                            'outputDataType': fileFound['outputDataType'].lower(),
+                            'outputDataSE': fileFound['outputDataSE'],
+                            'outputBKType': fileFound['outputDataType'].upper()
+                            } )
+
+    return ( finalOutputs, bkFileTypes )
 
   #############################################################################
 

@@ -6,7 +6,7 @@
     databases
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: TransformationDB.py 58026 2012-10-25 15:43:16Z fstagni $"
 
 import re
 
@@ -63,11 +63,12 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     runsToKeep = [r[0] for r in res['Value']]
 
-    runIDsToBeDeleted = list( set( runsToKeep ) - set( runsMaybeToDelete ) )
+    runIDsToBeDeleted = list( set( runsMaybeToDelete ) - set( runsToKeep ) )
 
-    res = self.deleteRunsMetadata( runIDsToBeDeleted, connection )
-    if not res['OK']:
-      return res
+    if runIDsToBeDeleted:
+      res = self.deleteRunsMetadata( {'RunNumber':runIDsToBeDeleted, 'Name':['TCK', 'CondDb', 'DDDB']}, connection )
+      if not res['OK']:
+        return res
 
     res = self.__cleanTransformationRuns( transID, connection = connection )
     if not res['OK']:
@@ -182,7 +183,7 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     return self.__getBookkeepingQuery( res['Value'], connection = connection )
 
-    
+
   def setBookkeepingQueryEndRunForTransformation( self, transName, runNumber, connection = False ):
     """ Set the EndRun for the supplied transformation """
     res = self._getConnectionTransID( connection, transName )
@@ -234,33 +235,33 @@ class TransformationDB( DIRACTransformationDB ):
     """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
-      return S_ERROR("Failed to get Connection to TransformationDB")
+      return S_ERROR( "Failed to get Connection to TransformationDB" )
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
     res = self.__getTransformationBkQueryID( transID, connection = connection )
     if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQueryID")
+      return S_ERROR( "Cannot retrieve BkQueryID" )
     bkQueryID = res['Value']
     res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
     if not res['OK']:
-      return S_ERROR("Cannot retrieve BkQuery")
-    if isinstance(res['Value']['RunNumbers'], str):
+      return S_ERROR( "Cannot retrieve BkQuery" )
+    if isinstance( res['Value']['RunNumbers'], str ):
       runInQuery = [res['Value']['RunNumbers']]
     else:
       runInQuery = res['Value']['RunNumbers']
-    res = makeRunList(str(runList))
-    runs=res['Value']
+    res = makeRunList( str( runList ) )
+    runs = res['Value']
     for run in runs:
       if run not in runInQuery:
         runInQuery.append( run )
     runInQuery.sort()
     if len( runInQuery ) > 999:
-      return S_ERROR("RunList bigger the 1000 not allowed because of Oracle limitations!!!")    
+      return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
     value = ';;;'.join( runInQuery )
     req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
     self._update( req, connection )
     return S_OK()
-  
+
   def __getTransformationBkQueryID( self, transName, connection = False ):
     res = self.getTransformationParameters( transName, ['BkQueryID'], connection = connection )
     if not res['OK']:
@@ -288,7 +289,7 @@ class TransformationDB( DIRACTransformationDB ):
           value = 'All'
       else:
         value = queryDict[field]
-                        
+
         if type( value ) in ( IntType, LongType, FloatType ):
           value = str( value )
         if type( value ) in ( ListType, TupleType ):
@@ -304,7 +305,7 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     queryID = res['lastRowId']
     return S_OK( queryID )
-         
+
   def __getBookkeepingQuery( self, bkQueryID = 0, connection = False ):
     """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
     """
@@ -588,10 +589,10 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       gLogger.error( "Failed to insert to TransformationRuns table", res['Message'] )
     return res
-  
+
   def __cleanTransformationRuns( self, transID, connection = False ):
     req = "DELETE  FROM TransformationRuns WHERE TransformationID = %s" % transID
-    res = self._update( req ,connection)
+    res = self._update( req , connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
     return res
@@ -649,7 +650,7 @@ class TransformationDB( DIRACTransformationDB ):
 
 
   def getRunsMetadata( self, runIDs, connection = False ):
-    """ get meta of a run. RunIDs can be a list.  
+    """ get meta of a run. RunIDs can be a list.
     """
     connection = self.__getConnection( connection )
     if type( runIDs ) in ( StringTypes, IntType ):
@@ -671,26 +672,22 @@ class TransformationDB( DIRACTransformationDB ):
           dictOfNameValue[t[0]] = {t[1]:t[2]}
       return S_OK( dictOfNameValue )
 
-  def deleteRunsMetadata( self, runIDs, connection = False ):
-    """ delete meta of a run. RunIDs can be a list.  
+  def deleteRunsMetadata( self, condDict = None, connection = False ):
+    """ delete meta of a run. RunIDs can be a list.
     """
     connection = self.__getConnection( connection )
-    if type( runIDs ) in ( StringTypes, IntType ):
-      runIDs = [runIDs]
-    runIDs = [str( x ) for x in runIDs]
-    runIDs = ', '.join( runIDs )
-    req = "DELETE FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
+    req = "DELETE FROM RunsMetadata %s" % self.buildCondition( condDict )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
     return S_OK()
 
-  def getRunsInCache( self, connection = False ):
+  def getRunsInCache( self, condDict = None, connection = False ):
     """ get which runNumnber are cached
     """
     connection = self.__getConnection( connection )
-    req = "SELECT DISTINCT RunNumber FROM RunsMetadata"
+    req = "SELECT DISTINCT RunNumber FROM RunsMetadata %s" % self.buildCondition( condDict )
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )

@@ -11,8 +11,9 @@ import DIRAC
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
-from DIRAC.Resources.Catalog.PoolXMLFile import getGUID, getType
+from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 
+from LHCbDIRAC.Resources.Catalog.PoolXMLFile import getOutputType
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
@@ -172,7 +173,11 @@ class BookkeepingReport( ModuleBase ):
               xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
                                                       self.step_number )
               self.log.warn( 'Trying %s' % xmlSummaryFile )
-        self.xf_o = XMLSummary( xmlSummaryFile )
+        try:
+          self.xf_o = XMLSummary( xmlSummaryFile )
+        except XMLSummaryError:
+          self.log.warn( 'No XML summary available' )
+          self.xf_o = None
     else:
       self.xf_o = xf_o
 
@@ -293,8 +298,12 @@ class BookkeepingReport( ModuleBase ):
       typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ] ) )
       typedParams.append( ( "WNCACHE", nodeInfo[ "CacheSize(kB)" ] ) )
 
-    memoryFromXMLSummary = self.__getMemoryFromXMLSummary()
-    typedParams.append( ( "WNMEMORY", memoryFromXMLSummary ) )
+    try:
+      memory = self.__getMemoryFromXMLSummary()
+    except AttributeError:
+      memory = nodeInfo[ "Memory(kB)" ]
+
+    typedParams.append( ( "WNMEMORY", memory ) )
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
@@ -331,8 +340,16 @@ class BookkeepingReport( ModuleBase ):
     try:
       typedParams.append( ( "EventInputStat", self.xf_o.inputEventsTotal ) )
       typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
-    except:
-      raise XMLSummaryError
+    except AttributeError:
+      if self.jobType.lower() == 'merge':
+        res = self.bkClient.getFileMetadata( self.stepInputData )
+        if not res['OK']:
+          raise AttributeError, "Can't get the BKK file metadata"
+        self.eventsN = sum( [fileMeta['EventStat'] for fileMeta in res['Value'].values()] )
+        typedParams.append( ( "EventInputStat", self.eventsN ) )
+        typedParams.append( ( "NumberOfEvents", self.eventsN ) )
+      else:
+        raise XMLSummaryError
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
@@ -403,14 +420,8 @@ class BookkeepingReport( ModuleBase ):
       typeVersion = '1'
       fileStats = statistics
       if bkTypeDict.has_key( output ):
-        typeV = getType( output )
-        typeVersion = ''
-        if not typeV['OK']:
-          self.log.error( 'Could not find Type for %s with message' % ( output ), typeV['Message'] )
-          raise NameError, 'No Type in XML catalog'
-        else:
-          typeVersion = typeV['Value'][output]
-          self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
+        typeVersion = getOutputType( output, self.stepInputData )[output]
+        self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
         typeName = bkTypeDict[ output ].upper()
         self.log.info( 'Setting explicit BK type version for %s to %s and file type to %s' % ( output,
                                                                                                typeVersion,
@@ -424,6 +435,11 @@ class BookkeepingReport( ModuleBase ):
             fileStats = 'Unknown'
           else:
             raise KeyError, e
+        except AttributeError:
+          if self.jobType.lower() == 'merge':
+            fileStats = self.eventsN
+          else:
+            fileStats = 'Unknown'
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )

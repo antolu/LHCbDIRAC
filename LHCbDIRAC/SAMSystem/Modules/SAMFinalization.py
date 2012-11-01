@@ -1,5 +1,5 @@
 ########################################################################
-# $HeadURL$
+# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/SAMFinalization.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +11,7 @@
 
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: SAMFinalization.py 57723 2012-10-18 08:32:17Z joel $"
 
 
 import DIRAC
@@ -22,7 +22,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 import LHCbDIRAC
 from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import SharedArea
+from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
 
 import os, sys, re, glob, shutil, time
 
@@ -99,7 +99,7 @@ class SAMFinalization( ModuleBaseSAM ):
     self.log.info( 'Initializing ' + self.version )
     self._resolveInputVariables()
     self.runinfo = self.getRunInfo()
-    sharedArea = SharedArea()
+    sharedArea = getSharedArea()
     if not sharedArea or not os.path.exists( sharedArea ):
       self.log.info( 'Could not determine sharedArea for site %s:\n%s' % ( DIRAC.siteName(), sharedArea ) )
       return S_ERROR( 'Could not determine shared area for site' )
