@@ -61,10 +61,12 @@ if __name__ == "__main__":
     else:
       print "For BK query:", bkQuery
     queryDict = bkQuery.getQueryDict()
-    if not lfns and ( not len( queryDict ) or queryDict.keys() == ['Visible'] ):
+    if not lfns and queryDict.keys() in ( ['Visible'], [] ):
       print "Invalid query", queryDict
       DIRAC.exit( 1 )
-    if not lfns and queryDict.get( 'Visible', 'No' ) == 'Yes' and 'StartDate' not in queryDict and 'EndDate' not in queryDict:
+
+    # Get information from BK
+    if not lfns and queryDict.get( 'Visible', 'No' ) == 'Yes':
       print "Getting info from filesSummary..."
       if 'Visible' in queryDict: queryDict.pop( 'Visible' )
       query = queryDict.copy()
@@ -111,31 +113,40 @@ if __name__ == "__main__":
     else:
       print "Getting info from files..."
       # To be replaced with getFilesWithMetadata when it allows invisible files
-      paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity']
+      paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'EvtsPerLumi', 'SizePerLumi']
       nbFiles = 0
       nbEvents = 0
       fileSize = 0
       lumi = 0
       nDatasets = 1
       if not lfns:
-        res = bk.getFilesWithGivenDataSets( queryDict )
+        res = bk.getFilesWithMetadata( queryDict )
         if res['OK']:
-          lfns = res['Value']
+          parameterNames = res['Value']['ParameterNames']
+          info = res['Value']['Records']
         else:
           print "Error getting files for %s", queryDict
           continue
-      res = bk.getFileMetadata( lfns )
-      if res['OK']:
-        for lfn, metadata in res['Value'].items():
+        for item in info:
+          metadata = dict( zip( parameterNames, item ) )
           nbFiles += 1
           nbEvents += metadata['EventStat']
           fileSize += metadata['FileSize']
           lumi += metadata['Luminosity']
-        records = [nbFiles, nbEvents, fileSize, lumi]
-      if not res['OK']:
-        records = []
-        print "Error getting files information:", res['Message']
+      else:
+        res = bk.getFileMetadata( lfns )
+        if res['OK']:
+          for lfn, metadata in res['Value'].items():
+            nbFiles += 1
+            nbEvents += metadata['EventStat']
+            fileSize += metadata['FileSize']
+            lumi += metadata['Luminosity']
+        else:
+          print "Error getting files metadata:", res['Message']
+          continue
+      records = [nbFiles, nbEvents, fileSize, lumi, nbEvents / float( lumi ) if lumi else 0., fileSize / float( lumi ) if lumi else 0.]
 
+    # Now printout the results
     tab = 17
     sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
     lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
