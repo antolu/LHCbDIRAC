@@ -447,7 +447,17 @@ class MergingForDQAgent( AgentModule ):
                         metaDataDict={}
                         metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
                         metaDataDict['DQFlag']='M'
-                        self.transClient.addRunsMetadata( run, metaDataDict )
+                        metaDataDict['Info']='Merged and Uploaded'
+                        
+                        res = self.transClient.getRunsMetadata( run )
+                        if res['OK'] and res['Value'].has_key(run):
+                          try:                            
+                            if (res['Value'][run].has_key('DQFlag') and res['Value'][run]['ProcessingPass']==bkDict_brunel[ 'ProcessingPass' ]):
+                              self.transClient.updateRunsMetadata( run , metaDataDict)      
+                          except KeyError:
+                            _msg = "No info saved for run %s. Filling entry now."%run
+                            gLogger.info(_msg)                      
+                            self.transClient.addRunsMetadata( run, metaDataDict )
 
 
                         #Cleaning of all the local files and directories.
