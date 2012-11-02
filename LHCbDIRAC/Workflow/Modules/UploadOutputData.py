@@ -12,7 +12,7 @@ from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
 from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyChecks
+from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import ConsistencyChecks
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
@@ -43,7 +43,7 @@ class UploadOutputData( ModuleBase ):
     self.outputDataStep = ''
     self.request = None
 
-    self.consistencyChecks = consistencyChecks( self.production_id )
+    self.consistencyChecks = ConsistencyChecks( self.production_id )
 
   #############################################################################
   def _resolveInputVariables( self ):

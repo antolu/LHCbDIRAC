@@ -9,7 +9,7 @@ import sys, os
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 
-from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import consistencyChecks
+from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import ConsistencyChecks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 if __name__ == "__main__":
@@ -45,7 +45,7 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
 
   for transformationID in idList:
-    cc = consistencyChecks( transformationID )
+    cc = ConsistencyChecks( transformationID )
     cc.replicaConsistencyCheck()
     if cc.existingLFNsThatAreNotInBKK:
       gLogger.info( "Setting the replica flag to %d files" % len( cc.existingLFNsThatAreNotInBKK ) )

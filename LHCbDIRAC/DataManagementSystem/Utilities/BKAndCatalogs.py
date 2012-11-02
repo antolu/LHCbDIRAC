@@ -2,16 +2,19 @@
 """
 
 import os
+
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
-from DIRAC.Interfaces.API.Dirac                       import Dirac
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
 
-class consistencyChecks( object ):
+class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
@@ -22,16 +25,16 @@ class consistencyChecks( object ):
     """
 
     if transClient is None:
-      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
       self.transClient = TransformationClient()
     else:
       self.transClient = transClient
 
     if rm is None:
-      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
       self.rm = ReplicaManager()
     else:
       self.rm = rm
+
+    self.dirac = Dirac()
 
     self.prod = prod
 
@@ -160,6 +163,7 @@ class consistencyChecks( object ):
     return present, notPresent
 
   ################################################################################
+
   def compareChecksum( self, lfns ):
     """compare the checksum of the file in the FC and the checksum of the physical replicas.
        Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with 
@@ -171,18 +175,17 @@ class consistencyChecks( object ):
     retDict['AllReplicasCorrupted'] = {}
     retDict['SomeReplicasCorrupted'] = {}
 
-    dirac = Dirac()
     gLogger.info( "Get lfn meta-data for files to be checked.." )
-    res = dirac.getMetadata( lfns )
+    res = self.dirac.getMetadata( lfns )
     if not res['OK']:
       gLogger.error( "error %s" % res['Message'] )
-      DIRAC.exit( -1 )
+      return res
 
     gLogger.info( "Get all replicas.." )
-    replicasRes = dirac.getAllReplicas( lfns )
+    replicasRes = self.dirac.getAllReplicas( lfns )
     if not replicasRes[ 'OK' ]:
       gLogger.error( "error:  %s" % res['Message'] )
-      DIRAC.exit( -1 )
+      return res
 
     gLogger.info( "compare checksum file by file ..." )
     csDict = {}
@@ -230,7 +233,8 @@ class consistencyChecks( object ):
             if lfn not in checkSumMismatch:
               checkSumMismatch.append( lfn )
           else:
-            gLogger.info( "checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " % ( lfcChecksum, surlChecksum ) )
+            gLogger.info( "Checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " % ( lfcChecksum,
+                                                                                                           surlChecksum ) )
 
     for lfn in checkSumMismatch:
       oneGoodReplica = False
