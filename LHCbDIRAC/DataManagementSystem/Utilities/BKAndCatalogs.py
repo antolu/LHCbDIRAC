@@ -1,7 +1,7 @@
 """ Some utilities for BK and Catalog(s) interactions
 """
 
-import os
+import os, copy
 
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -9,6 +9,7 @@ from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
@@ -18,7 +19,7 @@ class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, prod = 0, transClient = None, rm = None ):
+  def __init__( self, prod = 0, transClient = None, rm = None, bkClient = None ):
     """ c'tor
 
         One object for every production
@@ -34,9 +35,16 @@ class ConsistencyChecks( object ):
     else:
       self.rm = rm
 
+    if bkClient is None:
+      self.bkClient = BookkeepingClient()
+    else:
+      self.bkClient = bkClient
+
     self.dirac = Dirac()
 
     self.prod = prod
+    self.runsList = 0
+    self.fileType = ''
 
     self.lfnsReplicaYes = []
     self.lfnsReplicaNo = []
@@ -45,6 +53,16 @@ class ConsistencyChecks( object ):
     self.nonExistingLFNsThatAreNotInBKK = []
     self.existingLFNsThatAreInBKK = []
     self.nonExistingLFNsThatAreInBKK = []
+
+    self.processedLFNs = []
+    self.nonProcessedLFNs = []
+
+    self.processedLFNsWithDescendants = []
+    self.processedLFNsWithoutDescendants = []
+    self.processedLFNsWithMultipleDescendants = []
+    self.nonProcessedLFNsWithDescendants = []
+    self.nonProcessedLFNsWithoutDescendants = []
+    self.nonProcessedLFNsWithMultipleDescendants = []
 
     if self.prod:
       res = self.transClient.getTransformation( self.prod, extraParams = False )
@@ -164,11 +182,124 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
+  def descendantsConsistencyCheck( self ):
+    """ Check if lfns has descendants
+    """
+
+    self._getTransformationFiles()
+
+    gLogger.verbose( 'Checking BKK for those files that are processed' )
+    res = self.getDescendants( self.processedLFNs )
+    self.processedLFNsWithDescendants = res[0]
+    self.processedLFNsWithoutDescendants = res[1]
+    self.processedLFNsWithMultipleDescendants = res[2]
+
+    gLogger.verbose( 'Checking BKK for those files that are not processed' )
+    res = self.getDescendants( self.nonProcessedLFNs )
+    self.nonProcessedLFNsWithDescendants = res[0]
+    self.nonProcessedLFNsWithoutDescendants = res[1]
+    self.nonProcessedLFNsWithMultipleDescendants = res[2]
+
+    if self.processedLFNsWithoutDescendants:
+      gLogger.warn( "For prod %s of type %s, %d files are processed, and\
+      %d of those do not have descendants" % ( self.prod, self.transType, len( self.processedLFNs ),
+                                               len( self.processedLFNsWithoutDescendants ) ) )
+
+    if self.processedLFNsWithMultipleDescendants:
+      gLogger.warn( "For prod %s of type %s, %d files are processed, and\
+      %d of those have multiple descendants: " % ( self.prod, self.transType, len( self.processedLFNs ),
+                                                   len( self.processedLFNsWithMultipleDescendants ) ) )
+
+    if self.nonProcessedLFNsWithDescendants:
+      gLogger.warn( "For prod %s of type %s, %d files are not processed, but\
+      %d of those have descendants" % ( self.prod, self.transType, len( self.nonProcessedLFNs ),
+                                        len( self.nonProcessedLFNsWithDescendants ) ) )
+
+    if self.nonProcessedLFNsWithMultipleDescendants:
+      gLogger.warn( "For prod %s of type %s, %d files are not processed, but\
+      %d of those have multiple descendants: " % ( self.prod, self.transType, len( self.nonProcessedLFNs ),
+                                                   len( self.nonProcessedLFNsWithMultipleDescendants ) ) )
+
+  ################################################################################
+
+  def _getTransformationFiles( self ):
+    """ Helper function
+    """
+
+    selectDict = { 'TransformationID': self.prod}
+    if self.runsList:
+      selectDict['RunNumber'] = self.runsList
+
+    selectDictProcessed = copy.deepcopy( selectDict )
+    selectDictProcessed['Status'] = 'Processed'
+    res = self.transClient.getTransformationFiles( selectDictProcessed )
+    if not res['OK']:
+      gLogger.warn( "Failed to get files for transformation %d" % self.prod )
+    else:
+      self.processedLFNs = [item['LFN'] for item in res['Value']]
+
+    res = self.transClient.getTransformationFiles( selectDict )
+    if not res['OK']:
+      gLogger.warn( "Failed to get files for transformation %d" % self.prod )
+    else:
+      self.nonProcessedLFNs = list ( set( [item['LFN'] for item in res['Value']] ) - set( self.processedLFNs ) )
+
+  ################################################################################
+
+  def getDescendants( self, lfns ):
+    """ get the descendants of a list of LFN (for the production)
+    """
+
+    filesWithDescendants = []
+    filesWithoutDescendants = []
+    filesWitMultipleDescendants = []
+
+    lfnChunks = breakListIntoChunks( lfns, 200 )
+    for lfnChunk in lfnChunks:
+      resChunk = self.bkClient.getFileDescendants( lfnChunk, depth = 1, production = self.prod, checkreplica = False )
+      if resChunk['OK']:
+        descDict = resChunk['Value']['Successful']
+        if self.fileType:
+          descDict = self._selectByFileType( resChunk['Value']['Successful'] )
+        for lfn in lfnChunk:
+          if lfn in descDict.keys():
+            filesWithDescendants.append( lfn )
+            if len( descDict[lfn] ) > 1:
+              filesWitMultipleDescendants.append( {lfn:descDict[lfn]} )
+          else:
+            filesWithoutDescendants.append( lfn )
+      else:
+        gLogger.error( "\nError getting descendants for %d files" % len( lfnChunk ) )
+        continue
+
+    return filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants
+
+  ################################################################################
+
+  def _selectByFileType( self, lfnDict ):
+    """ Select only those files from the values of lfnDict that have a certain type
+    """
+    ancDict = copy.deepcopy( lfnDict )
+    for ancestor, descendants in lfnDict.items():
+      descendantsCopy = copy.deepcopy( descendants )
+      for desc in descendants:
+        #quick and dirty...
+        if '.'.join( os.path.basename( desc ).split( '.' )[1:] ).lower() != self.fileType.lower():
+          descendantsCopy.remove( desc )
+      if len( descendantsCopy ) == 0:
+        ancDict.pop( ancestor )
+      else:
+        ancDict[ancestor] = descendantsCopy
+
+    return ancDict
+
+  ################################################################################
+
   def compareChecksum( self, lfns ):
     """compare the checksum of the file in the FC and the checksum of the physical replicas.
-       Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with 
-       files with all replicas corrupted, and one with files with some replicas corrupted and at least 
-       one good replica 
+       Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with
+       files with all replicas corrupted, and one with files with some replicas corrupted and at least
+       one good replica
     """
     retDict = {}
 

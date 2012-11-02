@@ -637,7 +637,7 @@ class TransformationDB( DIRACTransformationDB ):
     gLogger.info( "Inserted %s %s of run %d to RunsMetadata table" % ( name, value, runID ) )
     return S_OK()
   
-    def __updateRunMetadata( self, runID, name, value, connection ):
+  def __updateRunMetadata( self, runID, name, value, connection ):
     if type( runID ) in StringTypes:
       runID = int( runID )
     req = "UPDATE RunsMetadata SET Value = %s WHERE RunNumber = %d AND Name = %s" % ( value ,runID, name )
