@@ -6,7 +6,7 @@
     databases
 """
 
-__RCSID__ = "$Id: TransformationDB.py 58026 2012-10-25 15:43:16Z fstagni $"
+__RCSID__ = "$Id$"
 
 import re
 
