@@ -1,0 +1,10 @@
+
+# /Workflow/Modules/
+/Workflow/Modules/ProvaModule.py
+
+# /Workflow/Modules/test/
+/Workflow/Modules/test/123_456_request.xml
+/Workflow/Modules/test/job
+/Workflow/Modules/test/123_00000456_request.xml
+/Workflow/Modules/test/appLog
+/Workflow/Modules/test/ProductionOutputData
