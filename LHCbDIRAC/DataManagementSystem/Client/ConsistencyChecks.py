@@ -157,17 +157,8 @@ class ConsistencyChecks( object ):
       if dirN not in dirs:
         dirs.append( dirN )
     dirs.sort()
-    gLogger.info( "Checking LFC files from %d directories" % len( dirs ) )
-    gLogger.setLevel( 'FATAL' )
-    res = self.rm.getFilesFromDirectory( dirs )
-    gLogger.setLevel( 'VERBOSE' )
-    if not res['OK']:
-      gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
-      return
-    if res['Value']:
-      filesFound = res['Value']
-    else:
-      filesFound = []
+
+    filesFound = self.__getFilesFromDirectoryScan( dirs )
 
     if filesFound:
       for lfn in lfns:
@@ -179,6 +170,24 @@ class ConsistencyChecks( object ):
       notPresent = lfns
 
     return present, notPresent
+
+  ################################################################################
+
+  def __getFilesFromDirectoryScan( self, dirs ):
+    """ calls rm.getFilesFromDirectory
+    """
+
+    gLogger.info( "Checking LFC files from %d directories" % len( dirs ) )
+    res = self.rm.getFilesFromDirectory( dirs )
+    if not res['OK']:
+      gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
+      return
+    if res['Value']:
+      filesFound = res['Value']
+    else:
+      filesFound = []
+
+    return filesFound
 
   ################################################################################
 

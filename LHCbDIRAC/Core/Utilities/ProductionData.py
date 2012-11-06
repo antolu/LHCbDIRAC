@@ -46,16 +46,13 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
       index = 0
       if not re.search( '^\d', fileName[index] ):
         index += 1
-
       if not fileName[index] == str( productionID ).zfill( 8 ):
         fileName[index] = str( productionID ).zfill( 8 )
       if not fileName[index + 1] == str( jobID ).zfill( 8 ):
         fileName[index + 1] = str( jobID ).zfill( 8 )
       fileTupleList.append( ( '_'.join( fileName ), info['outputDataType'] ) )
-
     #Strip output data according to file mask
     fileTupleListMasked = _applyMask( wfMask, fileTupleList )
-
     lfnRoot = _getLFNRoot( '', wfConfigName, wfConfigVersion, bkClient, quick = quick )
     gLogger.verbose( 'LFN_ROOT is: %s' % ( lfnRoot ) )
     debugRoot = _getLFNRoot( '', 'debug', wfConfigVersion, bkClient, quick = quick )
@@ -115,6 +112,7 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
     return S_OK( jobOutputs )
 
   except Exception, e:
+    gLogger.exception( str( e ) )
     return S_ERROR( e )
 
 #############################################################################
@@ -261,9 +259,9 @@ def _makeProductionLFN( jobID, lfnROOT, filetuple, prodstring ):
   """ Constructs the logical file name according to LHCb conventions.
       Returns the lfn without 'lfn:' prepended.
   """
-  gLogger.debug( 'Making production LFN for JOB_ID %s, LFN_ROOT %s, prodstring %s for\n%s' % ( jobID, lfnROOT,
-                                                                                               prodstring,
-                                                                                               str( filetuple ) ) )
+  gLogger.debug( 'Making production LFN for JOB_ID %s, LFN_ROOT %s, prodstring %s for %s' % ( jobID, lfnROOT,
+                                                                                              prodstring,
+                                                                                              str( filetuple ) ) )
   try:
     jobid = int( jobID )
     jobindex = str( jobid / 10000 ).zfill( 4 )

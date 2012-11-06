@@ -50,20 +50,17 @@ if __name__ == '__main__':
     cc.runsList = runsList
     cc.descendantsConsistencyCheck()
     if cc.processedLFNsWithMultipleDescendants:
-      gLogger.info( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
+      gLogger.warn( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
+      gLogger.warn( "I'm not doing anything for them, neither with the 'FixIt' option" )
     if cc.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.info( "Non processed LFNs with multiple descendants: %s" % str( cc.nonProcessedLFNsWithMultipleDescendants ) )
-    #fixing, if requested
+      gLogger.warn( "Non processed LFNs with multiple descendants: %s" % str( cc.nonProcessedLFNsWithMultipleDescendants ) )
+      gLogger.warn( "I'm not doing anything for them, neither with the 'FixIt' option" )
     if cc.processedLFNsWithoutDescendants:
-      if fixIt:
-        gLogger.info( "Resetting to 'Unused' the files marked as 'Processed' that does not have descendants" )
-        #check if there are jobs that produced something, that is uploaded
-        #TODO
-      else:
-        gLogger.info( "use --FixIt for fixing" )
+      gLogger.info( "Please use dirac-dms-check-lfc-bk with --directory option" )
+    #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
       if fixIt:
-        ba
+        cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
       else:
         gLogger.info( "use --FixIt for fixing" )
->>>>>>> refs / remotes / origin / master
+
