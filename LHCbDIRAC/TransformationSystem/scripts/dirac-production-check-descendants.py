@@ -63,4 +63,3 @@ if __name__ == '__main__':
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
       else:
         gLogger.info( "use --FixIt for fixing" )
-
