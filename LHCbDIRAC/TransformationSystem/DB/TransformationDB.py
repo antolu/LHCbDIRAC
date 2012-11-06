@@ -6,8 +6,6 @@
     databases
 """
 
-__RCSID__ = "$Id$"
-
 import re
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
@@ -611,7 +609,7 @@ class TransformationDB( DIRACTransformationDB ):
       if not res['OK']:
         return res
     return S_OK()
-  
+
   def updateRunsMetadata( self, runID, metadataDict, connection = False ):
     """ Add the metadataDict to runID (if already present, does nothing)
     """
@@ -636,11 +634,11 @@ class TransformationDB( DIRACTransformationDB ):
         return res
     gLogger.info( "Inserted %s %s of run %d to RunsMetadata table" % ( name, value, runID ) )
     return S_OK()
-  
+
   def __updateRunMetadata( self, runID, name, value, connection ):
     if type( runID ) in StringTypes:
       runID = int( runID )
-    req = "UPDATE RunsMetadata SET Value = %s WHERE RunNumber = %d AND Name = %s" % ( value ,runID, name )
+    req = "UPDATE RunsMetadata SET Value = %s WHERE RunNumber = %d AND Name = %s" % ( value , runID, name )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to update RunsMetadata table", res['Message'] )

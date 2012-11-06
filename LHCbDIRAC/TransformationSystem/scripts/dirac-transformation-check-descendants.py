@@ -21,14 +21,14 @@ Script.registerSwitch( '', 'Extension=', 'Specify the descendants file extension
 Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
 Script.registerSwitch( '', 'Verbose', 'Verbose mode' )
 
-Script.parseCommandLine( ignoreErrors=True )
+Script.parseCommandLine( ignoreErrors = True )
 
 transClient = TransformationClient()
 bk = BookkeepingClient()
 rm = ReplicaManager()
 
 def _getRunsList( fromProd, runList ):
-  
+
   if fromProd:
     if runList:
       gLogger.warn( "List of runs given as parameters ignored, superseded with runs from productions" )
@@ -37,32 +37,30 @@ def _getRunsList( fromProd, runList ):
     for prod in fromProd:
       res = transClient.getTransformationRuns( {'TransformationID': prod } )
       if not res['OK']:
-        gLogger.warn( "Runs %s not found for transformation" %prod )
+        gLogger.warn( "Runs %s not found for transformation" % prod )
       else:
         runList += [str( run['RunNumber'] ) for run in res['Value'] if run['Status'] in ( 'Active', 'Flush' )]
     gLogger.info( "Active runs in productions %s: %s" % ( str( fromProd ), str( runList ) ) )
 
   runList.sort()
-  
+
   return runList
-    
 
-
-def _getTransfParams():
+def _getTransfParams( id ):
   res = transClient.getTransformation( id )
   if not res['OK']:
-    gLogger.warn(res['Message'])
+    gLogger.warn( res['Message'] )
     raise ValueError, res['Message']
   else:
     transType = res['Value']['Type']
     transStatus = res['Value']['Status']
-  
+
   return transType, transStatus
 
 
 
 if __name__ == '__main__':
-  
+
   runList = []
   fixIt = False
   fromProd = []
@@ -78,7 +76,7 @@ if __name__ == '__main__':
       fixIt = True
     elif switch[0] == 'Verbose':
       verbose = True
-  
+
   args = Script.getPositionalArgs()
   if not len( args ):
     glogger.error( "Specify transformation number..." )
@@ -93,32 +91,32 @@ if __name__ == '__main__':
           idList.append( i )
       else:
         idList.append( int( r[0] ) )
-  
-  runsList = _getRunsList(fromProd, runList)
-    
+
+  runsList = _getRunsList( fromProd, runList )
+
   resetExtension = False
-  
-  
+
+
   for id in idList:
-  
+
     try:
-      transType, transStatus = _getTransfParams(id)
+      transType, transStatus = _getTransfParams( id )
     except ValueError:
       continue
-    
+
     gLogger.info( "Processing %s production %d, in status %s" % ( transType, id, transStatus ) )
-    
+
     if resetExtension:
       extension = ''
-  
+
     checkTransFiles = ( transStatus in ( 'Active', 'Stopped', 'Completed' ) )
     res = transClient.getBookkeepingQueryForTransformation( id )
     if not res['OK']:
-      gLogger.error("Problem getting the BK query: %s", res['Message'])
+      gLogger.error( "Problem getting the BK query: %s", res['Message'] )
       DIRAC.exit( 1 )
     else:
       if res['Value']:
-        gLogger.verbose( "Production BKQuery: %s" %str(res['Value']) )
+        gLogger.verbose( "Production BKQuery: %s" % str( res['Value'] ) )
         if not extension and transType == 'Merge':
           resetExtension = True
           extension = res['Value'].get( 'FileType', '' ).lower()
@@ -127,7 +125,7 @@ if __name__ == '__main__':
           print "No extension provided, please use --Extension <ext>"
           DIRAC.exit( 0 )
       else:
-        gLogger.warn( "No BKQuery for transformation %d" %id )
+        gLogger.warn( "No BKQuery for transformation %d" % id )
         DIRAC.exit( 0 )
     query = res['Value']
     startRun = int( query.get( 'StartRun', 0 ) )
@@ -136,7 +134,7 @@ if __name__ == '__main__':
     for run in runList:
       if int( run ) >= startRun and int( run ) <= endRun:
         runs.append( run )
-    bkQuery = BKQuery( res['Value'], runs=runs, visible=False )
+    bkQuery = BKQuery( res['Value'], runs = runs, visible = False )
     if not bkQuery.getQueryDict():
       gLogger.error( "Invalid query: ", bkquery )
       DIRAC.exit( 1 )
@@ -144,13 +142,13 @@ if __name__ == '__main__':
     if runList:
       print bkQuery
     startTime = time.time()
-    lfns = bkQuery.getLFNs( printOutput=False )
+    lfns = bkQuery.getLFNs( printOutput = False )
     if runList:
       runStr = ', runs %s' % str( runs )
     else:
       runStr = ''
-    gLogger.info( "Input dataset from BK for production %d%s: %d files (executed in %.3f s)" % ( id, runStr, 
-                                                                                                 len( lfns ), 
+    gLogger.info( "Input dataset from BK for production %d%s: %d files (executed in %.3f s)" % ( id, runStr,
+                                                                                                 len( lfns ),
                                                                                                  time.time() - startTime ) )
     # Now get the transformation files
     selectDict = { 'TransformationID': id}
@@ -182,7 +180,7 @@ if __name__ == '__main__':
     startTime = time.time()
     lfnChunks = breakListIntoChunks( lfns, chunkSize )
     for lfnChunk in lfnChunks:
-      res = bk.getFileDescendants( lfnChunk, depth=1, production=id, checkreplica=False )
+      res = bk.getFileDescendants( lfnChunk, depth = 1, production = id, checkreplica = False )
       if res['OK']:
         descChunk = res['Value']['Successful']
       else:
@@ -197,13 +195,13 @@ if __name__ == '__main__':
         files += descendants[lfn]
       res = bk.getFileMetadata( files )
       if not res['OK']:
-        gLogger.error( "Error getting the metadata: %s" %res['Value'] )
+        gLogger.error( "Error getting the metadata: %s" % res['Value'] )
         continue
       metadata.update( res['Value'] )
       sys.stdout.write( '.' )
       sys.stdout.flush()
     gLogger.info( "nDescendants checked in %.3f s" % ( time.time() - startTime ) )
-  
+
     startTime = time.time()
     noReplicas = {}
     multiDescendants = {}
@@ -236,7 +234,7 @@ if __name__ == '__main__':
           if dir not in dirs:
             dirs.append( dir )
         dirs.sort()
-        gLogger.info( "Checking LFC for %d directories containing files without replica flag" % len( dirs ))
+        gLogger.info( "Checking LFC for %d directories containing files without replica flag" % len( dirs ) )
   #      gLogger.setLevel( 'FATAL' )
         res = rm.getFilesFromDirectory( dirs )
   #      gLogger.setLevel( 'WARNING' )
@@ -257,8 +255,8 @@ if __name__ == '__main__':
           res = bk.addFiles( reps )
           if res['OK']:
             print "Successfully added replica flag to %d files" % len( replicas )
-  
-  
+
+
     lfnsWithoutDescendants = [lfn for lfn in lfns if not descendants.get( lfn ) and not noReplicas.get( lfn )]
     lfnsNotProcessed = [lfn for lfn in status if status[lfn] != 'Processed' and descendants[lfn]]
     for lfn in descendants:
@@ -266,14 +264,14 @@ if __name__ == '__main__':
       nbDescendants[nb] = nbDescendants.setdefault( nb, 0 ) + 1
     nbNoAndReplicas = len( [lfn for lfn in noReplicas if noReplicas[lfn] and descendants[lfn]] )
     nbNoReplicas = len( [lfn for lfn in noReplicas if noReplicas[lfn] and not descendants[lfn]] )
-  
+
     print "Replicas checked in %.3f s" % ( time.time() - startTime )
-  
+
     if multiDescendants:
       print '\n%d file(s) with more than one descendant:' % len( multiDescendants )
       for lfn in multiDescendants:
         print '\t%s: %s' % ( lfn, multiDescendants[lfn] )
-  
+
     if len( lfnsWithoutDescendants ):
       print "\n%d files have no descendants in production %d" % ( len( lfnsWithoutDescendants ), id )
       lfnsToAdd = []
@@ -314,7 +312,7 @@ if __name__ == '__main__':
             print '\t%s : %s' % ( lfn, status )
     else:
       print "All files have descendants in production %d" % id
-  
+
     if checkTransFiles:
       if len( lfnsNotProcessed ):
         print "\nThe following %d files have descendants but don't have status 'Processed' in production %d" % ( len( lfnsNotProcessed ), id )
@@ -339,8 +337,8 @@ if __name__ == '__main__':
         print "All files with descendants have status 'Processed' in production %d" % id
     else:
       print "Transformation is %s, cannot check the transformations table" % transStatus
-  
-  
+
+
     print "Number of files per number of descendants with replicas:"
     for nb in sortList( nbDescendants ):
       print "%2d descendants: %d files" % ( nb, nbDescendants[nb] )
@@ -348,5 +346,5 @@ if __name__ == '__main__':
       print "%2d files have descendants with no replicas" % nbNoReplicas
     if nbNoAndReplicas:
       print "%2d files have descendants with and without replicas" % nbNoAndReplicas
-  
+
     separator = '=' * 50 + '\n'

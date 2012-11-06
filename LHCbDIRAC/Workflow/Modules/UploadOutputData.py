@@ -12,7 +12,7 @@ from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
 from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import ConsistencyChecks
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 

@@ -9,7 +9,7 @@ import sys, os
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
 
-from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import ConsistencyChecks
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 if __name__ == "__main__":
