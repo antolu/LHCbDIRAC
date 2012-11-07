@@ -1,7 +1,7 @@
 import unittest
 from mock import Mock
 
-from LHCbDIRAC.DataManagementSystem.Utilities.BKAndCatalogs import ConsistencyChecks
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 class UtilitiesTestCase( unittest.TestCase ):
 
