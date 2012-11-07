@@ -733,6 +733,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             return S_ERROR( "Failed to assign TransformationRun site" )
 
         #Now assign the individual files to their targets
+        targetSEs = stringTargetSEs.split( ',' )
+        if 'CNAF-DST' in targetSEs and 'CNAF_M-DST' in targetSEs:
+          targetSEs.remove( 'CNAF-DST' )
+          stringTargetSEs = ','.join( targetSEs )
         ( runFileTargetSEs, runCompleted ) = self.util.assignTargetToLfns( runLfns, self.transReplicas, stringTargetSEs )
         alreadyCompleted += runCompleted
         fileTargetSEs.update( runFileTargetSEs )
@@ -834,13 +838,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
       for lfns in lfnChunks:
-        candidateSEs = closerSEs( existingSEs, activeSecondarySEs )
+        candidateSEs = closerSEs( existingSEs, secondarySEs )
+        # Remove duplicated SEs (those that are indeed the same), but keep existing ones
+        for se1 in [se for se in candidateSEs if se not in existingSEs]:
+          if self.util.isSameSEInList( se1, [se for se in candidateSEs if se != se1] ):
+            candidateSEs.remove( se1 )
         # Remove existing SEs from list of candidates
         ncand = len( candidateSEs )
         candidateSEs = [se for se in candidateSEs if se not in existingSEs]
         needToCopy = numberOfCopies - ( ncand - len( candidateSEs ) )
         stillMandatory = [se for se in mandatorySEs if se not in candidateSEs]
-        candidateSEs = stillMandatory + candidateSEs
+        candidateSEs = stillMandatory + [se for se in candidateSEs if se in activeSecondarySEs]
         needToCopy = max( needToCopy, len( stillMandatory ) )
         targetSEs = []
         if needToCopy > 0:

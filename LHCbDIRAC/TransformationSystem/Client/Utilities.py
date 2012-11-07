@@ -1019,7 +1019,7 @@ def closerSEs( existingSEs, targetSEs, local=False ):
   targetSEs = [ se for se in targetSEs if se not in existingSEs]
   if targetSEs:
     # Some SEs are left, look for sites
-    existingSites = [getSiteForSE( se )['Value'] for se in existingSEs]
+    existingSites = [getSiteForSE( se )['Value'] for se in existingSEs if not isArchive( se )]
     closeSEs = [se for se in targetSEs if getSiteForSE( se )['Value'] in existingSites]
     otherSEs = [se for se in targetSEs if se not in closeSEs]
     targetSEs = randomize( closeSEs )
