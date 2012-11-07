@@ -324,6 +324,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
         backupSE = None
       distinctSEs = sorted( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
+      selectedSE = None
       if not distinctSEs:
         # If the file is at a single SE, and OK, it must be backupSE
         selectedSE = backupSE
@@ -343,7 +344,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if rand <= prob:
             selectedSE = se
             break
-        self.util.logVerbose( "Selected SE for reconstruction is %s", selectedSE )
+        self.util.logVerbose( "Selected SE for reconstruction is %s" % selectedSE )
       if selectedSE:
         runSEDict[runID] = selectedSE
         runUpdate[runID] = True
@@ -717,7 +718,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # this may happen when all files are in FAILOVER
         if  existingSEs:
           # Now select the target SEs
-          self.util.logVerbose( "Selecting SEs for %d files: %s" % ( len( runLfns ), str( runLfns ) ) )
+          self.util.logVerbose( "Selecting SEs for %d files" % len( runLfns ) )
+          self.util.logDebug( "Files: %s" % str( runLfns ) )
           stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
                                                  mandatorySEs, secondarySEs, existingSEs, exclusiveSEs=False )
           runUpdate[runID] = True
@@ -818,6 +820,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       activeSecondarySEs = self.util.getActiveSEs( secondarySEs )
       numberOfCopies = max( len( mandatorySEs ), numberOfCopies )
+
+    self.util.logVerbose( "%d replicas, mandatory at %s, optional at %s" % ( numberOfCopies, mandatorySEs, activeSecondarySEs ) )
 
     alreadyCompleted = []
     fileTargetSEs = {}

@@ -514,12 +514,13 @@ class PluginUtilities:
         break
       targetSEs.append( se )
       needToCopy -= 1
-    for se in [se for se in candSEs if se not in existingSEs]:
-      if needToCopy <= 0:
-        break
-      if not self.isSameSEInList( se, existingSEs ):
-        targetSEs.append( se )
-        needToCopy -= 1
+    if needToCopy > 0:
+      for se in [se for se in candSEs if se not in existingSEs]:
+        if needToCopy <= 0:
+          break
+        if not self.isSameSEInList( se, existingSEs ):
+          targetSEs.append( se )
+          needToCopy -= 1
     return targetSEs
 
   def assignTargetToLfns( self, lfns, replicas, stringTargetSEs ):
