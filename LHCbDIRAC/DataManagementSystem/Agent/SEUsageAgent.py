@@ -22,6 +22,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Resources.Storage.StorageElement import StorageElement
+from DIRAC.Interfaces.API.Dirac import Dirac
 ## from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
@@ -56,6 +57,7 @@ class SEUsageAgent( AgentModule ):
   inputFilesLocation = None
   workDirectory = None
   specialReplicas = None
+  pathToUploadResults = '/lhcb/test/dataNotRegistered'
 
   def initialize( self ):
     """ agent initialisation """
@@ -67,6 +69,8 @@ class SEUsageAgent( AgentModule ):
     self.replicaManager = ReplicaManager()
     ## operations helper
     self.opHelper = Operations()
+    ## Dirac API
+    self.diracApi = Dirac()
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configsorteduration can be used to change this default.
@@ -97,6 +101,8 @@ class SEUsageAgent( AgentModule ):
       self.log.info( "Special replica types: %s" % self.specialReplicas )
     else:
       self.log.info( "No special replica configured." )
+    self.pathToUploadResults = self.am_getOption( 'PathToUploadResults', self.pathToUploadResults )
+    self.log.info( "Path to upload results: %s " % self.pathToUploadResults )
     return S_OK()
 
   def execute( self ):
@@ -239,7 +245,7 @@ class SEUsageAgent( AgentModule ):
                       self.log.info( "SpecialReplica: %s" % oneDirDict[ dirPath ][ 'ReplicaType' ] )
                       seSuffix = oneDirDict[ dirPath ][ 'ReplicaType' ].upper()
                       if seSuffix not in se:
-                        self.log.info( "SE does not contain the suffix: %s. Skip it" % seSuffix )
+                        self.log.verbose( "SE does not contain the suffix: %s. Skip it" % seSuffix )
                         continue
                     lfcFiles += int( res['Value'][lfn][ se ]['Files'] )
                     lfcSize += int( res['Value'][lfn][ se ]['Size'] )
@@ -280,7 +286,7 @@ class SEUsageAgent( AgentModule ):
                              "Before (if necessary) remove it from se_Usage table" % ( dirPath ) )
             res = self.storageUsage.removeDirFromSe_Usage( oneDirDict )
             if not res[ 'OK' ]:
-              self.log.error( "failed to remove from se_Usage table: %s" % oneDirDict )
+              self.log.error( "failed to remove from se_Usage table: %s" % res[ 'Message' ] )
               continue
             else:
               removedDirs = res[ 'Value' ]
@@ -872,7 +878,7 @@ class SEUsageAgent( AgentModule ):
     return pathWithSuffix
 
   def getProblematicDirsSummary( self, site ):
-    """ Produce a list of files that are not registered in the File Catalog.
+    """ Produce a list of files that are not registered in the File Catalog and writes it down to a text file:
         1. queries the problematicDirs table to get all directories for a given site that have 
            more data on SE than in LFCfor each replica type: (normal, archive, failover, freezer )
         2. scan the input files (from the sites storage dumps) to get all the files belonging 
@@ -881,6 +887,12 @@ class SEUsageAgent( AgentModule ):
         4. the files that are found not to have a replica registered for the site, are written down to a file
     """
     self.log.info( "*** Execute getProblematicDirsSummary method for site: %s " % site )
+    fileNameMissingReplicas = os.path.join( self.workDirectory, site + ".replicasMissingFromSite.txt" )
+    self.log.info( "Opening file for replicas not registered: %s " % fileNameMissingReplicas )
+    fpMissingReplicas = open( fileNameMissingReplicas , "w" )
+    fileNameMissingFiles = os.path.join( self.workDirectory, site + ".filesMissingFromFC.txt" )
+    self.log.info( "Opening file for files not registered: %s " % fileNameMissingFiles )
+    fpMissingFiles = open( fileNameMissingFiles, "w" )
     problem = 'NotRegisteredInFC'
     res = self.storageUsage.getProblematicDirsSummary( site, problem )
     if not res['OK']:
@@ -896,7 +908,7 @@ class SEUsageAgent( AgentModule ):
       problem = row[5]
       replicaType = row[6]
       pathWithSuffix = self.pathWithSuffix( lfcPath, replicaType )
-      self.log.info( "%s %s - %s" % ( lfcPath, replicaType, pathWithSuffix ) )
+      self.log.verbose( "%s %s - %s" % ( lfcPath, replicaType, pathWithSuffix ) )
       if replicaType not in problematicDirectories.keys():
         problematicDirectories[ replicaType ] = []
       if pathWithSuffix not in problematicDirectories[ replicaType ]:
@@ -939,11 +951,26 @@ class SEUsageAgent( AgentModule ):
         self.log.verbose( "file in probl Dir %s %s" % ( fil, replicaType ) )
 
     for replicaType in filesInProblematicDirs.keys():
-      res = self.checkReplicasInFC( replicaType, filesInProblematicDirs[ replicaType ] , site )
+      res = self.checkReplicasInFC( replicaType, filesInProblematicDirs[ replicaType ] , site , fileNameMissingReplicas, fileNameMissingFiles )
+    fpMissingReplicas.close()
+    fpMissingFiles.close()
+    if self.pathToUploadResults[-1] != '/':
+      self.pathToUploadResults = self.pathToUploadResults + '/'
+    lfnToUploadResults = self.pathToUploadResults + fileNameMissingReplicas.split( '/' )[-1]
+    self.log.info( "Upload the file %s to the grid with LFN: %s " % ( fileNameMissingReplicas, lfnToUploadResults ) )
+    guid = None
+    res = self.diracApi.addFile( lfnToUploadResults, fileNameMissingReplicas, 'CERN-DEBUG', guid, printOutput = True )
+    if not res['OK']:
+      self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingReplicas, res['Message'] ) )
+    lfnToUploadResults = self.pathToUploadResults + fileNameMissingFiles.split( '/' )[-1]
+    self.log.info( "Upload the file %s to the grid with LFN: %s " % ( fileNameMissingFiles, lfnToUploadResults ) )
+    res = self.diracApi.addFile( lfnToUploadResults, fileNameMissingFiles, 'CERN-DEBUG', guid, printOutput = True )
+    if not res['OK']:
+      self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingFiles, res['Message'] ) )
     return S_OK()
 
 #...............................................................................................................
-  def checkReplicasInFC( self, replicaType, filesToBeChecked, site ):
+  def checkReplicasInFC( self, replicaType, filesToBeChecked, site, fileNameMissingReplicas, fileNameMissingFiles ):
     """ Check the existance of the replicas for the given site and replica type in the FC
     """
     self.log.info( "*** Execute checkReplicasInFC for replicaType=%s, site=%s " % ( replicaType, site ) )
@@ -988,10 +1015,10 @@ class SEUsageAgent( AgentModule ):
         # to be done
         storageFileStatus = self.storageFileExists( lfn, replicaType, site )
         if storageFileStatus == 1:
-          self.log.info( "Inconsistent file! %s " % lfn )
+          self.log.info( "Storage file exists: Inconsistent file! %s " % lfn )
           filesMissingFromFC.append( lfn )
         elif storageFileStatus == 0:
-          self.log.info( "storage file does not exist (temporary file) %s " % lfn )
+          self.log.info( "Storage file does not exist (temporary file) %s " % lfn )
         else:
           self.log.warn( "Failed request for storage file %s " % lfn )
       else:
@@ -1016,24 +1043,36 @@ class SEUsageAgent( AgentModule ):
             replicaAtSite = True
             break
       if not replicaAtSite:
-        replicasMissingFromSite.append( lfn )
+        # check if storage file currently exists or if it was a temporary file
+        storageFileStatus = self.storageFileExists( lfn, replicaType, site )
+        if storageFileStatus == 1:
+          self.log.info( "Storage file exists: Inconsistent file! %s " % lfn )
+          replicasMissingFromSite.append( lfn )
+        elif storageFileStatus == 0:
+          self.log.info( "Storage file does not exist (temporary file) %s " % lfn )
+        else:
+          self.log.warn( "Failed request for storage file %s " % lfn )
 
+    assignedSE = 'Unknown'
+    if replicaType in self.specialReplicas:
+      assignedSE = site + '-' + replicaType.upper()
 
-    # write results of checks to files:
-    fileName = os.path.join( self.workDirectory, site + '.' + replicaType + ".replicasMissingFromSite.txt" )
-    self.log.info( "Writing list of replicas missing from site to file %s " % fileName )
-    fp = open( fileName , "w" )
+    fpMissingReplicas = open( fileNameMissingReplicas , "a" )
+    self.log.info( "Writing list of replicas missing from site to file %s " % fileNameMissingReplicas )
     for lfn in replicasMissingFromSite:
-      fp.write( "%s\n" % lfn )
-    fp.close()
-    fileName = os.path.join( self.workDirectory, site + '.' + replicaType + ".filesMissingFromFC.txt" )
-    self.log.info( "Writing list of files missing from FC to file %s " % fileName )
-    fp = open( fileName , "w" )
+      fpMissingReplicas.write( "%s %s\n" % ( lfn, assignedSE ) )
+      self.log.info( "%s %s\n" % ( lfn, assignedSE ) )
+    fpMissingReplicas.flush()
+
+    self.log.info( "Writing list of files missing from FC to file %s " % fileNameMissingFiles )
+    fpMissingFiles = open( fileNameMissingFiles , "a" )
     for lfn in filesMissingFromFC:
-      fp.write( "%s\n" % lfn )
-    fp.close()
+      fpMissingFiles.write( "%s %s\n" % ( lfn, assignedSE ) )
+      self.log.info( "%s %s\n" % ( lfn, assignedSE ) )
+    fpMissingFiles.flush()
+
     fileName = os.path.join( self.workDirectory, site + '.' + replicaType + ".consistencyChecksSummary.txt" )
-    self.log.info( "Writing consistency checsk summary to file %s " % fileName )
+    self.log.info( "Writing consistency check summary to file %s " % fileName )
     date = time.asctime()
     line = "Site: " + site + "  Date: " + date
     fp = open( fileName , "w" )
