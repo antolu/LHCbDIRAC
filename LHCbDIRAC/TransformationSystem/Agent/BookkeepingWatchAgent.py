@@ -10,6 +10,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                                                import S_OK, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
+from DIRAC.Core.Utilities.ThreadSafe                                      import Synchronizer
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
@@ -17,11 +18,13 @@ import os, time, datetime, pickle, Queue
 
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
 
+gSynchro = Synchronizer()
+
 class BookkeepingWatchAgent( AgentModule ):
   """ LHCbDIRAC only agent. A threaded agent.
   """
 
-  def __init__( self, agentName, loadName, baseAgentName=False, properties=dict() ):
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
     """ c'tor
 
     :param self: self reference
@@ -71,25 +74,26 @@ class BookkeepingWatchAgent( AgentModule ):
     return S_OK()
 
   @classmethod
-  def __logVerbose( self, message, param='', method="execute", transID='None' ):
+  def __logVerbose( self, message, param = '', method = "execute", transID = 'None' ):
     gLogger.verbose( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
   @classmethod
-  def __logDebug( self, message, param='', method="execute", transID='None' ):
+  def __logDebug( self, message, param = '', method = "execute", transID = 'None' ):
     gLogger.debug( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
   @classmethod
-  def __logInfo( self, message, param='', method="execute", transID='None' ):
+  def __logInfo( self, message, param = '', method = "execute", transID = 'None' ):
     gLogger.info( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
   @classmethod
-  def __logWarn( self, message, param='', method="execute", transID='None' ):
+  def __logWarn( self, message, param = '', method = "execute", transID = 'None' ):
     gLogger.warn( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
   @classmethod
-  def __logError( self, message, param='', method="execute", transID='None' ):
+  def __logError( self, message, param = '', method = "execute", transID = 'None' ):
     gLogger.error( AGENT_NAME + "." + method + ": [%s] " % str( transID ) + message, param )
 
+  @gSynchro
   def __dumpLog( self ):
     """ dump the log in the pickle file
     """
@@ -99,7 +103,6 @@ class BookkeepingWatchAgent( AgentModule ):
         pickle.dump( self.timeLog, pf )
         pickle.dump( self.fullTimeLog, pf )
         pickle.dump( self.bkQueries, pf )
-        pf.close()
         self.__logVerbose( "successfully dumped Log into %s" % self.pickleFile )
       except IOError, e:
         self.__logError( "fail to open %s: %s" % ( self.pickleFile, e ) )
@@ -107,6 +110,8 @@ class BookkeepingWatchAgent( AgentModule ):
         self.__logError( "fail to dump %s: %s" % ( self.pickleFile, e ) )
       except ValueError, e:
         self.__logError( "fail to close %s: %s" % ( self.pickleFile, e ) )
+      finally:
+        pf.close()
 
 ################################################################################
   def execute( self ):
@@ -115,7 +120,7 @@ class BookkeepingWatchAgent( AgentModule ):
 
     gMonitor.addMark( 'Iteration', 1 )
     # Get all the transformations
-    result = self.transClient.getTransformations( condDict={'Status':'Active'}, extraParams=True )
+    result = self.transClient.getTransformations( condDict = {'Status':'Active'}, extraParams = True )
     if not result['OK']:
       self.__logError( "Failed to get transformations.", result['Message'] )
       return S_OK()
@@ -128,7 +133,7 @@ class BookkeepingWatchAgent( AgentModule ):
       if transID in self.bkQueriesInCheck:
         continue
       if 'BkQueryID' not in transDict:
-        self.__logVerbose( "Transformation does not have associated BK query", transID=transID )
+        self.__logVerbose( "Transformation does not have associated BK query", transID = transID )
         continue
 
       self.bkQueriesInCheck.append( transID )
@@ -141,7 +146,7 @@ class BookkeepingWatchAgent( AgentModule ):
     return S_OK()
 
   def _execute( self ):
-    """ Real executor. This is what is executed by the single threads.
+    """ Real executor. This is what is executed by the single threads - so do not return here! Just continue
     """
 
     while True:#not self.bkQueriesToBeChecked.empty():
@@ -153,18 +158,23 @@ class BookkeepingWatchAgent( AgentModule ):
         transID = self.bkQueriesToBeChecked.get()
 
         startTime = time.time()
-        self.__logInfo( "Processing transformation %s." % transID, transID=transID )
+        self.__logInfo( "Processing transformation %s." % transID, transID = transID )
         res = self.transClient.getBookkeepingQueryForTransformation( transID )
         if not res['OK']:
-          self.__logError( "Failed to get BkQuery", res['Message'], transID=transID )
+          self.__logError( "Failed to get BkQuery", res['Message'], transID = transID )
           continue
 
         bkQuery = res[ 'Value' ]
 
+        # Determine the correct time stamp to use for this transformation
         now = datetime.datetime.utcnow()
         self.__timeStampForTransformation( transID, bkQuery, now )
 
-        files = self.__getFiles( transID, bkQuery, now )
+        try:
+          files = self.__getFiles( transID, bkQuery, now )
+        except RuntimeError, e:
+          self.__logError( "Failed to get response from the Bookkeeping: %s" % e, "", "__getFiles", transID )
+          continue
 
         # Add any new files to the transformation
         for lfnList in breakListIntoChunks( files, self.chunkSize ):
@@ -206,18 +216,21 @@ class BookkeepingWatchAgent( AgentModule ):
                     to run %d" % ( len( lfns ), runID ), res['Message'], transID = transID )
 
 
-            self.__addRunsMetadata( transID, runDict.keys() )
+            try:
+              self.__addRunsMetadata( transID, runDict.keys() )
+            except RuntimeError, e:
+              self.__logError( "Failure adding runs metadata: %s" % e, "", "__addRunsMetadata", transID )
+              continue
 
-        self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID=transID )
+        self.__logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
 
       except Exception, x:
-        gLogger.exception( '[%s] %s.execute %s' % ( str( transID ), AGENT_NAME, x ) )
+        gLogger.exception( '[%s] %s._execute %s' % ( str( transID ), AGENT_NAME, x ) )
       finally:
         if transID in self.bkQueriesInCheck:
           self.bkQueriesInCheck.remove( transID )
 
     return S_OK()
-
 
   def __timeStampForTransformation( self, transID, bkQuery, now ):
     """ Determine the correct time stamp to use for this transformation
@@ -240,7 +253,6 @@ class BookkeepingWatchAgent( AgentModule ):
       self.__dumpLog()
 
 
-
   def __getFiles( self, transID, bkQuery, now ):
     """ Perform the query to the Bookkeeping
     """
@@ -249,7 +261,7 @@ class BookkeepingWatchAgent( AgentModule ):
     result = self.bkClient.getFiles( bkQuery )
     self.__logVerbose( "BK query time: %.2f seconds." % ( time.time() - start ), transID = transID )
     if not result['OK']:
-      self.__logError( "Failed to get response from the Bookkeeping", result['Message'], transID = transID )
+      raise RuntimeError, result['Message']
     else:
       self.timeLog[transID] = now
       return result['Value']
@@ -258,19 +270,20 @@ class BookkeepingWatchAgent( AgentModule ):
   def __addRunsMetadata( self, transID, runsList ):
     """ Add the run metadata
     """
-    runsInCache = self.transClient.getRunsInCache()
+    runsInCache = self.transClient.getRunsInCache( {'Name':['TCK', 'CondDb', 'DDDB']} )
     if not runsInCache['OK']:
-      return runsInCache
+      raise RuntimeError, runsInCache['Message']
     newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
     if newRuns:
       self.__logVerbose( "Associating run metadata to %d runs" % len( newRuns ), transID = transID )
       res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
       if not res['OK']:
-        self.__logError( "Failed to get BK metadata for runs" )
+        raise RuntimeError, res['Message']
       else:
         for run, runMeta in res['Value'].items():
-          self.transClient.addRunsMetadata( run, runMeta )
-
+          res = self.transClient.addRunsMetadata( run, runMeta )
+          if not res['OK']:
+            raise RuntimeError, res['Message']
 
   def finalize( self ):
     """ Gracious finalization

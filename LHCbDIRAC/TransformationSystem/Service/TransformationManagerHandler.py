@@ -1,6 +1,6 @@
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: TransformationManagerHandler.py 58367 2012-11-07 14:08:05Z fstagni $"
 
 from types import LongType, IntType, StringType, DictType, ListType, StringTypes
 
@@ -245,9 +245,8 @@ class TransformationManagerHandler( TransformationManagerHandlerBase ):
     """
     return database.deleteRunsMetadata( runID )
 
-
   types_getRunsInCache = []
-  def export_getRunsInCache( self ):
+  def export_getRunsInCache( self, condDict = None ):
     """ gets what's in
     """
-    return database.getRunsInCache()
+    return database.getRunsInCache( condDict )
