@@ -15,21 +15,17 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerBKSwitches()
 
-  visibilityFlag = True
-  Script.registerSwitch( '', 'Invisible', '   Set invisible rather than visible' )
-
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
 
-  for switch in Script.getUnprocessedSwitches():
-    if switch[0] == 'Invisible':
-      visibilityFlag = False
-
-  bkQuery = dmScript.getBKQuery( visible = not visibilityFlag )
+  bkQuery = dmScript.getBKQuery()
+  # Invert the visibility flag as want to set Invisible those that are visible and vice-versa
+  visibilityFlag = bkQuery.isVisible()
+  bkQuery.setOption( 'Visible', 'No' if visibilityFlag else 'Yes' )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
