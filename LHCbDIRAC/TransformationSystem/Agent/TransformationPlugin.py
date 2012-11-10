@@ -427,7 +427,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                   self.util.logError( "Error setting %d files invisible in BK" % len( task[1] ), res['Message'] )
               continue
           if selectedSE in task[0].split( ',' ):
-            tasks.append( ( selectedSE, task[1] ) )
+            # Set the RAW files visible in the BK (only needed for reprocessing)
+            if transType == 'DataReprocessing':
+              res = self.bkClient.setFilesVisible( task[1] )
+              if not res['OK']:
+                self.util.logError( "Error setting %d files visible in BK" % len( task[1] ), res['Message'] )
+            else:
+              res = {'OK': True}
+            if res['OK']:
+              tasks.append( ( selectedSE, task[1] ) )
           else:
             self.util.logVerbose( 'Task not created: %s' % str( task ) )
         if notProcessed:
