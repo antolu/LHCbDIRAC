@@ -2,7 +2,8 @@
 # Install Oracle client module on a CERN vobox machine
 #
 # 1) download oracle client tarbal
-wget http://prdownloads.sourceforge.net/cx-oracle/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
+#wget http://prdownloads.sourceforge.net/cx-oracle/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
+wget http://lhcb-web-dirac.cern.ch/cx_Oracle-5.1.tar.gz -O cx_Oracle-5.1.tar.gz
 #
 # 2) get CERN oracle client environment
 source /afs/cern.ch/project/oracle/script/setoraenv.sh
