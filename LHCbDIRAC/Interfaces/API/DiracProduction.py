@@ -117,6 +117,7 @@ class DiracProduction:
         top += i.ljust( adj )
       message = ['ProductionID'.ljust( adj ) + top + '\n']
       #very painful to make this consistent, better improved first on the server side
+      productionID = str( productionID )
       message.append( productionID.ljust( adj ) + prodInfo['Status'].ljust( adj ) + prodInfo['Type'].ljust( adj ) + \
                       prodInfo['AgentType'].ljust( adj ) + toString( prodInfo['CreationDate'] ).ljust( adj ) + \
                       prodInfo['TransformationName'].ljust( adj ) )
