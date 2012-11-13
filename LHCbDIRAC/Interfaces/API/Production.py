@@ -158,7 +158,7 @@ class Production():
 
   #############################################################################
 
-  def addGenericApplicationStep( self, modules = [], outputSE, inputData = None ):
+  def addGenericApplicationStep( self, modules = [], outputSE = None, inputData = None ):
     """ building a generic application step, that does not use
     """
 
