@@ -42,13 +42,6 @@ class DiracLHCb( Dirac ):
     else:
       self.opsH = operationsHelperIn
 
-    try:
-      for site in getSites():
-        if getSiteTier( site ) in ( 0, 1 ):
-          self.tier1s.append( site )
-    except Exception, e:
-      return S_ERROR( 'Could not get the sites or sites tier ' + e )
-
     self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
                              'DataTakingConditions'     : 'All',
@@ -64,8 +57,6 @@ class DiracLHCb( Dirac ):
                              'Visibility'               : 'Yes'}
     self.bk = BookkeepingClient() #to expose all BK client methods indirectly
     self.resourceStatus = ResourceStatus()
-
-
 
   #############################################################################
   def addRootFile( self, lfn, fullPath, diracSE, printOutput = False ):
@@ -855,6 +846,14 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
+    
+    try:
+      for site in getSites():
+        if getSiteTier( site ) in ( 0, 1 ):
+          self.tier1s.append( site )
+    except Exception, e:
+      return S_ERROR( 'Could not get the sites or sites tier ' + e )
+    
     siteInfo = self.checkSites()
     if not siteInfo['OK']:
       return siteInfo
