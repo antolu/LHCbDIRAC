@@ -28,7 +28,7 @@ class TransformationClient( DIRACTransformationClient ):
                          eventsPerTask = 0,
                          addFiles = True,
                          bkQuery = {},
-                         rpc = False,
+                         rpc = None,
                          url = '',
                          timeout = 120 ):
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
