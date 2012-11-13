@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL:
-########################################################################
-
 """
    1) If --Directory is used: get files in LFC directories, check if they are in BK and if the replica flag is set
    2) If a BK query is used (--BKQuery, --Production), gets files in BK and check if they are in the LFC
@@ -14,14 +10,19 @@
        Removes the replica flag in the BK for files not in the LFC
 """
 
-__RCSID__ = "$Id: dirac-dms-check-lfc-bk.py 42387 2011-09-07 13:53:37Z phicharp $"
-
 from DIRAC.Core.Base import Script
+Script.parseCommandLine( ignoreErrors = False )
+
 import os, sys
 
 import DIRAC
-from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 def checkLFC2BK( lfns, fixIt ):
   bk = BookkeepingClient()
@@ -69,7 +70,6 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
   fixIt = False
   switches = Script.getUnprocessedSwitches()
   for opt, val in switches:
@@ -78,10 +78,6 @@ if __name__ == "__main__":
 
   directories = dmScript.getOption( "Directory", [] )
   lfns = dmScript.getOption( "LFNs", [] )
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-  from LHCbDIRAC.BookkeepingSystem.Client.BKQuery  import BKQuery
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
   rm = ReplicaManager()
   bk = BookkeepingClient()
 
@@ -96,16 +92,11 @@ if __name__ == "__main__":
 
   elif directories:
     for dir in directories:
-      print "######### Checking directory", dir
-      res = rm.getFilesFromDirectory( dir )
-      if res['OK']:
-        lfns = res['Value']
-        if lfns:
-          checkLFC2BK( lfns, fixIt )
-        else:
-          print "No files found"
+      lfns = cc._getFilesFromDirectoryScan( directories )
+      if lfns:
+        checkLFC2BK( lfns, fixIt )
       else:
-        print "Error getting files from directory", res['Message']
+        print "No files found"
 
   else:
     for bkQuery in bkQueries:
@@ -121,7 +112,7 @@ if __name__ == "__main__":
         for chunk in breakListIntoChunks( lfns, 500 ):
           res = rm.getCatalogExists( chunk )
           if res['OK']:
-            success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
+            success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and res['Value']['Successful'][lfn]] )
             missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
         print '\t%d are in the LFC, %d are not' % ( success, len( missingLFNs ) )
         if fixIt and missingLFNs:

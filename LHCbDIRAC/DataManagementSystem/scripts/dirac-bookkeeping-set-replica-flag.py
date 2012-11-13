@@ -45,15 +45,15 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
 
   for transformationID in idList:
-    cc = ConsistencyChecks( transformationID )
-    cc.replicaConsistencyCheck()
-    if cc.existingLFNsThatAreNotInBKK:
-      gLogger.info( "Setting the replica flag to %d files" % len( cc.existingLFNsThatAreNotInBKK ) )
-      res = bkClient.addFiles( cc.existingLFNsThatAreNotInBKK )
+    cc = ConsistencyChecks( transformationID, bkClient = bkClient )
+    cc.checkBKK2FC()
+    if cc.existingLFNsWithBKKReplicaNO:
+      gLogger.info( "Setting the replica flag to %d files" % len( cc.existingLFNsWithBKKReplicaNO ) )
+      res = bkClient.addFiles( cc.existingLFNsWithBKKReplicaNO )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
-    if cc.nonExistingLFNsThatAreInBKK:
-      gLogger.info( "Un-Setting the replica flag to %d files" % len( cc.nonExistingLFNsThatAreInBKK ) )
-      res = bkClient.removeFiles( cc.nonExistingLFNsThatAreInBKK )
+    if cc.nonExistingLFNsWithBKKReplicaYES:
+      gLogger.info( "Un-Setting the replica flag to %d files" % len( cc.nonExistingLFNsWithBKKReplicaYES ) )
+      res = bkClient.removeFiles( cc.nonExistingLFNsWithBKKReplicaYES )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )

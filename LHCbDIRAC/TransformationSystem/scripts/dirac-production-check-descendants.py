@@ -48,7 +48,7 @@ if __name__ == '__main__':
     gLogger.info( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     cc.fileType = extension
     cc.runsList = runsList
-    cc.descendantsConsistencyCheck()
+    cc.checkTS2BKK()
     if cc.processedLFNsWithMultipleDescendants:
       gLogger.warn( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
       gLogger.warn( "I'm not doing anything for them, neither with the 'FixIt' option" )
