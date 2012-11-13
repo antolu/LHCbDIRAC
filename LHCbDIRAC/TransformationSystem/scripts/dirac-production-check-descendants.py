@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 
+''' Does a TS -> BKK check for processed files with descendants
+'''
+
 from DIRAC.Core.Base import Script
+
+Script.setUsageMessage( '\n'.join( [ __doc__,
+                                     'Usage:',
+                                     '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
+
+Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
+Script.registerSwitch( '', 'Extension=', 'Specify the descendants file extension' )
+Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
+
 Script.parseCommandLine( ignoreErrors = True )
 
 import sys, os, time
@@ -11,10 +23,6 @@ from DIRAC import gLogger
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 if __name__ == '__main__':
-
-  Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
-  Script.registerSwitch( '', 'Extension=', 'Specify the descendants file extension' )
-  Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
 
   extension = ''
   runsList = []
@@ -50,16 +58,16 @@ if __name__ == '__main__':
     cc.runsList = runsList
     cc.checkTS2BKK()
     if cc.processedLFNsWithMultipleDescendants:
-      gLogger.warn( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
-      gLogger.warn( "I'm not doing anything for them, neither with the 'FixIt' option" )
+      gLogger.error( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
+      gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     if cc.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.warn( "Non processed LFNs with multiple descendants: %s" % str( cc.nonProcessedLFNsWithMultipleDescendants ) )
-      gLogger.warn( "I'm not doing anything for them, neither with the 'FixIt' option" )
+      gLogger.error( "Non processed LFNs with multiple descendants: %s" % str( cc.nonProcessedLFNsWithMultipleDescendants ) )
+      gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     if cc.processedLFNsWithoutDescendants:
-      gLogger.info( "Please use dirac-dms-check-lfc-bk with --directory option" )
+      gLogger.always( "Please use dirac-dms-check-lfc-bk with --directory option" )
     #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
       if fixIt:
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
       else:
-        gLogger.info( "use --FixIt for fixing" )
+        gLogger.always( "use --FixIt for fixing" )
