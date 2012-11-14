@@ -9,7 +9,8 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.bkClientMock = Mock()
 
     self.cc = ConsistencyChecks( bkClient = self.bkClientMock )
-    self.cc.fileType = 'SEMILEPTONIC.DST'
+    self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG']
+    self.cc.fileTypesExcluded = ['LOG']
     self.maxDiff = None
 
   def tearDown( self ):
@@ -41,6 +42,28 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
     res = self.cc._selectByFileType( lfnDict )
     lfnDictExpected = {}
     self.assertEqual( res, lfnDictExpected )
+
+  def test__getFileTypesCount( self ):
+    lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', '/bb/pippo/aa.log']}
+    res = self.cc._getFileTypesCount( lfnDict )
+    resExpected = {'aa.raw': {'dst':1, 'log':1}}
+    self.assertEqual( res, resExpected )
+
+    lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', '/bb/pippo/cc.dst', '/bb/pippo/aa.log']}
+    res = self.cc._getFileTypesCount( lfnDict )
+    resExpected = {'aa.raw': {'dst':2, 'log':1}}
+    self.assertEqual( res, resExpected )
+
+    lfnDict = {'aa.raw': ['/bb/pippo/aa.t.dst', '/bb/pippo/cc.t.dst', '/bb/pippo/aa.log']}
+    res = self.cc._getFileTypesCount( lfnDict )
+    resExpected = {'aa.raw': {'t.dst':2, 'log':1}}
+    self.assertEqual( res, resExpected )
+
+    lfnDict = {'aa.raw': ['/bb/pippo/aa.t.dst', '/bb/pippo/cc.t.dst', '/bb/pippo/aa.log'],
+               'cc.raw': ['/bb/pippo/aa.dst', '/bb/pippo/aa.log']}
+    res = self.cc._getFileTypesCount( lfnDict )
+    resExpected = {'aa.raw': {'t.dst':2, 'log':1}, 'cc.raw': {'dst':1, 'log':1}}
+    self.assertEqual( res, resExpected )
 
   def test_getDescendants( self ):
     self.bkClientMock.getFileDescendants.return_value = {'OK': True,

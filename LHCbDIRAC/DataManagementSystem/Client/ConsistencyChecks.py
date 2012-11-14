@@ -20,10 +20,10 @@ class ConsistencyChecks( object ):
   """
 
   def __init__( self, prod = 0, transClient = None, rm = None, bkClient = None ):
-    """ c'tor
+    ''' c'tor
 
         One object for every production
-    """
+    '''
 
     if transClient is None:
       self.transClient = TransformationClient()
@@ -44,7 +44,8 @@ class ConsistencyChecks( object ):
 
     self.prod = prod
     self.runsList = []
-    self.fileType = ''
+    self.fileType = []
+    self.fileTypesExcluded = []
     self.directories = []
 
     self.existingLFNsWithBKKReplicaNO = []
@@ -71,8 +72,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkBKK2FC( self ):
-    """ Starting from the BKK, check if the FileCatalog has consistent information (BK -> FileCatalog)
-    """
+    ''' Starting from the BKK, check if the FileCatalog has consistent information (BK -> FileCatalog)
+    '''
 
     lfnsReplicaYes, lfnsReplicaNo = self._getBKKFiles()
 
@@ -102,8 +103,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getBKKFiles( self ):
-    """ Helper function - get files from BKK
-    """
+    ''' Helper function - get files from BKK
+    '''
 
     bkQueryReplicaNo = BKQuery( {'Production': self.prod, 'ReplicaFlag':'No'},
                                 fileTypes = 'ALL',
@@ -126,8 +127,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def getReplicasPresence( self, lfns ):
-    """ get the replicas using the standard ReplicaManager.getReplicas()
-    """
+    ''' get the replicas using the standard ReplicaManager.getReplicas()
+    '''
     present = []
     notPresent = []
 
@@ -143,8 +144,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def getReplicasPresenceFromDirectoryScan( self, lfns ):
-    """ Get replicas scanning the directories. Might be faster.
-    """
+    ''' Get replicas scanning the directories. Might be faster.
+    '''
 
     dirs = []
     present = []
@@ -172,8 +173,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getFilesFromDirectoryScan( self, dirs ):
-    """ calls rm.getFilesFromDirectory
-    """
+    ''' calls rm.getFilesFromDirectory
+    '''
 
     gLogger.info( "Checking File Catalog files from %d directories" % len( dirs ) )
     res = self.rm.getFilesFromDirectory( dirs )
@@ -190,13 +191,13 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkTS2BKK( self ):
-    """ Check if lfns has descendants (TransformationFiles -> BK)
-    """
+    ''' Check if lfns has descendants (TransformationFiles -> BK)
+    '''
 
     processedLFNs, nonProcessedLFNs = self._getTSFiles()
 
     gLogger.verbose( 'Checking BKK for those files that are processed' )
-    res = self.getDescendants( self.processedLFNs )
+    res = self.getDescendants( processedLFNs )
     self.processedLFNsWithDescendants = res[0]
     self.processedLFNsWithoutDescendants = res[1]
     self.processedLFNsWithMultipleDescendants = res[2]
@@ -230,8 +231,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getTSFiles( self ):
-    """ Helper function - get files from the TS
-    """
+    ''' Helper function - get files from the TS
+    '''
 
     selectDict = { 'TransformationID': self.prod}
     if self.runsList:
@@ -256,8 +257,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def getDescendants( self, lfns ):
-    """ get the descendants of a list of LFN (for the production)
-    """
+    ''' get the descendants of a list of LFN (for the production)
+    '''
 
     filesWithDescendants = []
     filesWithoutDescendants = []
@@ -270,11 +271,13 @@ class ConsistencyChecks( object ):
         descDict = resChunk['Value']['Successful']
         if self.fileType:
           descDict = self._selectByFileType( resChunk['Value']['Successful'] )
+        ft_count = self._getFileTypesCount( descDict )
         for lfn in lfnChunk:
           if lfn in descDict.keys():
             filesWithDescendants.append( lfn )
-            if len( descDict[lfn] ) > 1:
-              filesWitMultipleDescendants.append( {lfn:descDict[lfn]} )
+            for ftc in ft_count[lfn].values():
+              if ftc > 1:
+                filesWitMultipleDescendants.append( {lfn:descDict[lfn]} )
           else:
             filesWithoutDescendants.append( lfn )
       else:
@@ -286,14 +289,15 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _selectByFileType( self, lfnDict ):
-    """ Select only those files from the values of lfnDict that have a certain type
-    """
+    ''' Select only those files from the values of lfnDict that have a certain type
+    '''
+    fileTypes = list( set( self.fileType ) - set ( self.fileTypesExcluded ) )
     ancDict = copy.deepcopy( lfnDict )
     for ancestor, descendants in lfnDict.items():
       descendantsCopy = copy.deepcopy( descendants )
       for desc in descendants:
         #quick and dirty...
-        if '.'.join( os.path.basename( desc ).split( '.' )[1:] ).lower() != self.fileType.lower():
+        if '.'.join( os.path.basename( desc ).split( '.' )[1:] ).lower() not in fileTypes:
           descendantsCopy.remove( desc )
       if len( descendantsCopy ) == 0:
         ancDict.pop( ancestor )
@@ -301,6 +305,22 @@ class ConsistencyChecks( object ):
         ancDict[ancestor] = descendantsCopy
 
     return ancDict
+
+  def _getFileTypesCount( self, lfnDict ):
+    ''' return file types count
+    '''
+    ft_dict = {}
+    for ancestor, descendants in lfnDict.items():
+      t_dict = {}
+      for desc in descendants:
+        fType = '.'.join( os.path.basename( desc ).split( '.' )[1:] ).lower()
+        if fType not in t_dict.keys():
+          t_dict[fType] = 1
+        else:
+          t_dict[fType] = t_dict[fType] + 1
+      ft_dict[ancestor] = t_dict
+
+    return ft_dict
 
   ################################################################################
 
@@ -430,4 +450,21 @@ class ConsistencyChecks( object ):
     retDict[ 'MissingPFN'] = pfnNotAvailable
 
     return retDict
+
+  ################################################################################
+  # properties
+
+  def set_fileType( self, value ):
+    fts = [ft.lower() for ft in value]
+    self._fileType = fts
+  def get_fileType( self ):
+    return self._fileType
+  fileType = property( get_fileType, set_fileType )
+
+  def set_fileTypesExcluded( self, value ):
+    fts = [ft.lower() for ft in value]
+    self._fileTypesExcluded = fts
+  def get_fileTypesExcluded( self ):
+    return self._fileTypesExcluded
+  fileTypesExcluded = property( get_fileTypesExcluded, set_fileTypesExcluded )
 
