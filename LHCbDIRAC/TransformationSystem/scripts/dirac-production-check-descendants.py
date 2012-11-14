@@ -3,25 +3,23 @@
 ''' Does a TS -> BKK check for processed files with descendants
 '''
 
+#Script initialization
 from DIRAC.Core.Base import Script
-
 Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
-
 Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
 Script.registerSwitch( '', 'Extension=', 'Specify the descendants file extension' )
 Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
-
 Script.parseCommandLine( ignoreErrors = True )
 
+#imports
 import sys, os, time
-
 import DIRAC
 from DIRAC import gLogger
-
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
+#Code
 if __name__ == '__main__':
 
   extension = ''
@@ -67,7 +65,9 @@ if __name__ == '__main__':
       gLogger.always( "Please use dirac-dms-check-lfc-bk with --directory option" )
     #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
+      gLogger.error( "There are LFNs marked as not 'Processed' but that have descendants" )
       if fixIt:
+        gLogger.always( "Marking them as 'Processed'" )
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
       else:
         gLogger.always( "use --FixIt for fixing" )
