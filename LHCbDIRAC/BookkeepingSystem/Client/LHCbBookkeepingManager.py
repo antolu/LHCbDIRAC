@@ -1711,7 +1711,6 @@ class LHCbBookkeepingManager(BaseESManager):
       try:
         fileType = fileType.split(".")[1]
       except IndexError, ex:
-        print fileType
         gLogger.warn(str(self.__class__)+"writeJobOptions" + str(ex))
 
       string = self.__generatePoolBody(string, files, fileType, savePfn)
