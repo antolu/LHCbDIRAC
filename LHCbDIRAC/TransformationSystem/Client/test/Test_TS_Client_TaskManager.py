@@ -11,41 +11,13 @@ import LHCbDIRAC.TransformationSystem.Client.TaskManager as moduleTested
 __RCSID__ = '$Id: $'
      
 ################################################################################
-# Tests
 
-class TaskManagerTest( unittest.TestCase ):
-  
-  def setUp( self ):
-    ''' Setup
-    '''
-    self.testClass = mock.Mock()
-  
-  def tearDown( self ):
-    ''' TearDown
-    '''
-    del self.testClass
-  
-  def test_instantiate( self ):
-    ''' tests that we can instantiate one object of the tested class
-    '''  
-    
-    instance = self.testClass()
-    self.assertEqual( 'TaskManager', instance.__class__.__name__ )
-
-################################################################################
-# Fixtures
-
-class DefaultTestCase( TaskManagerTest ):
+class TaskManager_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     '''
     Setup
-    '''
-#    mock_DiracLHCb      = mock.Mock( return_value = { 'OK' : True, 'Value' : 1 } )
-#    self.mock_DiracLHCb = mock_DiracLHCb 
-#    
-#    moduleTested.DiracLHCb = lambda :self.mock_DiracLHCb
-        
+    '''        
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.LHCbWorkflowTasks
     
@@ -54,7 +26,18 @@ class DefaultTestCase( TaskManagerTest ):
     TearDown
     '''
     del self.testClass
-    del self.moduleTested
+    del self.moduleTested     
+     
+################################################################################
+# Tests
+
+class TaskManager_Success( TaskManager_TestCase ):
+
+  def test_instantiate( self ):
+    ''' tests that we can instantiate one object of the tested class
+    '''  
+    instance = self.testClass()
+    self.assertEqual( 'LHCbWorkflowTasks', instance.__class__.__name__ ) 
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF    
