@@ -14,7 +14,7 @@ from DIRAC.Core.Base.Script import parseCommandLine
 from DIRAC.Interfaces.API.Dirac import Dirac
 import subprocess
 from subprocess import PIPE
-from DIRAC.ResourceStatusSystem.Utilities.mock import Mock
+from mock import Mock
 
 
 class UtilitiesTestCase( unittest.TestCase ):
