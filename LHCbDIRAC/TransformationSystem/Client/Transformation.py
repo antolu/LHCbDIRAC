@@ -3,13 +3,11 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC.Core.Base import Script
-Script.parseCommandLine()
-
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation import Transformation as DIRACTransformation
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 COMPONENT_NAME = 'Transformation'
 
@@ -75,7 +73,6 @@ class Transformation( DIRACTransformation ):
     """
 
     if bkClient is None:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bkClient = BookkeepingClient()
 
     res = bkClient.getFiles( bkQuery )
