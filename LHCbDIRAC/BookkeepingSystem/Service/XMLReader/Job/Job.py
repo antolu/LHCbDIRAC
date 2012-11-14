@@ -17,7 +17,7 @@ class Job:
   #############################################################################
   def __init__(self):
     """initialize the class members"""
-    self.jobConfiguration_ = ""
+    self.jobConfiguration_ = None
     self.jobOptions_ = []
     self.jobParameters_ = []
     self.jobInputFiles_ = []
