@@ -51,8 +51,8 @@ if __name__ == "__main__":
   errorReasons = {}
   successfullyRemoved = 0
   lfnsToSet = {}
-  for lfnList in breakListIntoChunks( lfns, 100 ):
-    res = rm.removeFile( lfnList )
+  for lfnChunk in breakListIntoChunks( lfnList, 100 ):
+    res = rm.removeFile( lfnChunk )
     if not res['OK']:
       gLogger.error( "Failed to remove data", res['Message'] )
       DIRAC.exit( -2 )
