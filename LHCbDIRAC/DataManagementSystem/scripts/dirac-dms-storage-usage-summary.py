@@ -291,14 +291,18 @@ if __name__ == "__main__":
       fileTypes = bkFileTypes
     if bkQuery.getQueryDict().keys() not in ( [], ['Visible'], ['FileType'], ['Visible', 'FileType'] ):
       print "BK query:", bkQuery
-      prods = sorted( bkQuery.getBKProductions() )
-      if not prods:
-        print 'No productions found for bkQuery %s' % str( bkQuery )
-        DIRAC.exit( 0 )
-      # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
-      if fileTypes and 'FULL.DST' not in fileTypes and 'DST' not in fileTypes:
-        fileTypes.append( 'DST' )
-      print "Looking for %d productions:" % len( prods ), prods
+      if fileTypes == ['RAW']:
+        # For RAW data, get the list of directories...
+        dirs = bkQuery.getDirs()
+      else:
+        prods = sorted( bkQuery.getBKProductions() )
+        if not prods:
+          print 'No productions found for bkQuery %s' % str( bkQuery )
+          DIRAC.exit( 0 )
+        # As storageSummary deals with directories and not real file types, add DST in order to cope with old naming convention
+        if fileTypes and 'FULL.DST' not in fileTypes and 'DST' not in fileTypes:
+          fileTypes.append( 'DST' )
+        print "Looking for %d productions:" % len( prods ), prods
     elif fileTypes:
       print 'FileTypes:', fileTypes
 
@@ -314,7 +318,10 @@ if __name__ == "__main__":
   if fileTypes[0] != '':
     prString += 'file types %s ' % str( fileTypes )
   if dirs[0] != '':
-    prString += 'directories %s' % str( dirs )
+    if fileTypes == ['RAW']:
+      prString += 'in %d directories' % len( dirs )
+    else:
+      prString += 'directories %s' % str( dirs )
   print prString
   if full:
     dirData = {}
