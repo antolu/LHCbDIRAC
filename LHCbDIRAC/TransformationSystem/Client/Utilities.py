@@ -707,6 +707,8 @@ class PluginUtilities:
     # Group files by SE
     files = files.copy()
     for groupSE in ( True, False ):
+      if not files:
+        break
       seFiles = getFileGroups( files, groupSE=groupSE )
       for replicaSE in sorted( seFiles ) if groupSE else sortSEs( seFiles ):
         lfns = seFiles[replicaSE]
@@ -728,13 +730,13 @@ class PluginUtilities:
                 lfnsInTasks += taskLfns
                 taskLfns = []
                 taskSize = 0
+        if flush and taskLfns:
+          tasks.append( ( replicaSE, taskLfns ) )
+          lfnsInTasks += taskLfns
         # Remove files from global list
         for lfn in lfnsInTasks:
           files.pop( lfn )
         if not groupSE:
-          if flush and taskLfns:
-            tasks.append( ( replicaSE, taskLfns ) )
-            lfnsInTasks += taskLfns
           # Remove files from other SEs
           for se in [se for se in seFiles if se != replicaSE]:
             seFiles[se] = [lfn for lfn in seFiles[se] if lfn not in lfnsInTasks]

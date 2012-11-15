@@ -370,11 +370,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.params['Status'] = 'Flush'
       lfns = [lfn for lfn in runFileDict[runID] \
               if len( self.transReplicas.get( lfn, [] ) ) >= minNbReplicas]
-      if not lfns:
-        continue
       notConsidered = [lfn for lfn in runFileDict[runID] if lfn not in lfns]
       if notConsidered:
-        self.util.logVerbose( "Run %s: %d files are not considered (not enough replicas)" % ( runID, len( notConsidered ) ) )
+        self.util.logVerbose( "Run %s: %d files are not considered (not %d replicas)" % ( runID, len( notConsidered ), minNbReplicas ) )
+      if not lfns:
+        continue
       if fractionToProcess == 1.:
         runFraction = 1.
       else:
@@ -410,6 +410,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if res['OK']:
         notProcessed = 0
         total = 0
+        self.util.logVerbose( "groupBySize returned %d tasks for %d files" % ( len( res['Value'] ), len( lfns ) ) )
         for task in res['Value']:
           total += len( task[1] )
           if runFraction != 1.:
