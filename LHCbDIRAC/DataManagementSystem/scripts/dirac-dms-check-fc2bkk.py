@@ -12,9 +12,14 @@
 
 #Script initialization
 from DIRAC.Core.Base import Script
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+
 Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
+dmScript = DMScript()
+dmScript.registerNamespaceSwitches() #Directory
+dmScript.registerFileSwitches() #File, LFNs
 Script.registerSwitch( '', 'Production', '   Set a production from which to start' )
 Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
 Script.parseCommandLine( ignoreErrors = True )
@@ -25,14 +30,10 @@ import DIRAC
 from DIRAC import gLogger
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 #Code
 if __name__ == '__main__':
-  dmScript = DMScript()
-  dmScript.registerNamespaceSwitches() #Directory
-  dmScript.registerFileSwitches() #File, LFNs
 
   fixIt = False
   production = 0
