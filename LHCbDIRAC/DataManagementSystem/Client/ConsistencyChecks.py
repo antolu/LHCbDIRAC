@@ -6,7 +6,7 @@
     Should be extended to include the Storage (in DIRAC)
 """
 
-import os, copy
+import os, copy, ast
 
 from DIRAC import gLogger, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -134,7 +134,7 @@ class ConsistencyChecks( object ):
     lfnsRes = bkQueryRes.getLFNs( printOutput = False )
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
-    gLogger.info( "Found %d files with replica flag = %s" % ( replicaFlag, len( lfnsRes ) ) )
+    gLogger.info( "Found %d files with replica flag = %s" % ( len( lfnsRes ), replicaFlag ) )
 
     return lfnsRes
 
@@ -564,4 +564,11 @@ class ConsistencyChecks( object ):
     return self._fileTypesExcluded
   fileTypesExcluded = property( get_fileTypesExcluded, set_fileTypesExcluded )
 
-
+  def set_bkQuery( self, value ):
+    if type( value ) == type( "" ):
+      self._bkQuery = ast.literal_eval( value )
+    else:
+      self._bkQuery = value
+  def get_bkQuery( self ):
+    return self._bkQuery
+  bkQuery = property( get_bkQuery, set_bkQuery )
