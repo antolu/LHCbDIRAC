@@ -1,25 +1,28 @@
 #! /usr/bin/env python
-"""
+'''
    Set the replica flag for output files of a transformation that are in the LFC and not in the BK
    <transList> is a comma-separated list of transformation ID or ranges (<t1>:<t2>)
 
    It also does the opposite, when a file has ReplicaFlag=Yes when it shouldn't.
-"""
-import sys, os
-from DIRAC import gLogger
-from DIRAC.Core.Base import Script
+'''
 
+#Script initialization
+from DIRAC.Core.Base import Script
+Script.setUsageMessage( '\n'.join( [ __doc__,
+                                     'Usage:',
+                                     '  %s [option|cfgfile] <transList>' % Script.scriptName, ] ) )
+Script.parseCommandLine( ignoreErrors = False )
+
+#imports
+import sys, os
+import DIRAC
+from DIRAC import gLogger
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
+#Code
 if __name__ == "__main__":
 
-  Script.setUsageMessage( '\n'.join( [ __doc__,
-                                       'Usage:',
-                                       '  %s [option|cfgfile] <transList>' % Script.scriptName, ] ) )
-
-  Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
 
   args = Script.getPositionalArgs()
 
@@ -46,14 +49,18 @@ if __name__ == "__main__":
 
   for transformationID in idList:
     cc = ConsistencyChecks( transformationID, bkClient = bkClient )
+    gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     cc.checkBKK2FC()
     if cc.existingLFNsWithBKKReplicaNO:
-      gLogger.info( "Setting the replica flag to %d files" % len( cc.existingLFNsWithBKKReplicaNO ) )
+      gLogger.always( "Setting the replica flag to %d files: %s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
+                                                                     str( cc.existingLFNsWithBKKReplicaNO ) ) )
       res = bkClient.addFiles( cc.existingLFNsWithBKKReplicaNO )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
     if cc.nonExistingLFNsWithBKKReplicaYES:
-      gLogger.info( "Un-Setting the replica flag to %d files" % len( cc.nonExistingLFNsWithBKKReplicaYES ) )
+      gLogger.always( "Un-Setting the replica flag to %d files: %s" % ( len( cc.nonExistingLFNsWithBKKReplicaYES ),
+                                                                        str( cc.nonExistingLFNsWithBKKReplicaYES ) ) )
       res = bkClient.removeFiles( cc.nonExistingLFNsWithBKKReplicaYES )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
+    gLogger.always( "Processed production %d" % cc.prod )
