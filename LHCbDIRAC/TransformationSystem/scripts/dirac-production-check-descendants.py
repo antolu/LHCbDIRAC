@@ -49,7 +49,8 @@ if __name__ == '__main__':
 
   for id in idList:
 
-    cc = ConsistencyChecks( id )
+    cc = ConsistencyChecks()
+    cc.prod = id
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     cc.fileType = extension
     cc.fileTypesExcluded = ['LOG']
