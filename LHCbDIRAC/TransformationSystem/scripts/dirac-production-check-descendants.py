@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 ''' Does a TS -> BKK check for processed files with descendants
 '''
 
