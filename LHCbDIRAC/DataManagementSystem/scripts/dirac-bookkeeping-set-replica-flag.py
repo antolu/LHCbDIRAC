@@ -48,7 +48,8 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
 
   for transformationID in idList:
-    cc = ConsistencyChecks( transformationID, bkClient = bkClient )
+    cc = ConsistencyChecks( bkClient = bkClient )
+    cc.prod = transformationID
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     cc.checkBKK2FC()
     if cc.existingLFNsWithBKKReplicaNO:

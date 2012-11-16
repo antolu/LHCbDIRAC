@@ -43,7 +43,8 @@ class UploadOutputData( ModuleBase ):
     self.outputDataStep = ''
     self.request = None
 
-    self.consistencyChecks = ConsistencyChecks( self.production_id )
+    self.consistencyChecks = ConsistencyChecks( rm = self.rm, bkClient = self.bkClient )
+    self.consistencyChecks.prod = self.production_id
 
   #############################################################################
   def _resolveInputVariables( self ):

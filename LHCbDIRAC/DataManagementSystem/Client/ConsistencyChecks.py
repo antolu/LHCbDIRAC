@@ -1,4 +1,9 @@
-""" Some utilities for BK and Catalog(s) interactions
+""" Main class for doing consistency checks, between files in:
+    - File Catalog
+    - Bookkeeping
+    - TransformationSystem
+
+    Should be extended to include the Storage (in DIRAC)
 """
 
 import os, copy
@@ -19,10 +24,10 @@ class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, prod = 0, transClient = None, rm = None, bkClient = None ):
+  def __init__( self, transClient = None, rm = None, bkClient = None ):
     ''' c'tor
 
-        One object for every production
+        One object for every production/BkQuery/directoriesList...
     '''
 
     if transClient is None:
@@ -42,12 +47,17 @@ class ConsistencyChecks( object ):
 
     self.dirac = Dirac()
 
-    self.prod = prod
+    #Base elements from which to start the consistency checks
+    self.prod = 0
+    self.directories = []
+    self.bkQuery = {}
+
+    #Accessory elements
     self.runsList = []
     self.fileType = []
     self.fileTypesExcluded = []
-    self.directories = []
 
+    #Results of the checks
     self.existingLFNsWithBKKReplicaNO = []
     self.nonExistingLFNsWithBKKReplicaNO = []
     self.existingLFNsWithBKKReplicaYES = []
@@ -60,14 +70,6 @@ class ConsistencyChecks( object ):
     self.nonProcessedLFNsWithDescendants = []
     self.nonProcessedLFNsWithoutDescendants = []
     self.nonProcessedLFNsWithMultipleDescendants = []
-
-    if self.prod:
-      res = self.transClient.getTransformation( self.prod, extraParams = False )
-      if not res['OK']:
-        gLogger.error( "Couldn't find transformation %s: %s" % ( self.prod, res['Message'] ) )
-      else:
-        self.transType = res['Value']['Type']
-      gLogger.info( "Production %d: %s" % ( self.prod, self.transType ) )
 
   ################################################################################
 
@@ -103,7 +105,7 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getBKKFiles( self ):
-    ''' Helper function - get files from BKK
+    ''' Helper function - get files from BKK, first constructing the bkQuery
     '''
 
     bkQueryReplicaNo = BKQuery( {'Production': self.prod, 'ReplicaFlag':'No'},
@@ -454,6 +456,19 @@ class ConsistencyChecks( object ):
   ################################################################################
   # properties
 
+  def set_prod( self, value ):
+    if value:
+      res = self.transClient.getTransformation( value, extraParams = False )
+      if not res['OK']:
+        gLogger.error( "Couldn't find transformation %s: %s" % ( self.prod, res['Message'] ) )
+      else:
+        self.transType = res['Value']['Type']
+      gLogger.info( "Production %d has type %s" % ( self.prod, self.transType ) )
+    self._prod = value
+  def get_prod( self ):
+    return self._prod
+  prod = property( get_prod, set_prod )
+
   def set_fileType( self, value ):
     fts = [ft.lower() for ft in value]
     self._fileType = fts
@@ -467,4 +482,5 @@ class ConsistencyChecks( object ):
   def get_fileTypesExcluded( self ):
     return self._fileTypesExcluded
   fileTypesExcluded = property( get_fileTypesExcluded, set_fileTypesExcluded )
+
 

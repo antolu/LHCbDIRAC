@@ -11,6 +11,7 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.cc = ConsistencyChecks( bkClient = self.bkClientMock )
     self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG']
     self.cc.fileTypesExcluded = ['LOG']
+    self.cc.prod = 0
     self.maxDiff = None
 
   def tearDown( self ):
