@@ -8,7 +8,7 @@
 
 import os, copy
 
-from DIRAC import gLogger
+from DIRAC import gLogger, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -53,9 +53,11 @@ class ConsistencyChecks( object ):
     self.bkQuery = {}
 
     #Accessory elements
+    self.lfns = []
     self.runsList = []
     self.fileType = []
     self.fileTypesExcluded = []
+    self.transType = ''
 
     #Results of the checks
     self.existingLFNsWithBKKReplicaNO = []
@@ -75,68 +77,89 @@ class ConsistencyChecks( object ):
 
   def checkBKK2FC( self ):
     ''' Starting from the BKK, check if the FileCatalog has consistent information (BK -> FileCatalog)
+
+        Works either when the bkQuery is free, or when it is made using a transformation ID
     '''
 
-    lfnsReplicaYes, lfnsReplicaNo = self._getBKKFiles()
+    try:
+      bkQuery = self.__getBKKQuery()
+    except ValueError, e:
+      return S_ERROR( e )
+
+
+    lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
+    lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
 
     if self.transType not in prodsWithMerge:
       # Merging and Reconstruction
       # In principle few files without replica flag, check them in FC
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
       self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
+      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
       self.existingLFNsWithBKKReplicaYES, self.nonexistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
       # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
       # In principle most files have no replica flag, start from the File Catalog files with replicas
+      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
       self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
+      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
       self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
 
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.info( "For prod %s of type %s, %d files has ReplicaFlag=No,\
-      %d files are in the File Catalog but are not in BK" % ( self.prod, self.transType, len( lfnsReplicaNo ),
-                                                              len( self.existingLFNsWithBKKReplicaNO ) ) )
+      msg = "%d files has ReplicaFlag=No, but %d are in the FC" % ( len( lfnsReplicaNo ),
+                                                                    len( self.existingLFNsWithBKKReplicaNO ) )
+      if self.transType:
+        msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
+      gLogger.info( msg )
 
     if self.nonExistingLFNsWithBKKReplicaYES:
-      gLogger.info( "For prod %s of type %s, %d files has ReplicaFlag=Yes,\
-      %d files are in the File Catalog but are not in BK" % ( self.prod, self.transType, len( lfnsReplicaYes ),
-                                                              len( self.nonExistingLFNsWithBKKReplicaYES ) ) )
+      msg = "%d files are in the File Catalog but %d files has ReplicaFlag=Yes" % ( len( lfnsReplicaYes ),
+                                                                                    len( self.existingLFNsWithBKKReplicaYes ) )
+      if self.transType:
+        msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
+      gLogger.info( msg )
 
   ################################################################################
 
-  def _getBKKFiles( self ):
+  def _getBKKFiles( self, bkQuery, replicaFlag = 'Yes' ):
     ''' Helper function - get files from BKK, first constructing the bkQuery
     '''
+    visibility = True
+    if self.transType:
+      visibility = ( self.transType not in prodsWithMerge )
+    bkQuery.update( {'ReplicaFlag':replicaFlag} )
+    bkQueryRes = BKQuery( bkQuery, fileTypes = 'ALL',
+                          visible = visibility )
+    lfnsRes = bkQueryRes.getLFNs( printOutput = False )
+    if not lfnsRes:
+      gLogger.info( "No files found with replica flag = %s" % replicaFlag )
+    gLogger.info( "Found %d files with replica flag = %s" % ( replicaFlag, len( lfnsRes ) ) )
 
-    bkQuery = self.__getBkQuery()
+    return lfnsRes
 
-    bkQuery.update( {'ReplicaFlag':'No'} )
-    bkQueryReplicaNo = BKQuery( bkQuery, fileTypes = 'ALL',
-                                visible = ( self.transType not in prodsWithMerge ) )
-    lfnsReplicaNo = bkQueryReplicaNo.getLFNs( printOutput = False )
-    if not lfnsReplicaNo:
-      gLogger.info( "No files found without replica flag" )
-    gLogger.info( "Found %d files without replica flag" % len( lfnsReplicaNo ) )
-
-    bkQuery.update( {'ReplicaFlag':'Yes'} )
-    bkQueryReplicaYes = BKQuery( bkQuery, fileTypes = 'ALL',
-                                 visible = ( self.transType not in prodsWithMerge ) )
-    lfnsReplicaYes = bkQueryReplicaYes.getLFNs( printOutput = False )
-    if not lfnsReplicaYes:
-      gLogger.info( "No files found with replica flag" )
-    gLogger.info( "Found %d files with replica flag" % len( lfnsReplicaYes ) )
-
-    return lfnsReplicaYes, lfnsReplicaNo
-
-  def __getBkQuery( self ):
+  def __getBKKQuery( self, fromTS = False ):
     ''' get the bkQuery to be used
     '''
-    if self.bkQuery:
-      return self.bkQuery
-    elif self.prod:
-      return {'Production': self.prod}
+    if fromTS:
+      res = self.transClient.getBookkeepingQueryForTransformation( self.prod )
+      if not res['OK']:
+        raise ValueError, res['Message']
+      bkQuery = res['Value']
     else:
-      raise ValueError( "Need to specify either the bkQuery or a production id" )
+      if self.bkQuery:
+        bkQuery = self.bkQuery
+      elif self.prod:
+        bkQuery = {'Production': self.prod}
+      else:
+        raise ValueError( "Need to specify either the bkQuery or a production id" )
+
+    if self.runsList:
+      bkQuery.update( {'RunNumbers':self.runsList} )
+      bkQuery.pop( 'StartRun', 0 )
+      bkQuery.pop( 'EndRun', 0 )
+
+    return bkQuery
 
   ################################################################################
 
@@ -207,6 +230,8 @@ class ConsistencyChecks( object ):
   def checkTS2BKK( self ):
     ''' Check if lfns has descendants (TransformationFiles -> BK)
     '''
+    if not self.prod:
+      return S_ERROR( "You need a transformationID" )
 
     processedLFNs, nonProcessedLFNs = self._getTSFiles()
 
@@ -341,13 +366,41 @@ class ConsistencyChecks( object ):
   def checkFC2BKK( self ):
     ''' check that files present in the FC are also in the BKK
     '''
-    catalogFiles = self._getFilesFromDirectoryScan( self.directories )
+    if not self.lfns:
+      try:
+        directories = self.__getDirectories()
+      except RuntimeError, e:
+        return S_ERROR( e )
+      catalogFiles = self._getFilesFromDirectoryScan( directories )
+    else:
+      catalogFiles = self.lfns
+
     res = self._getBKKMetadata( catalogFiles )
     self.existingLFNsNotInBKK, self.existingLFNsWithBKKReplicaNO, self.existingLFNsWithBKKReplicaYES = res
+    msg = ''
+    if self.transType:
+      msg = "For prod %s of type %s, " % ( self.prod, self.transType )
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.info( "%d files are in the FC but have replica = NO in BKK" % ( len( self.existingLFNsWithBKKReplicaNO ) ) )
+      gLogger.warn( "%s %d files are in the FC but have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ) ) )
     if self.existingLFNsNotInBKK:
-      gLogger.info( "%d files are in the FC but not in BKK" % ( len( self.existingLFNsNotInBKK ) ) )
+      gLogger.warn( "%s %d files are in the FC but not in BKK" % ( msg, len( self.existingLFNsNotInBKK ) ) )
+
+  ################################################################################
+
+  def __getDirectories( self ):
+    ''' get the directories where to look into (they are either given, or taken from the transformation ID
+    '''
+    if self.directories:
+      return self.directories
+    elif self.prod:
+      res = self.transClient.getTransformationParameters( self.prod, ['OutputDirectories'] )
+      if not res['OK']:
+        raise RuntimeError, res['Message']
+      else:
+        return res['Value'].split( '\n' )
+    else:
+      raise RuntimeError( "Need to specify either the directories or a production id" )
+
 
   ################################################################################
 
@@ -366,6 +419,22 @@ class ConsistencyChecks( object ):
 
     return missingLFNs, noFlagLFNs, okLFNs
 
+
+  ################################################################################
+
+  def checkBKK2TS( self ):
+    ''' check that files present in the BKK are also in the FC (re-check of BKKWatchAgent)
+    '''
+    try:
+      bkQuery = self.__getBKKQuery( fromTS = True )
+    except ValueError, e:
+      return S_ERROR( e )
+    lfnsReplicaYes = self._getBKKFiles( bkQuery )
+    proc, nonProc = self._getTSFiles()
+    self.filesInBKKNotInTS = list( set( lfnsReplicaYes ) - set( proc, nonProc ) )
+    if self.filesInBKKNotInTS:
+      gLogger.warn( "There are %d files in BKK that are not in TS: %s" % ( len( self.filesInBKKNotInTS ),
+                                                                           str( self.filesInBKKNotInTS ) ) )
 
   ################################################################################
 
