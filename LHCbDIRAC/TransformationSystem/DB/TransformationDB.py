@@ -638,7 +638,7 @@ class TransformationDB( DIRACTransformationDB ):
   def __updateRunMetadata( self, runID, name, value, connection ):
     if type( runID ) in StringTypes:
       runID = int( runID )
-    req = "UPDATE RunsMetadata SET Value = %s WHERE RunNumber = %d AND Name = %s" % ( value , runID, name )
+    req = "UPDATE RunsMetadata SET Value = %s WHERE RunNumber = %d AND Name = '%s'" % ( value ,runID, name )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to update RunsMetadata table", res['Message'] )
