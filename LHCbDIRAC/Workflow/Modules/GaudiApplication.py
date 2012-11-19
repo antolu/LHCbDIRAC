@@ -48,11 +48,8 @@ class GaudiApplication( ModuleBase ):
     self.extraOptionsLine = ''
     self.extraPackages = ''
     self.applicationType = ''
-    self.stepOutputs = []
-    self.stepOutputTypes = []
     self.optionsFormat = ''
     self.histoName = ''
-    self.histogram = False
     self.jobType = ''
     self.stdError = ''
     self.DDDBTag = ''
@@ -75,7 +72,6 @@ class GaudiApplication( ModuleBase ):
       self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
     else:
       self.log.debug( "Getting the step outputs" )
-      self.stepOutputs, self.stepOutputTypes, self.histogram = self._determineOutputs()
 
   #############################################################################
 
@@ -97,6 +93,8 @@ class GaudiApplication( ModuleBase ):
         return S_OK()
 
       self._resolveInputVariables()
+
+      stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
 
       self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
@@ -179,13 +177,13 @@ class GaudiApplication( ModuleBase ):
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
 
-        optionsDict['OutputFileTypes'] = self.stepOutputTypes
+        optionsDict['OutputFileTypes'] = stepOutputTypes
 
         optionsDict['XMLSummaryFile'] = self.XMLSummary
 
         optionsDict['XMLFileCatalog'] = self.poolXMLCatName
 
-        if self.histogram:
+        if histogram:
           optionsDict['HistogramFile'] = self.histoName
 
         if self.DDDBTag:
@@ -317,7 +315,7 @@ class GaudiApplication( ModuleBase ):
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       try:
-        self._manageAppOutput()
+        self._manageAppOutput( stepOutputs )
       except IOError, e:
         return S_ERROR( e )
 

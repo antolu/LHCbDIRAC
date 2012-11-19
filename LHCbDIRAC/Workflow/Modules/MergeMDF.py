@@ -3,14 +3,11 @@
 
 __RCSID__ = "$Id: MergeMDF.py 57931 2012-10-23 17:00:11Z fstagni $"
 
-import os
-
 from DIRAC                                               import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC.Resources.Catalog.PoolXMLCatalog              import PoolXMLCatalog
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
-from LHCbDIRAC.Core.Utilities.ProductionData             import constructProductionLFNs
 
 class MergeMDF( ModuleBase ):
   """ To be used in normal workflows
@@ -40,15 +37,13 @@ class MergeMDF( ModuleBase ):
     super( MergeMDF, self )._resolveInputVariables()
     super( MergeMDF, self )._resolveInputStep()
     self.log.debug( "Getting the step outputs" )
-    self.stepOutputs, self.stepOutputTypes, self.histogram = self._determineOutputs()
 
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None,
-               rm = None ):
+               step_number = None, step_id = None ):
     """ Main execution function.
     """
 
@@ -64,11 +59,13 @@ class MergeMDF( ModuleBase ):
 
       self._resolveInputVariables()
 
+      stepOutputs, stepOutputTypes, _histogram = self._determineOutputs()
+
       logLines = ['#' * len( self.version ), self.version, '#' * len( self.version )]
 
       localInputs = [str( poolCat.getPfnsByLfn( x )['Replicas']['Uknown'] ) for x in self.stepInputData]
       inputs = ' '.join( localInputs )
-      cmd = 'cat %s > %s' % ( inputs, self.outputFilePrefix + '.' + self.stepOutputTypes[0] )
+      cmd = 'cat %s > %s' % ( inputs, self.outputFilePrefix + '.' + stepOutputTypes[0] )
       logLines.append( '\nExecuting merge operation...' )
       self.log.info( 'Executing "%s"' % cmd )
       result = shellCall( timeout = 600, cmdSeq = cmd )
@@ -92,14 +89,22 @@ class MergeMDF( ModuleBase ):
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       try:
-        self._manageAppOutput()
+        self._manageAppOutput( stepOutputs )
       except IOError, e:
         return S_ERROR( e )
 
       # Still have to set the application status e.g. user job case.
       self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
-      self.finalize( logLines, msg = 'Produced merged MDF file' )
+      # Write to log file
+      msg = 'Produced merged MDF file'
+      self.log.info( msg )
+      logLines.append( msg )
+      logLines = [ str( i ) for i in logLines]
+      logLines.append( '#EOF' )
+      fopen = open( self.applicationLog, 'w' )
+      fopen.write( '\n'.join( logLines ) + '\n' )
+      fopen.close()
 
       return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
@@ -109,18 +114,5 @@ class MergeMDF( ModuleBase ):
 
     finally:
       super( MergeMDF, self ).finalize( self.version )
-
-  #############################################################################
-  def finalize( self, logLines, msg = '', error = '' ):
-    """  Write to log file.
-    """
-
-    self.log.info( msg )
-    logLines.append( msg )
-    logLines = [ str( i ) for i in logLines]
-    logLines.append( '#EOF' )
-    fopen = open( self.applicationLog, 'w' )
-    fopen.write( '\n'.join( logLines ) + '\n' )
-    fopen.close()
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

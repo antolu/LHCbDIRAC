@@ -14,7 +14,6 @@ from DIRAC.WorkloadManagementSystem.Client.JobReport import JobReport
 from DIRAC.TransformationSystem.Client.FileReport import FileReport
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
@@ -55,6 +54,11 @@ class ModuleBase( object ):
     self.jobID = ''
     self.step_number = ''
     self.step_id = ''
+
+    self.workflowStatus = None
+    self.stepStatus = None
+    self.workflow_commons = None
+    self.step_commons = None
 
   #############################################################################
 
@@ -659,13 +663,13 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def _manageAppOutput( self ):
+  def _manageAppOutput( self, outputs ):
     """ Calls self._findOuputs to find what's produced,
         then creates the LFNs
     """
 
     try:
-      finalOutputs, _bkFileTypes = self._findOutputs( self.stepOutputs )
+      finalOutputs, _bkFileTypes = self._findOutputs( outputs )
     except AttributeError:
       self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
       return
