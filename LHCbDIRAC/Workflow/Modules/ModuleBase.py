@@ -731,7 +731,8 @@ class ModuleBase( object ):
       finalOutputs.append( {'outputDataName': fileFound['outputDataName'],
                             'outputDataType': fileFound['outputDataType'].lower(),
                             'outputDataSE': fileFound['outputDataSE'],
-                            'outputBKType': fileFound['outputDataType'].upper()
+                            'outputBKType': fileFound['outputDataType'].upper(),
+                            'stepName':self.stepName
                             } )
 
     return ( finalOutputs, bkFileTypes )

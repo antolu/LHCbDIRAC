@@ -475,8 +475,13 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
 
   def test__addPfnType( self ):
 
-    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
-    self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} } )
+    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
+                                 'lfn2': {'mdata':'mdata2'}
+                                 } )
+    self.assertEqual( res, {'OK': True,
+                            'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
+                                      'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} }
+                            } )
 
     self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
                                                      'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
@@ -485,7 +490,10 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                                                      'Value': {}}
 
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
-    self.assertEqual( res, { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'}, 'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} } )
+    self.assertEqual( res, {'OK': True,
+                            'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
+                                      'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} }
+                            } )
 
 class CombinedSoftwareInstallationSuccess( UtilitiesTestCase ):
 

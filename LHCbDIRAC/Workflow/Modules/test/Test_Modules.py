@@ -500,6 +500,38 @@ class ModuleBaseSuccess( ModulesTestCase ):
       self.assertEqual( outft, ['sdst'] )
       self.assertFalse( histos )
 
+  def test__findOutputs( self ):
+    open( 'aaa.Bhadron.dst', 'w' ).close()
+    open( 'bbb.Calibration.dst', 'w' ).close()
+    open( 'ccc.charm.mdst', 'w' ).close()
+    open( 'prova.txt', 'w' ).close()
+
+    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'},
+                  {'outputDataType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.calibration.dst'},
+                  {'outputDataType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'},
+                  {'outputDataType': 'CHARMCONTROL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'},
+                  {'outputDataType': 'CHARMFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'},
+                  {'outputDataType': 'LEPTONIC.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'},
+                  {'outputDataType': 'LEPTONICFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'},
+                  {'outputDataType': 'MINIBIAS.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'},
+                  {'outputDataType': 'RADIATIVE.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'},
+                  {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
+                  {'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
+
+    self.assertRaises( IOError, self.mb._findOutputs, stepOutput )
+
+    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'}]
+    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
+               'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.Bhadron.dst',
+               'stepName': 'someApp_1'}]
+    bkExp = ['BHADRON.DST']
+
+    self.mb.stepName = 'someApp_1'
+    out, bk = self.mb._findOutputs( stepOutput )
+
+    self.assertEqual( out, outExp )
+    self.assertEqual( bk, bkExp )
+
 
 #############################################################################
 # GaudiApplication.py
@@ -520,38 +552,6 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 #                                        self.step_number, self.step_id,
 #                                        Mock() )['OK'] )
 
-  def test__findOutputs( self ):
-    open( 'aaa.Bhadron.dst', 'w' ).close()
-    open( 'bbb.Calibration.dst', 'w' ).close()
-    open( 'ccc.charm.mdst', 'w' ).close()
-    open( 'prova.txt', 'w' ).close()
-
-    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'},
-                  {'outputDataType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.calibration.dst'},
-                  {'outputDataType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'},
-                  {'outputDataType': 'CHARMCONTROL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'},
-                  {'outputDataType': 'CHARMFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'},
-                  {'outputDataType': 'LEPTONIC.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'},
-                  {'outputDataType': 'LEPTONICFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'},
-                  {'outputDataType': 'MINIBIAS.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'},
-                  {'outputDataType': 'RADIATIVE.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'},
-                  {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
-                  {'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
-
-    self.assertRaises( IOError, self.ga._findOutputs, stepOutput )
-
-    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'}]
-    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
-               'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.Bhadron.dst',
-               'stepName': 'someApp_1'}]
-    bkExp = ['BHADRON.DST']
-
-    self.ga.stepName = 'someApp_1'
-    out, bk = self.ga._findOutputs( stepOutput )
-
-    self.assert_( out == outExp )
-    self.assert_( bk == bkExp )
-
 #############################################################################
 # GaudiApplicationScript.py
 #############################################################################
@@ -571,6 +571,7 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
 #                                        ['aa', 'bb'] )['OK'] )
+  pass
 
 
 #############################################################################
