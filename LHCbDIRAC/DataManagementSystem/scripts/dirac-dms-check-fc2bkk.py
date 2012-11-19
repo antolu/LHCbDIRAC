@@ -20,7 +20,8 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
 dmScript = DMScript()
 dmScript.registerNamespaceSwitches() #Directory
 dmScript.registerFileSwitches() #File, LFNs
-Script.registerSwitch( '', 'Production', '   Set a production from which to start' )
+Script.registerSwitch( "P:", "Productions=",
+                           "   Production ID to search (comma separated list)", dmScript.setProductions )
 Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
 Script.parseCommandLine( ignoreErrors = True )
 
@@ -33,25 +34,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 #Code
-if __name__ == '__main__':
-
-  fixIt = False
-  production = 0
-  switches = Script.getUnprocessedSwitches()
-  for opt, val in switches:
-    if opt == 'FixIt':
-      fixIt = True
-    if opt == 'Production':
-      production = val
-
-  rm = ReplicaManager()
-  bk = BookkeepingClient()
-
-  cc = ConsistencyChecks( rm = rm, bkClient = bk )
-  cc.directories = dmScript.getOption( 'Directory', [] )
-  cc.lfns = dmScript.getOption( 'LFNs', [] )
-  cc.prod = production
-
+def doCheck():
   cc.checkFC2BKK()
 
   if cc.existingLFNsWithBKKReplicaNO:
@@ -79,3 +62,30 @@ if __name__ == '__main__':
         gLogger.always( "\t%d success, %d failures" % ( success, failures ) )
   else:
     gLogger.always( "No files in FC not in BKK -> OK!" )
+
+
+
+if __name__ == '__main__':
+
+  fixIt = False
+  switches = Script.getUnprocessedSwitches()
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'FixIt':
+      fixIt = True
+
+  rm = ReplicaManager()
+  bk = BookkeepingClient()
+
+  cc = ConsistencyChecks( rm = rm, bkClient = bk )
+  cc.directories = dmScript.getOption( 'Directory', [] )
+  cc.lfns = dmScript.getOption( 'LFNs', [] )
+  productions = dmScript.getOption( 'Productions', [] )
+
+  if productions:
+    for prod in productions:
+      cc.prod = prod
+      gLogger.always( "Processing production %d" % cc.prod )
+      doCheck()
+      gLogger.always( "Processed production %d" % cc.prod )
+  else:
+    doCheck()

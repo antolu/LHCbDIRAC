@@ -5,8 +5,11 @@
     1) If --BKQuery is used: get files in BKK directories, check if they are in FC
     2) If --Production is used get files using the bk query of the given production
 
-    If --FixIt is set, take actions:
+    Then check if files registered as having a replica in the BKK are also in the FC.
 
+    If --FixIt is set, take actions:
+      - add files to the BKK if they exist in the FC, but have replica = NO in the BKK
+      - set replicaFlag = No in the BKK for those files that are not in the FC
 '''
 
 #Script initialization
@@ -44,7 +47,7 @@ def doCheck():
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
   else:
-    gLogger.always( "No LFNs have Replica = NO -> OK!" )
+    gLogger.always( "No LFNs exist in the FC but have Replica = NO in the BKK -> OK!" )
 
   if cc.nonExistingLFNsWithBKKReplicaYES:
     gLogger.error( "%d LFNs have replicaFlag = Yes, but are not in FC: %s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
@@ -57,7 +60,7 @@ def doCheck():
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
   else:
-    gLogger.always( "No File have Replica = Yes, but are not in FC -> OK!" )
+    gLogger.always( "No LFNs have Replica = Yes in the BKK, but are not in the FC -> OK!" )
 
 
 if __name__ == '__main__':
@@ -79,6 +82,7 @@ if __name__ == '__main__':
 
   if prods:
     for prod in prods:
+      gLogger.always( "Processing production %d" % cc.prod )
       cc.prod = prod
       doCheck()
       gLogger.always( "Processed production %d" % cc.prod )

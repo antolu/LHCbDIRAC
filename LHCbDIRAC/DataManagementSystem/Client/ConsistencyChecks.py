@@ -371,11 +371,9 @@ class ConsistencyChecks( object ):
         directories = self.__getDirectories()
       except RuntimeError, e:
         return S_ERROR( e )
-      catalogFiles = self._getFilesFromDirectoryScan( directories )
-    else:
-      catalogFiles = self.lfns
+      self.lfns = self._getFilesFromDirectoryScan( directories )
 
-    res = self._getBKKMetadata( catalogFiles )
+    res = self._getBKKMetadata( self.lfns )
     self.existingLFNsNotInBKK, self.existingLFNsWithBKKReplicaNO, self.existingLFNsWithBKKReplicaYES = res
     msg = ''
     if self.transType:
@@ -539,12 +537,15 @@ class ConsistencyChecks( object ):
 
   def set_prod( self, value ):
     if value:
+      value = int( value )
       res = self.transClient.getTransformation( value, extraParams = False )
       if not res['OK']:
-        gLogger.error( "Couldn't find transformation %s: %s" % ( self.prod, res['Message'] ) )
+        gLogger.error( "Couldn't find transformation %d: %s" % ( value, res['Message'] ) )
       else:
         self.transType = res['Value']['Type']
-      gLogger.info( "Production %d has type %s" % ( self.prod, self.transType ) )
+      gLogger.info( "Production %d has type %s" % ( value, self.transType ) )
+    else:
+      value = 0
     self._prod = value
   def get_prod( self ):
     return self._prod
@@ -572,3 +573,13 @@ class ConsistencyChecks( object ):
   def get_bkQuery( self ):
     return self._bkQuery
   bkQuery = property( get_bkQuery, set_bkQuery )
+
+  def set_lfns( self, value ):
+    if type( value ) == type( "" ):
+      value = [value]
+    value = [v.replace( ' ', '' ).replace( '//', '/' ) for v in value]
+    self._lfns = value
+  def get_lfns( self ):
+    return self._lfns
+  lfns = property( get_lfns, set_lfns )
+
