@@ -8,8 +8,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 
 
 class RegressionTestCase( unittest.TestCase ):
-  """ Base class for the Modules test cases
-  """
+  ''' Base class for the Regression test cases
+  '''
   def setUp( self ):
 
     parseCommandLine()
@@ -40,12 +40,12 @@ class MCSuccess( RegressionTestCase ):
     self.assertTrue( res['OK'] )
 
 class RecoSuccess( RegressionTestCase ):
-  def test_execute( self):
+  def test_execute( self ):
     res = self.j_mc_20194.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 class StrippSuccess( RegressionTestCase ):
-  def test_execute( self):
+  def test_execute( self ):
     res = self.j_mc_20349.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 

@@ -233,9 +233,11 @@ def installApplication( app, config, area ):
   """
   if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
     try:
+      DIRAC.gLogger.debug( "Downloading %s from %s" % ( installProjectFile,
+                                                        ( installProjectURL, installProjectFile ) ) )
       urllib.urlretrieve( '%s%s' % ( installProjectURL, installProjectFile ), installProjectFile )
     except urllib.ContentTooShortError, msg:
-      DIRAC.gLogger.exception( 'Content too short ', msg )
+      DIRAC.gLogger.exception( "Content too short ", msg )
       return False
     if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
       DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( installProjectURL, installProjectFile ) )

@@ -116,10 +116,12 @@ class InputDataResolution:
     typeVersions = typeVersions['Value']
 
     if not typeVersions:
-      self.log.verbose( 'The requested files do not exist in the BKK, assuming ROOT (not really important at this stage)' )
-
+      self.log.warn( 'The requested files do not exist in the BKK, assuming ROOT, unless it is a RAW (MDF)' )
       for lfn in tmpDict.keys():
-        tmpDict[lfn]['pfntype'] = 'ROOT'
+        if lfn.split( '.' )[-1].lower() == 'raw':
+          tmpDict[lfn]['pfntype'] = 'MDF'
+        else:
+          tmpDict[lfn]['pfntype'] = 'ROOT'
 
     else:
       self.log.verbose( 'Adding PFN file types %s for LFNs: %s' % ( typeVersions.values(), typeVersions.keys() ) )

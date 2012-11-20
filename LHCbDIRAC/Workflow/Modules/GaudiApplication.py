@@ -172,7 +172,7 @@ class GaudiApplication( ModuleBase ):
           optionsDict['OptionFormat'] = self.optionsFormat
 
         if self.stepInputData:
-          optionsDict['InputFiles'] = self.stepInputData
+          optionsDict['InputFiles'] = ['LFN:' + sid for sid in self.stepInputData]
 
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
