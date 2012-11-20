@@ -21,6 +21,7 @@ class RegressionTestCase( unittest.TestCase ):
     self.j_mc_20160 = LHCbJob( '20160.xml' )
     self.j_mc_20194 = LHCbJob( '20194.xml' )
     self.j_mc_20349 = LHCbJob( '20349.xml' )
+    self.j_mc_20752 = LHCbJob( '20752.xml' )
 
 
   def tearDown( self ):
@@ -49,6 +50,11 @@ class StrippSuccess( RegressionTestCase ):
     res = self.j_mc_20349.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
+class MergeSuccess( RegressionTestCase ):
+  def test_execute( self ):
+    res = self.j_mc_20752.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
 
 #############################################################################
 # Test Suite run
@@ -59,4 +65,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
