@@ -67,7 +67,7 @@ if __name__ == '__main__':
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )
     if cc.processedLFNsWithoutDescendants:
-      gLogger.always( "Please use dirac-dms-check-lfc-bk with --directory option" )
+      gLogger.always( "Found some LFNs without descendants: please use dirac-dms-check-fc2bk" )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
     #fixing, if requested
