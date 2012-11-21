@@ -615,11 +615,12 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.logger.setLevel( 'VERBOSE' )
 
-    pr.stepsList.append( '123' )
-    pr.stepsList.append( '456' )
-    pr.stepsList.append( '' )
-    pr.stepsList.append( '' )
-    pr.stepsList.append( '' )
+    stepsList = [ '123' ]
+    stepsList.append( '456' )
+    stepsList.append( '' )
+    stepsList.append( '' )
+    stepsList.append( '' )
+    pr.stepsList = stepsList
     pr.resolveSteps()
 
     pr.appendName = '1'

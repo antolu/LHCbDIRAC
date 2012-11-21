@@ -83,9 +83,6 @@ class ProductionRequest( object ):
     """ Given a list of steps in strings, some of which might be missing,
         resolve it into a dictionary of steps
     """
-
-    self.stepsList = _toIntList( self.stepsList )
-
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
@@ -514,23 +511,25 @@ class ProductionRequest( object ):
 
     return bkQuery
 
-#############################################################################
+  ################################################################################
+  # properties
 
-def _toIntList( stringsList ):
-  """ return list of int from list of strings
-  """
+  def set_stepsList( self, value ):
+    listInt = []
+    i = 0
+    while True:
+      try:
+        listInt.append( int( value[i] ) )
+        i = i + 1
+      except ValueError:
+        break
+      except IndexError:
+        break
+    self._stepsList = listInt
+  def get_stepsList( self ):
+    return self._stepsList
+  stepsList = property( get_stepsList, set_stepsList )
 
-  listInt = []
-  i = 0
-  while True:
-    try:
-      listInt.append( int( stringsList[i] ) )
-      i = i + 1
-    except ValueError:
-      break
-    except IndexError:
-      break
-  return listInt
 
 #############################################################################
 

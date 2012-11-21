@@ -27,15 +27,16 @@ gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 
 pr = ProductionRequest()
 
-pr.stepsList.append( '{{p1Step}}' )
-pr.stepsList.append( '{{p2Step}}' )
-pr.stepsList.append( '{{p3Step}}' )
-pr.stepsList.append( '{{p4Step}}' )
-pr.stepsList.append( '{{p5Step}}' )
-pr.stepsList.append( '{{p6Step}}' )
-pr.stepsList.append( '{{p7Step}}' )
-pr.stepsList.append( '{{p8Step}}' )
-pr.stepsList.append( '{{p9Step}}' )
+stepsList = ['{{p1Step}}']
+stepsList.append( '{{p2Step}}' )
+stepsList.append( '{{p3Step}}' )
+stepsList.append( '{{p4Step}}' )
+stepsList.append( '{{p5Step}}' )
+stepsList.append( '{{p6Step}}' )
+stepsList.append( '{{p7Step}}' )
+stepsList.append( '{{p8Step}}' )
+stepsList.append( '{{p9Step}}' )
+pr.stepsList = stepsList
 
 pr.resolveSteps()
 
