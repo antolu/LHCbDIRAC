@@ -381,7 +381,8 @@ class ModuleBase( object ):
   def _determineOutputs( self ):
     """ Determines the correct outputs.
         For merging jobs the output has to be the same as the input.
-        For the others, we use what is in the step definition, removing 'HIST' when present
+        For the others, we use what is in the step definition
+        We always remove the 'HIST'(s), when present
     """
 
     if self.jobType.lower() == 'merge':
@@ -390,10 +391,18 @@ class ModuleBase( object ):
         return res
 
       outputTypes = []
-      for mdDict in res['Value'].values():
-        if mdDict['FileType'] not in outputTypes:
-          outputTypes.append( mdDict['FileType'] )
-      if len( outputTypes ) != 1:
+      if len( res['Value'] ) != len( self.stepInputData ):
+        self.log.warn( "Some inputs are not in BKK, trying to parse the file names" )
+        for sid in self.stepInputData:
+          fType = '.'.join( os.path.basename( sid ).split( '.' )[1:] ).lower()
+          if fType not in outputTypes:
+            outputTypes.append( fType )
+      else:
+        for mdDict in res['Value'].values():
+          if mdDict['FileType'] not in outputTypes:
+            outputTypes.append( mdDict['FileType'] )
+
+      if len( outputTypes ) > 1:
         raise ValueError, "Not all input files have the same type"
       outputType = outputTypes[0].lower()
       stepOutTypes = [outputType.lower()]

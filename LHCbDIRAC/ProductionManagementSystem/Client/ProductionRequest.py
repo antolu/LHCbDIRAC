@@ -5,7 +5,10 @@ __RCSID__ = "$Id$"
 
 import itertools, copy
 from DIRAC import gLogger, S_OK
+
 from LHCbDIRAC.Interfaces.API.Production import Production
+from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 class ProductionRequest( object ):
   """ Production request class - objects are usually created starting from a production request
@@ -20,13 +23,11 @@ class ProductionRequest( object ):
     """
 
     if bkkClientIn is None:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       self.bkkClient = BookkeepingClient()
     else:
       self.bkkClient = bkkClientIn
 
     if diracProdIn is None:
-      from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
       self.diracProduction = DiracProduction()
     else:
       self.diracProduction = diracProdIn
