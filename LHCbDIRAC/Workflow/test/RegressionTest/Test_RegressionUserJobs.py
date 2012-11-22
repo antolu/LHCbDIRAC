@@ -33,7 +33,7 @@ class RegressionTestCase( unittest.TestCase ):
 
 class HelloWorldSuccess( RegressionTestCase ):
   def test_execute( self ):
-    res = self.j_mc_20160.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 
