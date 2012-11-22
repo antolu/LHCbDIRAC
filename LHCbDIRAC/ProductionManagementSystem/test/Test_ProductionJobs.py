@@ -66,8 +66,8 @@ class MCSuccess( ProductionJobTestCase ):
 
     self.pr.events = 2
     #First create the production object
-    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, '', ['Tier1_MC-DST'], 0, 100,
-                                     outputFileMask = ['ALLSTREAMS.DST'] )
+    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
+                                     outputFileMask = 'ALLSTREAMS.DST' )
     #Then launch it
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
 
@@ -91,9 +91,46 @@ class RecoSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['DAVINCIHIST']}
                    ]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, '', ['Tier1-BUFFER'], 0, 100,
-                                     inputDataPolicy = 'protocol' )
-    res = self.diracProduction.launchProduction( prod, False, True, 0, inputDataList = lfns )
+    self.pr.events = 25
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
+                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+    self.assertTrue( res['OK'] )
+
+class StrippSuccess( ProductionJobTestCase ):
+  def test_execute( self ):
+    lfns = ['/lhcb/LHCb/Collision12/FULL.DST/00020330/0004/00020330_00047632_1.full.dst']
+    #From request 8891
+    stepsInProd = [{'StepId': 123715, 'StepName': 'Stripping20', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
+                    'ExtraPackages': 'AppConfig.v3r151', 'ProcessingPass': 'Stripping20', 'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120929', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20-Stripping.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                    'fileTypesIn':['SDST'],
+                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'CHARMTOBESWUM.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
+                   ]
+
+    self.pr.events = 1500
+    prod = self.pr._buildProduction( 'Stripping', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
+                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+    self.assertTrue( res['OK'] )
+
+class MergeSuccess( ProductionJobTestCase ):
+  def test_execute( self ):
+    lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000037_1.fmdst',
+            '/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000036_1.fmdst']
+    #From request 9085
+    stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v31r0',
+                    'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'merge',
+                    'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py',
+                    'fileTypesIn':['FMDST'],
+                    'fileTypesOut':['FMDST']},
+                   ]
+
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1-MC-DST', 0, 100,
+                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
 #############################################################################
@@ -104,4 +141,6 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ProductionJobTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
