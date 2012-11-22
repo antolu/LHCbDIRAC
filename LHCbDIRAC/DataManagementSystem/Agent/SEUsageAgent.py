@@ -14,6 +14,7 @@ import time
 import urllib2
 import tarfile
 import signal
+from datetime import datetime
 ## from DIRAC
 from DIRAC import S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
@@ -469,6 +470,7 @@ class SEUsageAgent( AgentModule ):
     #defaultSize = 0
 
     self.log.info( "Check storage dump creation time.." )
+    self.StorageDumpCreationTime = None
     res = self.checkCreationDate( targetPathForDownload )
     if not res[ 'OK' ]:
       self.log.error( "Failed to check storage dump date for site %s " % site )
@@ -636,7 +638,7 @@ class SEUsageAgent( AgentModule ):
 
       self.log.info( "%s - %s Total size: %d , total files: %d : publish to STSummary" % ( site, completeSTId,
                                                                                            totalSize, totalFiles ) )
-      res = self.storageUsage.publishTose_STSummary( site, completeSTId, totalSize, totalFiles )
+      res = self.storageUsage.publishTose_STSummary( site, completeSTId, totalSize, totalFiles, self.StorageDumpCreationTime )
       if not res['OK']:
         self.log.error( "failed to publish %s - %s summary " % ( site, st ) )
         return S_ERROR( res )
@@ -1188,15 +1190,18 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
   def checkCreationDate( self, directory ):
-    """ Check the storage dump creation date. (ot modification???)
+    """ Check the storage dump creation date. 
     Returns 0 if the creation date is more recent than a given time interval 
     (set as configuration parameter), otherwise returns -1 
     """
     retCode = 0
+
     for fileName in os.listdir( directory ):
       fullPath = os.path.join( directory, fileName )
       ## ( mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime ) = os.stat( fullPath )
       mtime = os.path.getmtime( fullPath )
+      self.StorageDumpCreationTime = datetime.utcfromtimestamp( mtime )
+      self.log.info( "in checkCreationDate StorageDumpCreationTime %s " % self.StorageDumpCreationTime )
       now = time.time()
       elapsedTime = now - mtime
       self.log.info( "creation time: %s, elapsed time: %d h " \
