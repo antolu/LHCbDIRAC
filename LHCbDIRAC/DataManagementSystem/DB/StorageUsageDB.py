@@ -656,7 +656,8 @@ class StorageUsageDB( DB ):
       data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
     return S_OK( data )
 
-  def publishTose_STSummary( self, site, spaceToken, totalSize, totalFiles ):
+
+  def publishTose_STSummary( self, site, spaceToken, totalSize, totalFiles, storageDumpLastUpdate ):
     """ Publish total size and total files extracted from the storage
         dumps to the se_STSummary """
     try:
@@ -666,6 +667,7 @@ class StorageUsageDB( DB ):
       return S_ERROR( "Values must be ints: %s" % str( e ) )
     sqlSpaceToken = self._escapeString( spaceToken )['Value']
     sqlSite = self._escapeString( site )['Value']
+    sqlSDUpdate = self._escapeString( storageDumpLastUpdate )['Value']
     # check if there is already an entry for the tuple (site, spaceTok)
     res = self.__getSTSummary( site, spaceToken )
     gLogger.info( " __getSTSummary returned: %s " % res )
@@ -674,12 +676,12 @@ class StorageUsageDB( DB ):
     if not res[ 'Value' ]:
       gLogger.warn( "Entry for site=%s, spaceToken=%s is not there => insert new entry " % ( site, spaceToken ) )
       sqlCmd = "INSERT INTO `se_STSummary` (Site, SpaceToken, TotalSize, TotalFiles, Updated) VALUES " \
-          "( %s, %s, %d, %d, UTC_TIMESTAMP())" % ( sqlSite, sqlSpaceToken, sqlTotalSize, sqlTotalFiles )
+          "( %s, %s, %d, %d, %s)" % ( sqlSite, sqlSpaceToken, sqlTotalSize, sqlTotalFiles, sqlSDUpdate )
 
     else:
       gLogger.info( "Entry for site=%s, spaceToken=%s is there => update entry " % ( site, spaceToken ) )
-      sqlCmd = "UPDATE `se_STSummary` SET TotalSize=%d, TotalFiles=%d, Updated=UTC_TIMESTAMP() WHERE " \
-          "Site=%s and SpaceToken=%s" % ( sqlTotalSize, sqlTotalFiles, sqlSite, sqlSpaceToken )
+      sqlCmd = "UPDATE `se_STSummary` SET TotalSize=%d, TotalFiles=%d, Updated=%s WHERE " \
+          "Site=%s and SpaceToken=%s" % ( sqlTotalSize, sqlTotalFiles, sqlSDUpdate, sqlSite, sqlSpaceToken )
 
     gLogger.info( " publishTose_STSummary sqlCmd: %s " % sqlCmd )
     result = self._update( sqlCmd )
