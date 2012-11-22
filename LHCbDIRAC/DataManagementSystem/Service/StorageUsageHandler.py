@@ -125,7 +125,7 @@ class StorageUsageHandler( RequestHandler ):
 
     res = gStorageUsageDB.getStorageDirectorySummary( directory, filetype, production, ses )
     if not res['OK']:
-      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain directory summary.", 
+      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain directory summary.",
                      res['Message'] )
       return res
     dirList = res['Value']
@@ -145,7 +145,7 @@ class StorageUsageHandler( RequestHandler ):
     # prepare the extras count
     res = gStorageUsageDB.getStorageSummary( directory, filetype, production, ses )
     if not res['OK']:
-      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain usage summary.", 
+      gLogger.error( "StorageUsageHandler.getStorageDirectorySummaryWeb: Failed to obtain usage summary.",
                      res['Message'] )
       return res
     resultDict['Extras'] = res['Value']
@@ -263,22 +263,23 @@ class StorageUsageHandler( RequestHandler ):
   ###
   # methods to deal with se_STSummary table
   ###
+
   types_publishTose_STSummary = []
   @staticmethod
-  def export_publishTose_STSummary( site, spaceToken, totalSize, totalFiles ):
+  def export_publishTose_STSummary( site, spaceToken, totalSize, totalFiles, StorageDumpUpdate ):
     """ Export the publishTose_STSummary DB method, which inserts/updates the reports of total 
         files and total size from the storage dumps to the se_STSummary table """
-    return gStorageUsageDB.publishTose_STSummary( site, spaceToken, totalSize, totalFiles )
- 
+    return gStorageUsageDB.publishTose_STSummary( site, spaceToken, totalSize, totalFiles, StorageDumpUpdate )
+
   types_getSTSummary = []
-  @staticmethod 
+  @staticmethod
   def export_getSTSummary( site, spaceToken = False ):
     """ Exports getSTSummary method: returns a summary of the used space for the given
         site, based on the storage dumps provided by sites """
     return gStorageUsageDB.getSTSummary( site, spaceToken )
 
   types_removeSTSummary = []
-  @staticmethod 
+  @staticmethod
   def export_removeSTSummary( site, spaceToken = False ):
     """ Exports removeSTSummary method: removes from the se_STSummary table all entries relative
         to the given site and (optionally ) space token """
