@@ -170,8 +170,9 @@ class Production():
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-        'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+        'ProcessingPass': 'Merging', 'Visible': 'N', 'OptionsFormat': '',
+        'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py',
+        'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
         'fileTypesIn': ['SDST'],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 

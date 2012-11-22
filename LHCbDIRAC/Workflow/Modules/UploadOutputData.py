@@ -62,11 +62,6 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'outputMode' ):
       self.outputMode = self.workflow_commons['outputMode']
 
-    if self.workflow_commons.has_key( 'outputDataFileMask' ):
-      self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
-      if not type( self.outputDataFileMask ) == type( [] ):
-        self.outputDataFileMask = [i.lower().strip() for i in self.outputDataFileMask.split( ';' )]
-
     #Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']

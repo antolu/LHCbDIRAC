@@ -273,6 +273,14 @@ class ModuleBase( object ):
       self.onlineCondDBTag = runMetadataDict['CondDb']
       self.TCK = runMetadataDict['TCK']
 
+    if self.workflow_commons.has_key( 'outputDataFileMask' ):
+      self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
+      if not type( self.outputDataFileMask ) == type( [] ):
+        self.outputDataFileMask = [i.lower().strip() for i in self.outputDataFileMask.split( ';' )]
+
+    if self.workflow_commons.has_key( 'gaudiSteps' ):
+      self.gaudiSteps = self.workflow_commons['gaudiSteps']
+
     #for older productions these are found the step parameters
     if self.workflow_commons.has_key( 'eventType' ):
       self.eventType = self.workflow_commons['eventType']
@@ -360,7 +368,7 @@ class ModuleBase( object ):
     elif self.InputData:
       stepInputData = copy.deepcopy( self.InputData )
     if stepInputData:
-      stepInputData = stepInputData.split( ';' )
+      stepInputData = self._determineStepInputData( stepInputData, )
       self.stepInputData = [sid.strip( 'LFN:' ) for sid in stepInputData]
 
     if self.step_commons.has_key( 'optionsFormat' ):
@@ -649,18 +657,17 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def _determineStepInputData( self, inputData, gaudiSteps, bkType ):
+  def _determineStepInputData( self, inputData ):
     """ determine the input data for the step
     """
     if inputData == 'previousStep':
-      stepIndex = gaudiSteps.index( self.stepName )
-      previousStep = gaudiSteps[stepIndex - 1]
+      stepIndex = self.gaudiSteps.index( self.stepName )
+      previousStep = self.gaudiSteps[stepIndex - 1]
 
       stepInputData = []
       for outputF in self.workflow_commons['outputList']:
         try:
-          print outputF
-          if outputF['stepName'] == previousStep and outputF['outputBKType'].lower() == bkType.lower():
+          if outputF['stepName'] == previousStep and outputF['outputBKType'].lower() == self.inputDataType.lower():
             stepInputData.append( outputF['outputDataName'] )
         except KeyError:
           return S_ERROR( 'Can\'t find output of step %s' % previousStep )
@@ -673,7 +680,7 @@ class ModuleBase( object ):
   #############################################################################
 
   def _manageAppOutput( self, outputs ):
-    """ Calls self._findOuputs to find what's produced,
+    """ Calls self._findOutputs to find what's produced,
         then creates the LFNs
     """
 
@@ -710,9 +717,9 @@ class ModuleBase( object ):
         stepOutput, as called here, corresponds to step_commons['listoutput']
 
         stepOutput =
-        [{'outputDataType': 'BHADRON.DST',
+        [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
         'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.BHADRON.DST'},
-        {'outputDataType': 'CALIBRATION.DST',
+        {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
         'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
 
     """

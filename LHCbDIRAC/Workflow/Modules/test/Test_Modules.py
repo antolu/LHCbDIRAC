@@ -420,7 +420,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     self.mb.stepName = 'DaVinci_2'
 
     inputData = 'previousStep'
-    gaudiSteps = ['Brunel_1', 'DaVinci_2']
+    self.mb.gaudiSteps = ['Brunel_1', 'DaVinci_2']
     self.mb.workflow_commons = {'outputList': [{'stepName': 'Brunel_1',
                                                'outputDataType': 'brunelhist',
                                                'outputBKType': 'BRUNELHIST',
@@ -433,14 +433,14 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                'outputDataName': '00012345_00006789_1.sdst'}
                                               ]
                                 }
-    bkType = 'SDST'
+    self.mb.inputDataType = 'SDST'
 
-    first = self.mb._determineStepInputData( inputData, gaudiSteps, bkType )
+    first = self.mb._determineStepInputData( inputData )
     second = ['00012345_00006789_1.sdst']
     self.assertEqual( first, second )
 
     inputData = 'previousStep'
-    gaudiSteps = ['Brunel_1', 'DaVinci_2']
+    self.mb.gaudiSteps = ['Brunel_1', 'DaVinci_2']
     self.mb.workflow_commons['outputList'] = [{'stepName': 'Brunel_1',
                                                'outputDataType': 'brunelhist',
                                                'outputBKType': 'BRUNELHIST',
@@ -457,13 +457,13 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                'outputDataSE': 'Tier1-BUFFER',
                                                'outputDataName': '00012345_00006789_1.sdst'}
                                               ]
-    bkType = 'SDST'
-    first = self.mb._determineStepInputData( inputData, gaudiSteps, bkType )
+    self.mb.inputDataType = 'SDST'
+    first = self.mb._determineStepInputData( inputData )
     second = ['some.sdst', '00012345_00006789_1.sdst']
     self.assertEqual( first, second )
 
     inputData = 'LFN:123.raw'
-    first = self.mb._determineStepInputData( inputData, gaudiSteps, bkType )
+    first = self.mb._determineStepInputData( inputData )
     second = ['123.raw']
     self.assertEqual( first, second )
 

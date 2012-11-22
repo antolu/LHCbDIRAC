@@ -40,7 +40,6 @@ class GaudiApplication( ModuleBase ):
     self.runTimeProjectVersion = ''
     self.inputDataType = 'MDF'
     self.stepInputData = [] # to be resolved
-    self.outputData = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.generator_name = ''
     self.optionsFile = ''

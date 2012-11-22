@@ -417,11 +417,12 @@ class ProductionRequest( object ):
       prod.setParameter( 'MinFilesToProcess', 'string', str( self.minFilesToProcess ), 'Min N of Files to process' )
 
     #Adding optional input BK query
-    if bkQuery.lower() == 'full':
-      prod.inputBKSelection = self._getBKKQuery()
-    elif bkQuery.lower() == 'frompreviousprod':
-      fileType = stepsInProd[0]['fileTypesIn'][0].upper()
-      prod.inputBKSelection = self._getBKKQuery( 'frompreviousprod', fileType, previousProdID )
+    if bkQuery:
+      if bkQuery.lower() == 'full':
+        prod.inputBKSelection = self._getBKKQuery()
+      elif bkQuery.lower() == 'frompreviousprod':
+        fileType = stepsInProd[0]['fileTypesIn'][0].upper()
+        prod.inputBKSelection = self._getBKKQuery( 'frompreviousprod', fileType, previousProdID )
 
     self.logger.verbose( 'Launching with BK selection %s' % prod.inputBKSelection )
 
