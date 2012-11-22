@@ -120,7 +120,7 @@ class MergeSuccess( ProductionJobTestCase ):
     lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000037_1.fmdst',
             '/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000036_1.fmdst']
     #From request 9085
-    stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v31r0',
+    stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v34r2',
                     'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'merge',
                     'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py',
@@ -128,7 +128,7 @@ class MergeSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['FMDST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1-MC-DST', 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )

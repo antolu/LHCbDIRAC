@@ -19,6 +19,7 @@ class RegressionTestCase( unittest.TestCase ):
     self.bkkClient = BookkeepingClient()
 
     self.j_u_hello = LHCbJob( 'helloWorld.xml' )
+    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
 
   def tearDown( self ):
     for fileIn in os.listdir( '.' ):
@@ -36,6 +37,11 @@ class HelloWorldSuccess( RegressionTestCase ):
     res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
+class Collision12Success( RegressionTestCase ):
+  def test_execute( self ):
+    res = self.j_u_collision12.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
 
 #############################################################################
 # Test Suite run
@@ -44,4 +50,5 @@ class HelloWorldSuccess( RegressionTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RegressionTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Collision12Success ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
