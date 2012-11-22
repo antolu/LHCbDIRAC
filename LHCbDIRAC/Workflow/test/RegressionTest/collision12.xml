@@ -1,0 +1,134 @@
+<Workflow>
+<origin></origin>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<version>0.0</version>
+<type></type>
+<name>DVT4mc05GeV2__{Ganga_DaVinci_(184)_v32r2p1}</name>
+<Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Type"><value><![CDATA[User]]></value></Parameter>
+<Parameter name="Priority" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User Job Priority"><value><![CDATA[1]]></value></Parameter>
+<Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Name of the JobGroup"><value><![CDATA[lhcb]]></value></Parameter>
+<Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified name"><value><![CDATA[DVT4mc05GeV2__{Ganga_DaVinci_(184)_v32r2p1}]]></value></Parameter>
+<Parameter name="SystemConfig" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="User specified system configuration for job"><value><![CDATA[x86_64-slc5-gcc46-opt]]></value></Parameter>
+<Parameter name="Site" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Site Requirement"><value><![CDATA[ANY]]></value></Parameter>
+<Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
+<Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
+<Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>
+<Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of input data specified by LFNs"><value><![CDATA[LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000020_1.dimuon.dst;LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000007_1.dimuon.dst;LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000046_1.dimuon.dst;LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000069_1.dimuon.dst;LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000033_1.dimuon.dst;LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000076_1.dimuon.dst;LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00020241/0000/00020241_00000059_1.dimuon.dst]]></value></Parameter>
+<Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Logging Level"><value><![CDATA[info]]></value></Parameter>
+<Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricParameters" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input parameters value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[/afs/cern.ch/user/f/fstagni/public/userJobs/Collision12/input/dirac-script.py;/afs/cern.ch/user/f/fstagni/public/userJobs/Collision12/options.pkl;/afs/cern.ch/user/f/fstagni/public/userJobs/Collision12/gaudi-script.py;/afs/cern.ch/user/f/fstagni/public/userJobs/Collision12/_input_sandbox_184.tgz]]></value></Parameter>
+<Parameter name="OutputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Output sandbox file list"><value><![CDATA[__parsedxmlsummary__;summary.xml;DVHistos_4.root]]></value></Parameter>
+<Parameter name="TotalSteps" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Total number of steps"><value><![CDATA[1]]></value></Parameter>
+<Parameter name="SoftwarePackages" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of LHCb Software Packages to be installed"><value><![CDATA[DaVinci.v32r2p1]]></value></Parameter>
+<Parameter name="runNumber" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input run number"><value><![CDATA[Multiple]]></value></Parameter>
+<Parameter name="persistency" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Persistency type of the inputs"><value><![CDATA[ROOT]]></value></Parameter>
+<Parameter name="AncestorDepth" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Level at which ancestor files are retrieved from the bookkeeping"><value><![CDATA[0]]></value></Parameter>
+<Parameter name="MaxCPUTime" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="CPU time in secs"><value><![CDATA[172800]]></value></Parameter>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
+]]></body>
+<origin></origin>
+<description><![CDATA[  Prepare a file (data.py) which is consumed by Ganga, containing the input files as resolved in the workflow
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>CreateDataFile</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
+]]></body>
+<origin></origin>
+<description><![CDATA[ Module to upload specified job output files according to the parameters
+    defined in the user workflow.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>UserJobFinalization</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
+]]></body>
+<origin></origin>
+<description><![CDATA[ Module to upload specified job output files according to the parameters
+    defined in the user workflow.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>FileUsage</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
+]]></body>
+<origin></origin>
+<description><![CDATA[ Gaudi Application Script Class
+
+    This allows the execution of a simple python script in a given LHCb project environment,
+    e.g. python <script> <arguments>. GaudiPython / Bender scripts can be executed very simply
+    in this way.
+
+    To make use of this module the LHCbJob method setApplicationScript can be called by users.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>GaudiApplicationScript</type>
+</ModuleDefinition>
+<StepDefinition>
+<origin></origin>
+<version>0.0</version>
+<type>DaVinciStep1</type>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<Parameter name="applicationName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Application Name"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Application Version"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Name of the output file of the application"><value><![CDATA[]]></value></Parameter>
+<Parameter name="script" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Script Name"><value><![CDATA[]]></value></Parameter>
+<Parameter name="arguments" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Arguments for script"><value><![CDATA[]]></value></Parameter>
+<Parameter name="poolXMLCatName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="POOL XML Catalog file name"><value><![CDATA[]]></value></Parameter>
+<Parameter name="inputDataType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Input Data Type"><value><![CDATA[]]></value></Parameter>
+<Parameter name="inputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Input Data"><value><![CDATA[]]></value></Parameter>
+<ModuleInstance>
+<type>CreateDataFile</type>
+<name>CreateDataFile</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>GaudiApplicationScript</type>
+<name>GaudiApplicationScript</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>FileUsage</type>
+<name>FileUsage</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>UserJobFinalization</type>
+<name>UserJobFinalization</name>
+<descr_short></descr_short>
+</ModuleInstance>
+</StepDefinition>
+<StepInstance>
+<type>DaVinciStep1</type>
+<name>RunDaVinciStep1</name>
+<descr_short></descr_short>
+<Parameter name="applicationName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Application Name"><value><![CDATA[DaVinci]]></value></Parameter>
+<Parameter name="applicationVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Application Version"><value><![CDATA[v32r2p1]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Name of the output file of the application"><value><![CDATA[Step1_Ganga_DaVinci_v32r2p1.log]]></value></Parameter>
+<Parameter name="script" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Script Name"><value><![CDATA[/afs/cern.ch/user/f/fstagni/public/userJobs/Collision12/gaudi-script.py]]></value></Parameter>
+<Parameter name="arguments" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Arguments for script"><value><![CDATA[]]></value></Parameter>
+<Parameter name="poolXMLCatName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="POOL XML Catalog file name"><value><![CDATA[pool_xml_catalog.xml]]></value></Parameter>
+<Parameter name="inputDataType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Input Data Type"><value><![CDATA[]]></value></Parameter>
+<Parameter name="inputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Input Data"><value><![CDATA[]]></value></Parameter>
+</StepInstance>
+</Workflow>
