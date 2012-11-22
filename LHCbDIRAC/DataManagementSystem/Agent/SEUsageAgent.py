@@ -553,12 +553,6 @@ class SEUsageAgent( AgentModule ):
                                                             outputFileMerged[ st ]['DirSummaryFileName'] ) )
 
     for inputFileP1 in inputFilesListP1:
-      #DEBUG OCT 2012
-      if 'LHCb-Tape.txt' in inputFileP1:
-        self.log.info( "skip this file!!" )
-        continue
-      #DEBUG OCT 2012 TO REMOVE!!!!!!!!
-
       self.log.info( "+++++ input file: %s ++++++" % inputFileP1 )
       # the expected input file line is: pfn | size | date
       # manipulate the input file to create a directory summary file (one row per directory)
