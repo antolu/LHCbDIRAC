@@ -67,6 +67,7 @@ if __name__ == "__main__":
   requestedLFNs = pluginScript.getOption( 'LFNs' )
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 
   transType = None
   if plugin in getRemovalPlugins():
@@ -82,11 +83,12 @@ if __name__ == "__main__":
 
   # Create the transformation
   transformation = Transformation()
+  bk = BookkeepingClient()
 
   visible = True
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
     visible = False
-    
+
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery( visible=visible )
     transBKQuery = bkQuery.getQueryDict()
@@ -199,11 +201,9 @@ if __name__ == "__main__":
 
   # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
   if lfcCheck and transType == 'Removal':
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
     from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     rm = ReplicaManager()
-    bk = BookkeepingClient()
     success = 0
     missingLFNs = []
     startTime = time.time()
@@ -228,8 +228,7 @@ if __name__ == "__main__":
   # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
   setInvisiblePlugins = ( "DeleteDataset" )
   if invisible or plugin in setInvisiblePlugins:
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-    res = BookkeepingClient().setFilesInvisible( lfns )
+    res = bk.setFilesInvisible( lfns )
     if res['OK']:
       print "%d files were successfully set invisible in the BK" % len( lfns )
       if transBKQuery:
@@ -243,20 +242,40 @@ if __name__ == "__main__":
   while True:
     result = transformation.addTransformation()
     if not result['OK']:
-      print "Couldn't create transformation:"
-      print result['Message']
       if result['Message'].find( "already exists" ) >= 0:
         trial += 1
         tName = transName + "-" + str( trial )
         transformation.setTransformationName( tName )
-        print "Retrying with name:", tName
         continue
       else:
+        print "Couldn't create transformation:"
+        print result['Message']
         DIRAC.exit( 2 )
+    result = transformation.getTransformationID()
+    if result['OK']:
+      transID = result['Value']
+    else:
+      print "Error getting transformationID", res['Message']
+      DIRAC.exit( 2 )
     if requestedLFNs:
-      res = transformation.addFilesToTransformation( requestedLFNs, printOutput=False )
+      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+      transClient = TransformationClient()
+      runDict = {}
+      res = bk.getFileMetadata( requestedLFNs )
+      if res['OK']:
+        for lfn, metadata in res['Value'].items():
+          runID = metadata.get( 'RunNumber' )
+          if runID:
+            runDict.setdefault( int( runID ), [] ).append( lfn )
+        res = transformation.addFilesToTransformation( requestedLFNs, printOutput=False )
+        if res['OK']:
+          for runID, lfns in runDict.items():
+            if lfns:
+              res = transClient.addTransformationRunFiles( transID, runID, lfns )
+              if not res['OK']:
+                break
       if not res['OK']:
-        print "Could not add %d files to transformation" % len( requestedLFNs )
+        print "Could not add %d files to transformation" % len( requestedLFNs ), res['Message']
         DIRAC.exit( 2 )
       else:
         print "%d files successfully added to transformation" % len( requestedLFNs )
@@ -265,17 +284,13 @@ if __name__ == "__main__":
     if start:
       transformation.setStatus( 'Active' )
       transformation.setAgentType( 'Automatic' )
-    result = transformation.getTransformationID()
-    if result['OK']:
-      print "Transformation %d created" % result['Value']
-      print "Name:", transName, ", Description:", longName
-      print "Transformation body:", transBody
-      print "Plugin:", plugin
-      if pluginParams:
-        print "Additional parameters:", pluginParams
+    print "Transformation %d created" % transID
+    print "Name:", transName, ", Description:", longName
+    print "Transformation body:", transBody
+    print "Plugin:", plugin
+    if pluginParams:
+      print "Additional parameters:", pluginParams
+    if requestID:
       print "RequestID:", requestID
 
-      DIRAC.exit( 0 )
-    else:
-      print result['Message']
-      DIRAC.exit( 2 )
+    DIRAC.exit( 0 )
