@@ -69,8 +69,7 @@ class BKQuery():
     else:
       bkQuery = {}
 
-    if visible:
-      bkQuery['Visible'] = 'Yes'
+    self.setVisible( visible )
 
     ###### Query given as a path /ConfigName/ConfigVersion/ConditionDescription/ProcessingPass/EventType/FileType ######
     # or if prefixed with evt: /ConfigName/ConfigVersion/EventType/ConditionDescription/ProcessingPass/FileType
