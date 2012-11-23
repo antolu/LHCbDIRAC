@@ -193,12 +193,13 @@ class UploadOutputData( ModuleBase ):
       registrationFailure = False
       failover = {}
       for fileName, metadata in final.items():
+        targetSE = metadata['resolvedSE']
         self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
-                                                                                     ', '.join( metadata['resolvedSE'] ) ) )
+                                                                                     ', '.join( targetSE ) ) )
         result = failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
                                                            lfn = metadata['lfn'],
-                                                           destinationSEList = metadata['resolvedSE'],
+                                                           destinationSEList = targetSE,
                                                            fileGUID = metadata['guid'],
                                                            fileCatalog = 'LcgFileCatalogCombined' )
         if not result['OK']:
@@ -313,7 +314,7 @@ class UploadOutputData( ModuleBase ):
             return S_ERROR( 'Could Not Perform BK Registration' )
           if result['Value']['Failed']:
             for lfn, error in result['Value']['Failed'].items():
-              result = self.setBKRegistrationRequest( lfn, error )
+              result = self.setBKRegistrationRequest( lfn, error, targetSE )
               if not result['OK']:
                 return result
 
@@ -413,7 +414,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def setBKRegistrationRequest( self, lfn, error = '' ):
+  def setBKRegistrationRequest( self, lfn, error = '', targetSE ):
     """ Set a BK registration request for changing the replica flag.  Uses the
         global request object.
     """
@@ -425,7 +426,8 @@ class UploadOutputData( ModuleBase ):
     lastOperationOnFile = self.request._getLastOrder( lfn )
     result = self.request.addSubRequest( {'Attributes':{'Operation':'registerFile',
                                                         'ExecutionOrder':lastOperationOnFile + 1,
-                                                        'Catalogue':'BookkeepingDB'}},
+                                                        'Catalogue':'BookkeepingDB',
+                                                        'TargetSE':targetSE}},
                                         'register' )
     if not result['OK']:
       self.log.error( 'Could not set registerFile request:\n%s' % result )
