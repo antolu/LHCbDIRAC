@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 """
-  Check the space token usage at the site and report the space usage from several sources: File Catalogue,
-  Storage dumps, SRM interface
+  Check the space token usage at the site and report the space usage from several sources: File Catalogue, Storage dumps, SRM interface
 """
 
 __RCSID__ = "$Id:  $"
