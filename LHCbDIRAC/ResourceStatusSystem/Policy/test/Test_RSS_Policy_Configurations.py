@@ -1,10 +1,10 @@
-# $HeadURL: $
+#$HeadURL$
 ''' Test_RSS_Policy_Configurations
 '''
 
 import unittest
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 dummyResults = {}
 class DummyReturn( object ):
