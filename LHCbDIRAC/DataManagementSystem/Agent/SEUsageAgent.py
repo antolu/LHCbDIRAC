@@ -955,14 +955,22 @@ class SEUsageAgent( AgentModule ):
     lfnToUploadResults = self.pathToUploadResults + fileNameMissingReplicas.split( '/' )[-1]
     self.log.info( "Upload the file %s to the grid with LFN: %s " % ( fileNameMissingReplicas, lfnToUploadResults ) )
     guid = None
-    res = self.diracApi.addFile( lfnToUploadResults, fileNameMissingReplicas, 'CERN-DEBUG', guid, printOutput = True )
+    res = self.diracApi.removeFile( lfnToUploadResults )
     if not res['OK']:
-      self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingReplicas, res['Message'] ) )
+      self.log.error( "Failed to remove the file already existing %s " % res['Message'] )
+    else:
+      res = self.diracApi.addFile( lfnToUploadResults, fileNameMissingReplicas, 'CERN-DEBUG', guid, printOutput = True )
+      if not res['OK']:
+        self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingReplicas, res['Message'] ) )
     lfnToUploadResults = self.pathToUploadResults + fileNameMissingFiles.split( '/' )[-1]
     self.log.info( "Upload the file %s to the grid with LFN: %s " % ( fileNameMissingFiles, lfnToUploadResults ) )
-    res = self.diracApi.addFile( lfnToUploadResults, fileNameMissingFiles, 'CERN-DEBUG', guid, printOutput = True )
+    res = self.diracApi.removeFile( lfnToUploadResults )
     if not res['OK']:
-      self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingFiles, res['Message'] ) )
+      self.log.error( "Failed to remove the file already existing %s " % res['Message'] )
+    else:
+      res = self.diracApi.addFile( lfnToUploadResults, fileNameMissingFiles, 'CERN-DEBUG', guid, printOutput = True )
+      if not res['OK']:
+        self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingFiles, res['Message'] ) )
     return S_OK()
 
 #...............................................................................................................
