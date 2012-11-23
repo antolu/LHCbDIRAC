@@ -190,7 +190,6 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'AsIfProduction=', '   Production # that this test using as source of information' )
   Script.registerSwitch( '', 'AllFiles', '   Sets visible = False (useful if files were marked invisible)' )
   Script.registerSwitch( '', 'NoReplicaFiles', '   Also gets the files without replica (just for BK test)' )
-  Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin' )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -200,7 +199,6 @@ if __name__ == "__main__":
 
   asIfProd = None
   allFiles = False
-  debugPlugin = False
   noRepFiles = False
   switches = Script.getUnprocessedSwitches()
   for opt, val in switches:
@@ -208,8 +206,6 @@ if __name__ == "__main__":
       asIfProd = int( val )
     elif opt == 'AllFiles':
       allFiles = True
-    elif opt == 'Debug':
-      debugPlugin = True
     elif opt == 'NoReplicaFiles':
       noRepFiles = True
   #print pluginScript.getOptions()
@@ -279,7 +275,9 @@ if __name__ == "__main__":
     lfns = requestedLFNs
   else:
     print "Getting the files from BK"
-    lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
+    lfns = bkQuery.getLFNs( printSEUsage=( ( transType == 'Removal' or not plugin ) \
+                                           and not pluginScript.getOption( 'Runs' ) \
+                                           and not pluginScript.getOption( 'DQFlags' ) ), visible=visible )
   if len( lfns ) == 0:
     print "No files found in BK...Exiting now"
     DIRAC.exit( 0 )
@@ -302,7 +300,8 @@ if __name__ == "__main__":
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  oplugin = TransformationPlugin( plugin, transClient=fakeClient, replicaManager=ReplicaManager(), bkkClient=BookkeepingClient(), debug=debugPlugin )
+  oplugin = TransformationPlugin( plugin, transClient=fakeClient, replicaManager=ReplicaManager(), bkkClient=BookkeepingClient() )
+  pluginParams['TransformationID'] = transID
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...
