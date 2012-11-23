@@ -129,12 +129,13 @@ class ConsistencyChecks( object ):
   def _getBKKFiles( self, bkQuery, replicaFlag='Yes' ):
     ''' Helper function - get files from BKK, first constructing the bkQuery
     '''
-    visibility = True
+    visibility = bkQuery.isVisible()
     if self.transType:
-      visibility = ( self.transType not in prodsWithMerge )
+      visibility = 'Yes' if self.transType not in prodsWithMerge else 'All'
+    bkQuery.setVisible( False )
     bkQueryRes = BKQuery( bkQuery, visible=visibility )
     bkQueryRes.setOption( 'ReplicaFlag', replicaFlag )
-    lfnsRes = bkQueryRes.getLFNs( printOutput=False )
+    lfnsRes = bkQueryRes.getLFNs( printOutput=True )
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
     else:
@@ -155,7 +156,7 @@ class ConsistencyChecks( object ):
       if self.bkQuery:
         bkQuery = self.bkQuery
       if self.prod:
-        bkQuery = BKQuery( self.bkQuery, prods=self.prod )
+        bkQuery = BKQuery( self.bkQuery.setOption( "Production", self.prod ) )
       if not bkQuery:
         raise ValueError( "Need to specify either the bkQuery or a production id" )
 

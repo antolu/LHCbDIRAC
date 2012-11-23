@@ -91,6 +91,16 @@ if __name__ == '__main__':
   gLogger.setLevel( 'INFO' )
 
   cc = ConsistencyChecks( rm=rm, bkClient=bk )
-  cc.bkQuery = dmScript.getBKQuery()
+  bkQuery = dmScript.getBKQuery()
+  bkQuery.setVisible( False )
+  cc.bkQuery = bkQuery
+  prods = dmScript.getOption( 'Productions', [] )
 
-  doCheck()
+  if prods:
+    for prod in prods:
+      cc.prod = prod
+      gLogger.always( "Processing production %d" % cc.prod )
+      doCheck()
+      gLogger.always( "Processed production %d" % cc.prod )
+  else:
+    doCheck()
