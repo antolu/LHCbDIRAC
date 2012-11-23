@@ -56,6 +56,8 @@ if __name__ == '__main__':
     cc.fileTypesExcluded = ['LOG']
     cc.runsList = runsList
     cc.checkTS2BKK()
+    if extension:
+      gLogger.always( "%d unique descendants found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
     if cc.processedLFNsWithMultipleDescendants:
       gLogger.error( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )

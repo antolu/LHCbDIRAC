@@ -24,7 +24,7 @@ class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, transClient = None, rm = None, bkClient = None ):
+  def __init__( self, transClient=None, rm=None, bkClient=None ):
     ''' c'tor
 
         One object for every production/BkQuery/directoriesList...
@@ -50,7 +50,7 @@ class ConsistencyChecks( object ):
     #Base elements from which to start the consistency checks
     self.prod = 0
     self.directories = []
-    self.bkQuery = {}
+    self.bkQuery = None
 
     #Accessory elements
     self.lfns = []
@@ -65,6 +65,8 @@ class ConsistencyChecks( object ):
     self.existingLFNsWithBKKReplicaYES = []
     self.nonExistingLFNsWithBKKReplicaYES = []
     self.existingLFNsNotInBKK = []
+    self.nonExistingLFNsThatAreNotInBK = []
+    self.nonexistingLFNsWithBKKReplicaYES = []
 
     self.processedLFNsWithDescendants = []
     self.processedLFNsWithoutDescendants = []
@@ -72,6 +74,8 @@ class ConsistencyChecks( object ):
     self.nonProcessedLFNsWithDescendants = []
     self.nonProcessedLFNsWithoutDescendants = []
     self.nonProcessedLFNsWithMultipleDescendants = []
+    self.descendantsForProcessedLFNs = []
+    self.descendantsForNonProcessedLFNs = []
 
   ################################################################################
 
@@ -114,50 +118,51 @@ class ConsistencyChecks( object ):
       gLogger.info( msg )
 
     if self.nonExistingLFNsWithBKKReplicaYES:
-      msg = "%d files are in the File Catalog but %d files has ReplicaFlag=Yes" % ( len( lfnsReplicaYes ),
-                                                                                    len( self.existingLFNsWithBKKReplicaYes ) )
+      msg = "%d files are in the File Catalog but %d files have ReplicaFlag=Yes" % ( len( lfnsReplicaYes ),
+                                                                                    len( self.nonExistingLFNsWithBKKReplicaYES ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
   ################################################################################
 
-  def _getBKKFiles( self, bkQuery, replicaFlag = 'Yes' ):
+  def _getBKKFiles( self, bkQuery, replicaFlag='Yes' ):
     ''' Helper function - get files from BKK, first constructing the bkQuery
     '''
     visibility = True
     if self.transType:
       visibility = ( self.transType not in prodsWithMerge )
-    bkQuery.update( {'ReplicaFlag':replicaFlag} )
-    bkQueryRes = BKQuery( bkQuery, fileTypes = 'ALL',
-                          visible = visibility )
-    lfnsRes = bkQueryRes.getLFNs( printOutput = False )
+    bkQueryRes = BKQuery( bkQuery, visible=visibility )
+    bkQueryRes.setOption( 'ReplicaFlag', replicaFlag )
+    lfnsRes = bkQueryRes.getLFNs( printOutput=False )
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
-    gLogger.info( "Found %d files with replica flag = %s" % ( len( lfnsRes ), replicaFlag ) )
+    else:
+      gLogger.info( "Found %d files with replica flag = %s" % ( len( lfnsRes ), replicaFlag ) )
 
     return lfnsRes
 
-  def __getBKKQuery( self, fromTS = False ):
+  def __getBKKQuery( self, fromTS=False ):
     ''' get the bkQuery to be used
     '''
+    bkQuery = None
     if fromTS:
       res = self.transClient.getBookkeepingQueryForTransformation( self.prod )
       if not res['OK']:
         raise ValueError, res['Message']
-      bkQuery = res['Value']
+      bkQuery = BKQuery( res['Value'] )
     else:
       if self.bkQuery:
         bkQuery = self.bkQuery
-      elif self.prod:
-        bkQuery = {'Production': self.prod}
-      else:
+      if self.prod:
+        bkQuery = BKQuery( self.bkQuery, prods=self.prod )
+      if not bkQuery:
         raise ValueError( "Need to specify either the bkQuery or a production id" )
 
-    if self.runsList:
-      bkQuery.update( {'RunNumbers':self.runsList} )
-      bkQuery.pop( 'StartRun', 0 )
-      bkQuery.pop( 'EndRun', 0 )
+    #if self.runsList:
+    #  bkQuery.update( {'RunNumbers':self.runsList} )
+    #  bkQuery.pop( 'StartRun', 0 )
+    #  bkQuery.pop( 'EndRun', 0 )
 
     return bkQuery
 
@@ -169,6 +174,7 @@ class ConsistencyChecks( object ):
     present = []
     notPresent = []
 
+    gLogger.info( "Checking replicas for %d files" % len( lfns ) )
     for chunk in breakListIntoChunks( lfns, 1000 ):
       gLogger.verbose( len( chunk ) / 1000 * '.' )
       res = self.rm.getReplicas( chunk )
@@ -176,6 +182,7 @@ class ConsistencyChecks( object ):
         present += res['Value']['Successful'].keys()
         notPresent += res['Value']['Failed'].keys()
 
+    gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
     return present, notPresent
 
   ################################################################################
@@ -194,6 +201,7 @@ class ConsistencyChecks( object ):
         dirs.append( dirN )
     dirs.sort()
 
+    gLogger.info( "Checking File Catalog files from %d directories" % len( dirs ) )
     filesFound = self._getFilesFromDirectoryScan( dirs )
 
     if filesFound:
@@ -205,6 +213,7 @@ class ConsistencyChecks( object ):
     else:
       notPresent = lfns
 
+    gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
     return present, notPresent
 
   ################################################################################
@@ -213,7 +222,6 @@ class ConsistencyChecks( object ):
     ''' calls rm.getFilesFromDirectory
     '''
 
-    gLogger.info( "Checking File Catalog files from %d directories" % len( dirs ) )
     res = self.rm.getFilesFromDirectory( dirs )
     if not res['OK']:
       gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
@@ -234,18 +242,21 @@ class ConsistencyChecks( object ):
       return S_ERROR( "You need a transformationID" )
 
     processedLFNs, nonProcessedLFNs = self._getTSFiles()
+    gLogger.always( 'Found %d processed files and %d non processed files' % ( len( processedLFNs ), len( nonProcessedLFNs ) ) )
 
     gLogger.verbose( 'Checking BKK for those files that are processed' )
     res = self.getDescendants( processedLFNs )
     self.processedLFNsWithDescendants = res[0]
     self.processedLFNsWithoutDescendants = res[1]
     self.processedLFNsWithMultipleDescendants = res[2]
+    self.descendantsForProcessedLFNs = res[3]
 
     gLogger.verbose( 'Checking BKK for those files that are not processed' )
     res = self.getDescendants( nonProcessedLFNs )
     self.nonProcessedLFNsWithDescendants = res[0]
     self.nonProcessedLFNsWithoutDescendants = res[1]
     self.nonProcessedLFNsWithMultipleDescendants = res[2]
+    self.descendantsForNonProcessedLFNs = res[3]
 
     if self.processedLFNsWithoutDescendants:
       gLogger.warn( "For prod %s of type %s, %d files are processed, and\
@@ -301,29 +312,33 @@ class ConsistencyChecks( object ):
 
     filesWithDescendants = []
     filesWithoutDescendants = []
-    filesWitMultipleDescendants = []
+    filesWithMultipleDescendants = []
 
     lfnChunks = breakListIntoChunks( lfns, 200 )
+    descendants = []
     for lfnChunk in lfnChunks:
-      resChunk = self.bkClient.getFileDescendants( lfnChunk, depth = 1, production = self.prod, checkreplica = False )
+      resChunk = self.bkClient.getFileDescendants( lfnChunk, depth=1, production=self.prod, checkreplica=False )
       if resChunk['OK']:
         descDict = resChunk['Value']['Successful']
         if self.fileType:
           descDict = self._selectByFileType( resChunk['Value']['Successful'] )
+          # Get the list of unique descendants
+          for desc in descDict.values():
+            descendants += [lfn for lfn in desc if lfn not in descendants]
         ft_count = self._getFileTypesCount( descDict )
         for lfn in lfnChunk:
           if lfn in descDict.keys():
             filesWithDescendants.append( lfn )
             for ftc in ft_count[lfn].values():
               if ftc > 1:
-                filesWitMultipleDescendants.append( {lfn:descDict[lfn]} )
+                filesWithMultipleDescendants.append( {lfn:descDict[lfn]} )
           else:
             filesWithoutDescendants.append( lfn )
       else:
         gLogger.error( "\nError getting descendants for %d files" % len( lfnChunk ) )
         continue
 
-    return filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants
+    return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, descendants
 
   ################################################################################
 
@@ -353,10 +368,7 @@ class ConsistencyChecks( object ):
       t_dict = {}
       for desc in descendants:
         fType = '.'.join( os.path.basename( desc ).split( '.' )[1:] ).lower()
-        if fType not in t_dict.keys():
-          t_dict[fType] = 1
-        else:
-          t_dict[fType] = t_dict[fType] + 1
+        t_dict[fType] = t_dict.setdefault( fType, 0 ) + 1
       ft_dict[ancestor] = t_dict
 
     return ft_dict
@@ -424,7 +436,7 @@ class ConsistencyChecks( object ):
     ''' check that files present in the BKK are also in the FC (re-check of BKKWatchAgent)
     '''
     try:
-      bkQuery = self.__getBKKQuery( fromTS = True )
+      bkQuery = self.__getBKKQuery( fromTS=True )
     except ValueError, e:
       return S_ERROR( e )
     lfnsReplicaYes = self._getBKKFiles( bkQuery )
@@ -467,7 +479,7 @@ class ConsistencyChecks( object ):
     for lfn in lfns:
     # get the lfn checksum from the LFC
       if lfn in val['Failed']:
-        gLogger.info( "failed request for %s" % ( lfn, val['Failed'][lfn] ) )
+        gLogger.info( "Failed request for LFN %s: %s" % ( lfn, val['Failed'][lfn] ) )
         continue
       elif lfn in val['Successful']:
         if lfn not in csDict.keys():
@@ -538,7 +550,7 @@ class ConsistencyChecks( object ):
   def set_prod( self, value ):
     if value:
       value = int( value )
-      res = self.transClient.getTransformation( value, extraParams = False )
+      res = self.transClient.getTransformation( value, extraParams=False )
       if not res['OK']:
         gLogger.error( "Couldn't find transformation %d: %s" % ( value, res['Message'] ) )
       else:

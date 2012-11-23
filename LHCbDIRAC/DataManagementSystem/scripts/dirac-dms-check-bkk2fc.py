@@ -22,7 +22,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
 dmScript = DMScript()
 dmScript.registerBKSwitches()
 Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
-Script.parseCommandLine( ignoreErrors = True )
+Script.parseCommandLine( ignoreErrors=True )
 
 #imports
 import sys, os, time
@@ -35,32 +35,46 @@ from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyC
 #Code
 def doCheck():
   cc.checkBKK2FC()
+  maxPrint = 20
 
   if cc.existingLFNsWithBKKReplicaNO:
-    gLogger.error( "%d LFNs have replicaFlag = No: %s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
-                                                           str( cc.existingLFNsWithBKKReplicaNO ) ) )
-
+    nFiles = len( cc.existingLFNsWithBKKReplicaNO )
+    if nFiles <= maxPrint:
+      comment = str( cc.existingLFNsWithBKKReplicaNO )
+    else:
+      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.existingLFNsWithBKKReplicaNO[:maxPrint] ) )
     if fixIt:
-      gLogger.always( "Setting the replica flag to %d files: %s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
-                                                                     str( cc.existingLFNsWithBKKReplicaNO ) ) )
-      res = bkClient.addFiles( cc.existingLFNsWithBKKReplicaNO )
+      gLogger.always( "Setting the replica flag to %d files: %s" % ( nFiles, comment ) )
+      res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
+      else:
+        gLogger.always( "Successfully set replica flag to %d files" % nFiles )
+    else:
+      gLogger.error( "%d LFNs exist in the FC but have replicaFlag = No: %s" % ( nFiles, comment ) )
+      gLogger.always( "Use option --FixIt to fix it" )
   else:
-    gLogger.always( "No LFNs exist in the FC but have Replica = NO in the BKK -> OK!" )
+    gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BKK -> OK!" )
 
   if cc.nonExistingLFNsWithBKKReplicaYES:
-    gLogger.error( "%d LFNs have replicaFlag = Yes, but are not in FC: %s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
-                                                                               str( cc.existingLFNsWithBKKReplicaNO ) ) )
+    nFiles = len( cc.nonExistingLFNsWithBKKReplicaYES )
+    if nFiles <= maxPrint:
+      comment = str( cc.nonExistingLFNsWithBKKReplicaYES )
+    else:
+      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.nonExistingLFNsWithBKKReplicaYES[:maxPrint] ) )
 
     if fixIt:
-      gLogger.always( "Un-Setting the replica flag to %d files: %s" % ( len( cc.nonExistingLFNsWithBKKReplicaYES ),
-                                                                        str( cc.nonExistingLFNsWithBKKReplicaYES ) ) )
-      res = bkClient.removeFiles( cc.nonExistingLFNsWithBKKReplicaYES )
+      gLogger.always( "Removing the replica flag to %d files: %s" % ( nFiles, comment ) )
+      res = bk.removeFiles( cc.nonExistingLFNsWithBKKReplicaYES )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
+      else:
+        gLogger.always( "Successfully removed replica flag to %d files" % nFiles )
+    else:
+      gLogger.error( "%d LFNs have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
+      gLogger.always( "Use option --FixIt to fix it" )
   else:
-    gLogger.always( "No LFNs have Replica = Yes in the BKK, but are not in the FC -> OK!" )
+    gLogger.always( "No LFNs have replicaFlag = Yes but are not in the FC -> OK!" )
 
 
 if __name__ == '__main__':
@@ -74,17 +88,9 @@ if __name__ == '__main__':
 
   rm = ReplicaManager()
   bk = BookkeepingClient()
+  gLogger.setLevel( 'INFO' )
 
-  cc = ConsistencyChecks( rm = rm, bkClient = bk )
-  cc.bkQuery = dmScript.getOption( 'BKPath', {} )
-  cc.runsList = dmScript.getOption( 'Runs' )
-  prods = dmScript.getOption( 'Productions', [] )
+  cc = ConsistencyChecks( rm=rm, bkClient=bk )
+  cc.bkQuery = dmScript.getBKQuery()
 
-  if prods:
-    for prod in prods:
-      gLogger.always( "Processing production %d" % cc.prod )
-      cc.prod = prod
-      doCheck()
-      gLogger.always( "Processed production %d" % cc.prod )
-  else:
-    doCheck()
+  doCheck()
