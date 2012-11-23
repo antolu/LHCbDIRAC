@@ -135,7 +135,7 @@ class ConsistencyChecks( object ):
     bkQuery.setVisible( False )
     bkQueryRes = BKQuery( bkQuery, visible=visibility )
     bkQueryRes.setOption( 'ReplicaFlag', replicaFlag )
-    lfnsRes = bkQueryRes.getLFNs( printOutput=True )
+    lfnsRes = bkQueryRes.getLFNs( printOutput=False )
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
     else:
