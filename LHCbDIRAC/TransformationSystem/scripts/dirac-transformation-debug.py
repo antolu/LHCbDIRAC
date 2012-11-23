@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__RCSID__ = "$Id: dirac-transformation-debug.py 56083 2012-09-11 07:55:18Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys
 
@@ -15,10 +15,7 @@ def getFilesForRun( id, runID, status=None, lfnList=None, seList=None ):
       selectDict['LFN'] = lfnList
   if seList:
       selectDict['UsedSE'] = seList
-  if not selectDict:
-    return []
   selectDict['TransformationID'] = id
-  #print selectDict
   res = transClient.getTransformationFiles( selectDict )
   if res['OK']:
     return res['Value']
@@ -126,7 +123,18 @@ for switch in switches:
       bkClient = BookkeepingClient()
 
 if lfnList:
-    byFiles = True
+  byFiles = True
+  for arg in list( lfnList ):
+    try:
+      f = open( arg, 'r' )
+      lfns = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in f.read().splitlines()]
+      lfns = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] for lfn in lfns]
+      lfnList.remove( arg )
+      lfnList += lfns
+      f.close()
+    except:
+      pass
+
 if dumpFiles:
     byFiles = True
 
@@ -165,6 +173,7 @@ rm = ReplicaManager()
 dmTransTypes = ( "Replication", "Removal" )
 now = datetime.datetime.utcnow()
 timeLimit = now - datetime.timedelta( hours=2 )
+improperJobs = []
 
 for id in idList:
     res = transClient.getTransformation( id, extraParams=False )
@@ -199,31 +208,44 @@ for id in idList:
 
     # If just statistics are requested
     if justStats:
-        filesList = getFilesForRun( id, None, 'Assigned', [], seList )
-        statsPerSE = {}
-        #print filesList
-        statusList = ( 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled' )
-        taskList = [fileDict['TaskID'] for fileDict in filesList]
-        res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskList} )
-        if not res['OK']:
-            print "Could not get the list of tasks..."
-            DIRAC.exit( 2 )
-        for task in res['Value']:
-            #print task
-            targetSE = task['TargetSE']
-            status = task['ExternalStatus']
-            if status in statusList:
-                statsPerSE[targetSE][status] = statsPerSE.setdefault( targetSE, dict.fromkeys( statusList, 0 ) )[status] + 1
-        prString = 'SE'.ljust( 15 )
-        for status in statusList:
-            prString += status.ljust( 10 )
-        print prString
-        for se in statsPerSE:
-            prString = se.ljust( 15 )
-            for status in statusList:
-                prString += str( statsPerSE[se][status] ).ljust( 10 )
-            print prString
+      if not status:
+        status = "Assigned"
+      filesList = getFilesForRun( id, None, status, [], seList )
+      if not filesList:
         continue
+      statsPerSE = {}
+      #print filesList
+      statusList = [ 'Received', 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled']
+      if status == 'Processed':
+        statusList += [ 'Done', 'Completed', 'Failed']
+      taskList = [fileDict['TaskID'] for fileDict in filesList]
+      res = transClient.getTransformationTasks( {'TransformationID':id, "TaskID":taskList} )
+      if not res['OK']:
+          print "Could not get the list of tasks (%s)..." % res['Message']
+          DIRAC.exit( 2 )
+      for task in res['Value']:
+          #print task
+          targetSE = task['TargetSE']
+          stat = task['ExternalStatus']
+          if stat not in statusList:
+            statusList.append( stat )
+          statsPerSE[targetSE][stat] = statsPerSE.setdefault( targetSE, dict.fromkeys( statusList, 0 ) ).setdefault( stat, 0 ) + 1
+          if status == 'Processed' and stat not in ( 'Done', 'Completed', 'Stalled', 'Failed', 'Killed', 'Running' ):
+            improperJobs.append( task['ExternalID'] )
+
+      shift = 0
+      for se in statsPerSE:
+        shift = max( shift, len( se ) + 2 )
+      prString = 'SE'.ljust( shift )
+      for stat in statusList:
+          prString += stat.ljust( 10 )
+      print prString
+      for se in sorted( statsPerSE ):
+          prString = se.ljust( shift )
+          for stat in statusList:
+              prString += str( statsPerSE[se].get( stat, 0 ) ).ljust( 10 )
+          print prString
+      continue
 
     ################
     if runList:
@@ -569,3 +591,7 @@ for id in idList:
     if byJobs and jobList:
         print "List of jobs found:"
         print " ".join( jobList )
+
+if improperJobs:
+  print "List of %d jobs in improper status:" % len( improperJobs )
+  print ' '.join( [str( j ) for j in sorted( improperJobs )] )
