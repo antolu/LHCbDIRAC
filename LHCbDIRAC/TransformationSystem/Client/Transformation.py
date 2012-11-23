@@ -7,6 +7,7 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation import Transformation as DIRACTransformation
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 COMPONENT_NAME = 'Transformation'
 
@@ -16,7 +17,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def __init__( self, transID=0, transClientIn=None ):
+  def __init__( self, transID = 0, transClientIn = None ):
     """ Just params setting.
         transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
     """
@@ -26,7 +27,7 @@ class Transformation( DIRACTransformation ):
     else:
       self.transClient = transClientIn
 
-    DIRACTransformation.__init__( self, transID=transID, transClient=self.transClient )
+    DIRACTransformation.__init__( self, transID = transID, transClient = self.transClient )
 
     self.supportedPlugins += ['RAWShares', 'AtomicRun']
     self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast', 'FakeReplication']
@@ -43,7 +44,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def generateBkQuery( self, test=False, printOutput=False ):
+  def generateBkQuery( self, test = False, printOutput = False ):
     """ Returns a BK query, users are supposed to fill in values
     """
     parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
@@ -52,7 +53,7 @@ class Transformation( DIRACTransformation ):
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
       default = parameterDefaults.get( parameter, 'All' )
-      res = self._promptUser( "Please enter %s" % parameter, choices=[], default=default )
+      res = self._promptUser( "Please enter %s" % parameter, choices = [], default = default )
       if not res['OK']:
         return res
       if res['Value'] != default:
@@ -62,17 +63,16 @@ class Transformation( DIRACTransformation ):
     if ( queryDict.has_key( 'SimulationConditions' ) ) and ( queryDict.has_key( 'DataTakingConditions' ) ):
       return S_ERROR( "SimulationConditions and DataTakingConditions can not be defined simultaneously" )
     if test:
-      self.testBkQuery( queryDict, printOutput=printOutput )
+      self.testBkQuery( queryDict, printOutput = printOutput )
     return S_OK( queryDict )
 
   #############################################################################
 
-  def testBkQuery( self, bkQuery, printOutput=False, bkClient=None ):
+  def testBkQuery( self, bkQuery, printOutput = False, bkClient = None ):
     """ just pretty print of the result of a BK Query
     """
 
     if bkClient is None:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bkClient = BookkeepingClient()
 
     res = bkClient.getFiles( bkQuery )
@@ -85,7 +85,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def setBkQuery( self, queryDict, test=False ):
+  def setBkQuery( self, queryDict, test = False ):
     """ set a BKK Query
     """
     if test:
@@ -105,12 +105,12 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def getBkQuery( self, printOutput=False ):
+  def getBkQuery( self, printOutput = False ):
     """ get a BKK Query
     """
     if self.paramValues['BkQuery']:
       return S_OK( self.paramValues['BkQuery'] )
-    res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput=printOutput )
+    res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput = printOutput )
     if not res['OK']:
       return res
     self.item_called = 'BkQuery'
@@ -138,7 +138,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def addTransformation( self, addFiles=True, printOutput=False ):
+  def addTransformation( self, addFiles = True, printOutput = False ):
     """ Add a transformation, using TransformationClient()
     """
     res = self._checkCreation()
@@ -161,14 +161,14 @@ class Transformation( DIRACTransformation ):
                                               self.paramValues['Plugin'],
                                               self.paramValues['AgentType'],
                                               self.paramValues['FileMask'],
-                                              transformationGroup=self.paramValues['TransformationGroup'],
-                                              groupSize=self.paramValues['GroupSize'],
-                                              inheritedFrom=self.paramValues['InheritedFrom'],
-                                              body=self.paramValues['Body'],
-                                              maxTasks=self.paramValues['MaxNumberOfTasks'],
-                                              eventsPerTask=self.paramValues['EventsPerTask'],
-                                              addFiles=addFiles,
-                                              bkQuery=self.paramValues['BkQuery'] )
+                                              transformationGroup = self.paramValues['TransformationGroup'],
+                                              groupSize = self.paramValues['GroupSize'],
+                                              inheritedFrom = self.paramValues['InheritedFrom'],
+                                              body = self.paramValues['Body'],
+                                              maxTasks = self.paramValues['MaxNumberOfTasks'],
+                                              eventsPerTask = self.paramValues['EventsPerTask'],
+                                              addFiles = addFiles,
+                                              bkQuery = self.paramValues['BkQuery'] )
     if not res['OK']:
       if printOutput:
         self._prettyPrint( res )
