@@ -23,6 +23,7 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerBKSwitches()
   dmScript.registerNamespaceSwitches()
+  dmScript.registerFileSwitches()
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -32,7 +33,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'InvisibleFiles', '   Show invisible files also [No]' )
   Script.registerSwitch( '', 'PrintNoReplicas', '   Print list of files without a replica [No]' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors = False )
+  Script.parseCommandLine( ignoreErrors=False )
 
   getSize = False
   visible = True
@@ -54,6 +55,7 @@ if __name__ == "__main__":
   rm = ReplicaManager()
 
   repStats = {}
+  lfns = dmScript.getOption( 'LFNs', [] )
   lfnReplicas = {}
   directories = dmScript.getOption( 'Directory' )
   if directories:
@@ -64,9 +66,10 @@ if __name__ == "__main__":
         continue
       lfnReplicas.update( res['Value'] )
   else:
-    bkQuery = dmScript.getBKQuery( visible = visible )
-    print "Executing BK query:", bkQuery
-    lfns = bkQuery.getLFNs()
+    if not lfns:
+      bkQuery = dmScript.getBKQuery( visible=visible )
+      print "Executing BK query:", bkQuery
+      lfns = bkQuery.getLFNs()
     if lfns:
       res = rm.getReplicas( lfns )
       if not res['OK']:
@@ -160,7 +163,7 @@ if __name__ == "__main__":
   for se in orderSEs( repSEs.keys() ):
     if se.endswith( "-FAILOVER" ): continue
     if not se.endswith( "-ARCHIVE" ):
-      res = getSitesForSE( se, gridName = 'LCG' )
+      res = getSitesForSE( se, gridName='LCG' )
       if res['OK']:
         try:
           site = res['Value'][0]
