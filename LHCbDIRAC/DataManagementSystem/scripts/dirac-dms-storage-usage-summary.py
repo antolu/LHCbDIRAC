@@ -303,7 +303,7 @@ if __name__ == "__main__":
         if fileTypes and 'FULL.DST' not in fileTypes and 'DST' not in fileTypes:
           fileTypes.append( 'DST' )
         print "Looking for %d productions:" % len( prods ), prods
-    elif fileTypes:
+    elif fileTypes and fileTypes[0]:
       print 'FileTypes:', fileTypes
 
   rpc = RPCClient( 'DataManagement/StorageUsage' )
@@ -313,9 +313,13 @@ if __name__ == "__main__":
   if not fileTypes:
     fileTypes = ['']
   prString = "Storage usage for "
+  if sites:
+    prString += "Sites %s" % str( sites )
+  elif ses:
+    prString += "SEs %s" % str( ses )
   if prods[0] != '':
     prString += 'productions %s ' % str( prods )
-  if fileTypes[0] != '':
+  if fileTypes[0] not in ( '', None ):
     prString += 'file types %s ' % str( fileTypes )
   if dirs[0] != '':
     if fileTypes == ['RAW']:
