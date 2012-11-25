@@ -6,7 +6,7 @@
     Should be extended to include the Storage (in DIRAC)
 """
 
-import os, copy, ast
+import os, copy, ast, time
 
 from DIRAC import gLogger, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -111,14 +111,14 @@ class ConsistencyChecks( object ):
       self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
 
     if self.existingLFNsWithBKKReplicaNO:
-      msg = "%d files has ReplicaFlag=No, but %d are in the FC" % ( len( lfnsReplicaNo ),
+      msg = "%d files have ReplicaFlag = No, but %d are in the FC" % ( len( lfnsReplicaNo ),
                                                                     len( self.existingLFNsWithBKKReplicaNO ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
     if self.nonExistingLFNsWithBKKReplicaYES:
-      msg = "%d files are in the File Catalog but %d files have ReplicaFlag=Yes" % ( len( lfnsReplicaYes ),
+      msg = "%d files have ReplicaFlag = Yes, but %d are not in the FC" % ( len( lfnsReplicaYes ),
                                                                                     len( self.nonExistingLFNsWithBKKReplicaYES ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
@@ -192,32 +192,46 @@ class ConsistencyChecks( object ):
     ''' Get replicas scanning the directories. Might be faster.
     '''
 
-    dirs = []
+    dirs = {}
     present = []
     notPresent = []
 
     for lfn in lfns:
       dirN = os.path.dirname( lfn )
-      if dirN not in dirs:
-        dirs.append( dirN )
-    dirs.sort()
+      dirs.setdefault( dirN, [] ).append( lfn )
 
     gLogger.info( "Checking File Catalog files from %d directories" % len( dirs ) )
-    filesFound = self._getFilesFromDirectoryScan( dirs )
 
-    if filesFound:
-      for lfn in lfns:
-        if lfn in filesFound:
-          present.append( lfn )
-        else:
-          notPresent.append( lfn )
-    else:
-      notPresent = lfns
+    for dirN in sorted( dirs ):
+      startTime = time.time()
+      lfnsFound = self._getFilesFromDirectoryScan( dirN )
+      gLogger.verbose( "Obtained %d files in %.1f seconds" % ( len( lfnsFound ), time.time() - startTime ) )
+      pr, notPr = self._compareLFNLists( dirs[dirN], lfnsFound )
+      notPresent += notPr
+      present += pr
 
     gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
     return present, notPresent
 
   ################################################################################
+
+  def _compareLFNLists( self, lfns, lfnsFound ):
+    ''' return files in both lists and files in lfns and not in lfnsFound
+    '''
+    present = []
+    startTime = time.time()
+    gLogger.verbose( "Comparing list of %d LFNs with second list of %d" % ( len( lfns ), len( lfnsFound ) ) )
+    if lfnsFound:
+      lfnsFound.sort()
+      for lfn in sorted( lfns ):
+        while lfnsFound and lfn > lfnsFound[0]:
+          lfnsFound.pop( 0 )
+        if lfnsFound and lfn == lfnsFound[0]:
+          present.append( lfn )
+          lfnsFound.pop( 0 )
+          lfns.remove( lfn )
+    gLogger.verbose( "End of comparison: %.1f seconds" % ( time.time() - startTime ) )
+    return present, lfns
 
   def _getFilesFromDirectoryScan( self, dirs ):
     ''' calls rm.getFilesFromDirectory
@@ -228,11 +242,11 @@ class ConsistencyChecks( object ):
       gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
       return
     if res['Value']:
-      filesFound = res['Value']
+      lfnsFound = res['Value']
     else:
-      filesFound = []
+      lfnsFound = []
 
-    return filesFound
+    return lfnsFound
 
   ################################################################################
 
