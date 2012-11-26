@@ -12,26 +12,6 @@
       - set replicaFlag = No in the BKK for those files that are not in the FC
 '''
 
-#Script initialization
-from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-
-Script.setUsageMessage( '\n'.join( [ __doc__,
-                                     'Usage:',
-                                     '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
-dmScript = DMScript()
-dmScript.registerBKSwitches()
-Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
-Script.parseCommandLine( ignoreErrors=True )
-
-#imports
-import sys, os, time
-import DIRAC
-from DIRAC import gLogger
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-
 #Code
 def doCheck():
   cc.checkBKK2FC()
@@ -79,6 +59,19 @@ def doCheck():
 
 if __name__ == '__main__':
 
+  #Script initialization
+  from DIRAC.Core.Base import Script
+  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+  from DIRAC import gLogger
+
+  Script.setUsageMessage( '\n'.join( [ __doc__,
+                                       'Usage:',
+                                       '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
+  dmScript = DMScript()
+  dmScript.registerBKSwitches()
+  Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
+  Script.parseCommandLine( ignoreErrors=True )
+
   fixIt = False
   production = 0
   switches = Script.getUnprocessedSwitches()
@@ -86,9 +79,16 @@ if __name__ == '__main__':
     if opt == 'FixIt':
       fixIt = True
 
+  #imports
+  import sys, os, time
+  import DIRAC
+  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
+
+  gLogger.setLevel( 'INFO' )
   rm = ReplicaManager()
   bk = BookkeepingClient()
-  gLogger.setLevel( 'INFO' )
 
   cc = ConsistencyChecks( rm=rm, bkClient=bk )
   bkQuery = dmScript.getBKQuery()
