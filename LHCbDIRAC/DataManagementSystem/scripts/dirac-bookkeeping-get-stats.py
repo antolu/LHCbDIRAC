@@ -57,7 +57,7 @@ if __name__ == "__main__":
       bkQuery.setOption( 'Production', prod )
       print "For production %d, %s (query %s)" % ( prod, prodName, bkQuery )
     elif lfns:
-      print "For LFNs:", lfns
+      print "For %d LFNs:", len( lfns )
     else:
       print "For BK query:", bkQuery
     queryDict = bkQuery.getQueryDict()
@@ -66,10 +66,11 @@ if __name__ == "__main__":
       DIRAC.exit( 1 )
 
     # Get information from BK
-    if not lfns and queryDict.get( 'Visible', 'No' ) == 'Yes':
+    if not lfns: #queryDict.get( 'Visible', 'No' ) == 'Yes':
       print "Getting info from filesSummary..."
-      if 'Visible' in queryDict: queryDict.pop( 'Visible' )
+      if 'Visible' not in queryDict: queryDict[ 'Visible' ] = "All"
       query = queryDict.copy()
+      print "Final query", query
       if len( query ) <= 3:
         query.update( {'1':1, '2':2, '3':3 } )
       fileTypes = query.get( 'FileType' )
