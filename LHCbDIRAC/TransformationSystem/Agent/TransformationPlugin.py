@@ -6,7 +6,7 @@ __RCSID__ = "$Id$"
 import time, datetime, os, random
 
 from DIRAC import S_OK, S_ERROR
-from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
+from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize, uniqueElements
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from LHCbDIRAC.TransformationSystem.Client.Utilities \
      import PluginUtilities, getFileGroups, groupByRun, isArchive, isFailover, \
@@ -827,6 +827,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
+    mandatorySEs = uniqueElements( mandatorySEs )
+    secondarySEs = [se for se in uniqueElements( secondarySEs ) if se not in mandatorySEs]
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
       activeSecondarySEs = secondarySEs
@@ -857,7 +859,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         candidateSEs = [se for se in candidateSEs if se not in existingSEs]
         needToCopy = numberOfCopies - ( ncand - len( candidateSEs ) )
         stillMandatory = [se for se in mandatorySEs if se not in candidateSEs]
-        candidateSEs = stillMandatory + [se for se in candidateSEs if se in activeSecondarySEs]
+        candidateSEs = self.util.uniqueSEs( stillMandatory + [se for se in candidateSEs if se in activeSecondarySEs] )
         needToCopy = max( needToCopy, len( stillMandatory ) )
         targetSEs = []
         if needToCopy > 0:

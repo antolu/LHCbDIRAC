@@ -527,7 +527,8 @@ class PluginUtilities:
     """ Assign target SEs for each LFN, excluding the existing ones
         Returns a dictionary for files to be transferred and a list of files already in place
     """
-    targetSEs = [se for se in stringTargetSEs.split( ',' ) if se]
+    # Suppress duplicate SEs from list
+    targetSEs = self.uniqueSEs( [se for se in stringTargetSEs.split( ',' ) if se] )
     alreadyCompleted = []
     fileTargetSEs = {}
     for lfn in lfns:
@@ -542,6 +543,13 @@ class PluginUtilities:
       else:
         fileTargetSEs[lfn] = ','.join( sorted( neededSEs ) )
     return ( fileTargetSEs, alreadyCompleted )
+
+  def uniqueSEs( self, ses ):
+    newSEs = []
+    for se in ses:
+      if not self.isSameSEInList( se, newSEs ):
+        newSEs.append( se )
+    return newSEs
 
   def isSameSE( self, se1, se2 ):
     if se1 == se2:
