@@ -6,23 +6,18 @@ __RCSID__ = "$Id: BKQuery.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 import os, sys
 from DIRAC import gLogger
-from DIRAC.Core.Utilities.List import sortList
-
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+from DIRAC.Core.Utilities.List                                         import sortList
 
 class BKQuery():
   """
   It used to build a dictionary using a given Bookkeeping path
   which is used to query the Bookkeeping database.
   """
-  def __init__( self, bkQuery = None, prods = None, runs = None, fileTypes = None, visible = True ):
-    """ c'tor
-    """
-
+  def __init__( self, bkQuery=None, prods=None, runs=None, fileTypes=None, visible=True ):
     prods = prods if prods is not None else []
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
-
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     self.extraBKitems = ( "StartRun", "EndRun", "Production", "RunNumber" )
     self.__bkClient = BookkeepingClient()
     bkPath = ''
@@ -47,7 +42,7 @@ class BKQuery():
   def __str__( self ):
     return str( self.__bkQueryDict )
 
-  def buildBKQuery( self, bkPath = '', bkQueryDict = None, prods = None, runs = None, fileTypes = None, visible = True ):
+  def buildBKQuery( self, bkPath='', bkQueryDict=None, prods=None, runs=None, fileTypes=None, visible=True ):
     """ it builds a dictionary using a path
     """
     bkQueryDict = bkQueryDict if bkQueryDict is not None else {}
@@ -56,11 +51,11 @@ class BKQuery():
     fileTypes = fileTypes if fileTypes is not None else []
 
     gLogger.verbose( "BKQUERY.buildBKQuery: Path %s, Dict %s, Prods %s, Runs %s, FileTypes %s, Visible %s" % ( bkPath,
-                                                                                                               str( bkQueryDict ),
-                                                                                                               str( prods ),
-                                                                                                               str( runs ),
-                                                                                                               str( fileTypes ),
-                                                                                                               visible ) )
+                                                                                         str( bkQueryDict ),
+                                                                                         str( prods ),
+                                                                                         str( runs ),
+                                                                                         str( fileTypes ),
+                                                                                         visible ) )
     self.__bkQueryDict = {}
     if not bkPath and not prods and not runs and not bkQueryDict:
       return {}
@@ -166,6 +161,10 @@ class BKQuery():
         for run in runs:
           if run.isdigit():
             runList.append( int( run ) )
+          else:
+            runRange = run.split( ':' )
+            if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
+              runList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
           bkQuery['RunNumber'] = runList
       else:
         runs = runs[0].split( ':' )
