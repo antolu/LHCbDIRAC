@@ -1,4 +1,3 @@
-# $HeadURL$
 """ Definition of all the method to create tar ball for distribution """
 
 __RCSID__ = "$Id$"
