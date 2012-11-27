@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_Resources_Catalog_MigrationMonitoringCatalogClient
 '''
 

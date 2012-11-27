@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' LHCbDIRAC.Resources.Catalog package
 '''
 

@@ -1,9 +1,7 @@
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/Resources/Catalog/BookkeepingDBClient.py $
-
 """ Client for BookkeepingDB file catalog
 """
 
-__RCSID__ = "$Id: BookkeepingDBClient.py 57373 2012-10-10 14:45:28Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client                               import PathFinder

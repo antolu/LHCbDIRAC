@@ -1,4 +1,3 @@
-# $HeadURL$
 """ Client plug-in for the RAWIntegrity catalogue.
     This exposes a single method to add files to the RAW IntegrityDB.
     

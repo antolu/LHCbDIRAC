@@ -1,4 +1,3 @@
-# $HeadURL$
 """ Client plug-in for the Migration Monitoring DB.
 """
 ################################################################################

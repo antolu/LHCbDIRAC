@@ -1,4 +1,3 @@
-# $HeadURL$
 """ This is the LHCb Online storage """
 
 import types
