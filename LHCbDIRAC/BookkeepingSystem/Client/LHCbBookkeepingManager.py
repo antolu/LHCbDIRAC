@@ -599,6 +599,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def clevelBody_5(self, path, levels, in_dict):
     """build the 6th tree node"""
     entityList = list()
+    in_dict['Visible'] = 'Y'
     result = self.db_.getFileTypes(in_dict)
     if result['OK']:
       dbResult = result['Value']
@@ -646,6 +647,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """build the 7th tree"""
     entityList = list()
     in_dict['Quality'] = self.__getSelectedQualities()
+    in_dict['Visible'] = 'Y'
     result = self.db_.getFilesWithMetadata(in_dict)
     if result['OK']:
       for record in result['Value']['Records']:
@@ -856,6 +858,7 @@ class LHCbBookkeepingManager(BaseESManager):
 
     if len(procpass) > 0:
       in_dict['ProcessingPass'] = procpass
+      in_dict['Visible'] = 'Y'
       result = self.db_.getFileTypes(in_dict)
       if result['OK']:
         dbResult = result['Value']
@@ -1061,6 +1064,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def plevelBody_3(self, path, levels, in_dict):
     """make tree node"""
     entityList = list()
+    in_dict['Visible'] = 'Y'
     result = self.db_.getFileTypes(in_dict)
     if result['OK']:
       dbResult = result['Value']
@@ -1091,6 +1095,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """make the tree node"""
     entityList = list()
     in_dict['Quality'] = self.__getSelectedQualities()
+    in_dict['Visible'] = 'Y'
     result = self.db_.getFilesWithMetadata(in_dict)
     if result['OK']:
       for record in result['Value']['Records']:
@@ -1204,6 +1209,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def rlevelBody_3(self, path, levels, in_dict):
     """make tree node"""
     entityList = list()
+    in_dict['Visible'] = 'Y'
     result = self.db_.getFileTypes(in_dict)
     if result['OK']:
       dbResult = result['Value']
@@ -1558,6 +1564,7 @@ class LHCbBookkeepingManager(BaseESManager):
     filesSize = 0
     lumi = 0
     selection = in_dict
+    in_dict['Visible'] = 'Y'
     if len(sortDict) > 0:
       res = self.db_.getFilesSummary(in_dict)
       if not res['OK']:

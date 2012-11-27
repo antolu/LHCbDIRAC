@@ -942,7 +942,7 @@ class OracleBookkeepingDB:
 
     if evt != default and visible.upper().startswith('Y'):
       condition += ' and bview.eventtypeid=%d' % (int(evt))
-    elif evt != default and visible.upper().startswith('N'):
+    elif evt != default:
       condition += '  and f.eventtypeid=%d ' % (int(evt))
 
     defaultTable = 'bview'
@@ -1005,7 +1005,8 @@ class OracleBookkeepingDB:
                            processing=default, evt=default, production=default,
                            filetype=default, quality=default, runnb=default,
                            visible=default, replicaflag=default,
-                           startDate = None, endDate = None):
+                           startDate = None, endDate = None, runnumbers = [],
+                           startRunID = default, endRunID = default):
     """return a list of files with their metadata"""
     condition = ''
 
@@ -1018,6 +1019,25 @@ class OracleBookkeepingDB:
     elif startDate != None and endDate == None:
       currentTimeStamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
       condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(currentTimeStamp))
+
+    if len(runnumbers) > 0:
+      cond = None
+      if type(runnumbers) == types.ListType:
+        cond = ' ( '
+        for i in runnumbers:
+          cond += ' j.runnumber=' + str(i) + ' or '
+        cond = cond[:-3] + ')'
+      elif type(runnumbers) == types.StringType:
+        cond = ' j.runnumber=%s' % (str(runnumbers))
+      if startRunID == default and endRunID == default:
+        condition += " and %s " % (cond)
+      elif startRunID != default and endRunID != default:
+        condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % (str(startRunID), str(endRunID), cond)
+    else:
+      if startRunID != default:
+        condition += ' and j.runnumber>=' + str(startRunID)
+      if endRunID != default:
+        condition += ' and j.runnumber<=' + str(endRunID)
 
     if not visible.upper().startswith('A'):
       if visible.upper().startswith('Y'):
@@ -1042,7 +1062,7 @@ class OracleBookkeepingDB:
       tables += ' ,prodview bview'
       condition += '  and j.production=bview.production and bview.production=prod.production\
        and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % (str(evt))
-    elif evt != default and visible.upper().startswith('N'):
+    elif evt != default:
       condition += '  and f.eventtypeid=%s ' % (str(evt))
 
     if production != default:
@@ -3246,7 +3266,8 @@ and files.qualityid= dataquality.qualityid'
                       evt=default, production=default,
                       filetype=default, quality=default,
                       runnb=default, startrun=default, endrun=default,
-                      visible=default, startDate = None, endDate = None):
+                      visible=default, startDate = None, endDate = None,
+                      runnumbers = []):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
@@ -3259,6 +3280,25 @@ and files.qualityid= dataquality.qualityid'
     elif startDate != None and endDate == None:
       currentTimeStamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
       condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(currentTimeStamp))
+
+    if len(runnumbers) > 0:
+      cond = None
+      if type(runnumbers) == types.ListType:
+        cond = ' ( '
+        for i in runnumbers:
+          cond += ' j.runnumber=' + str(i) + ' or '
+        cond = cond[:-3] + ')'
+      elif type(runnumbers) == types.StringType:
+        cond = ' j.runnumber=%s' % (str(runnumbers))
+      if startrun == default and endrun == default:
+        condition += " and %s " % (cond)
+      elif startrun != default and endrun != default:
+        condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % (str(startrun), str(endrun), cond)
+    else:
+      if startrun != default:
+        condition += ' and j.runnumber>=' + str(startrun)
+      if endrun != default:
+        condition += ' and j.runnumber<=' + str(endrun)
 
     if not visible.upper().startswith('A'):
       if visible.upper().startswith('Y'):
@@ -3291,7 +3331,7 @@ and files.qualityid= dataquality.qualityid'
       tables2 += ', prodview bview'
       econd += " and bview.production=prod.production and bview.eventtypeid='%s'" % (str(evt))
       condition += " and f.eventtypeid=%s" % (str(evt))
-    elif evt != default and visible.upper().startswith('N'):
+    elif evt != default:
       condition += " and f.eventtypeid=%s" % (str(evt))
 
     if production != default:
@@ -3357,12 +3397,6 @@ and files.qualityid= dataquality.qualityid'
                                prod.processingid=proc.id  \
                                %s %s %s \
                 )" % (processing.split('/')[1], processing, tables2, fcond, econd, sim_dq_conditions)
-
-    if startrun != default:
-      condition += " and j.runnumber >= %d" % (startrun)
-
-    if endrun != default:
-      condition += " and j.runnumber <= %d" % (endrun)
 
     command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \

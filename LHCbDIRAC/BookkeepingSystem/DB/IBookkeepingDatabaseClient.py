@@ -103,23 +103,27 @@ class IBookkeepingDatabaseClient(object):
   #############################################################################
   def getFilesWithMetadata(self, configName, configVersion, conddescription,
                            processing, evt, production, filetype, quality,
-                           runnb, visible, replicaflag, startDate, endDate):
+                           runnb, visible, replicaflag, startDate, endDate,
+                           runnumbers,startRunID, endRunID ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFilesWithMetadata(configName, configVersion,
                                                   conddescription, processing,
                                                   evt, production, filetype,
                                                   quality, runnb,
-                                                  visible, replicaflag, startDate, endDate)
+                                                  visible, replicaflag, startDate, endDate,
+                                                  runnumbers ,startRunID, endRunID)
 
   #############################################################################
   def getFilesSummary(self, configName, configVersion,
                       conddescription, processing, evt,
                       production, filetype, quality, runnb,
-                      startrun, endrun, visible, startDate, endDate):
+                      startrun, endrun, visible, startDate,
+                      endDate, runnumbers):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFilesSummary(configName, configVersion, conddescription,
                                              processing, evt, production, filetype, quality,
-                                             runnb, startrun, endrun, visible, startDate, endDate)
+                                             runnb, startrun, endrun, visible, startDate,
+                                             endDate, runnumbers)
 
   #############################################################################
   def getLimitedFiles(self, configName, configVersion, conddescription,
