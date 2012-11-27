@@ -81,8 +81,8 @@ mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by defaul
 mergingCPU = '{{mergingCPU#PROD-Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-Merging: remove inputs#True}}'
 
-#replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
-#replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcastRandom}}'
+replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
+replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcastRandom}}'
 
 pr.eventType = '{{eventType}}'
 #Often MC requests are defined with many subrequests but we want to retain
@@ -198,5 +198,21 @@ if localTestFlag:
                 ]
   pr.inputDataPolicies = ['', 'protocol']
 
-pr.buildAndLaunchRequest()
+res = pr.buildAndLaunchRequest()
+if not res['OK']:
+  gLogger.error( "Errors with submission: %s" % res['Message'] )
+  DIRAC.exit( 2 )
+else:
+  gLogger.always( "Submitted %s" % str( res['Value'] ) )
 
+
+#################################################################################
+# This is the start of the replication transformation definition (if requested)
+#################################################################################
+
+
+if not replicationFlag:
+  gLogger.always( "No replication requested" )
+else:
+  gLogger.always( "Please use the script" )
+  gLogger.always( "dirac-dms-add-replication --Plugin %s --Production 'putProdHere' --FileType 'putTypesHere' --Start" % ( replicationPlugin ) )
