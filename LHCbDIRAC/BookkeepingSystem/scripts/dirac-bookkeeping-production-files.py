@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-production-files.py
 # Author :  Zoltan Mathe
 ########################################################################

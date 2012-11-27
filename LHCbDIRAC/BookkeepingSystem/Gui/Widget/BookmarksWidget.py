@@ -2,8 +2,6 @@
 Bookmarks widget
 """
 ########################################################################
-#$HeadURL:  $
-########################################################################
 
 from PyQt4.QtCore  import SIGNAL, Qt
 from PyQt4.QtGui   import QAbstractItemView, QWidget

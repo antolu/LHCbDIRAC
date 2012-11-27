@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-eventtype-mgt-insert
 # Author :  Zoltan Mathe
 ########################################################################

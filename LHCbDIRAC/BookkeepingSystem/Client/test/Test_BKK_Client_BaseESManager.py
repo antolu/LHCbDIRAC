@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_BKK_Client_BaseESManager
 
 '''

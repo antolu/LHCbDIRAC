@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-get-runsWithAGivenDate.py
 # Author :  Zoltan Mathe
 ########################################################################

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-get-file-ancestors
 # Author :  Zoltan Mathe
 ########################################################################

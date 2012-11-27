@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-simulationconditions-insert
 # Author :  Zoltan Mathe
 ########################################################################

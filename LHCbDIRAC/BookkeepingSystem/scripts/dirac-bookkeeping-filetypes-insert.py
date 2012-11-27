@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-filetypes-insert.py
 # Author :  Zoltan Mathe
 ########################################################################

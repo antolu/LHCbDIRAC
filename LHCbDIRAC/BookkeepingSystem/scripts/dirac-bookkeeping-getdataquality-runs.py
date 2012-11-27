@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-getdataquality-runs.py
 # Author :  Zoltan Mathe
 ########################################################################

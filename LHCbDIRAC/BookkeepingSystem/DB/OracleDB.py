@@ -1,6 +1,4 @@
 ########################################################################
-# $HeadURL$
-########################################################################
 """ DIRAC Basic Oracle Class
     It provides access to the basic Oracle methods in a multithread-safe mode
     keeping used connections in a python Queue for further reuse.
