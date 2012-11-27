@@ -930,8 +930,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           rm_mock, ft_mock,
-                                           self.bkc_mock )['OK'] )
+                                           ft_mock )['OK'] )
 #        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
 

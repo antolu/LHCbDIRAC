@@ -9,6 +9,7 @@ import os, shutil, glob, random
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import tarFiles
@@ -51,7 +52,7 @@ class UploadLogFile( ModuleBase ):
       self.logLFNPath = self.workflow_commons['LogTargetPath']
     else:
       self.log.info( 'LogFilePath parameter not found, creating on the fly' )
-      result = getLogPath( self.workflow_commons, bk )
+      result = getLogPath( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         return result
@@ -69,7 +70,8 @@ class UploadLogFile( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, rm = None, ft = None, bk = None ):
+               step_number = None, step_id = None,
+               ft = None ):
     """ Main executon method
     """
 
@@ -82,15 +84,11 @@ class UploadLogFile( ModuleBase ):
       if not self._enableModule():
         return S_OK()
 
-      self._resolveInputVariables( bk )
+      self._resolveInputVariables()
 
       self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
       self.request.setJobID( self.jobID )
       self.request.setSourceComponent( "Job_%s" % self.jobID )
-
-      if not rm:
-        from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-        rm = ReplicaManager()
 
       res = shellCall( 0, 'ls -al' )
       if res['OK'] and res['Value'][0] == 0:
@@ -106,10 +104,9 @@ class UploadLogFile( ModuleBase ):
 
       #Instantiate the failover transfer client with the global request object
       if not ft:
-        from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
         ft = FailoverTransfer( self.request )
 
-      res = self.finalize( rm, ft )
+      res = self.finalize( ft )
       self.workflow_commons['Request'] = self.request
 
       return res
@@ -123,7 +120,7 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def finalize( self, rm, ft ):
+  def finalize( self, ft ):
 
     """ finalize method performs final operations after all the job
         steps were executed. Only production jobs are treated.
@@ -171,9 +168,9 @@ class UploadLogFile( ModuleBase ):
     self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
     self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
 
-    res = rm.putStorageDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )},
-                                  storageElementName = self.logSE,
-                                  singleDirectory = True )
+    res = self.rm.putStorageDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )},
+                                       storageElementName = self.logSE,
+                                       singleDirectory = True )
     self.log.verbose( res )
     self.setJobParameter( 'Log URL', logURL, jr = self.jobReport )
     if res['OK']:
