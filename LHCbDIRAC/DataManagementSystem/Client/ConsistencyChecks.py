@@ -77,6 +77,8 @@ class ConsistencyChecks( object ):
     self.descendantsForProcessedLFNs = []
     self.descendantsForNonProcessedLFNs = []
 
+    self.filesInBKKNotInTS = []
+
   ################################################################################
 
   def checkBKK2FC( self ):
@@ -100,26 +102,29 @@ class ConsistencyChecks( object ):
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
       self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      self.existingLFNsWithBKKReplicaYES, self.nonexistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
+      res = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
+      self.existingLFNsWithBKKReplicaYES, self.nonexistingLFNsWithBKKReplicaYES = res
 
     else:
       # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
       # In principle most files have no replica flag, start from the File Catalog files with replicas
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
+      res = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
+      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = res
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
+      res = self.getReplicasPresence( lfnsReplicaYes )
+      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = res
 
     if self.existingLFNsWithBKKReplicaNO:
       msg = "%d files have ReplicaFlag = No, but %d are in the FC" % ( len( lfnsReplicaNo ),
-                                                                    len( self.existingLFNsWithBKKReplicaNO ) )
+                                                                       len( self.existingLFNsWithBKKReplicaNO ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
     if self.nonExistingLFNsWithBKKReplicaYES:
       msg = "%d files have ReplicaFlag = Yes, but %d are not in the FC" % ( len( lfnsReplicaYes ),
-                                                                                    len( self.nonExistingLFNsWithBKKReplicaYES ) )
+                                                                            len( self.nonExistingLFNsWithBKKReplicaYES ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
@@ -257,7 +262,8 @@ class ConsistencyChecks( object ):
       return S_ERROR( "You need a transformationID" )
 
     processedLFNs, nonProcessedLFNs = self._getTSFiles()
-    gLogger.always( 'Found %d processed files and %d non processed files' % ( len( processedLFNs ), len( nonProcessedLFNs ) ) )
+    gLogger.always( 'Found %d processed files and %d non processed files' % ( len( processedLFNs ),
+                                                                              len( nonProcessedLFNs ) ) )
 
     gLogger.verbose( 'Checking BKK for those files that are processed' )
     res = self.getDescendants( processedLFNs )
@@ -375,6 +381,7 @@ class ConsistencyChecks( object ):
 
     return ancDict
 
+  @classmethod
   def _getFileTypesCount( self, lfnDict ):
     ''' return file types count
     '''
@@ -406,7 +413,8 @@ class ConsistencyChecks( object ):
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.warn( "%s %d files are in the FC but have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ) ) )
+      gLogger.warn( "%s %d files are in the FC but have replica = NO in BKK" % ( msg,
+                                                                           len( self.existingLFNsWithBKKReplicaNO ) ) )
     if self.existingLFNsNotInBKK:
       gLogger.warn( "%s %d files are in the FC but not in BKK" % ( msg, len( self.existingLFNsNotInBKK ) ) )
 
@@ -533,7 +541,7 @@ class ConsistencyChecks( object ):
               checkSumMismatch.append( lfn )
           else:
             gLogger.info( "Checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " % ( lfcChecksum,
-                                                                                                           surlChecksum ) )
+                                                                                                       surlChecksum ) )
 
     for lfn in checkSumMismatch:
       oneGoodReplica = False
