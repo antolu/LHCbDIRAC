@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_Interfaces_API_DiracProduction
 
 '''

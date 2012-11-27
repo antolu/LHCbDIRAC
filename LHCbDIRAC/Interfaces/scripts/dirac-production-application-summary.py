@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :   dirac-production-application-summary
 # Author : Stuart Paterson
 ########################################################################

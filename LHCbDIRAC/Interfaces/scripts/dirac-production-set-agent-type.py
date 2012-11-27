@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :   dirac-production-set-agent-type
 # Author : Mario Ubeda Garcia
 ########################################################################
