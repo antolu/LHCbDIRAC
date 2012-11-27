@@ -22,9 +22,9 @@
 """
 from DIRAC                      import gLogger, exit as DiracExit, S_OK
 from DIRAC.Core.Base            import Script
-#from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Interfaces.API.Dirac import Dirac
 
-#from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
+from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
 
 __RCSID__ = '$Id$'
 
@@ -68,7 +68,7 @@ def parseSwitches():
   
   switchDict = dict( Script.getUnprocessedSwitches() )
   
-  subLogger.verbose( "The switches used are:" )
+  subLogger.debug( "The switches used are:" )
   map( subLogger.debug, switchDict.iteritems() )
   
   return switchDict
