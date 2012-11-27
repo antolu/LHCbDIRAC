@@ -10,16 +10,18 @@
 __RCSID__ = "$Id$"
 
 import os, types
-import pprint
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.Time import toString
+from DIRAC.Core.Base.API import API
+from DIRAC.Core.Utilities.PromptUser import promptUser
+
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 COMPONENT_NAME = 'DiracProduction'
 
-class DiracProduction:
+class DiracProduction( API ):
   """ class for managing productions
   """
 
@@ -28,17 +30,15 @@ class DiracProduction:
     """Instantiates the Workflow object and some default parameters.
     """
 
+    super( DiracProduction, self ).__init__()
+
     if tsClientIn is None:
       from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
       self.transformationClient = TransformationClient()
     else:
       self.transformationClient = tsClientIn
 
-    self.log = gLogger.getSubLogger( COMPONENT_NAME )
-    #gLogger.setLevel('verbose')
-    self.section = COMPONENT_NAME
     self.diracAPI = DiracLHCb()
-    self.pPrint = pprint.PrettyPrinter()
     self.prodHeaders = {'AgentType':'SubmissionMode',
                         'Status':'Status',
                         'CreationDate':'Created',
@@ -83,7 +83,7 @@ class DiracProduction:
     message = ['ProductionID'.ljust( adj ) + top + '\n']
     for prodID, params in prodDict.items():
       line = str( prodID ).ljust( adj )
-      for key, name in self.prodHeaders.items():
+      for key, _name in self.prodHeaders.items():
         for n, v in params.items():
           if n == key:
             line += str( v ).ljust( adj )
@@ -101,7 +101,7 @@ class DiracProduction:
       productionID = int( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     result = self.transformationClient.getTransformation( int( productionID ) )
     if not result['OK']:
@@ -157,7 +157,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     result = self.transformationClient.getTransformationLogging( long( productionID ) )
     if not result['OK']:
@@ -192,7 +192,7 @@ class DiracProduction:
     if productionID:
       if not type( productionID ) == type( long( 1 ) ):
         if not type( productionID ) == type( " " ):
-          return self.__errorReport( 'Expected string or long for production ID' )
+          return self._errorReport( 'Expected string or long for production ID' )
 
     result = self.transformationClient.getTransformationSummary()
     if not result['OK']:
@@ -225,7 +225,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     statusDict = self.getProdJobMetadata( productionID, status, minorStatus )
     if not statusDict['OK']:
@@ -351,7 +351,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     statusDict = self.getProdJobMetadata( productionID, status, minorStatus )
     if not statusDict['OK']:
@@ -451,7 +451,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     statusDict = self.getProdJobMetadata( productionID, None, None, site )
     if not statusDict['OK']:
@@ -551,7 +551,7 @@ class DiracProduction:
     if productionID:
       if not type( productionID ) == type( long( 1 ) ):
         if not type( productionID ) == type( " " ):
-          return self.__errorReport( 'Expected string, long or int for production ID' )
+          return self._errorReport( 'Expected string, long or int for production ID' )
 
     if not productionID:
       result = self.getActiveProductions()
@@ -608,17 +608,17 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     if not type( command ) == type( " " ):
-      return self.__errorReport( 'Expected string, for command' )
+      return self._errorReport( 'Expected string, for command' )
     if not command.lower() in commands.keys():
-      return self.__errorReport( 'Expected one of: %s for command string' % ( ', '.join( commands.keys() ) ) )
+      return self._errorReport( 'Expected one of: %s for command string' % ( ', '.join( commands.keys() ) ) )
 
     self.log.verbose( 'Requested to change production %s with command "%s"' % ( productionID,
                                                                                 command.lower().capitalize() ) )
     if not disableCheck:
-      result = self.__promptUser( 'Do you wish to change production %s with command "%s"? ' % ( productionID,
+      result = promptUser( 'Do you wish to change production %s with command "%s"? ' % ( productionID,
                                                                                                 command.lower().capitalize() ) )
       if not result['OK']:
         self.log.info( 'Action cancelled' )
@@ -650,7 +650,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     result = self.transformationClient.deleteTransformation( productionID )
     if result['OK'] and printOutput:
@@ -746,7 +746,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     if type( lfns ) == type( " " ):
       lfns = lfns.replace( 'LFN:', '' )
@@ -754,9 +754,9 @@ class DiracProduction:
       try:
         lfns = [str( lfnName.replace( 'LFN:', '' ) ) for lfnName in lfns]
       except Exception, x:
-        return self.__errorReport( str( x ), 'Expected strings for LFN(s)' )
+        return self._errorReport( str( x ), 'Expected strings for LFN(s)' )
     else:
-      return self.__errorReport( 'Expected single string or list of strings for LFN(s)' )
+      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
 
     fileStatus = self.transformationClient.getFileSummary( lfns, long( productionID ) )
     if printOutput:
@@ -773,7 +773,7 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     jobs = self.selectProductionJobs( productionID, Status = selectStatus,
                                       MinorStatus = selectMinorStatus, Site = site )
@@ -791,7 +791,7 @@ class DiracProduction:
       return res
 
     lfnsDict = res['Value']
-    for job, lfnList in lfnsDict.items():
+    for _job, lfnList in lfnsDict.items():
       lfns += lfnList
 
     lfns = [i.replace( 'LFN:', '' ) for i in lfns]
@@ -821,14 +821,14 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string, long or int for production ID' )
+        return self._errorReport( 'Expected string, long or int for production ID' )
 
     if type( lfns ) in types.StringTypes:
       lfnList = [lfns]
     elif type( lfns ) == types.ListType:
       lfnList = lfns
     else:
-      return self.__errorReport( 'Expected string or list for LFNs' )
+      return self._errorReport( 'Expected string or list for LFNs' )
 
     result = self.transformationClient.setFileStatusForTransformation( productionID, status, lfnList )
     if printOutput:
@@ -968,17 +968,17 @@ class DiracProduction:
       productionID = long( productionID )
     if not type( productionID ) == type( long( 1 ) ):
       if not type( productionID ) == type( " " ):
-        return self.__errorReport( 'Expected string or long for production ID' )
+        return self._errorReport( 'Expected string or long for production ID' )
 
     if type( numberOfJobs ) == type( " " ):
       try:
         numberOfJobs = int( numberOfJobs )
       except Exception, x:
-        return self.__errorReport( str( x ), 'Expected integer or string for number of jobs to submit' )
+        return self._errorReport( str( x ), 'Expected integer or string for number of jobs to submit' )
 
     result = self.transformationClient.extendTransformation( long( productionID ), numberOfJobs )
     if not result['OK']:
-      return self.__errorReport( result, 'Could not extend production %s by %s jobs' % ( productionID, numberOfJobs ) )
+      return self._errorReport( result, 'Could not extend production %s by %s jobs' % ( productionID, numberOfJobs ) )
 
     if printOutput:
       print 'Extended production %s by %s jobs' % ( productionID, numberOfJobs )
@@ -1057,41 +1057,5 @@ class DiracProduction:
       Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
     return S_OK( prodID )
-
-  #############################################################################
-  def __errorReport( self, error, message = None ):
-    """Internal function to return errors and exit with an S_ERROR()
-    """
-    if not message:
-      message = error
-
-    self.log.warn( error )
-    return S_ERROR( message )
-
-  #############################################################################
-  def _prettyPrint( self, objectIn ):
-    """Helper function to pretty print an object.
-    """
-    print self.pPrint.pformat( objectIn )
-
-  #############################################################################
-  def __promptUser( self, message ):
-    """Internal function to prompt user for raw input.
-    """
-    self.log.info( '%s %s' % ( message, '[yes/no] : ' ) )
-    response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
-    responses = ['yes', 'y', 'n', 'no']
-    if not response.strip() or response == '\n':
-      self.log.info( 'Possible responses are: %s' % ( ', '.join( responses ) ) )
-      response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
-
-    if not response.strip().lower() in responses:
-      self.log.info( 'Problem interpreting input "%s", assuming negative response.' % ( response ) )
-      return S_ERROR( response )
-
-    if response.strip().lower() == 'y' or response.strip().lower() == 'yes':
-      return S_OK( response )
-    else:
-      return S_ERROR( response )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

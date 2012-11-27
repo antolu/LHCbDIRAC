@@ -34,7 +34,7 @@ class DiracLHCb( Dirac ):
     """Internal initialization of the DIRAC API.
     """
 
-    Dirac.__init__( self, withRepo = withRepo, repoLocation = repoLocation )
+    super( DiracLHCb, self ).__init__( withRepo = withRepo, repoLocation = repoLocation )
     self.tier1s = []
 
     if not operationsHelperIn:
@@ -80,7 +80,7 @@ class DiracLHCb( Dirac ):
     """
     res = getRootFileGUID( fullPath )
     if not res['OK']:
-      return self.__errorReport( res['Message'], "Failed to obtain root file GUID." )
+      return self._errorReport( res['Message'], "Failed to obtain root file GUID." )
     res = self.addFile( lfn, fullPath, diracSE, fileGuid = res['Value'], printOutput = printOutput )
     return res
 
@@ -130,12 +130,12 @@ class DiracLHCb( Dirac ):
           print glob.glob( globStr )
           inputFiles.extend( glob.glob( globStr ) )
         else:
-          return self.__errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
+          return self._errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
 
     # Perform the root merger
     res = mergeRootFiles( outputFileName, inputFiles, daVinciVersion = '' )
     if not res['OK']:
-      return self.__errorReport( res['Message'], "Failed to perform final ROOT merger" )
+      return self._errorReport( res['Message'], "Failed to perform final ROOT merger" )
     return S_OK()
 
   #############################################################################
@@ -158,7 +158,7 @@ class DiracLHCb( Dirac ):
     """
     rootVersions = gConfig.getOptionsDict( self.softwareSection + '/LHCbRoot' )
     if not rootVersions['OK']:
-      return self.__errorReport( rootVersions,
+      return self._errorReport( rootVersions,
                                  'Could not contact DIRAC Configuration Service for supported ROOT version list' )
 
     if printOutput:
@@ -189,7 +189,7 @@ class DiracLHCb( Dirac ):
     """
     softwareDistribution = gConfig.getOptionsDict( self.softwareSection )
     if not softwareDistribution['OK']:
-      return self.__errorReport( 'Could not contact DIRAC Configuration Service for supported software version list' )
+      return self._errorReport( 'Could not contact DIRAC Configuration Service for supported software version list' )
 
     software = softwareDistribution['Value']
     systemConfigs = software.keys()
@@ -673,7 +673,7 @@ class DiracLHCb( Dirac ):
       return S_ERROR( 'BK query returned an error: "%s"' % ( result['Message'] ) )
 
     if not result['Value']:
-      return self.__errorReport( 'No BK files selected' )
+      return self._errorReport( 'No BK files selected' )
 
     returnedFiles = len( result['Value'] )
     self.log.verbose( '%s files selected from the BK' % ( returnedFiles ) )
@@ -763,9 +763,9 @@ class DiracLHCb( Dirac ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
       except Exception, x:
-        return self.__errorReport( str( x ), 'Expected strings for LFNs' )
+        return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
-      return self.__errorReport( 'Expected single string or list of strings for LFN(s)' )
+      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
 
     runDict = {}
     bk = BookkeepingClient()
@@ -814,9 +814,9 @@ class DiracLHCb( Dirac ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
       except Exception, x:
-        return self.__errorReport( str( x ), 'Expected strings for LFNs' )
+        return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
-      return self.__errorReport( 'Expected single string or list of strings for LFN(s)' )
+      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
 
     bk = BookkeepingClient()
     start = time.time()
@@ -984,11 +984,3 @@ class DiracLHCb( Dirac ):
         print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
 
     return S_OK( result )
-  #############################################################################
-  def __errorReport( self, error, message = None ):
-    """Internal function to return errors and exit with an S_ERROR()
-    """
-    if not message:
-      message = error
-    self.log.warn( error )
-    return S_ERROR( message )
