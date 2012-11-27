@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/tags/DIRAC/Interfaces/if_2010110301/scripts/dirac-dms-lfn-replicas.py $
 # File :   dirac-admin-lfn-replicas
 # Author : Stuart Paterson
 ########################################################################

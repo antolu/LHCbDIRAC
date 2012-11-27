@@ -1,5 +1,4 @@
 #!/bin/env python
-# $HeadURL$
 """Display FTS channels configuration used by DIRAC to transfer files between different Tiers.
 """
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL:  $
-########################################################################
 
 """
    Browse a BK path. It also allows to get from a file the datasets that should be kept (with a date)

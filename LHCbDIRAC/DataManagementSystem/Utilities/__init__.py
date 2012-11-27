@@ -1,6 +1,4 @@
 ############################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Core/Utilities/__init__.py $
-############################################################
 
 """
    LHCbDIRAC.Core.Utilities package
