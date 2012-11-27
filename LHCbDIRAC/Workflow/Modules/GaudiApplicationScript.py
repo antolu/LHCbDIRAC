@@ -25,7 +25,6 @@ class GaudiApplicationScript( ModuleBase ):
     super( GaudiApplicationScript, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.result = S_ERROR()
-    self.root = None
 
     #Set defaults for all workflow parameters here
     self.script = None
@@ -90,11 +89,11 @@ class GaudiApplicationScript( ModuleBase ):
       if not self.result['OK']:
         return self.result
 
-      self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
                                                                                    self.applicationVersion,
                                                                                    self.systemConfig ) )
-      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
+      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root',
+                                                                                        os.getcwd() ) ) )
 
       #Now obtain the project environment for execution
       if not projectEnvironment:

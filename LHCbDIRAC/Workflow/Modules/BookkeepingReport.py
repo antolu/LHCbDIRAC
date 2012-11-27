@@ -69,15 +69,11 @@ class BookkeepingReport( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK()
 
-      result = self._resolveInputVariables( xf_o )
-      if not result['OK']:
-        self.log.error( result['Message'] )
-        return result
+      bkLFNs, logFilePath = self._resolveInputVariables( xf_o )
 
-      doc = self.__makeBookkeepingXML()
+      doc = self.__makeBookkeepingXML( bkLFNs, logFilePath )
 
       if saveOnFile:
-        self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
         #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
         #bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
@@ -122,24 +118,21 @@ class BookkeepingReport( ModuleBase ):
         self.workflow_commons.has_key( 'LogFilePath' )    and \
         self.workflow_commons.has_key( 'ProductionOutputData' ):
 
-      self.logFilePath = self.workflow_commons['LogFilePath']
-      self.bkLFNs = self.workflow_commons['BookkeepingLFNs']
-      self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
+      logFilePath = self.workflow_commons['LogFilePath']
+      bkLFNs = self.workflow_commons['BookkeepingLFNs']
 
-      if not type( self.bkLFNs ) == type( [] ):
-        self.bkLFNs = [i.strip() for i in self.bkLFNs.split( ';' )]
-      if not type( self.prodOutputLFNs ) == type( [] ):
-        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]
+      if not type( bkLFNs ) == type( [] ):
+        bkLFNs = [i.strip() for i in bkLFNs.split( ';' )]
 
     else:
       self.log.info( 'LogFilePath / BookkeepingLFNs parameters not found, creating on the fly' )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create production LFNs', result['Message'] )
-        return result
-      self.bkLFNs = result['Value']['BookkeepingLFNs']
-      self.logFilePath = result['Value']['LogFilePath'][0]
-      self.prodOutputLFNs = result['Value']['ProductionOutputData']
+        raise ValueError, result['Message']
+
+      bkLFNs = result['Value']['BookkeepingLFNs']
+      logFilePath = result['Value']['LogFilePath'][0]
 
     self.ldate = time.strftime( "%Y-%m-%d", time.localtime( time.time() ) )
     self.ltime = time.strftime( "%H:%M", time.localtime( time.time() ) )
@@ -181,12 +174,12 @@ class BookkeepingReport( ModuleBase ):
     else:
       self.xf_o = xf_o
 
-    return S_OK()
+    return bkLFNs, logFilePath
 
 ################################################################################
 ################################################################################
 
-  def __makeBookkeepingXML( self ):
+  def __makeBookkeepingXML( self, bkLFNs, logFilePath ):
 
     ''' Bookkeeping xml looks like this:
 
@@ -219,9 +212,9 @@ class BookkeepingReport( ModuleBase ):
     # Generate TypedParams
     jobNode = self.__generateTypedParams( jobNode )
     # Generate InputFiles
-    jobNode = self.__generateInputFiles( jobNode )
+    jobNode = self.__generateInputFiles( jobNode, bkLFNs )
     # Generate OutputFiles
-    jobNode = self.__generateOutputFiles( jobNode )
+    jobNode = self.__generateOutputFiles( jobNode, bkLFNs, logFilePath )
     # Generate SimulationConditions
     jobNode = self.__generateSimulationCondition( jobNode )
 
@@ -359,7 +352,7 @@ class BookkeepingReport( ModuleBase ):
 
 ################################################################################
 
-  def __generateInputFiles( self, jobNode ):
+  def __generateInputFiles( self, jobNode, bkLFNs ):
     ''' InputData looks like this
         <InputFile Name=""/>
     '''
@@ -367,7 +360,7 @@ class BookkeepingReport( ModuleBase ):
     if self.stepInputData:
       intermediateInputs = False
       for inputname in self.stepInputData:
-        for bkLFN in self.bkLFNs:
+        for bkLFN in bkLFNs:
           if os.path.basename( bkLFN ) == os.path.basename( inputname ):
             jobNode = addChildNode( jobNode, "InputFile", 0, bkLFN )
             intermediateInputs = True
@@ -378,7 +371,7 @@ class BookkeepingReport( ModuleBase ):
 
 ################################################################################
 
-  def __generateOutputFiles( self, jobNode ):
+  def __generateOutputFiles( self, jobNode, bkLFNs, logFilePath ):
     '''OutputFile looks like this:
 
        <OutputFile Name="" TypeName="" TypeVersion="">
@@ -411,8 +404,8 @@ class BookkeepingReport( ModuleBase ):
       count = count + 1
     outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
     self.log.info( outputs )
-    if type( self.logFilePath ) == type( [] ):
-      self.logFilePath = self.logFilePath[ 0 ]
+    if type( logFilePath ) == type( [] ):
+      logFilePath = logFilePath[ 0 ]
 
     for output, outputse, outputtype in list( outputs ):
       self.log.info( 'Looking at output %s %s %s' % ( output, outputse, outputtype ) )
@@ -490,14 +483,14 @@ class BookkeepingReport( ModuleBase ):
       # find the constructed lfn
       lfn = ''
       if not re.search( '.log$', output ):
-        for outputLFN in self.bkLFNs:
+        for outputLFN in bkLFNs:
           if os.path.basename( outputLFN ) == output:
             lfn = outputLFN
         if not lfn:
           self.log.error( 'Could not find LFN for %s' % output )
           raise NameError, 'Could not find LFN of output file'
       else:
-        lfn = '%s/%s' % ( self.logFilePath, self.applicationLog )
+        lfn = '%s/%s' % ( logFilePath, self.applicationLog )
 
       oldTypeName = None
       if 'HIST' in typeName.upper():
@@ -525,7 +518,7 @@ class BookkeepingReport( ModuleBase ):
         logfile = self.applicationLog
         if logfile == output:
           logurl = 'http://lhcb-logs.cern.ch/storage'
-          url = logurl + self.logFilePath + '/' + self.applicationLog
+          url = logurl + logFilePath + '/' + self.applicationLog
           oFile = addChildNode( oFile, "Replica", 0, url )
 
       oFile = addChildNode( oFile, "Parameter", 0, *( "MD5Sum", md5sum ) )

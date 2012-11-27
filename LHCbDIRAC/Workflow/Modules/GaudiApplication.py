@@ -95,11 +95,11 @@ class GaudiApplication( ModuleBase ):
 
       stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
 
-      self.root = gConfig.getValue( '/LocalSite/Root', os.getcwd() )
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
                                                                                    self.applicationVersion,
                                                                                    self.systemConfig ) )
-      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( self.root ) )
+      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root', 
+                                                                                        os.getcwd() ) ) )
 
       if self.jobType.lower() == 'merge':
         #Disable the watchdog check in case the file uploading takes a long time
