@@ -920,10 +920,16 @@ class UploadLogFileSuccess( ModulesTestCase ):
 #                                           self.bkc_mock )['OK'] )
 
     #putStorageDirectory returns False
+
     rm_mock = copy.deepcopy( self.rm_mock )
     rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
     ft_mock = copy.deepcopy( self.ft_mock )
-    ft_mock.getRequestObject.return_value = {'OK': True, 'Value': self.rc_mock}
+    request_mock = Mock()
+    request_mock.addSubRequest.return_value = {'OK': True, 'Value': ''}
+    request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': ''}
+    request_mock.getNumSubRequests.return_value = {'OK': True, 'Value': ''}
+    request_mock._getLastOrder.return_value = 1
+    ft_mock.getRequestObject.return_value = {'OK': True, 'Value': request_mock}
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
