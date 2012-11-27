@@ -1,4 +1,3 @@
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/Interfaces/API/__init__.py $
 ''' LHCbDIRAC.ConfigurationSystem package
 '''
 

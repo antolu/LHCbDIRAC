@@ -1,4 +1,3 @@
-# $HeadURL$
 '''
   Update Users and Groups from VOMS on CS
 '''

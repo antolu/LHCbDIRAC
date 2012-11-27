@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_CS_Agent_DummyTest
 
 '''
