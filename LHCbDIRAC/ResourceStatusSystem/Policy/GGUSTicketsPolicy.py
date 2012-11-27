@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' GGUSTicketsPolicy 
   
   The GGUSTicketsPolicy class is a policy class that evaluates on

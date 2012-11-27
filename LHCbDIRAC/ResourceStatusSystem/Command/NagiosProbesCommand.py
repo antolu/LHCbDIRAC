@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' NagiosProbesCommand
   
   The Command gets information from the MonitoringTest cache.

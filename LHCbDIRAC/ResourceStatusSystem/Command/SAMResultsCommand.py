@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' SAMResultsCommand
   
   The Command is a command class to know about present SAM status.

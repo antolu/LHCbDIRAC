@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' AlwaysFalsePolicy
 
   Class is a policy class that... checks nothing!

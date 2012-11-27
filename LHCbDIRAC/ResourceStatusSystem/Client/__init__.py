@@ -1,4 +1,3 @@
-# $HeadURL $
 ''' LHCbDIRAC.ResourceStatusSystem.Client package
 '''
 

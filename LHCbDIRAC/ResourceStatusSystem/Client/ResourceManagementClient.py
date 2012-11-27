@@ -1,4 +1,3 @@
-# $HeadURL $
 ''' ResourceManagementClient
 
   Extension for the DIRAC version of the ResourceManagementClient.

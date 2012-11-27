@@ -1,4 +1,3 @@
-#$HeadURL$
 ''' Test_RSS_Policy_DownHillPropagationPolicy
 
   Simplest test case for the RSS policies. Can be taken as example for other

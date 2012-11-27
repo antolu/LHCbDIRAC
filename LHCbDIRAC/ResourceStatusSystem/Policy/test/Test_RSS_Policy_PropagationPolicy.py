@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_RSS_Policy_PropagationPolicy
 
   Simplest test case for the RSS policies. Can be taken as example for other
@@ -8,7 +7,7 @@
 
 import unittest
 
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id$'
 
 class PolicyBase( object ):
   

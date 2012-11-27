@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' JobsEfficiencySimplePolicy
   
   The JobsEfficiencySimplePolicy class is a policy class

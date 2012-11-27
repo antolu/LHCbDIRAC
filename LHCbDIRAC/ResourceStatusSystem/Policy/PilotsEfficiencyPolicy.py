@@ -1,4 +1,3 @@
-## $HeadURL$
 #''' PilotsEfficiencyPolicy
 # 
 #  The PilotsEfficiencyPolicy class is a policy class 

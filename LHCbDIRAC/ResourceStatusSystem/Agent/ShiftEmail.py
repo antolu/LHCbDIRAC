@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' ShiftEmail
 
   Body of the emails sent to the shifters.

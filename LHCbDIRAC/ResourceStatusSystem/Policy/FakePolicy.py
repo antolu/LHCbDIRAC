@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' FakePolicy
 
   Module used for testing purposes.

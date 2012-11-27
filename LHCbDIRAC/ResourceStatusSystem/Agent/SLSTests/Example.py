@@ -1,4 +1,3 @@
-## $HeadURL: $
 #'''  Example
 #
 #  Module used as example and for tests.

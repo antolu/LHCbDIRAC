@@ -1,4 +1,3 @@
-## $HeadURL: $
 #'''  SLSXML
 #
 #  Module that writes the SLS xml files. To be completely re-written.

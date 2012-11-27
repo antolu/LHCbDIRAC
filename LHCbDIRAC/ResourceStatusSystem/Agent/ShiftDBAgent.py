@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' ShiftDBAgent
 
   This agent queries the LHCb ShiftDB and gets the emails of the Production

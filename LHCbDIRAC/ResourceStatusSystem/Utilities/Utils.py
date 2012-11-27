@@ -1,4 +1,3 @@
-## $HeadURL: $
 #''' Utils
 #
 #  This is a workaround to reuse the ResourceManagementClient on the SLSXML module.

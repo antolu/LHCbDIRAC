@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' SEOccupancyPolicy
 
   The SEOccupancyPolicy class is a policy class satisfied when a SE has a 

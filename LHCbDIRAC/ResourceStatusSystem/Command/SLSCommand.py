@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' SLSCommand
   
   The Command class is a command class to properly interrogate the SLS.

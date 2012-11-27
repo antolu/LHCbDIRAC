@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' knownAPIs
 
   Here are all known and relevant APIs for the ResourceStatusSystem Commands

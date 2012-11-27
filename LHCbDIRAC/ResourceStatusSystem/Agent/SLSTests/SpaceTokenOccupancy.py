@@ -1,4 +1,3 @@
-## $HeadURL: $
 #''' SpaceTokenOccupancy
 #
 #  Module that runs the tests for the SpaceTokenOccupancy SLS sensors.

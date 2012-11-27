@@ -1,4 +1,3 @@
-## $HeadURL$
 #''' HCCommand
 #
 #  Command to interact with the XMLRPC server of HammerCloud.

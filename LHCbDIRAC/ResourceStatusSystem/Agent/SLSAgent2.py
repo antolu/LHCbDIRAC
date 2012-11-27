@@ -1,4 +1,3 @@
-## $HeadURL: $
 #''' SLSAgent2
 #
 #  This agent is a replacement for the current SLSAgent, which is sequential and

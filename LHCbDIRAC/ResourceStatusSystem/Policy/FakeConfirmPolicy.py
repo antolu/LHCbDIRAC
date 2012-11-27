@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' FakeConfirmPolicy
 
   Module used for testing purposes.

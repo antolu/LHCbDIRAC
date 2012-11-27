@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' SLSPolicy
 
   The SLSPolicy class is a policy class satisfied when a SLS sensors 

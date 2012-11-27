@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' Configurations
 
   Collects everything needed to configure policies.

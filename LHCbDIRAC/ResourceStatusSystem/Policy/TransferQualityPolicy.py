@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' TransferQualityPolicy
  
   The TransferQualityPolicy class is a policy class to check the transfer

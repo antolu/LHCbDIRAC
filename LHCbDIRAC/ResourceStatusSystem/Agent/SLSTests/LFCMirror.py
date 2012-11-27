@@ -1,4 +1,3 @@
-## $HeadURL: $
 #''' LFCMirror
 #
 #  Module that runs the tests for the LFCMirror SLS sensors

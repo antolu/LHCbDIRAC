@@ -1,4 +1,3 @@
-## $HeadURL$
 #''' HCClient 
 #
 #  Client to connect and interact with HammerCloud.
