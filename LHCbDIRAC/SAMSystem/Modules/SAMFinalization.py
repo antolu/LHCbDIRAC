@@ -1,5 +1,4 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/SAMFinalization.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SAMFinalization.py 57723 2012-10-18 08:32:17Z joel $"
+__RCSID__ = "$Id$"
 
 
 import DIRAC

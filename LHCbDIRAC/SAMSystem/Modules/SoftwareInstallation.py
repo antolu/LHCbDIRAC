@@ -1,5 +1,4 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/SoftwareInstallation.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -11,7 +10,7 @@
 
 """
 
-__RCSID__ = "$Id: SoftwareInstallation.py 57656 2012-10-17 15:18:50Z fstagni $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 

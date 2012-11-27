@@ -1,5 +1,4 @@
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/SAMSystem/Modules/SystemConfiguration.py $
 # Author : Stuart Paterson
 ########################################################################
 
@@ -8,7 +7,7 @@
     Corresponds to SAM test CE-lhcb-os.
 """
 
-__RCSID__ = "$Id: SystemConfiguration.py 57656 2012-10-17 15:18:50Z fstagni $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
