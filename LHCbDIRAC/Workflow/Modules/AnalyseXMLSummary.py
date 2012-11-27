@@ -18,12 +18,12 @@ class AnalyseXMLSummary( ModuleBase ):
   """ Analysing the XML summary
   """
 
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( 'AnalyseXMLSummary' )
-    super( AnalyseXMLSummary, self ).__init__( self.log )
+    super( AnalyseXMLSummary, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()

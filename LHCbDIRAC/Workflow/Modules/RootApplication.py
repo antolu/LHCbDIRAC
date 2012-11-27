@@ -14,12 +14,12 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 class RootApplication( ModuleBase ):
 
   #############################################################################
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """ Module initialization
     """
 
     self.log = gLogger.getSubLogger( "RootApplication" )
-    super( RootApplication, self ).__init__( self.log )
+    super( RootApplication, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
     self.result = S_ERROR()

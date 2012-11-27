@@ -18,10 +18,10 @@ class StepAccounting( ModuleBase ):
   """ StepAccounting class
   """
 
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
 
     self.log = gLogger.getSubLogger( "StepAccounting" )
-    super( StepAccounting, self ).__init__( self.log )
+    super( StepAccounting, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
 

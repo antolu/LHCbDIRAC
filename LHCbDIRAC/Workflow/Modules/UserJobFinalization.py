@@ -20,12 +20,12 @@ from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
 class UserJobFinalization( ModuleBase ):
 
   #############################################################################
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "UserJobFinalization" )
-    super( UserJobFinalization, self ).__init__( self.log )
+    super( UserJobFinalization, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
     self.enable = True

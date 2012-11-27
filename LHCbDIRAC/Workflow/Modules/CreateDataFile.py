@@ -11,13 +11,13 @@ class CreateDataFile( ModuleBase ):
   """ CreateDataFile class
   """
 
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """ simple init
     """
 
     self.log = gLogger.getSubLogger( "CreateDataFile" )
 
-    super( CreateDataFile, self ).__init__( self.log )
+    super( CreateDataFile, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.gangaFileName = 'data.py'
     self.poolXMLCatName = 'pool_xml_catalog.xml'

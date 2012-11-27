@@ -8,7 +8,7 @@ class UtilitiesTestCase( unittest.TestCase ):
   def setUp( self ):
     self.bkClientMock = Mock()
 
-    self.cc = ConsistencyChecks( bkClient = self.bkClientMock )
+    self.cc = ConsistencyChecks( transClient = Mock(), rm = Mock(), bkClient = self.bkClientMock )
     self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG']
     self.cc.fileTypesExcluded = ['LOG']
     self.cc.prod = 0
@@ -72,11 +72,12 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
                                                                    'NotProcessed': [],
                                                                    'Successful': {'aa.raw': ['bb.raw', 'bb.log']}}}
 
-    filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants = self.cc.getDescendants( ['aa.raw'] )
+    res = self.cc.getDescendants( ['aa.raw'] )
+    filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants, descendants = res
     self.assertEqual( filesWithDescendants, [] )
     self.assertEqual( filesWithoutDescendants, ['aa.raw'] )
     self.assertEqual( filesWitMultipleDescendants, [] )
-
+    self.assertEqual( descendants, [] )
 
 
 if __name__ == '__main__':

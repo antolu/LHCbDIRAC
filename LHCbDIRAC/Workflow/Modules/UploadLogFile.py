@@ -20,12 +20,12 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "UploadLogFile" )
-    super( UploadLogFile, self ).__init__( self.log )
+    super( UploadLogFile, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
 

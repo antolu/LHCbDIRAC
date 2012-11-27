@@ -14,12 +14,12 @@ class RemoveInputData( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "RemoveInputData" )
-    super( RemoveInputData, self ).__init__( self.log )
+    super( RemoveInputData, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
 

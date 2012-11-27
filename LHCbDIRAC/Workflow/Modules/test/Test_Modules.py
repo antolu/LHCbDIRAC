@@ -34,6 +34,7 @@ class ModulesTestCase( unittest.TestCase ):
     rc_mock.isEmpty.return_value = {'OK': True, 'Value': ''}
     rc_mock.toXML.return_value = {'OK': True, 'Value': ''}
     rc_mock.getDigest.return_value = {'OK': True, 'Value': ''}
+    self.rc_mock = rc_mock
 
     ar_mock = Mock()
     ar_mock.commit.return_value = {'OK': True, 'Value': ''}
@@ -212,80 +213,59 @@ class ModulesTestCase( unittest.TestCase ):
 
 
     from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-    self.mb = ModuleBase()
-    self.mb.bkClient = self.bkc_mock
+    self.mb = ModuleBase( bkClientIn = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
-    self.alf = AnalyseLogFile()
-    self.alf.bkClient = self.bkc_mock
-    self.alf.rm = self.rm_mock
+    self.alf = AnalyseLogFile( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
-    self.axlf = AnalyseXMLSummary()
-    self.axlf.bkClient = self.bkc_mock
-    self.axlf.rm = self.rm_mock
+    self.axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
-    self.ga = GaudiApplication()
-    self.ga.bkClient = self.bkc_mock
+    self.ga = GaudiApplication( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
-    self.gas = GaudiApplicationScript()
+    self.gas = GaudiApplicationScript( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
-    self.bkr = BookkeepingReport()
-    self.bkr.bkClient = self.bkc_mock
+    self.bkr = BookkeepingReport( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
-    self.el = ErrorLogging()
-    self.el.bkClient = self.bkc_mock
+    self.el = ErrorLogging( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
-    self.fr = FailoverRequest()
-    self.fr.bkClient = self.bkc_mock
+    self.fr = FailoverRequest( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.MergeMDF import MergeMDF
-    self.mm = MergeMDF()
-    self.mm.bkClient = self.bkc_mock
+    self.mm = MergeMDF( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.ProtocolAccessTest import ProtocolAccessTest
-    self.pat = ProtocolAccessTest()
-    self.pat.rm = self.rm_mock
-    self.pat.bkClient = self.bkc_mock
+    self.pat = ProtocolAccessTest( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
-    self.rid = RemoveInputData()
-    self.rid.rm = self.rm_mock
-    self.rid.bkClient = self.bkc_mock
+    self.rid = RemoveInputData( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
-    self.sb = SendBookkeeping()
-    self.sb.bkClient = self.bkc_mock
+    self.sb = SendBookkeeping( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
-    self.uod = UploadOutputData()
-    self.uod.bkClient = self.bkc_mock
-    self.uod.rm = self.rm_mock
+    self.uod = UploadOutputData( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
-    self.ujf = UserJobFinalization()
+    self.ujf = UserJobFinalization( bkClient = self.bkc_mock, rm = self.rm_mock )
     self.ujf.bkClient = self.bkc_mock
 
     from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
-    self.sa = StepAccounting()
-    self.sa.bkClient = self.bkc_mock
+    self.sa = StepAccounting( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
-    self.ulf = UploadLogFile()
-    self.ulf.bkClient = self.bkc_mock
+    self.ulf = UploadLogFile( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
-    self.fu = FileUsage()
-    self.fu.bkClient = self.bkc_mock
+    self.fu = FileUsage( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
-    self.cdf = CreateDataFile()
-    self.cdf.bkClient = self.bkc_mock
+    self.cdf = CreateDataFile( bkClient = self.bkc_mock, rm = self.rm_mock )
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst',
@@ -943,8 +923,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
     rm_mock = copy.deepcopy( self.rm_mock )
     rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
     ft_mock = copy.deepcopy( self.ft_mock )
-    from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-    ft_mock.getRequestObject.return_value = {'OK': True, 'Value': RequestContainer()}
+    ft_mock.getRequestObject.return_value = {'OK': True, 'Value': self.rc_mock}
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,

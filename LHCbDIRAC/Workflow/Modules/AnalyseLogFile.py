@@ -17,12 +17,12 @@ class AnalyseLogFile( ModuleBase ):
   """ Analyse not only the XML summary, also the log file is inspected
   """
 
-  def __init__( self ):
+  def __init__( self, bkClient = None, rm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( 'AnalyseLogFile' )
-    super( AnalyseLogFile, self ).__init__( self.log )
+    super( AnalyseLogFile, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
