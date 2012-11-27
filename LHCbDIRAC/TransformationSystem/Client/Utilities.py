@@ -4,6 +4,8 @@
 
 __RCSID__ = "$Id$"
 
+import os, time, pickle
+
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
@@ -11,7 +13,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
-import os, time
+
 
 class Setter:
   def __init__( self, obj, name ):
@@ -150,25 +152,25 @@ class PluginUtilities:
     self.transInThread = transInThread
     self.transString = ''
 
-  def logVerbose( self, message, param='' ):
+  def logVerbose( self, message, param = '' ):
     if self.debug:
       gLogger.info( '(V)' + self.transString + message, param )
     else:
       gLogger.verbose( self.transString + message, param )
 
-  def logDebug( self, message, param='' ):
+  def logDebug( self, message, param = '' ):
     gLogger.debug( self.transString + message, param )
 
-  def logInfo( self, message, param='' ):
+  def logInfo( self, message, param = '' ):
     gLogger.info( self.transString + message, param )
 
-  def logWarn( self, message, param='' ):
+  def logWarn( self, message, param = '' ):
     gLogger.warn( self.transString + message, param )
 
-  def logError( self, message, param='' ):
+  def logError( self, message, param = '' ):
     gLogger.error( self.transString + message, param )
 
-  def logException( self, message, param='', lException=False ):
+  def logException( self, message, param = '', lException = False ):
     gLogger.exception( self.transString + message, param, lException )
 
   def setParameters( self, params ):
@@ -179,7 +181,7 @@ class PluginUtilities:
   def setDebug( self, val ):
     self.debug = val
 
-  def getPluginParam( self, name, default=None ):
+  def getPluginParam( self, name, default = None ):
     """ Get plugin parameters using specific settings or settings defined in the CS
         Caution: the type returned is that of the default value
     """
@@ -218,10 +220,10 @@ class PluginUtilities:
     self.logVerbose( "Final plugin param %s: '%s'" % ( name, value ) )
     return value
 
-  def getCPUShares( self , transID=None, backupSE=None ):
-    return self.getShares( transID=transID, backupSE=backupSE )
+  def getCPUShares( self , transID = None, backupSE = None ):
+    return self.getShares( transID = transID, backupSE = backupSE )
 
-  def getShares( self, section=None, transID=None, backupSE=None ):
+  def getShares( self, section = None, transID = None, backupSE = None ):
     if not transID:
       transID = self.transID
     if not section:
@@ -240,7 +242,7 @@ class PluginUtilities:
     if backupSE:
       rawFraction = res['Value']
       targetSEs = sorted( rawFraction )
-      result = getShares( 'RAW', normalise=True )
+      result = getShares( 'RAW', normalise = True )
       if result['OK']:
         rawShares = result['Value']
         tier1Fraction = 0.
@@ -262,7 +264,7 @@ class PluginUtilities:
         self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
 
     # Get the existing destinations from the transformationDB, just for printing
-    res = self.getExistingCounters( transID, requestedSEs=sorted( shares ) )
+    res = self.getExistingCounters( transID, requestedSEs = sorted( shares ) )
     if not res['OK']:
       self.logError( "Failed to get used share", res['Message'] )
       return res
@@ -280,7 +282,7 @@ class PluginUtilities:
     else:
       return S_OK( ( existingCount, shares ) )
 
-  def getExistingCounters( self, transID, normalise=False, requestedSEs=None ):
+  def getExistingCounters( self, transID, normalise = False, requestedSEs = None ):
     """
     Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
     """
@@ -348,7 +350,7 @@ class PluginUtilities:
     activeSE = []
 
     try:
-      res = self.resourceStatus.getStorageElementStatus( selist, statusType='Write', default='Unknown' )
+      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
       if res[ 'OK' ]:
         for k, v in res[ 'Value' ].items():
           if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
@@ -400,7 +402,7 @@ class PluginUtilities:
         self.freeSpace[se] = {'site':site, 'token':token, 'freeSpace':value['freeSpace']}
         return self.freeSpace[se]['freeSpace']
     # if not get the information from RSS
-    res = self.rmClient.getSLSStorage( site=site, token=token )
+    res = self.rmClient.getSLSStorage( site = site, token = token )
     if res['OK']:
       if len( res['Value'] ) == 0 or len( res['Value'][0] ) < 9:
         self.logError( "Incorrect return value from RSS for site %s, token %s: %s" % ( site, token, res['Value'] ) )
@@ -447,7 +449,7 @@ class PluginUtilities:
     return rankedSEs
 
   def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs,
-                      exclusiveSEs=False ):
+                      exclusiveSEs = False ):
     """ Decide on which SEs to target from lists and current status of replication
         Policy is max one archive1, one archive 2, all mandatory SEs and required number of copies elsewhere
     """
@@ -576,7 +578,7 @@ class PluginUtilities:
         return True
     return False
 
-  def getRAWAncestorsForRun( self, runID, param='', paramValue='' ):
+  def getRAWAncestorsForRun( self, runID, param = '', paramValue = '' ):
     """ Determine from BK how many ancestors files from a given runs do have
         This is used for deciding when to flush a run (when all RAW files have been processed)
     """
@@ -615,7 +617,7 @@ class PluginUtilities:
     # If some files are unknown, get the ancestors from BK
     if lfns:
       startTime = time.time()
-      res = self.bkClient.getFileAncestors( lfns, depth=10 )
+      res = self.bkClient.getFileAncestors( lfns, depth = 10 )
       self.logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ),
                                                                                                   time.time() - startTime ) )
       if res['OK']:
@@ -630,7 +632,7 @@ class PluginUtilities:
     self.logVerbose( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
     return ancestors
 
-  def groupByRunAndParam( self, lfns, files, param='' ):
+  def groupByRunAndParam( self, lfns, files, param = '' ):
     """ Group files by run and another BK parameter (e.g. file type or event type)
     """
     runDict = {}
@@ -669,7 +671,7 @@ class PluginUtilities:
     for groupSE in ( True, False ):
       if not files:
         break
-      seFiles = getFileGroups( files, groupSE=groupSE )
+      seFiles = getFileGroups( files, groupSE = groupSE )
       # Consider disk SEs first
       for replicaSE in sortSEs( seFiles ):
         lfns = seFiles[replicaSE]
@@ -717,13 +719,13 @@ class PluginUtilities:
     for groupSE in ( True, False ):
       if not files:
         break
-      seFiles = getFileGroups( files, groupSE=groupSE )
+      seFiles = getFileGroups( files, groupSE = groupSE )
       for replicaSE in sorted( seFiles ) if groupSE else sortSEs( seFiles ):
         lfns = seFiles[replicaSE]
         lfnsInTasks = []
         taskLfns = []
         taskSize = 0
-        lfns = sorted( lfns, key=fileSizes.get )
+        lfns = sorted( lfns, key = fileSizes.get )
         for lfn in lfns:
           size = fileSizes.get( lfn, 0 )
           if size:
@@ -757,7 +759,7 @@ class PluginUtilities:
     self.logVerbose( "Grouped %d files by size in %.1f seconds" % ( len( files ), time.time() - startTime ) )
     return S_OK( tasks )
 
-  def createTasks( self, storageElementGroups, chunkSize=100 ):
+  def createTasks( self, storageElementGroups, chunkSize = 100 ):
     """ Create reasonable size tasks
     """
     tasks = []
@@ -771,7 +773,6 @@ class PluginUtilities:
   def readCacheFile( self, workDirectory ):
     """ Utility function
     """
-    import pickle
     # Now try and get the cached information
     tmpDir = os.environ.get( 'TMPDIR', '/tmp' )
     cacheFiles = ( ( workDirectory, ( 'TransPluginCache' ) ),
@@ -833,7 +834,6 @@ class PluginUtilities:
   def writeCacheFile( self ):
     """ Utility function
     """
-    import pickle
     if self.cacheFile:
       try:
         f = open( self.cacheFile, 'w' )
@@ -882,16 +882,16 @@ class PluginUtilities:
 #=================================================================
 
 def getRemovalPlugins():
-  return ( "DestroyDataset", "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed', 'DestroyDatasetWhenProcessed' )
+  return ( "DestroyDataset", "DeleteDataset", "DeleteReplicas",
+           'DeleteReplicasWhenProcessed', 'DestroyDatasetWhenProcessed' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset",
            "RAWShares", 'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
 
-def getShares( sType, normalise=False ):
+def getShares( sType, normalise = False ):
   """
   Get the shares from the Resources section of the CS
   """
-  from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
   optionPath = 'Shares/%s' % sType
   res = Operations().getOptionsDict( optionPath )
   if not res['OK']:
@@ -920,7 +920,7 @@ def normaliseShares( shares ):
     shares[site] = 100.0 * ( float( shares[site] ) / total )
   return shares
 
-def sortExistingSEs( lfnSEs, lfns=None ):
+def sortExistingSEs( lfnSEs, lfns = None ):
   """ Sort SEs according to the number of files in each (most first)
   """
   seFrequency = {}
@@ -936,7 +936,7 @@ def sortExistingSEs( lfnSEs, lfns=None ):
       seFrequency[se] = seFrequency.setdefault( se, 0 ) + 1
   sortedSEs = seFrequency.keys()
   # sort SEs in reverse order of frequency
-  sortedSEs.sort( key=seFrequency.get, reverse=True )
+  sortedSEs.sort( key = seFrequency.get, reverse = True )
   # add the archive SEs at the end
   return sortedSEs + archiveSEs
 
@@ -958,7 +958,7 @@ def isArchive( se ):
 def isFailover( se ):
   return se.endswith( "-FAILOVER" )
 
-def getFileGroups( fileReplicas, groupSE=True ):
+def getFileGroups( fileReplicas, groupSE = True ):
   """
   Group files by set of SEs
   If groupSE == False, group by SE, in which case a file can be in more than one element
@@ -978,7 +978,7 @@ def getFileGroups( fileReplicas, groupSE=True ):
 def getSiteForSE( se ):
   """ Get site name for the given SE
   """
-  result = getSitesForSE( se, gridName='LCG' )
+  result = getSitesForSE( se, gridName = 'LCG' )
   if not result['OK']:
     return result
   if result['Value']:
@@ -1022,7 +1022,7 @@ def getListFromString( strParam ):
     return ll
   return strParam
 
-def closerSEs( existingSEs, targetSEs, local=False ):
+def closerSEs( existingSEs, targetSEs, local = False ):
   """ Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
   """
   sameSEs = [se for se in targetSEs if se in existingSEs]

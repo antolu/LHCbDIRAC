@@ -9,6 +9,7 @@ from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationA
 from DIRAC.TransformationSystem.Agent.TransformationAgent import AGENT_NAME
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
@@ -30,11 +31,13 @@ class TransformationAgent( DIRACTransformationAgent ):
 
     self.pluginLocation = self.am_getOption( 'PluginLocation',
                                              'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
+    self.workDirectory = self.am_getWorkDirectory()
 
     #clients
     self.resourceStatus = ResourceStatus()
     self.bkk = BookkeepingClient()
     self.rmClient = ResourceManagementClient()
+    self.transfClient = TransformationClient()
 
     self.debug = self.am_getOption( 'verbosePlugin', False )
 
@@ -57,8 +60,8 @@ class TransformationAgent( DIRACTransformationAgent ):
     except Exception, x:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()
-    oPlugin.setDirectory( self.workDirectory )
-    oPlugin.setCallback( self.pluginCallback )
+    oPlugin.workDirectory = self.workDirectory
+    oPlugin.pluginCallback = self.pluginCallback
     if self.debug:
       oPlugin.setDebug()
     return S_OK( oPlugin )

@@ -6,18 +6,21 @@ __RCSID__ = "$Id: BKQuery.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 import os, sys
 from DIRAC import gLogger
-from DIRAC.Core.Utilities.List                                         import sortList
+from DIRAC.Core.Utilities.List import sortList
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 class BKQuery():
   """
   It used to build a dictionary using a given Bookkeeping path
   which is used to query the Bookkeeping database.
   """
-  def __init__( self, bkQuery=None, prods=None, runs=None, fileTypes=None, visible=True ):
+  def __init__( self, bkQuery = None, prods = None, runs = None, fileTypes = None, visible = True ):
     prods = prods if prods is not None else []
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+
     self.extraBKitems = ( "StartRun", "EndRun", "Production", "RunNumber" )
     self.__bkClient = BookkeepingClient()
     bkPath = ''
@@ -30,10 +33,10 @@ class BKQuery():
       bkQueryDict = bkQuery.copy()
     elif type( bkQuery ) == type( '' ):
       bkPath = bkQuery
-    bkQueryDict = self.buildBKQuery( bkPath, bkQueryDict=bkQueryDict,
-                                     prods=prods, runs=runs,
-                                     fileTypes=fileTypes,
-                                     visible=visible )
+    bkQueryDict = self.buildBKQuery( bkPath, bkQueryDict = bkQueryDict,
+                                     prods = prods, runs = runs,
+                                     fileTypes = fileTypes,
+                                     visible = visible )
     self.__bkPath = bkPath
     self.__bkQueryDict = bkQueryDict
     if not bkQueryDict.get( 'Visible' ):
@@ -42,7 +45,7 @@ class BKQuery():
   def __str__( self ):
     return str( self.__bkQueryDict )
 
-  def buildBKQuery( self, bkPath='', bkQueryDict=None, prods=None, runs=None, fileTypes=None, visible=True ):
+  def buildBKQuery( self, bkPath = '', bkQueryDict = None, prods = None, runs = None, fileTypes = None, visible = True ):
     """ it builds a dictionary using a path
     """
     bkQueryDict = bkQueryDict if bkQueryDict is not None else {}
@@ -242,7 +245,7 @@ class BKQuery():
       self.__bkQueryDict.pop( key )
     return self.__bkQueryDict
 
-  def setConditions( self, cond=None ):
+  def setConditions( self, cond = None ):
     """ Set the dictionary items for a given condition, or remove it (cond=None) """
     if 'ConfigName' not in self.__bkQueryDict and cond:
       gLogger.warn( "Impossible to set Conditions to a BK Query without Configuration" )
@@ -258,12 +261,12 @@ class BKQuery():
     self.setOption( 'ConditionDescription', cond )
     return self.setOption( conditionsKey, cond )
 
-  def setFileType( self, fileTypes=None ):
+  def setFileType( self, fileTypes = None ):
     """insert the file type to the Boookkeeping dictionary
     """
     return self.setOption( 'FileType', self.__fileType( fileTypes ) )
 
-  def setDQFlag( self, dqFlag='OK' ):
+  def setDQFlag( self, dqFlag = 'OK' ):
     """
     Sets the data quality.
     """
@@ -292,7 +295,7 @@ class BKQuery():
     """
     return self.setOption( 'ProcessingPass', processingPass )
 
-  def setEventType( self, eventTypes=None ):
+  def setEventType( self, eventTypes = None ):
     """
     Sets the event type
     """
@@ -311,7 +314,7 @@ class BKQuery():
         eventTypes = eventTypes[0]
     return self.setOption( 'EventType', eventTypes )
 
-  def setVisible( self, visible=None ):
+  def setVisible( self, visible = None ):
     """
     Sets the visibility flag
     """
@@ -387,7 +390,7 @@ class BKQuery():
     """
     return self.__bkQueryDict.get( 'Visible', 'No' ) == 'Yes'
 
-  def __fileType( self, fileType=None, returnList=False ):
+  def __fileType( self, fileType = None, returnList = False ):
     """
     return the file types taking into account the expected file types
     """
@@ -418,7 +421,9 @@ class BKQuery():
       else:
         expandedTypes.append( fileType )
     # Remove __exceptFileTypes only if not explicitly required
-    gLogger.verbose( "BKQuery.__fileType: requested %s, expanded %s, except %s" % ( allRequested, expandedTypes, self.__exceptFileTypes ) )
+    gLogger.verbose( "BKQuery.__fileType: requested %s, expanded %s, except %s" % ( allRequested,
+                                                                                    expandedTypes,
+                                                                                    self.__exceptFileTypes ) )
     if allRequested or not [t for t in self.__exceptFileTypes if t in expandedTypes]:
       expandedTypes = [t for t in expandedTypes if t not in self.__exceptFileTypes and t in self.__bkFileTypes]
     gLogger.verbose( "BKQuery.__fileType: result %s" % str( expandedTypes ) )
@@ -481,27 +486,27 @@ class BKQuery():
       lfnSize /= 1000000000000.
     return { 'LFNs' : lfns, 'LFNSize' : lfnSize }
 
-  def getLFNSize( self, visible=None ):
+  def getLFNSize( self, visible = None ):
     """
     Returns the size of a  given data set
     """
     if visible == None:
       visible = self.isVisible()
-    res = self.__bkClient.getFiles( BKQuery( self.__bkQueryDict, visible=visible ).setOption( 'FileSize', True ) )
+    res = self.__bkClient.getFiles( BKQuery( self.__bkQueryDict, visible = visible ).setOption( 'FileSize', True ) )
     if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
       lfnSize = res['Value'][0]
     else:
       lfnSize = 0
     return lfnSize
 
-  def getNumberOfLFNs( self, visible=None ):
+  def getNumberOfLFNs( self, visible = None ):
     """
     Returns the number of LFNs correspond to a given data set
     """
     if visible == None:
       visible = self.isVisible()
     if  self.isVisible() != visible:
-      query = BKQuery( self.__bkQueryDict, visible=visible )
+      query = BKQuery( self.__bkQueryDict, visible = visible )
     else:
       query = self
     fileTypes = query.getFileTypeList()
@@ -522,16 +527,16 @@ class BKQuery():
             #res['Records'][0][ind], 'Size:', res['Records'][0][ind1]
     return { 'NumberOfLFNs' : nbFiles, 'LFNSize': size }
 
-  def getLFNs( self, printSEUsage=False, printOutput=True, visible=None ):
+  def getLFNs( self, printSEUsage = False, printOutput = True, visible = None ):
     """
     returns a list of lfns. It prints statistics about the data sets if it is requested.
     """
     if visible == None:
       visible = self.isVisible()
-    from DIRAC.Core.DISET.RPCClient                                  import RPCClient
+
     prods = self.__bkQueryDict.get( 'Production' )
     if self.isVisible() != visible:
-      query = BKQuery( self.__bkQueryDict, visible=visible )
+      query = BKQuery( self.__bkQueryDict, visible = visible )
     else:
       query = self
     if prods and type( prods ) == type( [] ):
@@ -539,7 +544,7 @@ class BKQuery():
       lfns = []
       lfnSize = 0
       if query == self:
-        query = BKQuery( self.__bkQueryDict, visible=visible )
+        query = BKQuery( self.__bkQueryDict, visible = visible )
       for prod in prods:
         query.setOption( 'Production', prod )
         lfnsAndSize = query.getLFNsAndSize()
@@ -585,13 +590,13 @@ class BKQuery():
           print "%s %s" % ( se.ljust( 20 ), ( '%.1f' % ( totalUsage[se] / 1000000000000. ) ) )
     return lfns
 
-  def getDirs( self, printOutput=False, visible=None ):
+  def getDirs( self, printOutput = False, visible = None ):
     """
     Returns the directories
     """
     if visible == None:
       visible = self.isVisible()
-    lfns = self.getLFNs( printSEUsage=True, printOutput=printOutput, visible=visible )
+    lfns = self.getLFNs( printSEUsage = True, printOutput = printOutput, visible = visible )
     dirs = []
     for lfn in lfns:
       directory = os.path.dirname( lfn )
@@ -605,8 +610,7 @@ class BKQuery():
     """
     Returns the status of a given transformation
     """
-    from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-    res = TransformationClient().getTransformation( prod, extraParams=False )
+    res = TransformationClient().getTransformation( prod, extraParams = False )
     if not res['OK']:
       gLogger.error( "Couldn't get information on production %d" % prod )
       return None
@@ -619,7 +623,7 @@ class BKQuery():
     if self.getProcessingPass().replace( '/', '' ) == 'Real Data':
       return self.getBKProductions()
 
-  def getBKProductions( self, visible=None ):
+  def getBKProductions( self, visible = None ):
     """
     It returns a list of productions
     """
@@ -634,7 +638,6 @@ class BKQuery():
     if not res['OK']:
       gLogger.error( 'Error getting productions from BK', res['Message'] )
       return []
-    from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     transClient = TransformationClient()
     if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
       fileTypes = self.getFileTypeList()
@@ -693,7 +696,7 @@ class BKQuery():
     eventTypes = sortList( [f[ind] for f in res['Records']] )
     return eventTypes
 
-  def getBKFileTypes( self, bkDict=None ):
+  def getBKFileTypes( self, bkDict = None ):
     """
     It returns the file types.
     """
@@ -715,9 +718,9 @@ class BKQuery():
           res = res['Value']
           ind = res['ParameterNames'].index( 'FileTypes' )
           fileTypes = [f[ind] for f in res['Records'] if f[ind] not in self.__exceptFileTypes]
-    return self.__fileType( fileTypes, returnList=True )
+    return self.__fileType( fileTypes, returnList = True )
 
-  def getBKProcessingPasses( self, queryDict=None ):
+  def getBKProcessingPasses( self, queryDict = None ):
     """
     It returns the processing pass.
     """

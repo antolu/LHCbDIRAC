@@ -11,33 +11,34 @@ from DIRAC.TransformationSystem.Agent.TransformationPlugin import Transformation
 from LHCbDIRAC.TransformationSystem.Client.Utilities \
      import PluginUtilities, getFileGroups, groupByRun, isArchive, isFailover, \
      sortExistingSEs, getRemovalPlugins, closerSEs
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
   """
 
   def __init__( self, plugin,
-                transClient=None, replicaManager=None,
-                bkkClient=None, rmClient=None, rss=None,
-                debug=False, transInThread=None ):
+                transClient = None, replicaManager = None,
+                bkkClient = None, rmClient = None, rss = None,
+                debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
-    DIRACTransformationPlugin.__init__( self, plugin, transClient=transClient, replicaManager=replicaManager )
+    DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
 
     if not bkkClient:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       self.bkClient = BookkeepingClient()
     else:
       self.bkClient = bkkClient
 
     if not rmClient:
-      from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
       self.rmClient = ResourceManagementClient()
     else:
       self.rmClient = rmClient
 
     if not rss:
-      from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
       self.resourceStatus = ResourceStatus()
     else:
       self.resourceStatus = rss
@@ -82,17 +83,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.setParameters( params )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
-  def setDirectory( self, directory ):
-    self.workDirectory = directory
-
-  def setCallback( self, callback ):
-    self.pluginCallback = callback
-
-  def setDebug( self, val=True ):
+  def setDebug( self, val = True ):
     self.debug = val or self.debug
     self.util.setDebug( val )
 
-  def __cleanFiles( self, status=None ):
+  def __cleanFiles( self, status = None ):
     """
     Remove from transFiles all files without a replica and set their status
     """
@@ -124,7 +119,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for lfns in breakListIntoChunks( self.transReplicas.keys(), 500 ):
       # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
       #          may have themselves descendants with replicas
-      res = self.bkClient.getFileDescendants( lfns, production=int( self.transID ), depth=1, checkreplica=True )
+      res = self.bkClient.getFileDescendants( lfns, production = int( self.transID ), depth = 1, checkreplica = True )
       if not res['OK']:
         self.util.logError( "Cannot get descendants of files:", res['Message'] )
       else:
@@ -156,7 +151,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     sourceSE = 'CERN-RAW'
 
     # Get the requested shares from the CS
-    res = self.util.getShares( section='RAW' )
+    res = self.util.getShares( section = 'RAW' )
     if not res['OK']:
       self.util.logError( "Section RAW in Shares not available" )
       return res
@@ -172,7 +167,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         alreadyReplicated.setdefault( [se for se in existingSEs if se != sourceSE][0], [] ).extend( lfns )
     if alreadyReplicated:
       # Remove files form the transFiles
-      self.__cleanFiles( status='Processed' )
+      self.__cleanFiles( status = 'Processed' )
 
     # Group the remaining data by run
     res = groupByRun( self.transFiles )
@@ -280,7 +275,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.bkClient.getRunInformations( int( runID ) )
         if res['OK']:
           endDate = res['Value']['RunEnd']
-          if datetime.datetime.now() - endDate < datetime.timedelta( hours=delay ):
+          if datetime.datetime.now() - endDate < datetime.timedelta( hours = delay ):
             self.util.logInfo( 'Run %d was taken less than %d hours ago, skip...' % ( runID, delay ) )
             if runID in runFileDict:
               runFileDict.pop( runID )
@@ -294,7 +289,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         runSEDict[runID] = runDict['SelectedSite']
         runUpdate[runID] = False
       else:
-        res = self.transClient.getTransformationFiles( condDict={'TransformationID':self.transID,
+        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID,
                                                                  'RunNumber':runID,
                                                                  'Status':['Assigned', 'Processed']} )
         if not res['OK']:
@@ -372,19 +367,22 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               if len( self.transReplicas.get( lfn, [] ) ) >= minNbReplicas]
       notConsidered = [lfn for lfn in runFileDict[runID] if lfn not in lfns]
       if notConsidered:
-        self.util.logVerbose( "Run %s: %d files are not considered (not %d replicas)" % ( runID, len( notConsidered ), minNbReplicas ) )
+        self.util.logVerbose( "Run %s: %d files are not considered (not %d replicas)" % ( runID, len( notConsidered ),
+                                                                                          minNbReplicas ) )
       if not lfns:
         continue
       if fractionToProcess == 1.:
         runFraction = 1.
       else:
-        res = self.transClient.getTransformationFiles( condDict={'TransformationID':self.transID, 'RunNumber':runID} )
+        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID, 'RunNumber':runID} )
         if not res['OK']:
           self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
           continue
         else:
           nbRaw = len( res['Value'] )
-        res = self.transClient.getTransformationFiles( condDict={'TransformationID':self.transID, 'RunNumber':runID, 'Status':['Assigned', 'Processed']} )
+        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID,
+                                                                   'RunNumber':runID,
+                                                                   'Status':['Assigned', 'Processed']} )
         if not res['OK']:
           self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
           continue
@@ -421,7 +419,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               notProcessed += len( task[1] )
               res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', task[1] )
               if not res['OK']:
-                self.util.logError( "Error setting file status NotProcessed for %d files" % len( task[1] ), res['Message'] )
+                self.util.logError( "Error setting file status NotProcessed for %d files" % len( task[1] ),
+                                    res['Message'] )
               else:
                 res = self.bkClient.setFilesInvisible( task[1] )
                 if not res['OK']:
@@ -446,11 +445,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logError( 'Error grouping files by size', res['Message'] )
 
     if self.pluginCallback:
-      self.pluginCallback( self.transID, invalidateCache=True )
+      self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( tasks )
 
 
-  def _groupBySize( self, files=None ):
+  def _groupBySize( self, files = None ):
     """
     Generate a task for a given amount of data at a (set of) SE
     """
@@ -466,14 +465,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     return self.util.groupByReplicas( self.transReplicas, self.params['Status'] )
 
-  def _ByRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
+  def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     try:
       return self.__byRun( param, plugin, requireFlush )
     except Exception:
       self.util.logException( "Exception in _ByRun plugin:" )
       return S_ERROR( [] )
 
-  def __byRun( self, param='', plugin='LHCbStandard', requireFlush=False ):
+  def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     """ Basic plugin for when you want to group files by run
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -485,7 +484,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not self.transReplicas:
       self.util.logVerbose( "No data to be processed by plugin" )
       return S_OK( allTasks )
-    res = self.util.groupByRunAndParam( self.transReplicas, self.transFiles, param=param )
+    res = self.util.groupByRunAndParam( self.transReplicas, self.transFiles, param = param )
     if not res['OK']:
       self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
       return res
@@ -496,13 +495,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not res['OK']:
       self.util.logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
-    self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( res['Value'] ), time.time() - startTime ) )
+    self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( res['Value'] ),
+                                                                              time.time() - startTime ) )
     runSites = dict( [ ( r['RunNumber'], r['SelectedSite'] ) for r in res['Value'] if r['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
     runEvtType = {}
     nRunsLeft = len( res['Value'] )
-    for run in sorted( res['Value'], cmp=( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
+    for run in sorted( res['Value'], cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
       runID = run['RunNumber']
       self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
@@ -557,8 +557,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
             self.util.logInfo( "All RAW files (%d) ready for run %d%s- Flushing %d files" % ( rawFiles,
-                                                                                           runID, paramStr,
-                                                                                           len( runParamReplicas ) ) )
+                                                                                            runID, paramStr,
+                                                                                            len( runParamReplicas ) ) )
             status = 'Flush'
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
           else:
@@ -568,7 +568,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         startTime = time.time()
         res = eval( 'self._%s()' % plugin )
         self.util.logVerbose( "Executed helper plugin %s for %d files (Run %d%s) in %.1f seconds" % ( plugin,
-                                                                                                      len( self.data ), runID,
+                                                                                                      len( self.data ),
+                                                                                                      runID,
                                                                                                       paramStr,
                                                                                                       time.time() - startTime ) )
         self.params['Status'] = transStatus
@@ -597,75 +598,76 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( allTasks )
 
   def _ByRunWithFlush( self ):
-    return self._ByRun( requireFlush=True )
+    return self._ByRun( requireFlush = True )
 
   def _ByRunBySize( self ):
-    return self._ByRun( plugin='BySize' )
+    return self._ByRun( plugin = 'BySize' )
 
   def _ByRunBySizeWithFlush( self ):
-    return self._ByRun( plugin='BySize', requireFlush=True )
+    return self._ByRun( plugin = 'BySize', requireFlush = True )
 
   def _ByRunSize( self ):
-    return self._ByRun( plugin='BySize' )
+    return self._ByRun( plugin = 'BySize' )
 
   def _MergeByRun( self ):
     return self._ByRunSize()
 
   def _ByRunSizeWithFlush( self ):
-    return self._ByRun( plugin='BySize', requireFlush=True )
+    return self._ByRun( plugin = 'BySize', requireFlush = True )
 
   def _MergeByRunWithFlush( self ):
     return self._ByRunSizeWithFlush()
 
   def _ByRunFileType( self ):
-    return self._ByRun( param='FileType' )
+    return self._ByRun( param = 'FileType' )
 
   def _ByRunFileTypeWithFlush( self ):
-    return self._ByRun( param='FileType', requireFlush=True )
+    return self._ByRun( param = 'FileType', requireFlush = True )
 
   def _ByRunFileTypeSize( self ):
-    return self._ByRun( param='FileType', plugin='BySize' )
+    return self._ByRun( param = 'FileType', plugin = 'BySize' )
 
   def _ByRunFileTypeSizeWithFlush( self ):
-    return self._ByRun( param='FileType', plugin='BySize', requireFlush=True )
+    return self._ByRun( param = 'FileType', plugin = 'BySize', requireFlush = True )
 
   def _ByRunEventType( self ):
-    return self._ByRun( param='EventTypeId' )
+    return self._ByRun( param = 'EventTypeId' )
 
   def _ByRunEventTypeWithFlush( self ):
-    return self._ByRun( param='EventTypeId', requireFlush=True )
+    return self._ByRun( param = 'EventTypeId', requireFlush = True )
 
   def _ByRunEventTypeSize( self ):
-    return self._ByRun( param='EventTypeId', plugin='BySize' )
+    return self._ByRun( param = 'EventTypeId', plugin = 'BySize' )
 
   def _ByRunEventTypeSizeWithFlush( self ):
-    return self._ByRun( param='EventTypeId', plugin='BySize', requireFlush=True )
+    return self._ByRun( param = 'EventTypeId', plugin = 'BySize', requireFlush = True )
 
   def _LHCbDSTBroadcast( self ):
     """ Usually for replication of real data (4 copies)
     """
     archive1SEs = self.util.getPluginParam( 'Archive1SEs', ['CERN-ARCHIVE'] )
     archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE',
-                                                         'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                            'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN-DST'] )
     secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST',
-                                                           'PIC-DST', 'RAL-DST'] )
+                                                              'PIC-DST', 'RAL-DST'] )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 4 )
-    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun=True )
+    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = True )
 
   def _LHCbMCDSTBroadcast( self ):
     """ For replication of MC data (3 copies)
     """
     archive1SEs = self.util.getPluginParam( 'Archive1SEs', [] )
     archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                         'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                            'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
+                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST'] )
     secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST',
-                                                           'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+                                                              'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
-  def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun=False ):
+  def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = False ):
     """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs
         All files for the same run have the same target
     """
@@ -703,9 +705,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         runUpdate[runID] = False
       else:
         # Check if some files are assigned to an SE in this run
-        res = self.transClient.getTransformationFiles( condDict={'TransformationID':self.transID,
-                                                                 'RunNumber':runID,
-                                                                 'Status':['Assigned', 'Processed']} )
+        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID,
+                                                                   'RunNumber':runID,
+                                                                   'Status':['Assigned', 'Processed']} )
         if not res['OK']:
           self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
         else:
@@ -730,7 +732,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logVerbose( "Selecting SEs for %d files" % len( runLfns ) )
           self.util.logDebug( "Files: %s" % str( runLfns ) )
           stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
-                                                 mandatorySEs, secondarySEs, existingSEs, exclusiveSEs=False )
+                                                    mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False )
           runUpdate[runID] = True
 
       # Update the TransformationRuns table with the assigned SEs (don't continue if it fails)
@@ -769,10 +771,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.logInfo( "Starting execution of plugin" )
     archive1SEs = self.util.getPluginParam( 'Archive1SEs', [] )
     archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                         'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                            'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
+                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST'] )
     secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST',
-                                                           'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+                                                              'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
 
     # We need at least all mandatory copies
@@ -784,7 +787,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
 
         stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
-                                               mandatorySEs, secondarySEs, existingSEs, exclusiveSEs=True )
+                                               mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = True )
         if stringTargetSEs:
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
         else:
@@ -809,7 +812,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     archive1SEs = self.util.getPluginParam( 'Archive1SEs', [] )
     archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                         'IN2P3-ARCHIVE', 'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                            'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
+                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     archive1ActiveSEs = self.util.getActiveSEs( archive1SEs )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 1 )
     if not archive1ActiveSEs:
@@ -821,9 +825,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive1SE = [randomize( archive1ActiveSEs )[0]]
     else:
       archive1SE = []
-    return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies=numberOfCopies )
+    return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
-  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies=0 ):
+  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -836,7 +840,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       activeSecondarySEs = self.util.getActiveSEs( secondarySEs )
       numberOfCopies = max( len( mandatorySEs ), numberOfCopies )
 
-    self.util.logVerbose( "%d replicas, mandatory at %s, optional at %s" % ( numberOfCopies, mandatorySEs, activeSecondarySEs ) )
+    self.util.logVerbose( "%d replicas, mandatory at %s, optional at %s" % ( numberOfCopies,
+                                                                             mandatorySEs, activeSecondarySEs ) )
 
     alreadyCompleted = []
     fileTargetSEs = {}
@@ -903,13 +908,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         stringTargetSEs = existingSEs[0]
         storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
     if self.pluginCallback:
-      self.pluginCallback( self.transID, invalidateCache=True )
+      self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
   def _DestroyDataset( self ):
     """ Plugin setting all existing SEs as targets
     """
-    res = self._removeReplicas( keepSEs=[], minKeep=0 )
+    res = self._removeReplicas( keepSEs = [], minKeep = 0 )
     if not res['OK'] or not res['Value']:
       return res
     tasks = res['Value']
@@ -924,7 +929,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logError( "Error getting transformation files for %d files" % len( lfns ), res['Message'] )
       else:
         processedFiles = []
-        self.util.logVerbose( "Out of %d files, %d occurrences were found in transformations" % ( len( lfns ), len( res['Value'] ) ) )
+        self.util.logVerbose( "Out of %d files, %d occurrences were found in transformations" % ( len( lfns ),
+                                                                                                  len( res['Value'] ) ) )
         transDict = {}
         runList = []
         for fileDict in res['Value']:
@@ -952,7 +958,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             res = {'OK':True}
             action = 'to be set'
           if not res['OK']:
-            self.util.logError( "Error setting %d files in transformation %d to status Removed" % ( len( lfns ), trans ), res['Message'] )
+            self.util.logError( "Error setting %d files in transformation %d to status Removed" % ( len( lfns ),
+                                                                                                    trans ),
+                                res['Message'] )
           else:
             self.util.logInfo( "%d files %s as 'Removed' in transformation %d" % ( len( lfns ), action, trans ) )
 
@@ -964,24 +972,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
                                                  'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
                                                  'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    return self._removeReplicas( keepSEs=keepSEs, minKeep=0 )
+    return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
     """ Plugin for removing replicas from specific SEs or reduce the number of replicas
     """
     listSEs = self.util.getPluginParam( 'FromSEs', [] )
     keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
-                                                 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                    'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
+                                                    'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in listSEs]
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     minKeep = self.util.getPluginParam( 'NumberOfReplicas', 1 )
 
-    return self._removeReplicas( listSEs=listSEs, keepSEs=keepSEs, mandatorySEs=mandatorySEs, minKeep=minKeep )
+    return self._removeReplicas( listSEs = listSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
-  def _removeReplicas( self, listSEs=None, keepSEs=None, mandatorySEs=None, minKeep=999 ):
+  def _removeReplicas( self, listSEs = None, keepSEs = None, mandatorySEs = None, minKeep = 999 ):
     """ Utility acutally implementing the logic to remove replicas or files
     """
     if not listSEs:
@@ -1009,7 +1017,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         targetSEs = []
         # Take into account the mandatory SEs
         existingSEs = [se for se in existingSEs if se not in mandatorySEs]
-        self.util.logVerbose( "%d files, non-keep SEs: %s, removal from %s, keep %d" % ( len( lfns ), existingSEs, listSEs, minKeep ) )
+        self.util.logVerbose( "%d files, non-keep SEs: %s, removal from %s, keep %d" % ( len( lfns ), existingSEs,
+                                                                                         listSEs, minKeep ) )
         #print existingSEs, listSEs, minKeep
         if len( existingSEs ) > minKeep:
           # explicit deletion
@@ -1023,7 +1032,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               # we should keep some in listSEs, too bad
               targetSEs = randomize( targetSEs )[0:minKeep - nLeft]
               self.util.logInfo( "Found %d files that could only be deleted in %d of the requested SEs" % ( len( lfns ),
-                                                                                                         minKeep - nLeft ) )
+                                                                                                    minKeep - nLeft ) )
               self.util.logVerbose( "Target SEs, 2nd level: %s" % targetSEs )
           else:
             # remove all replicas and keep only minKeep
@@ -1050,8 +1059,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
     """
-    from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                       import BKQuery
-
     listSEs = self.util.getPluginParam( 'FromSEs', [] )
     keepSEs = self.util.getPluginParam( 'KeepSEs', [] )
     processingPasses = self.util.getPluginParam( 'ProcessingPasses', [] )
@@ -1083,7 +1090,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       productions = self.util.getCachedProductions()
       activeProds = productions.get( 'Active', {} )
       archivedProds = productions.get( 'Archived', {} )
-      if productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours=cacheLifeTime ):
+      if productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours = cacheLifeTime ):
         if 'Active' not in productions:
           cacheOK = False
         else:
@@ -1096,7 +1103,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               cacheOK = False
               break
       if cacheOK:
-        if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours=period ):
+        if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours = period ):
           self.util.logInfo( "Skip this loop (less than %s hours since last call)" % period )
           skip = True
           return S_OK( [] )
@@ -1107,7 +1114,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           bkQuery.setProcessingPass( procPass )
           # Temporary work around for getting Stripping production from merging (parent should be set to False)
           bkQuery.setEventType( None )
-          prods = bkQuery.getBKProductions( visible='ALL' )
+          prods = bkQuery.getBKProductions( visible = 'ALL' )
           if not prods:
             self.util.logVerbose( "For procPass %s, found no productions, wait next time" % ( procPass ) )
             return S_OK( [] )
@@ -1134,7 +1141,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for replicaSEs, lfns in replicaGroups.items():
         replicaSE = replicaSEs.split( ',' )
         if [se for se in replicaSE if se in keepSEs]:
-          self.util.logInfo( "%d files found in %s, not deleted... Delete them first from there" % ( len( lfns ), str( keepSEs ) ) )
+          self.util.logInfo( "%d files found in %s, not deleted... Delete them first from there" % ( len( lfns ),
+                                                                                                     str( keepSEs ) ) )
           continue
         targetSEs = [se for se in listSEs if se in replicaSE]
         if not targetSEs:
@@ -1162,7 +1170,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           for prod in sorted( prods ):
             if not lfnsToCheck:
               break
-            res = self.bkClient.getFileDescendants( lfnsToCheck, production=prod, depth=1 )
+            res = self.bkClient.getFileDescendants( lfnsToCheck, production = prod, depth = 1 )
             if res['OK']:
               for lfn in [lfn for lfn in lfnsToCheck if lfn in res['Value']['Successful']]:
                 lfnsNotProcessed[lfn].remove( procPass )
@@ -1175,7 +1183,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logInfo( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ),
                                                                                      stringTargetSEs ) )
         if lfnsProcessed:
-          self.util.logInfo( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ), stringTargetSEs ) )
+          self.util.logInfo( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ),
+                                                                                 stringTargetSEs ) )
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
         return S_OK( [] )
@@ -1185,7 +1194,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     finally:
       self.util.writeCacheFile()
       if not skip and self.pluginCallback:
-        self.pluginCallback( self.transID, invalidateCache=True )
+        self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
   def _ReplicateToLocalSE( self ):
@@ -1210,7 +1219,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         continue
       targetSEs = [se for se in destSEs if se not in replicaSE]
-      candidateSEs = closerSEs( replicaSE, targetSEs, local=True )
+      candidateSEs = closerSEs( replicaSE, targetSEs, local = True )
       if candidateSEs:
         freeSpace = self.util.getStorageFreeSpace( candidateSEs )
         shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
@@ -1237,7 +1246,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
         continue
       # get other replicas
-      res = self.rm.getCatalogReplicas( lfns, allStatus=True )
+      res = self.rm.getCatalogReplicas( lfns, allStatus = True )
       if not res['OK']:
         self.util.logError( 'Error getting catalog replicas', res['Message'] )
         continue
@@ -1255,8 +1264,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', noMissingSE )
         if not res['OK']:
           self.util.logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( noMissingSE ),
-                                                                                            str( self.transID ),
-                                                                                            res['Message'] ) )
+                                                                                               str( self.transID ),
+                                                                                               res['Message'] ) )
           return res
 
 
