@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_AS_Client_Type_DataStorage
 
 '''

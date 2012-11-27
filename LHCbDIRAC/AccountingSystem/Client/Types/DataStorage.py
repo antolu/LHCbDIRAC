@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' DataStorage Type
   
 '''

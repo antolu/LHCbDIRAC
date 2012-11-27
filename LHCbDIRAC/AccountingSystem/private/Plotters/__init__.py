@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' LHCbDIRAC.AccountingSystem.private.Plotters package
 '''
 

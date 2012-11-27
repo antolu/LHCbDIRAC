@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Popularity Type
   
 '''

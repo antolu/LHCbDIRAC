@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' LHCbDIRAC.AccountingSystem.Client package
 '''
 
