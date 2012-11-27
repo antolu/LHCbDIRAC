@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_TS_Client_TaskManager
 
 '''
