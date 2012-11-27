@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' LHCbDIRAC.ProductionManagementSystem.Agent package
 '''
 

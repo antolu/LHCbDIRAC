@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-production-job-select-check.py
 # Author :  Stuart Paterson
 ########################################################################

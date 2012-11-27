@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' Production requests agent perform all periodic task with
     requests.
     Currently it update the number of Input Events for processing

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL:  $
-########################################################################
 
 """
    Get statistics on productions related to a given processing pass

@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' Production request test agent monitors testing database
     and perform the test locally.
 '''

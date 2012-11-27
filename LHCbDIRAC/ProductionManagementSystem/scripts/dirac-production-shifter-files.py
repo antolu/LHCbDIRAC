@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# $HeadURL $
 ''' dirac-production-shifter 
  
   Script for the production shifter. 

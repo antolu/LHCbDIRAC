@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_PMS_Client_ProcessingProgress
 
 '''
