@@ -39,6 +39,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.bkClient = BookkeepingClient()
     ## LHCb transformation client 
     self.transClient = TransformationClient()
+    self.storageUsageClient = StorageUsageClient()
 
   #############################################################################
   def initialize( self ):
@@ -122,8 +123,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
       return res
 
     if 'StorageUsage' in self.directoryLocations:
-      storageUsageClient = StorageUsageClient()
-      res = storageUsageClient.getStorageDirectories( '', '', transID, [] )
+      res = self.storageUsageClient.getStorageDirectories( '', '', transID, [] )
       if not res['OK']:
         self.log.error( "Failed to obtain storage usage directories", res['Message'] )
         return res
