@@ -17,12 +17,10 @@
 __RCSID__ = "$Id$"
 
 import os
-
-from DIRAC  import gMonitor, S_OK, S_ERROR
+from DIRAC  import gMonitor, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 __RCSID__ = "$Id$"
@@ -35,11 +33,9 @@ class LogUploadAgent( AgentModule ):
   
   :param RequestClient requestClient: RequestClient instance
   :param ReplicaManager replicaManager: ReplicaManager instance
-  :param str local: local URL to RequestClient
   """
   requestClient = None
   replicaManager = None 
-  local = None
 
   def initialize( self ):
     """ agent initalisation
@@ -59,11 +55,6 @@ class LogUploadAgent( AgentModule ):
     self.replicaManager = ReplicaManager()
 
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
-    self.local = PathFinder.getServiceURL( "RequestManagement/localURL" )
-    if not self.local:
-      errStr = 'The RequestManagement/localURL option must be defined.'
-      self.log.fatal( errStr )
-      return S_ERROR( errStr )
     return S_OK()
 
   def execute( self ):
@@ -77,9 +68,9 @@ class LogUploadAgent( AgentModule ):
 
     while work_done:
       work_done = False
-      res = self.requestClient.getRequest( 'logupload', url = self.local )
+      res = self.requestClient.getRequest( 'logupload' )
       if not res['OK']:
-        self.log.error( "Failed to get request from database.", self.local )
+        self.log.error( "Failed to get request from database." )
         return S_OK()
       elif not res['Value']:
         self.log.info( "No requests to be executed found." )
@@ -95,7 +86,7 @@ class LogUploadAgent( AgentModule ):
         jobID = 0
       self.log.info( "Obtained request %s" % requestName )
 
-      result = self.requestClient.getCurrentExecutionOrder( requestName, self.local )
+      result = self.requestClient.getCurrentExecutionOrder( requestName)
       if result['OK']:
         currentOrder = result['Value']
       else:
@@ -154,15 +145,15 @@ class LogUploadAgent( AgentModule ):
       ################################################
       #  Generate the new request string after operation
       requestString = oRequest.toXML()['Value']
-      res = self.requestClient.updateRequest( requestName, requestString, self.local )
+      res = self.requestClient.updateRequest( requestName, requestString )
       if res['OK']:
-        self.log.info( "Successfully updated request '%s' to %s." % ( requestName, self.local ) )
+        self.log.info( "Successfully updated request '%s'." % ( requestName ) )
       else:
-        self.log.error( "Failed to update request '%s' to %s: %s" % ( requestName, self.local, res["Message"] ) )
+        self.log.error( "Failed to update request '%s': %s" % ( requestName, res["Message"] ) )
         return res
     
       if modified and jobID:
-        result = self.requestClient.finalizeRequest( requestName, jobID, self.local )
+        result = self.requestClient.finalizeRequest( requestName, jobID )
         if not result["OK"]:
           self.log.error( "Failed to finalize request '%s': %s" % ( requestName, result["Message"] ) )
           return result

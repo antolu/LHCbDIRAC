@@ -16,6 +16,7 @@ import os
 ## from DIRAC
 from DIRAC import gMonitor, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.DISET.RPCClient import RPCClient 
 from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
 from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -32,16 +33,18 @@ class RAWIntegrityAgent( AgentModule ):
   .. class:: RAWIntegirtyAgent
 
   :param RequestClient requestClient: RequestDB client
-  :param ReplicaManager replicaManager: Replicamanager instance
+  :param ReplicaManager replicaManager: ReplicaManager instance
   :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
   :param DataLoggingClient dataLoggingClient: DataLoggingClient instance
   :param str gatewayUrl: URL to online RequestClient
   """
   requestClient = None
+  onlineRequestMgr = None
   replicaManager = None
   rawIntegrityDB = None
   dataLoggingClient = None
   gatewayUrl = None
+
 
   def initialize( self ):
     """ agent initialisation """
@@ -52,7 +55,8 @@ class RAWIntegrityAgent( AgentModule ):
     self.dataLoggingClient = DataLoggingClient()
 
     self.gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway' )
-
+    self.onlineRequestMgr = RPCClient( self.gatewayUrl )
+    
     gMonitor.registerActivity( "Iteration", "Agent Loops/min", 
                                "RAWIntegriryAgent", "Loops", gMonitor.OP_SUM )
     gMonitor.registerActivity( "WaitingFiles", "Files waiting for migration", 
@@ -90,7 +94,7 @@ class RAWIntegrityAgent( AgentModule ):
   def execute( self ):
     """ execution in one cycle 
     
-    TODO: needs some refactoring and splitting, it's just to long
+    TODO: needs some refactoring and splitting, it's just way too long
     """
     gMonitor.addMark( "Iteration", 1 )
 
@@ -106,9 +110,9 @@ class RAWIntegrityAgent( AgentModule ):
       return S_OK()
     activeFiles = res['Value']
 
-    gMonitor.addMark( "WaitingFiles", len( activeFiles.keys() ) )
-    self.log.info( "Obtained %s un-migrated files." % len( activeFiles.keys() ) )
-    if not len( activeFiles.keys() ) > 0:
+    gMonitor.addMark( "WaitingFiles", len( activeFiles ) )
+    self.log.info( "Obtained %s un-migrated files." % len( activeFiles ) )
+    if not activeFiles:
       return S_OK()
     totalSize = 0
     for lfn, fileDict in activeFiles.items():
@@ -238,7 +242,7 @@ class RAWIntegrityAgent( AgentModule ):
           self.log.info( "Creating removal request for correctly migrated files." )
           oRequest = RequestContainer()
           subRequestIndex = oRequest.initiateSubRequest( 'removal' )['Value']
-          attributeDict = {'Operation':'physicalRemoval', 'TargetSE':'OnlineRunDB'}
+          attributeDict = { 'Operation':'physicalRemoval', 'TargetSE':'OnlineRunDB' }
           oRequest.setSubRequestAttributes( subRequestIndex, 'removal', attributeDict )
           filesDict = [ {'LFN' : lfn, 'PFN' : pfn } ]
           oRequest.setSubRequestFiles( subRequestIndex, 'removal', filesDict )
@@ -246,7 +250,7 @@ class RAWIntegrityAgent( AgentModule ):
           requestName = 'remove_%s.xml' % fileName
           requestString = oRequest.toXML()['Value']
           self.log.info( "Attempting to put %s to gateway requestDB." % requestName )
-          res = self.requestClient.setRequest( requestName, requestString, self.gatewayUrl )
+          res = self.onlineRequestMgr.setRequest( requestName, requestString )
           if not res['OK']:
             self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
@@ -299,7 +303,7 @@ class RAWIntegrityAgent( AgentModule ):
           requestName = 'retransfer_%s.xml' % fileName
           requestString = oRequest.toXML()['Value']
           self.log.info( "Attempting to put %s to gateway requestDB." % requestName )
-          res = self.requestClient.setRequest( requestName, requestString, self.gatewayUrl )
+          res = self.onlineRequestMgr.setRequest( requestName, requestString )
           if not res['OK']:
             self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
