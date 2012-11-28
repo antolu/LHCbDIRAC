@@ -14,6 +14,7 @@ from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import Transfo
 ## from LHCbDIRAC
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
 ## agent's name
 AGENT_NAME = 'Transformation/TransformationCleaningAgent'
@@ -29,7 +30,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     :param self: self reference
     :param str agentName: name of agent
-    :param str loadName: name of module ???
+    :param str loadName: name of module
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
     """
@@ -46,7 +47,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
     :param self: self reference
     """
     ## shifter proxy
-    self.am_setOption( "shifterProxy", "DataManager" )
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+    ## transformations types
     self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', [ 'MCSimulation',
                                                                                      'DataReconstruction',
                                                                                      'DataStripping',
@@ -54,6 +56,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
                                                                                      'Merge',
                                                                                      'Replication'] ) )
     self.log.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
+    ## directory locations
     self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
                                                                                    'StorageUsage' ] ) )
     self.log.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
@@ -103,3 +106,31 @@ class TransformationCleaningAgent( DiracTCAgent ):
         return S_ERROR( "Failed to remove all files from the BK" )
     self.log.info( "Successfully removed all files found in the BK" )
     return S_OK()
+
+  def getTransformationDirectories( self, transID ):
+    """ get the directories for the supplied transformation from the transformation system
+
+    :param self: self reference
+    :param int transID: transformation ID
+    """
+
+    res = DiracTCAgent.getTransformationDirectories( transID )
+
+    if res['OK']:
+      directories = res['Value']
+    else:
+      return res
+
+    if 'StorageUsage' in self.directoryLocations:
+      storageUsageClient = StorageUsageClient()
+      res = storageUsageClient.getStorageDirectories( '', '', transID, [] )
+      if not res['OK']:
+        self.log.error( "Failed to obtain storage usage directories", res['Message'] )
+        return res
+      transDirectories = res['Value']
+      directories = self._addDirs( transID, transDirectories, directories )
+
+    if not directories:
+      self.log.info( "No output directories found" )
+    directories = sortList( directories )
+    return S_OK( directories )
