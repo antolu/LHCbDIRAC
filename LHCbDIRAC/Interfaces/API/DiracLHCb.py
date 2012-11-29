@@ -9,11 +9,10 @@ import os
 import glob
 import fnmatch
 import time
-import re
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Utilities.List                           import sortList, removeEmptyElements
+from DIRAC.Core.Utilities.List                           import removeEmptyElements
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
@@ -50,11 +49,11 @@ class DiracLHCb( Dirac ):
                              'EventType'                : 'All',
                              'ConfigName'               : 'All',
                              'ConfigVersion'            : 'All',
-                             'ProductionID'             :     0,
+                             'Production'               :     0,
                              'StartRun'                 :     0,
                              'EndRun'                   :     0,
                              'DataQualityFlag'          : 'All',
-                             'Visibility'               : 'Yes'}
+                             'Visible'                  : 'Yes'}
     self.bk = BookkeepingClient() #to expose all BK client methods indirectly
     self.resourceStatus = ResourceStatus()
 
@@ -113,9 +112,9 @@ class DiracLHCb( Dirac ):
     # Get the input files to be used
     jobs = self.jobRepo.readRepository()['Value']
     inputFiles = []
-    for jobID in sortList( jobs.keys() ):
+    for jobID in sorted( jobs ):
       jobDict = jobs[jobID]
-      if jobDict.has_key( 'State' ) and jobDict['State'] in requestedStates:
+      if jobDict.get( 'State' ) in requestedStates:
         if location == 'OutputFiles':
           jobFiles = eval( jobDict[location] )
           for jobFile in jobFiles:
@@ -216,7 +215,7 @@ class DiracLHCb( Dirac ):
         adj = 30
         if printOutput:
           print name.ljust( adj ) + version.ljust( adj ) + ','.join( packageArch ).ljust( adj )
-        if not result.has_key( name ):
+        if name not in result:
           result[name] = {}
         result[name][version] = packageArch
       else:
@@ -226,7 +225,7 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def getBKAncestors( self, lfns, depth ):
+  def getBKAncestors( self, lfns, depth=1, replica=True ):
     """ This function allows to retrieve ancestor files from the Bookkeeping.
 
         Example Usage:
@@ -241,7 +240,7 @@ class DiracLHCb( Dirac ):
        @type depth: integer
     """
 
-    result = self.bk.getFileAncestors( lfns, depth, replica = True )
+    result = self.bk.getFileAncestors( lfns, depth, replica=replica )
     if not result['OK']:
       return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
     ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
@@ -323,8 +322,7 @@ class DiracLHCb( Dirac ):
       return S_ERROR( 'Expected yyyy-mm-dd string for start and end dates' )
 
     start = time.time()
-    bk = BookkeepingClient()
-    result = bk.getRunsForAGivenPeriod( {'StartDate':startDate, 'EndDate':endDate} )
+    result = self.bk.getRunsForAGivenPeriod( {'StartDate':startDate, 'EndDate':endDate} )
     rtime = time.time() - start
     self.log.info( 'BK query time: %.2f sec' % rtime )
     if not result['OK']:
@@ -335,7 +333,7 @@ class DiracLHCb( Dirac ):
       self.log.info( 'No runs selected from BK for specified dates' )
       return result
 
-    if not result['Value'].has_key( selection ):
+    if selection not in result['Value']:
       return S_ERROR( 'No %s runs for specified dates' % ( selection ) )
 
     runs = result['Value'][selection]
@@ -410,26 +408,23 @@ class DiracLHCb( Dirac ):
     runNumberString = bkPath[0].replace( '--', '-' ).replace( ' ', '' )
     startRun = 0
     endRun = 0
-    if re.search( '-', runNumberString ):
-      if not len( runNumberString.split( '-' ) ) == 2:
+    if '-' in runNumberString:
+      runs = runNumberString.split( '-' )
+      if len( runs ) != 2:
         return S_ERROR( 'Could not determine run range from "%s", try "<Run 1> - <Run2>"' % ( runNumberString ) )
       try:
-        start = int( runNumberString.split( '-' )[0] )
-        end = int( runNumberString.split( '-' )[1] )
+        start = int( runs[0] )
+        end = int( runs[1] )
       except:
         return S_ERROR( 'Invalid run range: %s' % runNumberString )
-      if int( start ) < int( end ):
-        startRun = start
-        endRun = end
+      startRun = min( start, end )
+      endRun = max( start, end )
       else:
-        startRun = end
-        endRun = start
-    else:
-      try:
-        startRun = int( runNumberString )
-        endRun = startRun
-      except:
-        return S_ERROR( 'Invalid run number: %s' % runNumberString )
+        try:
+          startRun = int( runNumberString )
+          endRun = startRun
+        except:
+          return S_ERROR( 'Invalid run number: %s' % runNumberString )
 
     query = self.bkQueryTemplate.copy()
     query['StartRun'] = startRun
@@ -443,7 +438,7 @@ class DiracLHCb( Dirac ):
       if not check['OK']:
         return check
       dqFlag = check['Value']
-      query['DataQualityFlag'] = dqFlag
+      query['DataQuality'] = dqFlag
 
     result = self.bkQuery( query )
     self.log.verbose( result )
@@ -486,7 +481,7 @@ class DiracLHCb( Dirac ):
       return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
     query = self.bkQueryTemplate.copy()
     try:
-      query['ProductionID'] = int( bkPath[0] )
+      query['Production'] = int( bkPath[0] )
     except:
       return S_ERROR( 'Invalid production ID' )
     query['FileType'] = bkPath[-1]
@@ -607,7 +602,7 @@ class DiracLHCb( Dirac ):
     query['EventType'] = EventType
     query['ConfigName'] = ConfigName
     query['ConfigVersion'] = ConfigVersion
-    query['ProductionID'] = ProductionID
+    query['Production'] = ProductionID
     query['DataQualityFlag'] = DataQualityFlag
     return self.bkQuery( query )
 
@@ -626,10 +621,10 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     problematicFields = []
-    if not bkQueryDict.has_key( 'Visibility' ):
-      bkQueryDict['Visibility'] = "Yes"
+    # Remove the Visible flag as anyway the method is for visible files ;-)
+    #bkQueryDict.setdefault( 'Visible', 'Yes' )
     for name, value in bkQueryDict.items():
-      if not name in self.bkQueryTemplate.keys():
+      if name not in self.bkQueryTemplate:
         problematicFields.append( name )
 
     if problematicFields:
@@ -638,7 +633,7 @@ class DiracLHCb( Dirac ):
       return S_ERROR( msg )
 
     for name, value in bkQueryDict.items():
-      if name == "ProductionID" or name == "EventType" or name == "StartRun" or name == "EndRun":
+      if name == "Production" or name == "EventType" or name == "StartRun" or name == "EndRun":
         if value == 0:
           del bkQueryDict[name]
         else:
@@ -650,12 +645,12 @@ class DiracLHCb( Dirac ):
         if str( value ).lower() == "all":
           del bkQueryDict[name]
 
-    if bkQueryDict.has_key( 'ProductionID' ) or bkQueryDict.has_key( 'StartRun' ) or bkQueryDict.has_key( 'EndRun' ):
+    if 'Production' in bkQueryDict or 'StartRun' in bkQueryDict or 'EndRun' in bkQueryDict:
       self.log.verbose( 'Found a specific query so loosening some restrictions to prevent BK overloading' )
     else:
-      if not bkQueryDict.has_key( 'SimulationConditions' ) and not bkQueryDict.has_key( 'DataTakingConditions' ):
+      if 'SimulationConditions' not in bkQueryDict and 'DataTakingConditions' not in bkQueryDict:
         return S_ERROR( 'A Simulation or DataTaking Condition must be specified for a BK query.' )
-      if not bkQueryDict.has_key( 'EventType' ) or not bkQueryDict.has_key( 'ConfigName' ) or not bkQueryDict.has_key( 'ConfigVersion' ):
+      if 'EventType' not in bkQueryDict or not 'ConfigName' not in bkQueryDict or 'ConfigVersion' not in bkQueryDict:
         return S_ERROR( 'The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion in addition to a Simulation or DataTaking Condition' )
 
     self.log.verbose( 'Final BK query dictionary is:' )
@@ -663,8 +658,7 @@ class DiracLHCb( Dirac ):
       self.log.verbose( '%s : %s' % ( n, v ) )
 
     start = time.time()
-    bk = BookkeepingClient()
-    result = bk.getVisibleFilesWithMetadata( bkQueryDict )
+    result = self.bk.getVisibleFilesWithMetadata( bkQueryDict )
 #    result = bk.getFilesWithGivenDataSets(bkQueryDict)
     rtime = time.time() - start
     self.log.info( 'BK query time: %.2f sec' % rtime )
@@ -727,8 +721,7 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    bk = BookkeepingClient()
-    result = bk.getAvailableDataQuality()
+    result = self.bk.getAvailableDataQuality()
     if not result['OK']:
       self.log.error( 'Could not obtain possible DQ flags from BK with result:\n%s' % ( result ) )
       return result
@@ -768,22 +761,18 @@ class DiracLHCb( Dirac ):
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
 
     runDict = {}
-    bk = BookkeepingClient()
     start = time.time()
-    result = bk.getFileMetadata( lfns )
+    result = self.bk.getFileMetadata( lfns )
     self.log.verbose( "Obtained BK file metadata in %.2f seconds" % ( time.time() - start ) )
     if not result['OK']:
       self.log.error( 'Failed to get bookkeeping metadata with result "%s"' % ( result['Message'] ) )
       return result
 
     for lfn, metadata in result['Value'].items():
-      if metadata.has_key( 'RunNumber' ):
+      if 'RunNumber' in metadata:
         runNumber = metadata['RunNumber']
-        if not runDict.has_key( runNumber ):
-          runDict[runNumber] = [lfn]
+        runDict.setdefault( runNumber, [] ).append( lfn )
         else:
-          runDict[runNumber].append( lfn )
-      else:
         self.log.warn( 'Could not find run number from BK for %s' % ( lfn ) )
 
     if printOutput:
@@ -818,9 +807,8 @@ class DiracLHCb( Dirac ):
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
 
-    bk = BookkeepingClient()
     start = time.time()
-    result = bk.getFileMetadata( lfns )
+    result = self.bk.getFileMetadata( lfns )
     self.log.verbose( "Obtained BK file metadata in %.2f seconds" % ( time.time() - start ) )
     if not result['OK']:
       self.log.error( 'Failed to get bookkeeping metadata with result "%s"' % ( result['Message'] ) )
@@ -872,7 +860,7 @@ class DiracLHCb( Dirac ):
     for site, seList in tierSEs.items():
       tierInfo[site] = {}
       for se in seList:
-        if seInfo.has_key( se ):
+        if se in seInfo:
           tierSEInfo = seInfo[se]
           tierInfo[site][se] = tierSEInfo
       if site in siteInfo['AllowedSites']:
@@ -882,11 +870,11 @@ class DiracLHCb( Dirac ):
 
     if printOutput:
       print '========> Tier-1 status in DIRAC site and SE masks'
-      for site in sortList( self.tier1s ):
+      for site in sorted( self.tier1s ):
         print '\n====> %s is %s in site mask\n' % ( site, tierInfo[site]['MaskStatus'] )
         print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
-        for se in sortList( tierSEs[site] ):
-          if tierInfo[site].has_key( se ):
+        for se in sorted( tierSEs[site] ):
+          if se in tierInfo[site]:
             print '%s %s %s' % ( se.ljust( 25 ), tierInfo[site][se]['ReadStatus'].rjust( 15 ), tierInfo[site][se]['WriteStatus'].rjust( 15 ) )
 
       print '\n========> Tier-2 status in DIRAC site mask\n'
@@ -962,22 +950,15 @@ class DiracLHCb( Dirac ):
     if printOutput:
       print '%s %s %s' % ( 'Storage Element'.ljust( 25 ), 'Read Status'.rjust( 15 ), 'Write Status'.rjust( 15 ) )
 
-    result = {}
-
-    seList = sortList( res['Value'] )
+    seList = sorted( res['Value'] )
     res = self.resourceStatus.getStorageElementStatus( seList )
     if not res[ 'OK' ]:
       gLogger.error( "Failed to get StorageElement status for %s" % str( seList ) )
 
+    result = {}
     for k, v in res[ 'Value' ].items():
-
-      readState, writeState = 'Active', 'Active'
-
-      if v.has_key( 'Read' ):
-        readState = v[ 'Read' ]
-
-      if v.has_key( 'Write' ):
-        writeState = v[ 'Write']
+      readState = v.get( 'Read' , 'Active' )
+      writeState = v.get( 'Write', 'Active' )
 
       result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
       if printOutput:
