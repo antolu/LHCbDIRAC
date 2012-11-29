@@ -19,11 +19,14 @@
         -o LogLevel=LEVEL     NOTICE by default, levels available: INFO, DEBUG, VERBOSE...             
     
 """
-from DIRAC                      import gLogger, exit as DiracExit, S_OK
-from DIRAC.Core.Base            import Script
-from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC                                            import gLogger, exit as DiracExit, S_OK
+from DIRAC.Core.Base                                  import Script
+from DIRAC.Core.DISET.RPCClient                       import RPCClient
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.Interfaces.API.Dirac                       import Dirac
 
-from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.JobInfoFromXML              import JobInfoFromXML
 
 __RCSID__ = '$Id$'
 
@@ -86,7 +89,8 @@ def printDict( dictionary ):
     if len( str( value ) ) > value_max:
       value_max = len( str( value ) )
   for key, value in dictionary.items():
-    subLogger.verbose( key.rjust( key_max ), ' : ', str( value ).ljust( value_max ) )
+    #subLogger.verbose( key.rjust( key_max ), ' : ', str( value ).ljust( value_max ) )
+    print key.rjust( key_max ), ' : ', str( value ).ljust( value_max )
 
 ################################################################################
 
