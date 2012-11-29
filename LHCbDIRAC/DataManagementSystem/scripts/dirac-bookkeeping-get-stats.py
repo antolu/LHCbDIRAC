@@ -70,7 +70,6 @@ if __name__ == "__main__":
       print "Getting info from filesSummary..."
       if 'Visible' not in queryDict: queryDict[ 'Visible' ] = "All"
       query = queryDict.copy()
-      print "Final query", query
       if len( query ) <= 3:
         query.update( {'1':1, '2':2, '3':3 } )
       fileTypes = query.get( 'FileType' )
@@ -95,7 +94,7 @@ if __name__ == "__main__":
         for paramValues in res['Value']['Records']:
           if not record:
             record = len( paramValues ) * [0]
-          record = [rec + val for rec, val in zip( record, paramValues )]
+          record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
         #print fileType, record
         for name, value in zip( paramNames, record ):
           if name == 'NumberOfEvents':
