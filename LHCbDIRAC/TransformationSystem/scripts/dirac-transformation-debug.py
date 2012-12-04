@@ -7,7 +7,7 @@ import sys
 def getFilesForRun( id, runID, status=None, lfnList=None, seList=None ):
   #print id, runID, status, lfnList
   selectDict = {}
-  if runID:
+  if runID != None:
       selectDict["RunNumber"] = runID
   if status:
       selectDict['Status'] = status
@@ -48,7 +48,7 @@ resetRuns = None
 runList = None
 kickRequests = False
 justStats = False
-fixIt = False
+fixRun = False
 allTasks = False
 from DIRAC.Core.Base import Script
 
@@ -64,7 +64,7 @@ Script.registerSwitch( '', 'ResetRuns', "Reset runs in Active status (use with c
 Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
 Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
 Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
-Script.registerSwitch( '', 'FixIt', 'Fix the run number in transformation table' )
+Script.registerSwitch( '', 'FixRun', 'Fix the run number in transformation table' )
 Script.registerSwitch( 'v', 'Verbose', '' )
 
 Script.parseCommandLine( ignoreErrors=True )
@@ -117,8 +117,10 @@ for switch in switches:
         dumpFiles = True
     elif opt == 'statistics':
         justStats = True
-    elif opt == 'fixit':
-      fixIt = True
+    elif opt == 'fixrun':
+      fixRun = True
+      runList = ['0']
+      status = 'Unused'
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
       bkClient = BookkeepingClient()
 
@@ -253,22 +255,25 @@ for id in idList:
         for runRange in runList:
             runRange = runRange.split( ':' )
             if len( runRange ) == 1:
-                runs.append( runRange[0] )
+                runs.append( int( runRange[0] ) )
             else:
                 for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
                     runs.append( run )
         selectDict = {'TransformationID':id, 'RunNumber': runs}
-        if seList:
-          selectDict['SelectedSite'] = seList
-        res = transClient.getTransformationRuns( selectDict )
-        if res['OK']:
-            if not len( res['Value'] ):
-                print "No runs found, set to 0"
-                runs = [{'RunNumber':0}]
-            else:
-                runs = res['Value']
+        if runs == [0]:
+          runs = [{'RunNumber':0}]
+        else:
+          if seList:
+            selectDict['SelectedSite'] = seList
+          res = transClient.getTransformationRuns( selectDict )
+          if res['OK']:
+              if not len( res['Value'] ):
+                  print "No runs found, set to 0"
+                  runs = [{'RunNumber':None}]
+              else:
+                  runs = res['Value']
     elif not byRuns:
-        runs = [{'RunNumber': 0}]
+        runs = [{'RunNumber': None}]
     else:
         selectDict = {'TransformationID':id}
         if seList:
@@ -277,7 +282,7 @@ for id in idList:
         if res['OK']:
             if not len( res['Value'] ):
                 print "No runs found, set to 0"
-                runs = [{'RunNumber':0}]
+                runs = [{'RunNumber':None}]
             else:
                 runs = res['Value']
     SEStat = {"Total":0}
@@ -333,8 +338,8 @@ for id in idList:
               if fileDict['RunNumber'] == 0 and fileDict['LFN'].find( '/MC' ) < 0:
                 filesToBeFixed.append( fileDict['LFN'] )
             if filesToBeFixed:
-              if not fixIt:
-                print '%d files have run number 0, use --FixIt to get this fixed' % len( filesToBeFixed )
+              if not fixRun:
+                print '%d files have run number 0, use --FixRun to get this fixed' % len( filesToBeFixed )
               else:
                 fixedFiles = 0
                 res = bkClient.getFileMetadata( filesToBeFixed )
@@ -343,13 +348,18 @@ for id in idList:
                   for lfn, metadata in res['Value'].items():
                     runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
                   for run in runFiles:
+                    if not run:
+                      print "%d files found for run '%s': %s" % ( len( runFiles[run] ), str( run ), str( runFiles[run] ) )
+                      continue
                     res = transClient.addTransformationRunFiles( id, run, runFiles[run] )
                     # print run, runFiles[run], res
                     if not res['OK']:
-                      print "Failed to set %d files to run %d in transformation %d" % ( len( runFiles[run] ), run, id )
+                      print "***ERROR*** setting %d files to run %d in transformation %d: %s" % ( len( runFiles[run] ), run, id, res['Message'] )
                     else:
                       fixedFiles += len( runFiles[run] )
-                print "Successfully fixed run number for %d files" % fixedFiles
+                  print "Successfully fixed run number for %d files" % fixedFiles
+                else:
+                  print "***ERROR*** getting metadata for %d files: %s" % ( len( filesToBeFixed ), res['Message'] )
             if status == 'MissingLFC':
                 lfns = [fileDict['LFN'] for fileDict in filesList]
                 res = rm.getReplicas( lfns )
