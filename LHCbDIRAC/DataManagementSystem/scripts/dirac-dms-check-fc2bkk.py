@@ -10,29 +10,6 @@
       No replica flag: set it (in the BKK)
 '''
 
-#Script initialization
-from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-
-Script.setUsageMessage( '\n'.join( [ __doc__,
-                                     'Usage:',
-                                     '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
-dmScript = DMScript()
-dmScript.registerNamespaceSwitches() #Directory
-dmScript.registerFileSwitches() #File, LFNs
-Script.registerSwitch( "P:", "Productions=",
-                           "   Production ID to search (comma separated list)", dmScript.setProductions )
-Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
-Script.parseCommandLine( ignoreErrors = True )
-
-#imports
-import sys, os, time
-import DIRAC
-from DIRAC import gLogger
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-
 #Code
 def doCheck():
   cc.checkFC2BKK()
@@ -67,8 +44,30 @@ def doCheck():
 
 if __name__ == '__main__':
 
+  #Script initialization
+  from DIRAC.Core.Base import Script
+  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+
+  Script.setUsageMessage( '\n'.join( [ __doc__,
+                                       'Usage:',
+                                       '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
+  dmScript = DMScript()
+  dmScript.registerNamespaceSwitches() #Directory
+  dmScript.registerFileSwitches() #File, LFNs
+  Script.registerSwitch( "P:", "Productions=",
+                         "   Production ID to search (comma separated list)", dmScript.setProductions )
+  Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
+  Script.parseCommandLine( ignoreErrors=True )
+
+  #imports
+  import sys, os, time
+  import DIRAC
+  from DIRAC import gLogger
+  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
+
   fixIt = False
-  switches = Script.getUnprocessedSwitches()
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'FixIt':
       fixIt = True
@@ -76,7 +75,7 @@ if __name__ == '__main__':
   rm = ReplicaManager()
   bk = BookkeepingClient()
 
-  cc = ConsistencyChecks( rm = rm, bkClient = bk )
+  cc = ConsistencyChecks( rm=rm, bkClient=bk )
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] )
   productions = dmScript.getOption( 'Productions', [] )
