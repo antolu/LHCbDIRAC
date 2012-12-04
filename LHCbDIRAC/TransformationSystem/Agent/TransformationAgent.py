@@ -33,16 +33,26 @@ class TransformationAgent( DIRACTransformationAgent ):
                                              'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
     self.workDirectory = self.am_getWorkDirectory()
 
-    #clients
-    self.resourceStatus = ResourceStatus()
-    self.bkk = BookkeepingClient()
-    self.rmClient = ResourceManagementClient()
-    self.transfClient = TransformationClient()
-
     self.debug = self.am_getOption( 'verbosePlugin', False )
 
+  def _getClients( self ):
+    """ returns the clients used in the threads
+    """
+    res = DIRACTransformationAgent._getClients( self )
 
-  def __generatePluginObject( self, plugin ):
+    threadTransformationClient = TransformationClient()
+    threadRMClient = ResourceManagementClient()
+    threadResourceStatus = ResourceStatus()
+    threadBkk = BookkeepingClient()
+
+    res.update( {'TransformationClient':threadTransformationClient,
+                 'ResourceManagementClient':threadRMClient,
+                 'ResourceStatus':threadResourceStatus,
+                 'BookkeepingClient':threadBkk} )
+
+    return res
+
+  def __generatePluginObject( self, plugin, clients ):
     """ Generates the plugin object
     """
     try:
@@ -52,11 +62,11 @@ class TransformationAgent( DIRACTransformationAgent ):
       return S_ERROR()
     try:
       oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
-                                                               replicaManager = self.rm,
-                                                               transClient = self.transfClient,
-                                                               bkkClient = self.bkk,
-                                                               rmClient = self.rmClient,
-                                                               rss = self.resourceStatus )
+                                                               replicaManager = clients['ReplicaManager'],
+                                                               transClient = clients['TransformationClient'],
+                                                               bkkClient = clients['BookkeepingClient'],
+                                                               rmClient = clients['ResourceManagementClient'],
+                                                               rss = clients['ResourceStatus'] )
     except Exception, x:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()
