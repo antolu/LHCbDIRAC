@@ -3,8 +3,8 @@ __RCSID__ = "$Id$"
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
@@ -118,3 +118,30 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
         return res
 
     return S_OK()
+
+  def getTransformationDirectories( self, transID ):
+    """ get the directories for the supplied transformation from the transformation system
+
+    :param self: self reference
+    :param int transID: transformation ID
+    """
+
+    res = DIRACValidateOutputDataAgent.getTransformationDirectories( transID )
+
+    if res['OK']:
+      directories = res['Value']
+    else:
+      return res
+
+    if 'StorageUsage' in self.directoryLocations:
+      res = self.storageUsageClient.getStorageDirectories( '', '', transID, [] )
+      if not res['OK']:
+        self.log.error( "Failed to obtain storage usage directories", res['Message'] )
+        return res
+      transDirectories = res['Value']
+      directories = self._addDirs( transID, transDirectories, directories )
+
+    if not directories:
+      self.log.info( "No output directories found" )
+    directories = sortList( directories )
+    return S_OK( directories )
