@@ -419,12 +419,12 @@ class DiracLHCb( Dirac ):
         return S_ERROR( 'Invalid run range: %s' % runNumberString )
       startRun = min( start, end )
       endRun = max( start, end )
-      else:
-        try:
-          startRun = int( runNumberString )
-          endRun = startRun
-        except:
-          return S_ERROR( 'Invalid run number: %s' % runNumberString )
+    else:
+      try:
+        startRun = int( runNumberString )
+        endRun = startRun
+      except:
+        return S_ERROR( 'Invalid run number: %s' % runNumberString )
 
     query = self.bkQueryTemplate.copy()
     query['StartRun'] = startRun
