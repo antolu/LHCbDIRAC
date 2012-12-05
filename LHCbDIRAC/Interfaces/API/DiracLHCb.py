@@ -772,7 +772,7 @@ class DiracLHCb( Dirac ):
       if 'RunNumber' in metadata:
         runNumber = metadata['RunNumber']
         runDict.setdefault( runNumber, [] ).append( lfn )
-        else:
+      else:
         self.log.warn( 'Could not find run number from BK for %s' % ( lfn ) )
 
     if printOutput:
