@@ -22,32 +22,43 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                     import S_OK, gLogger
-from DIRAC.Core.Base.AgentModule                               import AgentModule
-from DIRAC.Core.DISET.RPCClient                                import RPCClient
-from DIRAC.Interfaces.API.Dirac                                import Dirac
-from DIRAC.FrameworkSystem.Client.NotificationClient           import NotificationClient
+import time
+from DIRAC                                                      import S_OK
+from DIRAC.Core.Base.AgentModule                                import AgentModule
+from DIRAC.Core.DISET.RPCClient                                 import RPCClient
+from DIRAC.Interfaces.API.Dirac                                 import Dirac
+from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                   import DiracProduction
 
-from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
-
-import time
-
-# A.T. import of Dirac API module forbids showing headers in the log
-gLogger.showHeaders( True )
-
-AGENT_NAME = 'ProductionManagement/ProductionStatusAgent'
 
 class ProductionStatusAgent( AgentModule ):
   """ Usual DIRAC agent
   """
 
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    """ c'tor
+
+    :param self: self reference
+    :param str agentName: name of agent
+    :param str loadName: load name of agent
+    :param bool baseAgentName: whatever
+    :param dict properties: whatever else
+    """
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
+
+    self.dProd = DiracProduction()
+    self.dirac = Dirac()
+    self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
+
+    self.updatedProductions = {}
+    self.updatedRequests = []
+
   #############################################################################
   def initialize( self ):
     """Sets default values.
     """
-    self.am_setOption( 'PollingTime', 2 * 60 * 60 )
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
     return S_OK()
@@ -59,46 +70,10 @@ class ProductionStatusAgent( AgentModule ):
     """
     self.updatedProductions = {}
     self.updatedRequests = []
-    reqClient = RPCClient( 'ProductionManagement/ProductionRequest', timeout = 120 )
-    result = reqClient.getProductionRequestSummary( 'Active', 'Simulation' )
-    if not result['OK']:
-      self.log.error( 'Could not retrieve production request summary:\n%s\nwill be attempted on next execution cycle' % result )
-      return S_OK()
 
-    prodReqSummary = result['Value']
+    prodReqSummary, progressSummary = self._getProgress()
 
-    result = reqClient.getAllProductionProgress()
-    if not result['OK']:
-      self.log.error( 'Could not retrieve production progress summary:\n%s\n will be attempted on next execution cycle' % result )
-      return S_OK()
-
-    progressSummary = result['Value']
-
-    prodValOutputs = {}
-    prodValInputs = {}
-    notDoneOutputs = {}
-    for reqID, mdata in prodReqSummary.items():
-      totalRequested = mdata['reqTotal']
-      bkTotal = mdata['bkTotal']
-      if not bkTotal:
-        self.log.info( 'No events in BK for request ID %s' % ( reqID ) )
-        continue
-      progress = int( bkTotal * 100 / totalRequested )
-      self.log.verbose( 'Request progress for ID %s is %s' % ( reqID, progress ) )
-      if not progressSummary.has_key( reqID ):
-        self.log.error( 'Could not get production progress list for request %s' % reqID )
-        continue
-
-      prodProgress = progressSummary[reqID]
-      for prod, used in prodProgress.items():
-        if bkTotal >= totalRequested:
-          if used['Used']:
-            prodValOutputs[prod] = reqID
-          else:
-            prodValInputs[prod] = reqID
-        else:
-          if used['Used']:
-            notDoneOutputs[prod] = reqID
+    prodValOutputs, prodValInputs, notDoneOutputs = self._evaluateProgress( prodReqSummary, progressSummary )
 
     #Check that there is something to do
     if not prodValOutputs.keys():
@@ -157,7 +132,7 @@ class ProductionStatusAgent( AgentModule ):
 
     self.log.info( 'The following productions are in ValidatedOutput status: %s' % ( ', '.join( [str( i ) for i in validatedOutput] ) ) )
 
-    #All poductions achieving #BK events will be in prodValOutputs dictionary
+    #All productions achieving #BK events will be in prodValOutputs dictionary
     returnToActive = []
     for prod in validatedOutput:
       if not prodValOutputs.has_key( prod ):
@@ -273,6 +248,55 @@ class ProductionStatusAgent( AgentModule ):
     return S_OK()
 
   #############################################################################
+
+  def _getProgress( self ):
+    ''' get production request summary and progress
+    '''
+    result = self.reqClient.getProductionRequestSummary( 'Active', 'Simulation' )
+    if not result['OK']:
+      self.log.error( 'Could not retrieve production request summary:\n%s\nwill be attempted on next execution cycle' % result )
+      return S_OK()
+    prodReqSummary = result['Value']
+
+    result = self.reqClient.getAllProductionProgress()
+    if not result['OK']:
+      self.log.error( 'Could not retrieve production progress summary:\n%s\n will be attempted on next execution cycle' % result )
+      return S_OK()
+    progressSummary = result['Value']
+
+    return prodReqSummary, progressSummary
+
+  def _evaluateProgress( self, prodReqSummary, progressSummary ):
+    ''' determines which prods should go in ValidatingInputs, ValidatingOutputs,
+        and those for which nothing has to be done
+    '''
+    prodValOutputs = prodValInputs = notDoneOutputs = {}
+    for reqID, mdata in prodReqSummary.iteritems():
+      totalRequested = mdata['reqTotal']
+      bkTotal = mdata['bkTotal']
+      if not bkTotal:
+        self.log.info( 'No events in BK for request ID %s' % ( reqID ) )
+        continue
+      progress = int( bkTotal * 100 / totalRequested )
+      self.log.verbose( 'Request progress for ID %s is %s' % ( reqID, progress ) )
+      if not progressSummary.has_key( reqID ):
+        self.log.error( 'Could not get production progress list for request %s' % reqID )
+        continue
+
+      prodProgress = progressSummary[reqID]
+      for prod, used in prodProgress.iteritems():
+        if bkTotal >= totalRequested:
+          if used['Used']:
+            prodValOutputs[prod] = reqID
+          else:
+            prodValInputs[prod] = reqID
+        else:
+          if used['Used']:
+            notDoneOutputs[prod] = reqID
+
+    return prodValOutputs, prodValInputs, notDoneOutputs
+
+
   def updateAssociatedTransformation( self, prodID, status = 'Completed' ):
     """ This function checks for a production parameter "AssociatedTransformation"
         and if found will also update the transformation ID to the supplied status.
@@ -335,19 +359,16 @@ class ProductionStatusAgent( AgentModule ):
         or Running jobs in the WMS and removes them to ensure the output data sample
         is static.  Then the production status is updated.
     """
-    #return self.updateProductionStatus(prodID,origStatus,status)
-    dProd = DiracProduction()
-    dirac = Dirac()
-    running = dProd.selectProductionJobs( int( prodID ), Status = 'Running' )
+    running = self.dProd.selectProductionJobs( int( prodID ), Status = 'Running' )
     if running['OK']:
       self.log.info( 'Killing %s running jobs for production %s' % ( len( running['Value'] ), prodID ) )
-      result = dirac.kill( running['Value'] )
+      result = self.dirac.kill( running['Value'] )
       if not result['OK']:
         self.log.error( result )
-    waiting = dProd.selectProductionJobs( int( prodID ), Status = 'Waiting' )
+    waiting = self.dProd.selectProductionJobs( int( prodID ), Status = 'Waiting' )
     if waiting['OK']:
       self.log.info( 'Deleting %s waiting jobs for production %s' % ( len( waiting['Value'] ), prodID ) )
-      result = dProd.deleteProdJobs( waiting['Value'] )
+      result = self.dProd.deleteProdJobs( waiting['Value'] )
       if not result['OK']:
         self.log.error( result )
 
