@@ -158,12 +158,6 @@ class Production():
 
   #############################################################################
 
-  def addGenericApplicationStep( self, modules = [], outputSE = None, inputData = None ):
-    """ building a generic application step, that does not use
-    """
-
-  #############################################################################
-
   def addApplicationStep( self, stepDict, outputSE, optionsLine, inputData = None,
                           modules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                                      'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
