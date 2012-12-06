@@ -1,4 +1,4 @@
-"""  The ProductionStatusAgent monitors productions for active requests
+'''  The ProductionStatusAgent monitors productions for active requests
      and takes care to update their status. Initially this is just to handle
      simulation requests.
 
@@ -18,7 +18,7 @@
      In addition this also updates request status from Active to Done.
 
      To do: review usage of production API(s) and refactor into Production Client
-"""
+'''
 
 __RCSID__ = "$Id$"
 
@@ -34,201 +34,70 @@ from LHCbDIRAC.Interfaces.API.DiracProduction                   import DiracProd
 
 
 class ProductionStatusAgent( AgentModule ):
-  """ Usual DIRAC agent
-  """
+  ''' Usual DIRAC agent
+  '''
 
   def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
-    """ c'tor
+    ''' c'tor
 
     :param self: self reference
     :param str agentName: name of agent
     :param str loadName: load name of agent
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
-    """
+    '''
     AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
 
     self.dProd = DiracProduction()
     self.dirac = Dirac()
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.transformationClient = TransformationClient()
 
-    self.updatedProductions = {}
-    self.updatedRequests = []
 
   #############################################################################
   def initialize( self ):
-    """Sets default values.
-    """
+    '''Sets default values.
+    '''
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
     return S_OK()
 
   #############################################################################
   def execute( self ):
-    """ The execution method, periodically checks productions for requests in the
+    ''' The execution method, periodically checks productions for requests in the
         Active status.
-    """
-    self.updatedProductions = {}
-    self.updatedRequests = []
+    '''
+    updatedProductions = {}
+    updatedRequests = []
 
     prodReqSummary, progressSummary = self._getProgress()
 
-    prodValOutputs, prodValInputs, notDoneOutputs = self._evaluateProgress( prodReqSummary, progressSummary )
+    self.log.info( "******************************" )
+    self.log.info( "Checking for Requests to close" )
+    self.log.info( "******************************" )
 
-    #Check that there is something to do
-    if not prodValOutputs.keys():
-      self.log.info( 'No productions have yet reached the necessary number of BK events' )
-      return S_OK()
-
-    #Now have to update productions to ValidatingOutput / Input after cleaning jobs
-    for prod, req in prodValOutputs.items():
-      self.cleanActiveJobsUpdateStatus( prod, 'Active', 'ValidatingOutput' )
-      #self.updateProductionStatus(prod,'Active','ValidatingOutput')
-
-    for prod, req in prodValInputs.items():
-      self.cleanActiveJobsUpdateStatus( prod, 'Active', 'ValidatingInput' )
-      #self.updateProductionStatus(prod,'Active','ValidatingInput')
-
-    #Select productions in ValidatedOutput and recheck #BK events
-    #Either request is Done, productions Completed, MC prods go to RemoveInputs
-    #or request is Active, productions Active, MC prods Active (and extended correctly)
-    transformationClient = TransformationClient()
-    res = transformationClient.getTransformationWithStatus( 'ValidatedOutput' )
+    res = self.transformationClient.getTransformationWithStatus( 'Completed' )
     if not res['OK']:
-      self.log.error( "Failed to get ValidatedOutput productions", res['Message'] )
+      self.log.error( "Failed to get Completed productions", res['Message'] )
       return res
+    completed = res['Value']
+    if not completed:
+      self.log.info( 'No productions in completed status to process' )
+    else:
+      reqsMap = self._getReqsMap( prodReqSummary )
+      for masterReq, reqs in reqsMap.iteritems():
+        allProds = []
+        for _req, prods in reqs.iteritems():
+          allProds = allProds + prods
+        if set( allProds ) < set( completed ):
+          self._updateRequestStatus( masterReq, 'Done', updatedRequests )
 
-    validatedOutput = res['Value']
-    if not validatedOutput:
-      self.log.info( 'No productions in ValidatedOutput status to process' )
-      self.log.info( 'Productions updated this cycle:' )
-      for n, v in self.updatedProductions.items():
-        self.log.info( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
-      self.mailProdManager()
-      return S_OK()
 
-    parentRequests = {}
-    singleRequests = []
-    for reqID, mdata in prodReqSummary.items():
-      if not mdata['master']:
-        singleRequests.append( reqID )
-      else:
-        parent = mdata['master']
-        if parentRequests.has_key( parent ):
-          reqs = parentRequests[parent]
-          updated = reqs
-          updated.append( reqID )
-          parentRequests[parent] = updated
-        else:
-          parentRequests[parent] = [reqID]
+    self.log.info( "**************************************" )
+    self.log.info( "Checking for RemovedFiles -> Completed" )
+    self.log.info( "**************************************" )
 
-    for req in parentRequests.keys():
-      if req in singleRequests:
-        singleRequests.remove( req )
-
-    self.log.info( 'Single requests are: %s' % ( ', '.join( [str( i ) for i in singleRequests] ) ) )
-    for n, v in parentRequests.items():
-      self.log.info( 'Parent request %s has subrequests: %s' % ( n, ', '.join( [str( j ) for j in v] ) ) )
-
-    self.log.info( 'The following productions are in ValidatedOutput status: %s' % ( ', '.join( [str( i ) for i in validatedOutput] ) ) )
-
-    #All productions achieving #BK events will be in prodValOutputs dictionary
-    returnToActive = []
-    for prod in validatedOutput:
-      if not prodValOutputs.has_key( prod ):
-        if notDoneOutputs.has_key( prod ):
-          unfinishedRequest = notDoneOutputs[prod]
-          if unfinishedRequest in singleRequests:
-            self.log.info( 'Prod %s for single request %s has not enough BK events' % ( prod, unfinishedRequest ) )
-            returnToActive.append( prod )
-        continue
-      reqID = prodValOutputs[prod]
-      if reqID in singleRequests:
-        self.log.info( 'Production %s for single request ID %s has enough BK events after validation' % ( prod, reqID ) )
-        #Note that this assumes again only 2 productions per request maximum
-        mcProd = None
-        for assocProd, req in prodValInputs.items():
-          if req == reqID:
-            mcProd = assocProd
-
-        if mcProd:
-          self.updateProductionStatus( mcProd, 'ValidatingInput', 'RemovingFiles' )
-
-        self.updateProductionStatus( prod, 'ValidatedOutput', 'Completed' )
-        self.updateAssociatedTransformation( prod )
-        self.updateRequestStatus( reqID, 'Done' )
-
-    completedParents = []
-    for req, subReqs in parentRequests.items():
-      finished = True
-      toCheck = []
-      notDoneProds = []
-      for subreq in subReqs:
-        for assocProd, valreq in prodValOutputs.items():
-          if valreq == subreq:
-            toCheck.append( assocProd )
-        for notDoneProd, notDoneReq in notDoneOutputs.items():
-          if notDoneReq == subreq:
-            notDoneProds.append( notDoneProd )
-      self.log.info( '==> Checking productions: %s for parent request %s' % ( ', '.join( [str( i ) for i in toCheck] ), req ) )
-      for notDoneProd in notDoneProds:
-        self.log.info( 'Production %s is part of parent request ID %s but does not have enough BK events' % ( notDoneProd, req ) )
-        finished = False
-      for prod in toCheck:
-        if not prod in validatedOutput:
-          self.log.info( 'Production %s is part of parent request ID %s but not yet in ValidatedOutput status' % ( prod, req ) )
-          finished = False
-        if not prodValOutputs.has_key( prod ):
-          self.log.info( 'Production %s, request ID %s is in ValidatedOutput status but does not have enough BK events' % ( prod, req ) )
-          finished = False
-          returnToActive.append( prod )
-      if finished and toCheck:
-        completedParents.append( req )
-
-    if completedParents:
-      self.log.info( 'Completed parent requests to recheck BK events are: %s' % ( ', '.join( [str( i ) for i in completedParents] ) ) )
-
-    for finishedReq in completedParents:
-      if not parentRequests.has_key( finishedReq ):
-        self.log.error( 'Req %s is not in list of completed parents' % ( finishedReq ) )
-        continue
-      subreqs = parentRequests[finishedReq]
-      for subreq in subreqs:
-        if not progressSummary.has_key( subreq ):
-          self.log.error( 'Could not get production progress list for request %s:\n%s' % ( reqID, res ) )
-          continue
-        prodProgress = progressSummary[subreq]
-        for prod, used in prodProgress.items():
-          if used['Used']:
-            self.updateProductionStatus( prod, 'ValidatedOutput', 'Completed' )
-            self.updateAssociatedTransformation( prod )
-          else:
-            self.updateProductionStatus( prod, 'ValidatingInput', 'RemovingFiles' )
-
-      self.updateRequestStatus( finishedReq, 'Done' )
-
-    #Must return to active state the following Used productions (and associated MC prods)
-    if returnToActive:
-      self.log.info( 'Final productions to be returned to Active status are: %s' % ( ', '.join( [str( i ) for i in returnToActive] ) ) )
-
-    mcReturnToActive = []
-    for prod in returnToActive:
-      for reqID, prodDict in progressSummary.items():
-        if prod in prodDict.keys():
-          for prodID, used in prodDict.items():
-            if not prodDict['Used']:
-              mcReturnToActive.append( prodID )
-
-    if mcReturnToActive:
-      self.log.info( 'Final MC productions to be returned to active are: %s' % ( ', '.join( [str( i ) for i in mcReturnToActive] ) ) )
-
-    for prodID in returnToActive:
-      self.updateProductionStatus( prodID, 'ValidatedOutput', 'Active' )
-    for prodID in mcReturnToActive:
-      self.updateProductionStatus( prodID, 'ValidatingInput', 'Active' )
-
-    #Final action is to update MC input productions to completed that have been treated
-    res = transformationClient.getTransformationWithStatus( 'RemovedFiles' )
+    res = self.transformationClient.getTransformationWithStatus( 'RemovedFiles' )
     if not res['OK']:
       self.log.error( "Failed to get RemovedFiles productions", res['Message'] )
       return res
@@ -236,15 +105,86 @@ class ProductionStatusAgent( AgentModule ):
       self.log.info( 'No productions in RemovedFiles status' )
     else:
       for prod in res['Value']:
-        self.updateProductionStatus( prod, 'RemovedFiles', 'Completed' )
+        self._updateProductionStatus( prod, 'RemovedFiles', 'Completed', updatedProductions )
+
+
+    self.log.info( "*********************************************************************************************" )
+    self.log.info( "Checking for ValidatedOutput -> Completed/Active and ValidatingInputs -> RemovingFiles/Active" )
+    self.log.info( "*********************************************************************************************" )
+
+    doneAndUsed, doneAndNotUsed, _notDoneAndUsed, _notDoneAndNotUsed = self._evaluateProgress( prodReqSummary,
+                                                                                               progressSummary )
+
+    res = self.transformationClient.getTransformationWithStatus( 'ValidatedOutput' )
+    if not res['OK']:
+      self.log.error( "Failed to get ValidatedOutput productions", res['Message'] )
+      return res
+    validatedOutput = res['Value']
+    if not validatedOutput:
+      self.log.info( 'No productions in ValidatedOutput status to process' )
+    else:
+      valOutStr = ', '.join( [str( i ) for i in validatedOutput] )
+      self.log.info( 'The following productions are in ValidatedOutput status: %s' % valOutStr )
+
+      for prod in validatedOutput:
+        if prod not in doneAndUsed:
+          self.log.info( 'Production %d is returned to Active status' % prod )
+          self._updateProductionStatus( prod, 'ValidatedOutput', 'Active', updatedProductions )
+        else:
+          self.log.info( 'Production %d is put in Completed status' % prod )
+          self._updateProductionStatus( prod, 'ValidatedOutput', 'Completed', updatedProductions )
+
+
+    res = self.transformationClient.getTransformationWithStatus( 'ValidatingInput' )
+    if not res['OK']:
+      self.log.error( "Failed to get ValidatingInput productions", res['Message'] )
+      return res
+    validatingInput = res['Value']
+    if not validatingInput:
+      self.log.info( 'No productions in validatingInput status to process' )
+    else:
+      valOutStr = ', '.join( [str( i ) for i in validatingInput] )
+      self.log.info( 'The following productions are in validatingInput status: %s' % valOutStr )
+
+      for prod in validatingInput:
+        if prod not in doneAndNotUsed:
+          self.log.info( 'Production %d is returned to Active status' % prod )
+          self._updateProductionStatus( prod, 'ValidatingInput', 'Active', updatedProductions )
+        else:
+          self.log.info( 'Production %d is put in Completed status' % prod )
+          self._updateProductionStatus( prod, 'ValidatingInput', 'Completed', updatedProductions )
+
+
+    self.log.info( "*********************************************************************" )
+    self.log.info( "Checking for Active -> ValidatingInput and Active -> ValidatingOutput" )
+    self.log.info( "*********************************************************************" )
+
+    prodValOutputs, prodValInputs, _notDoneAndUsed, _notDoneAndNotUsed = self._evaluateProgress( prodReqSummary,
+                                                                                                 progressSummary )
+    if not prodValOutputs:
+      self.log.info( 'No productions have yet reached the necessary number of BK events' )
+    else:
+      #Now have to update productions to ValidatingOutput / Input after cleaning jobs
+      for prod in prodValOutputs:
+        self._cleanActiveJobs( prod )
+        self._updateProductionStatus( prod, 'Active', 'ValidatingOutput', updatedProductions )
+
+      for prod in prodValInputs:
+        self._cleanActiveJobs( prod )
+        self._updateProductionStatus( prod, 'Active', 'ValidatingInput', updatedProductions )
+
+
+    self.log.info( "*********" )
+    self.log.info( "Reporting" )
+    self.log.info( "*********" )
 
     self.log.info( 'Productions updated this cycle:' )
-    for n, v in self.updatedProductions.items():
+    for n, v in updatedProductions.items():
       self.log.info( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
 
-    if self.updatedRequests:
-      self.log.info( 'Requests updated to Done status: %s' % ( ', '.join( [str( i ) for i in self.updatedRequests] ) ) )
-    self.mailProdManager()
+    if updatedRequests:
+      self.log.info( 'Requests updated to Done status: %s' % ( ', '.join( [str( i ) for i in updatedRequests] ) ) )
+    self._mailProdManager( updatedProductions, updatedRequests )
     return S_OK()
 
   #############################################################################
@@ -254,23 +194,28 @@ class ProductionStatusAgent( AgentModule ):
     '''
     result = self.reqClient.getProductionRequestSummary( 'Active', 'Simulation' )
     if not result['OK']:
-      self.log.error( 'Could not retrieve production request summary:\n%s\nwill be attempted on next execution cycle' % result )
-      return S_OK()
-    prodReqSummary = result['Value']
+      self.log.error( 'Could not retrieve production request summary: %s' % result['Message'] )
+      prodReqSummary = {}
+    else:
+      prodReqSummary = result['Value']
 
     result = self.reqClient.getAllProductionProgress()
     if not result['OK']:
-      self.log.error( 'Could not retrieve production progress summary:\n%s\n will be attempted on next execution cycle' % result )
-      return S_OK()
-    progressSummary = result['Value']
+      self.log.error( 'Could not retrieve production progress summary: %s' % result['Message'] )
+      progressSummary = {}
+    else:
+      progressSummary = result['Value']
 
     return prodReqSummary, progressSummary
 
   def _evaluateProgress( self, prodReqSummary, progressSummary ):
-    ''' determines which prods should go in ValidatingInputs, ValidatingOutputs,
-        and those for which nothing has to be done
+    ''' determines which prods have reached the number of events requested and which didn't
     '''
-    prodValOutputs = prodValInputs = notDoneOutputs = {}
+    doneAndUsed = {}
+    doneAndNotUsed = {}
+    notDoneAndUsed = {}
+    notDoneAndNotUsed = {}
+
     for reqID, mdata in prodReqSummary.iteritems():
       totalRequested = mdata['reqTotal']
       bkTotal = mdata['bkTotal']
@@ -279,73 +224,70 @@ class ProductionStatusAgent( AgentModule ):
         continue
       progress = int( bkTotal * 100 / totalRequested )
       self.log.verbose( 'Request progress for ID %s is %s' % ( reqID, progress ) )
-      if not progressSummary.has_key( reqID ):
+
+      try:
+        for prod, used in progressSummary[reqID].iteritems():
+          if bkTotal >= totalRequested:
+            if used['Used']:
+              doneAndUsed[prod] = reqID
+            else:
+              doneAndNotUsed[prod] = reqID
+          else:
+            if used['Used']:
+              notDoneAndUsed[prod] = reqID
+            else:
+              notDoneAndNotUsed[prod] = reqID
+      except KeyError:
         self.log.error( 'Could not get production progress list for request %s' % reqID )
         continue
 
-      prodProgress = progressSummary[reqID]
-      for prod, used in prodProgress.iteritems():
-        if bkTotal >= totalRequested:
-          if used['Used']:
-            prodValOutputs[prod] = reqID
-          else:
-            prodValInputs[prod] = reqID
-        else:
-          if used['Used']:
-            notDoneOutputs[prod] = reqID
+    return doneAndUsed, doneAndNotUsed, notDoneAndUsed, notDoneAndNotUsed
 
-    return prodValOutputs, prodValInputs, notDoneOutputs
+  def _getReqsMap( self, prodReqSummary, progressSummary ):
+    ''' just create a dict with all the requests (master -> subRequets and
+    '''
+    reqsMap = {}
+    for request, mData in prodReqSummary.iteritems():
+      masterReq = mData['master']
+      if not masterReq:
+        masterReq = request
+      try:
+        reqs = reqsMap[masterReq]
+      except KeyError:
+        reqs = {}
+      reqs.update( {request:progressSummary[request].keys()} )
+      reqsMap.update( {masterReq: reqs} )
 
+    return reqsMap
 
-  def updateAssociatedTransformation( self, prodID, status = 'Completed' ):
-    """ This function checks for a production parameter "AssociatedTransformation"
-        and if found will also update the transformation ID to the supplied status.
-    """
-    transformationClient = TransformationClient()
-    result = transformationClient.getTransformationParameters( prodID, 'AssociatedTransformation' )
-    if not result['OK']:
-      self.log.info( 'No associated transformation found for productionID %s' % prodID )
-      return S_OK()
-
-    transID = int( result['Value'] )
-    res = transformationClient.setTransformationParameter( transID, 'Status', status )
-    if not res['OK']:
-      self.log.error( "Failed to update status of transformation %s to %s" % ( transID, status ) )
-    else:
-      self.updatedProductions[transID] = {'to':status, 'from':'Active'}
-    self.log.verbose( 'Changing status for transformation %s to %s' % ( transID, status ) )
-
-    return S_OK()
-
-  #############################################################################
-  def mailProdManager( self ):
-    """ Notify the production manager of the changes as productions should be
+  def _mailProdManager( self, updatedProductions, updatedRequests ):
+    ''' Notify the production manager of the changes as productions should be
         manually extended in some cases.
-    """
-    if not self.updatedProductions and not self.updatedRequests:
+    '''
+    if not updatedProductions and not updatedRequests:
       self.log.info( 'No changes this cycle, mail will not be sent' )
       return S_OK()
 
     notify = NotificationClient()
     subject = 'Production Status Updates ( %s )' % ( time.asctime() )
     msg = ['Productions updated this cycle:\n']
-    for n, v in self.updatedProductions.items():
+    for n, v in updatedProductions.iteritems():
       msg.append( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
     msg.append( '\nRequests updated to Done status this cycle:\n' )
-    msg.append( ', '.join( [str( i ) for i in self.updatedRequests] ) )
-    res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ), 'vladimir.romanovsky@cern.ch', localAttempt = False )
+    msg.append( ', '.join( [str( i ) for i in updatedRequests] ) )
+    res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
+                           'vladimir.romanovsky@cern.ch', localAttempt = False )
     if not res['OK']:
       self.log.error( res )
     else:
       self.log.info( 'Mail summary sent to production manager' )
     return S_OK()
 
-  #############################################################################
-  def updateRequestStatus( self, reqID, status ):
-    """ This method updates the request status.
-    """
-    self.updatedRequests.append( reqID )
-    #return S_OK()
+  def _updateRequestStatus( self, reqID, status, updatedRequests ):
+    ''' This method updates the request status.
+    '''
+    updatedRequests.append( reqID )
+
     reqClient = RPCClient( 'ProductionManagement/ProductionRequest', useCertificates = False, timeout = 120 )
     result = reqClient.updateProductionRequest( long( reqID ), {'RequestState':status} )
     if not result['OK']:
@@ -353,18 +295,18 @@ class ProductionStatusAgent( AgentModule ):
 
     return result
 
-  #############################################################################
-  def cleanActiveJobsUpdateStatus( self, prodID, origStatus, status ):
-    """ This method checks if a production having enough BK events has any Waiting
+  def _cleanActiveJobs( self, prodID ):
+    ''' This method checks if a production having enough BK events has any Waiting
         or Running jobs in the WMS and removes them to ensure the output data sample
         is static.  Then the production status is updated.
-    """
+    '''
     running = self.dProd.selectProductionJobs( int( prodID ), Status = 'Running' )
     if running['OK']:
       self.log.info( 'Killing %s running jobs for production %s' % ( len( running['Value'] ), prodID ) )
       result = self.dirac.kill( running['Value'] )
       if not result['OK']:
         self.log.error( result )
+
     waiting = self.dProd.selectProductionJobs( int( prodID ), Status = 'Waiting' )
     if waiting['OK']:
       self.log.info( 'Deleting %s waiting jobs for production %s' % ( len( waiting['Value'] ), prodID ) )
@@ -372,34 +314,27 @@ class ProductionStatusAgent( AgentModule ):
       if not result['OK']:
         self.log.error( result )
 
-    return self.updateProductionStatus( prodID, origStatus, status )
-
-  #############################################################################
-  def updateProductionStatus( self, prodID, origStatus, status ):
-    """ This method updates the production status and logs the changes for each
+  def _updateProductionStatus( self, prodID, origStatus, status, updatedProductions ):
+    ''' This method updates the production status and logs the changes for each
         iteration of the agent.  Most importantly this method only allows status
         transitions based on what the original status should be.
-    """
+    '''
     transformationClient = TransformationClient()
     dProd = DiracProduction()
     result = dProd.getProduction( long( prodID ) )
     if not result['OK']:
       self.log.error( 'Could not update production status for %s to %s:\n%s' % ( prodID, status, result ) )
-      return result
 
     currentStatus = result['Value']['Status']
     if currentStatus.lower() == origStatus.lower():
-      #self.updatedProductions[prodID]={'to':status,'from':origStatus}
-      #return S_OK()
       self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
       res = transformationClient.setTransformationParameter( prodID, 'Status', status )
       if not res['OK']:
         self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
       else:
-        self.updatedProductions[prodID] = {'to':status, 'from':origStatus}
+        updatedProductions[prodID] = {'to':status, 'from':origStatus}
     elif currentStatus.lower() == status.lower():
       pass
     else:
-      self.log.verbose( 'Production %s not updated to %s as it is currently in status %s' % ( prodID, status, currentStatus ) )
-
-    return S_OK()
+      self.log.verbose( 'Production %s not updated to %s as it is currently in status %s' % ( prodID, status,
+                                                                                              currentStatus ) )
