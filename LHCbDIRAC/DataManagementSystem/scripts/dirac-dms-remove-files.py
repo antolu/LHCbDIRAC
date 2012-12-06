@@ -47,21 +47,27 @@ if __name__ == "__main__":
     transClient = TransformationClient()
 
   errorReasons = {}
-  successfullyRemoved = 0
+  successfullyRemoved = []
+  notExisting = []
   lfnsToSet = {}
+  # Avoid spurious error messages
+  gLogger.setLevel( 'FATAL' )
   for lfnChunk in breakListIntoChunks( lfnList, 100 ):
     res = rm.removeFile( lfnChunk )
     if not res['OK']:
-      gLogger.error( "Failed to remove data", res['Message'] )
+      gLogger.fatal( "Failed to remove data", res['Message'] )
       DIRAC.exit( -2 )
-    for lfn, r in res['Value']['Failed'].items():
-      reason = str( r )
-      if not reason in errorReasons.keys():
-        errorReasons[reason] = []
-      errorReasons[reason].append( lfn )
-    successfullyRemoved += len( res['Value']['Successful'].keys() )
-    if fixTrans:
-      res = transClient.getTransformationFiles( {'LFN':res['Value']['Successful'].keys()} )
+    for lfn, reason in res['Value']['Failed'].items():
+      reason = str( reason )
+      if 'No such file or directory' in reason:
+        notExisting.append( lfn )
+      else:
+        errorReasons.setdefault( reason, [] ).append( lfn )
+    successfullyRemoved += res['Value']['Successful'].keys()
+  gLogger.setLevel( 'ERROR' )
+
+  if fixTrans and successfullyRemoved + notExisting:
+    res = transClient.getTransformationFiles( {'LFN':successfullyRemoved + notExisting } )
       if not res['OK']:
         gLogger.error( "Error getting transformation files", res['Message'] )
       else:
@@ -73,10 +79,22 @@ if __name__ == "__main__":
     if not res['OK']:
       gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
     else:
-      gLogger.notice( 'Successfully set %d files as Removed in transformation %d' % ( len( lfns ), transID ) )
+      gLogger.always( 'Successfully set %d files as Removed in transformation %d' % ( len( lfns ), transID ) )
 
+  if notExisting:
+    # The files are not yet removed from the catalog!! :(((
+    res = rm.removeCatalogFile( notExisting )
+    if not res['OK']:
+      gLogger.error( "Error removing %d non-existing files from the FC" % len( notExisting ), res['Message'] )
+    else:
+      for lfn, reason in res['Value']['Failed'].items():
+        errorReasons.setdefault( reason, [] ).append( lfn )
+        notExisting.remove( lfn )
+    gLogger.always( "Already removed: %d files" % len( notExisting ) )
+
+  if successfullyRemoved:
+    gLogger.always( "Successfully removed %d files" % len( successfullyRemoved ) )
   for reason, lfns in errorReasons.items():
-    gLogger.notice( "Failed to remove %d files with error: %s" % ( len( lfns ), reason ) )
-  gLogger.notice( "Successfully removed %d files" % successfullyRemoved )
+    gLogger.always( "Failed to remove %d files with error: %s" % ( len( lfns ), reason ) )
   DIRAC.exit( 0 )
 
