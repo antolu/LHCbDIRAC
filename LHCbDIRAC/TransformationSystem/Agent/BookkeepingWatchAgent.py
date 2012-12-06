@@ -44,6 +44,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
 
+    self.debug = self.am_getOption( 'verbosePlugin', False )
+
     self.transInThread = {}
 
   def initialize( self ):
