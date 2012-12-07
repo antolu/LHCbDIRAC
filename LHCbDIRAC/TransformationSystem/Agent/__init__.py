@@ -1,1 +1,7 @@
-__RCSID__ = "$Id$"
+''' LHCbDIRAC.TransformationSystem.Agent package
+'''
+
+__RCSID__  = '$Id$'
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

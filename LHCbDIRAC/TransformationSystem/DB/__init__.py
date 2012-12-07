@@ -1,3 +1,7 @@
-# $Id$
-__RCSID__ = "$Revision$"
+''' LHCbDIRAC.TransformationSystem.DB package
+'''
 
+__RCSID__  = '$Id$'
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
