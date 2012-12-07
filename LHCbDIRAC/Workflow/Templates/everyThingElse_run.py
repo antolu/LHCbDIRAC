@@ -66,6 +66,7 @@ if extraOptions:
   pr.extraOptions = eval( extraOptions )
 pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor production if any#0}}' )
 pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
+modulesList = '{{modulesList#GENERAL: custom modules list#}}'
 
 #p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
@@ -113,6 +114,9 @@ pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
+
+if modulesList:
+  pr.modulesList = modulesList.replace( ' ', '' ).split( ',' )
 
 if certificationFlag or localTestFlag:
   pr.testFlag = True

@@ -71,6 +71,8 @@ class ProductionRequest( object ):
     self.startRun = ''
     self.endRun = ''
     self.runsList = ''
+    self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
     self.previousProds = [None] #list of productions from which to take the inputs (the first is always None)
     self.prodsToLaunch = [] #productions to launch
     self.previousProdID = 0 #optional prod from which to start
@@ -435,7 +437,8 @@ class ProductionRequest( object ):
     stepName = prod.addApplicationStep( stepDict = firstStep,
                                         outputSE = outputSE,
                                         optionsLine = ep,
-                                        inputData = '' )
+                                        inputData = '',
+                                        modules = self.modulesList )
     prod.gaudiSteps.append( stepName )
 
     for step in stepsInProd:
@@ -446,7 +449,8 @@ class ProductionRequest( object ):
       stepName = prod.addApplicationStep( stepDict = step,
                                           outputSE = outputSE,
                                           optionsLine = ep,
-                                          inputData = 'previousStep' )
+                                          inputData = 'previousStep',
+                                          modules = self.modulesList )
       prod.gaudiSteps.append( stepName )
 
     #Adding the finalization step

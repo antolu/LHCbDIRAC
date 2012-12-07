@@ -22,7 +22,7 @@ class RegressionTestCase( unittest.TestCase ):
     self.j_reco_20194 = LHCbJob( '20194.xml' )
     self.j_stripp_20349 = LHCbJob( '20349.xml' )
     self.j_merge_20752 = LHCbJob( '20752.xml' )
-
+    self.j_mergeMDF_20657 = LHCbJob( '20657.xml' )
 
   def tearDown( self ):
     for fileIn in os.listdir( '.' ):
@@ -55,6 +55,11 @@ class MergeSuccess( RegressionTestCase ):
     res = self.j_merge_20752.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
+class MergeMDFSuccess( RegressionTestCase ):
+  def test_execute( self ):
+    res = self.j_mergeMDF_20657.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
 
 #############################################################################
 # Test Suite run
@@ -66,4 +71,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
