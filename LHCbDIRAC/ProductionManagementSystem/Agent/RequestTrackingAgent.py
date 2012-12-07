@@ -9,6 +9,7 @@ from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
+
 __RCSID__ = "$Id$"
 
 AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
@@ -43,7 +44,7 @@ class RequestTrackingAgent( AgentModule ):
     update = []
     if result['OK']:
       for request in result['Value']:
-        result = self.bkInputNumberOfEvents( request, self.bkClient )
+        result = self.bkInputNumberOfEvents( request )
         if result['OK']:
           update.append( {'RequestID':request['RequestID'],
                          'RealNumberOfEvents':result['Value']} )
@@ -79,27 +80,27 @@ class RequestTrackingAgent( AgentModule ):
     gLogger.info( 'Request Tracking execute is ended' )
     return S_OK( 'Request Tracking information updated' )
 
-  def bkInputNumberOfEvents( self, r ):
-    ''' Extrim dirty way...
+  def bkInputNumberOfEvents( self, request ):
+    ''' Extremely dirty way...
     '''
 
     try:
       v = {
-        'ProcessingPass' : str( r['inProPass'] ),
-        'FileType' : str( r['inFileType'] ),
-        'EventType' : str( r['EventType'] ),
-        'ConfigName' : str( r['configName'] ),
-        'ConfigVersion' : str( r['configVersion'] ),
-        'DataQualityFlag' : str( r['inDataQualityFlag'] )
+        'ProcessingPass' : str( request['inProPass'] ),
+        'FileType' : str( request['inFileType'] ),
+        'EventType' : str( request['EventType'] ),
+        'ConfigName' : str( request['configName'] ),
+        'ConfigVersion' : str( request['configVersion'] ),
+        'DataQualityFlag' : str( request['inDataQualityFlag'] )
         }
-      if r['condType'] == 'Run':
-        v['DataTakingConditions'] = str( r['SimCondition'] )
+      if request['condType'] == 'Run':
+        v['DataTakingConditions'] = str( request['SimCondition'] )
       else:
-        v['SimulationConditions'] = str( r['SimCondition'] )
-      if str( r['inProductionID'] ) != '0':
-        v['Production'] = [int( x ) for x in str( r['inProductionID'] ).split( ',' )]
-      if 'inTCKs' in r and str( r['inTCKs'] ) != '':
-        v['TCK'] = [str( x ) for x in str( r['inTCKs'] ).split( ',' )]
+        v['SimulationConditions'] = str( request['SimCondition'] )
+      if str( request['inProductionID'] ) != '0':
+        v['Production'] = [int( x ) for x in str( request['inProductionID'] ).split( ',' )]
+      if 'inTCKs' in request and str( request['inTCKs'] ) != '':
+        v['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
     except Exception, e:
       return S_ERROR( "Can not parse the request: %s" % str( e ) )
     v['NbOfEvents'] = True

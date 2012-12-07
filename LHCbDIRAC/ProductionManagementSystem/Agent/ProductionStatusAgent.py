@@ -17,7 +17,7 @@
 
      In addition this also updates request status from Active to Done.
 
-     To do: review usage of production API(s) and refactor into Production Client
+     To do: review usage of production API(s) and re-factor into Production Client
 '''
 
 __RCSID__ = "$Id$"
@@ -71,108 +71,90 @@ class ProductionStatusAgent( AgentModule ):
     updatedRequests = []
 
     prodReqSummary, progressSummary = self._getProgress()
+    doneAndUsed, doneAndNotUsed, _notDoneAndUsed, _notDoneAndNotUsed = self._evaluateProgress( prodReqSummary,
+                                                                                               progressSummary )
 
     self.log.info( "******************************" )
     self.log.info( "Checking for Requests to close" )
     self.log.info( "******************************" )
 
-    res = self.transformationClient.getTransformationWithStatus( 'Completed' )
-    if not res['OK']:
-      self.log.error( "Failed to get Completed productions", res['Message'] )
-      return res
-    completed = res['Value']
-    if not completed:
-      self.log.info( 'No productions in completed status to process' )
-    else:
-      reqsMap = self._getReqsMap( prodReqSummary )
-      for masterReq, reqs in reqsMap.iteritems():
-        allProds = []
-        for _req, prods in reqs.iteritems():
-          allProds = allProds + prods
-        if set( allProds ) < set( completed ):
-          self._updateRequestStatus( masterReq, 'Done', updatedRequests )
+    try:
+      prods = self.__getTransformations( 'Completed' )
+      if prods:
+        reqsMap = self._getReqsMap( prodReqSummary, progressSummary )
+        for masterReq, reqs in reqsMap.iteritems():
+          allProds = []
+          for _req, prods in reqs.iteritems():
+            allProds = allProds + prods
+          if set( allProds ) < set( prods ):
+            self._updateRequestStatus( masterReq, 'Done', updatedRequests )
+    except RuntimeError, error:
+      self.log.error( error )
 
 
     self.log.info( "**************************************" )
     self.log.info( "Checking for RemovedFiles -> Completed" )
     self.log.info( "**************************************" )
 
-    res = self.transformationClient.getTransformationWithStatus( 'RemovedFiles' )
-    if not res['OK']:
-      self.log.error( "Failed to get RemovedFiles productions", res['Message'] )
-      return res
-    if not res['Value']:
-      self.log.info( 'No productions in RemovedFiles status' )
-    else:
-      for prod in res['Value']:
-        self._updateProductionStatus( prod, 'RemovedFiles', 'Completed', updatedProductions )
+    try:
+      prods = self.__getTransformations( 'RemovedFiles' )
+      if prods:
+        for prod in prods:
+          self._updateProductionStatus( prod, 'RemovedFiles', 'Completed', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
 
 
     self.log.info( "*********************************************************************************************" )
     self.log.info( "Checking for ValidatedOutput -> Completed/Active and ValidatingInputs -> RemovingFiles/Active" )
     self.log.info( "*********************************************************************************************" )
 
-    doneAndUsed, doneAndNotUsed, _notDoneAndUsed, _notDoneAndNotUsed = self._evaluateProgress( prodReqSummary,
-                                                                                               progressSummary )
+    try:
+      prods = self.__getTransformations( 'ValidatedOutput' )
+      if prods:
+        for prod in prods:
+          if prod not in doneAndUsed:
+            self.log.info( 'Production %d is returned to Active status' % prod )
+            self._updateProductionStatus( prod, 'ValidatedOutput', 'Active', updatedProductions )
+          else:
+            self.log.info( 'Production %d is put in Completed status' % prod )
+            self._updateProductionStatus( prod, 'ValidatedOutput', 'Completed', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
 
-    res = self.transformationClient.getTransformationWithStatus( 'ValidatedOutput' )
-    if not res['OK']:
-      self.log.error( "Failed to get ValidatedOutput productions", res['Message'] )
-      return res
-    validatedOutput = res['Value']
-    if not validatedOutput:
-      self.log.info( 'No productions in ValidatedOutput status to process' )
-    else:
-      valOutStr = ', '.join( [str( i ) for i in validatedOutput] )
-      self.log.info( 'The following productions are in ValidatedOutput status: %s' % valOutStr )
-
-      for prod in validatedOutput:
-        if prod not in doneAndUsed:
-          self.log.info( 'Production %d is returned to Active status' % prod )
-          self._updateProductionStatus( prod, 'ValidatedOutput', 'Active', updatedProductions )
-        else:
-          self.log.info( 'Production %d is put in Completed status' % prod )
-          self._updateProductionStatus( prod, 'ValidatedOutput', 'Completed', updatedProductions )
-
-
-    res = self.transformationClient.getTransformationWithStatus( 'ValidatingInput' )
-    if not res['OK']:
-      self.log.error( "Failed to get ValidatingInput productions", res['Message'] )
-      return res
-    validatingInput = res['Value']
-    if not validatingInput:
-      self.log.info( 'No productions in validatingInput status to process' )
-    else:
-      valOutStr = ', '.join( [str( i ) for i in validatingInput] )
-      self.log.info( 'The following productions are in validatingInput status: %s' % valOutStr )
-
-      for prod in validatingInput:
-        if prod not in doneAndNotUsed:
-          self.log.info( 'Production %d is returned to Active status' % prod )
-          self._updateProductionStatus( prod, 'ValidatingInput', 'Active', updatedProductions )
-        else:
-          self.log.info( 'Production %d is put in Completed status' % prod )
-          self._updateProductionStatus( prod, 'ValidatingInput', 'Completed', updatedProductions )
-
+    try:
+      prods = self.__getTransformations( 'ValidatingInput' )
+      if prods:
+        for prod in prods:
+          if prod not in doneAndNotUsed:
+            self.log.info( 'Production %d is returned to Active status' % prod )
+            self._updateProductionStatus( prod, 'ValidatingInput', 'Active', updatedProductions )
+          else:
+            self.log.info( 'Production %d is put in Completed status' % prod )
+            self._updateProductionStatus( prod, 'ValidatingInput', 'Completed', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
 
     self.log.info( "*********************************************************************" )
     self.log.info( "Checking for Active -> ValidatingInput and Active -> ValidatingOutput" )
     self.log.info( "*********************************************************************" )
 
-    prodValOutputs, prodValInputs, _notDoneAndUsed, _notDoneAndNotUsed = self._evaluateProgress( prodReqSummary,
-                                                                                                 progressSummary )
-    if not prodValOutputs:
-      self.log.info( 'No productions have yet reached the necessary number of BK events' )
-    else:
-      #Now have to update productions to ValidatingOutput / Input after cleaning jobs
-      for prod in prodValOutputs:
-        self._cleanActiveJobs( prod )
-        self._updateProductionStatus( prod, 'Active', 'ValidatingOutput', updatedProductions )
-
-      for prod in prodValInputs:
-        self._cleanActiveJobs( prod )
-        self._updateProductionStatus( prod, 'Active', 'ValidatingInput', updatedProductions )
-
+    try:
+      prods = self.__getTransformations( 'Active' )
+      if prods:
+        if not doneAndUsed:
+          self.log.info( 'No productions have yet reached the necessary number of BK events' )
+        else:
+          #Now have to update productions to ValidatingOutput / Input after cleaning jobs
+          for prod in prods:
+            if prod in doneAndUsed:
+              self._cleanActiveJobs( prod )
+              self._updateProductionStatus( prod, 'Active', 'ValidatingOutput', updatedProductions )
+            elif prod in doneAndNotUsed:
+              self._cleanActiveJobs( prod )
+              self._updateProductionStatus( prod, 'Active', 'ValidatingInput', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
 
     self.log.info( "*********" )
     self.log.info( "Reporting" )
@@ -188,6 +170,23 @@ class ProductionStatusAgent( AgentModule ):
     return S_OK()
 
   #############################################################################
+
+  def __getTransformations( self, status ):
+    ''' dev function. Get the transformations (print info in the meanwhile)
+    '''
+
+    res = self.transformationClient.getTransformationWithStatus( status )
+    if not res['OK']:
+      "Failed to get %s productions: %s" % ( status, res['Message'] )
+      raise RuntimeError, "Failed to get %s productions: %s" % ( status, res['Message'] )
+    if not res['Value']:
+      self.log.info( 'No productions in %s status' % status )
+      return []
+    else:
+      valOutStr = ', '.join( [str( i ) for i in res['Value']] )
+      self.log.verbose( 'The following productions are in %s status: %s' % ( status, valOutStr ) )
+      return res['Value']
+
 
   def _getProgress( self ):
     ''' get production request summary and progress
@@ -220,10 +219,9 @@ class ProductionStatusAgent( AgentModule ):
       totalRequested = mdata['reqTotal']
       bkTotal = mdata['bkTotal']
       if not bkTotal:
-        self.log.info( 'No events in BK for request ID %s' % ( reqID ) )
         continue
       progress = int( bkTotal * 100 / totalRequested )
-      self.log.verbose( 'Request progress for ID %s is %s' % ( reqID, progress ) )
+      self.log.debug( 'Request progress for ID %s is %s%%' % ( reqID, progress ) )
 
       try:
         for prod, used in progressSummary[reqID].iteritems():
@@ -271,8 +269,8 @@ class ProductionStatusAgent( AgentModule ):
     notify = NotificationClient()
     subject = 'Production Status Updates ( %s )' % ( time.asctime() )
     msg = ['Productions updated this cycle:\n']
-    for n, v in updatedProductions.iteritems():
-      msg.append( 'Production %s: %s => %s' % ( n, v['from'], v['to'] ) )
+    for prod, val in updatedProductions.iteritems():
+      msg.append( 'Production %s: %s => %s' % ( prod, val['from'], val['to'] ) )
     msg.append( '\nRequests updated to Done status this cycle:\n' )
     msg.append( ', '.join( [str( i ) for i in updatedRequests] ) )
     res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
@@ -319,22 +317,20 @@ class ProductionStatusAgent( AgentModule ):
         iteration of the agent.  Most importantly this method only allows status
         transitions based on what the original status should be.
     '''
-    transformationClient = TransformationClient()
-    dProd = DiracProduction()
-    result = dProd.getProduction( long( prodID ) )
+    result = self.dProd.getProduction( long( prodID ) )
     if not result['OK']:
       self.log.error( 'Could not update production status for %s to %s:\n%s' % ( prodID, status, result ) )
-
-    currentStatus = result['Value']['Status']
-    if currentStatus.lower() == origStatus.lower():
-      self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
-      res = transformationClient.setTransformationParameter( prodID, 'Status', status )
-      if not res['OK']:
-        self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
-      else:
-        updatedProductions[prodID] = {'to':status, 'from':origStatus}
-    elif currentStatus.lower() == status.lower():
-      pass
     else:
-      self.log.verbose( 'Production %s not updated to %s as it is currently in status %s' % ( prodID, status,
-                                                                                              currentStatus ) )
+      currentStatus = result['Value']['Status']
+      if currentStatus.lower() == origStatus.lower():
+        self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
+        res = self.transformationClient.setTransformationParameter( prodID, 'Status', status )
+        if not res['OK']:
+          self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
+        else:
+          updatedProductions[prodID] = {'to':status, 'from':origStatus}
+      elif currentStatus.lower() == status.lower():
+        pass
+      else:
+        self.log.verbose( 'Production %s not updated to %s as it is currently in status %s' % ( prodID, status,
+                                                                                                currentStatus ) )
