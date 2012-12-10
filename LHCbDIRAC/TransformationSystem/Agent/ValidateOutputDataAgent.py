@@ -126,7 +126,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     :param int transID: transformation ID
     """
 
-    res = DIRACValidateOutputDataAgent.getTransformationDirectories( transID )
+    res = DIRACValidateOutputDataAgent.getTransformationDirectories( self, transID )
 
     if res['OK']:
       directories = res['Value']

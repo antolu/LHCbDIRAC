@@ -1,6 +1,7 @@
 import unittest, os, shutil
 from DIRAC import gLogger
 from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
@@ -9,7 +10,6 @@ class ProductionJobTestCase( unittest.TestCase ):
   ''' Base class for the ProductionJob test cases
   '''
   def setUp( self ):
-    parseCommandLine()
 
     gLogger.setLevel( 'DEBUG' )
 
@@ -129,6 +129,24 @@ class MergeSuccess( ProductionJobTestCase ):
                    ]
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
+                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+    self.assertTrue( res['OK'] )
+
+class MergeMDFSuccess( ProductionJobTestCase ):
+  def test_execute( self ):
+    lfns = ['/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/102360/102360_0000000031.raw',
+            '/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/97887/097887_0000000013.raw']
+    #From request 9054
+    stepsInProd = [{'StepId': 123897, 'StepName': 'MergeMDF', 'ApplicationName': 'MergeMDF', 'ApplicationVersion': '',
+                    'ExtraPackages': '', 'ProcessingPass': 'Merging', 'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '',
+                    'fileTypesIn':['RAW'],
+                    'fileTypesOut':['RAW']},
+                   ]
+    self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )

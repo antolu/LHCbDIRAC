@@ -72,7 +72,7 @@ class MergeMDF( ModuleBase ):
       if not result['OK']:
         self.log.error( result )
         logLines.append( 'Merge operation failed with result:\n%s' % result )
-        return self.finalize( logLines, error = 'shellCall Failed' )
+        return S_ERROR( 'Problem Executing Application' )
 
       status = result['Value'][0]
       stdout = result['Value'][1]
@@ -85,7 +85,7 @@ class MergeMDF( ModuleBase ):
         msg = 'Non-zero status %s while executing "%s"' % ( status, cmd )
         self.log.info( msg )
         logLines.append( msg )
-        return self.finalize( logLines, error = 'Non-zero Status During Merge' )
+        return S_ERROR( 'Problem Executing Application' )
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       try:

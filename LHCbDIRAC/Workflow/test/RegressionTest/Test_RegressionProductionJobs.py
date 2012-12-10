@@ -1,6 +1,7 @@
 import unittest, os, shutil
 from DIRAC import gLogger
 from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -11,8 +12,6 @@ class RegressionTestCase( unittest.TestCase ):
   ''' Base class for the Regression test cases
   '''
   def setUp( self ):
-
-    parseCommandLine()
 
     gLogger.setLevel( 'DEBUG' )
     self.diracLHCb = DiracLHCb()

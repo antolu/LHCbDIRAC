@@ -58,7 +58,7 @@ class RequestTrackingAgent( AgentModule ):
       if not result['OK']:
         gLogger.error( result['Message'] )
 
-    result = self.self.prodReq.getTrackedProductions()
+    result = self.prodReq.getTrackedProductions()
     update = []
     if result['OK']:
       for productionID in result['Value']:

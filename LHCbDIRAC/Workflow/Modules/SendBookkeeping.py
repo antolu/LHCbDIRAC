@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ This module uploads the BK records prior to performing the transfer
     and registration (BK,LFC) operations using the preprepared BK XML
     files from the BKReport module.  These are only sent to the BK if
@@ -76,7 +73,7 @@ class SendBookkeeping( ModuleBase ):
         bkXML = fopen.read()
         fopen.close()
         self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
-        result = self.bk.sendXMLBookkeepingReport( bkXML )
+        result = self.bkClient.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )

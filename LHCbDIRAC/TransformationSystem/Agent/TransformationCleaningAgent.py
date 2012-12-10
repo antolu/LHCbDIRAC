@@ -115,7 +115,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     :param int transID: transformation ID
     """
 
-    res = DiracTCAgent.getTransformationDirectories( transID )
+    res = DiracTCAgent.getTransformationDirectories( self, transID )
 
     if res['OK']:
       directories = res['Value']
