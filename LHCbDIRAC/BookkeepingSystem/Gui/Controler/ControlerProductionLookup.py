@@ -71,7 +71,7 @@ class ControlerProductionLookup(ControlerAbstract):
                               "More information...",
                               "Please select a production or run number!",
                               QMessageBox.Ok)
-    widget.close()
+    widget.hide()
 
   #############################################################################
   def cancel(self):
@@ -79,7 +79,6 @@ class ControlerProductionLookup(ControlerAbstract):
     self.getWidget().getListView().reset()
     self.getWidget().close()
     message = Message({'action':'configbuttonChanged'})
-    print self.getParent()
     self.getParent().messageFromChild(self, message)
 
 

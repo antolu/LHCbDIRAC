@@ -62,7 +62,7 @@ class ControlerMain(ControlerAbstract):
     gLogger.debug(str(self.__class__)+' Sender' + str(sender.__class__))
     gLogger.debug(str(self.__class__)+' Message'+str(message))
 
-    if sender.__class__.__name__  in ['ControlerTree', 'ControlerProductionLookup']:
+    if sender.__class__.__name__  == 'ControlerTree':
       return self.handleTreewidget(sender, message)
     elif sender.__class__.__name__ == 'ControlerProductionLookup':
       return self.handleProductionlookup(sender, message)
@@ -87,7 +87,11 @@ class ControlerMain(ControlerAbstract):
   def handleProductionlookup(self, sender, message):
     """It handles the messages sent by the Production Lookup widget.
     """
-    if message.action() == 'showAllProduction':
+
+    if message['action'] == 'configbuttonChanged':
+      return self.__configurationbasedquery()
+
+    elif message.action() == 'showAllProduction':
       items = message['items']
       message = Message({'action':'removeTree', 'items':items})
       controlers = self.getChildren()
@@ -125,10 +129,7 @@ class ControlerMain(ControlerAbstract):
     """It handles the messages sent by the tree panel.
     """
     result = None
-    if message['action'] == 'expande':
-      result = self.__expandeTreenode(message)
-
-    elif message['action'] == 'configbuttonChanged':
+    if message['action'] == 'configbuttonChanged':
       result = self.__configurationbasedquery()
 
     elif message['action'] == 'eventbuttonChanged':
@@ -139,6 +140,9 @@ class ControlerMain(ControlerAbstract):
 
     elif message['action'] == 'runLookup':
       result = self.__runLookup()
+
+    elif message['action'] == 'expande':
+      result = self.__expandeTreenode(message)
 
     elif message.action() == 'SaveAs':
       result = self.__saveAsDataset(message)
