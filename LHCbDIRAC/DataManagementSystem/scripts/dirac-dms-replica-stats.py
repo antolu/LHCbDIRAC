@@ -29,22 +29,30 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
-  Script.registerSwitch( "S:", "Size", "   Get the LFN size [No]" )
+  Script.registerSwitch( "", "Size", "   Get the LFN size [No]" )
   Script.registerSwitch( '', 'InvisibleFiles', '   Show invisible files also [No]' )
-  Script.registerSwitch( '', 'PrintNoReplicas', '   Print list of files without a replica [No]' )
+  Script.registerSwitch( '', 'DumpNoReplicas', '   Print list of files without a replica [No]' )
+  Script.registerSwitch( '', 'DumpWithArchives=', '   =<n>, print list of files with <n> archives' )
+  Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print list of files with <n> replicas' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
   Script.parseCommandLine( ignoreErrors=False )
 
   getSize = False
   visible = True
   prNoReplicas = False
+  prWithArchives = False
+  prWithReplicas = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
     elif switch[0] == 'InvisibleFiles':
       visible = False
-    elif switch[0] == 'PrintNoReplicas':
+    elif switch[0] == 'DumpNoReplicas':
       prNoReplicas = True
+    elif switch[0] == 'DumpWithArchives':
+      prWithArchives = [int( xx ) for xx in switch[1].split( ',' )]
+    elif switch[0] == 'DumpWithReplicas':
+      prWithReplicass = [int( xx ) for xx in switch[1].split( ',' )]
 
   from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -106,6 +114,8 @@ if __name__ == "__main__":
     for lfn, size in lfnSize.items():
       totSize += size
   noReplicas = {}
+  withReplicas = {}
+  withArchives = {}
   for lfn, replicas in lfnReplicas.items():
     SEs = replicas.keys()
     nrep = len( replicas )
@@ -120,15 +130,13 @@ if __name__ == "__main__":
       if se.endswith( "-ARCHIVE" ):
         nrep -= 1
         narchive -= 1
-    if nrep not in repStats:
-      repStats[nrep] = 0
-    repStats[nrep] += 1
+    repStats[nrep] = repStats.setdefault( nrep, 0 ) + 1
+    withReplicas.setdefault( nrep, [] ).append( lfn )
+    withArchives.setdefault( -narchive - 1, [] ).append( lfn )
     if nrep == 0:
       noReplicas[lfn] = -narchive - 1
     # narchive is negative ;-)
-    if narchive not in repStats:
-      repStats[narchive] = 0
-    repStats[narchive] += 1
+    repStats[narchive] = repStats.setdefault(narchive,0) + 1
     for se in replicas:
       if se not in repSEs:
         repSEs[se] = [0, 0]
@@ -184,9 +192,19 @@ if __name__ == "__main__":
     print string
 
   if prNoReplicas:
-    print "\nFiles without a replica:"
-    reps = noReplicas.keys()
-    reps.sort()
-    for rep in reps:
+    print "\nFiles without a disk replica:"
+    for rep in sorted( noReplicas ):
       print rep, "(%d archives)" % noReplicas[rep]
+
+  if type( prWithArchives ) == type( [] ):
+    for n in prWithArchives:
+      print '\nFiles with %d archives:' % n
+      for rep in sorted( withArchives[n] ):
+        print rep
+
+  if type( prWithReplicas ) == type( [] ):
+    for n in prWithReplicas:
+      print '\nFiles with %d disk replicas:' % n
+      for rep in sorted( withReplicass[n] ):
+        print rep
 
