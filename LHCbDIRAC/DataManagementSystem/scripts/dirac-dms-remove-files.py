@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 ########################################################################
+# $HeadURL$
+########################################################################
 """
   Remove the given file or a list of files from the File Catalog and from the storage
 """
@@ -68,11 +70,11 @@ if __name__ == "__main__":
 
   if fixTrans and successfullyRemoved + notExisting:
     res = transClient.getTransformationFiles( {'LFN':successfullyRemoved + notExisting } )
-      if not res['OK']:
-        gLogger.error( "Error getting transformation files", res['Message'] )
-      else:
-        for fileDict in [fileDict for fileDict in res['Value'] if fileDict['Status'] not in ( 'Processed', 'Removed' )]:
-          lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+    if not res['OK']:
+      gLogger.error( "Error getting transformation files", res['Message'] )
+    else:
+      for fileDict in [fileDict for fileDict in res['Value'] if fileDict['Status'] not in ( 'Processed', 'Removed' )]:
+        lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
   # If required, set files Removed in transformations
   for transID, lfns in lfnsToSet.items():
     res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns )
@@ -83,14 +85,37 @@ if __name__ == "__main__":
 
   if notExisting:
     # The files are not yet removed from the catalog!! :(((
-    res = rm.removeCatalogFile( notExisting )
+    res = rm.getReplicas( notExisting )
     if not res['OK']:
-      gLogger.error( "Error removing %d non-existing files from the FC" % len( notExisting ), res['Message'] )
+      gLogger.error( "Error getting replicas of %d non-existing files" % len( notExisting ), res['Message'] )
+      errorReasons.setdefault( str( res['Message'] ), [] ).extend( notExisting )
     else:
       for lfn, reason in res['Value']['Failed'].items():
-        errorReasons.setdefault( reason, [] ).append( lfn )
+        errorReasons.setdefault( str( reason ), [] ).append( lfn )
         notExisting.remove( lfn )
-    gLogger.always( "Already removed: %d files" % len( notExisting ) )
+      replicas = res['Value']['Successful']
+      for lfn in replicas:
+        for se in replicas[lfn]:
+          res = rm.removeCatalogReplica( {lfn:{'SE':se, 'PFN':replicas[lfn][se]}} )
+          if not res['OK']:
+            gLogger.error( 'Error removing replica in the FC for a non-existing file', res['Message'] )
+            errorReasons.setdefault( str( res['Message'] ), [] ).append( lfn )
+          else:
+            for lfn, reason in res['Value']['Failed'].items():
+              errorReasons.setdefault( str( reason ), [] ).append( lfn )
+              notExisting.remove( lfn )
+      if notExisting:
+        res = rm.removeCatalogFile( notExisting )
+        if not res['OK']:
+          gLogger.error( "Error removing %d non-existing files from the FC" % len( notExisting ), res['Message'] )
+          errorReasons.setdefault( str( res['Message'] ), [] ).extend( notExisting )
+        else:
+          for lfn, reason in res['Value']['Failed'].items():
+            errorReasons.setdefault( str( reason ), [] ).append( lfn )
+            notExisting.remove( lfn )
+      if notExisting:
+        successfullyRemoved += notExisting
+        gLogger.always( "Removed from FC %d non-existing files" % len( notExisting ) )
 
   if successfullyRemoved:
     gLogger.always( "Successfully removed %d files" % len( successfullyRemoved ) )
