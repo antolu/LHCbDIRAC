@@ -359,7 +359,7 @@ class ConsistencyChecks( object ):
                 filesWithMultipleDescendants.update( {lfn:descDict[lfn]} )
           else:
             filesWithoutDescendants.update( {lfn:None} )
-          else:
+      else:
         gLogger.error( "\nError getting descendants for %d files" % len( lfnChunk ), resChunk['Message'] )
     gLogger.always( '' )
     if filesWithDescendants:
