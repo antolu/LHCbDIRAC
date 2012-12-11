@@ -128,6 +128,9 @@ if pr.testFlag:
   MCCpu = '50000'
   pr.previousProdID = 0 #set this for, e.g., launching only merging
 
+if validationFlag:
+  pr.configName = 'validation'
+
 w1 = eval( w1 )
 w2 = eval( w2 )
 w3 = eval( w3 )

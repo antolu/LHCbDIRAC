@@ -168,6 +168,9 @@ if pr.testFlag:
   pr.eventType = '90000000'
   pr.dqFlag = 'ALL'
 
+if validationFlag:
+  pr.configName = 'validation'
+
 if w1:
   pr.prodsTypeList = [recoType]
   pr.outputSEs = [recoDataSE]

@@ -67,6 +67,7 @@ if extraOptions:
 pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor production if any#0}}' )
 pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
 modulesList = '{{modulesList#GENERAL: custom modules list#}}'
+enablePopularityReport = eval( '{{popularityReport#GENERAL: enable popularity report#False}}' )
 
 #p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
@@ -128,6 +129,12 @@ if certificationFlag or localTestFlag:
 else:
   pr.publishFlag = True
   pr.testFlag = False
+
+if validationFlag:
+  pr.configName = 'validation'
+
+if enablePopularityReport:
+  modulesList.append( 'FileUsage' )
 
 inputDataList = []
 if not pr.publishFlag:
