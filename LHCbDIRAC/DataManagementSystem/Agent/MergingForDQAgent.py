@@ -1,6 +1,6 @@
 '''
-MergingForDQAgent automatize some operations done by the data quality crew. It looks 
-for Runs that have not been flagged (i.e. that are UNCHECKED). If it finds out some 
+MergingForDQAgent automatize some operations done by the data quality crew. It looks
+for Runs that have not been flagged (i.e. that are UNCHECKED). If it finds out some
 of them it performs a merging of the BRUNELHIST and DAVINCIHIST root files.
 The main steps are the following:
 
@@ -8,12 +8,12 @@ The main steps are the following:
 
 - Retrieving the UNCHECKED (or OK) DAVINCIHISTs and BRUNELHISTs by run.
 
-- The files are saved locally and merged in three steps. The first step consists of 
-  merging separately the two kinds of histograms in groups of 50. This grouping is 
-  made because the merging is CPU consuming and if you attempt to merge a lot of file in a row 
-  you probably stuck the machine. The output files of this first step are then merged as well. 
+- The files are saved locally and merged in three steps. The first step consists of
+  merging separately the two kinds of histograms in groups of 50. This grouping is
+  made because the merging is CPU consuming and if you attempt to merge a lot of file in a row
+  you probably stuck the machine. The output files of this first step are then merged as well.
   Finally DAVINCI and BRUNEL histograms are then put together in a single file.
- 
+
 - The results (data an logs) are uploaded in the bookkeeping.
 
 Systems/DataManagement/Production/Agents/
@@ -35,7 +35,7 @@ Systems/DataManagement/Production/Agents/
           specialMode = False
           specialRuns =
          }
-          
+
 '''
 
 import os, string, glob, shutil
@@ -56,7 +56,7 @@ import datetime
 import time
 
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
-__RCSID__  = "$Id: $"
+__RCSID__ = "$Id: $"
 
 class MergingForDQAgent( AgentModule ):
 
@@ -90,7 +90,7 @@ class MergingForDQAgent( AgentModule ):
       return S_ERROR()
     self.applicationName = gConfig.getValue( "%s/applicationName" % options )
     gLogger.info( 'applicationName %s' % self.applicationName )
-    if self.applicationName: 
+    if self.applicationName:
       configuration['applicationName'] = True
     self.homeDir = gConfig.getValue( "%s/homeDir" % options )
     if self.homeDir:
@@ -98,24 +98,24 @@ class MergingForDQAgent( AgentModule ):
       gLogger.info( self.homeDir )
 
       #Local directory creation 
-      
+
       tmpDir = os.path.dirname( self.homeDir )
       gLogger.info( 'Checking temp dir %s' % ( tmpDir ) )
       if not os.path.exists( tmpDir ):
         gLogger.info( '%s not found. Going to create' % ( tmpDir ) )
-        os.makedirs(tmpDir)
+        os.makedirs( tmpDir )
       else:
-        removal = self.homeDir+'*'
-        j = glob.glob(removal)
+        removal = self.homeDir + '*'
+        j = glob.glob( removal )
         for i in j:
-          if os.path.isdir(i) == True:
-            shutil.rmtree(i)
+          if os.path.isdir( i ) == True:
+            shutil.rmtree( i )
           else:
-            os.remove(i)
-      
-    
+            os.remove( i )
+
+
     #Compiled C++ root macros for the three Merging steps. 
-    
+
     self.mergeExeDir = gConfig.getValue( "%s/ExeDir" % options )
 
     if self.mergeExeDir:
@@ -124,7 +124,7 @@ class MergingForDQAgent( AgentModule ):
       self.mergeStep2Command = self.mergeExeDir + '/Merge2'
       self.mergeStep3Command = self.mergeExeDir + '/Merge3'
 
-    if not ( os.path.exists( self.mergeStep1Command ) and os.path.exists( self.mergeStep2Command ) 
+    if not ( os.path.exists( self.mergeStep1Command ) and os.path.exists( self.mergeStep2Command )
              and os.path.exists( self.mergeStep3Command ) ):
       gLogger.error( 'Executables not found' )
       return S_ERROR()
@@ -133,13 +133,13 @@ class MergingForDQAgent( AgentModule ):
 
 
     self.senderAddress = gConfig.getValue( "%s/senderAddress" % options )
-    if self.senderAddress: 
+    if self.senderAddress:
       configuration['senderAddress'] = True
     self.mailAddress = gConfig.getValue( "%s/mailAddress" % options )
     if self.mailAddress:
       configuration['mailAddress'] = True
     self.thisEventType = gConfig.getValue( "%s/eventType" % options )
-    if self.thisEventType: 
+    if self.thisEventType:
       configuration['eventType'] = True
     cfgName = gConfig.getValue( "%s/cfgNameList" % options )
     if cfgName:
@@ -159,7 +159,7 @@ class MergingForDQAgent( AgentModule ):
       dqFlagStr = string.join( dqFlag.split(), "" )
       self.dqFlagList = dqFlagStr.split( "," )
 
-    self.brunelCount  = 0
+    self.brunelCount = 0
     self.daVinciCount = 0
 
     typeDict = gConfig.getValue( "%s/evtTypeDict" % options )
@@ -198,34 +198,34 @@ class MergingForDQAgent( AgentModule ):
 
 
     self.testMode = gConfig.getValue( "%s/testMode" % options )
-    if self.testMode: 
+    if self.testMode:
       configuration['testMode'] = True
     self.specialMode = gConfig.getValue( "%s/specialMode" % options )
-    if self.specialMode: 
+    if self.specialMode:
       configuration['specialMode'] = True
     runs = gConfig.getValue( "%s/specialRuns" % options )
     if runs:
       runsStr = string.join( runs.split(), "" )
       self.specialRuns = runsStr.split( "," )
     configuration['specialRuns'] = True
-    
+
     self.addFlag = gConfig.getValue( "%s/addFlag" % options )
-    if self.addFlag: 
+    if self.addFlag:
       configuration['addFlag'] = True
-      
+
     self.threshold = gConfig.getValue( "%s/threshold" % options )
     try:
-      self.threshold = float(self.threshold)
-      if self.threshold>1.0 or self.threshold<0.0:
-        gLogger.error("Threshold should be between [0,1]!")
+      self.threshold = float( self.threshold )
+      if self.threshold > 1.0 or self.threshold < 0.0:
+        gLogger.error( "Threshold should be between [0,1]!" )
         configuration['threshold'] = False
       else:
         configuration['threshold'] = True
     except ValueError:
-      gLogger.error("Threshold bad defined!") 
+      gLogger.error( "Threshold bad defined!" )
       configuration['threshold'] = False
 
-    
+
     #If one of the configuration is missing the initialization fails
     nConf = False
     for confVar in configuration:
@@ -233,7 +233,7 @@ class MergingForDQAgent( AgentModule ):
         gLogger.error( '%s not specified in CS' % confVar )
         gLogger.error( '---------------------------------' )
         nConf = True
-    if nConf: 
+    if nConf:
       return S_ERROR()
 
     gLogger.info( '=====All informations from dirac.cfg retrieved=====' )
@@ -242,9 +242,7 @@ class MergingForDQAgent( AgentModule ):
     env = dict( os.environ )
     #Need to set a user to let getProjectEnvironment run correctly. 
     env['USER'] = 'dirac'
-    res = getProjectEnvironment( self.systemConfiguration, self.applicationName, 
-                                 applicationVersion = '', extraPackages = '',
-                                 runTimeProject = '', site = '', directory = '', generatorName = '',
+    res = getProjectEnvironment( self.systemConfiguration, self.applicationName,
                                  poolXMLCatalogName = 'pool_xml_catalog.xml', env = env )
 
     #If the environment cannot be setup the init fails
@@ -259,9 +257,9 @@ class MergingForDQAgent( AgentModule ):
     self.logFile = ''
 
     self.bkClient = BookkeepingClient()
-    
+
     self.transClient = TransformationClient()
-    
+
     return S_OK()
 
   def execute( self ):
@@ -341,37 +339,37 @@ class MergingForDQAgent( AgentModule ):
                     if quality['OK']:
                       gLogger.info( "Run %s has already been flagged skipping" )
                       continue
-                    
-                    resProdId  = getProductionId(run, processing, event , self.bkClient)
+
+                    resProdId = getProductionId( run, processing, event , self.bkClient )
                     if not resProdId['OK']:
-                      gLogger.error("Production ID not found for run %s and processing pass %s Continue with the other runs." %(run , processing))
+                      gLogger.error( "Production ID not found for run %s and processing pass %s Continue with the other runs." % ( run , processing ) )
                       continue
                     lfns = buildLFNs( bkDict_brunel, run, resProdId['prodId'], self.addFlag )
                     #If the LFN is already in the BK it will be skipped
-                    res = self.transClient.getRunsMetadata(run)
+                    res = self.transClient.getRunsMetadata( run )
 
-                    if res['OK'] and res['Value'].has_key(run):
-                      try:                            
-                        if (res['Value'][run]['DQFlag']=='M') and (res['Value'][run]['ProcessingPass']==bkDict_brunel[ 'ProcessingPass' ]):
+                    if res['OK'] and res['Value'].has_key( run ):
+                      try:
+                        if ( res['Value'][run]['DQFlag'] == 'M' ) and ( res['Value'][run]['ProcessingPass'] == bkDict_brunel[ 'ProcessingPass' ] ):
                           _msg = "%s already in the bookkeeping. Continue with the other runs."
                           gLogger.info( _msg % str( lfns['DATA'] ) )
                           continue
-                        if res['Value'][run]['DQFlag']=='P':
+                        if res['Value'][run]['DQFlag'] == 'P':
                           _msg = "Run %s problematic: %s"
-                          gLogger.info( _msg %(run,res['Value'][run]['Info']) )
-            
+                          gLogger.info( _msg % ( run, res['Value'][run]['Info'] ) )
+
                       except KeyError:
-                        _msg = "No info saved for run %s"%run
-                        gLogger.info(_msg)
+                        _msg = "No info saved for run %s" % run
+                        gLogger.info( _msg )
 
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
 
                     if res['Value']:
                       if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
-                        metaDataDict={}
-                        metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
-                        metaDataDict['DQFlag']='M'
+                        metaDataDict = {}
+                        metaDataDict['ProcessingPass'] = bkDict_brunel[ 'ProcessingPass' ]
+                        metaDataDict['DQFlag'] = 'M'
                         self.transClient.addRunsMetadata( run, metaDataDict )
                         gLogger.info( _msg % str( lfns['DATA'] ) )
                         continue
@@ -391,27 +389,27 @@ class MergingForDQAgent( AgentModule ):
                       continue
                     if not ( len( res_0[run]['LFNs'] ) == len( res_1[run]['LFNs'] ) ):
                       gLogger.error( "Different number of BRUNELHIST and DAVINCIHIST. Skipping run %s" % run )
-                      metaDataDict={}
-                      metaDataDict['DQFlag']='P'
-                      metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
-                      metaDataDict['Info']='Different number of DAVINCI and BRUNEL hists'
+                      metaDataDict = {}
+                      metaDataDict['DQFlag'] = 'P'
+                      metaDataDict['ProcessingPass'] = bkDict_brunel[ 'ProcessingPass' ]
+                      metaDataDict['Info'] = 'Different number of DAVINCI and BRUNEL hists'
                       self.transClient.addRunsMetadata( run, metaDataDict )
                     #Starting the three step Merging process
                     _msg = '=======================Starting Merging Process for run %s========================'
                     gLogger.info( _msg % run )
-                    res = self.bkClient.getRunInformations(run)
-                    run_end = time.mktime(res['Value']['RunEnd'].timetuple())
-                    now = time.mktime(datetime.datetime.utcnow().timetuple())
-                    if (int(now-run_end)/86400 < 1):
-                      gLogger.error("Run %s not yet finished"%run)
+                    res = self.bkClient.getRunInformations( run )
+                    run_end = time.mktime( res['Value']['RunEnd'].timetuple() )
+                    now = time.mktime( datetime.datetime.utcnow().timetuple() )
+                    if ( int( now - run_end ) / 86400 < 1 ):
+                      gLogger.error( "Run %s not yet finished" % run )
                       continue
                     else:
-                      delta = int((now-run_end)/86400)
-                      gLogger.info("Time after EndRun %s"%delta)
-                    res = mergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.transClient,self.homeDir , 
+                      delta = int( ( now - run_end ) / 86400 )
+                      gLogger.info( "Time after EndRun %s" % delta )
+                    res = mergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.transClient, self.homeDir ,
                                     resProdId['prodId'], self.addFlag, self.testMode, self.specialMode,
-                                    self.mergeStep1Command, self.mergeStep2Command,self.mergeStep3Command,
-                                    self.brunelCount, self.daVinciCount,self.threshold, 
+                                    self.mergeStep1Command, self.mergeStep2Command, self.mergeStep3Command,
+                                    self.brunelCount, self.daVinciCount, self.threshold,
                                     self.logFile, self.logFileName, self.environment )
                     #if the Merging process went fine the Finalization method is called
                     if res['Merged']:
@@ -421,14 +419,14 @@ class MergingForDQAgent( AgentModule ):
                       '''
                       #gLogger.info("Finalization")
                       #continue
-                      res = finalization( self.homeDir, logDir, lfns, res['OutputFile'], 
-                                          ( 'Brunel_DaVinci_%s.log' % run ), inputData, 
+                      res = finalization( self.homeDir, logDir, lfns, res['OutputFile'],
+                                          ( 'Brunel_DaVinci_%s.log' % run ), inputData,
                                           run, bkDict_brunel, rootVersion )
                       if res['OK']:
-                        
+
                         # If the finalization went fine an automated message is sent to the 
                         # relevant mailing list specified in the cfg.
-                        
+
                         outMess = "**********************************************************************************************************************************\n"
                         outMess = outMess + "\nThis is an automatic message:\n"
                         outMess = outMess + "\n**********************************************************************************************************************************\n"
@@ -443,20 +441,20 @@ class MergingForDQAgent( AgentModule ):
                         subject = 'New %s merged ROOT file for run %s ready' % ( evtTypeRef[event], str( run ) )
 
                         res = notifyClient.sendMail( self.mailAddress, subject, outMess, self.senderAddress, localAttempt = False )
-                        
-                        metaDataDict={}
-                        metaDataDict['ProcessingPass']=bkDict_brunel[ 'ProcessingPass' ]
-                        metaDataDict['DQFlag']='M'
-                        metaDataDict['Info']='Merged and Uploaded'
-                        
+
+                        metaDataDict = {}
+                        metaDataDict['ProcessingPass'] = bkDict_brunel[ 'ProcessingPass' ]
+                        metaDataDict['DQFlag'] = 'M'
+                        metaDataDict['Info'] = 'Merged and Uploaded'
+
                         res = self.transClient.getRunsMetadata( run )
-                        if res['OK'] and res['Value'].has_key(run):
-                          try:                            
-                            if (res['Value'][run].has_key('DQFlag') and res['Value'][run]['ProcessingPass']==bkDict_brunel[ 'ProcessingPass' ]):
-                              self.transClient.updateRunsMetadata( run , metaDataDict)      
+                        if res['OK'] and res['Value'].has_key( run ):
+                          try:
+                            if ( res['Value'][run].has_key( 'DQFlag' ) and res['Value'][run]['ProcessingPass'] == bkDict_brunel[ 'ProcessingPass' ] ):
+                              self.transClient.updateRunsMetadata( run , metaDataDict )
                           except KeyError:
-                            _msg = "No info saved for run %s. Filling entry now."%run
-                            gLogger.info(_msg)                      
+                            _msg = "No info saved for run %s. Filling entry now." % run
+                            gLogger.info( _msg )
                             self.transClient.addRunsMetadata( run, metaDataDict )
 
 
@@ -478,5 +476,5 @@ class MergingForDQAgent( AgentModule ):
                             os.remove( i )
                         DIRAC.exit( 2 )
 
-                  gLogger.info( '=== End of Loop over Runs ===')
+                  gLogger.info( '=== End of Loop over Runs ===' )
     return S_OK()

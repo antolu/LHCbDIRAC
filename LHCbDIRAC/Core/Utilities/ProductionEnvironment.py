@@ -30,7 +30,7 @@ if siteSpecificTimeout:
 
 #############################################################################
 def getProjectEnvironment( systemConfiguration, applicationName, applicationVersion = '', extraPackages = '',
-                           runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '', generatorName = '',
+                           runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '',
                            poolXMLCatalogName = defaultCatalogName, env = None ):
   """ This function uses all below methods to get the complete project environment
       thus ensuring consistent behaviour from all modules.  The environment is
@@ -52,7 +52,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
   result = getProjectCommand( setupProjectLocation, applicationName, applicationVersion, extraPackages,
-                              generatorName, site, runTimeProject, runTimeProjectVersion, '', directory ) #leave out additional options initially
+                              site, runTimeProject, runTimeProjectVersion, '', directory ) #leave out additional options initially
 
   if not result['OK']:
     return result
@@ -263,7 +263,7 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
   return S_OK( env )
 
 #############################################################################
-def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], generatorName = '', site = '',
+def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], site = '',
                        runTimeProject = '', runTimeProjectVersion = '', additional = '', directory = '' ):
   """ Returns (without executing) the SetupProject command line string and requires
       the following arguments:
@@ -275,7 +275,6 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
       optionally with the following additional arguments:
 
       - extraPackages - i.e. a list of [<name>.<version>] strings which are expressed as --use "<name> version>"
-      - generatorName - expressed as --tag_add=<generatorName>
       - site - will default to the current site name but can be specified, governs the externals policy
       - runTimeProject - i.e. --runtime-project <runTimeProject>
       - additional - add additional arbitrary options.
@@ -305,10 +304,6 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
   if os.path.exists( os.path.join( directory, 'lib', 'requirements' ) ):
     gLogger.info( 'Adding tag for user shipped requirements file --use="cmttemp v1"' )
     cmd.append( '--use="cmttemp v1"' )
-
-  if generatorName:
-    gLogger.verbose( 'Requested generator name: %s' % ( generatorName ) )
-    cmd.append( '--tag_add=%s' % ( generatorName ) )
 
   cmd.append( applicationName )
   if applicationVersion:

@@ -288,9 +288,6 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = self.workflow_commons['numberOfEvents']
 
-    if self.workflow_commons.has_key( 'generatorName' ):
-      self.generator_name = self.workflow_commons['generatorName']
-
   #############################################################################
 
   def _resolveInputStep( self ):
@@ -347,9 +344,6 @@ class ModuleBase( object ):
 
     if self.step_commons.has_key( 'extraOptionsLine' ):
       self.extraOptionsLine = self.step_commons['extraOptionsLine']
-
-    if self.step_commons.has_key( 'generatorName' ):
-      self.generator_name = self.step_commons['generatorName']
 
     if self.step_commons.has_key( 'runTimeProjectName' ):
       self.runTimeProjectName = self.step_commons['runTimeProjectName']

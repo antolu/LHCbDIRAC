@@ -41,7 +41,6 @@ class GaudiApplication( ModuleBase ):
     self.inputDataType = 'MDF'
     self.stepInputData = [] # to be resolved
     self.poolXMLCatName = 'pool_xml_catalog.xml'
-    self.generator_name = ''
     self.optionsFile = ''
     self.optionsLine = ''
     self.extraOptionsLine = ''
@@ -98,7 +97,7 @@ class GaudiApplication( ModuleBase ):
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
                                                                                    self.applicationVersion,
                                                                                    self.systemConfig ) )
-      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root', 
+      self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root',
                                                                                         os.getcwd() ) ) )
 
       if self.jobType.lower() == 'merge':
@@ -236,7 +235,6 @@ class GaudiApplication( ModuleBase ):
                                         extraPackages = self.extraPackages,
                                         runTimeProject = self.runTimeProjectName,
                                         runTimeProjectVersion = self.runTimeProjectVersion,
-                                        generatorName = self.generator_name,
                                         poolXMLCatalogName = self.poolXMLCatName )
 
         if not result['OK']:

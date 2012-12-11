@@ -42,7 +42,6 @@ class ProductionRequest( object ):
     self.eventType = ''
     self.events = -1
     self.sysConfig = ''
-    self.generatorName = ''
     self.stepsList = []
     self.stepsListDict = []
     self.extraOptions = []
@@ -388,7 +387,6 @@ class ProductionRequest( object ):
     prod.priority = str( priority )
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
     prod.setJobParameters( { 'CPUTime': cpu } )
-    prod.setParameter( 'generatorName', 'string', str( self.generatorName ), 'Generator Name' )
     prod.plugin = plugin
 
     #optional parameters

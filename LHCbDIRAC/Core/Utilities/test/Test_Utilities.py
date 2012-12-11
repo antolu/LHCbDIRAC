@@ -53,14 +53,14 @@ class ProductionEnvironmentSuccess( UtilitiesTestCase ):
 
   def test_getProjectCommand( self ):
     expected = [
-                [ ['AppConfig.v110'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --tag_add=Pythia Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
-                [ ['AppConfig.v110', 'pippo.v1'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --tag_add=Pythia Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
-                [ ['AppConfig.v110', 'pippo.v1', 'ProdConf'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --use="ProdConf"  --tag_add=Pythia Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+                [ ['AppConfig.v110'], '/buf/setupProject.sh --debug --use="AppConfig v110"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+                [ ['AppConfig.v110', 'pippo.v1'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+                [ ['AppConfig.v110', 'pippo.v1', 'ProdConf'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --use="ProdConf"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
                 ]
 
     for ep in expected:
       ret = getProjectCommand( '/buf/setupProject.sh', 'Gauss', 'v40r0', ep[0],
-                              'Pythia', 'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
+                              'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
       self.assertEqual( ret['Value'], ep[1] )
 
 
