@@ -8,7 +8,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
 Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
-Script.registerSwitch( '', 'Extension=', 'Specify the descendants file extension' )
+Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
 Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
 Script.parseCommandLine( ignoreErrors = True )
 
@@ -21,14 +21,14 @@ from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyC
 #Code
 if __name__ == '__main__':
 
-  extension = []
+  fileType = []
   runsList = []
   fixIt = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       runsList = switch[1].split( ',' )
-    if switch[0] == 'Extension':
-      extension = switch[1].split( ',' )
+    if switch[0] == 'FileType':
+      fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
 
@@ -52,29 +52,29 @@ if __name__ == '__main__':
     cc = ConsistencyChecks()
     cc.prod = id
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
-    cc.fileType = extension
+    cc.fileType = fileType
     cc.fileTypesExcluded = ['LOG']
     cc.runsList = runsList
     cc.checkTS2BKK()
-    if extension:
+    if fileType:
       gLogger.always( "%d unique descendants found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
     if cc.processedLFNsWithMultipleDescendants:
-      gLogger.error( "Processed LFNs with multiple descendants: %s" % str( cc.processedLFNsWithMultipleDescendants ) )
+      gLogger.error( "Processed LFNs with multiple descendants:\n%s" % '\n'.join( cc.processedLFNsWithMultipleDescendants ) )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
     if cc.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.error( "Non processed LFNs with multiple descendants: %s" % str( cc.nonProcessedLFNsWithMultipleDescendants ) )
+      gLogger.error( "Non processed LFNs with multiple descendants:\n%s" % '\n'.join( cc.nonProcessedLFNsWithMultipleDescendants ) )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )
     if cc.processedLFNsWithoutDescendants:
-      gLogger.always( "Found some LFNs without descendants: please use dirac-dms-check-fc2bk" )
+      gLogger.always( "Processed LFNs without descendants -> ERROR!\n%s" % '\n'.join( cc.processedLFNsWithoutDescendants ) )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
     #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
-      gLogger.error( "There are LFNs marked as not 'Processed' but that have descendants" )
+      gLogger.error( "There are %d LFNs marked as not 'Processed' but that have descendants" % len( cc.nonProcessedLFNsWithDescendants ) )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
