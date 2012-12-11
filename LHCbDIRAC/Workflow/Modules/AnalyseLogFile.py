@@ -5,13 +5,13 @@ __RCSID__ = "$Id$"
 
 import os, re, glob
 
-from DIRAC.Resources.Catalog.PoolXMLFile                 import getGUID
-
-from LHCbDIRAC.Core.Utilities.ProductionData             import getLogPath, constructProductionLFNs
-from LHCbDIRAC.Workflow.Modules.ModuleBase               import ModuleBase
-
-from DIRAC import S_OK, S_ERROR, gLogger
 import DIRAC
+from DIRAC                                   import S_OK, S_ERROR, gLogger
+from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID
+
+from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath, constructProductionLFNs
+from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
 
 class AnalyseLogFile( ModuleBase ):
   """ Analyse not only the XML summary, also the log file is inspected
@@ -56,7 +56,6 @@ class AnalyseLogFile( ModuleBase ):
       # Resolve the step and job input data
 
       if not logAnalyser:
-        from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
         analyseLogResult = analyseLogFile( fileName = self.applicationLog,
                                            applicationName = self.applicationName,
                                            prod = self.production_id,
@@ -214,7 +213,8 @@ class AnalyseLogFile( ModuleBase ):
           else:
             msg += coreLFN + '\n'
       else:
-        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG' % ( coreLFN, self.coreFile ) )
+        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG' % ( coreLFN,
+                                                                                                      self.coreFile ) )
 
     toUpload = {}
     for lfn in debugLFNs:

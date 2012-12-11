@@ -9,10 +9,12 @@ import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger
 
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, analyseXMLSummary
+
 
 class AnalyseXMLSummary( ModuleBase ):
   """ Analysing the XML summary
@@ -225,7 +227,6 @@ class AnalyseXMLSummary( ModuleBase ):
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
 
       if not nc:
-        from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
         nc = NotificationClient()
       res = nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
       if not res['OK']:
