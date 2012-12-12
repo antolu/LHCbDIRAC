@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
+# $HeadURL$
 # File :    dirac-bookkeeping-get-file-ancestors
 # Author :  Zoltan Mathe
 ########################################################################
@@ -10,56 +11,46 @@ __RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
+dmScript = DMScript()
+dmScript.registerFileSwitches()
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ... LFN|File [Level]' % Script.scriptName,
                                      'Arguments:',
                                      '  LFN:      Logical File Name',
                                      '  File:     Name of the file with a list of LFNs',
-                                     '  Level:    Number of levels to search (default: 1)' ]))
+                                     '  Level:    Number of levels to search (default: 1)' ] ) )
 
-Script.parseCommandLine(ignoreErrors=True)
+Script.parseCommandLine( ignoreErrors=True )
+
 args = Script.getPositionalArgs()
 
-if len(args) == 1:
-  level = 2
-elif len(args) == 2:
-  try:
-    level = int(args[1]) + 1
-  except:
-    Script.showHelp()
-else:
-  Script.showHelp()
-
-filename = str(args[0])
-
-exitCode = 0
-
-lfns = []
 try:
-  files = open(filename)
-  for f in files:
-    lfns += [f.strip()]
-except Exception, ex:
-  lfns = [filename]
+  level = int( args[-1] ) + 1
+  args.pop()
+except:
+  level = 2
 
-bk = BookkeepingClient()
-result = bk.getFileAncestors(lfns, level)
+lfns = dmScript.getOption( 'LFNs', [] )
+lfns += args
+lfnList = []
+for lfn in lfns:
+  try:
+    f = open( lfn, 'r' )
+    lfnList += [l.split( 'LFN:' )[-1].strip().split()[0].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
+    f.close()
+  except:
+    lfnList.append( lfn )
 
-if not result['OK']:
-  print 'ERROR %s' % (result['Message'])
-  exitCode = 2
-else:
-  values = result['Value']
-  print 'Successful:'
-  files = values['Successful']
-  for i in files.keys():
-    print i + ':'
-    for j in files[i]:
-      print '                 ' + j['FileName']
-  print 'Failed:', values['Failed']
+result = BookkeepingClient().getFileAncestors( lfnList, level )
 
-DIRAC.exit(exitCode)
+okResult = result['Value']['Successful']
+for lfn in okResult:
+  okResult[lfn] = dict( [( d['FileName'], 'Replica-%s' % d['GotReplica'] ) for d in okResult[lfn]] )
+
+DIRAC.exit( printDMResult( result,
+                           empty="None", script="dirac-bookkeeping-get-file-ancestors" ) )
 
