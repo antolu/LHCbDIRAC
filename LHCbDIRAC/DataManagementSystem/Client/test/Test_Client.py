@@ -7,9 +7,30 @@ class UtilitiesTestCase( unittest.TestCase ):
 
   def setUp( self ):
     self.bkClientMock = Mock()
+    self.bkClientMock.getFileDescendants.return_value = {'OK': True,
+                                                         'Value': {'Failed': [],
+                                                                   'NotProcessed': [],
+                                                                   'Successful': {'aa.raw': ['bb.raw', 'bb.log']}}}
+    self.bkClientMock.getFileMetadata.return_value = {'OK': True,
+                                                      'Value': {'aa.raw': {'FileType': 'RAW',
+                                                                           'RunNumber': 97019},
+                                                                'bb.raw': {'FileType': 'RAW',
+                                                                           'RunNumber': 97019},
+                                                                'dd.raw': {'FileType': 'RAW',
+                                                                           'RunNumber': 97019},
+                                                                'bb.log': {'FileType': 'LOG'},
+                                                                '/bb/pippo/aa.dst':{'FileType': 'DST'},
+                                                                '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'},
+                                                                '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}
+                                                                }
+                                                      }
 
-    self.cc = ConsistencyChecks( transClient = Mock(), rm = Mock(), bkClient = self.bkClientMock )
-    self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG']
+    self.rmMock = Mock()
+    self.rmMock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'aa.raw':'metadataPippo'},
+                                                                  'Failed':{}}}
+
+    self.cc = ConsistencyChecks( transClient = Mock(), rm = self.rmMock, bkClient = self.bkClientMock )
+    self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG', 'RAW']
     self.cc.fileTypesExcluded = ['LOG']
     self.cc.prod = 0
     self.maxDiff = None
@@ -20,26 +41,16 @@ class UtilitiesTestCase( unittest.TestCase ):
 class ConsistencyChecksSuccess( UtilitiesTestCase ):
 
   def test__selectByFileType( self ):
-    lfnDict = {'/lhcb/00020566_00009119_1.Semileptonic.dst':
-               ['/lhcb/00020567_00001373_1.semileptonic.dst',
-                '/bb/pippo/aa.dst',
-                '/lhcb/DaVinci_00020567_00001373_1.log'
-                ],
-               '/lhcb/00020566_00009120_1.Semileptonic.dst':
-               ['/lhcb/00020567_00001373_1.semileptonic.dst',
-                '/bb/pippo/aa.dst',
-                '/lhcb/DaVinci_00020567_00001373_1.log'
-                ]}
+    lfnDict = {'aa.raw': ['bb.raw', 'bb.log', '/bb/pippo/aa.dst', '/lhcb/1_2_1.Semileptonic.dst'],
+               'cc.raw': ['dd.raw', 'bb.log', '/bb/pippo/aa.dst', '/lhcb/1_1.semileptonic.dst']}
 
     res = self.cc._selectByFileType( lfnDict )
 
-    lfnDictExpected = {'/lhcb/00020566_00009119_1.Semileptonic.dst':
-                       ['/lhcb/00020567_00001373_1.semileptonic.dst'],
-                       '/lhcb/00020566_00009120_1.Semileptonic.dst':
-                       ['/lhcb/00020567_00001373_1.semileptonic.dst']}
+    lfnDictExpected = {'aa.raw': ['bb.raw', '/lhcb/1_2_1.Semileptonic.dst'],
+                       'cc.raw': ['dd.raw', '/lhcb/1_1.semileptonic.dst']}
     self.assertEqual( res, lfnDictExpected )
 
-    lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', '/bb/pippo/aa.log']}
+    lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', 'bb.log']}
     res = self.cc._selectByFileType( lfnDict )
     lfnDictExpected = {}
     self.assertEqual( res, lfnDictExpected )
@@ -67,17 +78,12 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
     self.assertEqual( res, resExpected )
 
   def test_getDescendants( self ):
-    self.bkClientMock.getFileDescendants.return_value = {'OK': True,
-                                                         'Value': {'Failed': [],
-                                                                   'NotProcessed': [],
-                                                                   'Successful': {'aa.raw': ['bb.raw', 'bb.log']}}}
-
     res = self.cc.getDescendants( ['aa.raw'] )
     filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants, descendants = res
-    self.assertEqual( filesWithDescendants, [] )
-    self.assertEqual( filesWithoutDescendants, ['aa.raw'] )
-    self.assertEqual( filesWitMultipleDescendants, [] )
-    self.assertEqual( descendants, [] )
+    self.assertEqual( filesWithDescendants, {'aa.raw':['bb.raw']} )
+    self.assertEqual( filesWithoutDescendants, {} )
+    self.assertEqual( filesWitMultipleDescendants, {} )
+    self.assertEqual( descendants, ['bb.raw'] )
 
 
 if __name__ == '__main__':
