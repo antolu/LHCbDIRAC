@@ -11,35 +11,39 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
 __RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
 
-def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory" ):
+def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory", depth=9999 ):
   """ Dictionary pretty printing """
   key_max = 0
   value_max = 0
   for key, value in dictionary.items():
-    if len( key ) > key_max:
-      key_max = len( key )
-    if len( str( value ) ) > value_max:
-      value_max = len( str( value ) )
+    key_max = max( key_max, len( key ) )
+    value_max = max( value_max, len( str( value ) ) )
   center = key_max + offset
-  if shift:
-    offset += shift
-  else:
-    offset += key_max
-  for key in sorted( dictionary.keys() ):
+  newOffset = offset + ( shift if shift else key_max )
+  for key in sorted( dictionary ):
     value = dictionary[key]
     if type( value ) == type( {} ):
-      if value != {}:
-        print key.rjust( center ), ' : '
-        __printDictionary( value, offset=offset, shift=shift, empty=empty )
+      if not depth:
+        value = value.keys()
+      elif value != {}:
+        print '%s%s : ' % ( offset * ' ', key )
+        __printDictionary( value, offset=newOffset, shift=shift, empty=empty, depth=depth - 1 )
       elif key not in ( 'Failed', 'Successful' ):
-        print key.rjust( center ), ' : ', empty
-    else:
-      print key.rjust( center ), ' : ', str( value ).ljust( value_max )
+        print '%s%s : %s' % ( offset * ' ', key, empty )
+    if type( value ) == type( [] ):
+      if value == []:
+        print '%s%s : %s' % ( offset * ' ', key, '[]' )
+      else:
+        print '%s%s : ' % ( offset * ' ', key )
+        for val in value:
+          print '%s%s' % ( newOffset * ' ', val )
+    elif type( value ) != type( {} ):
+      print '%s : %s' % ( key.rjust( center ), str( value ) )
 
-def printDMResult( result, shift=4, empty="Empty directory", script="DMS script" ):
+def printDMResult( result, shift=4, empty="Empty directory", script="DMS script", depth=999 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
   if result['OK']:
-    __printDictionary( result['Value'], shift=shift, empty=empty )
+    __printDictionary( result['Value'], shift=shift, empty=empty, depth=depth )
     return 0
   else:
     print "Error in", script, ":", result['Message']
