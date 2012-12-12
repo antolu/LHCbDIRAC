@@ -728,10 +728,12 @@ procedure getFileAndJobMetadata(
  begin
   if not prod  then
     open a_Cursor for
-    select files.fileName,files.fileid,files.gotreplica from files where files.jobid=v_jobid;
+    select files.fileName,files.fileid,files.gotreplica, 0, files.eventstat,
+           files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name from files, filetypes where files.filetypeid=filetypes.filetypeid and files.jobid=v_jobid;
   else
     open a_Cursor for
-    select files.fileName,files.fileid,files.gotreplica, jobs.production from files, jobs where jobs.jobid=files.jobid and files.jobid=v_jobid;
+    select files.fileName,files.fileid,files.gotreplica, jobs.production, files.eventstat,
+           files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name from files, jobs, filetypes where files.filetypeid=filetypes.filetypeid and jobs.jobid=files.jobid and files.jobid=v_jobid;
   end if;
  end;
 

@@ -1662,6 +1662,7 @@ class OracleBookkeepingDB:
 
     logicalFileNames = {}
     ancestorList = {}
+    filesWithMetadata = {}
     logicalFileNames['Failed'] = []
     gLogger.debug('original', lfn)
     for fileName in lfn:
@@ -1671,7 +1672,13 @@ class OracleBookkeepingDB:
       logicalFileNames['Failed'] = failed
       if len(files) > 0:
         ancestorList[fileName] = files
+        tmpfiles = {}
+        for i in  files:
+          tmpattr = dict(i)
+          tmpfiles[tmpattr.pop('FileName')] = tmpattr
+        filesWithMetadata[fileName] = tmpfiles
     logicalFileNames['Successful'] = ancestorList
+    logicalFileNames['WithMetadata'] = filesWithMetadata
     return S_OK(logicalFileNames)
 
   #############################################################################
@@ -1694,6 +1701,8 @@ class OracleBookkeepingDB:
             gLogger.error('Ancestor', res['Message'])
             if not fileName in failed:
               failed += [fileName]
+          elif len(res['Value']) == 0:
+            notprocessed += [fileName]
           elif  len(res['Value']) != 0:
             job_ids = res['Value']
             for i in job_ids:
@@ -1717,7 +1726,15 @@ class OracleBookkeepingDB:
                   if production and (int(record[3]) != int(production)):
                     self.getFileDescendentsHelper(record[0], files, depth, production, counter, checkreplica)
                     continue
-                  files += [record[0]]
+                  files[record[0]] = {
+                                          'GotReplica':record[2],
+                                          'EventStat':record[4],
+                                          'EventType':record[5],
+                                          'Luminosity':record[6],
+                                          'InstLuminosity':record[7],
+                                          'FileType':record[8]
+                                          }
+
                   self.getFileDescendentsHelper(record[0], files, depth, production, counter, checkreplica)
     return failed, notprocessed
 
@@ -1728,6 +1745,7 @@ class OracleBookkeepingDB:
     ancestorList = {}
     logicalFileNames['Failed'] = []
     logicalFileNames['NotProcessed'] = []
+    filesWithMetadata = {}
 
     odepth = -1
     if depth > 10:
@@ -1741,14 +1759,17 @@ class OracleBookkeepingDB:
 
     for fileName in lfn:
       depth = odepth
-      files = []
+      files = {}
 
       failed, notprocessed = self.getFileDescendentsHelper(fileName, files, depth, production, 0, checkreplica)
       logicalFileNames['Failed'] = failed
       logicalFileNames['NotProcessed'] = notprocessed
       if len(files) > 0:
-        ancestorList[fileName] = files
+        ancestorList[fileName] = files.keys()
+        filesWithMetadata[fileName] = files
     logicalFileNames['Successful'] = ancestorList
+    logicalFileNames['WithMetadata'] = filesWithMetadata
+    print logicalFileNames
     return S_OK(logicalFileNames)
 
 
