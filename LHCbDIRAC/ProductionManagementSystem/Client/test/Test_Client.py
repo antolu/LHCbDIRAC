@@ -89,7 +89,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'DDDB':'', 'CONDDB':'fromPreviousStep', 'DQTag':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                            ] )
@@ -107,7 +107,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'DDDB':'', 'CONDDB':'fromPreviousStep', 'DQTag':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                            ] )

@@ -82,7 +82,7 @@ class ProductionRequest( object ):
 
   def resolveSteps( self ):
     """ Given a list of steps in strings, some of which might be missing,
-        resolve it into a dictionary of steps
+        resolve it into a list of dictionary of steps
     """
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
@@ -94,6 +94,9 @@ class ProductionRequest( object ):
       stepsListDictItem = {}
       for ( parameter, value ) in itertools.izip( stepDict['ParameterNames'],
                                                   stepDict['Records'][0] ):
+        if parameter.lower() in ['conddb', 'dddb', 'dqtag']:
+          if value.lower() == 'frompreviousstep':
+            value = self.stepsListDict[-1][parameter]
         stepsListDictItem[parameter] = value
 
       s_in = self.bkkClient.getStepInputFiles( stepID )
