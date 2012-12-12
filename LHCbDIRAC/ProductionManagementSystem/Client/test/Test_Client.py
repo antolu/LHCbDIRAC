@@ -13,7 +13,7 @@ class bkClientFake:
                                            'DDDB', 'CONDDB', 'DQTag'],
                         'Records': [[123, 'Stripping14-Stripping', 'DaVinci', 'v2r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
-                                     '', '', '']]}}
+                                     '', '123456', '']]}}
     elif stepID == {'StepId':456}:
       return {'OK': True,
               'Value': {'TotalRecords': 1,
@@ -22,7 +22,7 @@ class bkClientFake:
                                            'DDDB', 'CONDDB', 'DQTag'],
                         'Records': [[456, 'Merge', 'LHCb', 'v1r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
-                                     '', '', '']]}}
+                                     '', 'fromPreviousStep', '']]}}
 
   def getStepInputFiles( self, stepID ):
     if stepID == 123:
@@ -65,67 +65,72 @@ class ProductionRequestSuccess( ClientTestCase ):
   def test_resolveStepsSuccess( self ):
 
 
-    self.bkClientMock.getAvailableSteps.return_value = {'OK': True,
-                                                        'Value': {'TotalRecords': 1,
-                                                                  'ParameterNames': ['StepId', 'beta', 'gamma'],
-                                                                  'Records': [[13698, 'Stripping14-Stripping', 'DaVinci']]}}
-    self.bkClientMock.getStepInputFiles.return_value = {'OK': True,
-                                                        'Value': {'TotalRecords': 7,
-                                                                  'ParameterNames': ['FileType', 'Visible'],
-                                                                  'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
-    self.bkClientMock.getStepOutputFiles.return_value = {'OK': True,
-                                                        'Value': {'TotalRecords': 7,
-                                                                  'ParameterNames': ['FileType', 'Visible'],
-                                                                  'Records': [['SDST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
-
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']}] )
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'fileTypesIn':['SDST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']},
-                           {'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']}
+    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'fileTypesIn':['SDST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                         {'StepId': 456, 'StepName':'Merge',
+                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'fromPreviousStep', 'DQTag':'',
+                                         'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                            ] )
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']},
-                           {'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']}
+    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'fileTypesIn':['SDST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                         {'StepId': 456, 'StepName':'Merge',
+                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'fromPreviousStep', 'DQTag':'',
+                                         'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                            ] )
-
-    self.bkClientMock.getStepInputFiles.return_value = {'OK': True,
-                                                        'Value': {'TotalRecords': 7,
-                                                                  'ParameterNames': ['FileType', 'Visible'],
-                                                                  'Records': [['BHADRON.DST', 'Y']]}}
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':['BHADRON.DST'],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']}] )
-
-    self.bkClientMock.getStepInputFiles.return_value = {'OK': True,
-                                                        'Value': {'TotalRecords': 0,
-                                                                  'ParameterNames': ['FileType', 'Visible'],
-                                                                  'Records': []}}
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'fileTypesIn':['SDST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 13698, 'beta':'Stripping14-Stripping', 'gamma':'DaVinci',
-                            'fileTypesIn':[],
-                            'fileTypesOut':['SDST', 'CALIBRATION.DST']}] )
+    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'fileTypesIn':['SDST'],
+                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
   def test__applyOptionalCorrections( self ):
 
