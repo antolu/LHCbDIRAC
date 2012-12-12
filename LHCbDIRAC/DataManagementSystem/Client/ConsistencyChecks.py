@@ -77,8 +77,6 @@ class ConsistencyChecks( object ):
     self.descendantsForProcessedLFNs = []
     self.descendantsForNonProcessedLFNs = []
 
-    self.filesInBKKNotInTS = []
-
   ################################################################################
 
   def checkBKK2FC( self ):
@@ -102,29 +100,26 @@ class ConsistencyChecks( object ):
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
       self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      res = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
-      self.existingLFNsWithBKKReplicaYES, self.nonexistingLFNsWithBKKReplicaYES = res
+      self.existingLFNsWithBKKReplicaYES, self.nonexistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
       # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
       # In principle most files have no replica flag, start from the File Catalog files with replicas
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-      res = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
-      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = res
+      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      res = self.getReplicasPresence( lfnsReplicaYes )
-      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = res
+      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
 
     if self.existingLFNsWithBKKReplicaNO:
       msg = "%d files have ReplicaFlag = No, but %d are in the FC" % ( len( lfnsReplicaNo ),
-                                                                       len( self.existingLFNsWithBKKReplicaNO ) )
+                                                                    len( self.existingLFNsWithBKKReplicaNO ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
     if self.nonExistingLFNsWithBKKReplicaYES:
       msg = "%d files have ReplicaFlag = Yes, but %d are not in the FC" % ( len( lfnsReplicaYes ),
-                                                                            len( self.nonExistingLFNsWithBKKReplicaYES ) )
+                                                                                    len( self.nonExistingLFNsWithBKKReplicaYES ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
@@ -393,7 +388,9 @@ class ConsistencyChecks( object ):
           if not [pr for pr in desc if pr in notPresent]:
             continue
           realDescendants = [pr for pr in desc if pr in present]
-          for lfn1 in [pr for pr in desc if pr in descWithDescendants] :
+          descToCheck = self._selectByFileType( dict( [( pr, descWithDescendants[pr] ) for pr in desc if pr in descWithDescendants] ),
+                                                 fileTypesExcluded=['BOOLEHIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST'] )
+          for lfn1 in descToCheck :
             # This daughter had descendants, therefore consider it
             realDescendants.append( lfn1 )
             notPresent.remove( lfn1 )
@@ -414,10 +411,11 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def _selectByFileType( self, lfnDict ):
+  def _selectByFileType( self, lfnDict, fileTypes=[], fileTypesExcluded=[] ):
     ''' Select only those files from the values of lfnDict that have a certain type
     '''
-    fileTypes = list( set( self.fileType ) - set ( self.fileTypesExcluded ) )
+    if fileTypes == [] and fileTypesExcluded == []:
+      fileTypes = list( set( self.fileType ) - set ( self.fileTypesExcluded ) )
     ancDict = copy.deepcopy( lfnDict )
     metadata = {}
     for lfnChunk in breakListIntoChunks( [lfn for desc in ancDict.values() for lfn in desc], 1000 ):
@@ -429,7 +427,7 @@ class ConsistencyChecks( object ):
     for ancestor, descendants in ancDict.items():
       for desc in list( descendants ):
         #quick and dirty...
-        if metadata[desc]['FileType'] not in fileTypes:
+        if metadata[desc]['FileType'] in fileTypesExcluded or ( fileTypes and metadata[desc]['FileType'] not in fileTypes ):
           descendants.remove( desc )
       if len( descendants ) == 0:
         ancDict.pop( ancestor )
@@ -438,7 +436,6 @@ class ConsistencyChecks( object ):
 
     return ancDict
 
-  @classmethod
   def _getFileTypesCount( self, lfnDict ):
     ''' return file types count
     '''
@@ -470,8 +467,7 @@ class ConsistencyChecks( object ):
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.warn( "%s %d files are in the FC but have replica = NO in BKK" % ( msg,
-                                                                           len( self.existingLFNsWithBKKReplicaNO ) ) )
+      gLogger.warn( "%s %d files are in the FC but have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ) ) )
     if self.existingLFNsNotInBKK:
       gLogger.warn( "%s %d files are in the FC but not in BKK" % ( msg, len( self.existingLFNsNotInBKK ) ) )
 
@@ -598,7 +594,7 @@ class ConsistencyChecks( object ):
               checkSumMismatch.append( lfn )
           else:
             gLogger.info( "Checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " % ( lfcChecksum,
-                                                                                                       surlChecksum ) )
+                                                                                                           surlChecksum ) )
 
     for lfn in checkSumMismatch:
       oneGoodReplica = False
