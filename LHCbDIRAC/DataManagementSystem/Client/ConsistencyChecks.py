@@ -424,15 +424,14 @@ class ConsistencyChecks( object ):
         metadata.update( res['Value'] )
       else:
         gLogger.error( "Error getting %d files metadata" % len( lfnChunk ), res['Message'] )
-    for ancestor, descendants in lfnDict.items():
-      descendantsCopy = copy.deepcopy( descendants )
+    for ancestor, descendants in ancDict.items():
       for desc in list( descendants ):
         if metadata[desc]['FileType'] in fileTypesExcluded or ( fileTypes and metadata[desc]['FileType'] not in fileTypes ):
           descendants.remove( desc )
       if len( descendants ) == 0:
         ancDict.pop( ancestor )
       else:
-        ancDict[ancestor] = descendantsCopy
+        ancDict[ancestor] = descendants
 
     return ancDict
 
