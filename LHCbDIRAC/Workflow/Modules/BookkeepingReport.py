@@ -535,7 +535,7 @@ class BookkeepingReport( ModuleBase ):
        </SimulationCondition>
     '''
     if self.applicationName == "Gauss":
-      jobNode, sim = addChildNode( jobNode, "SimulationCondition", ( 1, ) )
+      jobNode, sim = addChildNode( jobNode, "SimulationCondition", 1, () )
       sim = addChildNode( sim, "Parameter", 0, ( "SimDescription", self.simDescription ) )
 
     return jobNode
