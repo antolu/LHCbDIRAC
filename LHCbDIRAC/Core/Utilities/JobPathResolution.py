@@ -35,7 +35,6 @@ class JobPathResolution:
     """Given the arguments from the JobPathAgent, this function resolves job optimizer
        paths according to LHCb VO policy.
     """
-    lhcbPath = ''
 
     if not self.arguments.has_key( 'ConfigPath' ):
       self.log.warn( 'No CS ConfigPath defined' )
@@ -43,9 +42,53 @@ class JobPathResolution:
 
     self.log.verbose( 'Attempting to resolve job path for LHCb' )
     job = self.arguments['JobID']
-    classadJob = self.arguments['ClassAd']
     section = self.arguments['ConfigPath']
+    if 'ClassAd' in self.arguments:
+      classadJob = self.arguments['ClassAd']
+      return self.__classAdPath( job, section, classadJob )
+    elif 'JobState' in self.arguments:
+      jobState = self.arguments[ 'JobState' ]
+      return self.__jobStatePath( job, section, jobState )
+    return S_ERROR( "No JobState or ClassAd in arguments!" )
 
+
+  def __jobStatePath( self, jid, section, jobState ): 
+    path = []
+    result = jobState.getManifest()
+    if not result[ 'OK' ]:
+      return result
+    jobManifest = result[ 'Value' ]
+
+    ancestorDepth = jobManifest.getOption( 'AncestorDepth', '' ).replace( 'Unknown', '' )
+    if ancestorDepth:
+      self.log.info( 'Job %s has specified ancestor depth' % ( jid ) )
+      ancestors = gConfig.getValue( '%s/AncestorFiles' % section, 'AncestorFiles' )
+      path.append( ancestors )
+
+    inputData = jobManifest.getOption( "InputData", '' ).replace( 'Unknown', '' )
+    if inputData:
+      if not jobManifest.getOption( 'DisableDataScheduling', False ):
+        self.log.info( 'Job %s has input data requirement' % ( jid ) )
+        bkInputData = gConfig.getValue( '%s/BKInputData' % section, 'BKInputData' )
+        path.extend( [ 'InputData', bkInputData ] )
+      else:
+        self.log.info( 'Job %s has input data requirement but scheduling via input data is disabled' % ( jid ) )
+        result = JobDB().setInputData( jid, [] )
+        if not result['OK']:
+          self.log.error( result )
+          return S_ERROR( 'Could not reset input data to null' )
+
+    if jobManifest.getOption( 'CondDBTags', "" ):
+      condDB = gConfig.getValue( '%s/CondDB' % section, 'CondDB' )
+      path.append( condDB )
+
+    if not path:
+      self.log.info( 'No LHCb specific optimizers to be added' )
+
+    return S_OK( path )
+ 
+  def __classAdPath( self, job, section, classadJob ):
+    lhcbPath = ''
     ancestorDepth = classadJob.get_expression( 'AncestorDepth' ).replace( '"', '' ).replace( 'Unknown', '' )
     if ancestorDepth:
       self.log.info( 'Job %s has specified ancestor depth' % ( job ) )
