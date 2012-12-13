@@ -876,7 +876,7 @@ def _generateJobNode( doc , configName , configVersion , ldate , ltime ):
       <Job ConfigName="" ConfigVersion="" Date="" Time="">
   """
   jobAttributes = ( configName, configVersion, ldate, ltime )
-  return addChildNode( doc, "Job", 1, *jobAttributes )
+  return addChildNode( doc, "Job", 1, jobAttributes )
 
 def _generateInputFiles( jobNode , inputData ):
   """ InputData looks like this
@@ -884,7 +884,7 @@ def _generateInputFiles( jobNode , inputData ):
   """
   if inputData:
     for inputname in inputData:
-      jobNode = addChildNode( jobNode, "InputFile", 0, inputname )
+      jobNode = addChildNode( jobNode, "InputFile", 0, ( inputname, ) )
   return jobNode
 
 def _generateOutputFiles( jobNode, outputDict, outputlfn, logFilelfn, outputDataType,
@@ -913,19 +913,19 @@ def _generateOutputFiles( jobNode, outputDict, outputlfn, logFilelfn, outputData
 
     # Add Output to the XML file
     oFileAttributes = ( output, outputtype , outputversion )
-    jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, *oFileAttributes )
+    jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, oFileAttributes )
 
     if not re.search( 'log', output ):
       #filesize = str( os.path.getsize( output ) )
-      oFile = addChildNode( oFile, "Parameter", 0, *( "FileSize", outputDict[ output ][ 'FileSize' ] ) )
+      oFile = addChildNode( oFile, "Parameter", 0, ( "FileSize", outputDict[ output ][ 'FileSize' ] ) )
     else:
       logurl = 'http://lhcb-logs.cern.ch/storage/lhcb'
       fName = outputDict[ output ][ 'Filename' ].split( '/' )
       url = logurl + '/' + configName + '/' + configVersion + '/LOG/MERGEDDQ/' + str( run ) + '/' + fName[len( fName ) - 1]
       #Log file replica information
-      oFile = addChildNode( oFile, "Replica", 0, url )
-    oFile = addChildNode( oFile, "Parameter", 0, *( "MD5Sum", outputDict[ output ][ 'MD5Sum' ] ) )
-    oFile = addChildNode( oFile, "Parameter", 0, *( "Guid", outputDict[ output ][ 'Guid' ] ) )
+      oFile = addChildNode( oFile, "Replica", 0, ( url, ) )
+    oFile = addChildNode( oFile, "Parameter", 0, ( "MD5Sum", outputDict[ output ][ 'MD5Sum' ] ) )
+    oFile = addChildNode( oFile, "Parameter", 0, ( "Guid", outputDict[ output ][ 'Guid' ] ) )
   return jobNode
 
 def _generateTypedParams( jobNode , run , rootVersion , append_string ):
@@ -938,7 +938,7 @@ def _generateTypedParams( jobNode , run , rootVersion , append_string ):
   typedParams.append( ( "ProgramVersion", rootVersion, "Info" ) )
 
   for typedParam in typedParams:
-    jobNode = addChildNode( jobNode, "TypedParameter", 0, *typedParam )
+    jobNode = addChildNode( jobNode, "TypedParameter", 0, typedParam )
 
   return jobNode
 
