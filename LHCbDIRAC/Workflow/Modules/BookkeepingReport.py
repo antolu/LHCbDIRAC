@@ -242,7 +242,7 @@ class BookkeepingReport( ModuleBase ):
 
     jobAttributes = ( configName, configVersion, self.ldate, self.ltime )
 
-    return addChildNode( doc, "Job", 1, *jobAttributes )
+    return addChildNode( doc, "Job", 1, jobAttributes )
 
 ################################################################################
 
@@ -346,7 +346,7 @@ class BookkeepingReport( ModuleBase ):
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
-      jobNode = addChildNode( jobNode, "TypedParameter", 0, *typedParam )
+      jobNode = addChildNode( jobNode, "TypedParameter", 0, typedParam )
 
     return jobNode
 
@@ -362,10 +362,10 @@ class BookkeepingReport( ModuleBase ):
       for inputname in self.stepInputData:
         for bkLFN in bkLFNs:
           if os.path.basename( bkLFN ) == os.path.basename( inputname ):
-            jobNode = addChildNode( jobNode, "InputFile", 0, bkLFN )
+            jobNode = addChildNode( jobNode, "InputFile", 0, ( bkLFN, ) )
             intermediateInputs = True
         if not intermediateInputs:
-          jobNode = addChildNode( jobNode, "InputFile", 0, inputname )
+          jobNode = addChildNode( jobNode, "InputFile", 0, ( inputname, ) )
 
     return jobNode
 
@@ -498,18 +498,18 @@ class BookkeepingReport( ModuleBase ):
 
       # Add Output to the XML file
       oFileAttributes = ( lfn, typeName, typeVersion )
-      jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, *oFileAttributes )
+      jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, oFileAttributes )
 
       #HIST is in the dataTypes e.g. we may have new names in the future ;)
       if oldTypeName:
         typeName = oldTypeName
 
       if outputtype != 'LOG':
-        oFile = addChildNode( oFile, "Parameter", 0, *( "EventTypeId", eventtype ) )
+        oFile = addChildNode( oFile, "Parameter", 0, ( "EventTypeId", eventtype ) )
         if fileStats != 'Unknown':
-          oFile = addChildNode( oFile, "Parameter", 0, *( "EventStat", str( fileStats ) ) )
+          oFile = addChildNode( oFile, "Parameter", 0, ( "EventStat", str( fileStats ) ) )
 
-      oFile = addChildNode( oFile, "Parameter", 0, *( "FileSize", outputsize ) )
+      oFile = addChildNode( oFile, "Parameter", 0, ( "FileSize", outputsize ) )
 
       ############################################################
       # Log file replica information
@@ -519,10 +519,10 @@ class BookkeepingReport( ModuleBase ):
         if logfile == output:
           logurl = 'http://lhcb-logs.cern.ch/storage'
           url = logurl + logFilePath + '/' + self.applicationLog
-          oFile = addChildNode( oFile, "Replica", 0, url )
+          oFile = addChildNode( oFile, "Replica", 0, ( url, ) )
 
-      oFile = addChildNode( oFile, "Parameter", 0, *( "MD5Sum", md5sum ) )
-      oFile = addChildNode( oFile, "Parameter", 0, *( "Guid", guid ) )
+      oFile = addChildNode( oFile, "Parameter", 0, ( "MD5Sum", md5sum ) )
+      oFile = addChildNode( oFile, "Parameter", 0, ( "Guid", guid ) )
 
     return jobNode
 
@@ -535,8 +535,8 @@ class BookkeepingReport( ModuleBase ):
        </SimulationCondition>
     '''
     if self.applicationName == "Gauss":
-      jobNode, sim = addChildNode( jobNode, "SimulationCondition", 1 )
-      sim = addChildNode( sim, "Parameter", 0, *( "SimDescription", self.simDescription ) )
+      jobNode, sim = addChildNode( jobNode, "SimulationCondition", ( 1, ) )
+      sim = addChildNode( sim, "Parameter", 0, ( "SimDescription", self.simDescription ) )
 
     return jobNode
 
