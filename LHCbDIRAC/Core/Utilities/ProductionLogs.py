@@ -1,5 +1,5 @@
-""" Utilities to check the application log files (for production jobs)  
-"""
+''' Utilities to check the application log files (for production jobs)
+'''
 
 __RCSID__ = "$Id$"
 
@@ -19,15 +19,12 @@ class LogError( Exception ):
 ################################################################################
 
 class ProductionLog:
-  """ Encapsulate production log info
-  """
+  ''' Encapsulate production log info
+  '''
 
   def __init__( self, fileName, applicationName = '',
                 prodName = '', jobName = '', stepName = '',
                 log = None ):
-
-    ''' Allowed application names '''
-    self.__APPLICATION_NAMES__ = ['Boole', 'Gauss', 'Brunel', 'DaVinci', 'LHCb', 'Moore']
 
     ''' Well known application Errors '''
     self.__APPLICATION_ERRORS__ = {
@@ -77,15 +74,12 @@ class ProductionLog:
     if not self.applicationName:
       self.__guessAppName()
       self.log.info( 'Guessed application name is "%s"' % ( self.applicationName ) )
-    if not self.applicationName in self.__APPLICATION_NAMES__:
-      self.log.error( 'Application name "%s" is not in allowed list: %s' % ( applicationName, ', '.join( self.__APPLICATION_NAMES__ ) ) )
-      raise LogError, 'Log Analysis of %s Not Supported' % ( applicationName )
 
 ################################################################################
 
   def analyse( self ):
-    """ analyse the log
-    """
+    ''' analyse the log
+    '''
     try:
       self.__checkErrors()
       self.__checkFinish()
@@ -136,9 +130,9 @@ class ProductionLog:
 ################################################################################
 
   def __checkLogEnd( self ):
-    """ This method uses Gaudi strings that are well known and determines
+    ''' This method uses Gaudi strings that are well known and determines
         success / failure based on conventions.
-    """
+    '''
     # Check if the application finish successfully
     toFind = 'Application Manager Finalized successfully'
     if self.applicationName.lower() == 'moore':
@@ -153,8 +147,8 @@ class ProductionLog:
 ################################################################################
 
   def __guessAppName( self ):
-    """ Given a log file (in a string), look for the application
-    """
+    ''' Given a log file (in a string), look for the application
+    '''
 
     for line in self.fileString.split( '\n' ):
       if ( re.search( 'Welcome to', line ) and re.search( 'version', line ) ) or \
@@ -175,8 +169,8 @@ class ProductionLog:
 
 def analyseLogFile( fileName, applicationName = '', prod = '', job = '',
                     stepName = '', log = None, lf_o = None ):
-  """ Analyse a log file
-  """
+  ''' Analyse a log file
+  '''
 
   try:
     if not lf_o:

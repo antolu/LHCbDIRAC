@@ -1,5 +1,5 @@
-""" Utilities to check the XML summary files
-"""
+''' Utilities to check the XML summary files
+'''
 
 __RCSID__ = "$Id$"
 
@@ -9,7 +9,7 @@ from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
 
 class XMLSummaryError( Exception ):
-  """ Define error for XML summary """
+  ''' Define error for XML summary '''
 
   def __init__( self, message = "" ):
 
@@ -23,11 +23,11 @@ class XMLSummaryError( Exception ):
 ################################################################################
 
 class XMLSummary:
-  """ XML summary class """
+  ''' XML summary class '''
 
   def __init__( self, xmlFileName, log = None ):
-    """ initialize a XML summary object, given a fileName, getting some relevant info
-    """
+    ''' initialize a XML summary object, given a fileName, getting some relevant info
+    '''
 
     if not log:
       from DIRAC import gLogger
@@ -61,8 +61,8 @@ class XMLSummary:
 ################################################################################
 
   def analyse( self, inputsOnPartOK = False ):
-    """ analyse the XML summary
-    """
+    ''' analyse the XML summary
+    '''
     if inputsOnPartOK:
       self.log.warn( 'part status for input files is considered OK' )
     if self.success == 'True' and self.step == 'finalize' \
@@ -74,8 +74,8 @@ class XMLSummary:
 ################################################################################
 
   def _inputsOK( self, inputsOnPartOK = False ):
-    """ check self.inputFileStats
-    """
+    ''' check self.inputFileStats
+    '''
 
     if inputsOnPartOK:
       if sum( self.inputFileStats.values() ) == self.inputFileStats['part'] or \
@@ -93,8 +93,8 @@ class XMLSummary:
 ################################################################################
 
   def _outputsOK( self ):
-    """ check self.outputFileStats
-    """
+    ''' check self.outputFileStats
+    '''
 
     if sum( self.outputFileStats.values() ) == self.outputFileStats['full']:
       return True
@@ -104,8 +104,8 @@ class XMLSummary:
 ################################################################################
 
   def __getSuccess( self ):
-    """get the success
-    """
+    '''get the success
+    '''
 
     summary = self.xmlTree[ 0 ]
 
@@ -118,8 +118,8 @@ class XMLSummary:
 ################################################################################
 
   def __getStep( self ):
-    """Get the step
-    """
+    '''Get the step
+    '''
 
     summary = self.xmlTree[ 0 ]
 
@@ -132,8 +132,8 @@ class XMLSummary:
 ################################################################################
 
   def __getMemory( self ):
-    """get the memory used
-    """
+    '''get the memory used
+    '''
 
     summary = self.xmlTree[ 0 ]
 
@@ -162,8 +162,8 @@ class XMLSummary:
 
     summary = self.xmlTree[ 0 ]
 
-    for input in summary.childrens( 'input' ):
-      for filename in input.childrens( 'file' ):
+    for inputF in summary.childrens( 'input' ):
+      for filename in inputF.childrens( 'file' ):
         try:
           files.append( ( filename.attributes[ 'name' ], filename.attributes[ 'status' ] ) )
         except Exception:
@@ -174,13 +174,13 @@ class XMLSummary:
 ################################################################################
 
   def __getInputFileStats( self ):
-    """Checks that every input file has reached the full status.
+    '''Checks that every input file has reached the full status.
        Four possible statuses of the files:
        - full : the file has been fully read
        - part : the file has been partially read
        - mult : the file has been read multiple times
        - fail : failure while reading the file
-    """
+    '''
 
     res = self.__getInputStatus()
 
@@ -301,13 +301,13 @@ class XMLSummary:
 ################################################################################
 
   def __getOutputFileStats( self ):
-    """Checks that every output file has reached the full status.
+    '''Checks that every output file has reached the full status.
        Four possible statuses of the files:
        - full : the file has been fully read
        - part : the file has been partially read
        - mult : the file has been read multiple times
        - fail : failure while reading the file
-    """
+    '''
 
     res = self.__getOutputStatus()
 
@@ -352,8 +352,8 @@ class XMLSummary:
 ################################################################################
 
 def analyseXMLSummary( xmlFileName = None, xf_o = None, log = None, inputsOnPartOK = False ):
-  """ Analyse a XML summary file
-  """
+  ''' Analyse a XML summary file
+  '''
 
   try:
 
