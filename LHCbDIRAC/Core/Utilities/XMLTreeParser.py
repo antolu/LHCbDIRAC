@@ -91,7 +91,7 @@ class XMLTreeParser:
 Utilies for XML Report
 """
 
-def addChildNode( parentNode, tag, returnChildren, *args ):
+def addChildNode( parentNode, tag, returnChildren, args ):
   '''
   Params
     :parentNode:
@@ -104,7 +104,7 @@ def addChildNode( parentNode, tag, returnChildren, *args ):
       possible attributes of the element
   '''
 
-  ALLOWED_TAGS = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
+  allowedTags = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
                    'Parameter', 'Replica', 'SimulationCondition' ]
 
   def genJobDict( configName, configVersion, ldate, ltime ):
@@ -143,19 +143,20 @@ def addChildNode( parentNode, tag, returnChildren, *args ):
   def genSimulationConditionDict():
     return {}
 
-  if not tag in ALLOWED_TAGS:
+  if not tag in allowedTags:
     # We can also return S_ERROR, but this let's the job keep running.
     tagsDict = {}
   else:
     tagsDict = locals()[ 'gen%sDict' % tag ]( *args )
 
   childNode = xml.dom.minidom.Document().createElement( tag )
-  for k, v in tagsDict.items():
-    childNode.setAttribute( k, str( v ) )
+  for key, value in tagsDict.items():
+    childNode.setAttribute( key, str( value ) )
   parentNode.appendChild( childNode )
 
   if returnChildren:
     return ( parentNode, childNode )
   return parentNode
 
+################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
