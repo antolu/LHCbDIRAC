@@ -37,7 +37,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
-    self.transClient = TransformationClient( 'TransformationDB' )
+    self.transClient = TransformationClient()
     # Create the BK client
     self.bkClient = BookkeepingClient()
 

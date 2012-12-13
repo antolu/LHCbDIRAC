@@ -134,7 +134,7 @@ if validationFlag:
   pr.configName = 'validation'
 
 if enablePopularityReport:
-  modulesList.append( 'FileUsage' )
+  pr.modulesList.append( 'FileUsage' )
 
 inputDataList = []
 if not pr.publishFlag:

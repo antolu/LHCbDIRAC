@@ -50,7 +50,7 @@ class DataRecoveryAgent( AgentModule ):
     AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
 
     self.replicaManager = ReplicaManager()
-    self.transClient = TransformationClient( 'TransformationDB' )
+    self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
     self.enableFlag = '' #defined below
