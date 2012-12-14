@@ -376,7 +376,7 @@ class MergingForDQAgent( AgentModule ):
                         metaDataDict = {}
                         metaDataDict['ProcessingPass'] = bkDict_brunel[ 'ProcessingPass' ]
                         metaDataDict['DQFlag'] = 'M'
-                        metaDataDict['Info']=='Merged and Uploaded'
+                        metaDataDict['Info'] = 'Merged and Uploaded'
                         res = self.transClient.getRunsMetadata(run)
                         if res['OK'] and res['Value'].has_key(run):
                           if (res['Value'][run].has_key('DQFlag') and \
