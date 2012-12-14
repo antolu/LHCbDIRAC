@@ -149,8 +149,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     '''
     
     mockAccountingDB = mock.Mock()
-    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] }
-    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
     mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
     obj = self.classsTested( mockAccountingDB, None )
     
@@ -164,12 +164,26 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
+    res = obj._reportCatalogSpace( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
                                         'unit'         : 'MB', 
                                         'granularity'  : 'BucketLength'
                                        } )
+    
+    
+    
     #FIXME: continue test...
 
 ################################################################################
