@@ -54,7 +54,7 @@ class DataStoragePlotterTestCase( unittest.TestCase ):
     import LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter as moduleTested
     
     self.moduleTested = self.mockModuleTested( moduleTested )
-    self.classsTested = self.moduleTested.DataStoragePlotter 
+    self.classsTested = self.moduleTested.DataStoragePlotter
     
   def tearDown( self ):
     '''
@@ -78,6 +78,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     - test_reportCatalogFilesName
     - test_reportPhysicalSpaceName
     - test_reportPhysicalFilesName
+    - test_reportCatalogSpace
   '''
 
   def test_instantiate( self ):
@@ -142,6 +143,34 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     '''
     obj = self.classsTested( None, None )
     self.assertEqual( obj._reportPhysicalFilesName, "PFN files" )
+    
+  def test_reportCatalogSpace( self ):
+    ''' test the method "_reportCatalogSpace"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] }
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._reportCatalogSpace( { 'grouping' : 'StorageElement' } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+    
+    res = obj._reportCatalogSpace( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+                                        'data'         : {}, 
+                                        'unit'         : 'MB', 
+                                        'granularity'  : 'BucketLength'
+                                       } )
+    #FIXME: continue test...
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
