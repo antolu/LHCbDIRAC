@@ -79,6 +79,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     - test_reportPhysicalSpaceName
     - test_reportPhysicalFilesName
     - test_reportCatalogSpace
+    - test_reportCatalogFiles
   '''
 
   def test_instantiate( self ):
@@ -179,6 +180,46 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
                                         'unit'         : 'MB', 
+                                        'granularity'  : 'BucketLength'
+                                       } )
+    
+    #FIXME: continue test...
+
+  def test_reportCatalogFiles( self ):
+    ''' test the method "_reportCatalogFiles"
+    '''
+
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._reportCatalogFiles( { 'grouping' : 'StorageElement' } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+    
+    res = obj._reportCatalogFiles( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
+    res = obj._reportCatalogFiles( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+                                        'data'         : {}, 
+                                        'unit'         : 'files', 
                                         'granularity'  : 'BucketLength'
                                        } )
     
