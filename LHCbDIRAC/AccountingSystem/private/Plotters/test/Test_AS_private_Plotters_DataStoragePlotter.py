@@ -74,6 +74,10 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     - test_typeKeyFields
     - test_noSEtypeKeyFields
     - test_noSEGrouping
+    - test_reportCatalogSpaceName
+    - test_reportCatalogFilesName
+    - test_reportPhysicalSpaceName
+    - test_reportPhysicalFilesName
   '''
 
   def test_instantiate( self ):
@@ -114,6 +118,30 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                   ) 
     obj = self.classsTested( None, None )
     self.assertEqual( obj._noSEGrouping, ( mockValue ) )
+    
+  def test_reportCatalogSpaceName( self ):
+    ''' test the class variable "_reportCatalogSpaceName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportCatalogSpaceName, "LFN size" )
+  
+  def test_reportCatalogFilesName( self ):
+    ''' test the class variable "_reportCatalogFilesName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportCatalogFilesName, "LFN files" )
+    
+  def test_reportPhysicalSpaceName( self ):
+    ''' test the class variable "_reportPhysicalSpaceName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportPhysicalSpaceName, "PFN size" )
+  
+  def test_reportPhysicalFilesName( self ):
+    ''' test the class variable "_reportPhysicalFilesName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportPhysicalFilesName, "PFN files" )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
