@@ -379,7 +379,8 @@ class MergingForDQAgent( AgentModule ):
                         metaDataDict['Info']=='Merged and Uploaded'
                         res = self.transClient.getRunsMetadata(run)
                         if res['OK'] and res['Value'].has_key(run):
-                          if (res['Value'][run].has_key('DQFlag') and res['Value'][run]['ProcessingPass']==bkDict_brunel[ 'ProcessingPass' ]):
+                          if (res['Value'][run].has_key('DQFlag') and \
+                              res['Value'][run]['ProcessingPass']==bkDict_brunel[ 'ProcessingPass' ]):
                             self.transClient.updateRunsMetadata( run , metaDataDict)
                           else:
                             self.transClient.addRunsMetadata( run, metaDataDict )
@@ -440,7 +441,8 @@ class MergingForDQAgent( AgentModule ):
                         outMess = "*"*130+"\n"
                         outMess = outMess + "\nThis is an automatic message:\n"
                         outMess = outMess + "\n"+"*"*130+"\n"
-                        outMess = outMess + '\nRun: %s\n Processing Pass: %s\n Stream: %s\n DataTaking Conditions: %s\n\n' \
+                        outMess = outMess + '\nRun: %s\n Processing Pass: %s\n Stream: %s\n \
+                        DataTaking Conditions: %s\n\n' \
                         % ( str( run ), processing, evtTypeRef[event], dataTaking )
                         xmldoc = minidom.parse( res['XML'] )
                         node = xmldoc.getElementsByTagName( 'Replica' )[0]
@@ -451,7 +453,8 @@ class MergingForDQAgent( AgentModule ):
                         notifyClient = NotificationClient()
                         subject = 'New %s merged ROOT file for run %s ready' % ( evtTypeRef[event], str( run ) )
 
-                        res = notifyClient.sendMail( self.mailAddress, subject, outMess, self.senderAddress, localAttempt = False )
+                        res = notifyClient.sendMail( self.mailAddress, subject, outMess, \
+                                                     self.senderAddress, localAttempt = False )
 
                         metaDataDict = {}
                         metaDataDict['ProcessingPass'] = bkDict_brunel[ 'ProcessingPass' ]
