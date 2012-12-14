@@ -48,7 +48,7 @@ class DataStoragePlotterTestCase( unittest.TestCase ):
     '''
     import LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter as moduleTested
     self.moduleTested = self.mockModuleTested( moduleTested )
-    self.classsTested = self.moduleTested.DataStoratePlotter 
+    self.classsTested = self.moduleTested.DataStoragePlotter 
     
   def tearDown( self ):
     '''
