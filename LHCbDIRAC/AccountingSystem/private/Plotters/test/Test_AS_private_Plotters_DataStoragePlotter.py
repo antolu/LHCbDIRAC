@@ -109,7 +109,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     '''
     mockValue = 'DataType, Activity, FileType, Production, ProcessingPass, Conditions, EventType' 
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._noSEGrouping, mockValue )
+    self.assertEqual( obj._noSEGrouping, ( mockValue ) )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
