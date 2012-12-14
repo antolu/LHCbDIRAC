@@ -27,7 +27,7 @@ from xml.dom.minidom import Document, DocumentType
 __RCSID__ = "$Id: $"
 
 def getRuns( bkDict, bkClient ):
-  """
+  '''
   GetRuns retrieve the list of files that correspond to the query bkDict. After that they are grouped per run.
   The output is a dictionary such as for example:
 
@@ -54,7 +54,7 @@ def getRuns( bkDict, bkClient ):
                               similar structure to BRUNELHIST
                              }
                }
-  """
+  '''
 
   results_ord = {}
 
@@ -76,6 +76,9 @@ def getRuns( bkDict, bkClient ):
   return results_ord
 
 def getProductionId( run, procPass, eventTypeId , bkClient ):
+  '''
+  get the production ID for the run
+  '''
   bkDict = {'Runnumber' : run,
             'ProcPass'  : procPass}
   res = bkClient.getProductionsFromView( bkDict )
@@ -122,18 +125,17 @@ def getProductionId( run, procPass, eventTypeId , bkClient ):
   return res
 
 def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId , addFlag,
-              testMode, specialMode, mergeStep1Command, mergeStep2Command,
-              mergeStep3Command, brunelCount, daVinciCount, threshold, logFile, logFileName,
-              environment ):
+              specialMode, mergeStep1Command, mergeStep2Command,mergeStep3Command, brunelCount, 
+              daVinciCount, threshold, logFile, logFileName,environment ):
 
-  """
+  '''
 
    mergeRun: Merge the BRUNELHIST and DAVINCIHIST of a particular run in three steps.
 
    1 - Group BRUNELHISTs and DAVINCIHISTs in groups of 50;
    2 - Merge the output of step 1;
    3 - Merge the output of step 2.
-  """
+  '''
 
   results = {}
   results[ 'Merged' ] = False
@@ -248,7 +250,7 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId 
   res = _merge( targetFile, run, brunelLocal , davinciLocal ,
                mergeStep1Command, mergeStep2Command, mergeStep3Command,
                homeDir, brunelCount , daVinciCount ,
-               logFile , logFileName , dirac , environment )
+               logFile , logFileName , environment )
 
   if res[ 'OK' ]:
     results[ 'Merged' ] = True
@@ -407,10 +409,10 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
       #
       if not eventType == "Full stream":
         gLogger.info( "Run %s in pass %s is not completed." % ( run, bkDict[ 'ProcessingPass' ] ) )
-        metaDataDict={}
-        metaDataDict['DQFlag']='P'
-        metaDataDict['ProcessingPass']=bkDict[ 'ProcessingPass' ]
-        metaDataDict['Info']='Not Completed'
+        metaDataDict = {}
+        metaDataDict['DQFlag'] = 'P'
+        metaDataDict['ProcessingPass'] = bkDict[ 'ProcessingPass' ]
+        metaDataDict['Info'] = 'Not Completed'
         transClient.addRunsMetadata(run,metaDataDict)
         res[ 'OK' ] = False
         return ( retVal , res )
@@ -419,18 +421,22 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
       # New 95% or hist = RAW - 1 selection
       #
       if ( counter < threshold * countRAW ) and ( counter < ( countRAW - 1 ) ):
-        gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. Trying to count the number of histogram from the RAW descendants." % ( run, bkDict['ProcessingPass'], int( countRAW ), int( countBrunel ) ) )
+        gLogger.info( "Run %s in pass %s is not completed. Number of RAW = %d, number of hists = %d. \
+        Trying to count the number of histogram from the RAW descendants." \
+        % ( run, bkDict['ProcessingPass'], int( countRAW ), int( countBrunel ) ) )
+        
         gLogger.info( "Found %s BRUNELHIST descendants." % counter )
         gLogger.info( "Found %s DAVINCIHIST descendants." % counter )
+        
         if ( counter >= threshold * countRAW ) or ( counter == ( countRAW - 1 ) ):
           alt_counting = True
         else:
           _msg = "Run %s in pass %s is not completed. Number of RAW = %d, Number of HISTS = %d"
           gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], int( countRAW ) , int( counter ) ) )
-          metaDataDict={}
-          metaDataDict['DQFlag']='P'
-          metaDataDict['ProcessingPass']=bkDict[ 'ProcessingPass' ]
-          metaDataDict['Info']='Not Completed'
+          metaDataDict = {}
+          metaDataDict['DQFlag'] = 'P'
+          metaDataDict['ProcessingPass'] = bkDict[ 'ProcessingPass' ]
+          metaDataDict['Info'] = 'Not Completed'
           transClient.addRunsMetadata(run,metaDataDict)
           res[ 'OK' ] = False
           return ( retVal , res )
@@ -439,7 +445,8 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
         _msg = "Run %s in pass %s accepted by -1 or %s selection: Number of RAW = %d Number of HISTS = %d"
         gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], threshold, countRAW , countBrunel) )
       else:
-        _msg = "Run %s in pass %s accepted by directly counting of RAW descendants: Number of RAW = %d Number of HISTS = %d"
+        _msg = "Run %s in pass %s accepted by directly counting of RAW descendants: \
+        Number of RAW = %d Number of HISTS = %d"
         gLogger.info( _msg % ( run, bkDict[ 'ProcessingPass' ], countRAW , countBrunel) )
 
   #
@@ -451,10 +458,6 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
   res = {}
   res[ 'BRUNELHIST' ] = []
   res[ 'DAVINCIHIST' ] = []
-
-  res[ 'BRUNELHIST' ][0] = ''
-  res[ 'DAVINCIHIST' ][0] = ''
-
 
   for raw in sortList( reconstructedRAWFiles ):
     res = _descendantIsDownloaded( raw, runData , bkClient )
@@ -569,10 +572,10 @@ def _getDescendants( rawLFN , bkClient ):
 
 def _merge( targetFile, runNumber, brunelHist, daVinciHist, mergeStep1Command,
            mergeStep2Command, mergeStep3Command, homeDir,
-           brunelCount, daVinciCount, logFile, logFileName, dirac, environment ):
-  """
+           brunelCount, daVinciCount, logFile, logFileName, environment ):
+  '''
   merge:  Merge all root files into one.
-  """
+  '''
 
   retVal = {}
   retVal[ 'OK' ] = False
@@ -850,8 +853,10 @@ def buildLFNs( bkDict, run , prodId , addFlag ):
   gLogger.info( "Run %s has Prod ID %s" % ( run, prodId ) )
   if addFlag:
     pIDString = "_" + str( prodId )
-  lfns[ 'DATA' ] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/HIST/' + str( run ) + '/BrunelDaVinci_' + str( run ) + pIDString + '_Hist.root'
-  lfns[ 'LOG' ] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run ) + '/BrunelDaVinci_' + str( run ) + pIDString + '_Hist.log'
+  lfns[ 'DATA' ] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/HIST/' + str( run ) + '/BrunelDaVinci_' \
+  + str( run ) + pIDString + '_Hist.root'
+  lfns[ 'LOG' ] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run ) + \
+  '/BrunelDaVinci_' + str( run ) + pIDString + '_Hist.log'
   lfns['LOGDIR'] = '/lhcb/LHCb/' + bkDict[ 'ConfigVersion' ] + '/LOG/MERGEDDQ/' + str( run )
   return lfns
 
@@ -888,7 +893,7 @@ def _generateInputFiles( jobNode , inputData ):
   return jobNode
 
 def _generateOutputFiles( jobNode, outputDict, outputlfn, logFilelfn, outputDataType,
-                         outputDataVersion, configName, configVersion, run, homeDir ):
+                         outputDataVersion, configName, configVersion, run ):
   """
     OutputFile looks like this:
 
@@ -921,7 +926,8 @@ def _generateOutputFiles( jobNode, outputDict, outputlfn, logFilelfn, outputData
     else:
       logurl = 'http://lhcb-logs.cern.ch/storage/lhcb'
       fName = outputDict[ output ][ 'Filename' ].split( '/' )
-      url = logurl + '/' + configName + '/' + configVersion + '/LOG/MERGEDDQ/' + str( run ) + '/' + fName[len( fName ) - 1]
+      url = logurl + '/' + configName + '/' + configVersion + '/LOG/MERGEDDQ/' + str( run ) + '/' \
+      + fName[len( fName ) - 1]
       #Log file replica information
       oFile = addChildNode( oFile, "Replica", 0, ( url, ) )
     oFile = addChildNode( oFile, "Parameter", 0, ( "MD5Sum", outputDict[ output ][ 'MD5Sum' ] ) )
@@ -929,6 +935,9 @@ def _generateOutputFiles( jobNode, outputDict, outputlfn, logFilelfn, outputData
   return jobNode
 
 def _generateTypedParams( jobNode , run , rootVersion , append_string ):
+  '''
+  add the needed parameters
+  '''
 
   typedParams = []
   typedParams.append( ( "JobType", "DQHISTOMERGING" , "Info" ) )
@@ -1012,7 +1021,7 @@ def _makeBookkeepingXML( output, outputlfn, logFilelfn, inputData, run, configNa
   jobNode = _generateInputFiles( jobNode, inputData )
 
   jobNode = _generateOutputFiles( jobNode, output, outputlfn, logFilelfn, 'MERGEFORDQ.ROOT',
-                                 'ROOT', configName, configVersion, run, homeDir )
+                                 'ROOT', configName, configVersion, run )
 
   prettyXMLDoc = doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
 
