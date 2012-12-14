@@ -107,7 +107,11 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
   def test_noSEGrouping( self ):
     ''' test the class variable "_noSEGrouping" 
     '''
-    mockValue = 'DataType, Activity, FileType, Production, ProcessingPass, Conditions, EventType' 
+    mockValue = ( '%s, %s, %s, %s, %s, %s, %s', [ 'DataType', 'Activity', 'FileType', 
+                                                  'Production', 'ProcessingPass', 
+                                                  'Conditions', 'EventType'
+                                                ]
+                  ) 
     obj = self.classsTested( None, None )
     self.assertEqual( obj._noSEGrouping, ( mockValue ) )
 
