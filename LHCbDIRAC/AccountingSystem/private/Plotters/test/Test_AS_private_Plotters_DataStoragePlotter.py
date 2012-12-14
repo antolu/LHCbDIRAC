@@ -236,11 +236,11 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
     obj = self.classsTested( mockAccountingDB, None )
     
-    res = obj._reportPhysicalSpace( { 'grouping' : 'StorageElement' } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+#    res = obj._reportPhysicalSpace( { 'groupingFields' : 'StorageElement' } )
+#    self.assertEqual( res[ 'OK' ], False )
+#    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
     
-    res = obj._reportPhysicalSpace( { 'grouping'       : 'NextToABeer',
+    res = obj._reportPhysicalSpace( { #'grouping'       : 'NextToABeer',
                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
                                      'startTime'      : 'startTime',
                                      'endTime'        : 'endTime',
@@ -355,25 +355,25 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     obj = self.classsTested( mockAccountingDB, None )
     
     self.assertRaises( KeyError, obj._reportPhysicalSpace, {} )
-    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping' : 1 } )
-    self.assertRaises( IndexError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+#    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping' : 1 } )
+    self.assertRaises( IndexError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                                'groupingFields' : [] } )
-    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                               'groupingFields' : [1,2] } )
-    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                               'groupingFields' : [1,[ 2 ] ] } )
-    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                               'groupingFields' : ['1', '2' ] } )
-    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                              'groupingFields' : ['1',[ 2 ] ] } )
-    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                              'groupingFields' : ['1', [2,2] ],
                                                              'startTime'      : None } )
-    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                              'groupingFields' : ['1', [2,2] ],
                                                              'startTime'      : None,
                                                              'endTime'        : None } )
-    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { #'grouping'       : 1,
                                                               'groupingFields' : ['1', [2,2] ],
                                                               'startTime'      : None,
                                                               'endTime'        : None,
