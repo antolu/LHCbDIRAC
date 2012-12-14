@@ -32,7 +32,7 @@ class DataStoragePlotterTestCase( unittest.TestCase ):
       try:
         #pylint: disable=E1101
         moduleTested = baseClass.mockModuleTested( moduleTested )
-      except AttributeError:
+      except TypeError:
         continue  
     
     # And then makes its own mock
