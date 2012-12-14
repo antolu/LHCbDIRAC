@@ -419,7 +419,7 @@ class MergingForDQAgent( AgentModule ):
                       delta = int( ( now - run_end ) / 86400 )
                       gLogger.info( "Time after EndRun %s" % delta )
                     res = mergeRun( bkDict_brunel, res_0, res_1, run, self.bkClient, self.transClient, self.homeDir ,
-                                    resProdId['prodId'], self.addFlag, self.testMode, self.specialMode,
+                                    resProdId['prodId'], self.addFlag, self.specialMode,
                                     self.mergeStep1Command, self.mergeStep2Command, self.mergeStep3Command,
                                     self.brunelCount, self.daVinciCount, self.threshold,
                                     self.logFile, self.logFileName, self.environment )
