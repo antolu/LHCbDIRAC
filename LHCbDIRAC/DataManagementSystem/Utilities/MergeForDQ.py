@@ -142,8 +142,6 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId 
 
   rm = ReplicaManager()
 
-  dirac = Dirac()
-
   procPass = bkDict[ 'ProcessingPass' ]
   dqFlag = bkDict[ 'DataQualityFlag' ]
 #  dtd         = bkDict[ 'DataTakingConditions' ]
@@ -413,9 +411,9 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
         metaDataDict['DQFlag'] = 'P'
         metaDataDict['ProcessingPass'] = bkDict[ 'ProcessingPass' ]
         metaDataDict['Info'] = 'Not Completed'
-        transClient.addRunsMetadata(run,metaDataDict)
+        transClient.addRunsMetadata(run, metaDataDict)
         res[ 'OK' ] = False
-        return ( retVal , res )
+        return ( retVal, res )
 
       #
       # New 95% or hist = RAW - 1 selection
@@ -437,7 +435,7 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
           metaDataDict['DQFlag'] = 'P'
           metaDataDict['ProcessingPass'] = bkDict[ 'ProcessingPass' ]
           metaDataDict['Info'] = 'Not Completed'
-          transClient.addRunsMetadata(run,metaDataDict)
+          transClient.addRunsMetadata(run, metaDataDict)
           res[ 'OK' ] = False
           return ( retVal , res )
 
