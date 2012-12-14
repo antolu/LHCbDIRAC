@@ -80,6 +80,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     - test_reportPhysicalFilesName
     - test_reportCatalogSpace
     - test_reportCatalogFiles
+    - test_reportPhysicalSpace
   '''
 
   def test_instantiate( self ):
@@ -224,12 +225,53 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                        } )
     
     #FIXME: continue test...
+    
+  def test_reportPhysicalSpace( self ):
+    ''' test the method "_reportPhysicalSpace"
+    '''
+
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._reportPhysicalSpace( { 'grouping' : 'StorageElement' } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+    
+    res = obj._reportPhysicalSpace( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
+    res = obj._reportPhysicalSpace( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+                                        'data'         : {}, 
+                                        'unit'         : 'MB', 
+                                        'granularity'  : 'BucketLength'
+                                       } )
+    
+    #FIXME: continue test...  
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
     DataStoragePlotterUnitTest
     - test_reportCatalogSpace
     - test_reportCatalogFiles
+    - test_reportPhysicalSpace
   '''
   
   def test_reportCatalogSpace( self ):
@@ -301,6 +343,41 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
                                                              'startTime'      : None,
                                                              'endTime'        : None,
                                                              'condDict'       : None } )        
+
+  def test_reportPhysicalSpace( self ):
+    ''' test the method "_reportPhysicalSpace"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, {} )
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping' : 1 } )
+    self.assertRaises( IndexError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                               'groupingFields' : [] } )
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                              'groupingFields' : [1,2] } )
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                              'groupingFields' : [1,[ 2 ] ] } )
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                              'groupingFields' : ['1', '2' ] } )
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : ['1',[ 2 ] ] } )
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : ['1', [2,2] ],
+                                                             'startTime'      : None } )
+    self.assertRaises( KeyError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : ['1', [2,2] ],
+                                                             'startTime'      : None,
+                                                             'endTime'        : None } )
+    self.assertRaises( TypeError, obj._reportPhysicalSpace, { 'grouping'       : 1,
+                                                              'groupingFields' : ['1', [2,2] ],
+                                                              'startTime'      : None,
+                                                              'endTime'        : None,
+                                                              'condDict'       : None } )  
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
