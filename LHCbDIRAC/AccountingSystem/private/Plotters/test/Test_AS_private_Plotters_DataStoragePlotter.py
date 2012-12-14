@@ -27,6 +27,7 @@ class DataStoragePlotterTestCase( unittest.TestCase ):
     # Tries to get the mocks of the parent TestCases ( if any )
     for baseClass in DataStoragePlotterTestCase.__bases__:
       try:
+        #pylint: disable=E1101
         moduleTested = baseClass.mockModuleTested( moduleTested )
       except AttributeError:
         continue  
