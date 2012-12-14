@@ -182,9 +182,48 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                         'granularity'  : 'BucketLength'
                                        } )
     
-    
-    
     #FIXME: continue test...
+
+class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
+  '''
+    DataStoragePlotterUnitTest
+    - test_reportCatalogSpace
+  '''
+  
+  def test_reportCatalogSpace( self ):
+    ''' test the method "_reportCatalogSpace"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    self.assertRaises( KeyError, obj._reportCatalogSpace, {} )
+    self.assertRaises( KeyError, obj._reportCatalogSpace, { 'grouping' : 1 } )
+    self.assertRaises( IndexError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                              'groupingFields' : [] } )
+    self.assertRaises( TypeError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : [1,2] } )
+    self.assertRaises( TypeError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : [1,[ 2 ] ] } )
+    self.assertRaises( TypeError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : ['1', '2' ] } )
+    self.assertRaises( KeyError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                            'groupingFields' : ['1',[ 2 ] ] } )
+    self.assertRaises( KeyError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                            'groupingFields' : ['1', [2,2] ],
+                                                            'startTime'      : None } )
+    self.assertRaises( KeyError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                            'groupingFields' : ['1', [2,2] ],
+                                                            'startTime'      : None,
+                                                            'endTime'        : None } )
+    self.assertRaises( TypeError, obj._reportCatalogSpace, { 'grouping'       : 1,
+                                                             'groupingFields' : ['1', [2,2] ],
+                                                             'startTime'      : None,
+                                                             'endTime'        : None,
+                                                             'condDict'       : None } )    
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
