@@ -20,7 +20,7 @@ class fakeClient:
 
     ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
 
-  def getTransformation( self, transID ):
+  def getTransformation( self, transID, extraParams=False ):
     if transID == self.transID and self.asIfProd:
       transID = self.asIfProd
     if transID != self.transID:
@@ -127,6 +127,9 @@ class fakeClient:
   def setFileUsedSEForTransformation( self, transID, se, lfns ):
     return DIRAC.S_OK()
 
+  def addTransformationRunFiles( self, transID, run, lfns ):
+    return DIRAC.S_OK()
+
   def prepareForPlugin( self, lfns ):
     import time
     print "Preparing the plugin input data (%d files)" % len( lfns )
@@ -162,26 +165,26 @@ class fakeClient:
     print "Obtained replicas of %d files in %.3f seconds" % ( len( lfns ), time.time() - startTime )
     return ( files, replicas )
 
+
+def printFinalSEs( transType, location, targets ):
+  targets = targets.split( ',' )
+  if transType == "Removal":
+    remain = []
+    for l in location:
+      r = ','.join( [se for se in l.split( ',' ) if not se in targets] )
+      remain.append( r )
+    print "    Remaining SEs:", remain
+  if transType == "Replication":
+    total = []
+    for l in location:
+      r = l + ',' + ','.join( [se for se in targets if not se in l.split( ',' )] )
+      total.append( r )
+    print "    Final SEs:", total
+
 if __name__ == "__main__":
-
-  def printFinalSEs( transType, location, targets ):
-    targets = targets.split( ',' )
-    if transType == "Removal":
-      remain = []
-      for l in location:
-        r = ','.join( [se for se in l.split( ',' ) if not se in targets] )
-        remain.append( r )
-      print "    Remaining SEs:", remain
-    if transType == "Replication":
-      total = []
-      for l in location:
-        r = l + ',' + ','.join( [se for se in targets if not se in l.split( ',' )] )
-        total.append( r )
-      print "    Final SEs:", total
-
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import *
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
@@ -217,6 +220,7 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  from LHCbDIRAC.TransformationSystem.Client.Utilities   import getRemovalPlugins, getReplicationPlugins
   from DIRAC import gLogger
   gLogger.setLevel( 'INFO' )
   # Create the transformation
@@ -290,7 +294,6 @@ if __name__ == "__main__":
   transformation.setPlugin( plugin )
   transformation.setBkQuery( bkQueryDict )
 
-  from DIRAC.Core.Utilities.List                                         import sortList
   from LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin
   transID = -9999
   pluginParams['TransformationID'] = transID
@@ -333,7 +336,7 @@ if __name__ == "__main__":
       i += 1
       location = []
       for lfn in task[1]:
-        l = ','.join( sortList( replicas[lfn] ) )
+        l = ','.join( sorted( replicas[lfn] ) )
         #print "LFN", lfn, l
         if not l in location:
           location.append( l )
