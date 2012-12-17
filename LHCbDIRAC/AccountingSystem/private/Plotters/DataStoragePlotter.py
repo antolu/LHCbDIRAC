@@ -35,6 +35,25 @@ class DataStoragePlotter( BaseReporter ):
     '''
     Reports about the LFN size and the catalog space from the accounting ( grouped
     by StorageElement ).
+    
+    :param reportRequest: <dict>
+      { 'grouping'       : 'EventType',
+        'groupingFields' : ( '%s', [ 'EventType' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'EventType' : 'Full stream' } 
+      }
+      
+    returns S_OK / S_ERROR
+      { 'graphDataDict': { 'Full stream': { 1355616000L: 935.38852424691629, 
+                                            1355702400L: 843.84448707482204 }
+                         }, 
+        'data'         : { 'Full stream': { 1355616000L: 935388.52424691629, 
+                                            1355702400L: 843844.48707482207 }
+                         }, 
+        'unit'         : 'GB', 
+        'granularity'  : 86400
+      }  
     '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":
@@ -76,6 +95,29 @@ class DataStoragePlotter( BaseReporter ):
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
     '''
     Plots about the LFN size and the catalog space.
+    
+    :param reportRequest: <dict>
+       { 'grouping'       : 'EventType',
+         'groupingFields' : ( '%s', [ 'EventType' ] ),
+         'startTime'      : 1355663249.0,
+         'endTime'        : 1355749690.0,
+         'condDict'       : { 'EventType' : 'Full stream' }
+       }
+    :param plotInfo: <dict>
+       { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819, 
+                                               1355702400L: 4.9050379437065059 }
+                           }, 
+         'data'          : { 'Full stream' : { 1355616000L: 4900354613.0956821, 
+                                               1355702400L: 4905037943.7065058 }
+                           }, 
+         'unit'          : 'PB', 
+         'granularity'   : 86400
+        }    
+    :param filename: <str>
+      '_plotCatalogSpace'
+      
+    returns S_OK / S_ERROR
+       { 'plot': True, 'thumbnail': False }  
     '''
     
     startTime = reportRequest[ 'startTime' ]
