@@ -109,9 +109,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
      - test_plotCatalogSpace
      - test_plotCatalogFiles
      - test_plotPhysicalSpace
+     - test_plotPhysicalFiles
   ''' 
-  #FIXME: missing test_plotPhysicalFiles
-
+  
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
     '''     
@@ -385,7 +385,27 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                         'granularity'  : 'BucketLength'
                                        } )
     
-    #FIXME:
+    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '42.47885754501202' ) ), 
+                   ( 'Full stream', 1355702400L, 86400, Decimal( '38.35170637810842' ) ) ) 
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
+    res = obj._reportPhysicalFiles( { 'grouping'       : 'EventType',
+                                     'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                     'startTime'      : 1355663249.0,
+                                     'endTime'        : 1355749690.0,
+                                     'condDict'       : { 'EventType' : 'Full stream' } 
+                                    } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                                                                              1355702400L : 38.35170637810842 }
+                                                           }, 
+                                        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                                                                              1355702400L : 38.35170637810842 }
+                                                           }, 
+                                        'unit'          : 'files', 
+                                        'granularity'   : 86400 
+                                        } )
 
   def test_plotCatalogSpace( self ):
     ''' test the method "_plotCatalogSpace"
@@ -470,7 +490,34 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     
     res = compare( '_plotPhysicalSpace.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotPhysicalSpace.png' )
     self.assertEquals( 0.0, res )    
+
+  def test_plotPhysicalFiles( self ):
+    ''' test the method "_plotPhysicalFiles"
+    '''    
+
+    obj = self.classsTested( None, None )
     
+    reportRequest = { 'grouping'       : 'EventType',
+                      'groupingFields' : ( '%s', [ 'EventType' ] ),
+                      'startTime'      : 1355663249.0,
+                      'endTime'        : 1355749690.0,
+                      'condDict'       : { 'EventType' : 'Full stream' } 
+                    }
+    plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                                                       1355702400L : 38.35170637810842 }
+                                   }, 
+                 'data'          : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                                                       1355702400L : 38.35170637810842 }
+                                   }, 
+                 'unit'          : 'files', 
+                 'granularity'   : 86400 
+                }
+    res = obj._plotPhysicalFiles( reportRequest, plotInfo, '_plotPhysicalFiles' )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
+    
+    res = compare( '_plotPhysicalFiles.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotPhysicalFiles.png' )
+    self.assertEquals( 0.0, res )      
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
