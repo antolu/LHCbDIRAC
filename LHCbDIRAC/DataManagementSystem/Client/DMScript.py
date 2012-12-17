@@ -40,14 +40,20 @@ def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory", d
     elif type( value ) != type( {} ):
       print '%s : %s' % ( key.rjust( center ), str( value ) )
 
-def printDMResult( result, shift=4, empty="Empty directory", script="DMS script", depth=999 ):
+def printDMResult( result, shift=4, empty="Empty directory", script=None, depth=999 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
-  if result['OK']:
-    __printDictionary( result['Value'], shift=shift, empty=empty, depth=depth )
-    return 0
-  else:
-    print "Error in", script, ":", result['Message']
-    return 2
+  if not script:
+    script = Script.scriptName
+  try:
+    if result['OK']:
+      __printDictionary( result['Value'], shift=shift, empty=empty, depth=depth )
+      return 0
+    else:
+      print "Error in", script, ":", result['Message']
+      return 2
+  except:
+    print "Exception while printing results in", script, "- Results:"
+    print result
 
 def convertSEs( ses ):
   seList = []
