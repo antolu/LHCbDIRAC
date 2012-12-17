@@ -52,7 +52,8 @@ if __name__ == "__main__":
     elif switch[0] == 'DumpWithArchives':
       prWithArchives = [int( xx ) for xx in switch[1].split( ',' )]
     elif switch[0] == 'DumpWithReplicas':
-      prWithReplicass = [int( xx ) for xx in switch[1].split( ',' )]
+      prWithReplicas = [int( xx ) for xx in switch[1].split( ',' )]
+
 
   from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -136,7 +137,7 @@ if __name__ == "__main__":
     if nrep == 0:
       noReplicas[lfn] = -narchive - 1
     # narchive is negative ;-)
-    repStats[narchive] = repStats.setdefault(narchive,0) + 1
+    repStats[narchive] = repStats.setdefault( narchive, 0 ) + 1
     for se in replicas:
       if se not in repSEs:
         repSEs[se] = [0, 0]
@@ -197,14 +198,14 @@ if __name__ == "__main__":
       print rep, "(%d archives)" % noReplicas[rep]
 
   if type( prWithArchives ) == type( [] ):
-    for n in prWithArchives:
+    for n in [n for n in prWithArchives if n in withArchives]:
       print '\nFiles with %d archives:' % n
       for rep in sorted( withArchives[n] ):
         print rep
 
   if type( prWithReplicas ) == type( [] ):
-    for n in prWithReplicas:
+    for n in [n for n in prWithReplicas if n in withReplicas]:
       print '\nFiles with %d disk replicas:' % n
-      for rep in sorted( withReplicass[n] ):
+      for rep in sorted( withReplicas[n] ):
         print rep
 
