@@ -107,8 +107,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
      - test_reportPhysicalSpace
      - test_reportPhysicalFiles
      - test_plotCatalogSpace
+     - test_plotCatalogFiles
   '''
-  #FIXME: missing test_plotCatalogFiles
   #FIXME: missing test_plotPhysicalSpace
   #FIXME: missing test_plotPhysicalFiles
 
@@ -393,6 +393,34 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
     res = compare( '_plotCatalogSpace.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogSpace.png' )
+    self.assertEquals( 0.0, res )    
+
+  def test_plotCatalogFiles( self ):
+    ''' test the method "_plotCatalogFiles"
+    '''    
+
+    obj = self.classsTested( None, None )
+    
+    reportRequest = { 'grouping'       : 'EventType',
+                      'groupingFields' : ( '%s', [ 'EventType' ] ),
+                      'startTime'      : 1355663249.0,
+                      'endTime'        : 1355749690.0,
+                      'condDict'       : { 'EventType' : 'Full stream' } 
+                    }
+    plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                                       1355702400L : 380.35170637810842 }
+                                   }, 
+                 'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                                       1355702400L : 380.35170637810842 }
+                                   }, 
+                 'unit'          : 'files', 
+                 'granularity'   : 86400 
+                }
+    res = obj._plotCatalogFiles( reportRequest, plotInfo, '_plotCatalogFiles' )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
+    
+    res = compare( '_plotCatalogFiles.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogFiles.png' )
     self.assertEquals( 0.0, res )    
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):

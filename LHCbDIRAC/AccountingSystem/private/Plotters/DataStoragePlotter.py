@@ -91,7 +91,8 @@ class DataStoragePlotter( BaseReporter ):
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
     '''
-    Plots about the LFN size and the catalog space.
+    Creates <filename>.png file containing information regarding the LFN size and 
+    the catalog space.
     
     :param reportRequest: <dict>
        { 'grouping'       : 'EventType',
@@ -153,13 +154,13 @@ class DataStoragePlotter( BaseReporter ):
       }
     
     returns S_OK / S_ERROR
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 3.2032657023460409, 
-                                              1355702400L : 3.208167 }
-                          }, 
-        'data'          : { 'Full stream' : { 1355616000L : 3203265.7023460409, 
-                                              1355702400L : 3208167.0 }
-                          }, 
-        'unit'          : 'Mfiles', 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                              1355702400L : 380.35170637810842 }
+                                            }, 
+        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                              1355702400L : 380.35170637810842 }
+                                            }, 
+        'unit'          : 'files', 
         'granularity'   : 86400 
       }  
     '''
@@ -200,7 +201,31 @@ class DataStoragePlotter( BaseReporter ):
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
     '''
-    Plots about the LFN files and the catalog files.
+    Creates <filename>.png file containing information regarding the LFN files 
+    and the catalog files.
+    
+    :param reportRequest: <dict>
+      { 'grouping'       : 'EventType',
+        'groupingFields' : ( '%s', [ 'EventType' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'EventType' : 'Full stream' } 
+      }
+    :param plotInfo: <dict>
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                              1355702400L : 380.35170637810842 }
+                          }, 
+        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                              1355702400L : 380.35170637810842 }
+                          }, 
+        'unit'          : 'files', 
+        'granularity'   : 86400 
+      }
+    :param filename: <str>
+      '_plotCatalogFiles'
+    
+    returns S_OK / S_ERROR
+       { 'plot': True, 'thumbnail': False }    
     '''
     
     startTime = reportRequest[ 'startTime' ]
