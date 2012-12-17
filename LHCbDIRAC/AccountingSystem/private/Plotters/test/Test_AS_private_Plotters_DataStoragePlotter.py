@@ -214,7 +214,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                                                            }
                                                           }, 
                                         'unit'         : 'GB', 
-                                        'granularity'  : '86400'
+                                        'granularity'  : 86400
                                        })
     
 
