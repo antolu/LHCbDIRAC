@@ -114,16 +114,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     Checks if the LFNs have descendants in the same transformation. Removes them from self.transReplicas
     and sets them 'Processed'
     """
-    descendants = {}
     startTime = time.time()
-    for lfns in breakListIntoChunks( self.transReplicas.keys(), 500 ):
-      # WARNING: this is in principle not sufficient as one should check also whether descendants without replica
-      #          may have themselves descendants with replicas
-      res = self.bkClient.getFileDescendants( lfns, production = int( self.transID ), depth = 1, checkreplica = True )
-      if not res['OK']:
-        self.util.logError( "Cannot get descendants of files:", res['Message'] )
-      else:
-        descendants.update( res['Value']['Successful'] )
+    descendants = self.util.getProcessedFiles( self.transReplicas.keys() )
     self.util.logVerbose( "Got descendants of %d files in %.3f seconds" % ( len( self.transReplicas ),
                                                                             time.time() - startTime ) )
     if descendants:
@@ -258,8 +250,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runFileDict = res['Value']
     if not runFileDict:
       return S_OK()
-    if runFileDict.pop( 0, None ):
-      self.util.logInfo( "Removing run #0, which means it was not set yet" )
+    zeroRun = runFileDict.pop( 0, None )
+    if zeroRun:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      newRuns = self.util.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.items():
+        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
+
 
     # For each of the runs determine the destination of any previous files
     runUpdate = {}
@@ -568,8 +565,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         startTime = time.time()
         res = eval( 'self._%s()' % plugin )
         self.util.logVerbose( "Executed helper plugin %s for %d files (Run %d%s) in %.1f seconds" % ( plugin,
-                                                                                                      len( self.data ),
-                                                                                                      runID,
+                                                                                                      len( self.data ), runID,
                                                                                                       paramStr,
                                                                                                       time.time() - startTime ) )
         self.params['Status'] = transStatus
