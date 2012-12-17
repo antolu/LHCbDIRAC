@@ -183,4 +183,6 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
