@@ -193,6 +193,8 @@ elif w4:
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
 
+pr.inputs = [[]] * len( pr.prodsTypeList )
+
 #In case of local test (these examples are for the merging)
 if localTestFlag:
   pr.inputs = [[],

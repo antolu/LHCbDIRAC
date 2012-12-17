@@ -68,7 +68,7 @@ pr.fractionToProcess = int( '{{fractionToProcess#GENERAL: fraction to process, p
 pr.minFilesToProcess = int( '{{minFilesToProcess#GENERAL: minimum number of files to process, per run#0}}' )
 
 #reco params
-recoPriority = '{{RecoPriority#PROD-RECO(Stripp): priority#2}}'
+recoPriority = int( '{{RecoPriority#PROD-RECO(Stripp): priority#2}}' )
 recoCPU = '{{RecoMaxCPUTime#PROD-RECO(Stripp): Max CPU time in secs#1000000}}'
 recoPlugin = '{{RecoPluginType#PROD-RECO(Stripp): production plugin name#AtomicRun}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO(Stripp): Group size or number of files per job#1}}'
@@ -77,7 +77,7 @@ recoType = '{{RecoType#PROD-RECO(Stripp): DataReconstruction or DataReprocessing
 recoIDPolicy = '{{recoIDPolicy#PROD-RECO(Stripp): policy for input data access (download or protocol)#download}}'
 
 #stripp params
-strippPriority = '{{priority#PROD-Stripping: priority#5}}'
+strippPriority = int( '{{priority#PROD-Stripping: priority#5}}' )
 strippCPU = '{{StrippMaxCPUTime#PROD-Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#2}}'
@@ -85,10 +85,10 @@ strippDataSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged strea
 strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#download}}'
 
 #merging params
-mergingPriority = '{{MergePriority#PROD-Merging: priority#8}}'
+mergingPriority = int( '{{MergePriority#PROD-Merging: priority#8}}' )
 mergingCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
 mergingPlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRunWithFlush}}'
-mergingFileSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
+mergingGroupSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
 mergingDataSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
 mergingIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'

@@ -1,7 +1,8 @@
-import unittest, os, shutil
-from DIRAC import gLogger
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
+
+import unittest, os, shutil
+from DIRAC import gLogger
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb

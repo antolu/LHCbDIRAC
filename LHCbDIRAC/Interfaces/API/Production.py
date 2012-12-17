@@ -189,10 +189,6 @@ class Production():
     conddbOpt = stepDict['CONDDB']
     DQOpt = stepDict['DQTag']
 
-    #a series of various checks
-    if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
-      raise TypeError, 'Expected strings for application name and version'
-
     if extraPackages:
       if type( extraPackages ) == type( [] ):
         extraPackages = ';'.join( extraPackages )
@@ -293,22 +289,12 @@ class Production():
                    ]
 
     if fileTypesIn:
-      if len( fileTypesIn ) != 1:
-        raise IndexError, 'More than one data type in input'
-      fileTypeIn = fileTypesIn[0].upper()
-      valuesToSet.append( [ 'inputDataType', fileTypeIn ] )
+      valuesToSet.append( [ 'inputDataType', ';'.join( ftIn.upper() for ftIn in fileTypesIn ) ] )
 
     if not inputData:
       self.LHCbJob.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
     elif inputData == 'previousStep':
-
-#      if not self.ioDict.has_key( self.LHCbJob.gaudiStepCount - 1 ):
-#        raise TypeError, 'Expected previously defined Gaudi step for input data'
-#      gaudiStepInstance.setLink( 'inputData', self.ioDict[self.LHCbJob.gaudiStepCount - 1], 'outputData' )
-
-
-
       self.LHCbJob.log.verbose( 'Taking input data as output from previous Gaudi step' )
       valuesToSet.append( [ 'inputData', inputData ] )
     else:
@@ -530,9 +516,11 @@ class Production():
                                         bkPassInfo[step]['ApplicationVersion'],
                                         step ) )
       info.append( '%s Option Files:' % ( bkPassInfo[step]['ApplicationName'] ) )
-      for opts in bkPassInfo[step]['OptionFiles'].split( ';' ):
-        info.append( '%s' % opts )
-      info.append( 'ExtraPackages: %s' % ( bkPassInfo[step]['ExtraPackages'] ) )
+      if bkPassInfo[step]['OptionFiles']:
+        for opts in bkPassInfo[step]['OptionFiles'].split( ';' ):
+          info.append( '%s' % opts )
+      if bkPassInfo[step]['ExtraPackages']:
+        info.append( 'ExtraPackages: %s' % ( bkPassInfo[step]['ExtraPackages'] ) )
 
     if parameters['BKInputQuery']:
       info.append( '\nBK Input Data Query:' )

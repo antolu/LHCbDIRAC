@@ -71,31 +71,28 @@ enablePopularityReport = eval( '{{popularityReport#GENERAL: enable popularity re
 
 #p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
-p1Priority = '{{p1Priority#PROD-p1: priority#2}}'
-p1CPU = '{{p1MaxCPUTime#PROD-p1: Max CPU time in secs#1000000}}'
-p1GroupSize = '{{p1GroupSize#PROD-P1: Group Size#1}}'
-p1DataSE = '{{p1DataSE#PROD-p1: Output Data Storage Element#Tier1-DST}}'
-p1FilesPerJob = '{{p1FilesPerJob#PROD-p1: Group size or number of files per job#1}}'
+p1Priority = int( '{{p1Priority#PROD-P1: priority#2}}' )
+p1CPU = '{{p1MaxCPUTime#PROD-P1: Max CPU time in secs#1000000}}'
+p1GroupSize = '{{p1GroupSize#PROD-P1: Group size or number of files per job#1}}'
+p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 
 #p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
-p2Priority = '{{p2Priority#PROD-p2: priority#2}}'
-p2CPU = '{{p2MaxCPUTime#PROD-p2: Max CPU time in secs#1000000}}'
+p2Priority = int( '{{p2Priority#PROD-P2: priority#2}}' )
+p2CPU = '{{p2MaxCPUTime#PROD-P2: Max CPU time in secs#1000000}}'
 p2GroupSize = '{{p2GroupSize#PROD-P2: Group Size#1}}'
-p2DataSE = '{{p2DataSE#PROD-p2: Output Data Storage Element#Tier1-DST}}'
-p2FilesPerJob = '{{p2FilesPerJob#PROD-p2: Group size or number of files per job#1}}'
+p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 
 #p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
-p3Priority = '{{p3Priority#PROD-p3: priority#2}}'
-p3CPU = '{{p3MaxCPUTime#PROD-p3: Max CPU time in secs#1000000}}'
+p3Priority = int( '{{p3Priority#PROD-p3: priority#2}}' )
+p3CPU = '{{p3MaxCPUTime#PROD-P3: Max CPU time in secs#1000000}}'
 p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
-p3DataSE = '{{p3DataSE#PROD-p3: Output Data Storage Element#Tier1-DST}}'
-p3FilesPerJob = '{{p3FilesPerJob#PROD-p3: Group size or number of files per job#1}}'
+p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 
@@ -166,7 +163,7 @@ pr.priorities = [p1Priority, p2Priority, p3Priority][0:len( pr.prodsTypeList )]
 pr.cpus = [p1CPU, p2CPU, p3CPU][0:len( pr.prodsTypeList )]
 pr.groupSizes = [p1GroupSize, p2GroupSize, p3GroupSize][0:len( pr.prodsTypeList )]
 pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
-pr.inputs = [inputDataList]
+pr.inputs = [inputDataList, [], []]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
 
 pr.buildAndLaunchRequest()

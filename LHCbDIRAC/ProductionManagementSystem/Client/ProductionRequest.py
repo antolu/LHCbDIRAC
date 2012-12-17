@@ -92,9 +92,9 @@ class ProductionRequest( object ):
         stepDict = stepDict['Value']
 
       stepsListDictItem = {}
-      for ( parameter, value ) in itertools.izip( stepDict['ParameterNames'],
+      for parameter, value in itertools.izip( stepDict['ParameterNames'],
                                                   stepDict['Records'][0] ):
-        if parameter.lower() in ['conddb', 'dddb', 'dqtag']:
+        if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
           if value.lower() == 'frompreviousstep':
             value = self.stepsListDict[-1][parameter]
         stepsListDictItem[parameter] = value
@@ -116,6 +116,8 @@ class ProductionRequest( object ):
       if stepsListDictItem['StepId'] in self.extraOptions:
         stepsListDictItem['ExtraOptions'] = self.extraOptions['StepId']
 
+      stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
+
       self.stepsListDict.append( stepsListDictItem )
 
   #############################################################################
@@ -132,13 +134,12 @@ class ProductionRequest( object ):
 
     prodsDict = self._getProdsDescriptionDict()
 
-    stepsListDict = self.stepsListDict
+    stepsListDict = list( self.stepsListDict )
 
     fromProd = copy.deepcopy( self.previousProdID )
     prodsLaunched = []
 
     self.logger.verbose( prodsDict )
-
     #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
 
@@ -148,9 +149,9 @@ class ProductionRequest( object ):
 
       #build the list of steps in a production
       stepsInProd = []
-      for stepID in prodDict['stepsInProd']:
+      for stepID in prodDict['stepsInProd-ProdName']:
         for step in stepsListDict:
-          if step['StepId'] == stepID:
+          if step['prodStepID'] == stepID:
             stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
 
       if prodDict['previousProd'] is not None:
@@ -169,7 +170,6 @@ class ProductionRequest( object ):
                                     previousProdID = fromProd,
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'] )
-
       res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
@@ -209,6 +209,8 @@ class ProductionRequest( object ):
     if len( self.previousProds ) != len( self.prodsTypeList ):
       self.previousProds += range( 1, len( self.prodsTypeList ) )
 
+
+
     #Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
       i = 0
@@ -225,7 +227,12 @@ class ProductionRequest( object ):
         priority = self.priorities[index]
         cpu = self.cpus[index]
         bkQuery = self.bkQueries[index]
+        groupSize = self.groupSizes[index]
         preProd = self.previousProds[index]
+        removeInputsFlag = self.removeInputsFlags[index]
+        inputs = self.inputs[index]
+        idp = self.inputDataPolicies[index]
+        stepID = self.stepsList[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -236,6 +243,11 @@ class ProductionRequest( object ):
           self.cpus.pop( index )
           self.bkQueries.pop( index )
           self.previousProds.pop( index )
+          self.groupSizes.pop( index )
+          self.removeInputsFlags.pop( index )
+          self.inputs.pop( index )
+          self.inputDataPolicies.pop( index )
+          self.stepsList.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -247,6 +259,11 @@ class ProductionRequest( object ):
             self.priorities.insert( index, priority )
             self.cpus.insert( index, cpu )
             self.bkQueries.insert( index, bkQuery )
+            self.groupSizes.insert( index, groupSize )
+            self.removeInputsFlags.insert( index, removeInputsFlag )
+            self.inputs.insert( index, inputs )
+            self.inputDataPolicies.insert( index, idp )
+            self.stepsList.insert( index, stepID )
             self.previousProds.insert( index, preProd )
             self.stepsListDict.insert( index, newSteps[x] )
             self.stepsInProds.insert( index + x, [last + x] )
@@ -268,8 +285,7 @@ class ProductionRequest( object ):
           removeInputsFlags.append( True )
         else:
           removeInputsFlags.append( False )
-    else:
-      removeInputsFlags = self.removeInputsFlags
+      self.removeInputsFlags = removeInputsFlags
 
     if not self.outputFileMasks:
       self.outputFileMasks = [''] * len( self.prodsTypeList )
@@ -279,9 +295,6 @@ class ProductionRequest( object ):
 
     if not self.targets:
       self.targets = [''] * len( self.prodsTypeList )
-
-    if not self.groupSizes:
-      self.groupSizes = [1] * len( self.prodsTypeList )
 
     if not self.inputDataPolicies:
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
@@ -335,7 +348,8 @@ class ProductionRequest( object ):
                                  'inputDataPolicy': idp,
                                  'derivedProduction': 0,
                                  'transformationFamily': transformationFamily,
-                                 'previousProd': previousProd
+                                 'previousProd': previousProd,
+                                 'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  }
       prodNumber += 1
 
@@ -380,14 +394,15 @@ class ProductionRequest( object ):
 
     #non optional parameters
     prod.LHCbJob.setType( prodType )
-    prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s' % ( self.requestID, prodType,
-                                                                          self.prodGroup, self.eventType,
-                                                                          self.appendName ) )
+    prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
+                                                                             self.prodGroup, self.eventType,
+                                                                             str( stepsInProd[0]['fileTypesIn'][0] ),
+                                                                             self.appendName ) )
     prod.setBKParameters( self.configName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )
     prod.prodGroup = self.prodGroup
-    prod.priority = str( priority )
+    prod.priority = priority
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
     prod.setJobParameters( { 'CPUTime': cpu } )
     prod.plugin = plugin
@@ -554,6 +569,7 @@ def _splitIntoProductionSteps( step ):
       prodStep = copy.deepcopy( step )
       prodStep['fileTypesIn'] = [outputTypes]
       prodStep['fileTypesOut'] = [outputTypes]
+      prodStep['prodStepID'] = str( prodStep['StepId'] ) + str( prodStep['fileTypesIn'] )
       prodSteps.append( prodStep )
 
   return prodSteps

@@ -14,7 +14,7 @@ class bkClientFake:
                         'Records': [[123, 'Stripping14-Stripping', 'DaVinci', 'v2r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
                                      '', '123456', '']]}}
-    elif stepID == {'StepId':456}:
+    elif stepID in ( {'StepId':456}, {'StepId':789}, {'StepId':987} ):
       return {'OK': True,
               'Value': {'TotalRecords': 1,
                         'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
@@ -72,6 +72,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'prodStepID': "123['SDST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
@@ -83,12 +84,14 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 456, 'StepName':'Merge',
                                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
@@ -101,12 +104,14 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 456, 'StepName':'Merge',
                                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
@@ -119,6 +124,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                                         'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -128,6 +134,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'prodStepID': "123['SDST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
@@ -154,32 +161,40 @@ class ProductionRequestSuccess( ClientTestCase ):
                  'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST']}
     mergeStepBHADRON = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
                         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'prodStepID': "456['BHADRON.DST']",
                         'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
                         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                         'fileTypesIn': ['BHADRON.DST'],
                         'fileTypesOut': ['BHADRON.DST']}
     mergeStepCALIBRA = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
                         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'prodStepID': "456['CALIBRATION.DST']",
                         'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
                         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                         'fileTypesIn': ['CALIBRATION.DST'],
                         'fileTypesOut': ['CALIBRATION.DST']}
     mergeStepPIDMDST = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
                         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'prodStepID': "456['PID.MDST']",
                         'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
                         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                         'fileTypesIn': ['PID.MDST'],
                         'fileTypesOut': ['PID.MDST']}
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
     pr.plugins = ['ByRun', 'BySize']
     pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsList = [123, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.groupSizes = [1, 2]
     pr.bkFileType = 'TYPE'
+    pr.removeInputsFlags = [False, True]
+    pr.inputs = [['aa'], []]
+    pr.inputDataPolicies = ['dl', 'pr']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -189,7 +204,11 @@ class ProductionRequestSuccess( ClientTestCase ):
     prioritiesExpected = [1, 4, 4, 4]
     cpusExpected = [10, 100, 100, 100]
     bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
+    groupSizesExpected = [1, 2, 2, 2]
     previousProdsExpected = [None, 1, 1, 1]
+    removeInputsFlagExpected = [False, True, True, True]
+    inputsExpected = [['aa'], [], [], []]
+    inputDataPoliciesExpected = ['dl', 'pr', 'pr', 'pr']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -197,18 +216,27 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
     pr.plugins = ['ByRun', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsList = [123, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.groupSizes = [1, 2]
     pr.bkFileType = 'TYPE'
+    pr.inputs = [[], ['aa']]
+    pr.removeInputsFlags = [False, True]
+    pr.inputDataPolicies = ['pr', 'dl']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -217,8 +245,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4]
     cpusExpected = [10, 100]
+    groupSizesExpected = [1, 2]
     bkQueriesExpected = ['Full', 'fromPreviousProd']
     previousProdsExpected = [None, 1]
+    removeInputsFlagExpected = [False, True]
+    inputsExpected = [[], ['aa']]
+    inputDataPoliciesExpected = ['pr', 'dl']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -226,17 +258,26 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
     pr.plugins = ['BySize', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [mergeStep, mergeStep]
+    pr.stepsList = [456, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.groupSizes = [1, 2]
+    pr.removeInputsFlags = [True, True]
+    pr.inputs = [[], ['aa']]
+    pr.inputDataPolicies = ['dl', 'pr']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -245,8 +286,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
+    groupSizesExpected = [1, 1, 1, 2]
     bkQueriesExpected = ['', '', '', 'fromPreviousProd']
     previousProdsExpected = [None, None, None, 1]
+    removeInputsFlagExpected = [True, True, True, True]
+    inputsExpected = [[], [], [], ['aa']]
+    inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -254,18 +299,27 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
     pr.plugins = ['ByRun']
     pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsList = [123]
     pr.stepsInProds = [[1, 2]]
     pr.priorities = [1]
     pr.outputSEs = [ 'Tier1-DST']
     pr.cpus = [10]
+    pr.groupSizes = [1]
     pr.bkFileType = 'TYPE'
+    pr.removeInputsFlags = [False]
+    pr.inputs = [[]]
+    pr.inputDataPolicies = ['']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -274,8 +328,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST']
     prioritiesExpected = [1]
     cpusExpected = [10]
+    groupSizesExpected = [1]
     bkQueriesExpected = ['Full']
     previousProdsExpected = [None]
+    removeInputsFlagExpected = [False]
+    inputsExpected = [[]]
+    inputDataPoliciesExpected = ['']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -283,18 +341,27 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
     pr.plugins = ['ByRun', 'BySize', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [stepStripp, mergeStep, mergeStep]
+    pr.stepsList = [123, 456, 456]
     pr.stepsInProds = [[1], [2], [3]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4, 5]
     pr.cpus = [10, 100, 1000]
+    pr.groupSizes = [1, 2, 3]
     pr.bkFileType = 'TYPE'
+    pr.removeInputsFlags = [False, True, True]
+    pr.inputs = [[], ['aa'], ['bb']]
+    pr.inputDataPolicies = ['', 'dl', 'pr']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -302,9 +369,13 @@ class ProductionRequestSuccess( ClientTestCase ):
     stepsInProdExpected = [[1], [2], [3], [4], [5]]
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4, 4, 4, 5]
+    groupSizesExpected = [1, 2, 2, 2, 3]
     cpusExpected = [10, 100, 100, 100, 1000]
     bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
     previousProdsExpected = [None, 1, 1, 1, 2]
+    removeInputsFlagExpected = [False, True, True, True, True]
+    inputsExpected = [[], ['aa'], ['aa'], ['aa'], ['bb']]
+    inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl', 'pr']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -312,18 +383,27 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
     pr.plugins = ['ByRun', 'BySize']
     pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsList = [123, 456]
     pr.stepsInProds = [[3], [4]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.groupSizes = [1, 2]
     pr.bkFileType = 'TYPE'
+    pr.removeInputsFlags = [False, True]
+    pr.inputs = [[], []]
+    pr.inputDataPolicies = ['', 'dl']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -332,8 +412,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4, 4, 4]
     cpusExpected = [10, 100, 100, 100]
+    groupSizesExpected = [1, 2, 2, 2]
     bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
     previousProdsExpected = [None, 1, 1, 1]
+    removeInputsFlagExpected = [False, True, True, True]
+    inputsExpected = [[], [], [], []]
+    inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -341,18 +425,27 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
     pr.plugins = ['ByRun']
     pr.stepsListDict = [stepStripp, mergeStep]
+    pr.stepsList = [123, 456]
     pr.stepsInProds = [[3, 4]]
     pr.priorities = [1]
     pr.outputSEs = [ 'Tier1-DST']
     pr.cpus = [10]
+    pr.groupSizes = [1]
+    pr.removeInputsFlags = [False]
     pr.bkFileType = 'TYPE'
+    pr.inputs = [[]]
+    pr.inputDataPolicies = ['dl']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -361,8 +454,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST']
     prioritiesExpected = [1]
     cpusExpected = [10]
+    groupSizesExpected = [1]
     bkQueriesExpected = ['Full']
     previousProdsExpected = [None]
+    removeInputsFlagExpected = [False]
+    inputsExpected = [[]]
+    inputDataPoliciesExpected = ['dl']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -370,17 +467,26 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
     pr.plugins = ['BySize', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [mergeStep, mergeStep]
+    pr.stepsList = [456, 456]
     pr.stepsInProds = [[3], [4]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.groupSizes = [1, 2]
+    pr.removeInputsFlags = [True, True]
+    pr.inputs = [['aa'], ['bb']]
+    pr.inputDataPolicies = ['dl', 'pr']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -389,8 +495,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
+    groupSizesExpected = [1, 1, 1, 2]
     bkQueriesExpected = ['', '', '', 'fromPreviousProd']
     previousProdsExpected = [None, None, None, 1]
+    removeInputsFlagExpected = [True, True, True, True]
+    inputsExpected = [['aa'], ['aa'], ['aa'], ['bb']]
+    inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -398,17 +508,26 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['MCSimulation', 'Merge']
     pr.plugins = ['', 'ByRunFileTypeSizeWithFlush']
     pr.stepsListDict = [stepMC, mergeStep]
+    pr.stepsList = [123, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
+    pr.groupSizes = [1, 2]
+    pr.removeInputsFlags = [False, True]
+    pr.inputs = [[], []]
+    pr.inputDataPolicies = ['', 'dl']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
@@ -417,8 +536,12 @@ class ProductionRequestSuccess( ClientTestCase ):
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST']
     prioritiesExpected = [1, 4]
     cpusExpected = [10, 100]
+    groupSizesExpected = [1, 2]
     bkQueriesExpected = ['', 'fromPreviousProd']
     previousProdsExpected = [None, 1]
+    removeInputsFlagExpected = [False, True]
+    inputsExpected = [[], []]
+    inputDataPoliciesExpected = ['', 'dl']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -426,12 +549,16 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputSEs, outputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
 
   def test_getProdsDescriptionDict( self ):
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
-    pr.stepsList = [123, 456, 789, 987]
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsList = [123, 456, 456, 456]
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
     pr.removeInputsFlags = [False, True, True]
     pr.inputs = [[], [], []]
@@ -446,7 +573,35 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.cpus = [1000000, 300000, 10000]
     pr.plugins = ['ByRun', 'BySize', 'BySize']
     pr.previousProds = [None, 1, 1]
-
+    pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
+                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                         'fileTypesIn':['SDST'],
+                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                        {'StepId': 456, 'StepName':'Merge',
+                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'prodStepID': "456['BHADRON.DST']",
+                         'fileTypesIn':['BHADRON.DST'],
+                         'fileTypesOut':['BHADRON.DST']},
+                        {'StepId': 456, 'StepName':'Merge',
+                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'prodStepID': "456['CALIBRATION.DST']",
+                         'fileTypesIn':['CALIBRATION.DST'],
+                         'fileTypesOut':['CALIBRATION.DST']},
+                        {'StepId': 456, 'StepName':'Merge',
+                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'prodStepID': "456['PID.MDST']",
+                         'fileTypesIn':['PID.MDST'],
+                         'fileTypesOut':['PID.MDST']},
+                        ]
     res = pr._getProdsDescriptionDict()
 
     resExpected = {1:{
@@ -466,12 +621,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
                       'transformationFamily':0,
-                      'previousProd': None
+                      'previousProd': None,
+                      'stepsInProd-ProdName': ["123['SDST']", "456['BHADRON.DST']"],
                      },
 
                    2:{
                       'productionType':'Merge',
-                      'stepsInProd':[789],
+                      'stepsInProd':[456],
                       'bkQuery': 'fromPreviousProd',
                       'removeInputsFlag': True,
                       'tracking':1,
@@ -486,12 +642,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
                       'transformationFamily':0,
-                      'previousProd': 1
+                      'previousProd': 1,
+                      'stepsInProd-ProdName': ["456['CALIBRATION.DST']"],
                       },
 
                    3:{
                       'productionType':'Merge',
-                      'stepsInProd':[987],
+                      'stepsInProd':[456],
                       'bkQuery': 'fromPreviousProd',
                       'removeInputsFlag': True,
                       'tracking':1,
@@ -506,7 +663,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'inputDataPolicy':'download',
                       'derivedProduction':0,
                       'transformationFamily':0,
-                      'previousProd': 1
+                      'previousProd': 1,
+                      'stepsInProd-ProdName': ["456['PID.MDST']"],
                       }
                    }
     self.maxDiff = None
@@ -515,7 +673,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
   def test__getBKKQuery( self ):
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.dataTakingConditions = 'dataTC'
     pr.processingPass = 'procePass'
     pr.dqFlag = 'OK,AA, BB'
@@ -535,7 +693,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                    }
     self.assertEqual( res, resExpected )
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.dqFlag = 'OK,AA, BB'
     res = pr._getBKKQuery( 'fromPreviousProd', 'type', 123 )
     resExpected = {'ProductionID':123,
@@ -578,12 +736,14 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
               'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+              'prodStepID': "13718['BHADRON.DST']",
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
               'fileTypesIn': ['BHADRON.DST'],
               'fileTypesOut': ['BHADRON.DST']},
              {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
               'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+              'prodStepID': "13718['CALIBRATION.DST']",
               'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
               'fileTypesIn': ['CALIBRATION.DST'],
@@ -596,7 +756,7 @@ class ProductionRequestFailure( ClientTestCase ):
 
   def test__getBKKQuery( self ):
 
-    pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
 
     pr.runsList = ['1', '2']
     self.assertRaises( ValueError, pr._getBKKQuery )
@@ -655,6 +815,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.groupSizes = [1, 5]
     pr.plugins = ['', 'BySize']
     pr.inputDataPolicies = ['', 'protocol']
+    pr.inputs = [[], []]
 
     res = pr.buildAndLaunchRequest()
 
