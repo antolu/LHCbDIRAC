@@ -108,8 +108,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
      - test_reportPhysicalFiles
      - test_plotCatalogSpace
      - test_plotCatalogFiles
-  '''
-  #FIXME: missing test_plotPhysicalSpace
+     - test_plotPhysicalSpace
+  ''' 
   #FIXME: missing test_plotPhysicalFiles
 
   def test_instantiate( self ):
@@ -330,7 +330,27 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                         'granularity'  : 'BucketLength'
                                        } )
     
-    #FIXME: continue test...  
+    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '14.754501202' ) ), 
+                   ( 'Full stream', 1355702400L, 86400, Decimal( '15.237810842' ) ) ) 
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
+    res = obj._reportPhysicalSpace( { 'grouping'       : 'EventType',
+                                      'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                      'startTime'      : 1355663249.0,
+                                      'endTime'        : 1355749690.0,
+                                      'condDict'       : { 'EventType' : 'Full stream' } 
+                                     } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                                                              1355702400L : 15.237810842 }
+                                                           }, 
+                                        'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                                                              1355702400L : 15.237810842 }
+                                                           }, 
+                                        'unit'          : 'files', 
+                                        'granularity'   : 86400 
+                                        } )
 
   def test_reportPhysicalFiles( self ):
     ''' test the method "_reportPhysicalFiles"
@@ -365,7 +385,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                         'granularity'  : 'BucketLength'
                                        } )
     
-    #FIXME: continue test...    
+    #FIXME:
 
   def test_plotCatalogSpace( self ):
     ''' test the method "_plotCatalogSpace"
@@ -422,6 +442,35 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     
     res = compare( '_plotCatalogFiles.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogFiles.png' )
     self.assertEquals( 0.0, res )    
+
+  def test_plotPhysicalSpace( self ):
+    ''' test the method "_plotPhysicalSpace"
+    '''    
+
+    obj = self.classsTested( None, None )
+    
+    reportRequest = { 'grouping'       : 'EventType',
+                      'groupingFields' : ( '%s', [ 'EventType' ] ),
+                      'startTime'      : 1355663249.0,
+                      'endTime'        : 1355749690.0,
+                      'condDict'       : { 'EventType' : 'Full stream' } 
+                    }
+    plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                                       1355702400L : 15.237810842 }
+                                   }, 
+                 'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                                       1355702400L : 15.237810842 }
+                                   }, 
+                 'unit'          : 'files', 
+                 'granularity'   : 86400 
+                }
+    res = obj._plotPhysicalSpace( reportRequest, plotInfo, '_plotPhysicalSpace' )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
+    
+    res = compare( '_plotPhysicalSpace.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotPhysicalSpace.png' )
+    self.assertEquals( 0.0, res )    
+    
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''

@@ -253,6 +253,25 @@ class DataStoragePlotter( BaseReporter ):
   def _reportPhysicalSpace( self, reportRequest ):
     '''
     Reports about the PFN size and the physical space from the accounting.
+    
+    :param reportRequest: <dict>
+      { 'grouping'       : 'EventType',
+        'groupingFields' : ( '%s', [ 'EventType' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'EventType' : 'Full stream' } 
+      }
+    
+    returns S_OK / S_ERROR
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                              1355702400L : 15.237810842 }
+                          }, 
+        'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                              1355702400L : 15.237810842 }
+                          }, 
+        'unit'          : 'files', 
+        'granularity'   : 86400 
+      }
     '''
     
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
@@ -288,7 +307,31 @@ class DataStoragePlotter( BaseReporter ):
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
     '''
-    Plots about the PFN size and the physical space.
+    Creates <filename>.png file containing information regarding the PFN size and 
+    the physical space.
+
+    :param reportRequest: <dict>
+      { 'grouping'       : 'EventType',
+        'groupingFields' : ( '%s', [ 'EventType' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'EventType' : 'Full stream' } 
+      }
+    :param plotInfo: <dict>
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                              1355702400L : 15.237810842 }
+                          }, 
+        'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
+                                              1355702400L : 15.237810842 }
+                          }, 
+        'unit'          : 'files', 
+        'granularity'   : 86400 
+      }
+    :param filename: <str>
+      '_plotPhysicalSpace'
+    
+    returns S_OK / S_ERROR
+       { 'plot': True, 'thumbnail': False }      
     '''
     
     startTime = reportRequest[ 'startTime' ]
