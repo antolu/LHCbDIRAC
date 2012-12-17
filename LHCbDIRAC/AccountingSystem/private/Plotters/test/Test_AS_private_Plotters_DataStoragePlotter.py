@@ -369,7 +369,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotCatalogSpace', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogSpace.png' )
+    res = compare( '_plotCatalogSpace.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogSpace.png' )
     self.assertEquals( 0.0, res )    
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
