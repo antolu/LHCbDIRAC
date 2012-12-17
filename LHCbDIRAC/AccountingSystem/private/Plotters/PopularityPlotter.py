@@ -31,8 +31,8 @@ class PopularityPlotter( BaseReporter ):
       Reports the data usage from the Accounting DB.
     '''
     
-    _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields  = ( _selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields  = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
                       reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                                                'Usage', 'entriesInBucket'
                                                              ]
@@ -81,7 +81,6 @@ class PopularityPlotter( BaseReporter ):
                 }
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
-    
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   #.............................................................................
@@ -93,8 +92,8 @@ class PopularityPlotter( BaseReporter ):
       Reports the normalized data usage from the Accounting DB.
     '''
     
-    _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                                               'NormalizedUsage', 'entriesInBucket'
                                                             ]
@@ -142,7 +141,6 @@ class PopularityPlotter( BaseReporter ):
                 }
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
-    
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
 ################################################################################
