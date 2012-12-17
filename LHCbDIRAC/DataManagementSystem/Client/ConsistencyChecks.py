@@ -332,7 +332,7 @@ class ConsistencyChecks( object ):
   def __write( self, text ):
     import sys
     if self.interactive:
-      self.__write( text )
+      sys.stdout.write( text )
       sys.stdout.flush()
 
   def getDescendants( self, lfns ):
