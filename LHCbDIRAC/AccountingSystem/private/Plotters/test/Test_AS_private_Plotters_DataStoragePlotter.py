@@ -465,20 +465,20 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     self.assertRaises( KeyError, obj._plotCatalogSpace, { 'startTime' : 'startTime' }, 
                                                         None, None )
     self.assertRaises( TypeError, obj._plotCatalogSpace, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime' }, 
+                                                           'endTime'   : 'endTime' }, 
                                                          None, None )
     self.assertRaises( KeyError, obj._plotCatalogSpace, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime' }, 
+                                                          'endTime'   : 'endTime' }, 
                                                         {}, None )
     self.assertRaises( KeyError, obj._plotCatalogSpace, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime' }, 
+                                                          'endTime'   : 'endTime' }, 
                                                         { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotCatalogSpace, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime',
+                                                          'endTime'   : 'endTime',
                                                           'grouping'  : 'grouping' }, 
                                                         { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotCatalogSpace, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime',
+                                                          'endTime'   : 'endTime',
                                                           'grouping'  : 'grouping' }, 
                                                         { 'granularity' : 'granularity',
                                                           'unit'        : 'unit' }, None )
@@ -493,20 +493,20 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     self.assertRaises( KeyError, obj._plotCatalogFiles, { 'startTime' : 'startTime' }, 
                                                         None, None )
     self.assertRaises( TypeError, obj._plotCatalogFiles, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime' }, 
+                                                           'endTime'   : 'endTime' }, 
                                                          None, None )
     self.assertRaises( KeyError, obj._plotCatalogFiles, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime' }, 
+                                                          'endTime'   : 'endTime' }, 
                                                         {}, None )
     self.assertRaises( KeyError, obj._plotCatalogFiles, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime' }, 
+                                                          'endTime'   : 'endTime' }, 
                                                         { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotCatalogFiles, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime',
+                                                          'endTime'   : 'endTime',
                                                           'grouping'  : 'grouping' }, 
                                                         { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotCatalogFiles, { 'startTime' : 'startTime',
-                                                          'endtime'   : 'endTime',
+                                                          'endTime'   : 'endTime',
                                                           'grouping'  : 'grouping' }, 
                                                         { 'granularity' : 'granularity',
                                                           'unit'        : 'unit' }, None )
@@ -521,20 +521,20 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     self.assertRaises( KeyError, obj._plotPhysicalSpace, { 'startTime' : 'startTime' }, 
                                                          None, None )
     self.assertRaises( TypeError, obj._plotPhysicalSpace, { 'startTime' : 'startTime',
-                                                            'endtime'   : 'endTime' }, 
+                                                            'endTime'   : 'endTime' }, 
                                                           None, None )
     self.assertRaises( KeyError, obj._plotPhysicalSpace, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime' }, 
+                                                           'endTime'   : 'endTime' }, 
                                                          {}, None )
     self.assertRaises( KeyError, obj._plotPhysicalSpace, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime' }, 
+                                                           'endTime'   : 'endTime' }, 
                                                          { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotPhysicalSpace, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime',
+                                                           'endTime'   : 'endTime',
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotPhysicalSpace, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime',
+                                                           'endTime'   : 'endTime',
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity',
                                                            'unit'        : 'unit' }, None )
@@ -549,20 +549,20 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime' }, 
                                                          None, None )
     self.assertRaises( TypeError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
-                                                            'endtime'   : 'endTime' }, 
+                                                            'endTime'   : 'endTime' }, 
                                                           None, None )
     self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime' }, 
+                                                           'endTime'   : 'endTime' }, 
                                                          {}, None )
     self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime' }, 
+                                                           'endTime'   : 'endTime' }, 
                                                          { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime',
+                                                           'endTime'   : 'endTime',
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity' }, None )
     self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
-                                                           'endtime'   : 'endTime',
+                                                           'endTime'   : 'endTime',
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity',
                                                            'unit'        : 'unit' }, None )
