@@ -9,6 +9,9 @@ from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage  import DataStorage
 
 __RCSID__ = "$Id$"
 
+#FIXME: the _reportMethods can be refactored !
+#FIXME: the _plotMethods can be refactored !
+
 class DataStoragePlotter( BaseReporter ):
   '''
     DataStoragePlotter as extension of BaseReporter
@@ -52,6 +55,7 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
+    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
     __accumMaxValue = self._getAccumulationMaxValue( dataDict )
@@ -118,6 +122,7 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
+    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
     __accumMaxValue = self._getAccumulationMaxValue( dataDict )
@@ -179,6 +184,7 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
+    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
     __accumMaxValue = self._getAccumulationMaxValue( dataDict )
@@ -238,6 +244,7 @@ class DataStoragePlotter( BaseReporter ):
     if not retVal[ 'OK' ]:
       return retVal
     dataDict, granularity = retVal[ 'Value' ]
+    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
     __accumMaxValue = self._getAccumulationMaxValue( dataDict )

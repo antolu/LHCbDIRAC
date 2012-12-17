@@ -83,6 +83,10 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     - test_reportPhysicalSpace
     - test_reportPhysicalFiles
   '''
+  #FIXME: missing test_plotCatalogSpace
+  #FIXME: missing test_plotCatalogFiles
+  #FIXME: missing test_plotPhysicalSpace
+  #FIXME: missing test_plotPhysicalFiles
 
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
@@ -314,7 +318,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                        },
                       msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
     
-    #FIXME: continue test...  
+    #FIXME: continue test...    
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
@@ -323,6 +327,10 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     - test_reportCatalogFiles
     - test_reportPhysicalSpace
     - test_reportPhysicalFiles
+    - test_plotCatalogSpace
+    - test_plotCatalogFiles
+    - test_plotPhysicalSpace
+    - test_plotPhysicalFiles
   '''
   
   def test_reportCatalogSpace( self ):
@@ -445,7 +453,119 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
     self.assertRaises( TypeError, obj._reportPhysicalFiles, { 'groupingFields' : ['1', [2,2] ],
                                                               'startTime'      : None,
                                                               'endTime'        : None,
-                                                              'condDict'       : None } )  
+                                                              'condDict'       : None } )
+    
+  def test_plotCatalogSpace( self ):
+    ''' test the method "_plotCatalogSpace"
+    '''
+    
+    obj = self.classsTested( None, None )
+    self.assertRaises( TypeError, obj._plotCatalogSpace, ( None, None, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogSpace, ( {}, None, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogSpace, ( { 'startTime' : 'startTime' }, 
+                                                          None, None ) )
+    self.assertRaises( TypeError, obj._plotCatalogSpace, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime' }, 
+                                                             None, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogSpace, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime' }, 
+                                                          {}, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogSpace, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime' }, 
+                                                          { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogSpace, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime',
+                                                            'grouping'  : 'grouping' }, 
+                                                          { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogSpace, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime',
+                                                            'grouping'  : 'grouping' }, 
+                                                          { 'granularity' : 'granularity',
+                                                            'unit'        : 'unit' }, None ) )
+
+  def test_plotCatalogFiles( self ):
+    ''' test the method "_plotCatalogFiles"
+    '''
+    
+    obj = self.classsTested( None, None )
+    self.assertRaises( TypeError, obj._plotCatalogFiles, ( None, None, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogFiles, ( {}, None, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogFiles, ( { 'startTime' : 'startTime' }, 
+                                                          None, None ) )
+    self.assertRaises( TypeError, obj._plotCatalogFiles, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime' }, 
+                                                             None, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogFiles, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime' }, 
+                                                          {}, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogFiles, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime' }, 
+                                                          { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogFiles, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime',
+                                                            'grouping'  : 'grouping' }, 
+                                                          { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotCatalogFiles, ( { 'startTime' : 'startTime',
+                                                            'endtime'   : 'endTime',
+                                                            'grouping'  : 'grouping' }, 
+                                                          { 'granularity' : 'granularity',
+                                                            'unit'        : 'unit' }, None ) )
+
+  def test_plotPhysicalSpace( self ):
+    ''' test the method "_plotPhysicalSpace"
+    '''
+    
+    obj = self.classsTested( None, None )
+    self.assertRaises( TypeError, obj._plotPhysicalSpace, ( None, None, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalSpace, ( {}, None, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalSpace, ( { 'startTime' : 'startTime' }, 
+                                                           None, None ) )
+    self.assertRaises( TypeError, obj._plotPhysicalSpace, ( { 'startTime' : 'startTime',
+                                                              'endtime'   : 'endTime' }, 
+                                                              None, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalSpace, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime' }, 
+                                                           {}, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalSpace, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime' }, 
+                                                           { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalSpace, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime',
+                                                             'grouping'  : 'grouping' }, 
+                                                           { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalSpace, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime',
+                                                             'grouping'  : 'grouping' }, 
+                                                           { 'granularity' : 'granularity',
+                                                             'unit'        : 'unit' }, None ) )
+
+  def test_plotPhysicalFiles( self ):
+    ''' test the method "_plotPhysicalFiles"
+    '''
+    
+    obj = self.classsTested( None, None )
+    self.assertRaises( TypeError, obj._plotPhysicalFiles, ( None, None, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, ( {}, None, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, ( { 'startTime' : 'startTime' }, 
+                                                           None, None ) )
+    self.assertRaises( TypeError, obj._plotPhysicalFiles, ( { 'startTime' : 'startTime',
+                                                              'endtime'   : 'endTime' }, 
+                                                              None, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime' }, 
+                                                           {}, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime' }, 
+                                                           { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime',
+                                                             'grouping'  : 'grouping' }, 
+                                                           { 'granularity' : 'granularity' }, None ) )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, ( { 'startTime' : 'startTime',
+                                                             'endtime'   : 'endTime',
+                                                             'grouping'  : 'grouping' }, 
+                                                           { 'granularity' : 'granularity',
+                                                             'unit'        : 'unit' }, None ) )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
