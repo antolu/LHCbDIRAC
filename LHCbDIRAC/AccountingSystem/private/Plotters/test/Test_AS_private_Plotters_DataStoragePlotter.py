@@ -287,15 +287,15 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'condDict'       : { 'EventType' : 'Full stream' } 
                                     } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' :  { 1355616000L : 3.2032657023460409, 
-                                                                               1355702400L : 3.208167 }
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                                                              1355702400L : 380.35170637810842 }
                                                            }, 
-                                        'data'          : { 'Full stream' : { 1355616000L : 3203265.7023460409, 
-                                                                              1355702400L : 3208167.0 }
+                                        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                                                              1355702400L : 380.35170637810842 }
                                                            }, 
-                                        'unit'          : 'Mfiles', 
-                                        'granularity'   : 86400
-                                       } )
+                                        'unit'          : 'files', 
+                                        'granularity'   : 86400 
+                                        } )
     
   def test_reportPhysicalSpace( self ):
     ''' test the method "_reportPhysicalSpace"
