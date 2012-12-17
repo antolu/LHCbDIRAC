@@ -133,6 +133,28 @@ class MergeSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
+class MergeMultStreamsSuccess( ProductionJobTestCase ):
+  def test_execute( self ):
+    lfns = ['/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00014056_1.Dimuon.dst',
+            '/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00014127_1.Dimuon.dst']
+    #From request 9085
+    stepsInProd = [{'StepId': 54132, 'StepName': 'Merging', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
+                    'ExtraPackages': 'AppConfig.v3r150', 'ProcessingPass': 'Merging', 'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'merge',
+                    'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping-Merging.py',
+                    'fileTypesIn':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
+                                   'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
+                                   'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST'],
+                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
+                                   'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
+                                   'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
+                   ]
+
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
+                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+    self.assertTrue( res['OK'] )
+
 class MergeMDFSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/102360/102360_0000000031.raw',
