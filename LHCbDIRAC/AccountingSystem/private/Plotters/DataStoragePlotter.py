@@ -269,7 +269,7 @@ class DataStoragePlotter( BaseReporter ):
         'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
                                               1355702400L : 15.237810842 }
                           }, 
-        'unit'          : 'files', 
+        'unit'          : 'MB', 
         'granularity'   : 86400 
       }
     '''
@@ -324,7 +324,7 @@ class DataStoragePlotter( BaseReporter ):
         'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
                                               1355702400L : 15.237810842 }
                           }, 
-        'unit'          : 'files', 
+        'unit'          : 'MB', 
         'granularity'   : 86400 
       }
     :param filename: <str>
