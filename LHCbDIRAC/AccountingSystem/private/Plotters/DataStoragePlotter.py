@@ -12,9 +12,6 @@ from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage  import DataStorage
 
 __RCSID__ = "$Id$"
 
-#FIXME: the _reportMethods can be refactored !
-#FIXME: the _plotMethods can be refactored !
-
 class DataStoragePlotter( BaseReporter ):
   '''
     DataStoragePlotter as extension of BaseReporter
@@ -146,6 +143,25 @@ class DataStoragePlotter( BaseReporter ):
     '''
     Reports about the LFN files and the catalog files from the accounting ( grouped
     by StorageElement ).
+    
+    :param reportRequest: <dict>
+      { 'grouping'       : 'EventType',
+        'groupingFields' : ( '%s', [ 'EventType' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'EventType' : 'Full stream' } 
+      }
+    
+    returns S_OK / S_ERROR
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 3.2032657023460409, 
+                                              1355702400L : 3.208167 }
+                          }, 
+        'data'          : { 'Full stream' : { 1355616000L : 3203265.7023460409, 
+                                              1355702400L : 3208167.0 }
+                          }, 
+        'unit'          : 'Mfiles', 
+        'granularity'   : 86400 
+      }  
     '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":

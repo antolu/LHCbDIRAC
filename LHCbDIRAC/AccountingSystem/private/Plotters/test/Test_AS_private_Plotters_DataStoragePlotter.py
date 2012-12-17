@@ -19,16 +19,18 @@ from decimal import Decimal
 import math
 import operator
 import Image
-def compare( file1, file2 ):
+def compare( file1Path, file2Path ):
   '''
     Function used to compare two plots
+    
+    returns 0.0 if both are identical
   '''
-  image1 = Image.open(file1)
-  image2 = Image.open(file2)
+  image1 = Image.open( file1Path )
+  image2 = Image.open( file2Path )
   h1 = image1.histogram()
   h2 = image2.histogram()
-  rms = math.sqrt(reduce(operator.add,
-                         map(lambda a,b: (a-b)**2, h1, h2))/len(h1))
+  rms = math.sqrt( reduce( operator.add,
+                           map(lambda a,b: (a-b)**2, h1, h2))/len(h1) )
   return rms
 
 #...............................................................................
@@ -222,17 +224,18 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 1355749690.0,
                                      'condDict'       : { 'EventType' : 'Full stream' } 
                                     } )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict': { 'Full stream': { 1355616000L: 935.38852424691629, 
-                                                                            1355702400L: 843.84448707482204
-                                                                           }
-                                                          }, 
-                                        'data'         : { 'Full stream': { 1355616000L: 935388.52424691629, 
-                                                                            1355702400L: 843844.48707482207
-                                                                           }
-                                                          }, 
-                                        'unit'         : 'GB', 
-                                        'granularity'  : 86400
-                                       })
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream': { 1355616000L: 935.38852424691629, 
+                                                                             1355702400L: 843.84448707482204
+                                                                            }
+                                                           }, 
+                                        'data'          : { 'Full stream': { 1355616000L: 935388.52424691629, 
+                                                                             1355702400L: 843844.48707482207
+                                                                            }
+                                                           }, 
+                                        'unit'          : 'GB', 
+                                        'granularity'   : 86400
+                                       } )
 
   def test_reportCatalogFiles( self ):
     ''' test the method "_reportCatalogFiles"
@@ -272,7 +275,27 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                         'granularity'  : 'BucketLength'
                                        } )
     
-    #FIXME: continue test...
+    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '935388524246.91630989384787' ) ), 
+                   ( 'Full stream', 1355702400L, 86400, Decimal( '843844487074.82197482051816' ) ) ) 
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
+    res = obj._reportCatalogFiles( { 'grouping'       : 'EventType',
+                                     'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                     'startTime'      : 1355663249.0,
+                                     'endTime'        : 1355749690.0,
+                                     'condDict'       : { 'EventType' : 'Full stream' } 
+                                    } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 3.2032657023460409, 
+                                                                              1355702400L : 3.208167 }
+                                                          }, 
+                                        'data'          : { 'Full stream' : { 1355616000L : 3203265.7023460409, 
+                                                                              1355702400L : 3208167.0 }
+                                                          }, 
+                                        'unit'          : 'Mfiles', 
+                                        'granularity'   : 86400 
+                                       } )
     
   def test_reportPhysicalSpace( self ):
     ''' test the method "_reportPhysicalSpace"
