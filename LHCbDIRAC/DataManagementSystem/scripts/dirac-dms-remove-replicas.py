@@ -11,11 +11,11 @@ def __checkSEs( args ):
   seList = []
   res = gConfig.getSections( '/Resources/StorageElements' )
   if res['OK']:
-    for se in args:
+    for se in list( args ):
       if se in res['Value']:
         seList.append( se )
         args.remove( se )
-    return seList
+  return seList, args
 
 if __name__ == "__main__":
   dmScript = DMScript()
@@ -38,7 +38,9 @@ if __name__ == "__main__":
 
   lfns = dmScript.getOption( 'LFNs', [] )
   args = Script.getPositionalArgs()
-  storageElementNames = __checkSEs( args )
+  # Expand list if comma separated args
+  args = [xx for arg in args for xx in arg.split( ',' )]
+  storageElementNames, args = __checkSEs( args )
   lfns += args
 
   lfnList = []
