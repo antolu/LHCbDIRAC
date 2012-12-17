@@ -88,13 +88,15 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''     
     obj = self.classsTested( None, None )
-    self.assertEqual( 'DataStoragePlotter', obj.__class__.__name__ )
+    self.assertEqual( 'DataStoragePlotter', obj.__class__.__name__,
+                      msg = 'Expected DataStoragePlotter object' )
   
   def test_typeName( self ):
     ''' test the class variable "_typeName" 
     '''
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._typeName, "DataStorage" )    
+    self.assertEqual( obj._typeName, "DataStorage", 
+                      msg = 'Expected DataStorage as value' )    
   
   def test_typeKeyFields( self ):
     ''' test the class variable "_typeKeyFields" 
@@ -102,7 +104,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     obj = self.classsTested( None, None )
     self.assertEqual( obj._typeKeyFields, [ 'DataType', 'Activity', 'FileType', 
                                             'Production', 'ProcessingPass', 
-                                            'Conditions', 'EventType', 'StorageElement' ] )
+                                            'Conditions', 'EventType', 'StorageElement' ],
+                      msg =  'Expected keys from MockDataStorage' )
         
   def test_noSEtypeKeyFields( self ):
     ''' test the class variable "_noSEtypeKeyFields" 
@@ -110,7 +113,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     obj = self.classsTested( None, None )
     self.assertEqual( obj._noSEtypeKeyFields, [ 'DataType', 'Activity', 'FileType', 
                                                 'Production', 'ProcessingPass', 
-                                                'Conditions', 'EventType' ])
+                                                'Conditions', 'EventType' ],
+                      msg =  'Expected keys from MockDataStorage, without StorageElement' )
 
   def test_noSEGrouping( self ):
     ''' test the class variable "_noSEGrouping" 
@@ -121,31 +125,36 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                                 ]
                   ) 
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._noSEGrouping, ( mockValue ) )
+    self.assertEqual( obj._noSEGrouping, ( mockValue ),
+                      msg = 'Expected tuple with string and MockDataStorage keys without StorageElement key' )
     
   def test_reportCatalogSpaceName( self ):
     ''' test the class variable "_reportCatalogSpaceName" 
     '''
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._reportCatalogSpaceName, "LFN size" )
+    self.assertEqual( obj._reportCatalogSpaceName, "LFN size",
+                      msg = 'Expected LFN size as value' )
   
   def test_reportCatalogFilesName( self ):
     ''' test the class variable "_reportCatalogFilesName" 
     '''
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._reportCatalogFilesName, "LFN files" )
+    self.assertEqual( obj._reportCatalogFilesName, "LFN files",
+                      msg = 'Expected LFN files as value' )
     
   def test_reportPhysicalSpaceName( self ):
     ''' test the class variable "_reportPhysicalSpaceName" 
     '''
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._reportPhysicalSpaceName, "PFN size" )
+    self.assertEqual( obj._reportPhysicalSpaceName, "PFN size",
+                      msg = 'Expected PFN size as value' )
   
   def test_reportPhysicalFilesName( self ):
     ''' test the class variable "_reportPhysicalFilesName" 
     '''
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._reportPhysicalFilesName, "PFN files" )
+    self.assertEqual( obj._reportPhysicalFilesName, "PFN files",
+                      msg = 'Expected PFN files as value' )
     
   def test_reportCatalogSpace( self ):
     ''' test the method "_reportCatalogSpace"
@@ -158,8 +167,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     obj = self.classsTested( mockAccountingDB, None )
     
     res = obj._reportCatalogSpace( { 'grouping' : 'StorageElement' } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+    self.assertEqual( res[ 'OK' ], False, msg = 'Rejected StorageElement grouping' )
+    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense',
+                      msg = 'Rejected StorageElement grouping' )
     
     res = obj._reportCatalogSpace( { 'grouping'       : 'NextToABeer',
                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
@@ -167,8 +177,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+    self.assertEqual( res[ 'OK' ], False, msg = 'Correct input parameters, but no DB connection' )
+    self.assertEqual( res[ 'Message' ], 'No connection',
+                      msg = 'Correct input parameters, but no DB connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -178,12 +189,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
-    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
                                         'unit'         : 'MB', 
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                       },
+                      msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
     
     #FIXME: continue test...
 
@@ -198,8 +210,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     obj = self.classsTested( mockAccountingDB, None )
     
     res = obj._reportCatalogFiles( { 'grouping' : 'StorageElement' } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+    self.assertEqual( res[ 'OK' ], False, msg = 'Rejected StorageElement grouping' )
+    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense',
+                      msg = 'Rejected StorageElement grouping' )
     
     res = obj._reportCatalogFiles( { 'grouping'       : 'NextToABeer',
                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
@@ -207,8 +220,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+    self.assertEqual( res[ 'OK' ], False, msg = 'Correct input parameters, but no DB connection' )
+    self.assertEqual( res[ 'Message' ], 'No connection',
+                      msg = 'Correct input parameters, but no DB connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -218,12 +232,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
-    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
                                         'unit'         : 'files', 
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                       },
+                      msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
     
     #FIXME: continue test...
     
@@ -242,8 +257,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                       'endTime'        : 'endTime',
                                       'condDict'       : {} 
                                      } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+    self.assertEqual( res[ 'OK' ], False, msg = 'Correct input parameters, but no DB connection' )
+    self.assertEqual( res[ 'Message' ], 'No connection',
+                      msg = 'Correct input parameters, but no DB connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -253,12 +269,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
-    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
                                         'unit'         : 'MB', 
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                       },
+                      msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
     
     #FIXME: continue test...  
 
@@ -277,8 +294,9 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                       'endTime'        : 'endTime',
                                       'condDict'       : {} 
                                      } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+    self.assertEqual( res[ 'OK' ], False, msg = 'Correct input parameters, but no DB connection' )
+    self.assertEqual( res[ 'Message' ], 'No connection',
+                      msg = 'Correct input parameters, but no DB connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -288,12 +306,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'endTime'        : 'endTime',
                                      'condDict'       : {} 
                                     } )
-    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
                                         'unit'         : 'files', 
                                         'granularity'  : 'BucketLength'
-                                       } )
+                                       },
+                      msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
     
     #FIXME: continue test...  
 
