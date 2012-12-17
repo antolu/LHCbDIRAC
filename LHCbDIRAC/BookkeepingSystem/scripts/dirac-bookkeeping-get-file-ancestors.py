@@ -16,15 +16,21 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResu
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 dmScript = DMScript()
 dmScript.registerFileSwitches()
+Script.registerSwitch( '', 'Full', 'Get full metadata information on ancestors' )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
-                                     '  %s [option|cfgfile] ... LFN|File [Level]' % Script.scriptName,
+                                     '  %s [option|cfgfile] ... [LFN|File] [Level]' % Script.scriptName,
                                      'Arguments:',
                                      '  LFN:      Logical File Name',
                                      '  File:     Name of the file with a list of LFNs',
                                      '  Level:    Number of levels to search (default: 1)' ] ) )
 
 Script.parseCommandLine( ignoreErrors=True )
+
+full = False
+for switch in Script.getUnprocessedSwitches():
+  if switch[0] == 'Full':
+    full = True
 
 args = Script.getPositionalArgs()
 
@@ -47,9 +53,13 @@ for lfn in lfns:
 
 result = BookkeepingClient().getFileAncestors( lfnList, level )
 
-okResult = result['Value']['Successful']
-for lfn in okResult:
-  okResult[lfn] = dict( [( d['FileName'], 'Replica-%s' % d['GotReplica'] ) for d in okResult[lfn]] )
+if full:
+  del result['Value']['Successful']
+else:
+  del result['Value']['WithMetadata']
+  okResult = result['Value']['Successful']
+  for lfn in okResult:
+    okResult[lfn] = dict( [( d['FileName'], 'Replica-%s' % d['GotReplica'] ) for d in okResult[lfn]] )
 
 DIRAC.exit( printDMResult( result,
                            empty="None", script="dirac-bookkeeping-get-file-ancestors" ) )

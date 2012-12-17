@@ -19,11 +19,12 @@ dmScript = DMScript()
 dmScript.registerFileSwitches()
 Script.registerSwitch( '', 'Production=', 'Restrict to descendants in a given production' )
 Script.registerSwitch( '', 'All', 'Do not restrict to descendants with replicas' )
+Script.registerSwitch( '', 'Full', 'Get full metadata information on ancestors' )
 level = 1
 Script.registerSwitch( '', 'Depth=', 'Number of processing levels (default:%d)' % level )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
-                                     '  %s [option|cfgfile] ... LFN|File [Level]' % Script.scriptName,
+                                     '  %s [option|cfgfile] ... [LFN|File] [Level]' % Script.scriptName,
                                      'Arguments:',
                                      '  LFN:      Logical File Name',
                                      '  File:     Name of the file with a list of LFNs',
@@ -33,6 +34,7 @@ Script.parseCommandLine( ignoreErrors=True )
 
 checkreplica = True
 prod = 0
+full = False
 for switch in Script.getUnprocessedSwitches():
   if switch[0] == 'All':
     checkreplica = False
@@ -43,6 +45,8 @@ for switch in Script.getUnprocessedSwitches():
       prod = int( switch[1] )
     except:
       prod = None
+  elif switch[0] == 'Full':
+    full = True
 
 args = Script.getPositionalArgs()
 
@@ -64,6 +68,10 @@ for lfn in lfns:
     lfnList.append( lfn )
 
 result = BookkeepingClient().getFileDescendants( lfnList, depth=level, production=prod, checkreplica=checkreplica )
+if full:
+  del result['Value']['Successful']
+else:
+  del result['Value']['WithMetadata']
 
 DIRAC.exit( printDMResult( result,
                            empty="None", script="dirac-bookkeeping-get-file-descendants" ) )
