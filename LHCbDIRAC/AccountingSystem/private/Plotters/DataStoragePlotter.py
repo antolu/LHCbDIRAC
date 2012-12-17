@@ -40,9 +40,9 @@ class DataStoragePlotter( BaseReporter ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     
-    _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     
-    selectFields = ( _selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', 
                                                              'LogicalSize', 'entriesInBucket' 
                                                              ]
@@ -58,13 +58,13 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
-    __accumMaxValue = self._getAccumulationMaxValue( dataDict )
-    __suitableUnits = self._findSuitableUnit( dataDict, __accumMaxValue, "bytes" )
+    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
      
-    baseDataDict, graphDataDict, __maxValue, unitName = __suitableUnits
+    #3rd variable unused ( maxValue ) 
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
      
     return S_OK( { 
                    'data'          : baseDataDict, 
@@ -81,6 +81,7 @@ class DataStoragePlotter( BaseReporter ):
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
+    dataDict  = plotInfo[ 'graphDataDict' ]
     
     metadata = { 
                 'title'     : "LFN space usage grouped by %s" % reportRequest[ 'grouping' ],
@@ -90,9 +91,8 @@ class DataStoragePlotter( BaseReporter ):
                 'ylabel'    : plotInfo[ 'unit' ] 
                }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   ##############################################################################
   #
@@ -109,8 +109,8 @@ class DataStoragePlotter( BaseReporter ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     
-    _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'LogicalFiles', 'entriesInBucket'
                                    ]
@@ -125,13 +125,13 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
-    __accumMaxValue = self._getAccumulationMaxValue( dataDict )
-    __suitableUnits = self._findSuitableUnit( dataDict, __accumMaxValue, "files" )
+    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "files" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = __suitableUnits
+    #3rd variable unused ( maxValue )
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                    'data'          : baseDataDict, 
@@ -148,6 +148,7 @@ class DataStoragePlotter( BaseReporter ):
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
+    dataDict  = plotInfo[ 'graphDataDict' ]
     
     metadata = { 
                 'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
@@ -157,8 +158,8 @@ class DataStoragePlotter( BaseReporter ):
                 'ylabel'    : plotInfo[ 'unit' ] 
                }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   ##############################################################################
   #
@@ -171,8 +172,8 @@ class DataStoragePlotter( BaseReporter ):
     Reports about the PFN size and the physical space from the accounting.
     '''
     
-    _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectString + ", %s, %s, SUM(%s/%s)",
+    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'PhysicalSize', 'entriesInBucket'
                                    ]
@@ -187,13 +188,13 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
-    __accumMaxValue = self._getAccumulationMaxValue( dataDict )
-    __suitableUnits = self._findSuitableUnit( dataDict, __accumMaxValue, "bytes" )
+    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = __suitableUnits
+    #3rd variable unused ( maxValue )
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                   'data'          : baseDataDict, 
@@ -209,7 +210,8 @@ class DataStoragePlotter( BaseReporter ):
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]    
+    span      = plotInfo[ 'granularity' ]
+    dataDict  = plotInfo[ 'graphDataDict' ]  
     
     metadata = { 
                 'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
@@ -218,8 +220,9 @@ class DataStoragePlotter( BaseReporter ):
                 'span'      : span,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    
+    dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   ##############################################################################
   #
@@ -232,8 +235,8 @@ class DataStoragePlotter( BaseReporter ):
     Reports about the PFN files and the physical files from the accounting.
     '''
     
-    _selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectString + ", %s, %s, SUM(%s/%s)",
+    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'PhysicalFiles', 'entriesInBucket'
                                    ]
@@ -247,13 +250,13 @@ class DataStoragePlotter( BaseReporter ):
     if not retVal[ 'OK' ]:
       return retVal
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: this stripDataField is not used ?
     self.stripDataField( dataDict, 0 )
     
-    __accumMaxValue = self._getAccumulationMaxValue( dataDict )
-    __suitableUnits = self._findSuitableUnit( dataDict, __accumMaxValue, "files" )
+    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "files" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = __suitableUnits
+    #3rd variable unused ( maxValue )
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                    'data'          : baseDataDict, 
@@ -269,7 +272,8 @@ class DataStoragePlotter( BaseReporter ):
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]     
+    span      = plotInfo[ 'granularity' ]
+    dataDict  = plotInfo[ 'graphDataDict' ]  
     
     metadata = { 
                 'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
@@ -278,8 +282,9 @@ class DataStoragePlotter( BaseReporter ):
                 'span'      : span,
                 'ylabel'    : plotInfo[ 'unit' ] 
                }
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    
+    dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

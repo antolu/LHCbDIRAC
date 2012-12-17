@@ -48,7 +48,6 @@ class PopularityPlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: why is this used ?
     self.stripDataField( dataDict, 0 )
     
     accumMaxValue = self._getAccumulationMaxValue( dataDict )
@@ -110,7 +109,6 @@ class PopularityPlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: why is this used ?
     self.stripDataField( dataDict, 0 )
     
     accumMaxValue = self._getAccumulationMaxValue( dataDict )
