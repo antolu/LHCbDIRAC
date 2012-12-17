@@ -397,10 +397,10 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                      'condDict'       : { 'EventType' : 'Full stream' } 
                                     } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501202, 
                                                                               1355702400L : 38.35170637810842 }
                                                            }, 
-                                        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                                        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501202, 
                                                                               1355702400L : 38.35170637810842 }
                                                            }, 
                                         'unit'          : 'files', 
@@ -503,10 +503,10 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                       'endTime'        : 1355749690.0,
                       'condDict'       : { 'EventType' : 'Full stream' } 
                     }
-    plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+    plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501202, 
                                                        1355702400L : 38.35170637810842 }
                                    }, 
-                 'data'          : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                 'data'          : { 'Full stream' : { 1355616000L : 42.47885754501202, 
                                                        1355702400L : 38.35170637810842 }
                                    }, 
                  'unit'          : 'files', 
