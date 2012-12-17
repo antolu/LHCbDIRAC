@@ -275,8 +275,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                         'granularity'  : 'BucketLength'
                                        } )
     
-    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '935388524246.91630989384787' ) ), 
-                   ( 'Full stream', 1355702400L, 86400, Decimal( '843844487074.82197482051816' ) ) ) 
+    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '420.47885754501202' ) ), 
+                   ( 'Full stream', 1355702400L, 86400, Decimal( '380.35170637810842' ) ) ) 
     mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
     mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
     
