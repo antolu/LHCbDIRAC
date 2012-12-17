@@ -14,6 +14,8 @@
 import mock
 import unittest
 
+from decimal import Decimal
+
 class DataStoragePlotterTestCase( unittest.TestCase ):
   '''
     DataStoragePlotterTestCase
@@ -204,7 +206,28 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                                        },
                       msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
     
-    #FIXME: continue test...
+    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '935388524246.91630989384787' ) ), 
+                   ( 'Full stream', 1355702400L, 86400, Decimal( '843844487074.82197482051816' ) ) ) 
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    res = obj._reportCatalogSpace( { 'grouping'       : 'EventType',
+                                     'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                     'startTime'      : 1355663249.0,
+                                     'endTime'        : 1355749690.0,
+                                     'condDict'       : { 'EventType' : 'Full stream' } 
+                                    } )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': { 'Full stream': { 1355616000L: 4.9003546130956819, 
+                                                                            1355702400L: 4.9050379437065059
+                                                                           }
+                                                          }, 
+                                        'data'         : { 'Full stream': { 1355616000L: 4900354613.0956821, 
+                                                                            1355702400L: 4905037943.7065058
+                                                                           }
+                                                          }, 
+                                        'unit'         : 'PB', 
+                                        'granularity'  : '86400'
+                                       },
+                      msg = 'Expected dictionary with keys graphDataDict, data, unit & granularity' )
+    
 
   def test_reportCatalogFiles( self ):
     ''' test the method "_reportCatalogFiles"

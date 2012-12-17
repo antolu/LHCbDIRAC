@@ -19,6 +19,7 @@ class PopularityPlotter( BaseReporter ):
   
   _typeName          = "Popularity"
   _typeKeyFields     = [ dF[0] for dF in Popularity().definitionKeyFields ]
+  #FIXME: WTF is this ????, here includes StorageElement !!!
   _noSEtypeKeyFields = [ dF[0] for dF in Popularity().definitionKeyFields ]
   _noSEGrouping      = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 

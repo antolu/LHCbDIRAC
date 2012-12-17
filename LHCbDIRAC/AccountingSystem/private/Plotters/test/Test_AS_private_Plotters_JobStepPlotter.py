@@ -119,7 +119,7 @@ class JobStepPlotterUnitTest( JobStepPlotterTestCase ):
     self.assertEqual( obj._typeKeyFields, [ 'JobGroup', 'RunNumber', 'EventType', 
                                             'ProcessingType', 'ProcessingStep', 
                                             'Site', 'FinalStepState' ],
-                      msg =  'Expected keys from MockDataStorage' )    
+                      msg =  'Expected keys from MockJobStep' )    
   
   def test_reportCPUEfficiencyName( self ):
     ''' test the class variable "_reportCPUEfficiencyName"
@@ -275,6 +275,8 @@ class JobStepPlotterUnitTest( JobStepPlotterTestCase ):
     obj = self.classsTested( None, None )
     self.assertEqual( obj._reportCPUTimePerInputEventsName, "CPUTime/Input Events",
                       msg = 'Expected CPUTime/Input Events as value' )
+
+  #FIXME: add crashes !
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

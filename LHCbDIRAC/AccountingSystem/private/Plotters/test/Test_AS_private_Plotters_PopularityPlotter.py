@@ -38,9 +38,9 @@ class PopularityPlotterTestCase( unittest.TestCase ):
     # And then makes its own mock
     class MockPopularity:
       #pylint: disable=C0111,R0903,W0232
-      definitionKeyFields = ( 'JobGroup', 'RunNumber', 'EventType', 'ProcessingType',
-                              'ProcessingStep', 'Site', 'FinalStepState' )
-    
+      definitionKeyFields = ( 'DataType', 'Activity', 'FileType', 'Production',
+                              'ProcessingPass', 'Conditions', 'EventType', 'StorageElement' )
+        
     moduleTested.Popularity = mock.Mock( return_value = MockPopularity() )
     
     return moduleTested
@@ -71,6 +71,8 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     <constructor>
      - test_instantiate
     <class variables>
+     - test_typeName
+     - test_typeKeyFields
     <methods> 
   '''
 
@@ -80,6 +82,23 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     obj = self.classsTested( None, None )
     self.assertEqual( 'PopularityPlotter', obj.__class__.__name__,
                       msg = 'Expected PopularityPlotter object' )
-    
+
+  def test_typeName( self ):
+    ''' test the class variable "_typeName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._typeName, "Popularity", 
+                      msg = 'Expected Popularity as value' )
+
+  def test_typeKeyFields( self ):
+    ''' test the class variable "_typeKeyFields" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._typeKeyFields, [ 'DataType', 'Activity', 'FileType', 
+                                            'Production', 'ProcessingPass', 
+                                            'Conditions', 'EventType', 'StorageElement'
+                                          ],   
+                      msg = 'Expected keys from MockPopularity' )
+        
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
