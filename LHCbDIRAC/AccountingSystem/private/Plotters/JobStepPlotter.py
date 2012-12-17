@@ -1,11 +1,14 @@
-''' JobStepPlotter
+''' LHCbDIRAC.AccountingSystem.private.Plotters.JobStepPlotter
+
+   JobStepPlotter.__bases__:
+     DIRAC.AccountingSystem.private.Plotters.BaseReporter.BaseReporter    
 
 '''
 
 from DIRAC import S_OK
 from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 
-from LHCbDIRAC.AccountingSystem.Client.Types.JobStep      import JobStep
+from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 
 __RCSID__ = "$Id: $"
 

@@ -1,4 +1,7 @@
-''' DataStoragePlotter
+''' LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter
+
+   DataStoragePlotter.__bases__:
+     DIRAC.AccountingSystem.private.Plotters.BaseReporter.BaseReporter
 
 '''
 

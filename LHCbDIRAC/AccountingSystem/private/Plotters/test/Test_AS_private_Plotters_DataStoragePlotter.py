@@ -69,19 +69,22 @@ class DataStoragePlotterTestCase( unittest.TestCase ):
 class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
   '''
     DataStoragePlotterUnitTest
-    - test_instantiate
-    - test_typeName
-    - test_typeKeyFields
-    - test_noSEtypeKeyFields
-    - test_noSEGrouping
-    - test_reportCatalogSpaceName
-    - test_reportCatalogFilesName
-    - test_reportPhysicalSpaceName
-    - test_reportPhysicalFilesName
-    - test_reportCatalogSpace
-    - test_reportCatalogFiles
-    - test_reportPhysicalSpace
-    - test_reportPhysicalFiles
+    <constructor>
+     - test_instantiate
+    <class variables> 
+     - test_typeName
+     - test_typeKeyFields
+     - test_noSEtypeKeyFields
+     - test_noSEGrouping
+    <methods> 
+     - test_reportCatalogSpaceName
+     - test_reportCatalogFilesName
+     - test_reportPhysicalSpaceName
+     - test_reportPhysicalFilesName
+     - test_reportCatalogSpace
+     - test_reportCatalogFiles
+     - test_reportPhysicalSpace
+     - test_reportPhysicalFiles
   '''
   #FIXME: missing test_plotCatalogSpace
   #FIXME: missing test_plotCatalogFiles
@@ -323,14 +326,17 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
     DataStoragePlotterUnitTest
-    - test_reportCatalogSpace
-    - test_reportCatalogFiles
-    - test_reportPhysicalSpace
-    - test_reportPhysicalFiles
-    - test_plotCatalogSpace
-    - test_plotCatalogFiles
-    - test_plotPhysicalSpace
-    - test_plotPhysicalFiles
+    <constructor>
+    <class variables>
+    <methods>
+     - test_reportCatalogSpace
+     - test_reportCatalogFiles
+     - test_reportPhysicalSpace
+     - test_reportPhysicalFiles
+     - test_plotCatalogSpace
+     - test_plotCatalogFiles
+     - test_plotPhysicalSpace
+     - test_plotPhysicalFiles
   '''
   
   def test_reportCatalogSpace( self ):
