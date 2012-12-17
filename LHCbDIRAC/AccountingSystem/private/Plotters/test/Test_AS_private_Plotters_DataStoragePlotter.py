@@ -25,8 +25,9 @@ def compare( file1Path, file2Path ):
     
     returns 0.0 if both are identical
   '''
-  image1 = Image.open( file1Path )
-  image2 = Image.open( file2Path )
+  #Crops image to remote the "Generated on xxxx UTC" string
+  image1 = Image.open( file1Path ).crop( ( 0, 0, 800, 570 ) )
+  image2 = Image.open( file2Path ).crop( ( 0, 0, 800, 570 ) )
   h1 = image1.histogram()
   h2 = image2.histogram()
   rms = math.sqrt( reduce( operator.add,
