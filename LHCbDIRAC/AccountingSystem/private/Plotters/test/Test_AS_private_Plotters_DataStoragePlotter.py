@@ -16,6 +16,23 @@ import unittest
 
 from decimal import Decimal
 
+import math
+import operator
+import Image
+def compare( file1, file2 ):
+  '''
+    Function used to compare two plots
+  '''
+  image1 = Image.open(file1)
+  image2 = Image.open(file2)
+  h1 = image1.histogram()
+  h2 = image2.histogram()
+  rms = math.sqrt(reduce(operator.add,
+                         map(lambda a,b: (a-b)**2, h1, h2))/len(h1))
+  return rms
+
+#...............................................................................
+
 class DataStoragePlotterTestCase( unittest.TestCase ):
   '''
     DataStoragePlotterTestCase
@@ -330,13 +347,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
   def test_plotCatalogSpace( self ):
     ''' test the method "_plotCatalogSpace"
     '''    
-
-#    mockAccountingDB = mock.Mock()
-#    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
-#    mockedData = ( ( 'Full stream', 1355616000L, 86400, Decimal( '935388524246.91630989384787' ) ), 
-#                   ( 'Full stream', 1355702400L, 86400, Decimal( '843844487074.82197482051816' ) ) ) 
-#    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
-#    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
     obj = self.classsTested( None, None )
     
     reportRequest = { 'grouping'       : 'EventType',
@@ -356,7 +367,10 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                 }
     res = obj._plotCatalogSpace( reportRequest, plotInfo, '_plotCatalogSpace' )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )    
+    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
+    
+    res = compare( '_plotCatalogSpace', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogSpace.png' )
+    self.assertEquals( 0.0, res )    
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
