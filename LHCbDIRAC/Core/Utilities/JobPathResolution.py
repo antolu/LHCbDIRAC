@@ -70,7 +70,9 @@ class JobPathResolution:
       if not jobManifest.getOption( 'DisableDataScheduling', False ):
         self.log.info( 'Job %s has input data requirement' % ( jid ) )
         bkInputData = gConfig.getValue( '%s/BKInputData' % section, 'BKInputData' )
-        path.extend( [ 'InputData', bkInputData ] )
+        path.append( 'InputData' )
+        if bkInputData not in path:
+          path.append( bkInputData )
       else:
         self.log.info( 'Job %s has input data requirement but scheduling via input data is disabled' % ( jid ) )
         result = JobDB().setInputData( jid, [] )
