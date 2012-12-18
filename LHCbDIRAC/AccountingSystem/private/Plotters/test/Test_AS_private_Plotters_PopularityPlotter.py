@@ -296,7 +296,8 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotNormalizedDataUsage.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotNormalizedDataUsage.png' )
+    res = compare( '_plotNormalizedDataUsage.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotNormalizedDataUsage.png' )
     self.assertEquals( 0.0, res )   
 
 #...............................................................................
