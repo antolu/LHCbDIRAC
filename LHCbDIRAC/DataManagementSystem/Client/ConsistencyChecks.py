@@ -657,7 +657,7 @@ class ConsistencyChecks( object ):
   fileType = property( get_fileType, set_fileType )
 
   def set_fileTypesExcluded( self, value ):
-    fts = [ft.lower() for ft in value]
+    fts = [ft.upper() for ft in value]
     self._fileTypesExcluded = fts
   def get_fileTypesExcluded( self ):
     return self._fileTypesExcluded
