@@ -29,7 +29,25 @@ class PopularityPlotter( BaseReporter ):
   _reportDataUsageName = "Data Usage"
   def _reportDataUsage( self, reportRequest ):
     '''
-      Reports the data usage from the Accounting DB.
+    Reports the data usage, from the Accounting DB.
+    
+    :param reportRequest: <dict>
+      { 'groupingFields' : ( '%s', [ 'EventType' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'EventType' : '90000000' } 
+      }
+      
+    returns S_OK / S_ERROR
+      { 'graphDataDict' : { '90000000' : { 1355616000L : 123.456789, 
+                                           1355702400L : 78.901234500000001 }
+                                         }, 
+        'data'          : { '90000000' : { 1355616000L : 123456.789, 
+                                           1355702400L : 78901.234500000006 } 
+                                         }, 
+        'unit'          : 'kfiles', 
+        'granularity'   : 86400
+      }  
     '''
     
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )

@@ -99,7 +99,7 @@ class DataStoragePlotter( BaseReporter ):
          'endTime'        : 1355749690.0,
          'condDict'       : { 'EventType' : 'Full stream' }
        }
-    :param plotInfo: <dict>
+    :param plotInfo: <dict> ( output of _reportCatalogSpace )
        { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819, 
                                                1355702400L: 4.9050379437065059 }
                            }, 
@@ -207,7 +207,7 @@ class DataStoragePlotter( BaseReporter ):
         'endTime'        : 1355749690.0,
         'condDict'       : { 'EventType' : 'Full stream' } 
       }
-    :param plotInfo: <dict>
+    :param plotInfo: <dict> ( output of _reportCatalogFiles )
       { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
                                               1355702400L : 380.35170637810842 }
                           }, 
@@ -311,7 +311,7 @@ class DataStoragePlotter( BaseReporter ):
         'endTime'        : 1355749690.0,
         'condDict'       : { 'EventType' : 'Full stream' } 
       }
-    :param plotInfo: <dict>
+    :param plotInfo: <dict> ( output of _reportPhysicalSpace )
       { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
                                               1355702400L : 15.237810842 }
                           }, 
@@ -414,7 +414,7 @@ class DataStoragePlotter( BaseReporter ):
          'endTime'        : 1355749690.0,
          'condDict'       : { 'EventType' : 'Full stream' } 
        }
-    :param plotInfo: <dict>
+    :param plotInfo: <dict> ( output of _reportPhysicalFiles )
       { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819, 
                                               1355702400L: 4.9050379437065059 }
                           }, 

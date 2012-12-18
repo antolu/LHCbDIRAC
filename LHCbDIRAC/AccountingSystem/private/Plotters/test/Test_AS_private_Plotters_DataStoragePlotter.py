@@ -520,6 +520,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     res = compare( '_plotPhysicalFiles.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotPhysicalFiles.png' )
     self.assertEquals( 0.0, res )      
 
+#...............................................................................
+
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
     DataStoragePlotterUnitTest

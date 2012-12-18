@@ -78,6 +78,9 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     <methods>
      - test_reportDataUsage
   '''
+  #FIXME: missing test_plotDataUsage
+  #FIXME: missing test_reportNormalizedDataUsage
+  #FIXME: missing test_plotNormalizedDataUsage
 
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
@@ -128,7 +131,7 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
                                         'data'         : {}, 
-                                        'unit'         : 'MB', 
+                                        'unit'         : 'files', 
                                         'granularity'  : 'BucketLength'
                                        })
     
@@ -143,17 +146,69 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                                   'condDict'       : { 'EventType' : '90000000' } 
                                  } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '90000000': { 1355616000L: 935.38852424691629, 
-                                                                          1355702400L: 843.84448707482204
-                                                                        }
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '90000000' : { 1355616000L : 123.456789, 
+                                                                           1355702400L : 78.901234500000001 }
                                                            }, 
-                                        'data'          : { '90000000': { 1355616000L: 935388.52424691629, 
-                                                                          1355702400L: 843844.48707482207
-                                                                        }
+                                        'data'          : { '90000000' : { 1355616000L : 123456.789, 
+                                                                           1355702400L : 78901.234500000006 } 
                                                            }, 
                                         'unit'          : 'kfiles', 
                                         'granularity'   : 86400
                                        } )
+
+#...............................................................................
+
+class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
+  '''
+    PopularityPlotterUnitTest
+    <constructor>
+     - test_instantiate
+    <class variables>
+    <methods>
+    - test_reportDataUsage
+  '''
+  
+  #FIXME: missing test_plotDataUsage
+  #FIXME: missing test_reportNormalizedDataUsage
+  #FIXME: missing test_plotNormalizedDataUsage
+  
+  def test_instantiate( self ):
+    ''' test the constructor
+    '''
+  
+    self.assertRaises( TypeError, self.classsTested )
+    self.assertRaises( TypeError, self.classsTested, None )
+    self.assertRaises( TypeError, self.classsTested, None, None, None, None )
+  
+    self.assertRaises( TypeError, self.classsTested, extraArgs = None )
+    self.assertRaises( TypeError, self.classsTested, None, extraArgs = None )
+    self.assertRaises( TypeError, self.classsTested, None, None, None, extraArgs = None )
+  
+  def test_reportDataUsage( self ):
+    ''' test the method "_reportDataUsage"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    self.assertRaises( KeyError, obj._reportDataUsage, {} )
+    self.assertRaises( IndexError, obj._reportDataUsage, { 'groupingFields' : [] } )
+    self.assertRaises( TypeError, obj._reportDataUsage,  { 'groupingFields' : [1,2] } )
+    self.assertRaises( TypeError, obj._reportDataUsage,  { 'groupingFields' : [1,[ 2 ] ] } )
+    self.assertRaises( TypeError, obj._reportDataUsage,  { 'groupingFields' : ['1', '2' ] } )
+    self.assertRaises( KeyError, obj._reportDataUsage,   { 'groupingFields' : ['1',[ 2 ] ] } )
+    self.assertRaises( KeyError, obj._reportDataUsage,   { 'groupingFields' : ['1', [2,2] ],
+                                                           'startTime'      : None } )
+    self.assertRaises( KeyError, obj._reportDataUsage,   { 'groupingFields' : ['1', [2,2] ],
+                                                           'startTime'      : None,
+                                                           'endTime'        : None } )
+    self.assertRaises( TypeError, obj._reportDataUsage,  { 'groupingFields' : ['1', [2,2] ],
+                                                           'startTime'      : None,
+                                                           'endTime'        : None,
+                                                           'condDict'       : None } )      
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
