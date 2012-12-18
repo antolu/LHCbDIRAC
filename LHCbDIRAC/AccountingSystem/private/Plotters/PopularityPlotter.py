@@ -12,6 +12,9 @@ from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 
 __RCSID__ = '$Id$'
 
+#FIXME: refactor _reportMethods
+#FIXME: refactor _plotMethods
+
 class PopularityPlotter( BaseReporter ):
   '''
     PopularityPlotter as extension of BaseReporter

@@ -12,6 +12,9 @@ from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage  import DataStorage
 
 __RCSID__ = "$Id$"
 
+#FIXME: refactor _reportMethods
+#FIXME: refactor _plotMethods
+
 class DataStoragePlotter( BaseReporter ):
   '''
     DataStoragePlotter as extension of BaseReporter

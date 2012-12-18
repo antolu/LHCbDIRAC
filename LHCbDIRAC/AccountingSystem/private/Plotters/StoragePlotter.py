@@ -12,6 +12,9 @@ from LHCbDIRAC.AccountingSystem.Client.Types.Storage      import Storage
 
 __RCSID__ = "$Id$"
 
+#FIXME: refactor _reportMethods
+#FIXME: refactor _plotMethods
+
 class StoragePlotter( BaseReporter ):
   '''
     StoragePlotter as extension of BaseReporter
@@ -367,6 +370,36 @@ class StoragePlotter( BaseReporter ):
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
+    '''
+    Reports about the PFN files and the physical files from the accounting.
+    
+    :param reportRequest: <dict>
+       { 'grouping'       : 'StorageElement',
+         'groupingFields' : ( '%s', [ 'StorageElement' ] ),
+         'startTime'      : 1355663249.0,
+         'endTime'        : 1355749690.0,
+         'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
+        }
+    
+    returns S_OK / S_ERROR
+      { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999, 
+                                               1355702400L : 261.65890999999999 }, 
+                            'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999, 
+                                               1355702400L : 413.65890999999999 }, 
+                            'CERN-DST'     : { 1355616000L : 186.65890999999999, 
+                                               1355702400L : 187.65890999999999 }
+                           }, 
+        'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91, 
+                                               1355702400L : 261658.91 }, 
+                            'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997, 
+                                               1355702400L : 413658.90999999997 }, 
+                            'CERN-DST'     : { 1355616000L : 186658.91, 
+                                               1355702400L : 187658.91 }
+                           }, 
+        'unit'          : 'kfiles', 
+        'granularity'   : 86400
+       }
+    '''
     
     selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectField + ", %s, %s, SUM(%s/%s)",
@@ -401,7 +434,42 @@ class StoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
+    '''
+    Creates <filename>.png file containing information regarding the PFN files and 
+    the physical files.
     
+    :param reportRequest: <dict>
+       { 'grouping'       : 'StorageElement',
+         'groupingFields' : ( '%s', [ 'StorageElement' ] ),
+         'startTime'      : 1355663249.0,
+         'endTime'        : 1355749690.0,
+         'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
+        }
+    :param plotInfo: <dict> ( output of _reportPhysicalFiles )
+      { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999, 
+                                               1355702400L : 261.65890999999999 }, 
+                            'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999, 
+                                               1355702400L : 413.65890999999999 }, 
+                            'CERN-DST'     : { 1355616000L : 186.65890999999999, 
+                                               1355702400L : 187.65890999999999 }
+                          }, 
+        'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91, 
+                                               1355702400L : 261658.91 }, 
+                            'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997, 
+                                               1355702400L : 413658.90999999997 }, 
+                            'CERN-DST'     : { 1355616000L : 186658.91, 
+                                               1355702400L : 187658.91 }
+                          }, 
+        'unit'          : 'kfiles', 
+        'granularity'   : 86400
+       }
+    :param filename: <str>
+      '_plotPhysicalFiles'
+      
+    return S_OK / S_ERROR
+       { 'plot': True, 'thumbnail': False }      
+    '''
+        
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
     granularity = plotInfo[ 'granularity' ]
