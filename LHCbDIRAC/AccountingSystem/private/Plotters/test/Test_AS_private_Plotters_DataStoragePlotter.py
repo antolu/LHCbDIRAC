@@ -543,7 +543,11 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   
     self.assertRaises( TypeError, self.classsTested )
     self.assertRaises( TypeError, self.classsTested, None )
-    self.assertRaises( TypeError, self.classsTested, None, None, None )
+    self.assertRaises( TypeError, self.classsTested, None, None, None, None )
+  
+    self.assertRaises( TypeError, self.classsTested, extraArgs = None )
+    self.assertRaises( TypeError, self.classsTested, None, extraArgs = None )
+    self.assertRaises( TypeError, self.classsTested, None, None, None, extraArgs = None )
   
   def test_reportCatalogSpace( self ):
     ''' test the method "_reportCatalogSpace"

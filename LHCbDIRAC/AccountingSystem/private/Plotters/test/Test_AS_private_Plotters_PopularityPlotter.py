@@ -110,12 +110,7 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
     obj = self.classsTested( mockAccountingDB, None )
     
-    res = obj._reportDataUsage( { 'grouping' : 'StorageElement' } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
-    
-    res = obj._reportDataUsage( { 'grouping'       : 'NextToABeer',
-                                  'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+    res = obj._reportDataUsage( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
                                   'startTime'      : 'startTime',
                                   'endTime'        : 'endTime',
                                   'condDict'       : {} 
@@ -125,8 +120,7 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
-    res = obj._reportDataUsage( { 'grouping'       : 'NextToABeer',
-                                  'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+    res = obj._reportDataUsage( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
                                   'startTime'      : 'startTime',
                                   'endTime'        : 'endTime',
                                   'condDict'       : {} 
@@ -143,8 +137,7 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
     mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
     
-    res = obj._reportDataUsage( { 'grouping'       : 'EventType',
-                                  'groupingFields' : ( '%s', [ 'EventType' ] ),
+    res = obj._reportDataUsage( { 'groupingFields' : ( '%s', [ 'EventType' ] ),
                                   'startTime'      : 1355663249.0,
                                   'endTime'        : 1355749690.0,
                                   'condDict'       : { 'EventType' : '90000000' } 
