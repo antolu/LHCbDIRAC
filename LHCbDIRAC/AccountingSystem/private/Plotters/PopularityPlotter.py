@@ -86,9 +86,9 @@ class PopularityPlotter( BaseReporter ):
       Plots the data Usage statistics.
     '''
     
-    granularity = plotInfo[ 'granularity' ]
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
     
     metadata = {

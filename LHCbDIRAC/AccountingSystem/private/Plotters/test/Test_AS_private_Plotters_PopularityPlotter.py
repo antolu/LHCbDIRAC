@@ -241,7 +241,8 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     
     obj = self.classsTested( None, None )
     
-    reportRequest = { 'groupingFields' : ( '%s', [ 'EventType' ] ),
+    reportRequest = { 'grouping'       : 'EventType',
+                      'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
                       'endTime'        : 1355749690.0,
                       'condDict'       : { 'StorageElement' : 'CERN' } 
@@ -359,7 +360,7 @@ class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
                                                         'endTime'   : 'endTime' }, 
                                                          None, None )
     self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime',
-                                                        'endTime'   : 'endTime' }, 
+                                                       'endTime'   : 'endTime' }, 
                                                         {}, None )
     self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime',
                                                        'endTime'   : 'endTime' }, 
