@@ -260,11 +260,12 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                  'unit'          : 'kfiles', 
                  'granularity': 86400 
                 }
-    res = obj._plotDataUsage( reportRequest, plotInfo, '_plotDataUsage' )
+    res = obj._plotDataUsage( reportRequest, plotInfo, 'PopularityPlotter_plotDataUsage' )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotDataUsage.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotDataUsage.png' )
+    res = compare( 'PopularityPlotter_plotDataUsage.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/PopularityPlotter_plotDataUsage.png' )
     self.assertEquals( 0.0, res )   
 
   def test_plotNormalizedDataUsage( self ):
@@ -292,19 +293,19 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                  'unit'          : 'kfiles', 
                  'granularity': 86400 
                 }
-    res = obj._plotNormalizedDataUsage( reportRequest, plotInfo, '_plotNormalizedDataUsage' )
+    res = obj._plotNormalizedDataUsage( reportRequest, plotInfo, 'PopularityPlotter_plotNormalizedDataUsage' )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotNormalizedDataUsage.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotNormalizedDataUsage.png' )
+    res = compare( 'PopularityPlotter_plotNormalizedDataUsage.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/PopularityPlotter_plotNormalizedDataUsage.png' )
     self.assertEquals( 0.0, res )   
 
 #...............................................................................
 
 class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
   '''
-    PopularityPlotterUnitTest
+    PopularityPlotterUnitTestCrashes
     <constructor>
      - test_instantiate
     <class variables>

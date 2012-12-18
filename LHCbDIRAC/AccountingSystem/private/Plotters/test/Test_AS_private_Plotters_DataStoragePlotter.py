@@ -429,11 +429,12 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'PB', 
                  'granularity'   : 86400
                 }
-    res = obj._plotCatalogSpace( reportRequest, plotInfo, '_plotCatalogSpace' )
+    res = obj._plotCatalogSpace( reportRequest, plotInfo, 'DataStoragePlotter_plotCatalogSpace' )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotCatalogSpace.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogSpace.png' )
+    res = compare( 'DataStoragePlotter_plotCatalogSpace.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotCatalogSpace.png' )
     self.assertEquals( 0.0, res )    
 
   def test_plotCatalogFiles( self ):
@@ -457,11 +458,12 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'files', 
                  'granularity'   : 86400 
                 }
-    res = obj._plotCatalogFiles( reportRequest, plotInfo, '_plotCatalogFiles' )
+    res = obj._plotCatalogFiles( reportRequest, plotInfo, 'DataStoragePlotter_plotCatalogFiles' )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotCatalogFiles.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotCatalogFiles.png' )
+    res = compare( 'DataStoragePlotter_plotCatalogFiles.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotCatalogFiles.png' )
     self.assertEquals( 0.0, res )    
 
   def test_plotPhysicalSpace( self ):
@@ -489,7 +491,8 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotPhysicalSpace.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotPhysicalSpace.png' )
+    res = compare( 'DataStoragePlotter_plotPhysicalSpace.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotPhysicalSpace.png' )
     self.assertEquals( 0.0, res )    
 
   def test_plotPhysicalFiles( self ):
@@ -517,14 +520,15 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( '_plotPhysicalFiles.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotPhysicalFiles.png' )
+    res = compare( 'DataStoragePlotter_plotPhysicalFiles.png', 
+                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotPhysicalFiles.png' )
     self.assertEquals( 0.0, res )      
 
 #...............................................................................
 
 class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
-    DataStoragePlotterUnitTest
+    DataStoragePlotterUnitTestCrashes
     <constructor>
      - test_instantiate
     <class variables>

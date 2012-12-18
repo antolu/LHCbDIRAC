@@ -1,4 +1,7 @@
-''' StoragePlotter
+''' LHCbDIRAC.AccountingSystem.private.Plotters.StoragePlotter
+
+   StoragePlotter.__bases__:
+     DIRAC.AccountingSystem.private.Plotters.BaseReporter.BaseReporter
 
 '''
 
@@ -17,10 +20,8 @@ class StoragePlotter( BaseReporter ):
   _typeName      = "Storage"
   _typeKeyFields = [ dF[0] for dF in Storage().definitionKeyFields ]
 
-  ##############################################################################
-  #
-  # Catalog Space
-  #
+  #.............................................................................
+  # catalog Space
   
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
@@ -32,11 +33,11 @@ class StoragePlotter( BaseReporter ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'LogicalSize', 'entriesInBucket'
-                                   ]
+                                                              'LogicalSize', 'entriesInBucket'
+                                                            ]
                    )
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -53,7 +54,8 @@ class StoragePlotter( BaseReporter ):
     accumMaxVal   = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxVal, "bytes" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    #3rd value, maxValue is not used
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
      
     return S_OK( { 
                   'data'          : baseDataDict, 
@@ -67,25 +69,24 @@ class StoragePlotter( BaseReporter ):
     Plots about LFN size and catalog space . 
     '''
     
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'graphDataDict' ]
     
     metadata = { 
                 'title'     : "LFN space usage by %s" % reportRequest[ 'grouping' ],
-                'starttime' : startTime,
-                'endtime'   : endTime,
-                'span'      : span,
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-  ##############################################################################
-  #
-  # Catalog Files
-  #
+  #.............................................................................
+  # catalog Files
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
@@ -93,11 +94,11 @@ class StoragePlotter( BaseReporter ):
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'LogicalFiles', 'entriesInBucket'
-                                   ]
+                                                              'LogicalFiles', 'entriesInBucket'
+                                                            ]
                    )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -115,7 +116,8 @@ class StoragePlotter( BaseReporter ):
     accumMaxVal   = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxVal, "files" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    #3rd value, maxValue is not used
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                   'data'          : baseDataDict, 
@@ -126,25 +128,24 @@ class StoragePlotter( BaseReporter ):
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
     
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'graphDataDict' ]
         
     metadata = { 
                 'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
-                'starttime' : startTime,
-                'endtime'   : endTime,
-                'span'      : span,
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Physical Space
-  #
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
@@ -226,7 +227,8 @@ class StoragePlotter( BaseReporter ):
     accumMaxVal   = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxVal, "files" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    #3rd value, maxValue is not used
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                   'data'          : baseDataDict, 
@@ -237,63 +239,61 @@ class StoragePlotter( BaseReporter ):
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
     
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'graphDataDict' ]
         
     metadata = { 
                 'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
-                'starttime' : startTime,
-                'endtime'   : endTime,
-                'span'      : span,
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # PFN vs LFN File Multiplicity
-  #
 
   _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
     
-    _logicalField  = "LogicalFiles"
-    _physicalField = "PhysicalFiles"
+    logicalField  = "LogicalFiles"
+    physicalField = "PhysicalFiles"
     
-    return self._multiplicityReport( reportRequest, _logicalField, _physicalField )
+    return self._multiplicityReport( reportRequest, logicalField, physicalField )
 
   def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
 
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'graphDataDict' ]
     
     metadata = { 
                 'title'     : "Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
-                'starttime' : startTime,
-                'endtime'   : endTime,
-                'span'      : span,
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # PFN vs LFN Size Multiplicity
-  #
 
   _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
     
-    _logicalField  = "LogicalSize"
-    _physicalField = "PhysicalSize"
+    logicalField  = "LogicalSize"
+    physicalField = "PhysicalSize"
     
-    return self._multiplicityReport( reportRequest, _logicalField, _physicalField )
+    return self._multiplicityReport( reportRequest, logicalField, physicalField )
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
 
@@ -312,16 +312,13 @@ class StoragePlotter( BaseReporter ):
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
-  ##############################################################################
-  #
-  # Helper functions
-  #
+  #.............................................................................
+  # helper methods
 
   def _multiplicityReport( self, reportRequest, logicalField, physicalField ):
     
     #Step 1 get the total LFNs for each bucket
     selectFields = ( "%s, %s, %s, SUM(%s)/SUM(%s)",
-                     #[ 'User', 'startTime', 'bucketLength', logicalField, 'entriesInBucket' ]
                      [ 'Directory', 'startTime', 'bucketLength', logicalField, 'entriesInBucket' ]
                    )
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -333,7 +330,8 @@ class StoragePlotter( BaseReporter ):
     if not retVal[ 'OK' ]:
       return retVal
     
-    dataDict, granularity = retVal[ 'Value' ]
+    #2nd element ( granularity ) is unused
+    dataDict, __ = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
     bucketTotals = self._getBucketTotals( dataDict )
     
@@ -341,8 +339,8 @@ class StoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    physicalField, 'entriesInBucket'
-                                   ]
+                                                              physicalField, 'entriesInBucket'
+                                                            ]
                    )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -355,19 +353,33 @@ class StoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
+    #FIXME: remove this print !
     print dataDict
     self.stripDataField( dataDict, 0 )
     
     #Step 3 divide the PFNs by the total amount of LFNs
     finalData = {}
+
+    #FIXME: TO BE replaced by a faster implementation ( see below )
     for k in dataDict:
       for bt in dataDict[ k ]:
         if bt in bucketTotals:
           if k not in finalData:
             finalData[ k ] = {}
           finalData[ k ][ bt ] = dataDict[ k ][ bt ] / bucketTotals[ bt ]
-    return S_OK( { 'data' : finalData, 'graphDataDict' : finalData,
-                   'granularity' : granularity, 'unit' : 'PFN / LFN' } )
+
+#    for key, bucketTotal in dataDict.iteritems():
+#      for bt in bucketTotal.itervalues():
+#        if bt in bucketTotals:
+#          if key not in finalData:
+#            finalData[ key ] = {}
+#          finalData[ key ][ bt ] = bucketTotal[ bt ] / bucketTotals[ bt ]
+
+    return S_OK( { 'data'          : finalData, 
+                   'graphDataDict' : finalData,
+                   'granularity'   : granularity, 
+                   'unit'          : 'PFN / LFN' 
+                  } )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
