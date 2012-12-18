@@ -16,6 +16,26 @@ import unittest
 
 from decimal import Decimal
 
+import math
+import operator
+import Image
+def compare( file1Path, file2Path ):
+  '''
+    Function used to compare two plots
+    
+    returns 0.0 if both are identical
+  '''
+  #Crops image to remote the "Generated on xxxx UTC" string
+  image1 = Image.open( file1Path ).crop( ( 0, 0, 800, 570 ) )
+  image2 = Image.open( file2Path ).crop( ( 0, 0, 800, 570 ) )
+  h1 = image1.histogram()
+  h2 = image2.histogram()
+  rms = math.sqrt( reduce( operator.add,
+                           map(lambda a,b: (a-b)**2, h1, h2))/len(h1) )
+  return rms
+
+#...............................................................................
+
 class PopularityPlotterTestCase( unittest.TestCase ):
   '''
     PopularityPlotterTestCase
@@ -78,8 +98,8 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     <methods>
      - test_reportDataUsage
      - test_reportNormalizedDataUsage
+     - test_plotDataUsage
   '''
-  #FIXME: missing test_plotDataUsage 
   #FIXME: missing test_plotNormalizedDataUsage
 
   def test_instantiate( self ):
@@ -199,21 +219,52 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                                             'startTime'      : 1355663249.0,
                                             'endTime'        : 1355749690.0,
                                             'condDict'       : { 'StorageElement' : 'CERN' } 
-                                 } )
+                                           } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '90000000' : { 1355616000L : 123.456789, 
-                                                                           1355702400L : 78.901234500000001 },
-                                                            '90000001' : { 1355616000L : 223.456789, 
-                                                                           1355702400L : 148.901234500000001 }
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '90000001' : { 1355616000L : 223.45678899999999, 
+                                                                           1355702400L : 148.90123449999999 }, 
+                                                            '90000000' : { 1355616000L : 123.456789, 
+                                                                           1355702400L : 78.901234500000001 }
                                                            }, 
-                                        'data'          : { '90000000' : { 1355616000L : 123456.789, 
-                                                                           1355702400L : 78901.234500000006 },
-                                                            '90000001' : { 1355616000L : 223456.789, 
-                                                                           1355702400L : 148901.234500000006 }
+                                        'data'          : { '90000001' : { 1355616000L : 223456.78899999999, 
+                                                                           1355702400L : 148901.23449999999 }, 
+                                                            '90000000' : { 1355616000L : 123456.789, 
+                                                                           1355702400L : 78901.234500000006 } 
                                                            }, 
                                         'unit'          : 'kfiles', 
-                                        'granularity'   : 86400
+                                        'granularity': 86400 
                                        } )
+
+  def test_plotDataUsage( self ):
+    ''' test the method "_plotDataUsage"
+    '''    
+    
+    obj = self.classsTested( None, None )
+    
+    reportRequest = { 'groupingFields' : ( '%s', [ 'EventType' ] ),
+                      'startTime'      : 1355663249.0,
+                      'endTime'        : 1355749690.0,
+                      'condDict'       : { 'StorageElement' : 'CERN' } 
+                    } 
+    plotInfo = { 'graphDataDict' : { '90000001' : { 1355616000L : 223.45678899999999, 
+                                                    1355702400L : 148.90123449999999 }, 
+                                     '90000000' : { 1355616000L : 123.456789, 
+                                                    1355702400L : 78.901234500000001 }
+                                    }, 
+                 'data'          : { '90000001' : { 1355616000L : 223456.78899999999, 
+                                                    1355702400L : 148901.23449999999 }, 
+                                     '90000000' : { 1355616000L : 123456.789, 
+                                                    1355702400L : 78901.234500000006 } 
+                                    }, 
+                 'unit'          : 'kfiles', 
+                 'granularity': 86400 
+                }
+    res = obj._plotDataUsage( reportRequest, plotInfo, '_plotDataUsage' )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
+    
+    res = compare( '_plotDataUsage.png', 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/_plotDataUsage.png' )
+    self.assertEquals( 0.0, res )   
 
 #...............................................................................
 
@@ -226,9 +277,9 @@ class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
     <methods>
     - test_reportDataUsage
     - test_reportNormalizedDataUsage
+    - test_plotDataUsage
   '''
   
-  #FIXME: missing test_plotDataUsage
   #FIXME: missing test_plotNormalizedDataUsage
   
   def test_instantiate( self ):
@@ -294,6 +345,34 @@ class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
                                                                      'startTime'      : None,
                                                                      'endTime'        : None,
                                                                      'condDict'       : None } )            
+
+  def test_plotDataUsage( self ):
+    ''' test the method "_plotDataUsage"
+    '''
+    
+    obj = self.classsTested( None, None )
+    self.assertRaises( TypeError, obj._plotDataUsage, None, None, None )
+    self.assertRaises( KeyError, obj._plotDataUsage, {}, None, None )
+    self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime' }, 
+                                                        None, None )
+    self.assertRaises( TypeError, obj._plotDataUsage, { 'startTime' : 'startTime',
+                                                        'endTime'   : 'endTime' }, 
+                                                         None, None )
+    self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime',
+                                                        'endTime'   : 'endTime' }, 
+                                                        {}, None )
+    self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime',
+                                                       'endTime'   : 'endTime' }, 
+                                                     { 'granularity' : 'granularity' }, None )
+    self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime',
+                                                       'endTime'   : 'endTime',
+                                                       'grouping'  : 'grouping' }, 
+                                                     { 'granularity' : 'granularity' }, None )
+    self.assertRaises( KeyError, obj._plotDataUsage, { 'startTime' : 'startTime',
+                                                       'endTime'   : 'endTime',
+                                                       'grouping'  : 'grouping' }, 
+                                                     { 'granularity'   : 'granularity',
+                                                       'graphDataDict' : 'graphDataDict' }, None )
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

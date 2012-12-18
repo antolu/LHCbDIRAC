@@ -699,7 +699,7 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
                                                           'endTime'   : 'endTime',
                                                           'grouping'  : 'grouping' }, 
                                                         { 'granularity' : 'granularity',
-                                                          'unit'        : 'unit' }, None )
+                                                          'graphDataDict' : 'graphDataDict' }, None )
 
   def test_plotCatalogFiles( self ):
     ''' test the method "_plotCatalogFiles"
@@ -727,7 +727,7 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
                                                           'endTime'   : 'endTime',
                                                           'grouping'  : 'grouping' }, 
                                                         { 'granularity' : 'granularity',
-                                                          'unit'        : 'unit' }, None )
+                                                          'graphDataDict' : 'graphDataDict' }, None )
 
   def test_plotPhysicalSpace( self ):
     ''' test the method "_plotPhysicalSpace"
@@ -755,7 +755,7 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
                                                            'endTime'   : 'endTime',
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity',
-                                                           'unit'        : 'unit' }, None )
+                                                           'graphDataDict' : 'graphDataDict' }, None )
 
   def test_plotPhysicalFiles( self ):
     ''' test the method "_plotPhysicalFiles"
@@ -783,7 +783,7 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
                                                            'endTime'   : 'endTime',
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity',
-                                                           'unit'        : 'unit' }, None )
+                                                           'graphDataDict' : 'graphDataDict' }, None )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
