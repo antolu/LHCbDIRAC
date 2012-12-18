@@ -83,7 +83,34 @@ class PopularityPlotter( BaseReporter ):
 
   def _plotDataUsage( self, reportRequest, plotInfo, filename ):
     '''
-      Plots the data Usage statistics.
+    Creates <filename>.png file containing information regarding the data usage.
+    
+    :param reportRequest: <dict>
+       { 'grouping'       : 'EventType',
+         'groupingFields' : ( '%s', [ 'EventType' ] ),
+         'startTime'      : 1355663249.0,
+         'endTime'        : 1355749690.0,
+         'condDict'       : { 'StorageElement' : 'CERN' } 
+       }
+    :param plotInfo: <dict> ( output of _reportDataUsage )
+       { 'graphDataDict' : { '90000001' : { 1355616000L : 223.45678899999999, 
+                                            1355702400L : 148.90123449999999 }, 
+                             '90000000' : { 1355616000L : 123.456789, 
+                                            1355702400L : 78.901234500000001 }
+                            }, 
+         'data'          : { '90000001' : { 1355616000L : 223456.78899999999, 
+                                            1355702400L : 148901.23449999999 }, 
+                             '90000000' : { 1355616000L : 123456.789, 
+                                            1355702400L : 78901.234500000006 } 
+                            }, 
+         'unit'          : 'kfiles', 
+         'granularity': 86400 
+        }    
+    :param filename: <str>
+      '_plotDataUsage'
+      
+    returns S_OK / S_ERROR
+       { 'plot': True, 'thumbnail': False }  
     '''
     
     startEpoch  = reportRequest[ 'startTime' ]
