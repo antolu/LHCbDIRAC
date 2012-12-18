@@ -565,6 +565,82 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )
 
+  def test_multiplicityReport( self ):
+    ''' test the method "_multiplicityReport"
+    '''
+
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._multiplicityReport( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                     }, '', '' )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.side_effect = [ { 'OK' : False, 'Message' : 'No connection' }, 
+                                                    { 'OK' : True, 'Value' : [] } ]
+    res = obj._multiplicityReport( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    }, '', '' )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+#    res = obj._reportPhysicalFiles( { 'grouping'       : 'NextToABeer',
+#                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                     'startTime'      : 'startTime',
+#                                     'endTime'        : 'endTime',
+#                                     'condDict'       : {} 
+#                                    } )
+#    self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
+#    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+#                                        'data'         : {}, 
+#                                        'unit'         : 'files', 
+#                                        'granularity'  : 'BucketLength'
+#                                       } )
+#    
+#    mockedData = ( ( 'CERN-ARCHIVE', 1355616000L, 86400, Decimal( '412658.91' ) ), 
+#                   ( 'CERN-ARCHIVE', 1355702400L, 86400, Decimal( '413658.91' ) ),
+#                   ( 'CERN-BUFFER',  1355616000L, 86400, Decimal( '250658.91' ) ), 
+#                   ( 'CERN-BUFFER',  1355702400L, 86400, Decimal( '261658.91' ) ),
+#                   ( 'CERN-DST',     1355616000L, 86400, Decimal( '186658.91' ) ), 
+#                   ( 'CERN-DST',     1355702400L, 86400, Decimal( '187658.91' ) ) )
+#    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+#    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+#    
+#    res = obj._reportPhysicalFiles( { 'grouping'       : 'StorageElement',
+#                                      'groupingFields' : ( '%s', [ 'StorageElement' ] ),
+#                                      'startTime'      : 1355663249.0,
+#                                      'endTime'        : 1355749690.0,
+#                                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
+#                                     } )
+#    self.assertEqual( res[ 'OK' ], True )
+#    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999, 
+#                                                                               1355702400L : 261.65890999999999 }, 
+#                                                            'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999, 
+#                                                                               1355702400L : 413.65890999999999 }, 
+#                                                            'CERN-DST'     : { 1355616000L : 186.65890999999999, 
+#                                                                               1355702400L : 187.65890999999999 }
+#                                                           }, 
+#                                        'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91, 
+#                                                                               1355702400L : 261658.91 }, 
+#                                                            'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997, 
+#                                                                               1355702400L : 413658.90999999997 }, 
+#                                                            'CERN-DST'     : { 1355616000L : 186658.91, 
+#                                                                               1355702400L : 187658.91 }
+#                                                           }, 
+#                                        'unit'          : 'kfiles', 
+#                                        'granularity'   : 86400
+#                                        } )    
+
 #...............................................................................
 
 class StoragePlotterUnitTestCrashes( StoragePlotterTestCase ):
