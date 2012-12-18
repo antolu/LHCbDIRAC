@@ -524,6 +524,7 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
   '''
     DataStoragePlotterUnitTest
     <constructor>
+     - test_instantiate
     <class variables>
     <methods>
      - test_reportCatalogSpace
@@ -535,6 +536,14 @@ class DataStoragePlotterUnitTestCrashes( DataStoragePlotterTestCase ):
      - test_plotPhysicalSpace
      - test_plotPhysicalFiles
   '''
+  
+  def test_instantiate( self ):
+    ''' test the constructor
+    '''
+  
+    self.assertRaises( TypeError, self.classsTested )
+    self.assertRaises( TypeError, self.classsTested, None )
+    self.assertRaises( TypeError, self.classsTested, None, None, None )
   
   def test_reportCatalogSpace( self ):
     ''' test the method "_reportCatalogSpace"

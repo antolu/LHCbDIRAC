@@ -14,6 +14,8 @@
 import mock
 import unittest
 
+from decimal import Decimal
+
 class PopularityPlotterTestCase( unittest.TestCase ):
   '''
     PopularityPlotterTestCase
@@ -73,22 +75,21 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     <class variables>
      - test_typeName
      - test_typeKeyFields
-    <methods> 
+    <methods>
+     - test_reportDataUsage
   '''
 
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
     '''     
     obj = self.classsTested( None, None )
-    self.assertEqual( 'PopularityPlotter', obj.__class__.__name__,
-                      msg = 'Expected PopularityPlotter object' )
+    self.assertEqual( 'PopularityPlotter', obj.__class__.__name__ )
 
   def test_typeName( self ):
     ''' test the class variable "_typeName" 
     '''
     obj = self.classsTested( None, None )
-    self.assertEqual( obj._typeName, "Popularity", 
-                      msg = 'Expected Popularity as value' )
+    self.assertEqual( obj._typeName, "Popularity" )
 
   def test_typeKeyFields( self ):
     ''' test the class variable "_typeKeyFields" 
@@ -97,8 +98,69 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     self.assertEqual( obj._typeKeyFields, [ 'DataType', 'Activity', 'FileType', 
                                             'Production', 'ProcessingPass', 
                                             'Conditions', 'EventType', 'StorageElement'
-                                          ],   
-                      msg = 'Expected keys from MockPopularity' )
+                                          ] )
+
+  def test_reportDataUsage( self ):
+    ''' test the method "_reportDataUsage"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._reportDataUsage( { 'grouping' : 'StorageElement' } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
+    
+    res = obj._reportDataUsage( { 'grouping'       : 'NextToABeer',
+                                  'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                  'startTime'      : 'startTime',
+                                  'endTime'        : 'endTime',
+                                  'condDict'       : {} 
+                                 } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
+    res = obj._reportDataUsage( { 'grouping'       : 'NextToABeer',
+                                  'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                  'startTime'      : 'startTime',
+                                  'endTime'        : 'endTime',
+                                  'condDict'       : {} 
+                                 } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+                                        'data'         : {}, 
+                                        'unit'         : 'MB', 
+                                        'granularity'  : 'BucketLength'
+                                       })
+    
+    mockedData = ( ( '90000000', 1355616000L, 86400, Decimal( '123456.789' ) ), 
+                   ( '90000000', 1355702400L, 86400, Decimal( '78901.2345' ) ) ) 
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
+    res = obj._reportDataUsage( { 'grouping'       : 'EventType',
+                                  'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                  'startTime'      : 1355663249.0,
+                                  'endTime'        : 1355749690.0,
+                                  'condDict'       : { 'EventType' : '90000000' } 
+                                 } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '90000000': { 1355616000L: 935.38852424691629, 
+                                                                          1355702400L: 843.84448707482204
+                                                                        }
+                                                           }, 
+                                        'data'          : { '90000000': { 1355616000L: 935388.52424691629, 
+                                                                          1355702400L: 843844.48707482207
+                                                                        }
+                                                           }, 
+                                        'unit'          : 'kfiles', 
+                                        'granularity'   : 86400
+                                       } )
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
