@@ -105,11 +105,11 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
      - test_plotCatalogSpace
      - test_reportCatalogFiles
      - test_plotCatalogFiles
+     - test_reportPhysicalSpace
+     - test_plotPhysicalSpace
+     - test_reportPhysicalFiles
+     - test_plotPhysicalFiles
   ''' 
-  #FIXME: missing test_reportPhysicalSpace
-  #FIXME: missing test_plotPhysicalSpace
-  #FIXME: missing test_reportPhysicalFiles
-  #FIXME: missing test_plotPhysicalFiles
   #FIXME: missing test_reportPFNvsLFNFileMultiplicity
   #FIXME: missing test_plotPFNvsLFNFileMultiplicity
   #FIXME: missing test_reportPFNvsLFNSizeMultiplicity
@@ -320,18 +320,19 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] } 
                                     } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4.5242469100000005, 
-                                                                             1355702400L : 4.4870748200000001 }, 
-                                                            '/lhcb/LHCb' : { 1355616000L : 3.52424691, 
-                                                                             1355702400L : 0.38707481999999999} 
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4935388.5242469106, 
+                                                                             1355702400L : 4843844.4870748203 }, 
+                                                            '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101, 
+                                                                             1355702400L : 3843844.4870748199 }
                                                            }, 
-                                        'data'           : { '/lhcb/data' : { 1355616000L : 4524246.9100000001, 
-                                                                              1355702400L : 4487074.8200000003 }, 
-                                                             '/lhcb/LHCb' : { 1355616000L : 3524246.9100000001, 
-                                                                              1355702400L : 387074.82000000001 }
-                                                            }, 
-                                        'unit'           : 'Mfiles', 
-                                        'granularity'    : 86400 } )
+                                        'data'          : { '/lhcb/data' : { 1355616000L : 4935388524246.9102, 
+                                                                             1355702400L : 4843844487074.8203 }, 
+                                                            '/lhcb/LHCb' : { 1355616000L : 3935388524246.9102, 
+                                                                             1355702400L : 3843844487074.8198 }
+                                                           }, 
+                                        'unit'          : 'Mfiles', 
+                                        'granularity'   : 86400
+                                        } )
 
   def test_plotCatalogFiles( self ):
     ''' test the method "_plotCatalogFiles"
@@ -344,18 +345,18 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                       'endTime'        : 1355749690.0,
                       'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] } 
                      }
-    plotInfo = { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4.5242469100000005, 
-                                                      1355702400L : 4.4870748200000001 }, 
-                                     '/lhcb/LHCb' : { 1355616000L : 3.52424691, 
-                                                      1355702400L : 0.38707481999999999} 
+    plotInfo = { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4935388.5242469106, 
+                                                      1355702400L : 4843844.4870748203 }, 
+                                     '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101, 
+                                                      1355702400L : 3843844.4870748199 }
                                     }, 
-                 'data'           : { '/lhcb/data' : { 1355616000L : 4524246.9100000001, 
-                                                       1355702400L : 4487074.8200000003 }, 
-                                      '/lhcb/LHCb' : { 1355616000L : 3524246.9100000001, 
-                                                       1355702400L : 387074.82000000001 }
-                                     }, 
-                 'unit'           : 'Mfiles', 
-                 'granularity'    : 86400 
+                 'data'          : { '/lhcb/data' : { 1355616000L : 4935388524246.9102, 
+                                                      1355702400L : 4843844487074.8203 }, 
+                                     '/lhcb/LHCb' : { 1355616000L : 3935388524246.9102, 
+                                                      1355702400L : 3843844487074.8198 }
+                                    }, 
+                 'unit'          : 'Mfiles', 
+                 'granularity'   : 86400
                 }
     
     obj = self.classsTested( None, None )
@@ -413,14 +414,18 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                       'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST' ] } 
                                      } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
-                                                                              1355702400L : 15.237810842 }
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'CERN-ARCHIVE' : { 1355616000L : 2.34455676781291, 
+                                                                               1355702400L : 2.5445567678129102 }, 
+                                                            'CERN-DST'     : { 1355616000L : 0.34455676781290995, 
+                                                                               1355702400L : 0.54455676781290996 }
                                                            }, 
-                                        'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
-                                                                              1355702400L : 15.237810842 }
+                                        'data'          : { 'CERN-ARCHIVE' : { 1355616000L : 2344556.76781291, 
+                                                                               1355702400L : 2544556.76781291 }, 
+                                                            'CERN-DST'     : { 1355616000L : 344556.76781290997, 
+                                                                               1355702400L : 544556.76781291002 }
                                                            }, 
-                                        'unit'          : 'MB', 
-                                        'granularity'   : 86400 
+                                        'unit'          : 'TB', 
+                                        'granularity'   : 86400
                                         } )
 
   def test_plotPhysicalSpace( self ):
@@ -434,18 +439,110 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                       'endTime'        : 1355749690.0,
                       'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST' ] } 
                     }
-    plotInfo = { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4.5242469100000005, 
-                                                      1355702400L : 4.4870748200000001 }, 
-                                     '/lhcb/LHCb' : { 1355616000L : 3.52424691, 
-                                                      1355702400L : 0.38707481999999999} 
+    plotInfo = { 'graphDataDict' : { 'CERN-ARCHIVE' : { 1355616000L : 2.34455676781291, 
+                                                        1355702400L : 2.5445567678129102 }, 
+                                     'CERN-DST'     : { 1355616000L : 0.34455676781290995, 
+                                                        1355702400L : 0.54455676781290996 }
                                     }, 
-                 'data'           : { '/lhcb/data' : { 1355616000L : 4524246.9100000001, 
-                                                       1355702400L : 4487074.8200000003 }, 
-                                      '/lhcb/LHCb' : { 1355616000L : 3524246.9100000001, 
-                                                       1355702400L : 387074.82000000001 }
-                                     }, 
-                 'unit'           : 'Mfiles', 
-                 'granularity'    : 86400 
+                 'data'          : { 'CERN-ARCHIVE' : { 1355616000L : 2344556.76781291, 
+                                                        1355702400L : 2544556.76781291 }, 
+                                     'CERN-DST'     : { 1355616000L : 344556.76781290997, 
+                                                        1355702400L : 544556.76781291002 }
+                                    }, 
+                 'unit'          : 'TB', 
+                 'granularity'   : 86400
+                }
+    
+    obj = self.classsTested( None, None )
+    res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
+    
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
+    self.assertEquals( 0.0, res )
+
+  def test_reportPhysicalFiles( self ):
+    ''' test the method "_reportPhysicalFiles"
+    '''
+
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._reportPhysicalFiles( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                      'startTime'      : 'startTime',
+                                      'endTime'        : 'endTime',
+                                      'condDict'       : {} 
+                                     } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
+    res = obj._reportPhysicalFiles( { 'grouping'       : 'NextToABeer',
+                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                     'startTime'      : 'startTime',
+                                     'endTime'        : 'endTime',
+                                     'condDict'       : {} 
+                                    } )
+    self.assertEqual( res[ 'OK' ], True, msg = 'Expected S_OK' )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+                                        'data'         : {}, 
+                                        'unit'         : 'files', 
+                                        'granularity'  : 'BucketLength'
+                                       } )
+    
+    mockedData = ( ( 'CERN-ARCHIVE', 1355616000L, 86400, Decimal( '412658.91' ) ), 
+                   ( 'CERN-ARCHIVE', 1355702400L, 86400, Decimal( '413658.91' ) ),
+                   ( 'CERN-BUFFER',  1355616000L, 86400, Decimal( '250658.91' ) ), 
+                   ( 'CERN-BUFFER',  1355702400L, 86400, Decimal( '261658.91' ) ),
+                   ( 'CERN-DST',     1355616000L, 86400, Decimal( '186658.91' ) ), 
+                   ( 'CERN-DST',     1355702400L, 86400, Decimal( '187658.91' ) ) )
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
+    res = obj._reportPhysicalFiles( { 'grouping'       : 'StorageElement',
+                                      'groupingFields' : ( '%s', [ 'StorageElement' ] ),
+                                      'startTime'      : 1355663249.0,
+                                      'endTime'        : 1355749690.0,
+                                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
+                                     } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501202, 
+                                                                              1355702400L : 38.35170637810842 }
+                                                           }, 
+                                        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501202, 
+                                                                              1355702400L : 38.35170637810842 }
+                                                           }, 
+                                        'unit'          : 'files', 
+                                        'granularity'   : 86400 
+                                        } )
+
+  def test_plotPhysicalFiles( self ):
+    ''' test the method "_plotPhysicalFiles"
+    '''    
+    
+    plotName = 'StoragePlotter_plotPhysicalFiles'
+    reportRequest = { 'grouping'       : 'StorageElement',
+                      'groupingFields' : ( '%s', [ 'StorageElement' ] ),
+                      'startTime'      : 1355663249.0,
+                      'endTime'        : 1355749690.0,
+                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
+                    }
+    plotInfo = { 'graphDataDict' : { 'CERN-ARCHIVE' : { 1355616000L : 2.34455676781291, 
+                                                        1355702400L : 2.5445567678129102 }, 
+                                     'CERN-DST'     : { 1355616000L : 0.34455676781290995, 
+                                                        1355702400L : 0.54455676781290996 }
+                                    }, 
+                 'data'          : { 'CERN-ARCHIVE' : { 1355616000L : 2344556.76781291, 
+                                                        1355702400L : 2544556.76781291 }, 
+                                     'CERN-DST'     : { 1355616000L : 344556.76781290997, 
+                                                        1355702400L : 544556.76781291002 }
+                                    }, 
+                 'unit'          : 'TB', 
+                 'granularity'   : 86400
                 }
     
     obj = self.classsTested( None, None )
@@ -471,6 +568,8 @@ class StoragePlotterUnitTestCrashes( StoragePlotterTestCase ):
      - test_plotCatalogFiles
      - test_reportPhysicalSpace
      - test_plotPhysicalSpace
+     - test_reportPhysicalFiles
+     - test_plotPhysicalFiles
   '''
   
   def test_instantiate( self ):
@@ -664,7 +763,60 @@ class StoragePlotterUnitTestCrashes( StoragePlotterTestCase ):
                                                            'grouping'  : 'grouping' }, 
                                                          { 'granularity' : 'granularity',
                                                            'graphDataDict' : 'graphDataDict' }, None )
-          
+
+  def test_reportPhysicalFiles( self ):
+    ''' test the method "_reportPhysicalFiles"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    self.assertRaises( KeyError, obj._reportPhysicalFiles, {} )
+    self.assertRaises( IndexError, obj._reportPhysicalFiles, { 'groupingFields' : [] } )
+    self.assertRaises( TypeError, obj._reportPhysicalFiles, { 'groupingFields' : [1,2] } )
+    self.assertRaises( TypeError, obj._reportPhysicalFiles, { 'groupingFields' : [1,[ 2 ] ] } )
+    self.assertRaises( TypeError, obj._reportPhysicalFiles, { 'groupingFields' : ['1', '2' ] } )
+    self.assertRaises( KeyError, obj._reportPhysicalFiles, { 'groupingFields' : ['1',[ 2 ] ] } )
+    self.assertRaises( KeyError, obj._reportPhysicalFiles, { 'groupingFields' : ['1', [2,2] ],
+                                                             'startTime'      : None } )
+    self.assertRaises( KeyError, obj._reportPhysicalFiles, { 'groupingFields' : ['1', [2,2] ],
+                                                             'startTime'      : None,
+                                                             'endTime'        : None } )
+    self.assertRaises( TypeError, obj._reportPhysicalFiles, { 'groupingFields' : ['1', [2,2] ],
+                                                              'startTime'      : None,
+                                                              'endTime'        : None,
+                                                              'condDict'       : None } )
+
+  def test_plotPhysicalFiles( self ):
+    ''' test the method "_plotPhysicalFiles"
+    '''
+    
+    obj = self.classsTested( None, None )
+    self.assertRaises( TypeError, obj._plotPhysicalFiles, None, None, None )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, {}, None, None )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime' }, 
+                                                         None, None )
+    self.assertRaises( TypeError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
+                                                            'endTime'   : 'endTime' }, 
+                                                          None, None )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
+                                                           'endTime'   : 'endTime' }, 
+                                                         {}, None )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
+                                                           'endTime'   : 'endTime' }, 
+                                                         { 'granularity' : 'granularity' }, None )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
+                                                           'endTime'   : 'endTime',
+                                                           'grouping'  : 'grouping' }, 
+                                                         { 'granularity' : 'granularity' }, None )
+    self.assertRaises( KeyError, obj._plotPhysicalFiles, { 'startTime' : 'startTime',
+                                                           'endTime'   : 'endTime',
+                                                           'grouping'  : 'grouping' }, 
+                                                         { 'granularity' : 'granularity',
+                                                           'graphDataDict' : 'graphDataDict' }, None )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
