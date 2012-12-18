@@ -77,9 +77,9 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
      - test_typeKeyFields
     <methods>
      - test_reportDataUsage
+     - test_reportNormalizedDataUsage
   '''
-  #FIXME: missing test_plotDataUsage
-  #FIXME: missing test_reportNormalizedDataUsage
+  #FIXME: missing test_plotDataUsage 
   #FIXME: missing test_plotNormalizedDataUsage
 
   def test_instantiate( self ):
@@ -156,6 +156,65 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                                         'granularity'   : 86400
                                        } )
 
+  def test_reportNormalizedDataUsage( self ):
+    ''' test the method "_reportNormalizedDataUsage"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    res = obj._reportNormalizedDataUsage( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                            'startTime'      : 'startTime',
+                                            'endTime'        : 'endTime',
+                                            'condDict'       : {} 
+                                           } )
+    self.assertEqual( res[ 'OK' ], False )
+    self.assertEqual( res[ 'Message' ], 'No connection' )
+    
+    #Changed mocked to run over different lines of code
+    mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
+    res = obj._reportNormalizedDataUsage( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+                                            'startTime'      : 'startTime',
+                                            'endTime'        : 'endTime',
+                                            'condDict'       : {} 
+                                           } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict': {}, 
+                                        'data'         : {}, 
+                                        'unit'         : 'files', 
+                                        'granularity'  : 'BucketLength'
+                                       })
+    
+    mockedData = ( ( '90000000', 1355616000L, 86400, Decimal( '123456.789' ) ), 
+                   ( '90000000', 1355702400L, 86400, Decimal( '78901.2345' ) ),
+                   ( '90000001', 1355616000L, 86400, Decimal( '223456.789' ) ), 
+                   ( '90000001', 1355702400L, 86400, Decimal( '148901.2345' ) ) ) 
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : mockedData }
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 86400
+    
+    res = obj._reportNormalizedDataUsage( { 'groupingFields' : ( '%s', [ 'EventType' ] ),
+                                            'startTime'      : 1355663249.0,
+                                            'endTime'        : 1355749690.0,
+                                            'condDict'       : { 'StorageElement' : 'CERN' } 
+                                 } )
+    self.assertEqual( res[ 'OK' ], True )
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { '90000000' : { 1355616000L : 123.456789, 
+                                                                           1355702400L : 78.901234500000001 },
+                                                            '90000001' : { 1355616000L : 223.456789, 
+                                                                           1355702400L : 148.901234500000001 }
+                                                           }, 
+                                        'data'          : { '90000000' : { 1355616000L : 123456.789, 
+                                                                           1355702400L : 78901.234500000006 },
+                                                            '90000001' : { 1355616000L : 223456.789, 
+                                                                           1355702400L : 148901.234500000006 }
+                                                           }, 
+                                        'unit'          : 'kfiles', 
+                                        'granularity'   : 86400
+                                       } )
+
 #...............................................................................
 
 class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
@@ -166,10 +225,10 @@ class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
     <class variables>
     <methods>
     - test_reportDataUsage
+    - test_reportNormalizedDataUsage
   '''
   
   #FIXME: missing test_plotDataUsage
-  #FIXME: missing test_reportNormalizedDataUsage
   #FIXME: missing test_plotNormalizedDataUsage
   
   def test_instantiate( self ):
@@ -208,7 +267,33 @@ class PopularityPlotterUnitTestCrashes( PopularityPlotterTestCase ):
     self.assertRaises( TypeError, obj._reportDataUsage,  { 'groupingFields' : ['1', [2,2] ],
                                                            'startTime'      : None,
                                                            'endTime'        : None,
-                                                           'condDict'       : None } )      
+                                                           'condDict'       : None } )
+    
+  def test_reportNormalizedDataUsage( self ):
+    ''' test the method "_reportNormalizedDataUsage"
+    '''
+    
+    mockAccountingDB = mock.Mock()
+    mockAccountingDB._getConnection.return_value               = { 'OK' : False, 'Message' : 'No connection' }
+    mockAccountingDB.retrieveBucketedData.return_value         = { 'OK' : True, 'Value' : [] } 
+    mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
+    obj = self.classsTested( mockAccountingDB, None )
+    
+    self.assertRaises( KeyError, obj._reportNormalizedDataUsage, {} )
+    self.assertRaises( IndexError, obj._reportNormalizedDataUsage, { 'groupingFields' : [] } )
+    self.assertRaises( TypeError, obj._reportNormalizedDataUsage,  { 'groupingFields' : [1,2] } )
+    self.assertRaises( TypeError, obj._reportNormalizedDataUsage,  { 'groupingFields' : [1,[ 2 ] ] } )
+    self.assertRaises( TypeError, obj._reportNormalizedDataUsage,  { 'groupingFields' : ['1', '2' ] } )
+    self.assertRaises( KeyError, obj._reportNormalizedDataUsage,   { 'groupingFields' : ['1',[ 2 ] ] } )
+    self.assertRaises( KeyError, obj._reportNormalizedDataUsage,   { 'groupingFields' : ['1', [2,2] ],
+                                                                     'startTime'      : None } )
+    self.assertRaises( KeyError, obj._reportNormalizedDataUsage,   { 'groupingFields' : ['1', [2,2] ],
+                                                                     'startTime'      : None,
+                                                                     'endTime'        : None } )
+    self.assertRaises( TypeError, obj._reportNormalizedDataUsage,  { 'groupingFields' : ['1', [2,2] ],
+                                                                     'startTime'      : None,
+                                                                     'endTime'        : None,
+                                                                     'condDict'       : None } )            
         
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
