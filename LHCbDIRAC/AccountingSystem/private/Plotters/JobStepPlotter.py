@@ -20,19 +20,17 @@ class JobStepPlotter( BaseReporter ):
   _typeName      = "JobStep"
   _typeKeyFields = [ dF[0] for dF in JobStep().definitionKeyFields ]
 
-  ##############################################################################
-  #
+  #.............................................................................
   # CPU Efficiency
-  #
 
   _reportCPUEfficiencyName = "CPU efficiency"
   def _reportCPUEfficiency( self, reportRequest ):
     
-    _selectField = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
-    selectFields = ( _selectField + ", %s, %s, SUM(%s), SUM(%s)",
+    selectField  = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
+    selectFields = ( selectField + ", %s, %s, SUM(%s), SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'CPUTime', 'ExecTime'
-                                   ]
+                                                              'CPUTime', 'ExecTime'
+                                                            ]
                    )
 
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -43,7 +41,8 @@ class JobStepPlotter( BaseReporter ):
                                  { 'checkNone'                   : True,
                                    'convertToGranularity'        : 'sum',
                                    'calculateProportionalGauges' : False,
-                                   'consolidationFunction' : self._efficiencyConsolidation })
+                                   'consolidationFunction'       : self._efficiencyConsolidation }
+                                )
     if not retVal[ 'OK' ]:
       return retVal
     
@@ -52,9 +51,7 @@ class JobStepPlotter( BaseReporter ):
     if len( dataDict ) > 1:
       #Get the total for the plot
       selectFields = ( "'Total', %s, %s, SUM(%s),SUM(%s)",
-                       [ 'startTime', 'bucketLength',
-                         'CPUTime', 'ExecTime'
-                       ]
+                       [ 'startTime', 'bucketLength', 'CPUTime', 'ExecTime' ]
                      )
 
       retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -89,29 +86,25 @@ class JobStepPlotter( BaseReporter ):
     
     return self._generateQualityPlot( filename, plotInfo[ 'data' ], metadata )
 
-  ############################################################################## 
-  #
+  #.............................................................................
   # CPU Usage
-  #
 
   _reportCPUUsageName = "CPU time"
   def _reportCPUUsage( self, reportRequest ):
     
-    _field = 'CPUTime'
-    _unit  = 'time'
+    field = 'CPUTime'
+    unit  = 'time'
     
-    return self.__reportNormPlot( reportRequest, _field, _unit )
+    return self.__reportNormPlot( reportRequest, field, unit )
 
   def _plotCPUUsage( self, reportRequest, plotInfo, filename ):
     
-    _title = 'CPU usage'
+    title = 'CPU usage'
     
-    return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
+    return self.__plotNormPlot( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Pie CPU Time
-  #
 
   _reportPieCPUTimeName = 'Pie plot of CPU time'
   def _reportPieCPUTime( self, reportRequest ): 
@@ -120,72 +113,64 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotPieCPUTime( self, reportRequest, plotInfo, filename ):
     
-    _title = 'CPU time' 
-    _label = 'CPUTime'
+    title = 'CPU time' 
+    label = 'CPUTime'
     
-    return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotPie( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Cumulative CPU Time
-  #
 
   _reportCumulativeCPUTimeName = "Cumulative CPU time"
   def _reportCumulativeCPUTime( self, reportRequest ):
     
-    _field = 'CPUTime'
-    _unit  = 'time'
+    field = 'CPUTime'
+    unit  = 'time'
     
-    return self.__reportCumulativePlot( reportRequest, _field, _unit  )
+    return self.__reportCumulativePlot( reportRequest, field, unit  )
 
   def _plotCumulativeCPUTime( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Cumulative CPU time'
+    title = 'Cumulative CPU time'
     
-    return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
+    return self.__plotCumulative( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Norm CPU Time
-  #
 
   _reportNormCPUTimeName = "NormCPU time"
   def _reportNormCPUTime( self, reportRequest ):
     
-    _field = 'NormCPUTime'
-    _unit  = 'time'
+    field = 'NormCPUTime'
+    unit  = 'time'
     
-    return self.__reportNormPlot( reportRequest, _field, _unit )
+    return self.__reportNormPlot( reportRequest, field, unit )
 
   def _plotNormCPUTime( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Normalized CPU'
+    title = 'Normalized CPU'
     
-    return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
+    return self.__plotNormPlot( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Cumulative Norm CPU Time
-  #
 
   _reportCumulativeNormCPUTimeName = "Cumulative normalized CPU time"
   def _reportCumulativeNormCPUTime( self, reportRequest ):
     
-    _field = 'NormCPUTime'
-    _unit  = 'time'
+    field = 'NormCPUTime'
+    unit  = 'time'
     
-    return self.__reportCumulativePlot( reportRequest, _field, _unit )
+    return self.__reportCumulativePlot( reportRequest, field, unit )
 
   def _plotCumulativeNormCPUTime( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Cumulative Normalized CPU time'
+    title = 'Cumulative Normalized CPU time'
     
-    return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
+    return self.__plotCumulative( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Pie Norm CPU Time
-  #
 
   _reportPieNormCPUTimeName = 'Pie plot of NormCPU time'
   def _reportPieNormCPUTime( self, reportRequest ):
@@ -194,53 +179,47 @@ class JobStepPlotter( BaseReporter ):
   
   def _plotPieNormCPUTime( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Average Normalized CPU time'
-    _label = 'NormCPUTime'
+    title = 'Average Normalized CPU time'
+    label = 'NormCPUTime'
     
-    return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotPie( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Input Data
-  #
 
   _reportInputDataName = "Input Data"
   def _reportInputData( self, reportRequest ):
     
-    _field = 'InputData'
-    _unit  = 'files' 
+    field = 'InputData'
+    unit  = 'files' 
         
-    return self.__reportNormPlot( reportRequest, _field, _unit )
+    return self.__reportNormPlot( reportRequest, field, unit )
 
   def _plotInputData( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Input data'
+    title = 'Input data'
     
-    return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
+    return self.__plotNormPlot( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Cumulative Input Data
-  #
 
   _reportCumulativeInputDataName = "Cumulative Input Data"
   def _reportCumulativeInputData( self, reportRequest ):
     
-    _field = 'InputData'
-    _unit  = 'files'
+    field = 'InputData'
+    unit  = 'files'
     
-    return self.__reportCumulativePlot( reportRequest, _field, _unit )
+    return self.__reportCumulativePlot( reportRequest, field, unit )
 
   def _plotCumulativeInputData( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Cumulative Input Data'
+    title = 'Cumulative Input Data'
     
-    return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
+    return self.__plotCumulative( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Pie Input Data
-  #
 
   _reportPieInputDataName = 'Pie plot of Input Data'
   def _reportPieInputData( self, reportRequest ):
@@ -249,53 +228,47 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotPieInputData( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Pie plot of Input data'
-    _label = 'InputData'
+    title = 'Pie plot of Input data'
+    label = 'InputData'
     
-    return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotPie( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Output Data
-  #
 
   _reportOutputDataName = "Output Data"
   def _reportOutputData( self, reportRequest ):
     
-    _field = 'OutputData'
-    _units = 'files'
+    field = 'OutputData'
+    units = 'files'
     
-    return self.__reportNormPlot( reportRequest, _field, _units )
+    return self.__reportNormPlot( reportRequest, field, units )
 
   def _plotOutputData( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Output data'
+    title = 'Output data'
     
-    return self.__plotNormPlot( reportRequest, plotInfo, filename, _title )
+    return self.__plotNormPlot( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Cumulative Output Data
-  #
 
   _reportCumulativeOutputDataName = "Cumulative OutputData"
   def _reportCumulativeOutputData( self, reportRequest ):
     
-    _field = 'OutputData'
-    _unit  = 'files'
+    field = 'OutputData'
+    unit  = 'files'
     
-    return self.__reportCumulativePlot( reportRequest, _field, _unit )
+    return self.__reportCumulativePlot( reportRequest, field, unit )
 
   def _plotCumulativeOutputData( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Cumulative Output Data'
+    title = 'Cumulative Output Data'
     
-    return self.__plotCumulative( reportRequest, plotInfo, filename, _title )
+    return self.__plotCumulative( reportRequest, plotInfo, filename, title )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Pie Output Data
-  #
 
   _reportPieOutputDataName = 'Pie plot of Output Data'
   def _reportPieOutputData( self, reportRequest ):
@@ -304,15 +277,13 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotPieOutputData( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Pie plot of  Output data'
-    _label = 'OutputData'
+    title = 'Pie plot of  Output data'
+    label = 'OutputData'
     
-    return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotPie( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Input Events
-  #
 
   _reportInputEventsName = "Input Events"
   def _reportInputEvents( self, reportRequest ):
@@ -320,15 +291,13 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotInputEvents( self, reportRequest, plotInfo, filename ):
     
-    _title = 'InputEvents'
-    _label = 'Input Events'
+    title = 'InputEvents'
+    label = 'Input Events'
     
-    return self.__plotNumberOfField( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotNumberOfField( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Cumulative Input Events
-  #
 
   _reportCumulativeInputEventsName = "Cumulative Input Events"
   def _reportCumulativeInputEvents( self, reportRequest ):
@@ -336,15 +305,13 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotCumulativeInputEvents( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Cumulative Input Events '
-    _label = 'Input Events'  
+    title = 'Cumulative Input Events '
+    label = 'Input Events'  
     
-    return self.__plotCumulativeNumberOfField( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotCumulativeNumberOfField( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Pie Input Events
-  #
 
   _reportPieInputEventsName = 'Pie plot of Input Events'
   def _reportPieInputEvents( self, reportRequest ):
@@ -352,31 +319,27 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotPieInputEvents( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Pie plot of Input Events'
-    _label = 'InputEvents'
+    title = 'Pie plot of Input Events'
+    label = 'InputEvents'
     
-    return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotPie( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Output Events
-  #
-
+  
   _reportOutputEventsName = "Output Events"
   def _reportOutputEvents( self, reportRequest ):
     return self.__reportNumberOfField( reportRequest, 'OutputEvents' )
 
   def _plotOutputEvents( self, reportRequest, plotInfo, filename ):
     
-    _title = 'OutputEvents'
-    _label = 'Output Events'
+    title = 'OutputEvents'
+    label = 'Output Events'
     
-    return self.__plotNumberOfField( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotNumberOfField( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Cumulative Output Events
-  #
 
   _reportCumulativeOutputEventsName = "Cumulative Output Events"
   def _reportCumulativeOutputEvents( self, reportRequest ):
@@ -384,15 +347,13 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotCumulativeOutputEvents( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Cumulative Output Events '
-    _label = 'Output Events'
+    title = 'Cumulative Output Events '
+    label = 'Output Events'
     
-    return self.__plotCumulativeNumberOfField( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotCumulativeNumberOfField( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Pie Output Events
-  #
 
   _reportPieOutputEventsName = 'Pie plot of Output Events'
   def _reportPieOutputEvents( self, reportRequest ):
@@ -400,16 +361,14 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotPieOutputEvents( self, reportRequest, plotInfo, filename ):
     
-    _title = 'Pie plot of Output Events'
-    _label = 'OutputEvents' 
+    title = 'Pie plot of Output Events'
+    label = 'OutputEvents' 
     
-    return self.__plotPie( reportRequest, plotInfo, filename, _title, _label )
+    return self.__plotPie( reportRequest, plotInfo, filename, title, label )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # Input Events Per Output Events
-  #
-
+  
   _reportInputEventsPerOutputEventsName = 'Input/Output Events'
   def _reportInputEventsPerOutputEvents( self, reportRequest ):
     return self.__report2D( reportRequest, 'InputEvents', 'OutputEvents' )
@@ -417,10 +376,8 @@ class JobStepPlotter( BaseReporter ):
   def _plotInputEventsPerOutputEvents( self, reportRequest, plotInfo, filename ):
     return self.__plot2D( reportRequest, plotInfo, filename, "Input/Output Events" )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # CPU Time Per Output Events
-  #
 
   _reportCPUTimePerOutputEventsName = 'CPUTime/Output Events'
   def _reportCPUTimePerOutputEvents( self, reportRequest ):
@@ -429,10 +386,8 @@ class JobStepPlotter( BaseReporter ):
   def _plotCPUTimePerOutputEvents( self, reportRequest, plotInfo, filename ):
     return self.__plot2D( reportRequest, plotInfo, filename, "CPUTime/Output Events" )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # CPU Time Per Input Events
-  #
 
   _reportCPUTimePerInputEventsName = 'CPUTime/Input Events'
   def _reportCPUTimePerInputEvents( self, reportRequest ):
@@ -441,19 +396,15 @@ class JobStepPlotter( BaseReporter ):
   def _plotCPUTimePerInputEvents( self, reportRequest, plotInfo, filename ):
     return self.__plot2D( reportRequest, plotInfo, filename, "CPUTime/Input Events" )
 
-  ##############################################################################
-  #
+  #.............................................................................
   # HELPER methods
-  #
 
   def __reportNormPlot( self, reportRequest, field, unit ):
     
     
-    _selectField = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
-    selectFields = ( _selectField + ", %s, %s, SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    field
-                                   ]
+    selectField  = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
+    selectFields = ( selectField + ", %s, %s, SUM(%s)",
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ]
                    )
     
     startTime = reportRequest[ 'startTime' ]
@@ -467,16 +418,19 @@ class JobStepPlotter( BaseReporter ):
                                  {})
     if not retVal[ 'OK' ]:
       return retVal
+    
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField(dataDict, 0)
     
-    dataDict, __maxValue = self._divideByFactor( dataDict, granularity )
+    #2nd element ( maxValue ) not used
+    dataDict, __ = self._divideByFactor( dataDict, granularity )
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict )
     
-    __accumMaxVal = self._getAccumulationMaxValue( dataDict )
-    suitableUnits = self._findSuitableRateUnit( dataDict, __accumMaxVal, unit )
+    accumMaxVal   = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableRateUnit( dataDict, accumMaxVal, unit )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    #3rd element ( maxValue ) not used
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
      
     return S_OK({ 
                  'data'          : baseDataDict, 
@@ -503,8 +457,8 @@ class JobStepPlotter( BaseReporter ):
     #                               ]
     #               )
     
-    _selectField = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
-    selectFields = ( _selectField + ", SUM(%s)",
+    selectField  = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
+    selectFields = ( selectField + ", SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ field ] )
     
     retVal = self._getSummaryData( reportRequest[ 'startTime' ],
@@ -533,13 +487,13 @@ class JobStepPlotter( BaseReporter ):
 
   def __reportCumulativePlot( self, reportRequest, field, unit ):
     
-    _selectField = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
-    selectFields = ( _selectField + ", %s, %s, SUM(%s)",
+    selectField  = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
+    selectFields = ( selectField + ", %s, %s, SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ]
                    )
     
     startTime = reportRequest[ 'startTime' ]
-    endTime  = reportRequest[ 'endTime' ]
+    endTime   = reportRequest[ 'endTime' ]
     
     retVal = self._getTimedData( startTime,
                                  endTime,
@@ -556,10 +510,11 @@ class JobStepPlotter( BaseReporter ):
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict )
     dataDict = self._accumulate( granularity, startTime, endTime, dataDict )
     
-    __accumMaxValue = self._getAccumulationMaxValue( dataDict )
-    suitableUnits = self._findSuitableUnit( dataDict, __accumMaxValue, unit )
-        
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, unit )
+    
+    #3rd element ( maxValue ) unused    
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
      
     return S_OK({ 
                  'data'          : baseDataDict, 
@@ -583,10 +538,9 @@ class JobStepPlotter( BaseReporter ):
 
   def __reportNumberOfField( self, reportRequest, field ):
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField  + ", %s, %s, SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', 
-                                                             field ]
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField  + ", %s, %s, SUM(%s)",
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ]
                    )
     
     startTime = reportRequest[ 'startTime' ]
@@ -604,13 +558,15 @@ class JobStepPlotter( BaseReporter ):
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
     
-    dataDict, __maxValue = self._divideByFactor( dataDict, granularity )
+    #2nd element ( maxValue ) unused
+    dataDict, __ = self._divideByFactor( dataDict, granularity )
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict )
     
-    __accumMaxValue = self._getAccumulationMaxValue( dataDict )
-    suitableUnits   = self._findSuitableRateUnit( dataDict, __accumMaxValue, "files" ) 
-        
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+    suitableUnits = self._findSuitableRateUnit( dataDict, accumMaxValue, "files" ) 
+    
+    #3rd element ( maxValue ) unused    
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                   'data'          : baseDataDict, 
@@ -622,29 +578,28 @@ class JobStepPlotter( BaseReporter ):
   def __plotNumberOfField( self, reportRequest, plotInfo, filename , title, label ):
     
     
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'data' ]
     
     metadata = { 
                 'title'         : '%s  by %s' % (title, reportRequest[ 'grouping' ]),
-                'starttime'     : startTime,
-                'endtime'       : endTime,
-                'span'          : span,
+                'starttime'     : startEpoch,
+                'endtime'       : endEpoch,
+                'span'          : granularity,
                 'skipEdgeColor' : True,
                 'ylabel'        : label  }
     
-    plotInfo[ 'data' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'data' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'data' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   def __reportCumulativeNumberOfField( self, reportRequest, field ):
     
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ", %s, %s, SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    field
-                                   ]
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ", %s, %s, SUM(%s)",
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ]
                    )
     
     startTime = reportRequest[ 'startTime' ]
@@ -672,30 +627,32 @@ class JobStepPlotter( BaseReporter ):
 
   def __plotCumulativeNumberOfField( self, reportRequest, plotInfo, filename , title, label ):
     
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]  
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]  
+    dataDict    = plotInfo[ 'data' ]
     
     metadata = { 
                 'title'         : '%s  by %s' % ( title, reportRequest[ 'grouping' ] ),
-                'starttime'     : startTime,
-                'endtime'       : endTime,
-                'span'          : span,
+                'starttime'     : startEpoch,
+                'endtime'       : endEpoch,
+                'span'          : granularity,
                 'skipEdgeColor' : True,
                 'ylabel'        : label 
                 }
     
-    plotInfo[ 'data' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'data' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'data' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
+  #FIXME: smells like unused
   def __reportAverageNumberOfField( self, reportRequest, field ):
     #selectFields = (self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ]) + ",SUM(%s/%s)",
     #                 reportRequest[ 'groupingFields' ][1] + [Field, 'entriesInBucket'
     #                               ]
     #               )
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ",SUM(%s)",
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ",SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ field ] )
 
     retVal = self._getSummaryData( reportRequest[ 'startTime' ],
@@ -714,6 +671,7 @@ class JobStepPlotter( BaseReporter ):
     #  dataDict[ key ] = float(dataDict[ key ] / numBins)
     return S_OK({ 'data' : dataDict  })
 
+  #FIXME: smells like unused
   def __plotAverageNumberOfField( self, reportRequest, plotInfo, filename, title, label ):
 
     metadata = { 'title'     : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
@@ -725,8 +683,8 @@ class JobStepPlotter( BaseReporter ):
 
   def __report2D( self, reportRequest, field1, field2 ):
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ", %s, %s, SUM(%s), SUM(%s)",
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ", %s, %s, SUM(%s), SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     field1, field2 ] )
 
