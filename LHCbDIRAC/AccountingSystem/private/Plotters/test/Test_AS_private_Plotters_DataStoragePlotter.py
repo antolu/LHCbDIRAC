@@ -98,11 +98,11 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
      - test_typeKeyFields
      - test_noSEtypeKeyFields
      - test_noSEGrouping
-    <methods> 
      - test_reportCatalogSpaceName
      - test_reportCatalogFilesName
      - test_reportPhysicalSpaceName
-     - test_reportPhysicalFilesName
+     - test_reportPhysicalFilesName     
+    <methods> 
      - test_reportCatalogSpace
      - test_reportCatalogFiles
      - test_reportPhysicalSpace
@@ -487,7 +487,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'MB', 
                  'granularity'   : 86400 
                 }
-    res = obj._plotPhysicalSpace( reportRequest, plotInfo, '_plotPhysicalSpace' )
+    res = obj._plotPhysicalSpace( reportRequest, plotInfo, 'DataStoragePlotter_plotPhysicalSpace' )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
@@ -516,7 +516,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'files', 
                  'granularity'   : 86400 
                 }
-    res = obj._plotPhysicalFiles( reportRequest, plotInfo, '_plotPhysicalFiles' )
+    res = obj._plotPhysicalFiles( reportRequest, plotInfo, 'DataStoragePlotter_plotPhysicalFiles' )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     

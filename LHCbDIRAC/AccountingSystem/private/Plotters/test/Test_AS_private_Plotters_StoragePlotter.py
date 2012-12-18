@@ -71,15 +71,15 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
      - test_instantiate
     <class variables>
      - test_typeName
-     - test_typeKeyFields 
+     - test_typeKeyFields
+     - test_reportCatalogSpaceName
+     - test_reportCatalogFilesName
+     - test_reportPhysicalSpaceName
+     - test_reportPhysicalFilesName
+     - test_reportPFNvsLFNFileMultiplicityName
+     - test_reportPFNvsLFNSizeMultiplicityName 
     <methods>
-  '''
-  #FIXME: missing test_reportCatalogSpaceName
-  #FIXME: missing test_reportCatalogFilesName
-  #FIXME: missing test_reportPhysicalSpaceName
-  #FIXME: missing test_reportPhysicalFilesName
-  #FIXME: missing test_reportPFNvsLFNFileMultiplicityName
-  #FIXME: missing test_reportPFNvsLFNSizeMultiplicityName
+  ''' 
   #FIXME: missing test_reportCatalogSpace
   #FIXME: missing test_plotCatalogSpace
   #FIXME: missing test_reportCatalogFiles
@@ -112,6 +112,42 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     obj = self.classsTested( None, None )
     self.assertEqual( obj._typeKeyFields, [ 'StorageElement', 'Directory' ] )
 
+  def test_reportCatalogSpaceName( self ):
+    ''' test the class variable "_reportCatalogSpaceName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportCatalogSpaceName, "LFN size" )
+
+  def test_reportCatalogFilesName( self ):
+    ''' test the class variable "_reportCatalogFilesName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportCatalogFilesName, "LFN files" )
+    
+  def test_reportPhysicalSpaceName( self ):
+    ''' test the class variable "_reportPhysicalSpaceName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportPhysicalSpaceName, "PFN size" )
+
+  def test_reportPhysicalFilesName( self ):
+    ''' test the class variable "_reportPhysicalFilesName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportPhysicalFilesName, "PFN files" )
+
+  def test_reportPFNvsLFNFileMultiplicityName( self ):
+    ''' test the class variable "_reportPFNvsLFNFileMultiplicityName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportPFNvsLFNFileMultiplicityName, "PFN/LFN file ratio" )
+
+  def test_reportPFNvsLFNSizeMultiplicityName( self ):
+    ''' test the class variable "_reportPFNvsLFNSizeMultiplicityName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportPFNvsLFNSizeMultiplicityName, "PFN/LFN size ratio" )
+    
 #...............................................................................
 
 class StoragePlotterUnitTestCrashes( StoragePlotterTestCase ):

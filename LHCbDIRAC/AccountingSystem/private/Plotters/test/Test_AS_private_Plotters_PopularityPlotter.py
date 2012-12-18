@@ -95,6 +95,8 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     <class variables>
      - test_typeName
      - test_typeKeyFields
+     - test_reportDataUsageName
+     - test_reportNormalizedDataUsageName
     <methods>
      - test_reportDataUsage
      - test_reportNormalizedDataUsage
@@ -122,6 +124,18 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                                             'Production', 'ProcessingPass', 
                                             'Conditions', 'EventType', 'StorageElement'
                                           ] )
+    
+  def test_reportDataUsageName( self ):
+    ''' test the class variable "_reportDataUsageName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportDataUsageName, "Data Usage" )    
+
+  def test_reportNormalizedDataUsageName( self ):
+    ''' test the class variable "_reportNormalizedDataUsageName" 
+    '''
+    obj = self.classsTested( None, None )
+    self.assertEqual( obj._reportNormalizedDataUsageName, "Normalized Data Usage" )   
 
   def test_reportDataUsage( self ):
     ''' test the method "_reportDataUsage"
