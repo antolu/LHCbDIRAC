@@ -25,7 +25,7 @@ def compare( file1Path, file2Path ):
     
     returns 0.0 if both are identical
   '''
-  #Crops image to remote the "Generated on xxxx UTC" string
+  #Crops image to remove the "Generated on xxxx UTC" string
   image1 = Image.open( file1Path ).crop( ( 0, 0, 800, 570 ) )
   image2 = Image.open( file2Path ).crop( ( 0, 0, 800, 570 ) )
   h1 = image1.histogram()
@@ -412,8 +412,7 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
     ''' test the method "_plotCatalogSpace"
     '''    
     
-    obj = self.classsTested( None, None )
-    
+    plotName      = 'DataStoragePlotter_plotCatalogSpace'
     reportRequest = { 'grouping'       : 'EventType',
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
@@ -429,20 +428,20 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'PB', 
                  'granularity'   : 86400
                 }
-    res = obj._plotCatalogSpace( reportRequest, plotInfo, 'DataStoragePlotter_plotCatalogSpace' )
+    
+    obj = self.classsTested( None, None )    
+    res = obj._plotCatalogSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( 'DataStoragePlotter_plotCatalogSpace.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotCatalogSpace.png' )
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )    
 
   def test_plotCatalogFiles( self ):
     ''' test the method "_plotCatalogFiles"
     '''    
-
-    obj = self.classsTested( None, None )
     
+    plotName = 'DataStoragePlotter_plotCatalogFiles'
     reportRequest = { 'grouping'       : 'EventType',
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
@@ -458,20 +457,20 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'files', 
                  'granularity'   : 86400 
                 }
-    res = obj._plotCatalogFiles( reportRequest, plotInfo, 'DataStoragePlotter_plotCatalogFiles' )
+    
+    obj = self.classsTested( None, None )
+    res = obj._plotCatalogFiles( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( 'DataStoragePlotter_plotCatalogFiles.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotCatalogFiles.png' )
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )    
 
   def test_plotPhysicalSpace( self ):
     ''' test the method "_plotPhysicalSpace"
     '''    
 
-    obj = self.classsTested( None, None )
-    
+    plotName      = 'DataStoragePlotter_plotPhysicalSpace'
     reportRequest = { 'grouping'       : 'EventType',
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
@@ -487,20 +486,20 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'MB', 
                  'granularity'   : 86400 
                 }
-    res = obj._plotPhysicalSpace( reportRequest, plotInfo, 'DataStoragePlotter_plotPhysicalSpace' )
+    
+    obj = self.classsTested( None, None )
+    res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( 'DataStoragePlotter_plotPhysicalSpace.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotPhysicalSpace.png' )
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )    
 
   def test_plotPhysicalFiles( self ):
     ''' test the method "_plotPhysicalFiles"
-    '''    
-
-    obj = self.classsTested( None, None )
+    '''
     
+    plotName      = 'DataStoragePlotter_plotPhysicalFiles'
     reportRequest = { 'grouping'       : 'EventType',
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
@@ -516,12 +515,13 @@ class DataStoragePlotterUnitTest( DataStoragePlotterTestCase ):
                  'unit'          : 'files', 
                  'granularity'   : 86400 
                 }
-    res = obj._plotPhysicalFiles( reportRequest, plotInfo, 'DataStoragePlotter_plotPhysicalFiles' )
+    
+    obj = self.classsTested( None, None )
+    res = obj._plotPhysicalFiles( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( 'DataStoragePlotter_plotPhysicalFiles.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/DataStoragePlotter_plotPhysicalFiles.png' )
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )      
 
 #...............................................................................

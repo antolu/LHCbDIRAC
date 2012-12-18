@@ -27,7 +27,30 @@ class StoragePlotter( BaseReporter ):
   def _reportCatalogSpace( self, reportRequest ):
     '''
     Reports about LFN size and catalog space from the accounting ( only grouped
-    by StorageElement ). 
+    by StorageElement ).
+    
+    :param reportRequest: <dict>
+      { 'grouping'       : 'Directory',
+        'groupingFields' : ( '%s', [ 'Directory' ] ),
+        'startTime'      : 1355663249.0,
+        'endTime'        : 1355749690.0,
+        'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] } 
+      }
+      
+    returns S_OK / S_ERROR
+      { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4.9353885242469104, 
+                                             1355702400L : 4.8438444870748203 }, 
+                            '/lhcb/LHCb' : { 1355616000L : 3.93538852424691, 
+                                             1355702400L : 3.8438444870748198 }
+                           }, 
+        'data'          : { '/lhcb/data' : { 1355616000L : 4935388.5242469106, 
+                                             1355702400L : 4843844.4870748203 }, 
+                            '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101, 
+                                             1355702400L : 3843844.4870748199 }
+                           }, 
+        'unit'          : 'TB', 
+        'granularity'   : 86400 
+       }    
     '''
     
     if reportRequest[ 'grouping' ] == "StorageElement":

@@ -25,7 +25,7 @@ def compare( file1Path, file2Path ):
     
     returns 0.0 if both are identical
   '''
-  #Crops image to remote the "Generated on xxxx UTC" string
+  #Crops image to remove the "Generated on xxxx UTC" string
   image1 = Image.open( file1Path ).crop( ( 0, 0, 800, 570 ) )
   image2 = Image.open( file2Path ).crop( ( 0, 0, 800, 570 ) )
   h1 = image1.histogram()
@@ -253,8 +253,7 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
     ''' test the method "_plotDataUsage"
     '''    
     
-    obj = self.classsTested( None, None )
-    
+    plotName      = 'PopularityPlotter_plotDataUsage'
     reportRequest = { 'grouping'       : 'EventType',
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
@@ -274,20 +273,20 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                  'unit'          : 'kfiles', 
                  'granularity': 86400 
                 }
-    res = obj._plotDataUsage( reportRequest, plotInfo, 'PopularityPlotter_plotDataUsage' )
+    
+    obj = self.classsTested( None, None )
+    res = obj._plotDataUsage( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( 'PopularityPlotter_plotDataUsage.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/PopularityPlotter_plotDataUsage.png' )
-    self.assertEquals( 0.0, res )   
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
+    self.assertEquals( 0.0, res )
 
   def test_plotNormalizedDataUsage( self ):
     ''' test the method "_plotNormalizedDataUsage"
-    '''    
+    '''
     
-    obj = self.classsTested( None, None )
-    
+    plotName      = 'PopularityPlotter_plotNormalizedDataUsage'
     reportRequest = { 'grouping'       : 'EventType',
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
@@ -307,12 +306,13 @@ class PopularityPlotterUnitTest( PopularityPlotterTestCase ):
                  'unit'          : 'kfiles', 
                  'granularity': 86400 
                 }
-    res = obj._plotNormalizedDataUsage( reportRequest, plotInfo, 'PopularityPlotter_plotNormalizedDataUsage' )
+    
+    obj = self.classsTested( None, None )
+    res = obj._plotNormalizedDataUsage( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
     
-    res = compare( 'PopularityPlotter_plotNormalizedDataUsage.png', 
-                   'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/PopularityPlotter_plotNormalizedDataUsage.png' )
+    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )   
 
 #...............................................................................
