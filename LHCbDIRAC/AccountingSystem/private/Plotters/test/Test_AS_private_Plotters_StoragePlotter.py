@@ -510,14 +510,22 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                       'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
                                      } )
     self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501202, 
-                                                                              1355702400L : 38.35170637810842 }
+    self.assertEqual( res[ 'Value' ], { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999, 
+                                                                               1355702400L : 261.65890999999999 }, 
+                                                            'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999, 
+                                                                               1355702400L : 413.65890999999999 }, 
+                                                            'CERN-DST'     : { 1355616000L : 186.65890999999999, 
+                                                                               1355702400L : 187.65890999999999 }
                                                            }, 
-                                        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501202, 
-                                                                              1355702400L : 38.35170637810842 }
+                                        'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91, 
+                                                                               1355702400L : 261658.91 }, 
+                                                            'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997, 
+                                                                               1355702400L : 413658.90999999997 }, 
+                                                            'CERN-DST'     : { 1355616000L : 186658.91, 
+                                                                               1355702400L : 187658.91 }
                                                            }, 
-                                        'unit'          : 'files', 
-                                        'granularity'   : 86400 
+                                        'unit'          : 'kfiles', 
+                                        'granularity'   : 86400
                                         } )
 
   def test_plotPhysicalFiles( self ):
@@ -531,17 +539,21 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                       'endTime'        : 1355749690.0,
                       'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
                     }
-    plotInfo = { 'graphDataDict' : { 'CERN-ARCHIVE' : { 1355616000L : 2.34455676781291, 
-                                                        1355702400L : 2.5445567678129102 }, 
-                                     'CERN-DST'     : { 1355616000L : 0.34455676781290995, 
-                                                        1355702400L : 0.54455676781290996 }
+    plotInfo = { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999, 
+                                                        1355702400L : 261.65890999999999 }, 
+                                     'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999, 
+                                                        1355702400L : 413.65890999999999 }, 
+                                     'CERN-DST'     : { 1355616000L : 186.65890999999999, 
+                                                        1355702400L : 187.65890999999999 }
                                     }, 
-                 'data'          : { 'CERN-ARCHIVE' : { 1355616000L : 2344556.76781291, 
-                                                        1355702400L : 2544556.76781291 }, 
-                                     'CERN-DST'     : { 1355616000L : 344556.76781290997, 
-                                                        1355702400L : 544556.76781291002 }
+                 'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91, 
+                                                        1355702400L : 261658.91 }, 
+                                     'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997, 
+                                                        1355702400L : 413658.90999999997 }, 
+                                     'CERN-DST'     : { 1355616000L : 186658.91, 
+                                                        1355702400L : 187658.91 }
                                     }, 
-                 'unit'          : 'TB', 
+                 'unit'          : 'kfiles', 
                  'granularity'   : 86400
                 }
     

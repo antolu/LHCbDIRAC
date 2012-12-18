@@ -28,8 +28,7 @@ class DataStoragePlotter( BaseReporter ):
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
     '''
-    Reports about the LFN size and the catalog space from the accounting ( grouped
-    by StorageElement ).
+    Reports about the LFN size and the catalog space from the accounting.
     
     :param reportRequest: <dict>
       { 'grouping'       : 'EventType',
@@ -138,8 +137,7 @@ class DataStoragePlotter( BaseReporter ):
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
     '''
-    Reports about the LFN files and the catalog files from the accounting ( grouped
-    by StorageElement ).
+    Reports about the LFN files and the catalog files from the accounting.
     
     :param reportRequest: <dict>
       { 'grouping'       : 'EventType',
