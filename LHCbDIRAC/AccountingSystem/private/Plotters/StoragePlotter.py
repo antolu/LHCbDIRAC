@@ -150,11 +150,11 @@ class StoragePlotter( BaseReporter ):
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'PhysicalSize', 'entriesInBucket'
-                                   ]
+                                                              'PhysicalSize', 'entriesInBucket'
+                                                            ]
                    )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -172,7 +172,8 @@ class StoragePlotter( BaseReporter ):
     accumMaxVal   = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxVal, "bytes" )
     
-    baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
+    #3rd value, maxValue is not used
+    baseDataDict, graphDataDict, __, unitName = suitableUnits
     
     return S_OK( { 
                   'data'          : baseDataDict, 
@@ -183,33 +184,32 @@ class StoragePlotter( BaseReporter ):
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
 
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'graphDataDict' ]
     
     metadata = { 
                 'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
-                'starttime' : startTime,
-                'endtime'   : endTime,
-                'span'      : span,
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-  ##############################################################################
-  #
-  # Physical Files
-  #
+  #.............................................................................
+  # physical Files
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
     
-    _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
+    selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+    selectFields = ( selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'PhysicalFiles', 'entriesInBucket'
-                                   ]
+                                                              'PhysicalFiles', 'entriesInBucket'
+                                                             ]
                    )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -297,20 +297,21 @@ class StoragePlotter( BaseReporter ):
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
 
-    startTime = reportRequest[ 'startTime' ]
-    endTime   = reportRequest[ 'endTime' ]
-    span      = plotInfo[ 'granularity' ]
+    startEpoch  = reportRequest[ 'startTime' ]
+    endEpoch    = reportRequest[ 'endTime' ]
+    granularity = plotInfo[ 'granularity' ]
+    dataDict    = plotInfo[ 'graphDataDict' ]
     
     metadata = { 
                 'title'     : "Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
-                'starttime' : startTime,
-                'endtime'   : endTime,
-                'span'      : span,
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
                 'ylabel'    : plotInfo[ 'unit' ] 
                 }
     
-    plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
-    return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
+    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
+    return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   #.............................................................................
   # helper methods
