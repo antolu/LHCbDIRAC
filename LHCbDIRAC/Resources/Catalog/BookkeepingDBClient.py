@@ -209,7 +209,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
       Set replica flags on BKK
     '''
     server = RPCClient( self.url, timeout=120 )
-    print "**** Set replica flag on", self.url
+    gLogger.info( "**** Set replica flag on %s" % self.url )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -230,7 +230,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Removes replica flags on BKK
     '''
-    #FIXME: this method is VERY VERY similar to setHasReplicaFlag.. why not refactor 
+    #FIXME: this method is VERY VERY similar to setHasReplicaFlag.. why not refactor
     # a little bit ?
     server = RPCClient( self.url, timeout=120 )
     successful = {}
@@ -286,7 +286,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
         for lfn in lfnList:
           if not lfn in res['Value'].keys():
             failed[lfn] = 'File does not exist'
-          #FIXME: Should not it be isinstance( res['Value'][lfn], str )  
+          #FIXME: Should not it be isinstance( res['Value'][lfn], str )
           elif res['Value'][lfn] in types.StringTypes:
             failed[lfn] = res['Value'][lfn]
           else:
