@@ -64,6 +64,9 @@ if __name__ == "__main__":
   rm = ReplicaManager()
 
   repStats = {}
+  noReplicas = {}
+  withReplicas = {}
+  withArchives = {}
   lfns = dmScript.getOption( 'LFNs', [] )
   lfnReplicas = {}
   directories = dmScript.getOption( 'Directory' )
@@ -87,13 +90,16 @@ if __name__ == "__main__":
       lfnReplicas = res['Value']['Successful']
       if res['Value']['Failed']:
         repStats[0] = len( res['Value']['Failed'] )
+        withReplicas[0] = res['Value']['Failed'].keys()
+        for lfn in res['Value']['Failed']:
+          noReplicas[lfn] = -1
     else:
       lfnReplicas = None
 
+  if repStats.get( 0 ):
+    print "%d files found without a replica" % repStats[0]
   if not lfnReplicas:
     print "No files found that have a replica...."
-    if repStats.get( 0 ):
-      print "%d files found without a replica" % repStats[0]
     DIRAC.exit( 0 )
 
   repSEs = {}
@@ -114,9 +120,6 @@ if __name__ == "__main__":
         lfnSize.update( r['Value']['Successful'] )
     for lfn, size in lfnSize.items():
       totSize += size
-  noReplicas = {}
-  withReplicas = {}
-  withArchives = {}
   for lfn, replicas in lfnReplicas.items():
     SEs = replicas.keys()
     nrep = len( replicas )
@@ -124,9 +127,9 @@ if __name__ == "__main__":
     for se in list( SEs ):
       if se.endswith( "-FAILOVER" ):
         nrep -= 1
-        if -100 not in repStats:
-          repStats[-100] = 0
-        repStats[-100] += 1
+        repStats[-100] = repStats.setdefault( -100, 0 ) + 1
+        if nrep == 0:
+          repStats[-101] = repStats.setdefault( -101, 0 ) + 1
         SEs.remove( se )
       if se.endswith( "-ARCHIVE" ):
         nrep -= 1
@@ -162,6 +165,10 @@ if __name__ == "__main__":
   print "\nReplica statistics:"
   if -100 in repStats:
     print "Failover replicas:", repStats[-100], "files"
+    if -101 in repStats:
+      print "   ...of which %d are only in Failover" % repStats[-101]
+    else:
+      print "   ...but all of them are also somewhere else"
   if maxArch:
     for nrep in range( 1, maxArch + 1 ):
       print nrep - 1, "archives:", repStats.setdefault( -nrep, 0 ), "files"
@@ -208,4 +215,3 @@ if __name__ == "__main__":
       print '\nFiles with %d disk replicas:' % n
       for rep in sorted( withReplicas[n] ):
         print rep
-
