@@ -441,7 +441,7 @@ class BKQuery():
       if res['OK']:
         dbresult = res['Value']
         for record in dbresult['Records']:
-          if record[0].endswith( 'HIST' ) or record[0].endswith( 'ETC' ) or record[0] == 'LOG':
+          if record[0].endswith( 'HIST' ) or record[0].endswith( 'ETC' ) or record[0] == 'LOG' or record[0].endswith( 'ROOT' ):
             self.__exceptFileTypes.append( record[0] )
           else:
             self.__bkFileTypes.append( record[0] )
@@ -712,6 +712,7 @@ class BKQuery():
           bkDict['EventType'] = et
           fileTypes += self.getBKFileTypes( bkDict )
       else:
+        bkDict.setdefault( 'Visible', 'All' )
         res = self.__bkClient.getFileTypes( bkDict )
         #print res
         if res['OK']:
