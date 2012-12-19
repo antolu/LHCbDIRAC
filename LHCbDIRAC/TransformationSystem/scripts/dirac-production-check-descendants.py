@@ -17,7 +17,7 @@ import sys, os, time
 import DIRAC
 from DIRAC import gLogger
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
 #Code
 if __name__ == '__main__':
 
@@ -52,8 +52,13 @@ if __name__ == '__main__':
     cc = ConsistencyChecks()
     cc.prod = id
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
-    cc.fileType = fileType
-    cc.fileTypesExcluded = ['LOG']
+    if not fileType:
+      bkQuery = BKQuery( {'Production':id, 'FileType':'ALL', 'Visible':'All'} )
+      cc.fileType = bkQuery.getBKFileTypes()
+      gLogger.always( "Looking for descendants of type %s" % str( cc.fileType ) )
+    else:
+      cc.fileType = fileType
+      cc.fileTypesExcluded = ['LOG']
     cc.runsList = runsList
     cc.checkTS2BKK()
     if fileType:
