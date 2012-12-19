@@ -241,10 +241,13 @@ if __name__ == "__main__":
   if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.getOption( 'Productions' ) or transType == 'Processing':
     visible = False
   bkQueryDict = {}
+  checkReplica = True
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery( visible=visible )
     if noRepFiles and not plugin:
-      bkQuery.setOption( 'ReplicaFlag', "All" )
+      #FIXME: this should work but doesn't yet...
+      #bkQuery.setOption( 'ReplicaFlag', "ALL" )
+      checkReplica = False
     bkQueryDict = bkQuery.getQueryDict()
     if bkQueryDict.keys() in ( [], ['Visible'] ):
       print "No BK query was given..."
@@ -281,7 +284,18 @@ if __name__ == "__main__":
     print "Getting the files from BK"
     lfns = bkQuery.getLFNs( printSEUsage=( ( transType == 'Removal' or not plugin ) \
                                            and not pluginScript.getOption( 'Runs' ) \
-                                           and not pluginScript.getOption( 'DQFlags' ) ), visible=visible )
+                                           and not pluginScript.getOption( 'DQFlags' ) ), printOutput=checkReplica, visible=visible )
+    if not checkReplica:
+      bkQuery.setOption( 'ReplicaFlag', "No" )
+      lfns += bkQuery.getLFNs( printSEUsage=False, printOutput=False, visible=visible )
+      print '%d files in directories:' % len( lfns )
+      directories = {}
+      import os
+      for lfn in lfns:
+        dd = os.path.dirname( lfn )
+        directories[dd] = directories.setdefault( dd, 0 ) + 1
+      for dd in sorted( directories ):
+        print dd, directories[dd]
   if len( lfns ) == 0:
     print "No files found in BK...Exiting now"
     DIRAC.exit( 0 )
