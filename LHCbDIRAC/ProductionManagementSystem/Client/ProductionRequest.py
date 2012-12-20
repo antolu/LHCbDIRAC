@@ -394,10 +394,13 @@ class ProductionRequest( object ):
 
     #non optional parameters
     prod.LHCbJob.setType( prodType )
+    try:
+      fTypeIn = str( stepsInProd[0]['fileTypesIn'][0] )
+    except IndexError:
+      fTypeIn = ''
     prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
                                                                              self.prodGroup, self.eventType,
-                                                                             str( stepsInProd[0]['fileTypesIn'][0] ),
-                                                                             self.appendName ) )
+                                                                             fTypeIn, self.appendName ) )
     prod.setBKParameters( self.configName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )

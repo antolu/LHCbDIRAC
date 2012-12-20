@@ -16,9 +16,10 @@
 
 __RCSID__ = "$Id$"
 
-import DIRAC
 from DIRAC import gLogger
 from DIRAC.Core.Base import Script
+
+import DIRAC
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
