@@ -57,7 +57,7 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
-pr.configVersion = '{{BKConfigVersion#GENERAL: BK configuration version e.g. MC09, 2009, 2010#MC11a}}'
+pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#MC11a}}'
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 
 pr.events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
@@ -80,9 +80,6 @@ mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB
 mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
 mergingCPU = '{{mergingCPU#PROD-Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-Merging: remove inputs#True}}'
-
-replicationFlag = '{{TransformationEnable#PROD-Replication: flag Boolean True/False#True}}'
-replicationPlugin = '{{ReplicationPlugin#PROD-Replication: ReplicationPlugin#LHCbMCDSTBroadcastRandom}}'
 
 pr.eventType = '{{eventType}}'
 #Often MC requests are defined with many subrequests but we want to retain
@@ -210,14 +207,8 @@ if not res['OK']:
 else:
   gLogger.always( "Submitted %s" % str( res['Value'] ) )
 
-
-#################################################################################
-# This is the start of the replication transformation definition (if requested)
-#################################################################################
-
-
-if not replicationFlag:
-  gLogger.always( "No replication requested" )
-else:
-  gLogger.always( "Please use the script" )
-  gLogger.always( "dirac-dms-add-replication --Plugin %s --Production 'putProdHere' --FileType 'putTypesHere' --Start" % ( replicationPlugin ) )
+gLogger.always( "##########################################################################################" )
+gLogger.always( "##########################################################################################" )
+gLogger.always( "REMINDER: no replication has been created!!! If you want one, please use the script" )
+gLogger.always( "dirac-dms-add-replication --Plugin <yourPlugin> --Production <yourProd> --FileType <yourFileType' --Start" )
+gLogger.always( "##########################################################################################" )

@@ -570,22 +570,6 @@ class Production():
       self.LHCbJob.workflow = fromXMLString( wfString )
 #      self.name = self.LHCbJob.workflow.getName()
 
-    try:
-      fileName = self.createWorkflow()['Value']
-    except Exception, x:
-      self.LHCbJob.log.error( x )
-      return S_ERROR( 'Could not create workflow' )
-
-    self.LHCbJob.log.verbose( 'Workflow XML file name is: %s' % fileName )
-
-    workflowBody = ''
-    if os.path.exists( fileName ):
-      fopen = open( fileName, 'r' )
-      workflowBody = fopen.read()
-      fopen.close()
-    else:
-      return S_ERROR( 'Could not get workflow body' )
-
     bkConditions = self.LHCbJob.workflow.findParameter( 'conditions' ).getValue()
 
     bkSteps = self.LHCbJob.workflow.findParameter( 'BKProcessingPass' ).getValue()
@@ -616,6 +600,22 @@ class Production():
 
       self.setParameter( 'ProcessingType', 'JDL', str( self.prodGroup ), 'ProductionGroupOrType' )
       self.setParameter( 'Priority', 'JDL', str( self.priority ), 'UserPriority' )
+
+      try:
+        fileName = self.createWorkflow()['Value']
+      except Exception, x:
+        self.LHCbJob.log.error( x )
+        return S_ERROR( 'Could not create workflow' )
+
+      self.LHCbJob.log.verbose( 'Workflow XML file name is: %s' % fileName )
+
+      workflowBody = ''
+      if os.path.exists( fileName ):
+        fopen = open( fileName, 'r' )
+        workflowBody = fopen.read()
+        fopen.close()
+      else:
+        return S_ERROR( 'Could not get workflow body' )
 
       result = self.transClient.addTransformation( fileName, descShort, descLong,
                                                    self.LHCbJob.type, self.plugin, 'Manual',
@@ -652,7 +652,7 @@ class Production():
         if not inputPass['OK']:
           self.LHCbJob.log.error( inputPass )
           self.LHCbJob.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID,
-                                                                                                               queryProdID ) )
+                                                                                                         queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
         self.LHCbJob.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
@@ -661,7 +661,7 @@ class Production():
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
         self.LHCbJob.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
-                                                                                                                 queryProcPass ) )
+                                                                                                       queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
 
     stepList = []
@@ -691,9 +691,9 @@ class Production():
       reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
       result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
-        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed, dictionary below:\n%s' % ( prodID,
-                                                                                                               requestID,
-                                                                                                               reqDict ) )
+        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed: %s ' %(prodID, requestID, 
+                                                                                           result['Message'])) 
+        self.LHCbJob.log.error( 'Dictionary below:\n%s' % reqDict )
       else:
         self.LHCbJob.log.info( 'Successfully added production %s to request %s with flag set to %s' % ( prodID,
                                                                                                         requestID,
@@ -753,12 +753,12 @@ class Production():
       self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s. Error = %s' % ( pname,
                                                                                                              prodID,
                                                                                                              pvalue,
-                                                                                                             result['Message'] ) )
+                                                                                                  result['Message'] ) )
     return result
 
   #############################################################################
 
-  def getParameters( self, prodID, pname = '', printOutput = False ):
+  def getParameters( self, prodID, pname = '' ):
     """Get a production parameter or all of them if no parameter name specified.
     """
 
@@ -777,14 +777,6 @@ class Production():
       else:
         self.LHCbJob.log.verbose( result )
         return S_ERROR( 'Production %s does not have parameter %s' % ( prodID, pname ) )
-
-    if printOutput:
-      for n, v in result['Value'].items():
-        if not n.lower() == 'body':
-          print '=' * len( n ), '\n', n, '\n', '=' * len( n )
-          print v
-        else:
-          print '*Omitted Body from printout*'
 
     return result
 
