@@ -16,14 +16,13 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import gLogger
 from DIRAC.Core.Base import Script
+Script.parseCommandLine()
 
 import DIRAC
-
+from DIRAC import gLogger
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
-Script.parseCommandLine()
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 
 pr = ProductionRequest()
