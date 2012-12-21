@@ -16,6 +16,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResu
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 dmScript = DMScript()
 dmScript.registerFileSwitches()
+Script.registerSwitch( '', 'All', 'Do not restrict to descendants with replicas' )
 Script.registerSwitch( '', 'Full', 'Get full metadata information on ancestors' )
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
@@ -28,9 +29,12 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 Script.parseCommandLine( ignoreErrors=True )
 
 full = False
+checkreplica = True
 for switch in Script.getUnprocessedSwitches():
   if switch[0] == 'Full':
     full = True
+  elif switch[0] == 'All':
+    checkreplica = False
 
 args = Script.getPositionalArgs()
 
@@ -51,7 +55,7 @@ for lfn in lfns:
   except:
     lfnList.append( lfn )
 
-result = BookkeepingClient().getFileAncestors( lfnList, level )
+result = BookkeepingClient().getFileAncestors( lfnList, level, replica=checkreplica )
 
 if full:
   del result['Value']['Successful']
