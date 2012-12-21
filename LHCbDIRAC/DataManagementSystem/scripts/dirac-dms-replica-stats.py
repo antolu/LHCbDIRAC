@@ -30,7 +30,6 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.registerSwitch( "", "Size", "   Get the LFN size [No]" )
-  Script.registerSwitch( '', 'InvisibleFiles', '   Show invisible files also [No]' )
   Script.registerSwitch( '', 'DumpNoReplicas', '   Print list of files without a replica [No]' )
   Script.registerSwitch( '', 'DumpWithArchives=', '   =<n>, print list of files with <n> archives' )
   Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print list of files with <n> replicas' )
@@ -38,15 +37,12 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors=False )
 
   getSize = False
-  visible = True
   prNoReplicas = False
   prWithArchives = False
   prWithReplicas = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
-    elif switch[0] == 'InvisibleFiles':
-      visible = False
     elif switch[0] == 'DumpNoReplicas':
       prNoReplicas = True
     elif switch[0] == 'DumpWithArchives':
@@ -79,7 +75,7 @@ if __name__ == "__main__":
       lfnReplicas.update( res['Value'] )
   else:
     if not lfns:
-      bkQuery = dmScript.getBKQuery( visible=visible )
+      bkQuery = dmScript.getBKQuery()
       print "Executing BK query:", bkQuery
       lfns = bkQuery.getLFNs()
     if lfns:
@@ -199,7 +195,7 @@ if __name__ == "__main__":
     if getSize: string += " - %.3f TB" % ( repSites[site][1] / TB )
     print string
 
-  if prNoReplicas:
+  if prNoReplicas and noReplicas:
     print "\nFiles without a disk replica:"
     for rep in sorted( noReplicas ):
       print rep, "(%d archives)" % noReplicas[rep]
