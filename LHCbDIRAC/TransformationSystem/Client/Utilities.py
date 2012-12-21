@@ -149,6 +149,7 @@ class PluginUtilities:
     self.maxFiles = 0
     self.transInThread = transInThread
     self.transString = ''
+    self.notProcessed = {}
 
   def logVerbose( self, message, param='' ):
     if self.debug:
@@ -608,7 +609,10 @@ class PluginUtilities:
         return 0
       paramValues = res['Value']
       lfns = [f for f in paramValues if paramValues[f] == paramValue]
-
+    if lfns:
+      lfnToCheck = lfns[0]
+    else:
+      lfnToCheck = None
     # Get number of ancestors for known files
     cachedLFNs = self.cachedLFNAncestors.get( runID, {} )
     hitLFNs = [lfn for lfn in lfns if lfn in cachedLFNs]
@@ -634,7 +638,47 @@ class PluginUtilities:
         n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
         self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
         ancestors += n
-    self.logVerbose( "Full timing for getRAWAncestors: %.3f seconds" % ( time.time() - startTime1 ) )
+
+    # If needed, add NotProcessed files in the Reconstruction production
+    if runID not in self.notProcessed and lfnToCheck:
+      res = self.bkClient.getFileMetadata( lfnToCheck )
+      ancestorFullDST = None
+      recoProduction = None
+      notProcessed = 0
+      if res['OK']:
+        if res['Value'].get( lfnToCheck, {} ).get( 'FileType' ) != 'FULL.DST':
+          res = self.bkClient.getFileAncestors( [lfnToCheck], depth=10, replica=False )
+          if res['OK']:
+            fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
+            if fullDst:
+              ancestorFullDST = fullDst[0]
+          else:
+            self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
+        else:
+          ancestorFullDST = lfnToCheck
+      self.logVerbose( "Ancestor FULL.DST found: %s" % ancestorFullDST )
+      if ancestorFullDST:
+        res = self.bkClient.getJobInfo( ancestorFullDST )
+        if res['OK']:
+          try:
+            recoProduction = res['Value'][0][18]
+            self.logVerbose( 'Reconstruction production is %d' % recoProduction )
+          except Exception, e:
+            self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
+            recoProduction = None
+        else:
+          self.logError( "Error getting job information", res['Message'] )
+      if recoProduction:
+        res = self.transClient.getTransformationFiles( { 'TransformationID':recoProduction, 'RunNumber':runID} )
+        if res['OK']:
+          notProcessed = len( [fileDict for fileDict in res['Value'] if fileDict['Status'] == 'NotProcessed'] )
+          self.notProcessed[runID] = notProcessed
+    else:
+      notProcessed = self.notProcessed.get( runID, 0 )
+    if notProcessed:
+      self.logVerbose( "Found %d files not processed for run %d" % ( notProcessed, runID ) )
+      ancestors += notProcessed
+    self.logVerbose( "Full timing for getRAWAncestors (found %d for run %d): %.3f seconds" % ( ancestors, runID, time.time() - startTime1 ) )
     return ancestors
 
   def groupByRunAndParam( self, lfns, files, param='' ):
