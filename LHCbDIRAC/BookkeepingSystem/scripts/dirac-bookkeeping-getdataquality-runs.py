@@ -24,16 +24,17 @@ if len(ids) < 1:
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 cl = BookkeepingClient()
-retVal = cl.getRunFilesDataQuality(int(ids))
-if retVal['OK']:
-  print "-----------------------------------"
-  print "Run Number".ljust(20) + "Flag".ljust(10)
-  print "-----------------------------------"
-  for i in  retVal["Value"]:
-    print str(i[0]).ljust(20) + str(i[1]).ljust(10)
-  print "-----------------------------------"
-else:
-  print retVal["Message"]
+for i in ids:
+  retVal = cl.getRunFilesDataQuality(int(i))
+  if retVal['OK']:
+    print "-----------------------------------"
+    print "Run Number".ljust(20) + "Flag".ljust(10)
+    print "-----------------------------------"
+    for i in  retVal["Value"]:
+      print str(i[0]).ljust(20) + str(i[1]).ljust(10)
+    print "-----------------------------------"
+  else:
+    print retVal["Message"]
 
 DIRAC.exit()
 
