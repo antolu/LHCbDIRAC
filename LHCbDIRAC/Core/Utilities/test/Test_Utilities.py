@@ -18,20 +18,11 @@ class UtilitiesTestCase( unittest.TestCase ):
   def setUp( self ):
 
     self.bkClientMock = Mock()
-    self.bkClientMock.getFileTypes.return_value = {'OK': True, 'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                            {'skipCACheck': False, 'delegatedGroup': 'diracAdmin', } ),
-                                                                           'getFileTypes', ( {'': ''}, ) ),
+    self.bkClientMock.getFileTypes.return_value = {'OK': True,
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                              'Records': [['SDST'], ['PID.MDST'], ['GEN'], ['DST'],
                                                                          ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
     self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
-                                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                      {'skipCACheck': False,
-                                                                       'keepAliveLapse': 150,
-                                                                       'delegatedGroup': 'diracAdmin',
-                                                                       'delegatedDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=fstagni/CN=693025/CN=Federico Stagni',
-                                                                       'timeout': 3600} ),
-                                                                     'getFileTypeVersion', ( ['lfn1', 'lfn2'], ) ),
                                                          'Value': {'lfn1': 'ROOT',
                                                                    'lfn2': 'MDF'}}
 
@@ -484,15 +475,25 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                             } )
 
     self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
-                                                     'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                                  {'skipCACheck': False} ),
-                                                                 'getTypeVersion', ( ['/lhcb/user/g/gligorov/2011_12/27896/27896178/SwimBs2KK.dst'], ) ),
-                                                     'Value': {}}
+                                                         'Value': {}}
 
-    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'}, 'lfn2': {'mdata':'mdata2'}} )
+    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
+                                 'lfn2': {'mdata':'mdata2'}} )
     self.assertEqual( res, {'OK': True,
                             'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
                                       'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} }
+                            } )
+
+    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
+                                                          'Value': {'lfn1': 'ROOT'}}
+
+    res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
+                                 'lfn2': {'mdata':'mdata2'},
+                                 'lfn3': {'mdata':'mdata3'}} )
+    self.assertEqual( res, {'OK': True,
+                            'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
+                                       'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'},
+                                       'lfn3':{'pfntype':'ROOT', 'mdata':'mdata3'} }
                             } )
 
 class CombinedSoftwareInstallationSuccess( UtilitiesTestCase ):

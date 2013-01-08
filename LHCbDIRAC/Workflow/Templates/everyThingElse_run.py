@@ -106,6 +106,7 @@ pr.prodGroup = '{{pDsc}}'
 #used in case of a test e.g. certification etc.
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'
+pr.outConfigName = pr.configName
 #Other parameters from the request page
 pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
@@ -128,7 +129,7 @@ else:
   pr.testFlag = False
 
 if validationFlag:
-  pr.configName = 'validation'
+  pr.outConfigName = 'validation'
 
 if enablePopularityReport:
   pr.modulesList.append( 'FileUsage' )
@@ -145,7 +146,7 @@ else:
 
 #In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
-  pr.configName = 'certification'
+  pr.outConfigName = 'certification'
   pr.configVersion = 'test'
   pr.startRun = '75336'
   pr.endRun = '75340'

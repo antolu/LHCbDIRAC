@@ -59,27 +59,27 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#MC11a}}'
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
+extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
 pr.events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
 pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
 
-targets = '{{Target#PROD-MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
-MCCpu = '{{MCMaxCPUTime#PROD-MC: Max CPU time in secs#1000000}}'
-MCPriority = '{{MCPriority#PROD-MC: Production priority#0}}'
-pr.extend = '{{MCExtend#PROD-MC: extend production by this many jobs#100}}'
-extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
+targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
+MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
+MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
+pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
 
-selectionPlugin = '{{selectionPlugin#PROD-Selection: plugin e.g. Standard, BySize#BySize}}'
-selectionGroupSize = '{{selectionGroupSize#PROD-Selection: input files total size (we\'ll use protocol access)#20}}'
-selectionPriority = '{{selectionPriority#PROD-Selection: Job Priority e.g. 8 by default#6}}'
-selectionCPU = '{{selectionCPU#PROD-Selection: Max CPU time in secs#100000}}'
-removeInputSelection = '{{removeInputSelection#PROD-Selection: remove inputs#True}}'
+selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
+selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll use protocol access)#20}}'
+selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
+selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
+removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 
-mergingPlugin = '{{MergingPlugin#PROD-Merging: plugin e.g. Standard, BySize#BySize}}'
-mergingGroupSize = '{{MergingGroupSize#PROD-Merging: Group Size e.g. BySize = GB file size#5}}'
-mergingPriority = '{{MergingPriority#PROD-Merging: Job Priority e.g. 8 by default#8}}'
-mergingCPU = '{{mergingCPU#PROD-Merging: Max CPU time in secs#100000}}'
-removeInputMerge = '{{removeInputMerge#PROD-Merging: remove inputs#True}}'
+mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
+mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
+mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by default#8}}'
+mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
+removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 
 pr.eventType = '{{eventType}}'
 #Often MC requests are defined with many subrequests but we want to retain
@@ -115,9 +115,11 @@ if certificationFlag or localTestFlag:
     pr.publishFlag = False
     pr.prodsToLaunch = [1]
 
+pr.outConfigName = pr.configName
+
 #In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
-  pr.configName = 'certification'
+  pr.outConfigName = 'certification'
   pr.configVersion = 'test'
   pr.events = '3'
   pr.extend = '10'
@@ -126,7 +128,7 @@ if pr.testFlag:
   pr.previousProdID = 0 #set this for, e.g., launching only merging
 
 if validationFlag:
-  pr.configName = 'validation'
+  pr.outConfigName = 'validation'
 
 w1 = eval( w1 )
 w2 = eval( w2 )

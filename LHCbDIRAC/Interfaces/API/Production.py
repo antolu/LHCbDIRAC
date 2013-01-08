@@ -433,7 +433,6 @@ class Production():
 
     name = self.createWorkflow()['Value']
     # this "name" is the xml file 
-    from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     j = LHCbJob( name )
     # it makes a job (a Worklow, with Parameters), out of the xml file
 
@@ -490,8 +489,7 @@ class Production():
     parameters['RequestID'] = reqID
     parameters['DerivedProduction'] = derivedProd
 
-    dummyProdJobID = '99999999'
-    result = self.getOutputLFNs( prodID, dummyProdJobID, prodXMLFile )
+    result = self.getOutputLFNs( prodID, '99999999', prodXMLFile )
     if not result['OK']:
       self.LHCbJob.log.error( 'Could not create production LFNs', result )
 
@@ -691,8 +689,8 @@ class Production():
       reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
       result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
-        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed: %s ' %(prodID, requestID, 
-                                                                                           result['Message'])) 
+        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed: %s ' % ( prodID, requestID,
+                                                                                           result['Message'] ) )
         self.LHCbJob.log.error( 'Dictionary below:\n%s' % reqDict )
       else:
         self.LHCbJob.log.info( 'Successfully added production %s to request %s with flag set to %s' % ( prodID,
@@ -727,7 +725,6 @@ class Production():
       self.LHCbJob.log.verbose( 'Using workflow object to generate XML file' )
       prodXMLFile = self.createWorkflow()
 
-    from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
     job = LHCbJob( prodXMLFile )
     result = preSubmissionLFNs( job._getParameters(), job.createCode(),
                                 productionID = prodID, jobID = prodJobID )

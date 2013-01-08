@@ -39,6 +39,7 @@ class ProductionRequest( object ):
     self.appendName = '1'
     self.configName = 'test'
     self.configVersion = 'certification'
+    self.outConfigName = ''
     self.eventType = ''
     self.events = -1
     self.sysConfig = ''
@@ -67,8 +68,8 @@ class ProductionRequest( object ):
     self.processingPass = ''
     self.bkFileType = ''
     self.dqFlag = ''
-    self.startRun = ''
-    self.endRun = ''
+    self.startRun = 0
+    self.endRun = 0
     self.runsList = ''
     self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
@@ -395,13 +396,13 @@ class ProductionRequest( object ):
     #non optional parameters
     prod.LHCbJob.setType( prodType )
     try:
-      fTypeIn = str( stepsInProd[0]['fileTypesIn'][0] )
+      fTypeIn = str( stepsInProd[0]['fileTypesIn'][0].upper() )
     except IndexError:
       fTypeIn = ''
     prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
                                                                              self.prodGroup, self.eventType,
                                                                              fTypeIn, self.appendName ) )
-    prod.setBKParameters( self.configName, self.configVersion, self.prodGroup, self.dataTakingConditions )
+    prod.setBKParameters( self.outConfigName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )
     prod.prodGroup = self.prodGroup
@@ -442,8 +443,7 @@ class ProductionRequest( object ):
       if bkQuery.lower() == 'full':
         prod.inputBKSelection = self._getBKKQuery()
       elif bkQuery.lower() == 'frompreviousprod':
-        fileType = stepsInProd[0]['fileTypesIn'][0].upper()
-        prod.inputBKSelection = self._getBKKQuery( 'frompreviousprod', fileType, previousProdID )
+        prod.inputBKSelection = self._getBKKQuery( 'frompreviousprod', fTypeIn, previousProdID )
 
     self.logger.verbose( 'Launching with BK selection %s' % prod.inputBKSelection )
 
@@ -493,11 +493,11 @@ class ProductionRequest( object ):
 
     if mode.lower() == 'full':
       bkQuery = {
-                      'FileType'                 : self.bkFileType,
-                      'EventType'                : str( self.eventType ),
-                      'ConfigName'               : self.configName,
-                      'ConfigVersion'            : self.configVersion,
-                      }
+                 'FileType'                 : self.bkFileType,
+                 'EventType'                : str( self.eventType ),
+                 'ConfigName'               : self.configName,
+                 'ConfigVersion'            : self.configVersion,
+                 }
 
       if self.dataTakingConditions:
         bkQuery['DataTakingConditions'] = self.dataTakingConditions
@@ -508,18 +508,18 @@ class ProductionRequest( object ):
       if self.dqFlag:
         bkQuery['DataQualityFlag'] = self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
 
-      if ( self.startRun and self.runsList ) or ( self.endRun and self.runsList ):
+      if self.startRun and self.runsList or self.endRun and self.runsList:
         raise ValueError, 'Please don\'t mix runs list with start/end run'
 
-      if int( self.endRun ) and int( self.startRun ):
-        if int( self.endRun ) < int( self.startRun ):
-          gLogger.error( 'Your end run "%s" should be more than your start run "%s"!' % ( self.endRun, self.startRun ) )
+      if self.endRun and self.startRun:
+        if self.endRun < self.startRun:
+          gLogger.error( 'Your end run "%d" should be more than your start run "%d"!' % ( self.endRun, self.startRun ) )
           raise ValueError, 'Error setting start or end run'
 
-      if int( self.startRun ):
-        bkQuery['StartRun'] = int( self.startRun )
-      if int( self.endRun ):
-        bkQuery['EndRun'] = int( self.endRun )
+      if self.startRun:
+        bkQuery['StartRun'] = self.startRun
+      if self.endRun:
+        bkQuery['EndRun'] = self.endRun
 
       if self.runsList:
         bkQuery['RunNumbers'] = self.runsList.replace( ',', ';;;' ).replace( ' ', '' )
@@ -554,6 +554,21 @@ class ProductionRequest( object ):
     return self._stepsList
   stepsList = property( get_stepsList, set_stepsList )
 
+  def set_startRun( self, value ):
+    if type( value ) == type( '' ):
+      value = int( value )
+    self._startRun = value
+  def get_startRun( self ):
+    return self._startRun
+  startRun = property( get_startRun, set_startRun )
+
+  def set_endRun( self, value ):
+    if type( value ) == type( '' ):
+      value = int( value )
+    self._endRun = value
+  def get_endRun( self ):
+    return self._endRun
+  endRun = property( get_endRun, set_endRun )
 
 #############################################################################
 

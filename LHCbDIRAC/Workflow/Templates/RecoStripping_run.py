@@ -68,30 +68,30 @@ pr.fractionToProcess = int( '{{fractionToProcess#GENERAL: fraction to process, p
 pr.minFilesToProcess = int( '{{minFilesToProcess#GENERAL: minimum number of files to process, per run#0}}' )
 
 #reco params
-recoPriority = int( '{{RecoPriority#PROD-RECO(Stripp): priority#2}}' )
-recoCPU = '{{RecoMaxCPUTime#PROD-RECO(Stripp): Max CPU time in secs#1000000}}'
-recoPlugin = '{{RecoPluginType#PROD-RECO(Stripp): production plugin name#AtomicRun}}'
-recoFilesPerJob = '{{RecoFilesPerJob#PROD-RECO(Stripp): Group size or number of files per job#1}}'
-recoDataSE = '{{RecoDataSE#PROD-RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
-recoType = '{{RecoType#PROD-RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
-recoIDPolicy = '{{recoIDPolicy#PROD-RECO(Stripp): policy for input data access (download or protocol)#download}}'
+recoPriority = int( '{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}' )
+recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1000000}}'
+recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#AtomicRun}}'
+recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
+recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
+recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
+recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
 
 #stripp params
-strippPriority = int( '{{priority#PROD-Stripping: priority#5}}' )
-strippCPU = '{{StrippMaxCPUTime#PROD-Stripping: Max CPU time in secs#1000000}}'
-strippPlugin = '{{StrippPluginType#PROD-Stripping: plugin name#ByRunWithFlush}}'
-strippFilesPerJob = '{{StrippFilesPerJob#PROD-Stripping: Group size or number of files per job#2}}'
-strippDataSE = '{{StrippStreamSE#PROD-Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
-strippIDPolicy = '{{strippIDPolicy#PROD-Stripping: policy for input data access (download or protocol)#download}}'
+strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
+strippCPU = '{{StrippMaxCPUTime#PROD-2:Stripping: Max CPU time in secs#1000000}}'
+strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}}'
+strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
+strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
+strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
 
 #merging params
-mergingPriority = int( '{{MergePriority#PROD-Merging: priority#8}}' )
-mergingCPU = '{{MergeMaxCPUTime#PROD-Merging: Max CPU time in secs#300000}}'
-mergingPlugin = '{{MergePlugin#PROD-Merging: plugin#MergeByRunWithFlush}}'
-mergingGroupSize = '{{MergeFileSize#PROD-Merging: Size (in GB) of the merged files#5}}'
-mergingDataSE = '{{MergeStreamSE#PROD-Merging: output data SE (merged streams)#Tier1_M-DST}}'
-mergingIDPolicy = '{{MergeIDPolicy#PROD-Merging: policy for input data access (download or protocol)#download}}'
-mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-Merging: remove input data flag True/False#True}}'
+mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
+mergingCPU = '{{MergeMaxCPUTime#PROD-3:Merging: Max CPU time in secs#300000}}'
+mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#MergeByRunWithFlush}}'
+mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged files#5}}'
+mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1_M-DST}}'
+mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
+mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{pDsc}}'
@@ -112,6 +112,8 @@ w4 = eval( w4 )
 
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
+validationFlag = eval( validationFlag )
+
 if extraOptions:
   pr.extraOptions = eval( extraOptions )
 mergeRemoveInputsFlag = eval( mergingRemoveInputsFlag )
@@ -148,9 +150,12 @@ if not pr.publishFlag:
   strippIDPolicy = 'protocol'
   evtsPerJob = '2000'
 
+
+pr.outConfigName = pr.configName
+
 #In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
-  pr.configName = 'certification'
+  pr.outConfigName = 'certification'
   pr.configVersion = 'test'
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
   if w1 or w3:
@@ -169,7 +174,7 @@ if pr.testFlag:
   pr.dqFlag = 'ALL'
 
 if validationFlag:
-  pr.configName = 'validation'
+  pr.outConfigName = 'validation'
 
 if w1:
   pr.prodsTypeList = [recoType]
