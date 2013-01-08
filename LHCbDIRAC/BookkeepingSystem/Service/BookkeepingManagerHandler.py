@@ -369,9 +369,87 @@ class BookkeepingManagerHandler(RequestHandler):
 
   #############################################################################
   def transfer_toClient(self, parameters, token, fileHelper):
-    """more info in the BookkeepingClient.py"""
+    """ This method used to transfer data using a file. Currently two client methods are
+    using this function: getFiles, getFilesWithMetadata
+    """
     result = S_OK()
     in_dict = cPickle.loads(parameters)
+    gLogger.debug( "The following dictionary received: %s" % in_dict)
+    methodName = in_dict.get('MethodName', default)
+    if methodName == 'getFiles':
+      retVal = self.__getFiles(in_dict)
+    else:
+      retVal = self.__getFilesWithMetadata(in_dict)
+
+    fileString = cPickle.dumps(retVal, protocol=2)
+    retVal = fileHelper.stringToNetwork(fileString)
+    if retVal['OK']:
+      gLogger.info('Sent file %s of size %d' % (str(in_dict), len(fileString)))
+    else:
+      result = retVal
+    return result
+
+  #############################################################################
+  @staticmethod
+  def __getFiles(in_dict):
+    """It returns a list of files.
+    """
+    simdesc = in_dict.get('SimulationConditions', default)
+    datataking = in_dict.get('DataTakingConditions', default)
+    procPass = in_dict.get('ProcessingPass', default)
+    ftype = in_dict.get('FileType', default)
+    evt = in_dict.get('EventType', 0)
+    configname = in_dict.get('ConfigName', default)
+    configversion = in_dict.get('ConfigVersion', default)
+    prod = in_dict.get('Production', in_dict.get('ProductionID', default))
+    flag = in_dict.get('DataQuality', in_dict.get('DataQualityFlag', default))
+    startd = in_dict.get('StartDate', None)
+    endd = in_dict.get('EndDate', None)
+    nbofevents = in_dict.get('NbOfEvents', False)
+    startRunID = in_dict.get('StartRun', None)
+    endRunID = in_dict.get('EndRun', None)
+    runNbs = in_dict.get('RunNumber', in_dict.get('RunNumbers', []))
+    if type(runNbs) != ListType:
+      runNbs = [runNbs]
+    replicaFlag = in_dict.get('ReplicaFlag', 'Yes')
+    visible = in_dict.get('Visible', default)
+    filesize = in_dict.get('FileSize', False)
+    tck = in_dict.get('TCK', [])
+
+    if 'ProductionID' in in_dict:
+      gLogger.verbose('ProductionID will be removed. It will changed to Production')
+
+    if 'DataQualityFlag' in in_dict:
+      gLogger.verbose('DataQualityFlag will be removed. It will changed to DataQuality')
+
+    if 'RunNumbers' in in_dict:
+      gLogger.verbose('RunNumbers will be removed. It will changed to RunNumbers')
+
+    result = []
+    retVal = dataMGMT_.getFiles(simdesc, datataking,
+                                procPass, ftype, evt,
+                                configname, configversion,
+                                prod, flag, startd, endd,
+                                nbofevents, startRunID,
+                                endRunID, runNbs,
+                                replicaFlag, visible,
+                                filesize, tck)
+    if not retVal['OK']:
+      return retVal['Message']
+    else:
+      values = retVal['Value']
+      for i in values:
+        result += [i[0]]
+
+    return result
+
+  #############################################################################
+  @staticmethod
+  def __getFilesWithMetadata(in_dict):
+    """
+    It returns the files with their metadata. This result will be transfered to the client
+    using a pickle file
+    """
     configName = in_dict.get('ConfigName', default)
     configVersion = in_dict.get('ConfigVersion', default)
     conddescription = in_dict.get('ConditionDescription', default)
@@ -427,15 +505,7 @@ class BookkeepingManagerHandler(RequestHandler):
                      record[12], record[13], record[14],
                      record[15], record[16]]]
       retVal = {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)}
-      fileString = cPickle.dumps(retVal, protocol=2)
-      retVal = fileHelper.stringToNetwork(fileString)
-      if retVal['OK']:
-        gLogger.info('Sent file %s of size %d' % (str(in_dict), len(fileString)))
-      else:
-        result = retVal
-    else:
-      result = retVal
-    return result
+    return retVal
 
   #############################################################################
   types_getFilesSumary = [DictType]
@@ -1381,6 +1451,8 @@ class BookkeepingManagerHandler(RequestHandler):
     startRunID = values.get('StartRun', None)
     endRunID = values.get('EndRun', None)
     runNbs = values.get('RunNumber', values.get('RunNumbers', []))
+    if type(runNbs) != ListType:
+      runNbs = [runNbs]
     replicaFlag = values.get('ReplicaFlag', 'Yes')
     visible = values.get('Visible', default)
     filesize = values.get('FileSize', False)
@@ -1653,9 +1725,11 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getNbOfRawFiles(in_dict):
     """more info in the BookkeepingClient.py"""
 
-
     runnb = in_dict.get('RunNumber', default)
-    evt = in_dict.get('EventTypeId', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
+    if 'EventTypeId' in in_dict:
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
+
     result = S_ERROR()
     if runnb == default and evt == default:
       result = S_ERROR('Run number or event type must be given!')
@@ -1690,7 +1764,7 @@ class BookkeepingManagerHandler(RequestHandler):
     configVersion = in_dict.get('ConfigVersion', default)
     conddescription = in_dict.get('ConditionDescription', default)
     processing = in_dict.get('ProcessingPass', default)
-    evt = in_dict.get('EventTypeId', default)
+    evt = in_dict.get('EventType', in_dict.get('EventTypeId', default))
     production = in_dict.get('Production', default)
     filetype = in_dict.get('FileType', default)
     quality = in_dict.get('DataQuality', in_dict.get('Quality', default))
@@ -1698,6 +1772,9 @@ class BookkeepingManagerHandler(RequestHandler):
     result = S_ERROR()
     if 'Quality' in  in_dict:
       gLogger.verbose('The Quality has to be replaced by DataQuality!')
+
+    if 'EventTypeId' in in_dict:
+      gLogger.verbose('The EventTypeId has to be replaced by EventType!')
 
     retVal = dataMGMT_.getTCKs(configName,
                                configVersion,

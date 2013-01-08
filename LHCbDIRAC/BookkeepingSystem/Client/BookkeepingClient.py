@@ -1326,8 +1326,20 @@ class BookkeepingClient:
     """
     It returns a list of files for a given condition.
     """
-    server = self.__getServer()
-    return server.getFiles(in_dict)
+    result = S_ERROR()
+    bkk = TransferClient('Bookkeeping/BookkeepingManager')
+    in_dict['MethodName'] = 'getFiles'
+    savedbuffer = cPickle.dumps(in_dict)
+    file_name = tempfile.NamedTemporaryFile()
+    params = str(savedbuffer)
+    retVal = bkk.receiveFile(file_name.name, params)
+    if not retVal['OK']:
+      result = retVal
+    else:
+      value = cPickle.load(open(file_name.name))
+      file_name.close()
+      result = S_OK(value)
+    return result
 
   #############################################################################
   def getFilesWithGivenDataSetsForUsers(self, values):
