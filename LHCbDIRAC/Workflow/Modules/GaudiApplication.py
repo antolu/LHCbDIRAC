@@ -92,8 +92,6 @@ class GaudiApplication( ModuleBase ):
 
       self._resolveInputVariables()
 
-      stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
-
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
                                                                                    self.applicationVersion,
                                                                                    self.systemConfig ) )
@@ -133,6 +131,7 @@ class GaudiApplication( ModuleBase ):
 
         self.log.warn( 'OLD production, should not happen for newer productions \
         (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
+        stepOutputs = []
         #Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):
@@ -156,10 +155,12 @@ class GaudiApplication( ModuleBase ):
 
       else:
 
+        stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
+
         prodConfFileName = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
-                                                     self.production_id,
-                                                     self.prod_job_id,
-                                                     self.step_number )
+                                                         self.production_id,
+                                                         self.prod_job_id,
+                                                         self.step_number )
         optionsDict = {}
 
         optionsDict['Application'] = self.applicationName

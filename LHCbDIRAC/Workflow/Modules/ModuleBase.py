@@ -678,11 +678,11 @@ class ModuleBase( object ):
         then creates the LFNs
     """
 
-    try:
-      finalOutputs, _bkFileTypes = self._findOutputs( outputs )
-    except AttributeError:
+    if not outputs:
       self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
       return
+    else:
+      finalOutputs, _bkFileTypes = self._findOutputs( outputs )
 
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
     self.step_commons['listoutput'] = finalOutputs
