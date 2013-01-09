@@ -754,13 +754,6 @@ class ProductionRequestSuccess( ClientTestCase ):
 
 class ProductionRequestFailure( ClientTestCase ):
 
-  def test__getBKKQuery( self ):
-
-    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-
-    pr.runsList = ['1', '2']
-    self.assertRaises( ValueError, pr._getBKKQuery )
-
   def test_resolveStepsFailure( self ):
     pr = ProductionRequest( self.bkClientMock, self.diracProdIn )
     pr.stepsList = ['123']
