@@ -117,8 +117,8 @@ class StrippSuccess( ProductionJobTestCase ):
 
 class MergeSuccess( ProductionJobTestCase ):
   def test_execute( self ):
-    lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000037_1.fmdst',
-            '/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000036_1.fmdst']
+    lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000280_1.fmdst',
+            '/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000357_1.fmdst']
     #From request 9085
     stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v34r2',
                     'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
@@ -135,8 +135,8 @@ class MergeSuccess( ProductionJobTestCase ):
 
 class MergeMultStreamsSuccess( ProductionJobTestCase ):
   def test_execute( self ):
-    lfns = ['/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00014056_1.Dimuon.dst',
-            '/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00014127_1.Dimuon.dst']
+    lfns = ['/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00006832_1.Dimuon.dst',
+            '/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00006778_1.Dimuon.dst']
     #From request 9085
     stepsInProd = [{'StepId': 54132, 'StepName': 'Merging', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r150', 'ProcessingPass': 'Merging', 'Visible': 'N', 'Usable': 'Yes',
