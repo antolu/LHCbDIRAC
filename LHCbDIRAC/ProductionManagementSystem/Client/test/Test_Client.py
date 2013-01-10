@@ -695,9 +695,27 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.dqFlag = 'OK,AA, BB'
-    res = pr._getBKKQuery( 'fromPreviousProd', 'type', 123 )
+    res = pr._getBKKQuery( 'fromPreviousProd', ['type'], 123 )
     resExpected = {'ProductionID':123,
                    'FileType':'type',
+                   'EventType':'',
+                   'DataQualityFlag':'OK;;;AA;;;BB'}
+    self.assertEqual( res, resExpected )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.dqFlag = 'OK,AA, BB'
+    res = pr._getBKKQuery( 'fromPreviousProd', ['type'], 123 )
+    resExpected = {'ProductionID':123,
+                   'FileType':'type',
+                   'EventType':'',
+                   'DataQualityFlag':'OK;;;AA;;;BB'}
+    self.assertEqual( res, resExpected )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.dqFlag = 'OK,AA, BB'
+    res = pr._getBKKQuery( 'fromPreviousProd', ['type1', 'type2'], 123 )
+    resExpected = {'ProductionID':123,
+                   'FileType':'type1;;;type2',
                    'EventType':'',
                    'DataQualityFlag':'OK;;;AA;;;BB'}
     self.assertEqual( res, resExpected )

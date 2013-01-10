@@ -396,12 +396,12 @@ class ProductionRequest( object ):
     #non optional parameters
     prod.LHCbJob.setType( prodType )
     try:
-      fTypeIn = str( stepsInProd[0]['fileTypesIn'][0].upper() )
+      fTypeIn = [ft.upper() for ft in stepsInProd[0]['fileTypesIn']]
     except IndexError:
-      fTypeIn = ''
+      fTypeIn = []
     prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
                                                                              self.prodGroup, self.eventType,
-                                                                             fTypeIn, self.appendName ) )
+                                                                             self.appendName ) )
     prod.setBKParameters( self.outConfigName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )
@@ -487,7 +487,7 @@ class ProductionRequest( object ):
 
   #############################################################################
 
-  def _getBKKQuery( self, mode = 'full', fileType = '', previousProdID = 0 ):
+  def _getBKKQuery( self, mode = 'full', fileType = [], previousProdID = 0 ):
     """ simply creates the bkk query dictionary
     """
 
@@ -526,7 +526,7 @@ class ProductionRequest( object ):
 
     elif mode.lower() == 'frompreviousprod':
       bkQuery = {
-                 'FileType': fileType,
+                 'FileType': ';;;'.join( fileType ).replace( ' ', '' ),
                  'EventType': self.eventType,
                  'ProductionID': int( previousProdID )
                  }
