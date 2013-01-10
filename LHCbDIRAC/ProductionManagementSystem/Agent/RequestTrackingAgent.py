@@ -1,6 +1,5 @@
-''' Production requests agent perform all periodic task with
-    requests.
-    Currently it update the number of Input Events for processing
+''' Production requests agent perform all periodic task with requests.
+    Currently it updates the number of Input Events for processing
     productions and the number of Output Events for all productions.
 '''
 
@@ -29,20 +28,13 @@ class RequestTrackingAgent( AgentModule ):
     self.bkClient = BookkeepingClient()
     self.prodReq = RPCClient( "ProductionManagement/ProductionRequest" )
 
-  def initialize( self ):
-    '''Sets defaults
-    '''
-    self.pollingTime = self.am_getOption( 'PollingTime', 1200 )
-    return S_OK()
-
   def execute( self ):
     '''The RequestTrackingAgent execution method.
     '''
-    gLogger.info( 'Request Tracking execute is started' )
-
     result = self.prodReq.getTrackedInput()
     update = []
     if result['OK']:
+      gLogger.verbose( "Requests tracked: %s" % ( ','.join( [str( req['RequestID'] ) for req in result['Value'] ] ) ) )
       for request in result['Value']:
         result = self.bkInputNumberOfEvents( request )
         if result['OK']:
@@ -61,10 +53,13 @@ class RequestTrackingAgent( AgentModule ):
     result = self.prodReq.getTrackedProductions()
     update = []
     if result['OK']:
+      gLogger.verbose( "Productions tracked: %s" % ( ','.join( [str( prod ) for prod in result['Value'] ] ) ) )
       for productionID in result['Value']:
         result = self.bkClient.getProductionProcessedEvents( productionID )
         if result['OK']:
           if result['Value']:
+            gLogger.verbose( "Updating production %d, with BkEvents %d" % ( int( productionID ),
+                                                                            int( result['Value'] ) ) )
             update.append( {'ProductionID':productionID, 'BkEvents':result['Value']} )
         else:
           gLogger.error( 'Progress of %s is not updated: %s' %
@@ -77,7 +72,6 @@ class RequestTrackingAgent( AgentModule ):
       if not result['OK']:
         gLogger.error( result['Message'] )
 
-    gLogger.info( 'Request Tracking execute is ended' )
     return S_OK( 'Request Tracking information updated' )
 
   def bkInputNumberOfEvents( self, request ):
