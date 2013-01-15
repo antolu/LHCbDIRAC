@@ -1,255 +1,382 @@
-""" LHCb LockSharedArea SAM Test Module
-"""
+''' LHCb LockSharedArea SAM Test Module
+'''
 
-__RCSID__ = "$Id: LockSharedArea.py 57594 2012-10-17 07:58:13Z fstagni $"
-
-import os, re, time
+import os
+import re
+import time
 import DIRAC
-from DIRAC import S_OK, S_ERROR, gLogger
+
+from DIRAC                                               import S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea, createSharedArea
-from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM import ModuleBaseSAM
+from LHCbDIRAC.SAMSystem.Modules.ModuleBaseSAM              import ModuleBaseSAM
 
-
-SAM_TEST_NAME = 'CE-lhcb-lock'
-SAM_LOG_FILE = 'sam-lock.log'
-SAM_LOCK_NAME = 'DIRAC-SAM-Test-Lock'
+__RCSID__ = "$Id$"
 
 class LockSharedArea( ModuleBaseSAM ):
 
-  #############################################################################
   def __init__( self ):
-    """ Standard constructor for SAM Module
-    """
+    '''
+        Standard constructor for SAM Module
+    '''
     ModuleBaseSAM.__init__( self )
-    self.version = __RCSID__
-    self.runinfo = {}
-    self.logFile = SAM_LOG_FILE
-    self.testName = SAM_TEST_NAME
-    self.lockFile = SAM_LOCK_NAME
-    self.log = gLogger.getSubLogger( "LockSharedArea" )
-    self.result = S_ERROR()
 
-    self.jobID = None
-    if os.environ.has_key( 'JOBID' ):
-      self.jobID = os.environ['JOBID']
+    #self.logFile  = 'sam-lock.log'
+    #self.testName = 'CE-lhcb-lock'
+    self.lockFile = 'DIRAC-SAM-Test-Lock'
 
-    self.lockValidity = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
-
+    # Validity of the lock
+    self.lockValidity     = Operations().getValue( 'SAM/LockValidity', 24 * 60 * 60 )
     #Workflow parameters for the test
-    self.enable = True
     self.forceLockRemoval = False
-
     #Global parameter affecting behaviour
-    self.safeMode = False
-
-  #############################################################################
+#    self.safeMode         = False
+  
   def resolveInputVariables( self ):
-    """ By convention the workflow parameters are resolved here.
-    """
-    if self.step_commons.has_key( 'enable' ):
-      self.enable = self.step_commons['enable']
-      if not type( self.enable ) == type( True ):
-        self.log.warn( 'Enable flag set to non-boolean value %s, setting to False' % self.enable )
-        self.enable = False
+    '''
+        By convention the workflow parameters are resolved here.
+    '''
 
-    if self.step_commons.has_key( 'forceLockRemoval' ):
-      self.forceLockRemoval = self.step_commons['forceLockRemoval']
-      if not type( self.forceLockRemoval ) == type( True ):
+    ModuleBaseSAM.resolveInputVariables( self )
+
+    if 'forceLockRemoval' in self.step_commons:
+      self.forceLockRemoval = self.step_commons[ 'forceLockRemoval' ]
+      if not isinstance( self.forceLockRemoval, bool ):
         self.log.warn( 'Force lock flag set to non-boolean value %s, setting to False' % self.forceLockRemoval )
-        self.enable = False
+        self.forceLockRemoval = False
 
-    if self.workflow_commons.has_key( 'SoftwareInstallationTest' ):
-      safeFlag = self.workflow_commons['SoftwareInstallationTest']
-      if safeFlag == 'False':
-        self.safeMode = True
+#    #FIXME: this is a parameter of SoftwareInstallationModule !!
+#    if 'SoftwareInstallationTest' in self.workflow_commons:
+#      safeFlag = self.workflow_commons[ 'SoftwareInstallationTest' ]
+#      if safeFlag == 'False':
+#        self.safeMode = True
 
-    self.log.verbose( 'Enable flag is set to %s' % self.enable )
-    self.log.verbose( 'Force lock flag is set to %s' % self.forceLockRemoval )
+    self.log.verbose( 'forceLockRemoval = %s' % self.forceLockRemoval )
+#    self.log.verbose( 'safeMode = %s' % self.safeMode )
+    
     return S_OK()
 
-  #############################################################################
-  def execute( self ):
-    """The main execution method of the LockSharedArea module.
-    """
-    self.log.info( 'Initializing ' + self.version )
-    self.resolveInputVariables()
-    self.setSAMLogFile()
-    self.result = S_OK()
-    if not self.result['OK']:
-      return self.result
+  def _execute( self ):
+    '''
+       The main execution method of the LockSharedArea module.
+    '''
 
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.info( 'An error was detected in a previous step, exiting with status error.' )
-      return self.finalize( 'Problem during execution', 'Failure detected in a previous step', 'error' )
+    isPoolAccount = self.__checkAccounts()[ 'Value' ]
 
-    self.setApplicationStatus( 'Starting %s Test' % self.testName )
-    self.runinfo = self.getRunInfo()
+    #If running in safe mode stop here and return S_OK()
+#    result = self.__checkSafeMode()
+#    if not result[ 'OK' ]:
+#      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
 
-    # Change the permissions on the shared area
-    self.log.info( 'Current account: %s' % self.runinfo['identity'] )
+    result = self.__checkUmask( isPoolAccount )
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    result = self.__checkSharedAreaContents()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    result = self.__checkSharedAreaLink()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    result = self.__checkForceLockRemoval()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    result = self.__checkSAMLockFile()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    result = self.__checkSetLockFile()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    result = self.__checkInstallProject()
+    if not result[ 'OK' ]:
+      return self.finalize( result[ 'Description' ], result[ 'Message' ], result[ 'SamResult' ] )
+
+    self.setJobParameter( 'NewSAMLock', 'Created on %s' % ( time.asctime() ) )
+    self.log.info( '<>' )
+    self.log.info( 'Test %s completed successfully' % self.testName )
+    self.setApplicationStatus( '%s Successful' % self.testName )
+
+    return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
+
+  ##############################################################################
+  # Protected methods
+
+  def __checkAccounts( self ):
+    '''
+       Checks Accounts
+    '''
+    
+    self.log.info( '>> __checkAccounts' )
+    self.log.info( 'Current account: %s' % self.runInfo[ 'identity' ] )
+    
     # a username is a POOL account if it finishes with digit
-    if not re.search( '\d$', self.runinfo['identityShort'] ):
+    if not re.search( '\d$', self.runInfo[ 'identityShort' ] ):
       self.log.info( '%s uses static accounts' % DIRAC.siteName() )
       isPoolAccount = False
     else:
       self.log.info( '%s uses pool accounts' % DIRAC.siteName() )
       isPoolAccount = True
+      
+    return S_OK( isPoolAccount )  
 
-    #If running in safe mode stop here and return S_OK()
-    if self.safeMode:
-      self.log.info( 'We are running in SAM safe mode so no lock file will be created' )
-      self.setApplicationStatus( '%s Successful (Safe Mode)' % self.testName )
-      return self.finalize( '%s Test Successful (Safe Mode)' % self.testName, 'Status OK (= 10)', 'ok' )
+#  def __checkSafeMode( self ):
+#    '''
+#       Checks safe mode, exits if it is on
+#    '''
+#    
+#    self.log.info( '>> __checkSafeMode' )
+#    
+#    result = S_OK()
+#    
+#    #If running in safe mode stop here and return S_ERROR() -> to run the finalize
+#    if self.safeMode:
+#      self.log.info( 'We are running in SAM safe mode so no lock file will be created' )
+#      self.setApplicationStatus( '%s Successful (Safe Mode)' % self.testName )
+#      
+#      result = S_ERROR( 'Status OK (= 10)' )
+#      result[ 'Description' ] = '%s Test Successful (Safe Mode)' % self.testName
+#      result[ 'SamResult' ]   = 'ok'
+#        
+#    return result
 
+  def __checkUmask( self, isPoolAccount ):
+    '''
+       Checks umask
+    '''
+    
+    self.log.info( '>> __checkUmask' )
+    
     result = self.runCommand( 'Checking current umask', 'umask' )
-    if not result['OK']:
-      return self.finalize( 'umask returned non-zero status', result['Message'], 'error' )
+    if not result[ 'OK' ]:
+      result[ 'Description' ] = 'umask returned non-zero status'
+      result[ 'SamResult' ]   = 'error'
+      return result
 
-    self.log.info( 'Current umask: %s' % result['Value'] )
+    self.log.info( 'Current umask: %s' % result[ 'Value' ] )
+    
     if isPoolAccount:
-      if not result['Value'].count( '0002' ):
-        self.log.info( 'Changing current umask to 0002' )
-        try:
-          os.umask( 0002 )
-        except Exception, x:
-          return self.finalize( 'excepton during umask', x, 'error' )
+      self.log.info( 'Is poolAccount' )
+      mask = 0002
     else:
-      if not result['Value'].count( '0022' ):
-        self.log.info( 'Changing current umask to 0022' )
-        try:
-          os.umask( 0022 )
-        except Exception, x:
-          return self.finalize( 'excepton during umask', x, 'error' )
-
-    sharedArea = getSharedArea()
-    if not sharedArea:
-      self.log.info( 'Could not determine sharedArea for site %s:\n%s\n trying to create it' % ( DIRAC.siteName(), sharedArea ) )
-      createSharedArea = createSharedArea()
-      if not createSharedArea:
-        return self.finalize( 'Could not create sharedArea for site %s:' % ( DIRAC.siteName() ), sharedArea, 'error' )
-      sharedArea = getSharedArea()
-    else:
-      self.log.info( 'Software shared area for site %s is %s' % ( DIRAC.siteName(), sharedArea ) )
-    # Check if the shared area is cernvmfs one.
-    # if yes then return Error
-      if os.path.exists( os.path.join( sharedArea, 'etc', 'cernvmfs' ) ):
-        self.log.info( 'Software shared area for site %s is using CERNVMFS' % ( DIRAC.siteName() ) )
-        return self.finalize( 'Could not install (CERNVMFS) for site %s:' % ( DIRAC.siteName() ), 'Read-Only volume', 'warning' )
-
-
-    #nasty fix but only way to resolve writeable volume at CERN
-    if DIRAC.siteName() == 'LCG.CERN.ch' or DIRAC.siteName() == 'LCG.CERN5.ch':
-      self.log.info( 'Changing shared area path to writeable volume at CERN' )
-      if re.search( '.cern.ch', sharedArea ):
-        newSharedArea = sharedArea.replace( 'cern.ch', '.cern.ch' )
-        self.writeToLog( 'Changing path to shared area writeable volume at LCG.CERN.ch:\n%s => %s' % ( sharedArea, newSharedArea ) )
-        sharedArea = newSharedArea
-
-    self.log.info( 'Checking shared area contents: %s' % ( sharedArea ) )
-    result = self.runCommand( 'Checking contents of shared area directory: %s' % sharedArea, 'ls -al %s' % sharedArea )
+      self.log.info( 'Is NOT poolAccount' )
+      mask = 0022
+        
+    if not result[ 'Value' ].count( '0002' ):
+      self.log.info( 'Changing current umask to %s' % mask )
+      try:
+        os.umask( mask )
+      except OSError, x:
+        result = S_ERROR( x )
+        result[ 'Description' ] = 'excepton during umask'
+        result[ 'SamResult' ]   = 'error'
+        return result
+    
+    return S_OK()
+  
+  def __checkSharedAreaContents( self ):
+    '''
+       Checks sharedAreaContents
+    '''
+    
+    self.log.info( '>> __checkSharedAreaContents' )
+    
+    self.log.info( 'Checking shared area contents: %s' % ( self.sharedArea ) )
+    result = self.runCommand( 'Checking contents of shared area directory: %s' % self.sharedArea, 
+                              'ls -al %s' % self.sharedArea )
     if not result['OK']:
-      return self.finalize( 'Could not list contents of shared area', result['Message'], 'error' )
+      result[ 'Description' ] = 'Could not list contents of shared area'
+      result[ 'SamResult' ]   = 'error'
+    
+    return result   
+ 
+  def __checkSharedAreaLink( self ): 
+    '''
+       Checks sharedAreaLink
+    '''
+
+    self.log.info( '>> __checkSharedAreaLink' )
 
     self.log.verbose( 'Trying to resolve shared area link problem' )
-    if os.path.exists( '%s/lib' % sharedArea ):
-      if os.path.islink( '%s/lib' % sharedArea ):
-        self.log.info( 'Removing link %s/lib' % sharedArea )
-        result = self.runCommand( 'Removing link in shared area', 'rm -fv %s/lib' % sharedArea, check = True )
-        if not result['OK']:
-          return self.finalize( 'Could not remove link in shared area', result['Message'], 'error' )
-      else:
-        self.log.info( '%s/lib is not a link so will not be removed' % sharedArea )
+    
+    libPath = '%s/lib' % self.sharedArea
+    
+    if os.path.exists( libPath ):
+      self.log.info( 'Link in shared area %s does not exist, nothing to do.' % libPath )
     else:
-      self.log.info( 'Link in shared area %s/lib does not exist' % sharedArea )
-
-    if self.forceLockRemoval:
-      self.log.info( 'Deliberately removing SAM lock file' )
-      cmd = 'rm -fv %s/%s' % ( sharedArea, self.lockFile )
-      result = self.runCommand( 'Flag enabled to forcefully remove current %s' % self.lockFile, cmd, check = True )
-      if not result['OK']:
-        self.setApplicationStatus( 'Could Not Remove Lock File' )
-        self.log.warn( result['Message'] )
-        return self.finalize( 'Could not remove existing lock file via flag', self.lockFile, 'critical' )
-
-      self.setJobParameter( 'ExistingSAMLock', 'Deleted via SAM test flag on %s' % ( time.asctime() ) )
-
-    self.log.info( 'Checking SAM lock file: %s' % self.lockFile )
-    if os.path.exists( '%s/%s' % ( sharedArea, self.lockFile ) ):
-      self.log.info( 'Another SAM job has established a lock on the shared area at %s' % sharedArea )
-      curtime = time.time()
-      fileTime = os.stat( '%s/%s' % ( sharedArea, self.lockFile ) )[8]
-      if curtime - fileTime > self.lockValidity:
-        self.log.info( 'SAM lock file present for > %s secs, deleting' % self.lockValidity )
-        cmd = 'rm -fv %s/%s' % ( sharedArea, self.lockFile )
-        result = self.runCommand( 'Current lock file %s present for longer than %s seconds' % ( self.lockFile, self.lockValidity ), cmd, check = True )
-        self.setApplicationStatus( 'Could Not Remove Old Lock File' )
-        if not result['OK']:
-          self.log.warn( result['Message'] )
-          return self.finalize( 'Could not remove existing lock file exceeding maximum validity', result['Message'], 'critical' )
-        self.setJobParameter( 'ExistingSAMLock', 'Removed on %s after exceeding maximum validity' % ( time.asctime() ) )
+      
+      if os.path.islink( libPath ):
+    
+        self.log.info( 'Removing link %s' % libPath )
+        result = self.runCommand( 'Removing link in shared area', 'rm -fv %s' % libPath, check = True )
+        if not result[ 'OK' ]:
+          result[ 'Description' ] = 'Could not remove link in shared area'
+          result[ 'SamResult' ]   = 'error' 
+          return result
+                
       else:
-        #unique to this test, prevent execution of software installation via 'notice' status
-        self.log.info( 'Another SAM job has been running at this site for less than %s seconds disabling software installation test' % self.lockValidity )
-        self.writeToLog( 'Another SAM job has been running at this site for less than %s seconds, disabling software installation test' % self.lockValidity )
-        self.setApplicationStatus( 'Shared Area Lock Exists' )
-        return self.finalize( '%s test running at same time as another SAM job' % self.testName, 'Status NOTICE (= 30)', 'notice' )
-
-    cmd = 'touch %s/%s' % ( sharedArea, self.lockFile )
-    result = self.runCommand( 'Creating SAM lock file', cmd, check = True )
-    if not result['OK']:
-      self.log.warn( result['Message'] )
-      self.log.info( 'Trying to change permissions: %s' % ( sharedArea ) )
-      try:
-        os.chmod( sharedArea, 0775 )
-      except Exception, x:
-        self.setApplicationStatus( 'Could Not Create Lock File' )
-        return self.finalize( 'Could not change permissions', '%s' % ( sharedArea ), 'critical' )
-      cmd = 'touch %s/%s' % ( sharedArea, self.lockFile )
-      result = self.runCommand( 'Creating SAM lock file', cmd, check = True )
-      if not result['OK']:
-        self.setApplicationStatus( 'Could Not Create Lock File' )
-        return self.finalize( 'Could not create lock file', '%s/%s' % ( sharedArea, self.lockFile ), 'critical' )
-
-    if os.path.exists( '%s/install_project.py' % ( sharedArea ) ):
-      self.log.info( 'Removing install_project from SharedArea' )
-      cmd = 'rm -fv %s/install_project.py' % ( sharedArea )
-      result = self.runCommand( 'Removing install_project from SharedArea', cmd, check = True )
-      if not result['OK']:
-        self.setApplicationStatus( 'Could Not Remove File' )
-        self.log.warn( result['Message'] )
-        return self.finalize( 'Could not remove install_project from SharedArea ', result['Message'], 'critical' )
-
-    self.setJobParameter( 'NewSAMLock', 'Created on %s' % ( time.asctime() ) )
-    self.log.info( 'Test %s completed successfully' % self.testName )
-    self.setApplicationStatus( '%s Successful' % self.testName )
-    return self.finalize( '%s Test Successful' % self.testName, 'Status OK (= 10)', 'ok' )
-#    return S_OK('Shared area is locked') #This result not published to SAM DB.
-
-  #############################################################################
-  def __changePermissions( self, sharedArea ):
-    """Change permissions for pool SGM account case in python.
-    """
-    self.log.verbose( 'Changing permissions to 0775 in shared area %s' % sharedArea )
-    self.writeToLog( 'Changing permissions to 0775 in shared area %s' % sharedArea )
-
-    userID = self.runinfo['identityShort']
-
-    try:
-      for dirName, subDirs, files in os.walk( sharedArea ):
-        self.log.debug( 'Changing file permissions in directory %s' % dirName )
-        if os.stat( '%s' % ( dirName ) )[4] == userID and not os.path.islink( '%s' % ( dirName ) ):
-          os.chmod( '%s' % ( dirName ), 0775 )
-        for toChange in files:
-          if os.stat( '%s/%s' % ( dirName, toChange ) )[4] == userID and not os.path.islink( '%s/%s' % ( dirName, toChange ) ):
-            os.chmod( '%s/%s' % ( dirName, toChange ), 0775 )
-    except Exception, x:
-      self.log.error( 'Problem changing shared area permissions', str( x ) )
-      return S_ERROR( x )
-
-    self.log.info( 'Permissions in shared area %s updated successfully' % ( sharedArea ) )
-    self.writeToLog( 'Permissions in shared area %s updated successfully' % ( sharedArea ) )
+        self.log.info( '%s is not a link so will not be removed' % libPath )
+ 
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+  def __checkForceLockRemoval( self ):
+    '''
+       Checks forceLockRemoval
+    '''
+    
+    self.log.info( '>> __checkForceLockRemoval' )
+    
+    if not self.forceLockRemoval:
+      self.log.verbose( 'Force removal flag is false, nothing to do.' )
+
+    else:
+      
+      self.log.info( 'Deliberately removing SAM lock file' )
+      cmd = 'rm -fv %s/%s' % ( self.sharedArea, self.lockFile )
+      
+      result = self.runCommand( 'Flag enabled to forcefully remove current %s' % self.lockFile, cmd, check = True )
+      
+      if not result[ 'OK' ]:
+        self.setApplicationStatus( 'Could Not Remove Lock File' )
+        self.log.warn( result[ 'Message' ] )
+        
+        result[ 'Message' ]     = self.lockFile
+        result[ 'Description' ] = 'Could not remove existing lock file via flag' 
+        result[ 'SamResult' ]   = 'error'
+        
+        return result
+
+      self.setJobParameter( 'ExistingSAMLock', 'Deleted via SAM test flag on %s' % time.asctime() )
+
+    return S_OK()  
+
+  def __checkSAMLockFile( self ):
+    '''
+       Checks SAMLockFile
+    '''
+    
+    self.log.info( '>> __checkSAMLockFile' )
+    
+    lockFilePath = '%s/%s' % ( self.sharedArea, self.lockFile )
+    
+    if not os.path.exists( lockFilePath ):
+      self.log.verbose( "No lock file at %s, nothing to do." % lockFilePath )
+        
+    else:
+      
+      self.log.info( 'Lock file found: %s' % lockFilePath )
+      curtime = time.time()
+      fileTime = os.stat( lockFilePath )[ 8 ]
+      
+      secondsAgo = curtime - fileTime
+      
+      if secondsAgo > self.lockValidity:
+      
+        self.log.info( 'SAM lock file present for > %s secs, deleting' % self.lockValidity )
+        cmd = 'rm -fv %s' % lockFilePath
+        _msg = 'Current lock file %s present for longer than %s seconds'
+        
+        result = self.runCommand(  _msg % ( self.lockFile, self.lockValidity ), cmd, check = True )
+        self.setApplicationStatus( 'Could Not Remove Old Lock File' )
+        
+        if not result[ 'OK' ]:
+          self.log.warn( result[ 'Message' ] )
+          
+          result[ 'Description' ] = 'Could not remove existing lock file exceeding maximum validity' 
+          result[ 'SamResult' ]   = 'error'
+          return result
+        
+        self.setJobParameter( 'ExistingSAMLock', 'Removed on %s after exceeding maximum validity' % ( time.asctime() ) )
+      
+      else:
+        #unique to this test, prevent execution of software installation via 'notice' status
+        _msg = 'ANOTHER SAM job started at this site for %s seconds ago'
+        
+        self.log.info( _msg % secondsAgo )
+        self.writeToLog( _msg % secondsAgo )
+        
+        self.setApplicationStatus( 'Shared Area Lock Exists' )
+                        
+        result = S_ERROR( 'Status NOTICE (= 30)' )
+        result[ 'Description' ] = '%s test running at same time as another SAM job' % self.testName
+        result[ 'SamResult' ]   = 'warning'
+        return result
+
+    return S_OK()
+
+  def __checkSetLockFile( self ):
+    '''
+       Checks Lock file
+    '''
+    
+    self.log.info( '>> __checkSetLockFile' )
+    
+    lockFilePath = '%s/%s' % ( self.sharedArea, self.lockFile )
+    
+    cmd = 'touch %s' % lockFilePath
+    result = self.runCommand( 'Creating SAM lock file', cmd, check = True )
+    
+    if result[ 'OK' ]:
+      
+      self.log.verbose( "Touched %s" % lockFilePath )
+      
+    else:  
+      
+      self.log.warn( result[ 'Message' ] )
+      self.log.info( 'Trying to change permissions: %s' % ( self.sharedArea ) )
+      
+      try:
+        os.chmod( self.sharedArea, 0775 )
+      except OSError:
+        self.setApplicationStatus( 'Could Not Create Lock File' )
+        
+        result = S_ERROR( self.sharedArea )
+        result[ 'Description' ] = 'Could not change permissions'
+        result[ 'SamResult' ]   = 'error' 
+        return result
+      
+      cmd = 'touch %s' % lockFilePath
+      result = self.runCommand( 'Creating SAM lock file (second attempt)', cmd, check = True )
+      
+      if not result[ 'OK' ]:
+        self.setApplicationStatus( 'Could Not Create Lock File' )
+        
+        result = S_ERROR( lockFilePath )
+        result[ 'Description' ] = 'Could not create lock file'
+        result[ 'SamResult' ]   = 'error' 
+        return result
+     
+    return S_OK()  
+
+  def __checkInstallProject( self ):
+    '''
+       Checks InstallProject
+    '''
+    
+    self.log.info( '>> __checkInstallProject' )
+    
+    installProject = '%s/install_project.py' % ( self.sharedArea )
+    if not os.path.exists( installProject ):
+      self.log.verbose( "InstallProject not found at %s, nothing to do." % installProject )
+      
+    else:  
+      self.log.info( 'Removing install_project from SharedArea' )
+      cmd = 'rm -fv %s' % installProject
+      result = self.runCommand( 'Removing install_project from SharedArea', cmd, check = True )
+      
+      if not result[ 'OK' ]:
+        self.setApplicationStatus( 'Could Not Remove File' )
+        self.log.warn( result[ 'Message' ] )
+        
+        result[ 'Description' ] = 'Could not remove install_project from SharedArea'
+        result[ 'SamResult' ]   = 'error' 
+        return result
+    
+    return S_OK()
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

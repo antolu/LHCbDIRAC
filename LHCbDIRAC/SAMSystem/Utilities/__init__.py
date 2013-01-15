@@ -1,4 +1,4 @@
-''' LHCbDIRAC.SAMSystem.Agent package
+''' LHCbDIRAC.SAMSystem.Utilities package
 '''
 
 __RCSID__  = '$Id$'

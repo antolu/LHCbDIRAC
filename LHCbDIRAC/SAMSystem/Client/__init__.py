@@ -1,9 +1,7 @@
-############################################################
+''' LHCbDIRAC.SAMSystem.Client package
+'''
 
-"""
-   LHCbDIRAC.SAMSystem.Client package
+__RCSID__  = '$Id$'
 
-   This contains the LHCb specific SAM job modules.
-"""
-
-__RCSID__ = "$Id$"
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
