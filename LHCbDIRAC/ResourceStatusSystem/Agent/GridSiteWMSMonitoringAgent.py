@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' GridSiteWMSMonitoringAgent 
   
   Extracts information on the current Grid activity from the DIRAC WMS and 
@@ -5,18 +6,18 @@
   
 '''
 
-
 import datetime
 import os
 import re
 import tempfile
 import time
 
-from DIRAC                                            import S_OK, gConfig
-from DIRAC.Core.Base.AgentModule                      import AgentModule
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.WorkloadManagementSystem.DB.JobDB          import JobDB
-from DIRAC.Core.Utilities                             import Time
+from DIRAC                                               import S_OK
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Base.AgentModule                         import AgentModule
+from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+from DIRAC.WorkloadManagementSystem.DB.JobDB             import JobDB
+from DIRAC.Core.Utilities                                import Time
 
 MC_JOB_TYPES   = [ 'normal', '^MC' ]
 DATA_JOB_TYPES = [ '^Data' ]
@@ -28,40 +29,50 @@ AGENT_NAME = 'ResourceStatusSystem/GridSiteWMSMonitoringAgent'
 
 class GridSiteWMSMonitoringAgent( AgentModule ):
   '''
-  GridSiteWMSMonitoringAgent, extracts information on the current Grid activity 
-  from the DIRAC WMS and publishes it to the web 
+    GridSiteWMSMonitoringAgent, extracts information on the current Grid activity 
+    from the DIRAC WMS and publishes it to the web 
   '''
   
-  # Too many public methods
-  # pylint: disable-msg=R0904  
+  __hrefPrefix = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory' 
+  
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties ) 
+  
+    # Members initialization
+  
+    self.hrefPrefix = self.__hrefPrefix
+    
+    self.siteGOCNameDict = {}
+    self.lastUpdateTime  = 0
+
+    self.jobDB           = None
+    self.opHelper        = None
 
   def initialize( self ):
     '''
-    Initialize the agent.
+      Initialize the agent.
     '''
-    # Attribute defined outside __init__  
-    # pylint: disable-msg=W0201
     
-    prefix = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory'
+    self.hrefPrefix      = self.am_getOption( 'SiteHrefPrefix', self.hrefPrefix )
     
-    self.am_setOption( 'PollingTime', 120 )
-    
-    self._lastUpdateTime = 0
     self.jobDB           = JobDB()
-    self.siteGOCNameDict = {}
-    self.hrefPrefix      = self.am_getOption( 'SiteHrefPrefix', prefix )
-    
+    self.opHelper        = Operations()   
+        
     return S_OK()
 
   def execute( self ):
+    '''
+      Main execute method
+    '''
 
     # Get the site mask
     siteMask = []
     result = self.jobDB.getSiteMask( 'Banned' )
-    if result['OK']:
-      siteMask = result['Value']
+    if result[ 'OK' ]:
+      siteMask = result[ 'Value' ]
 
-    elapsedTime        = time.time() - self._lastUpdateTime
+    elapsedTime        = time.time() - self.lastUpdateTime
     generationInterval = self.am_getOption( 'GenerationInterval', 1800 )
     if elapsedTime < generationInterval:
       return S_OK()
@@ -230,7 +241,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
       line   = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line + '\n'
 
-    self._lastUpdateTime = time.time()
+    self.lastUpdateTime = time.time()
     result = self._commitFileContents( fileContents )
     if result[ 'OK' ]:
       self.log.info( 'Successfully sent monitoring data' )
@@ -256,12 +267,12 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     """ Get DIRAC Site name to GOC Site name mapping
     """
 
-    result = gConfig.getSections( '/Resources/Sites/LCG' )
+    result = self.opHelper.getSections( 'Sites/LCG' )
     if not result[ 'OK' ]:
       return result
 
     for site in result[ 'Value' ]:
-      gocName = gConfig.getValue( '/Resources/Sites/LCG/%s/Name' % site, 'Unknown' )
+      gocName = self.opHelper.getValue( 'Sites/LCG/%s/Name' % site, 'Unknown' )
       self.siteGOCNameDict[ site ] = gocName
 
   def __getGOCName( self, site ):
