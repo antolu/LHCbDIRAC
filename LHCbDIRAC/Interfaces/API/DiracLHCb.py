@@ -16,7 +16,6 @@ from DIRAC.Core.Utilities.List                           import removeEmptyEleme
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
-from DIRAC.ResourceStatusSystem.Utilities.CS             import getSites, getSiteTier
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles, getRootFileGUID
@@ -835,12 +834,15 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     
-    try:
-      for site in getSites():
-        if getSiteTier( site ) in ( 0, 1 ):
-          self.tier1s.append( site )
-    except Exception, e:
-      return S_ERROR( 'Could not get the sites or sites tier ' + e )
+    lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )
+    if not lcgSites[ 'OK' ]:
+      return lcgSites
+    
+    for lcgSite in lcgSites[ 'Value' ]:
+      
+      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )      
+      if tier in ( 0, 1 ):
+        self.tier1s.append( lcgSite )
     
     siteInfo = self.checkSites()
     if not siteInfo['OK']:
