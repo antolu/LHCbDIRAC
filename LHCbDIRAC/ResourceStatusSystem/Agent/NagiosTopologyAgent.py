@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' NagiosTopologyAgent:  
 
   This agent loops over the Dirac CS and extracts the necessary

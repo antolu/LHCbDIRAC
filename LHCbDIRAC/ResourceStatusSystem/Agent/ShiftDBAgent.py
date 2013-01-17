@@ -1,7 +1,7 @@
-''' ShiftDBAgent
+''' LHCbDIRAC.ResourceStatusSystem.Agent.ShiftDBAgent
 
-  This agent queries the LHCb ShiftDB and gets the emails of the Production
-  shifter. Then, populates the eGroup lhcb-grid-operations-alarms
+   ShiftDBAgent.__bases__:
+     DIRAC.Core.Base.AgentModule.AgentModule
    
 '''
 
@@ -10,7 +10,7 @@ import os
 import suds
 import urllib2
 
-from DIRAC                                           import S_OK, S_ERROR, gConfig  
+from DIRAC                                           import gConfig, S_OK, S_ERROR  
 from DIRAC.Core.Base.AgentModule                     import AgentModule
 from DIRAC.Interfaces.API.DiracAdmin                 import DiracAdmin
 
@@ -21,7 +21,8 @@ AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
 
 class ShiftDBAgent( AgentModule ):
   '''
-    ShiftDBAgent
+    This agent queries the LHCb ShiftDB and gets the emails of the Production
+    shifter. Then, populates the eGroup lhcb-grid-operations-alarms
   '''
 
   # ShiftDB url where to find shifter emails

@@ -1,7 +1,8 @@
-''' ShiftEmail
+''' LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail
 
-  Body of the emails sent to the shifters.
-    
+  __productionBody__
+  getBodyEmail
+  
 '''
 
 __RCSID__  = '$Id: $'

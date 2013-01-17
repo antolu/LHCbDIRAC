@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' GridSiteWMSMonitoringAgent 
   
   Extracts information on the current Grid activity from the DIRAC WMS and 
