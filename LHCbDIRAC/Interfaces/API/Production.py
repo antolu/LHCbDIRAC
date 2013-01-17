@@ -12,7 +12,7 @@
 
 import shutil, re, os, copy
 
-from DIRAC import S_OK, S_ERROR
+from DIRAC import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow import Workflow, fromXMLString
 from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
 
@@ -796,14 +796,27 @@ class Production():
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
+    
     tier1s = []
-    from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
-    sites = getSites()
-
-    for site in sites:
-      tier = getSiteTier( site )
+    
+    lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )
+    if not lcgSites[ 'OK' ]:
+      return lcgSites
+    
+    for lcgSite in lcgSites[ 'Value' ]:
+      
+      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )      
       if tier in ( 0, 1 ):
-        tier1s.append( site )
+        tier1s.append( lcgSite )
+    
+#    tier1s = []
+#    #from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
+#    sites = getSites()
+#
+#    for site in sites:
+#      tier = getSiteTier( site )
+#      if tier in ( 0, 1 ):
+#        tier1s.append( site )
 
     self.LHCbJob.setBannedSites( tier1s )
 
