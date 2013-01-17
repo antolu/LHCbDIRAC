@@ -5,6 +5,7 @@
    
 '''
 
+import datetime
 import os
 import suds
 import urllib2
@@ -156,7 +157,7 @@ class ShiftDBAgent( AgentModule ):
     except urllib2.URLError, e:  
       return S_ERROR( 'Cannot open URL: %s, erorr %s' % ( self.lbshiftdburl, e ) )
 
-    now = datetime.now().hour
+    now = datetime.datetime.now().hour
 
     for line in web.readlines():
      
