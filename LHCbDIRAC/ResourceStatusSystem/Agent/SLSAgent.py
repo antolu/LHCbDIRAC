@@ -190,19 +190,15 @@ class SpaceTokenOccupancyTest( TestBase ):
     except OSError:
       pass # The dir exist already, or cannot be created: do nothing
 
-    try:
-      import lcg_util
-      for site in self.storageElements:
-        for st in CSHelpers.getSpaceTokens():
-          try:
-            res = pythonCall( ( 120 ), self.generate_xml_and_dashboard, site, st, lcg_util )
-            if not res[ 'OK' ]:
-              gLogger.error( res[ 'Message' ] )
-          except:
-            gLogger.warn( 'SpaceTokenOccupancyTest crashed at %s, %s' % ( site, st ) )
-    except ImportError:
-      gLogger.warn( "SpaceTokenOccupancyTest cannot import lcg_util, aborting." )
-
+    for site in self.storageElements:
+      for st in CSHelpers.getSpaceTokens():
+        try:
+          res = pythonCall( ( 120 ), self.generate_xml_and_dashboard, site, st, lcg_util )
+          if not res[ 'OK' ]:
+            gLogger.error( res[ 'Message' ] )
+        except:
+          gLogger.warn( 'SpaceTokenOccupancyTest crashed at %s, %s' % ( site, st ) )
+    
   def generate_xml_and_dashboard( self, site, st, lcg_util ):
     url = self.storageElements[site]['Endpoint']
     total = 0
