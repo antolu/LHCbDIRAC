@@ -1,27 +1,64 @@
-__RCSID__ = "$Id: SLSAgent.py 56349 2012-09-14 13:26:50Z ubeda $"
+''' LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent
+  
+  xml_append
+  gen_mysql
+  insert_slsservice
+  insert_slst1service
+  insert_slslogse
+  insert_slsstorage
+  insert_slsrmstats
+  gen_xml_stub
+  get_pledged_value_for_token
+  contact_mail_of_site
+  send_mail_to_site
+  TestBase.__bases__: 
+    object
+  SpaceTokenOccupancyTest.__bases__: 
+    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
+  DIRACTest.__bases__: 
+    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
+  LogSETest.__bases__: 
+    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase  
+  LFCTest.__bases__: 
+    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
+  SLSAgent.__bases__:
+    DIRAC.Core.Base.AgentModule.AgentModule
+    
+'''
+
+#TODO: make this agent readable and undestandable. Right not, it is not very much.
+
+import os
+import string
+import sys
+import time
+import xml.dom, xml.sax
+import urllib
+import urlparse
+
+import lfc2
+import lcg_util
+
+from DIRAC                                               import gLogger, gConfig, S_OK, rootPath
+from DIRAC.Core.Base.AgentModule                         import AgentModule
+from DIRAC.Core.DISET.RPCClient                          import RPCClient
+from DIRAC.Core.Base.DB                                  import DB
+from DIRAC.Core.Utilities.Subprocess                     import pythonCall
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ResourceStatusSystem.Utilities                import CSHelpers
+
+__RCSID__  = "$Id: SLSAgent.py 56349 2012-09-14 13:26:50Z ubeda $"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
-from DIRAC import gLogger, gConfig, S_OK, S_ERROR, rootPath
-from DIRAC.Core.Base.AgentModule                            import AgentModule
-from DIRAC.Core.DISET.RPCClient                             import RPCClient
-from DIRAC.Core.Base.DB                                     import DB
-from DIRAC.Core.Utilities.Subprocess                        import pythonCall
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations    import Operations
-from DIRAC.ResourceStatusSystem.Utilities                   import CS
-
-import xml.dom, xml.sax
-import time, string
-import urlparse, urllib
-import sys, os
-
-import lfc2, lcg_util
-
 rmDB = None
-
 impl = xml.dom.getDOMImplementation()
 
 # Taken from utilities
-def xml_append(doc, tag, value_=None, elt_=None, **kw):
+def xml_append( doc, tag, value_=None, elt_=None, **kw ):
+  '''
+    #TODO: see below
+    I will be so happy getting rid of this !
+  '''
   new_elt = doc.createElement(tag)
   for k in kw:
     new_elt.setAttribute(k, str(kw[k]))
@@ -35,6 +72,10 @@ def xml_append(doc, tag, value_=None, elt_=None, **kw):
 
 # Generate MySQL INSERT queries
 def gen_mysql( n, d, keys ):
+  '''
+    #TODO: see below
+    I will be so happy to getting rid of this !
+  '''
   def norm( v ):
     if type( v ) == str: return '"' + v.translate( string.maketrans( "\"", "'" ), ";" ) + '"'
     else: return str( v )
@@ -47,18 +88,38 @@ def gen_mysql( n, d, keys ):
 
 # Convenience funs
 def insert_slsservice( **kw ):
+  '''
+    #TODO: see below
+    Use the client !
+  '''
   return rmDB._update( gen_mysql( "SLSService", kw, ["System", "Service"] ) )
 
 def insert_slst1service( **kw ):
+  '''
+    #TODO: see below
+    Use the client !
+  '''  
   return rmDB._update( gen_mysql( "SLST1Service", kw, ["Site", "System"] ) )
 
 def insert_slslogse( **kw ):
+  '''
+    #TODO: see below
+    Use the client !
+  '''  
   return rmDB._update( gen_mysql( "SLSLogSE", kw, ["Name"] ) )
 
 def insert_slsstorage( **kw ):
+  '''
+    #TODO: see below
+    Use the client !
+  '''  
   return rmDB._update( gen_mysql( "SLSStorage", kw, ["Site", "Token"] ) )
 
 def insert_slsrmstats( **kw ):
+  '''
+    #TODO: see below
+    Use the client !
+  '''  
   return rmDB._update( gen_mysql( "SLSRMStats", kw, ["Site", "System", "Name"] ) )
 
 def gen_xml_stub():
@@ -101,14 +162,14 @@ space is available. Thanks to solve the problem if possible.
       gLogger.info( "Sent mail to %s OK!" % address )
 
 class TestBase( object ):
-  def __init__( self, am ):
-    self.am = am
+  def __init__( self, agent ):
+    self.agent = agent
 
   def getAgentOption( self, name, defaultValue = None ):
-    return self.am.am_getOption( name, defaultValue )
+    return self.agent.am_getOption( name, defaultValue )
 
   def getTestOption( self, name, defaultValue = None ):
-    return self.am.am_getOption( self.__class__.__name__ + "/" + name, defaultValue )
+    return self.agent.am_getOption( self.__class__.__name__ + "/" + name, defaultValue )
 
   getAgentValue = getAgentOption
   getTestValue = getTestOption
@@ -120,9 +181,9 @@ class SpaceTokenOccupancyTest( TestBase ):
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
     ses = Operations().getSections( 'Shares/Disk' )[ 'Value' ]
    
-    self.SEs = {}
+    self.storageElements = {}
     for se in ses:
-      self.SEs[ se ] = Operations().getOptionsDict( 'Shares/Disk/%s' % se )[ 'Value' ]
+      self.storageElements[ se ] = Operations().getOptionsDict( 'Shares/Disk/%s' % se )[ 'Value' ]
 
     try:
       os.makedirs( self.xmlPath )
@@ -131,8 +192,8 @@ class SpaceTokenOccupancyTest( TestBase ):
 
     try:
       import lcg_util
-      for site in self.SEs:
-        for st in CS.getSpaceTokens():
+      for site in self.storageElements:
+        for st in CSHelpers.getSpaceTokens():
           try:
             res = pythonCall( ( 120 ), self.generate_xml_and_dashboard, site, st, lcg_util )
             if not res[ 'OK' ]:
@@ -143,7 +204,7 @@ class SpaceTokenOccupancyTest( TestBase ):
       gLogger.warn( "SpaceTokenOccupancyTest cannot import lcg_util, aborting." )
 
   def generate_xml_and_dashboard( self, site, st, lcg_util ):
-    url = self.SEs[site]['Endpoint']
+    url = self.storageElements[site]['Endpoint']
     total = 0
     guaranteed = 0
     free = 0
@@ -219,8 +280,8 @@ class SpaceTokenOccupancyTest( TestBase ):
 class DIRACTest( TestBase ):
   def __init__( self, am ):
     super( DIRACTest, self ).__init__( am )
-    self.setup = gConfig.getValue( 'DIRAC/Setup', "" )
-    self.setupDict = CS.getTypedDictRootedAt( root = "/DIRAC/Setups", relpath = self.setup )
+#    self.setup = gConfig.getValue( 'DIRAC/Setup', "" )
+#    self.setupDict = CS.getTypedDictRootedAt( root = "/DIRAC/Setups", relpath = self.setup )
     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
     from DIRAC.Interfaces.API.Dirac import Dirac
     self.dirac = Dirac()
@@ -231,31 +292,32 @@ class DIRACTest( TestBase ):
       pass # The dir exist already, or cannot be created: do nothing
 
 #    self.xml_gw()
-    self.run_xml_sensors()
+#    self.run_xml_sensors()
     self.run_t1_xml_sensors()
 
-  def run_xml_sensors( self ):
-    # For each service of each system, run xml_sensors...
-    systems = CS.getTypedDictRootedAt( root = "", relpath = "/Systems" )
-    discovered_services = []
-    for s in systems:
-      try:
-        services = systems[s][self.setupDict[s]]['Services']
-        for k in services:
-          discovered_services.append( ( s, k ) )
-      except KeyError:
-        try:
-          gLogger.warn( "DIRACTest: No /Systems/%s/%s/Services in CS." % ( s, self.setupDict[s] ) )
-        except KeyError:
-          gLogger.warn( "DIRACTest: No /Systems/%s in CS." % s )
-
-    gLogger.info( "DIRACTest: discovered %d services" % len( discovered_services ) )
-
-    for ( s, srv ) in discovered_services:
-      try:
-        self.xml_sensor( s, srv )
-      except:
-        gLogger.warn( 'DIRACTest.xml_sensors crashed on %s, %s' % ( s, srv ) )
+#TODO: evaluate if we want to test all our services or not !
+#  def run_xml_sensors( self ):
+#    # For each service of each system, run xml_sensors...
+#    systems = CS.getTypedDictRootedAt( root = "", relpath = "/Systems" )
+#    discovered_services = []
+#    for system in systems:
+#      try:
+#        services = systems[system][self.setupDict[system]]['Services']
+#        for service in services:
+#          discovered_services.append( ( system, service ) )
+#      except KeyError:
+#        try:
+#          gLogger.warn( "DIRACTest: No /Systems/%s/%s/Services in CS." % ( system, self.setupDict[system] ) )
+#        except KeyError:
+#          gLogger.warn( "DIRACTest: No /Systems/%s in CS." % system )
+#
+#    gLogger.info( "DIRACTest: discovered %d services" % len( discovered_services ) )
+#
+#    for ( system, service ) in discovered_services:
+#      try:
+#        self.xml_sensor( system, service )
+#      except:
+#        gLogger.warn( 'DIRACTest.xml_sensors crashed on %s, %s' % ( system, service ) )
 
   def run_t1_xml_sensors( self ):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
@@ -273,80 +335,81 @@ class DIRACTest( TestBase ):
 
   # XML GENERATORS
 
-  # This test is an isolated SLS test for one service.. Why is it different ?
-  def xml_gw( self ):
-    opHelper = Operations()
-    try:
-      sites = opHelper.getSections( 'Sites/LCG' )['Value']
-    except KeyError:
-      gLogger.error( "SLSAgent, DIRACTest: Unable to query CS" )
-      sites = []
+#FIXME: do we want to do anything with this ?
+# This test is an isolated SLS test for one service.. Why is it different ?
+#  def xml_gw( self ):
+#    opHelper = Operations()
+#    try:
+#      sites = opHelper.getSections( 'Sites/LCG' )['Value']
+#    except KeyError:
+#      gLogger.error( "SLSAgent, DIRACTest: Unable to query CS" )
+#      sites = []
+#
+#    doc = gen_xml_stub()
+#    xml_append( doc, "id", "Framework_Gateway" )
+#    xml_append( doc, "webpage", self.getTestValue( "webpage" ) )
+#    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
+#
+#    if sites == []:
+#      xml_append( doc, "availability", 0 )
+#      xml_append( doc, "notes",
+#                 "Retrieved 0 sites out of the Configuration Service.\
+# Please check the CS is up and running otherwise is the Gateway" )
+#
+#    else:
+#      xml_append( doc, "availability", 100 )
+#      xml_append( doc, "notes", "Retrieved " + str( len( sites ) ) + "\
+# sites out of the Configuration Service through the Gateway" )
+#
+#    xmlfile = open( self.xmlPath + "Framework_Gateway.xml", "w" )
+#    try:
+#      xmlfile.write( doc.toxml() )
+#    finally:
+#      xmlfile.close()
 
-    doc = gen_xml_stub()
-    xml_append( doc, "id", "Framework_Gateway" )
-    xml_append( doc, "webpage", self.getTestValue( "webpage" ) )
-    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-
-    if sites == []:
-      xml_append( doc, "availability", 0 )
-      xml_append( doc, "notes",
-                 "Retrieved 0 sites out of the Configuration Service.\
- Please check the CS is up and running otherwise is the Gateway" )
-
-    else:
-      xml_append( doc, "availability", 100 )
-      xml_append( doc, "notes", "Retrieved " + str( len( sites ) ) + "\
- sites out of the Configuration Service through the Gateway" )
-
-    xmlfile = open( self.xmlPath + "Framework_Gateway.xml", "w" )
-    try:
-      xmlfile.write( doc.toxml() )
-    finally:
-      xmlfile.close()
-
-  def xml_sensor( self, system, service ):
-    res = self.dirac.ping( system, service )
-    doc = gen_xml_stub()
-    xml_append( doc, "id", system + "_" + service )
-    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-
-    if res["OK"]:
-      gLogger.info( "%s/%s successfully pinged" % ( system, service ) )
-      res = res["Value"]
-      host = urlparse.urlparse( res['service url'] ).netloc.split( ":" )[0]
-      xml_append( doc, "availability", 100 )
-      xml_append( doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host )
-      elt = xml_append( doc, "data" )
-      xml_append( doc, "numericvalue", res['service uptime'], elt_ = elt,
-                 name = "Service Uptime", desc = "Seconds since last restart of service" )
-      xml_append( doc, "numericvalue", res['host uptime'], elt_ = elt,
-                 name = "Host Uptime", desc = "Seconds since last restart of machine" )
-      xml_append( doc, "numericvalue", res['load'].split()[0], elt_ = elt,
-                 name = "Load", desc = "Instantaneous load" )
-      xml_append( doc, "notes", "Service " + res['service url'] + " completely up and running" )
-
-      # Fill database
-      response =  insert_slsservice( System = system, Service = service, Availability = 100,
-                                     Host = host,
-                                     ServiceUptime = res['service uptime'],
-                                     HostUptime = res['host uptime'],
-                                     InstantLoad = res['load'].split()[0],
-                                     Message = ( "Service " + res['service url'] + " completely up and running" ) )
-    else:
-      gLogger.info( "%s/%s does not respond to ping" % ( system, service ) )
-      xml_append( doc, "availability", 0 )
-      xml_append( doc, "notes", res['Message'] )
-      response = insert_slsservice( System = system, Service = service, Availability = 0, Message = res["Message"] )
-    
-    if not response[ 'OK' ]:
-      gLogger.error( response[ 'Message' ] )
-      return response
-
-    xmlfile = open( self.xmlPath + system + "_" + service + ".xml", "w" )
-    try:
-      xmlfile.write( doc.toxml() )
-    finally:
-      xmlfile.close()
+#  def xml_sensor( self, system, service ):
+#    res = self.dirac.ping( system, service )
+#    doc = gen_xml_stub()
+#    xml_append( doc, "id", system + "_" + service )
+#    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
+#
+#    if res["OK"]:
+#      gLogger.info( "%s/%s successfully pinged" % ( system, service ) )
+#      res = res["Value"]
+#      host = urlparse.urlparse( res['service url'] ).netloc.split( ":" )[0]
+#      xml_append( doc, "availability", 100 )
+#      xml_append( doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host )
+#      elt = xml_append( doc, "data" )
+#      xml_append( doc, "numericvalue", res['service uptime'], elt_ = elt,
+#                 name = "Service Uptime", desc = "Seconds since last restart of service" )
+#      xml_append( doc, "numericvalue", res['host uptime'], elt_ = elt,
+#                 name = "Host Uptime", desc = "Seconds since last restart of machine" )
+#      xml_append( doc, "numericvalue", res['load'].split()[0], elt_ = elt,
+#                 name = "Load", desc = "Instantaneous load" )
+#      xml_append( doc, "notes", "Service " + res['service url'] + " completely up and running" )
+#
+#      # Fill database
+#      response =  insert_slsservice( System = system, Service = service, Availability = 100,
+#                                     Host = host,
+#                                     ServiceUptime = res['service uptime'],
+#                                     HostUptime = res['host uptime'],
+#                                     InstantLoad = res['load'].split()[0],
+#                                     Message = ( "Service " + res['service url'] + " completely up and running" ) )
+#    else:
+#      gLogger.info( "%s/%s does not respond to ping" % ( system, service ) )
+#      xml_append( doc, "availability", 0 )
+#      xml_append( doc, "notes", res['Message'] )
+#      response = insert_slsservice( System = system, Service = service, Availability = 0, Message = res["Message"] )
+#    
+#    if not response[ 'OK' ]:
+#      gLogger.error( response[ 'Message' ] )
+#      return response
+#
+#    xmlfile = open( self.xmlPath + system + "_" + service + ".xml", "w" )
+#    try:
+#      xmlfile.write( doc.toxml() )
+#    finally:
+#      xmlfile.close()
 
   def xml_t1_sensor( self, url ):
     parsed = urlparse.urlparse( url )
@@ -730,3 +793,6 @@ class SLSAgent( AgentModule ):
       gLogger.warn( 'LFCTest crashed with %s' % e )
 
     return S_OK()
+
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
