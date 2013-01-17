@@ -9,13 +9,11 @@ import os
 import suds
 import urllib2
 
-from datetime import datetime
-
 from DIRAC                                           import S_OK, S_ERROR, gConfig  
 from DIRAC.Core.Base.AgentModule                     import AgentModule
 from DIRAC.Interfaces.API.DiracAdmin                 import DiracAdmin
 
-from LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail import prodBody
+from LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail import getBodyEmail
 
 __RCSID__  = '$Id: $'
 AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
@@ -24,31 +22,52 @@ class ShiftDBAgent( AgentModule ):
   '''
     ShiftDBAgent
   '''
+
+  # ShiftDB url where to find shifter emails
+  __lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
+  # eGroup user
+  __user         = 'lbdirac' 
+  # eGroup password
+  __passwd       = 'belikeapanda'
+  # soap wsdl to access eGroups
+  # preprod wdsl: 'https://preprodcra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
+  __wsdl         = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
   
-  def __init__( self, agentName, baseAgentName = False, properties = dict() ):
+  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+    
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties ) 
 
-    AgentModule.__init__( self, agentName, baseAgentName, properties )
+    # Members initialization
 
-    self.user         = 'lbdirac'
-    self.lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
-    self.wsdl         = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'   
-    self.passwd       = None
-
+    self.lbshiftdburl = self.__lbshiftdburl
+    self.user         = self.__user
+    self.passwd       = self.__passwd
+    self.wsdl         = self.__wsdl
+   
     self.roles        = {}    
     self.roleShifters = {}
-    self.newShifters  = {}
+    self.newShifters  = {}   
     
-    self.diracAdmin   = DiracAdmin()
-  
+    self.diracAdmin   = None
+    
   def initialize( self ):
     '''
      Initialize
     '''
+     
+    self.user         = self.am_getOption( 'user', self.user )
+    self.lbshiftdburl = self.am_getOption( 'lbshiftdburl', self.lbshiftdburl )
+    self.wsdl         = self.am_getOption( 'wsdl', self.wsdl )
+    
+    pwfile = os.path.join( self.am_getWorkDirectory(), '.passwd' )
    
-    passwd = self.__getPass()
+    passwd = self.__getPass( pwfile )
     if not passwd[ 'OK' ]:
       return passwd
-    self.passwd = passwd[ 'Value' ]  
+    self.passwd = passwd[ 'Value' ]
+
+    # Moved down to avoid crash  
+    self.diracAdmin   = DiracAdmin()
    
     return S_OK()
  
@@ -69,7 +88,7 @@ class ShiftDBAgent( AgentModule ):
     self.log.info( 'found %s ' % ', '.join( roles[ 'Value' ] ) )
        
     self.log.info( 'Getting role emails' )
-   
+    
     for role, eGroup in roles[ 'Value' ].items():
    
       self.roles[ role ] = eGroup
@@ -97,7 +116,6 @@ class ShiftDBAgent( AgentModule ):
     for newShifterRole, shifterEgroup in self.newShifters.items():
      
       self.log.info( 'Notifying role %s' % newShifterRole )
-     
       res = self.__notifyNewShifter( newShifterRole, shifterEgroup )
       if not res[ 'OK' ]:
         self.log.error( res[ 'Message' ] )
@@ -158,7 +176,25 @@ class ShiftDBAgent( AgentModule ):
           email = email.split( ':' )[ 1 ].strip()        
           return S_OK( email )
 
-    return S_ERROR( 'Email not found' )    
+    return S_ERROR( 'Email not found' ) 
+
+#    for line in web.readlines():
+#     
+#      if line.find( role ) != -1:
+#       
+#        linesplitted = line.split( '|' )
+#       
+#        if linesplitted[ 4 ].find( ':' ) != -1 :
+#          email = linesplitted[ 4 ].split( ':' )[ 1 ]
+#         
+#          if email.find( '@' ) != -1:
+#           
+#            email = email.strip()
+#           
+#            return S_OK( email )
+#          else:
+#            return S_ERROR( '%s in %s should be an email but seems not' % ( email, linesplitted[ 4 ] ) )
+#    return S_ERROR( 'Email not found' )    
 
   def __setRoleEmail( self, eGroup, email, role ):
     '''
@@ -178,7 +214,7 @@ class ShiftDBAgent( AgentModule ):
      
     if len( members ) == 0:
       self.log.info( 'eGroup is empty' )
-          
+      
     elif len( members ) > 1:
       self.log.info( 'More than one user in the eGroup' )
       
@@ -188,7 +224,7 @@ class ShiftDBAgent( AgentModule ):
         return self.__deleteMembers( client, wgroup )
       elif members[ 0 ].Email.strip() == email.strip():
         self.log.info( '%s has not changed as shifter, no changes needed' % email )      
-        return S_OK()     
+        return S_OK()
       else:
         self.log.info( '%s is not anymore shifter, deleting ...' % members[ 0 ].Email )
 
@@ -209,9 +245,9 @@ class ShiftDBAgent( AgentModule ):
     '''
     
     self.log.info( 'Creating a new MembersType type' )
-      
+    
     emptyMembers = client.factory.create( 'ns1:MembersType' )  
-      
+    
     return self.__syncGroupMembers( client, wgroup, emptyMembers )
    
   def __addMember( self, email, client, wgroup ):
@@ -247,13 +283,11 @@ class ShiftDBAgent( AgentModule ):
 
     return S_OK()
 
-  def __getPass( self ):
+  @staticmethod
+  def __getPass( pwfile ):
     '''
     Reads password from local file
     '''
-   
-    # Future me, forgive me for this
-    pwfile = os.path.join( self.am_getWorkDirectory(), '.passwd' )
    
     try:
       pwf    = open( pwfile )
@@ -269,20 +303,21 @@ class ShiftDBAgent( AgentModule ):
     Sends an email to the shifter ( if any ) at the beginning of the shift period.
     '''
 
+    body = getBodyEmail( role )
+ 
+    if body is None:
+      self.log.info( 'No email body defined for %s role' % role )
+      return S_OK()
+   
     if role == 'Production':
-      
       prodRole = self.roles[ 'Production' ]
       geocRole = self.roles[ 'Grid Expert' ]
-      body = prodBody % ( self.roleShifters[ prodRole ][0], self.roleShifters[ geocRole ][0] )
+      body = body % ( self.roleShifters[ prodRole ][0], self.roleShifters[ geocRole ][0] )
    
-      # Hardcoded Joel's email to avoid dirac@mail.cern.ch be rejected by smtp server 
-      res = self.diracAdmin.sendMail( '%s@cern.ch' % eGroup, 'Shifter information', 
-                                       body, fromAddress = 'joel@mail.cern.ch' )
-      return res
-    
-    else:
-      self.log.info( 'No email body defined for %s role' % role )
-      return S_OK()    
+    # Hardcoded Joel's email to avoid dirac@mail.cern.ch be rejected by smtp server
+    res = self.diracAdmin.sendMail( '%s@cern.ch' % eGroup, 'Shifter information',
+                                    body, fromAddress = 'joel.closier@cern.ch' )
+    return res    
  
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF 
