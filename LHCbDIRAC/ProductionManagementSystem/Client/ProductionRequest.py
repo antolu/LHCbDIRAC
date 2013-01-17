@@ -399,9 +399,9 @@ class ProductionRequest( object ):
       fTypeIn = [ft.upper() for ft in stepsInProd[0]['fileTypesIn']]
     except IndexError:
       fTypeIn = []
-    prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s' % ( self.requestID, prodType,
+    prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
                                                                              self.prodGroup, self.eventType,
-                                                                             self.appendName ) )
+                                                                             ';'.join( fTypeIn ), self.appendName ) )
     prod.setBKParameters( self.outConfigName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )

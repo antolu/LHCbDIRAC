@@ -106,6 +106,7 @@ removeInputSelection = eval( removeInputSelection )
 
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
+validationFlag = eval( validationFlag )
 
 if certificationFlag or localTestFlag:
   pr.testFlag = True

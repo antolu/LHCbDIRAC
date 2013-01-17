@@ -79,14 +79,14 @@ class ProductionStatusAgent( AgentModule ):
     self.log.info( "******************************" )
 
     try:
-      prods = self.__getTransformations( 'Completed' )
-      if prods:
+      prodsList = self.__getTransformations( 'Completed' )
+      if prodsList:
         reqsMap = self._getReqsMap( prodReqSummary, progressSummary )
         for masterReq, reqs in reqsMap.iteritems():
           allProds = []
           for _req, prods in reqs.iteritems():
             allProds = allProds + prods
-          if set( allProds ) < set( prods ):
+          if set( allProds ) < set( prodsList ):
             self._updateRequestStatus( masterReq, 'Done', updatedRequests )
     except RuntimeError, error:
       self.log.error( error )

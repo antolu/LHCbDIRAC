@@ -87,7 +87,7 @@ strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data acces
 #merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
 mergingCPU = '{{MergeMaxCPUTime#PROD-3:Merging: Max CPU time in secs#300000}}'
-mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#MergeByRunWithFlush}}'
+mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#ByRunFileTypeSizeWithFlush}}'
 mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged files#5}}'
 mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1_M-DST}}'
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
