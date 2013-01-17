@@ -61,7 +61,7 @@ pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
-pr.events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
+events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
 pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
@@ -154,6 +154,7 @@ if w1:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'protocol', 'download']
+  pr.events = [events, '-1', '-1']
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping']
   pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
@@ -167,6 +168,7 @@ elif w2:
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'protocol']
+  pr.events = [events, '-1']
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC_M-DST']
@@ -180,6 +182,7 @@ elif w3:
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
   pr.inputDataPolicies = ['', 'download']
+  pr.events = [events, '-1']
 elif w4:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
@@ -192,6 +195,7 @@ elif w4:
   pr.groupSizes = [1]
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
+  pr.events = [events]
 
 pr.inputs = [[]] * len( pr.prodsTypeList )
 

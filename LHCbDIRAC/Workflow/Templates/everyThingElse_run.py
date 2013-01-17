@@ -151,7 +151,7 @@ if pr.testFlag:
   pr.startRun = '75336'
   pr.endRun = '75340'
   p1CPU = '100000'
-  pr.events = 2000
+  pr.events = [2000]
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagDown'
   pr.processingPass = 'Real Data/Reco12/Stripping17'
   pr.bkFileType = 'CHARMCOMPLETEEVENT.DST'

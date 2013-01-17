@@ -41,7 +41,7 @@ class ProductionRequest( object ):
     self.configVersion = 'certification'
     self.outConfigName = ''
     self.eventType = ''
-    self.events = -1
+    self.events = []
     self.sysConfig = ''
     self.stepsList = []
     self.stepsListDict = []
@@ -170,7 +170,8 @@ class ProductionRequest( object ):
                                     plugin = prodDict['plugin'],
                                     previousProdID = fromProd,
                                     derivedProdID = prodDict['derivedProduction'],
-                                    transformationFamily = prodDict['transformationFamily'] )
+                                    transformationFamily = prodDict['transformationFamily'],
+                                    events = prodDict['events'] )
       res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
@@ -234,6 +235,7 @@ class ProductionRequest( object ):
         inputs = self.inputs[index]
         idp = self.inputDataPolicies[index]
         stepID = self.stepsList[index]
+        events = self.events[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -249,6 +251,7 @@ class ProductionRequest( object ):
           self.inputs.pop( index )
           self.inputDataPolicies.pop( index )
           self.stepsList.pop( index )
+          self.events.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -268,6 +271,7 @@ class ProductionRequest( object ):
             self.previousProds.insert( index, preProd )
             self.stepsListDict.insert( index, newSteps[x] )
             self.stepsInProds.insert( index + x, [last + x] )
+            self.events.insert( index, events )
 
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
@@ -297,6 +301,9 @@ class ProductionRequest( object ):
     if not self.targets:
       self.targets = [''] * len( self.prodsTypeList )
 
+    if not self.events:
+      self.events = ['-1'] * len( self.prodsTypeList )
+
     if not self.inputDataPolicies:
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
@@ -311,21 +318,23 @@ class ProductionRequest( object ):
     prodNumber = 1
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
-    cpu, inputD, outFileMask, target, groupSize, plugin, idp, previousProd in itertools.izip( self.prodsTypeList,
-                                                                                              self.stepsInProds,
-                                                                                              self.bkQueries,
-                                                                                              self.removeInputsFlags,
-                                                                                              self.outputSEs,
-                                                                                              self.priorities,
-                                                                                              self.cpus,
-                                                                                              self.inputs,
-                                                                                              self.outputFileMasks,
-                                                                                              self.targets,
-                                                                                              self.groupSizes,
-                                                                                              self.plugins,
-                                                                                              self.inputDataPolicies,
-                                                                                              self.previousProds
-                                                                                              ):
+    cpu, inputD, outFileMask, target, groupSize, plugin, idp, \
+    previousProd, events in itertools.izip( self.prodsTypeList,
+                                            self.stepsInProds,
+                                            self.bkQueries,
+                                            self.removeInputsFlags,
+                                            self.outputSEs,
+                                            self.priorities,
+                                            self.cpus,
+                                            self.inputs,
+                                            self.outputFileMasks,
+                                            self.targets,
+                                            self.groupSizes,
+                                            self.plugins,
+                                            self.inputDataPolicies,
+                                            self.previousProds,
+                                            self.events
+                                            ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -351,6 +360,7 @@ class ProductionRequest( object ):
                                  'transformationFamily': transformationFamily,
                                  'previousProd': previousProd,
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
+                                 'events': events
                                  }
       prodNumber += 1
 
@@ -387,7 +397,8 @@ class ProductionRequest( object ):
                         plugin = '',
                         previousProdID = 0,
                         derivedProdID = 0,
-                        transformationFamily = 0 ):
+                        transformationFamily = 0,
+                        events = -1 ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """
@@ -404,7 +415,7 @@ class ProductionRequest( object ):
                                                                              ';'.join( fTypeIn ), self.appendName ) )
     prod.setBKParameters( self.outConfigName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
-    prod.setParameter( 'numberOfEvents', 'string', str( self.events ), 'Number of events requested' )
+    prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )

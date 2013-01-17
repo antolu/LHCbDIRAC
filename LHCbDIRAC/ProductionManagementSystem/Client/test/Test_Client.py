@@ -195,6 +195,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False, True]
     pr.inputs = [['aa'], []]
     pr.inputDataPolicies = ['dl', 'pr']
+    pr.events = [-1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -209,6 +210,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False, True, True, True]
     inputsExpected = [['aa'], [], [], []]
     inputDataPoliciesExpected = ['dl', 'pr', 'pr', 'pr']
+    eventsExpected = [-1, -1, -1, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -222,6 +224,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -237,6 +240,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], ['aa']]
     pr.removeInputsFlags = [False, True]
     pr.inputDataPolicies = ['pr', 'dl']
+    pr.events = [-1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -251,6 +255,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False, True]
     inputsExpected = [[], ['aa']]
     inputDataPoliciesExpected = ['pr', 'dl']
+    eventsExpected = [-1, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -264,6 +269,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -278,6 +284,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [True, True]
     pr.inputs = [[], ['aa']]
     pr.inputDataPolicies = ['dl', 'pr']
+    pr.events = [-1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -292,6 +299,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [True, True, True, True]
     inputsExpected = [[], [], [], ['aa']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
+    eventsExpected = [-1, -1, -1, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -305,6 +313,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -320,6 +329,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False]
     pr.inputs = [[]]
     pr.inputDataPolicies = ['']
+    pr.events = [-1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -334,6 +344,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False]
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['']
+    eventsExpected = [-1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -347,6 +358,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
@@ -362,6 +374,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False, True, True]
     pr.inputs = [[], ['aa'], ['bb']]
     pr.inputDataPolicies = ['', 'dl', 'pr']
+    pr.events = [-1, -1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -376,6 +389,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False, True, True, True, True]
     inputsExpected = [[], ['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl', 'pr']
+    eventsExpected = [-1, -1, -1, -1, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -389,6 +403,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -404,6 +419,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False, True]
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
+    pr.events = [-1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -418,6 +434,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False, True, True, True]
     inputsExpected = [[], [], [], []]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl']
+    eventsExpected = [-1, -1, -1, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -431,6 +448,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -446,6 +464,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkFileType = 'TYPE'
     pr.inputs = [[]]
     pr.inputDataPolicies = ['dl']
+    pr.events = [-1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -460,6 +479,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False]
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['dl']
+    eventsExpected = [-1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -473,6 +493,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -487,6 +508,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [True, True]
     pr.inputs = [['aa'], ['bb']]
     pr.inputDataPolicies = ['dl', 'pr']
+    pr.events = [-1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -501,6 +523,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [True, True, True, True]
     inputsExpected = [['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
+    eventsExpected = [-1, -1, -1, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -514,6 +537,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['MCSimulation', 'Merge']
@@ -528,6 +552,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False, True]
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
+    pr.events = [100, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
@@ -542,6 +567,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     removeInputsFlagExpected = [False, True]
     inputsExpected = [[], []]
     inputDataPoliciesExpected = ['', 'dl']
+    eventsExpected = [100, -1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -555,6 +581,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -573,6 +600,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.cpus = [1000000, 300000, 10000]
     pr.plugins = ['ByRun', 'BySize', 'BySize']
     pr.previousProds = [None, 1, 1]
+    pr.events = [-1, -1, -1]
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
@@ -623,6 +651,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'transformationFamily':0,
                       'previousProd': None,
                       'stepsInProd-ProdName': ["123['SDST']", "456['BHADRON.DST']"],
+                      'events':-1
                      },
 
                    2:{
@@ -644,6 +673,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'transformationFamily':0,
                       'previousProd': 1,
                       'stepsInProd-ProdName': ["456['CALIBRATION.DST']"],
+                      'events':-1
                       },
 
                    3:{
@@ -665,6 +695,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'transformationFamily':0,
                       'previousProd': 1,
                       'stepsInProd-ProdName': ["456['PID.MDST']"],
+                      'events':-1
                       }
                    }
     self.maxDiff = None
@@ -803,7 +834,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.configName = 'MC'
     pr.configVersion = 'MC11a'
 
-    pr.events = '100'
+    pr.events = ['100', '-1']
     pr.sysConfig = 'i686-slc5-gcc43-opt'
 
     pr.extend = '100'

@@ -159,11 +159,11 @@ if pr.testFlag:
   pr.configVersion = 'test'
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
   if w1 or w3:
-    pr.events = 25
+    pr.events = [25]
     pr.processingPass = 'Real Data'
     pr.bkFileType = 'RAW'
   else:
-    pr.events = 2000
+    pr.events = [2000]
     pr.processingPass = 'Real Data/Reco12'
     pr.bkFileType = 'SDST'
   mergingGroupSize = '1'
