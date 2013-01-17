@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' Configurations
 
   Collects everything needed to configure policies.
@@ -9,11 +8,10 @@ from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
 
 __RCSID__ = '$Id$'
 
-#############################################################################
-# policies evaluated
-#############################################################################
+#...............................................................................
+# LHCb Policies
 
-POLICIESMETA_LHCb = {
+POLICIESMETA_LHCB = {
   
   'GGUSTickets' :
     {
@@ -59,6 +57,9 @@ POLICIESMETA_LHCb = {
       'args'            : None,
     }                                    
 }
+
+################################################################################
+# Old stuff
 
 policies = {
                   
@@ -462,7 +463,7 @@ policies = {
 }
 
 #Update DIRAC policies with LHCbDIRAC policies
-POLICIESMETA.update( POLICIESMETA_LHCb )
+POLICIESMETA.update( POLICIESMETA_LHCB )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
