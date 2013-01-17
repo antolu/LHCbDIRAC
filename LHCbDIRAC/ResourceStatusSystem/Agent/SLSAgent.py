@@ -1,4 +1,4 @@
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: SLSAgent.py 56349 2012-09-14 13:26:50Z ubeda $"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR, rootPath
@@ -6,22 +6,32 @@ from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.Core.DISET.RPCClient                             import RPCClient
 from DIRAC.Core.Base.DB                                     import DB
 from DIRAC.Core.Utilities.Subprocess                        import pythonCall
-from DIRAC.ResourceStatusSystem.Utilities                   import CS, Utils
-from DIRAC.ResourceStatusSystem.Utilities.Utils             import xml_append
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations    import Operations
-
-from LHCbDIRAC.Core.Utilities                               import ProductionEnvironment
+from DIRAC.ResourceStatusSystem.Utilities                   import CS
 
 import xml.dom, xml.sax
 import time, string
 import urlparse, urllib
-import sys, os, re, subprocess, pwd
+import sys, os
 
 import lfc2, lcg_util
 
 rmDB = None
 
 impl = xml.dom.getDOMImplementation()
+
+# Taken from utilities
+def xml_append(doc, tag, value_=None, elt_=None, **kw):
+  new_elt = doc.createElement(tag)
+  for k in kw:
+    new_elt.setAttribute(k, str(kw[k]))
+  if value_ != None:
+    textnode = doc.createTextNode(str(value_))
+    new_elt.appendChild(textnode)
+  if elt_ != None:
+    return elt_.appendChild(new_elt)
+  else:
+    return doc.documentElement.appendChild(new_elt)
 
 # Generate MySQL INSERT queries
 def gen_mysql( n, d, keys ):
@@ -48,9 +58,6 @@ def insert_slslogse( **kw ):
 def insert_slsstorage( **kw ):
   return rmDB._update( gen_mysql( "SLSStorage", kw, ["Site", "Token"] ) )
 
-def insert_slsconddb( **kw ):
-  return rmDB._update( gen_mysql( "SLSCondDB", kw, ["Site"] ) )
-
 def insert_slsrmstats( **kw ):
   return rmDB._update( gen_mysql( "SLSRMStats", kw, ["Site", "System", "Name"] ) )
 
@@ -67,11 +74,13 @@ def gen_xml_stub():
 #### Helper functions to send a warning mail to a site (for space-token test)
 
 def get_pledged_value_for_token( se, st ):
-  val = float( gConfig.getValue( "/Resources/Shares/Disk/" + se + "/" + st ) )
+  opHelper = Operations()
+  val = float( opHelper.getValue( "Shares/Disk/" + se + "/" + st ) )
   return ( val if val != None else 0 )
 
 def contact_mail_of_site( site ):
-  return gConfig.getValue( "/Resources/Shares/Disk/" + site + "/Mail" )
+  opHelper = Operations()
+  return opHelper.getValue( "Shares/Disk/" + site + "/Mail" )
 
 def send_mail_to_site( site, token, pledged, total ):
   from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
@@ -109,12 +118,11 @@ class SpaceTokenOccupancyTest( TestBase ):
   def __init__( self, am ):
     super( SpaceTokenOccupancyTest, self ).__init__( am )
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
-    #self.SEs = CS.getSpaceTokenEndpoints()
     ses = Operations().getSections( 'Shares/Disk' )[ 'Value' ]
    
     self.SEs = {}
     for se in ses:
-      self.SEs[ se ] = Operations().getOptionsDict( 'Shares/Disk/%s' % se )[ 'Value' ]  
+      self.SEs[ se ] = Operations().getOptionsDict( 'Shares/Disk/%s' % se )[ 'Value' ]
 
     try:
       os.makedirs( self.xmlPath )
@@ -126,12 +134,9 @@ class SpaceTokenOccupancyTest( TestBase ):
       for site in self.SEs:
         for st in CS.getSpaceTokens():
           try:
-            
             res = pythonCall( ( 120 ), self.generate_xml_and_dashboard, site, st, lcg_util )
             if not res[ 'OK' ]:
               gLogger.error( res[ 'Message' ] )
-            
-            #self.generate_xml_and_dashboard( site, st, lcg_util )
           except:
             gLogger.warn( 'SpaceTokenOccupancyTest crashed at %s, %s' % ( site, st ) )
     except ImportError:
@@ -180,10 +185,14 @@ class SpaceTokenOccupancyTest( TestBase ):
     xml_append( doc, "textvalue", "Storage space for the specific space token", elt_ = elt )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
 
-    Utils.unpack( insert_slsstorage( Site = site, Token = st, Availability = availability,
-                      RefreshPeriod = "PT27M", ValidityDuration = validity,
-                      TotalSpace = int( total ), GuaranteedSpace = int( guaranteed ),
-                      FreeSpace = int( free ) ) )
+    res = insert_slsstorage( Site = site, Token = st, Availability = availability,
+                             RefreshPeriod = "PT27M", ValidityDuration = validity,
+                             TotalSpace = int( total ), GuaranteedSpace = int( guaranteed ),
+                             FreeSpace = int( free ) )
+    
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      return res
 
     xmlfile = open( self.xmlPath + site + "_" + st + ".xml", "w" )
     try:
@@ -266,8 +275,9 @@ class DIRACTest( TestBase ):
 
   # This test is an isolated SLS test for one service.. Why is it different ?
   def xml_gw( self ):
+    opHelper = Operations()
     try:
-      sites = gConfig.getSections( '/Resources/Sites/LCG' )['Value']
+      sites = opHelper.getSections( 'Sites/LCG' )['Value']
     except KeyError:
       gLogger.error( "SLSAgent, DIRACTest: Unable to query CS" )
       sites = []
@@ -316,17 +326,21 @@ class DIRACTest( TestBase ):
       xml_append( doc, "notes", "Service " + res['service url'] + " completely up and running" )
 
       # Fill database
-      Utils.unpack( insert_slsservice( System = system, Service = service, Availability = 100,
+      response =  insert_slsservice( System = system, Service = service, Availability = 100,
                                      Host = host,
                                      ServiceUptime = res['service uptime'],
                                      HostUptime = res['host uptime'],
                                      InstantLoad = res['load'].split()[0],
-                                     Message = ( "Service " + res['service url'] + " completely up and running" ) ) )
+                                     Message = ( "Service " + res['service url'] + " completely up and running" ) )
     else:
       gLogger.info( "%s/%s does not respond to ping" % ( system, service ) )
       xml_append( doc, "availability", 0 )
       xml_append( doc, "notes", res['Message'] )
-      Utils.unpack( insert_slsservice( System = system, Service = service, Availability = 0, Message = res["Message"] ) )
+      response = insert_slsservice( System = system, Service = service, Availability = 0, Message = res["Message"] )
+    
+    if not response[ 'OK' ]:
+      gLogger.error( response[ 'Message' ] )
+      return response
 
     xmlfile = open( self.xmlPath + system + "_" + service + ".xml", "w" )
     try:
@@ -347,7 +361,13 @@ class DIRACTest( TestBase ):
     res = pinger.ping()
 
     if system == "RequestManagement":
-      res2 = Utils.unpack( pinger.getDBSummary() )
+      pingRes = pinger.getDBSummary()
+      if not pingRes[ 'OK' ]:
+        gLogger.error( pingRes[ 'Message' ] )
+        return pingRes
+      
+      #res2 = Utils.unpack( pinger.getDBSummary() )
+      res2 = pingRes[ 'Value' ]
 
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + system )
@@ -365,12 +385,16 @@ class DIRACTest( TestBase ):
       xml_append( doc, "numericvalue", res.get( 'host uptime', 0 ), elt_ = elt,
                  name = "Host Uptime", desc = "Seconds since last restart of machine" )
 
-      Utils.unpack( insert_slst1service( Site = site, System = system, Availability = 100,
+      response = insert_slst1service( Site = site, System = system, Availability = 100,
                                        Version = res.get( "version", "unknown" ),
                                        ServiceUptime = int( res.get( 'service uptime', 0 ) ),
                                        HostUptime = int( res.get( 'host uptime', 0 ) ),
-                                       Message = ( "Service " + url + " completely up and running" ) ) )
-
+                                       Message = ( "Service " + url + " completely up and running" ) )
+      
+      if not response[ 'OK' ]:
+        gLogger.error( response[ 'Message' ] )
+        return response
+       
       if system == "RequestManagement":
         for k, v in res2.items():
           xml_append( doc, "numericvalue", v["Assigned"], elt_ = elt,
@@ -380,18 +404,24 @@ class DIRACTest( TestBase ):
           xml_append( doc, "numericvalue", v["Done"], elt_ = elt,
                      name = k + " - Done", desc = "Number of Done " + k + " requests" )
 
-          Utils.unpack( insert_slsrmstats( Site = site, System = system, Name = k,
+          response = insert_slsrmstats( Site = site, System = system, Name = k,
                                          Assigned = int( v["Assigned"] ),
                                          Waiting = int( v["Waiting"] ),
-                                         Done = int( v["Done"] ) ) )
+                                         Done = int( v["Done"] ) )
+          if not response[ 'OK' ]:
+            gLogger.error( response[ 'Message' ] )
+            return response
 
       gLogger.info( "%s/%s successfully pinged" % ( site, system ) )
 
     else:
       xml_append( doc, "availability", 0 )
       xml_append( doc, "notes", res['Message'] )
-      Utils.unpack( insert_slst1service( Site = site, System = system, Availability = 0,
-                          Message = res["Message"] ) )
+      response = insert_slst1service( Site = site, System = system, Availability = 0,
+                                      Message = res["Message"] )
+      if not response[ 'OK' ]:
+        gLogger.error( response[ 'Message' ] )
+        return response
 
       gLogger.info( "%s/%s does not respond to ping" % ( site, system ) )
 
@@ -441,10 +471,14 @@ class LOGSETest( TestBase ):
     xml_append( doc, "numericvalue", percent, elt_ = elt, name = "LogSE data partition used" )
     xml_append( doc, "numericvalue", space, elt_ = elt, name = "Total space on data partition" )
 
-    Utils.unpack( insert_slslogse( Name = "partition", ValidityDuration = "PT12H",
+    response = insert_slslogse( Name = "partition", ValidityDuration = "PT12H",
                                  TimeStamp = time.strftime( "%Y-%m-%dT%H:%M:%S", time.gmtime( ts ) ),
                                  Availability = ( 100 if percent < 90 else ( 5 if percent < 99 else 0 ) ),
-                                 DataPartitionUsed = percent, DataPartitionTotal = space ) )
+                                 DataPartitionUsed = percent, DataPartitionTotal = space )
+    if not response[ 'OK' ]:
+      gLogger.error( response[ 'Message' ] )
+      return response
+    
     gLogger.info( "LogSE partition test done" )
 
     xmlfile = open( self.xmlPath + "log_se_partition.xml", "w" )
@@ -465,8 +499,11 @@ class LOGSETest( TestBase ):
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S", time.gmtime( data['ts'] ) ) )
     xml_append( doc, "availability", int( round( float( data['data'][0] ) * 100 ) ) )
 
-    Utils.unpack( insert_slslogse( Name = name, ValidityDuration = validity_duration,
-                    Availability = int( round( float( data['data'][0] ) * 100 ) ) ) )
+    response =  insert_slslogse( Name = name, ValidityDuration = validity_duration,
+                    Availability = int( round( float( data['data'][0] ) * 100 ) ) )
+    if not response[ 'OK' ]:
+      gLogger.error( response[ 'Message' ] )
+      return response
     gLogger.info( "LogSE " + name + " test done" )
 
     xmlfile = open( self.xmlPath + "log_se_" + name + ".xml", "w" )
@@ -555,7 +592,7 @@ class LFCTest( TestBase ):
 
     if not _register:
       gLogger.error( 'Skipping tests, file not registered' )
-      return S_ERROR( 'Error registering file' )
+      raise ValueError( 'Error registering file' )
 
     self.cleanMasterTest( lfn )
 
