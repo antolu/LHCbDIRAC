@@ -155,6 +155,8 @@ class ProductionRequestDB( DB ):
           rec['RealNumberOfEvents'] = num
       except ValueError:
         pass
+      except TypeError:
+        gLogger.warn( "RealNumberOfEvents not defined" )
     if not rec['MasterID']:
       rec['RequestPDG'] = ''
       if not rec['RequestState']:
@@ -664,6 +666,8 @@ class ProductionRequestDB( DB ):
           num = 0
       except ValueError:
         pass
+      except TypeError:
+        gLogger.warn( "NumberOfEvents not defined for %s" % requestID )
       update['RealNumberOfEvents'] = str( num )
 
     if 'Comments' in update:
@@ -891,6 +895,8 @@ class ProductionRequestDB( DB ):
         num = 0
     except ValueError:
       pass
+    except TypeError:
+      gLogger.warn( "NumberOfEvents is not defined for %s" % requestID )
     rec['RealNumberOfEvents'] = str( num )
 
     recl = [ rec[x] for x in self.requestFields[1:-9] ]
@@ -1256,6 +1262,8 @@ class ProductionRequestDB( DB ):
         x['BkEvents'] = long( x['BkEvents'] )
     except ValueError:
       return S_ERROR( 'Bad parameters' )
+    except TypeError:
+      return S_ERROR( 'Parameters not defined' )
 
     for x in update:
       result = self._update( "UPDATE ProductionProgress " +
@@ -1294,6 +1302,8 @@ class ProductionRequestDB( DB ):
         num = long( res['RealNumberOfEvents'] )
       except ValueError:
         num = 0
+      except TypeError:
+        num = 0
       if num > 0:
         continue
       rec.append( res )
@@ -1308,6 +1318,8 @@ class ProductionRequestDB( DB ):
         x['RealNumberOfEvents'] = long( x['RealNumberOfEvents'] )
     except ValueError:
       return S_ERROR( 'Bad parameters' )
+    except TypeError:
+      return S_ERROR( 'Parameters not defined' )
     result = self.__trackedInputSQL( 'RequestID' )
     if not result['OK']:
       return result
