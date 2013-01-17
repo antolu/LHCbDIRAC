@@ -1,3 +1,4 @@
+# $HeadURL: $
 ''' SLSCommand
   
   The Command class is a command class to properly interrogate the SLS.
@@ -9,7 +10,7 @@ import re
 from DIRAC                                      import S_OK
 from DIRAC.Core.LCG                             import SLSClient
 from DIRAC.ResourceStatusSystem.Command.Command import Command
-from DIRAC.ResourceStatusSystem.Utilities       import CS
+from DIRAC.ResourceStatusSystem.Utilities       import CSHelpers
 
 __RCSID__ = '$Id: $'
 
@@ -25,10 +26,10 @@ def slsid_of_service( granularity, name, type_ = None ):
   elif type_ == 'VOMS': 
     return 'VOMS'
   elif ( granularity, type_ ) == ( 'StorageElement', None ): 
-    return re.split( '[-_]', name )[ 0 ] + '_' + CS.getSEToken( name )
+    return re.split( '[-_]', name )[ 0 ] + '_' + CSHelpers.getSEToken( name )
   elif type_ == 'CASTOR':
     try: 
-      return 'CASTORLHCB_LHCB' + re.split( '[-_]', CS.getSEToken( name ))[1].upper()
+      return 'CASTORLHCB_LHCB' + re.split( '[-_]', CSHelpers.getSEToken( name ))[1].upper()
     except IndexError: 
       return ''
   else: 
@@ -92,8 +93,8 @@ class SLSServiceInfoCommand( Command ):
     Return getServiceInfo from SLS Client
 
     :attr:`args`:
-     - args[0]: string: should be a ValidRes
-     - args[1]: string: should be the (DIRAC) name of the ValidRes
+     - args[0]: string: should be a ValidElement
+     - args[1]: string: should be the (DIRAC) name of the ValidElement
     '''
 
     super( SLSServiceInfoCommand, self ).doCommand()

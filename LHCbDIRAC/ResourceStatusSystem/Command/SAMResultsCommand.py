@@ -1,75 +1,70 @@
+# $HeadURL:  $
 ''' SAMResultsCommand
   
   The Command is a command class to know about present SAM status.
   
 '''
 
-from DIRAC                                        import S_ERROR
-from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping  import getGOCSiteName
-from DIRAC.ResourceStatusSystem.Command.Command   import Command
-from DIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
+from DIRAC                                       import S_ERROR
+from DIRAC.Core.LCG.SAMResultsClient             import SAMResultsClient 
+from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping import getGOCSiteName
+from DIRAC.ResourceStatusSystem.Command.Command  import Command
 
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id:  $'
 
 class SAMResultsCommand( Command ):
-  
-  __APIs__ = [ 'SAMResultsClient', 'ResourceStatusClient' ]
+  '''
+    SAMResultsCommand is a class to know about the results reported by SAM
+  ''' 
+   
+  def __init__( self, args = None, clients = None ):
+    
+    super( SAMResultsCommand, self ).__init__( args, clients ) 
+
+    if 'SAMResultsClient' in self.apis:
+      self.samClient = self.apis[ 'SAMResultsClient' ]
+    else:
+      self.samClient = SAMResultsClient()  
   
   def doCommand( self ):
     ''' 
     Return getStatus from SAM Results Client  
     
     :attr:`args`: 
-     - args[0]: string: should be a ValidRes
+     - args[0]: string: should be a ValidElement
 
-     - args[1]: string: should be the (DIRAC) name of the ValidRes
+     - args[1]: string: should be the (DIRAC) name of the ValidElement
      
-     - args[2]: string: optional - should be the (DIRAC) site name of the ValidRes
+     - args[2]: string: optional - should be the (DIRAC) site name of the ValidElement
      
      - args[3]: list: list of tests
     '''
 
-    super( SAMResultsCommand, self ).doCommand()
-    self.APIs = initAPIs( self.__APIs__, self.APIs )
-
-    granularity = self.args[ 0 ]
-    name        = self.args[ 1 ]
-      
-    if len( self.args ) > 2:  
-      siteName = self.args[ 2 ]
-    else:
-      siteName = None
-
-    if granularity == 'Site':
-      siteName = getGOCSiteName( name )
-      if not siteName[ 'OK' ]:
-        return siteName
-      siteName = siteName['Value']
-        
-    elif granularity == 'Resource':
-      if siteName is None:
-        siteName = self.APIs[ 'ResourceStatusClient' ].getGridSiteName( granularity, name )
-        if not siteName['OK']:
-          return siteName    
-        siteName = siteName[ 'Value' ]
-      else:
-        siteName = getGOCSiteName(siteName)
-        if not siteName['OK']:
-          return siteName
-        siteName = siteName['Value']
-    else:
-      return { 'Result' : S_ERROR( '%s is not a valid granularity' % self.args[ 0 ] ) } 
+    if not 'element' in self.args:
+      return S_ERROR( 'SAMResultsCommand: "element" not found in self.args' )
+    element = self.args[ 'element' ]
     
-    if len( self.args ) > 3:
-      tests = self.args[ 3 ]
-    else:
-      tests = None
+    if element not in ( 'Site', 'Resource' ):
+      return S_ERROR( '%s is not a valid element' % element )
+    
+    if not 'siteName' in self.args:
+      return S_ERROR( 'SAMResultsCommand: "siteName" not found in self.args' )
+    siteName = self.args[ 'siteName' ]
+    if siteName is None:
+      return S_ERROR( 'SAMResultsCommand: "siteName" should not be None' )
 
-    res = self.APIs[ 'SAMResultsClient' ].getStatus( granularity, name, siteName, tests ) 
+    metrics = None
+    if 'metrics' in self.args:
+      metrics = self.args[ 'metrics' ]
 
-    return { 'Result' : res }
-  
-  doCommand.__doc__ = Command.doCommand.__doc__ + doCommand.__doc__
-  
+    #####################
+    
+    gocSiteName = getGOCSiteName( siteName )
+    if not gocSiteName[ 'OK' ]:
+      return gocSiteName
+    gocSiteName = gocSiteName[ 'Value' ]
+    
+    return self.samClient.getStatus( element, siteName, gocSiteName, metrics ) 
+ 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  

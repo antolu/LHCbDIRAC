@@ -1,54 +1,58 @@
+# $HeadURL:  $
 ''' NagiosProbesCommand
   
   The Command gets information from the MonitoringTest cache.
   
 '''
 
-from DIRAC                                            import S_OK
-from DIRAC.ResourceStatusSystem.Command.Command       import Command
+from DIRAC                                                          import S_OK, S_ERROR
+from DIRAC.ResourceStatusSystem.Command.Command                     import Command
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-from LHCbDIRAC.ResourceStatusSystem.Command.knownAPIs import initAPIs
-
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id:  $'
 
 class NagiosProbesCommand( Command ):
-  '''
   
-  ''' 
-  
-  __APIs__ = [ 'ResourceManagementClient' ]
-  
+  def __init__( self, args = None, clients = None ):
+    
+    super( NagiosProbesCommand, self ).__init__( args, clients ) 
+
+    if 'LHCbResourceManagementClient' in self.apis:
+      self.rmClient = self.apis[ 'ResourceManagementClient' ]
+    else:
+      self.rmClient = ResourceManagementClient()  
+   
   def doCommand( self ):
-    '''
     
-    '''
-    super( NagiosProbesCommand, self ).doCommand()
-    apis = initAPIs( self.__APIs__, self.APIs, force = True )  
-    
-    #granularity = self.args[0]
-    name    = self.args[ 1 ]
-    flavour = self.args[ 2 ]
-    
+    if not 'name' in self.args:
+      return S_ERROR( 'NagiosProbesCommand: "name" not found in self.args' )
+    name = self.args[ 'name' ]
+    if name is None:
+      return S_ERROR( 'NagiosProbesCommand: "name" should not be None' )
+
+    if not 'flavor' in self.args:
+      return S_ERROR( 'NagiosProbesCommand: "flavor" not found in self.args' )
+    flavor = self.args[ 'flavor' ]
+    if flavor is None:
+      return S_ERROR( 'NagiosProbesCommand: "flavor" should not be None' )
+   
     #ServiceURI is a quite misleading name.. it is a Resource in the RSS DB in fact.
-    query = { 
-            'serviceURI'     : name, 
-            'serviceFlavour' : flavour,
-            'meta'           :
-              {
-                'columns' : [ 'MetricStatus','SummaryData' ],
-                'count'   : True,
-                'group'   : 'MetricStatus' 
-               }
-          }
+    meta = { 
+             'columns' : [ 'MetricStatus','SummaryData' ],
+             'count'   : True,
+             'group'   : 'MetricStatus' 
+           }
     
-    res = apis[ 'ResourceManagementClient' ].getMonitoringTest( **query )
+    #FIXME: this command will not work, count and group options are not supported.
+    res = self.rmClient.selectMonitoringTest( serviceURI = name, serviceFlavour = flavor,
+                                              meta = meta )
       
     if not res[ 'OK' ]:
-      return { 'Result' : res }
+      return res
     
-    res = S_OK( dict( [ ( r[ 0 ], r[ 1: ] ) for r in res[ 'Value' ] ] ) )
+    res = dict( [ ( r[ 0 ], r[ 1: ] ) for r in res[ 'Value' ] ] )
 
-    return { 'Result' : res }    
+    return S_OK( res )    
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
