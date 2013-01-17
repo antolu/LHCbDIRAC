@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' Test_RSS_Policy_SLSPolicy
 
   Simplest test case for the RSS policies. Can be taken as example for other

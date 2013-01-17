@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' TransferQualityPolicy
  
   The TransferQualityPolicy class is a policy class to check the transfer
@@ -5,9 +6,10 @@
   
 '''
 
+from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
+#from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
 
 __RCSID__ = '$Id$'
 
@@ -17,8 +19,8 @@ class TransferQualityPolicy( PolicyBase ):
   command against a certain set of thresholds defined in the CS.
   '''
 
-
-  def evaluate( self ):
+  @staticmethod
+  def _evaluate( commandResult ):
     '''
     Evaluate policy on Data quality.
 
@@ -29,36 +31,58 @@ class TransferQualityPolicy( PolicyBase ):
         }
     '''
 
-    commandResult = super( TransferQualityPolicy, self ).evaluate()
-    result  = {}
-
-    if commandResult is None:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = 'Command evaluation returned None'
-      return result
+    result = { 
+              'Status' : None,
+              'Reason' : None
+              }
     
     if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = commandResult[ 'Message' ]
-      return result
+      return S_OK( result )
     
     commandResult = commandResult[ 'Value' ]
-    if commandResult == None:
+
+    if not commandResult:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decision'
-      return result 
+      return S_OK( result )
+        
+    if not 'Name' in commandResult:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Missing "Name" key'
+      return S_OK( result )
+
+    name = commandResult[ 'Name' ]
+
+    if not 'Mean' in commandResult:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Missing "Mean" key'
+      return S_OK( result )
+
+    mean = commandResult[ 'Mean' ]
     
-    commandResult = int( round( commandResult ) )
-    result[ 'Reason' ] = 'TransferQuality: %d %% -> ' % commandResult
+    if mean is None:
+      result[ 'Status' ] = 'Unknown'
+      result[ 'Reason' ] = 'No values to take a decision'
+      return S_OK( result )  
 
-    policyParameters = Configurations.getPolicyParameters()
+    
+    result[ 'Reason' ] = 'TransferQuality: %d -> ' % mean
 
-    if 'FAILOVER'.lower() in self.args[ 1 ].lower():
+    # FIXME: policyParameters = Configurations.getPolicyParameters()
 
-      if commandResult < policyParameters[ 'Transfer_QUALITY_LOW' ]:
-        result[ 'Status' ] = 'Probing'
+    policyParameters = { 
+                        'Transfer_QUALITY_LOW'  : 60,  
+                        'Transfer_QUALITY_HIGH' : 90
+                        }
+
+    if 'FAILOVER'.lower() in name.lower():
+
+      if mean < policyParameters[ 'Transfer_QUALITY_LOW' ]:
+        result[ 'Status' ] = 'Degraded'
         strReason = 'Low'
-      elif commandResult < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
+      elif mean < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
         result[ 'Status' ] = 'Active'
         strReason = 'Mean'
       else:
@@ -67,17 +91,18 @@ class TransferQualityPolicy( PolicyBase ):
 
     else:
 
-      if commandResult < policyParameters[ 'Transfer_QUALITY_LOW' ] :
-        result[ 'Status' ] = 'Bad'
+      if mean < policyParameters[ 'Transfer_QUALITY_LOW' ] :
+        result[ 'Status' ] = 'Degraded'
         strReason          = 'Low'
-      elif commandResult < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
-        result[ 'Status' ] = 'Probing'
+      elif mean < policyParameters[ 'Transfer_QUALITY_HIGH' ]:
+        result[ 'Status' ] = 'Degraded'
         strReason          = 'Mean'
       else:
         result[ 'Status' ] = 'Active'
         strReason          = 'High'
 
     result[ 'Reason' ] = result[ 'Reason' ] + strReason
-    return result
+    return S_OK( result )
 
-  evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+################################################################################
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -1,45 +1,51 @@
+# $HeadURL$
 ''' Test_RSS_Policy_Configurations
 '''
 
+import mock
 import unittest
 
-__RCSID__ = "$Id$"
+import LHCbDIRAC.ResourceStatusSystem.Policy.Configurations as moduleTested
 
-dummyResults = {}
-class DummyReturn( object ):
-  
-  def __init__( self, *args, **kwargs ):
-    pass
-  def __getattr__( self, name ):
-    return self.dummyMethod
-  def dummyMethod( self, *args, **kwargs ):
-    if dummyResults.has_key( self.__class__.__name__ ):
-      return dummyResults[ self.__class__.__name__ ]
-    return None
-  
-class dCS( DummyReturn ): pass 
+from types import NoneType
 
+__RCSID__ = '$Id$'
 
 ################################################################################
 
 class Configurations_TestCase( unittest.TestCase ):
-  
+ 
   def setUp( self ):
     '''
     Setup
     '''
+                  
+    self.moduleTested = moduleTested
 
-    # We need the proper software, and then we overwrite it.
-    import LHCbDIRAC.ResourceStatusSystem.Policy.Configurations as moduleTested   
-    moduleTested.CS = dCS()
-      
-    self.configurations = moduleTested
-    
   def tearDown( self ):
     '''
-    TearDown
+    Tear down
     '''
-    del self.configurations
-        
+   
+    del self.moduleTested
+
+################################################################################
+
+class Configurations_Success( Configurations_TestCase ):
+  
+  def test_PoliciesMetaLHCb( self ):
+    
+    policies = self.moduleTested.POLICIESMETA_LHCb
+    
+    policyKeys = set( [ 'description', 'module', 'command', 'args' ] )
+    
+    for policyName, policy in policies.items():
+      print policyName
+      self.assertEqual( policyKeys, set( policy.keys() ) )  
+      self.assertEqual( True, isinstance( policy[ 'description' ], str ) )
+      self.assertEqual( True, isinstance( policy[ 'module' ], str ) )
+      self.assertEqual( True, type( policy[ 'command' ] ) in [ tuple, NoneType ] )
+      self.assertEqual( True, type( policy[ 'args' ] ) in [ dict, NoneType ] )
+
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

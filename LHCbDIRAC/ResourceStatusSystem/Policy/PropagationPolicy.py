@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' PropagationPolicy
 
   The PropagationPolicy module is a policy module used to update the status of

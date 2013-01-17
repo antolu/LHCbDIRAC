@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' SEQueuedTransfersPolicy
 
   The SEQueuedTransfersPolicy class is a policy class satisfied when a SE has 

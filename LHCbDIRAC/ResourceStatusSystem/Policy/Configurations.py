@@ -1,11 +1,11 @@
+# $HeadURL$
 ''' Configurations
 
   Collects everything needed to configure policies.
   
 '''
 
-#from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
-from DIRAC.ResourceStatusSystem.Policy.Configurations import getPolicyParameters, Policies
+from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
 
 __RCSID__ = '$Id$'
 
@@ -60,7 +60,7 @@ POLICIESMETA_LHCb = {
     }                                    
 }
 
-LHCbPolicies = {
+policies = {
                   
   'DTScheduled' :
     { 
@@ -462,9 +462,7 @@ LHCbPolicies = {
 }
 
 #Update DIRAC policies with LHCbDIRAC policies
-#POLICIESMETA.update( POLICIESMETA_LHCb )
-
-Policies.update( LHCbPolicies )
+POLICIESMETA.update( POLICIESMETA_LHCb )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -1,3 +1,4 @@
+# $HeadURL$
 ''' GGUSTicketsPolicy 
   
   The GGUSTicketsPolicy class is a policy class that evaluates on
@@ -5,6 +6,7 @@
   
 '''
 
+from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
@@ -15,7 +17,8 @@ class GGUSTicketsPolicy( PolicyBase ):
   status for the element.
   '''
 
-  def evaluate( self ):
+  @staticmethod
+  def _evaluate( commandResult ):
     """
     Evaluate policy on opened tickets, using args (tuple).
 
@@ -26,35 +29,44 @@ class GGUSTicketsPolicy( PolicyBase ):
         }
     """
 
-    commandResult = super( GGUSTicketsPolicy, self ).evaluate()
-    result = {}
-
-    if commandResult is None:
-      result[ 'Status' ] = 'Error'
-      result[ 'Reason' ] = 'Command evaluation returned None'
-      return result
+    result = { 
+              'Status' : None,
+              'Reason' : None
+              }
 
     if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = commandResult[ 'Message' ]
-      return result
+      return S_OK( result )
 
     commandResult = commandResult[ 'Value' ]
 
-    if commandResult is None:
+    if not commandResult:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decision'
-      return result
-    elif commandResult == 0:
+      return S_OK( result )
+
+    # The command returns a list of dictionaries, with only one if thre is something,
+    # otherwise an empty list.
+    commandResult = commandResult[ 0 ]    
+
+    if not 'OpenTickets' in commandResult:
+      result[ 'Status' ] = 'Error'
+      result[ 'Reason' ] = 'Expected OpenTickets key for GGUSTickets'
+      return S_OK( result )
+          
+    openTickets = commandResult[ 'OpenTickets' ]
+    
+    if openTickets == 0:
       result[ 'Status' ] = 'Active'
       result[ 'Reason' ] = 'NO GGUSTickets unsolved'
     else:
-      result[ 'Status' ] = 'Probing'
-      result[ 'Reason' ] = 'GGUSTickets unsolved: %d' % ( commandResult )     
+      #FIXME: setting to Probing is way too aggresive, as we do not know the
+      #nature of the tickets
+      result[ 'Status' ] = 'Degraded'
+      result[ 'Reason' ] = '%s GGUSTickets unsolved: %s' % ( openTickets, commandResult[ 'Tickets' ] )     
 
-    return result
-
-  evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
+    return S_OK( result )
   
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
