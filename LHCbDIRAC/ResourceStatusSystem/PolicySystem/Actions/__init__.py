@@ -1,3 +1,4 @@
+# $HeadURL $
 '''  LHCbDIRAC.ResourceStatusSystem.PolicySystem.Actions package
 '''
 
