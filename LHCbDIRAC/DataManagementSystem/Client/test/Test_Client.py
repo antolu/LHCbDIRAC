@@ -10,7 +10,14 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.bkClientMock.getFileDescendants.return_value = {'OK': True,
                                                          'Value': {'Failed': [],
                                                                    'NotProcessed': [],
-                                                                   'Successful': {'aa.raw': ['bb.raw', 'bb.log']}}}
+                                                                   'Successful': {'aa.raw': ['bb.raw', 'bb.log']},
+                                                                   'WithMetadata': {'aa.raw': {'bb.raw': {'FileType': 'RAW',
+                                                                                                          'RunNumber': 97019},
+                                                                                               'bb.log': {'FileType': 'LOG'}
+                                                                                               }
+                                                                                    }
+                                                                   }
+                                                         }
     self.bkClientMock.getFileMetadata.return_value = {'OK': True,
                                                       'Value': {'aa.raw': {'FileType': 'RAW',
                                                                            'RunNumber': 97019},
@@ -41,16 +48,26 @@ class UtilitiesTestCase( unittest.TestCase ):
 class ConsistencyChecksSuccess( UtilitiesTestCase ):
 
   def test__selectByFileType( self ):
-    lfnDict = {'aa.raw': ['bb.raw', 'bb.log', '/bb/pippo/aa.dst', '/lhcb/1_2_1.Semileptonic.dst'],
-               'cc.raw': ['dd.raw', 'bb.log', '/bb/pippo/aa.dst', '/lhcb/1_1.semileptonic.dst']}
+    lfnDict = {'aa.raw': {'bb.raw':{'FileType': 'RAW', 'RunNumber': 97019},
+                          'bb.log':{'FileType': 'LOG'},
+                          '/bb/pippo/aa.dst':{'FileType': 'DST'},
+                          '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}},
+               'cc.raw': {'dd.raw':{'FileType': 'RAW', 'RunNumber': 97019},
+                          'bb.log':{'FileType': 'LOG'},
+                          '/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                          '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}}
+               }
 
     res = self.cc._selectByFileType( lfnDict )
 
-    lfnDictExpected = {'aa.raw': ['bb.raw', '/lhcb/1_2_1.Semileptonic.dst'],
+    lfnDictExpected = {'aa.raw': ['/lhcb/1_2_1.Semileptonic.dst', 'bb.raw'],
                        'cc.raw': ['dd.raw', '/lhcb/1_1.semileptonic.dst']}
     self.assertEqual( res, lfnDictExpected )
 
-    lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', 'bb.log']}
+    lfnDict = {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
+                          'bb.log':{'FileType': 'LOG'}
+                          }
+               }
     res = self.cc._selectByFileType( lfnDict )
     lfnDictExpected = {}
     self.assertEqual( res, lfnDictExpected )
@@ -58,23 +75,23 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
   def test__getFileTypesCount( self ):
     lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', '/bb/pippo/aa.log']}
     res = self.cc._getFileTypesCount( lfnDict )
-    resExpected = {'aa.raw': {'dst':1, 'log':1}}
+    resExpected = {'aa.raw': {'DST':1, 'LOG':1}}
     self.assertEqual( res, resExpected )
 
     lfnDict = {'aa.raw': ['/bb/pippo/aa.dst', '/bb/pippo/cc.dst', '/bb/pippo/aa.log']}
     res = self.cc._getFileTypesCount( lfnDict )
-    resExpected = {'aa.raw': {'dst':2, 'log':1}}
+    resExpected = {'aa.raw': {'DST':2, 'LOG':1}}
     self.assertEqual( res, resExpected )
 
     lfnDict = {'aa.raw': ['/bb/pippo/aa.t.dst', '/bb/pippo/cc.t.dst', '/bb/pippo/aa.log']}
     res = self.cc._getFileTypesCount( lfnDict )
-    resExpected = {'aa.raw': {'t.dst':2, 'log':1}}
+    resExpected = {'aa.raw': {'T.DST':2, 'LOG':1}}
     self.assertEqual( res, resExpected )
 
     lfnDict = {'aa.raw': ['/bb/pippo/aa.t.dst', '/bb/pippo/cc.t.dst', '/bb/pippo/aa.log'],
                'cc.raw': ['/bb/pippo/aa.dst', '/bb/pippo/aa.log']}
     res = self.cc._getFileTypesCount( lfnDict )
-    resExpected = {'aa.raw': {'t.dst':2, 'log':1}, 'cc.raw': {'dst':1, 'log':1}}
+    resExpected = {'aa.raw': {'T.DST':2, 'LOG':1}, 'cc.raw': {'DST':1, 'LOG':1}}
     self.assertEqual( res, resExpected )
 
   def test_getDescendants( self ):
