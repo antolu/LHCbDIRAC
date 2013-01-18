@@ -1,18 +1,31 @@
-import unittest
-from DIRAC.ResourceStatusSystem.Agent.mock.AgentModule import AgentModule as mockAgentModule
+import mock
+if mock.__version__ < '1.0.1':
+  print 'Invalid Mock version %s !' % mock.__version__
+  import sys
+  sys.exit( 0 )
+  
+import unittest2
+#from DIRAC.ResourceStatusSystem.Agent.mock.AgentModule import AgentModule as mockAgentModule
 from DIRAC import gLogger
 
-class AgentTestCase( unittest.TestCase ):
+class AgentTestCase( unittest2.TestCase ):
   """ Base class for the Agent test cases
   """
   def setUp( self ):
 
-    import DIRAC.Core.Base.AgentModule as moduleMocked
-    moduleMocked.AgentModule = mockAgentModule
+    #import DIRAC.Core.Base.AgentModule as moduleMocked
+    #moduleMocked.AgentModule = mockAgentModule
+    agentModule = mock.patch( 'DIRAC.Core.Base.AgentModule', autospec = True )
+    agentModule.start()
 
     from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent import ProductionStatusAgent
     self.psa = ProductionStatusAgent( '', '' )
     self.psa.log = gLogger
+
+  def tearDown( self ):
+    
+    # Stop patchers
+    mock.patch.stopall()
 
 #############################################################################
 # ProductionStatusAgent.py
@@ -84,8 +97,8 @@ class ProductionStatusSuccess( AgentTestCase ):
 #############################################################################
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( AgentTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionStatusSuccess ) )
-  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  suite = unittest2.defaultTestLoader.loadTestsFromTestCase( AgentTestCase )
+  suite.addTest( unittest2.defaultTestLoader.loadTestsFromTestCase( ProductionStatusSuccess ) )
+  testResult = unittest2.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
