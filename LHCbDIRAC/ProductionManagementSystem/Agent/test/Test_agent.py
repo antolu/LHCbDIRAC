@@ -5,8 +5,9 @@ if mock.__version__ < '1.0.1':
   sys.exit( 0 )
   
 import unittest2
-#from DIRAC.ResourceStatusSystem.Agent.mock.AgentModule import AgentModule as mockAgentModule
 from DIRAC import gLogger
+
+import LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent as moduleTested
 
 class AgentTestCase( unittest2.TestCase ):
   """ Base class for the Agent test cases
@@ -18,8 +19,9 @@ class AgentTestCase( unittest2.TestCase ):
     agentModule = mock.patch( 'DIRAC.Core.Base.AgentModule', autospec = True )
     agentModule.start()
 
-    from LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent import ProductionStatusAgent
-    self.psa = ProductionStatusAgent( '', '' )
+    reload( moduleTested )
+     
+    self.psa = moduleTested.ProductionStatusAgent( '', '' )
     self.psa.log = gLogger
 
   def tearDown( self ):
