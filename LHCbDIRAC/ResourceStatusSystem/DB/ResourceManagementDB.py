@@ -1,17 +1,19 @@
-# $HeadURL:  $
-''' ResourceManagementDB module, extension of the DIRAC one.
+''' LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB
 
-  Module that extends basic methods to access the ResourceManagementDB.
+   ResourceManagementDB.__bases__:
+     DIRAC.ResourceStatusSystem.DB.ResourceManagementDB.ResourceManagementDB
 
 '''
 
 from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import \
   ResourceManagementDB as DIRACResourceManagementDB
   
-__RCSID__ = '$Id:  $'
+__RCSID__ = '$Id$'
 
 class ResourceManagementDB( DIRACResourceManagementDB ):
   '''
+   Module that extends basic methods to access the ResourceManagementDB.
+  
     Extension of ResourceManagementDB, adding the following tables:
     - HammerCloudTest
     - MonitoringTest
