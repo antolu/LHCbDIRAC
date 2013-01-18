@@ -8,9 +8,11 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
 Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
+Script.registerSwitch( '', 'RunStatus=', 'Specify a run status for selecting runs' )
+Script.registerSwitch( '', 'FromProduction=', 'Specify the production from which the runs should be derived' )
 Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
 Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
-Script.parseCommandLine( ignoreErrors=True )
+Script.parseCommandLine( ignoreErrors = True )
 
 #imports
 import sys, os, time
@@ -24,6 +26,8 @@ if __name__ == '__main__':
   fileType = []
   runsList = []
   fixIt = False
+  runStatus = None
+  fromProd = None
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       runsList = switch[1].split( ',' )
@@ -31,6 +35,18 @@ if __name__ == '__main__':
       fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
+    elif switch[0] == 'RunStatus':
+      runStatus = switch[1].split( ',' )
+    elif switch[0] == 'FromProduction':
+      try:
+        fromProd = int( switch[1] )
+      except:
+        gLogger.exception( "Wrong production number: %s" % switch[1] )
+        DIRAC.exit( 0 )
+
+  if runStatus and not fromProd:
+    gLogger.error( "Please specify from which production the run ranges should be obtained (--FromProduction <prod>)" )
+    DIRAC.exit( 0 )
 
   args = Script.getPositionalArgs()
   if not len( args ):
@@ -60,22 +76,27 @@ if __name__ == '__main__':
       cc.fileType = fileType
       cc.fileTypesExcluded = ['LOG']
     cc.runsList = runsList
+    cc.runStatus = runStatus
+    cc.fromProd = fromProd
     cc.checkTS2BKK()
     if fileType:
       gLogger.always( "%d unique descendants found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
     if cc.processedLFNsWithMultipleDescendants:
-      gLogger.error( "Processed LFNs with multiple descendants:\n%s" % '\n'.join( cc.processedLFNsWithMultipleDescendants ) )
+      gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR\n%s" \
+                     % ( len( cc.processedLFNsWithMultipleDescendants ) , '\n'.join( cc.processedLFNsWithMultipleDescendants ) ) )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
 
     if cc.processedLFNsWithoutDescendants:
-      gLogger.always( "Processed LFNs without descendants -> ERROR!\n%s" % '\n'.join( cc.processedLFNsWithoutDescendants ) )
+      gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!\n%s" \
+                      % ( len( cc.processedLFNsWithoutDescendants ), '\n'.join( cc.processedLFNsWithoutDescendants ) ) )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
     if cc.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.error( "Non processed LFNs with multiple descendants:\n%s" % '\n'.join( cc.nonProcessedLFNsWithMultipleDescendants ) )
+      gLogger.error( "Non processed LFNs with multiple descendants (%d) -> ERROR\n%s" \
+                     % ( len( cc.nonProcessedLFNsWithMultipleDescendants ) , '\n'.join( cc.nonProcessedLFNsWithMultipleDescendants ) ) )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )

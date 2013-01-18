@@ -9,7 +9,7 @@
 import os, copy, ast, time
 
 from DIRAC import gLogger, S_ERROR
-from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Core.Utilities.List import breakListIntoChunks, uniqueElements
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
@@ -20,8 +20,8 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
 
-def getFileDescendants( transID, lfns, transClient=None, rm=None, bkClient=None ):
-    cc = ConsistencyChecks( interactive=False, transClient=transClient, rm=rm, bkClient=bkClient )
+def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient = None ):
+    cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
     cc.prod = transID
     cc.fileType = []
     cc.fileTypesExcluded = ['LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST']
@@ -32,7 +32,7 @@ class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, interactive=True, transClient=None, rm=None, bkClient=None ):
+  def __init__( self, interactive = True, transClient = None, rm = None, bkClient = None ):
     ''' c'tor
 
         One object for every production/BkQuery/directoriesList...
@@ -63,6 +63,8 @@ class ConsistencyChecks( object ):
     #Accessory elements
     self.lfns = []
     self.runsList = []
+    self.runStatus = None
+    self.fromProd = None
     self.fileType = []
     self.fileTypesExcluded = []
     self.transType = ''
@@ -134,16 +136,16 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def _getBKKFiles( self, bkQuery, replicaFlag='Yes' ):
+  def _getBKKFiles( self, bkQuery, replicaFlag = 'Yes' ):
     ''' Helper function - get files from BKK, first constructing the bkQuery
     '''
     visibility = bkQuery.isVisible()
     if self.transType:
       visibility = 'Yes' if self.transType not in prodsWithMerge else 'All'
     bkQuery.setVisible( False )
-    bkQueryRes = BKQuery( bkQuery, visible=visibility )
+    bkQueryRes = BKQuery( bkQuery, visible = visibility )
     bkQueryRes.setOption( 'ReplicaFlag', replicaFlag )
-    lfnsRes = bkQueryRes.getLFNs( printOutput=False )
+    lfnsRes = bkQueryRes.getLFNs( printOutput = False )
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
     else:
@@ -151,7 +153,7 @@ class ConsistencyChecks( object ):
 
     return lfnsRes
 
-  def __getBKKQuery( self, fromTS=False ):
+  def __getBKKQuery( self, fromTS = False ):
     ''' get the bkQuery to be used
     '''
     bkQuery = None
@@ -308,6 +310,13 @@ class ConsistencyChecks( object ):
     '''
 
     selectDict = { 'TransformationID': self.prod}
+    if self.runStatus and self.fromProd:
+      res = self.transClient.getTransformationRuns( {'TransformationID': self.fromProd, 'Status':self.runStatus} )
+      if not res['OK']:
+        gLogger.error( "Failed to get runs for transformation %d" % self.prod )
+      else:
+        self.runsList.extend( [run['RunNumber'] for run in res['Value']] )
+        gLogger.always( "%d runs selected" % len( res['Value'] ) )
     if self.runsList:
       selectDict['RunNumber'] = self.runsList
 
@@ -315,13 +324,13 @@ class ConsistencyChecks( object ):
     selectDictProcessed['Status'] = 'Processed'
     res = self.transClient.getTransformationFiles( selectDictProcessed )
     if not res['OK']:
-      gLogger.warn( "Failed to get files for transformation %d" % self.prod )
+      gLogger.error( "Failed to get files for transformation %d" % self.prod )
     else:
       processedLFNs = [item['LFN'] for item in res['Value']]
 
     res = self.transClient.getTransformationFiles( selectDict )
     if not res['OK']:
-      gLogger.warn( "Failed to get files for transformation %d" % self.prod )
+      gLogger.error( "Failed to get files for transformation %d" % self.prod )
     else:
       nonProcessedLFNs = list ( set( [item['LFN'] for item in res['Value']] ) - set( processedLFNs ) )
 
@@ -347,63 +356,77 @@ class ConsistencyChecks( object ):
 
     chunkSize = 500
     self.__write( "Now checking daughters for %d mothers (chunks of %d) " % ( len( lfns ), chunkSize ) )
+    startTime = time.time()
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       self.__write( '.' )
-      resChunk = self.bkClient.getFileDescendants( lfnChunk, depth=1, production=self.prod, checkreplica=False )
-      if resChunk['OK']:
-        descDict = resChunk['Value']['Successful']
-        if self.fileType:
-          descDict = self._selectByFileType( descDict )
+      while True:
+        resChunk = self.bkClient.getFileDescendants( lfnChunk, depth = 1, production = self.prod, checkreplica = False )
+        if resChunk['OK']:
+          descDict = self._selectByFileType( resChunk['Value']['WithMetadata'] )
           # Get the list of unique descendants
           for desc in descDict.values():
             descendants += [lfn for lfn in desc if lfn not in descendants]
-        ft_count = self._getFileTypesCount( descDict )
-        for lfn in lfnChunk:
-          if lfn in descDict:
-            filesWithDescendants.update( {lfn:descDict[lfn]} )
-            for ftc in ft_count[lfn].values():
-              if ftc > 1:
-                filesWithMultipleDescendants.update( {lfn:descDict[lfn]} )
-          else:
-            filesWithoutDescendants.update( {lfn:None} )
-      else:
-        gLogger.error( "\nError getting descendants for %d files" % len( lfnChunk ), resChunk['Message'] )
-    self.__write( '\n' )
+          ft_count = self._getFileTypesCount( descDict )
+          for lfn in lfnChunk:
+            if lfn in descDict:
+              filesWithDescendants.update( {lfn:descDict[lfn]} )
+              for ftc in ft_count[lfn].values():
+                if ftc > 1:
+                  filesWithMultipleDescendants.update( {lfn:descDict[lfn]} )
+            else:
+              filesWithoutDescendants.update( {lfn:None} )
+          break
+        else:
+          gLogger.warn( "\nError getting descendants for %d files, retry" % len( lfnChunk ), resChunk['Message'] )
+    self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     if filesWithDescendants:
       # Now check whether these descendants files have replicas or have descendants that have replicas
       present = []
       notPresent = []
+      descendants = list( set( descendants ) )
       self.__write( "Now checking presence of %d daughters (chunks of %d) " % ( len( descendants ), chunkSize ) )
+      startTime = time.time()
       for lfnChunk in breakListIntoChunks( descendants, chunkSize ):
         pr, notPr = self.getReplicasPresence( lfnChunk )
         self.__write( '.' )
         present += pr
         notPresent += notPr
-      self.__write( '\n' )
+      self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
       # Now check whether the files without replica have a descendant
       if notPresent:
         descWithDescendants = {}
         self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) " % ( len( notPresent ), chunkSize ) )
+        startTime = time.time()
         for lfnChunk in breakListIntoChunks( notPresent, chunkSize ):
           self.__write( '.' )
-          res = self.bkClient.getFileDescendants( lfnChunk, checkreplica=True )
-          if res['OK']:
-            descWithDescendants.update( res['Value']['Successful'] )
-          else:
-            gLogger.error( "\nError getting descendants for %d files" % len( notPresent ), res['Message'] )
-        self.__write( '\n' )
+          while True:
+            res = self.bkClient.getFileDescendants( lfnChunk, checkreplica = True )
+            if res['OK']:
+              descWithDescendants.update( res['Value']['WithMetadata'] )
+              break
+            else:
+              gLogger.warn( "\nError getting descendants for %d files, retry" % len( lfnChunk ), res['Message'] )
+        self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
+        self.__write( "Now establishing final list of relevant descendants for %d mothers (chunks of %d)" % ( len( filesWithDescendants ), chunkSize ) )
+        startTime = time.time()
+        i = 0
+        setDescWithDescendants = set( descWithDescendants )
         for lfn, desc in filesWithDescendants.items():
+          if i % chunkSize == 0:
+            self.__write( '.' )
+          i += 1
           # Only interested in descendants without replica
           if not [pr for pr in desc if pr in notPresent]:
             continue
           realDescendants = [pr for pr in desc if pr in present]
-          descToCheck = self._selectByFileType( dict( [( pr, descWithDescendants[pr] ) for pr in desc if pr in descWithDescendants] ),
-                                                 fileTypesExcluded=['BOOLEHIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST'] )
+          descToCheck = self._selectByFileType( dict( [( pr, descWithDescendants[pr] ) for pr in set( desc ).intersection( setDescWithDescendants )] ),
+                                                 fileTypesExcluded = ['BOOLEHIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST'] )
           for lfn1 in descToCheck :
             # This daughter had descendants, therefore consider it
             realDescendants.append( lfn1 )
-            notPresent.remove( lfn1 )
+            if lfn1 in notPresent:
+              notPresent.remove( lfn1 )
           if len( realDescendants ) == 0:
             gLogger.verbose( '%s has no real descendants' % lfn )
             filesWithMultipleDescendants.pop( lfn , None )
@@ -416,25 +439,34 @@ class ConsistencyChecks( object ):
             pass
         for lfn1 in notPresent:
           descendants.remove( lfn1 )
+        self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, descendants
 
   ################################################################################
 
-  def _selectByFileType( self, lfnDict, fileTypes=[], fileTypesExcluded=[] ):
+  def _selectByFileType( self, lfnDict, fileTypes = [], fileTypesExcluded = [] ):
     ''' Select only those files from the values of lfnDict that have a certain type
     '''
+    if not lfnDict:
+      return {}
     if fileTypes == [] and fileTypesExcluded == []:
       fileTypes = list( set( self.fileType ) - set ( self.fileTypesExcluded ) )
+    fileTypesExcluded += self.fileTypesExcluded
     ancDict = copy.deepcopy( lfnDict )
     metadata = {}
-    for lfnChunk in breakListIntoChunks( [lfn for desc in ancDict.values() for lfn in desc], 1000 ):
-      res = self.bkClient.getFileMetadata( lfnChunk )
-      if res['OK']:
-        metadata.update( res['Value'] )
-      else:
-        gLogger.error( "Error getting %d files metadata" % len( lfnChunk ), res['Message'] )
+    if type( ancDict.values()[0] ) == type( ':' ):
+      for lfnChunk in breakListIntoChunks( [lfn for desc in ancDict.values() for lfn in desc], 1000 ):
+        res = self.bkClient.getFileMetadata( lfnChunk )
+        if res['OK']:
+          metadata.update( res['Value'] )
+        else:
+          gLogger.error( "Error getting %d files metadata" % len( lfnChunk ), res['Message'] )
+    else:
+      for descDict in ancDict.values():
+        metadata.update( descDict )
     for ancestor, descendants in ancDict.items():
+      descendants = list( descendants )
       for desc in list( descendants ):
         if metadata[desc]['FileType'] in fileTypesExcluded or ( fileTypes and metadata[desc]['FileType'] not in fileTypes ):
           descendants.remove( desc )
@@ -452,7 +484,7 @@ class ConsistencyChecks( object ):
     for ancestor, descendants in lfnDict.items():
       t_dict = {}
       for desc in descendants:
-        fType = '.'.join( os.path.basename( desc ).split( '.' )[1:] ).lower()
+        fType = '.'.join( os.path.basename( desc ).split( '.' )[1:] ).upper()
         t_dict[fType] = t_dict.setdefault( fType, 0 ) + 1
       ft_dict[ancestor] = t_dict
 
@@ -521,7 +553,7 @@ class ConsistencyChecks( object ):
     ''' check that files present in the BKK are also in the FC (re-check of BKKWatchAgent)
     '''
     try:
-      bkQuery = self.__getBKKQuery( fromTS=True )
+      bkQuery = self.__getBKKQuery( fromTS = True )
     except ValueError, e:
       return S_ERROR( e )
     lfnsReplicaYes = self._getBKKFiles( bkQuery )
@@ -635,7 +667,7 @@ class ConsistencyChecks( object ):
   def set_prod( self, value ):
     if value:
       value = int( value )
-      res = self.transClient.getTransformation( value, extraParams=False )
+      res = self.transClient.getTransformation( value, extraParams = False )
       if not res['OK']:
         gLogger.error( "Couldn't find transformation %d: %s" % ( value, res['Message'] ) )
       else:
