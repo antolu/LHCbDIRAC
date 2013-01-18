@@ -1,4 +1,3 @@
-# $HeadURL$
 ''' Test_RSS_Policy_Configurations
 '''
 
@@ -35,7 +34,7 @@ class Configurations_Success( Configurations_TestCase ):
   
   def test_PoliciesMetaLHCb( self ):
     
-    policies = self.moduleTested.POLICIESMETA_LHCb
+    policies = self.moduleTested.POLICIESMETA_LHCB
     
     policyKeys = set( [ 'description', 'module', 'command', 'args' ] )
     
