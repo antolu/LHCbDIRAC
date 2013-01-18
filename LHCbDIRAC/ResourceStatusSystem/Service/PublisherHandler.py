@@ -1,6 +1,8 @@
-''' PublisherHandler
+''' LHCbDIRAC.ResourceStatusSystem.Service.PublisherHandler
 
-  RPCServer used to deliver data to the web portal.  
+  initializePublisherHandler
+  PublisherHandler.__bases__:
+    DIRAC.Core.DISET.RequestHandler.RequestHandler
 
 '''
 
@@ -13,7 +15,7 @@ from DIRAC.ResourceStatusSystem.Utilities                   import CSHelpers, Rs
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id:$'
 rsClient  = None
 rmClient  = None
 
@@ -31,6 +33,8 @@ def initializePublisherHandler( _serviceInfo ):
   
 class PublisherHandler( RequestHandler ):
   '''
+    RPCServer used to deliver data to the web portal.
+      
     So far it contains only examples, probably some of them will be used by the 
     web portal, but not all of them.
   '''  

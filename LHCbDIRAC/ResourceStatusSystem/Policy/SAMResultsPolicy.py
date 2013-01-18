@@ -1,8 +1,7 @@
-# $HeadURL$
-''' SAMResultsPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.SAMResultsPolicy
 
-  The SAMResultsPolicy class is a policy class that checks
-  the SAM job self.results.
+  SAMResultsPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
@@ -12,6 +11,9 @@ __RCSID__ = '$Id$'
 
 class SAMResultsPolicy( PolicyBase ):
   '''
+  The SAMResultsPolicy class is a policy class that checks
+  the SAM job self.results.
+
   SAMResultsPolicy, given the SAM status for the element, proposes a new
   status.
   '''
@@ -79,8 +81,6 @@ class SAMResultsPolicy( PolicyBase ):
       result[ 'Reason' ] = result[ 'Reason' ] + status
 
     return result
-
-  evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

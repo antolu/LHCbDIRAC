@@ -1,8 +1,7 @@
-# $HeadURL$
-''' SEQueuedTransfersPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.SEQueuedTransfersPolicy
 
-  The SEQueuedTransfersPolicy class is a policy class satisfied when a SE has 
-  a high number of queued transfers.
+  SEQueuedTransfersPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
@@ -12,6 +11,9 @@ __RCSID__ = '$Id$'
 
 class SEQueuedTransfersPolicy( PolicyBase ):
   '''
+  The SEQueuedTransfersPolicy class is a policy class satisfied when a SE has 
+  a high number of queued transfers.
+
   SEQueuedTransfersPolicy, given the amount of queued transfers on the element,
   proposes a new status.
   '''
@@ -58,8 +60,6 @@ class SEQueuedTransfersPolicy( PolicyBase ):
     
     result[ 'Reason' ] = 'Queued transfers on the SE: %d (%s)' % ( commandResult, comment )
     return result
-
-  evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

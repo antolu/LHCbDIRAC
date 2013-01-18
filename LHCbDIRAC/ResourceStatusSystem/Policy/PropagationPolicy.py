@@ -1,9 +1,7 @@
-# $HeadURL$
-''' PropagationPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.PropagationPolicy
 
-  The PropagationPolicy module is a policy module used to update the status of
-  a validRes, based on statistics of its services (for the site),
-  of its nodes (for the services), or of its SE (for the Storage services).
+  PropagationPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
@@ -13,6 +11,10 @@ __RCSID__ = '$Id$'
 
 class PropagationPolicy( PolicyBase ):
   '''
+  The PropagationPolicy module is a policy module used to update the status of
+  a validRes, based on statistics of its services (for the site),
+  of its nodes (for the services), or of its SE (for the Storage services).
+
   PropagationPolicy, given the status(es) of the element children, proposes a new
   status.
   '''
@@ -65,8 +67,6 @@ class PropagationPolicy( PolicyBase ):
                                   commandResult[ 'Banned' ] )
 
     return result
-
-  evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

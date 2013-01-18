@@ -1,19 +1,20 @@
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/ubeda/newRSSDB2/ResourceStatusSystem/Policy/SEOccupancyPolicy.py $
-''' SpaceTokenOccupancyPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.SpaceTokenOccupancyPolicy
 
-  The SpaceTokenOccupancyPolicy class is a policy class satisfied when a SE has a 
-  high occupancy.
+  SpaceTokenOccupancyPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
-from DIRAC import S_OK
-
+from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id: SpaceTokenOccupancyPolicy 55430 2012-08-13 09:27:15Z ubeda $'
 
 class SpaceTokenOccupancyPolicy( PolicyBase ):
   '''
+  The SpaceTokenOccupancyPolicy class is a policy class satisfied when a SE has a 
+  high occupancy.
+
   SpaceTokenOccupancyPolicy, given the space left at the element, proposes a new status.
   '''
 

@@ -1,8 +1,7 @@
-# $HeadURL$
-''' SLSPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.SLSPolicy
 
-  The SLSPolicy class is a policy class satisfied when a SLS sensors 
-  report problems.
+  SLSPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
@@ -12,6 +11,9 @@ __RCSID__ = '$Id$'
 
 class SLSPolicy( PolicyBase ):
   '''
+  The SLSPolicy class is a policy class satisfied when a SLS sensors 
+  report problems.
+
   SLSPolicy, given the SLS availability metrics for the element, proposes a new
   status. 
   '''
@@ -55,8 +57,6 @@ class SLSPolicy( PolicyBase ):
 
     result[ 'Reason' ] = 'SLS availability: %d %% (%s)' % ( commandResult, comment )
     return result
-
-  evaluate.__doc__ = PolicyBase.evaluate.__doc__ + evaluate.__doc__
   
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  

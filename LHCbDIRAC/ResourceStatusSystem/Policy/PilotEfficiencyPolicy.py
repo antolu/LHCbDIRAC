@@ -1,18 +1,20 @@
-# $HeadURL:  $
-''' PilotEfficiencyPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Pilot.PilotEfficiencyPolicy
   
-  The PilotEfficiencyPolicy class is a policy that checks the efficiency of the 
-  pilots according to what is on the accounting.
+  PilotEfficiencyPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = '$Id:$'
 
 class PilotEfficiencyPolicy( PolicyBase ):
   '''
+    The PilotEfficiencyPolicy class is a policy that checks the efficiency of the 
+    pilots according to what is on the accounting.
+
     Evaluates the PilotEfficiency results given by the JobCommand.JobCommand
   '''
   

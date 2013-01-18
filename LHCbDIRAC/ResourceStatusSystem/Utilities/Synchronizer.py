@@ -1,17 +1,21 @@
-''' Synchronizer
+''' LHCbDIRAC.ResourceStatusSystem.Utilities.Synchronizer
 
-  Extension for LHCb of the RSS Synchronizer
+  Synchronizer.__bases__:
+    DIRAC.ResourceStatusSystem.Utilities.Synchronizer.Synchronizer
+
 '''
 
 from DIRAC.ResourceStatusSystem.Utilities.Synchronizer   import Synchronizer as DIRACSyncrhonizer
 
-__RCSID__  = '$Id:  $'
+__RCSID__  = '$Id:$'
 
 class Synchronizer( DIRACSyncrhonizer ):
   '''
-  LHCb specific Synchronizer class. This class extends the
-  correspondant DIRAC class. It adds two specific things to
-  synchronize: VOBOX and CondDBs, which are LHCb specific.
+    Extension for LHCb of the RSS Synchronizer
+
+    LHCb specific Synchronizer class. This class extends the
+    correspondant DIRAC class. It adds two specific things to
+    synchronize: VOBOX and CondDBs, which are LHCb specific.
   '''
   
   def __init__( self, rStatus = None, rManagement = None ):

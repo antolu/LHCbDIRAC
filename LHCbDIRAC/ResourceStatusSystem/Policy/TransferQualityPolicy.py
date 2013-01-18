@@ -1,20 +1,20 @@
-# $HeadURL$
-''' TransferQualityPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.TransferQualityPolicy
+
+  TransferQualityPolicy.__bases__:
+    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
  
-  The TransferQualityPolicy class is a policy class to check the transfer
-  quality.
-  
 '''
 
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-#from LHCbDIRAC.ResourceStatusSystem.Policy import Configurations
-
 __RCSID__ = '$Id$'
 
 class TransferQualityPolicy( PolicyBase ):
   '''
+  The TransferQualityPolicy class is a policy class to check the transfer
+  quality.
+
   Evaluates the TransferQuality results given by the DIRACAccounting.TransferQuality
   command against a certain set of thresholds defined in the CS.
   '''
