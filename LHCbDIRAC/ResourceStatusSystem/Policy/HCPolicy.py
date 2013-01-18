@@ -1,4 +1,3 @@
-## $HeadURL$
 #''' HCPolicy
 # 
 #  The HCPolicy class is a policy class satisfied when ...

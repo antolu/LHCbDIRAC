@@ -1,18 +1,21 @@
-# $HeadURL:  $
-''' JobEfficiencyPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.JobEfficiencyPolicy
   
-  The JobEfficiencyPolicy class is a policy that checks the efficiency of the 
-  jobs according to what is on WMS.
+   JobWebSummaryEfficiencyPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase  
   
 '''
 
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = '$Id$'
 
 class JobWebSummaryEfficiencyPolicy( PolicyBase ):
   '''
+  The JobEfficiencyPolicy class is a policy that checks the efficiency of the 
+  jobs according to what is on WMS.
+
+
     Evaluates the JobEfficiency results given by the JobCommand.JobCommand
   '''
   

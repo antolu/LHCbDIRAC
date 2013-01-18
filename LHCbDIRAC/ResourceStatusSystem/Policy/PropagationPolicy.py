@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.PropagationPolicy
 
-  PropagationPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   PropagationPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 

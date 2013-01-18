@@ -1,7 +1,9 @@
-''' Configurations
+''' LHCbDIRAC.ResourceStatusSystem.Policy.Configurations
 
-  Collects everything needed to configure policies.
-  
+   POLICIESMETA_LHCB
+   policies
+   POLICIESMETA 
+    
 '''
 
 from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA

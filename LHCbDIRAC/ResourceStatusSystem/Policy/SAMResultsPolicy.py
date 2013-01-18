@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.SAMResultsPolicy
 
-  SAMResultsPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   SAMResultsPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 

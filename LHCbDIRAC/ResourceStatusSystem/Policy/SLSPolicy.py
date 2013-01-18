@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.SLSPolicy
 
-  SLSPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   SLSPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 

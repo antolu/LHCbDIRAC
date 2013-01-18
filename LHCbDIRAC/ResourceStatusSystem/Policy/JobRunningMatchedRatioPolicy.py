@@ -1,18 +1,20 @@
-# $HeadURL:  $
-''' JobRunningMatchedRatioPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.JobRunningMatchedRatioPolicy
   
-  The JobRunningMatchedRatioPolicy class is a policy that checks the efficiency of the 
-  jobs according to what is on WMS.
+   JobRunningMatchedRatioPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = '$Id$'
 
 class JobRunningMatchedRatioPolicy( PolicyBase ):
   '''
+  The JobRunningMatchedRatioPolicy class is a policy that checks the efficiency of the 
+  jobs according to what is on WMS.
+  
     Evaluates the JobRunningMatchedRatioPolicy results given by the JobCommand.JobCommand
   '''
   

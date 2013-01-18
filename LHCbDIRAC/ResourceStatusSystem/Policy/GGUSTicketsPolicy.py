@@ -1,8 +1,7 @@
-# $HeadURL$
-''' GGUSTicketsPolicy 
+''' LHCbDIRAC.ResourceStatusSystem.Policy.GGUSTicketsPolicy 
   
-  The GGUSTicketsPolicy class is a policy class that evaluates on
-  how many tickets are open at the moment.
+   GGUSTicketsPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
@@ -13,6 +12,9 @@ __RCSID__ = '$Id$'
 
 class GGUSTicketsPolicy( PolicyBase ):
   '''
+  The GGUSTicketsPolicy class is a policy class that evaluates on
+  how many tickets are open at the moment.
+  
   GGUSTicketsPolicy, given the number of GGUS tickets opened, proposes a new
   status for the element.
   '''

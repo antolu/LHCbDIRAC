@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.SEQueuedTransfersPolicy
 
-  SEQueuedTransfersPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   SEQueuedTransfersPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 

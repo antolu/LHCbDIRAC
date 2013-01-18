@@ -1,14 +1,14 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.SpaceTokenOccupancyPolicy
 
-  SpaceTokenOccupancyPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   SpaceTokenOccupancyPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id: SpaceTokenOccupancyPolicy 55430 2012-08-13 09:27:15Z ubeda $'
+__RCSID__ = '$Id$'
 
 class SpaceTokenOccupancyPolicy( PolicyBase ):
   '''

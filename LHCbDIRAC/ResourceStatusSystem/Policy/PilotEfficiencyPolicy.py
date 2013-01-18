@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Pilot.PilotEfficiencyPolicy
   
-  PilotEfficiencyPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   PilotEfficiencyPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 

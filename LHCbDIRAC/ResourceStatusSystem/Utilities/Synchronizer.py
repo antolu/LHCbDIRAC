@@ -1,13 +1,13 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Utilities.Synchronizer
 
-  Synchronizer.__bases__:
-    DIRAC.ResourceStatusSystem.Utilities.Synchronizer.Synchronizer
+   Synchronizer.__bases__:
+     DIRAC.ResourceStatusSystem.Utilities.Synchronizer.Synchronizer
 
 '''
 
 from DIRAC.ResourceStatusSystem.Utilities.Synchronizer   import Synchronizer as DIRACSyncrhonizer
 
-__RCSID__  = '$Id:$'
+__RCSID__  = '$Id$'
 
 class Synchronizer( DIRACSyncrhonizer ):
   '''

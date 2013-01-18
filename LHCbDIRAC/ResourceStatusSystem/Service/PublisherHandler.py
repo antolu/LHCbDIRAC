@@ -1,8 +1,8 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Service.PublisherHandler
 
-  initializePublisherHandler
-  PublisherHandler.__bases__:
-    DIRAC.Core.DISET.RequestHandler.RequestHandler
+   initializePublisherHandler
+   PublisherHandler.__bases__:
+     DIRAC.Core.DISET.RequestHandler.RequestHandler
 
 '''
 
@@ -15,7 +15,7 @@ from DIRAC.ResourceStatusSystem.Utilities                   import CSHelpers, Rs
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = '$Id:$'
+__RCSID__ = '$Id$'
 rsClient  = None
 rmClient  = None
 

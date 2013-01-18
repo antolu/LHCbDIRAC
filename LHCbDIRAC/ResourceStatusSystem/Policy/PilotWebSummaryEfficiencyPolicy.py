@@ -1,14 +1,14 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.PilotEfficiencyPolicy
   
-  PilotWebSummaryEfficiencyPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   PilotWebSummaryEfficiencyPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = '$Id$'
 
 class PilotWebSummaryEfficiencyPolicy( PolicyBase ):
   '''

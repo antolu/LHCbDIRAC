@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.TransferQualityPolicy
 
-  TransferQualityPolicy.__bases__:
-    DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+   TransferQualityPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
  
 '''
 

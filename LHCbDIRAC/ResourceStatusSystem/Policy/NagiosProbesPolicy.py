@@ -1,16 +1,18 @@
-# $HeadURL: $
-''' NagiosProbesPolicy
+''' LHCbDIRAC.ResourceStatusSystem.Policy.NagiosProbesPolicy
   
-  The NagiosProbesPolicy checks the nagios probes.
+   NagiosProbesPolicy.__bases__:
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
   
 '''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id: $'
+__RCSID__ = '$Id$'
 
 class NagiosProbesPolicy( PolicyBase ):
   '''
+  The NagiosProbesPolicy checks the nagios probes.
+  
   NagiosProbesPolicy, given the Nagios probes in activeMQ for this element,
   proposes a new status.
   '''
