@@ -47,7 +47,7 @@ from DIRAC.Core.Utilities.Subprocess                     import pythonCall
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ResourceStatusSystem.Utilities                import CSHelpers
 
-__RCSID__  = "$Id: SLSAgent.py 56349 2012-09-14 13:26:50Z ubeda $"
+__RCSID__  = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 rmDB = None

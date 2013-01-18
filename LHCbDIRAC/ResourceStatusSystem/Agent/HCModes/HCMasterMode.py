@@ -2,7 +2,7 @@
 #LHCbDIRAC/ResourceStatusSystem/Agent/HCModes/HCMasterMode.py
 #"""
 #
-#__RCSID__ = "$Id:$"
+#__RCSID__ = "$Id$"
 #
 ## First, pythonic stuff
 #import time

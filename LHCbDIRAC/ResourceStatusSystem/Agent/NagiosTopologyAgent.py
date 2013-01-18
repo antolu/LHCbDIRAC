@@ -1,9 +1,8 @@
-''' NagiosTopologyAgent:  
+''' LHCbDIRAC.ResourceStatusSystem.Agent.NagiosTopologyAgent
 
-  This agent loops over the Dirac CS and extracts the necessary
-  information to create a "topology map" which is used by the IT
-  provided Nagios system to test Grid sites. The topology information
-  defines the services to be tested.
+   NagiosTopologyAgent.__bases__:
+     DIRAC.Core.Base.AgentModule.AgentModule
+   xml_append
      
 '''
 
@@ -15,11 +14,16 @@ from DIRAC                                               import S_OK, rootPath, 
 from DIRAC.Core.Base.AgentModule                         import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-__RCSID__ = '$Id: $'
+__RCSID__  = '$Id$'
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 class NagiosTopologyAgent( AgentModule ):
   '''
+  This agent loops over the Dirac CS and extracts the necessary
+  information to create a "topology map" which is used by the IT
+  provided Nagios system to test Grid sites. The topology information
+  defines the services to be tested.
+
   NagiosTopologyAgent, writes the xml topology consumed by Nagios to run
   the tests.
   '''

@@ -1,8 +1,8 @@
-''' GridSiteWMSMonitoringAgent 
-  
-  Extracts information on the current Grid activity from the DIRAC WMS and 
-  publishes it to the web
-  
+''' LHCbDIRAC.ResourceStatusSystem.Agent.GridSiteWMSMonitoringAgent
+ 
+   GridSiteWMSMonitoringAgent.__bases__:
+     DIRAC.Core.Base.AgentModule.AgentModule
+     
 '''
 
 import datetime
@@ -28,6 +28,9 @@ AGENT_NAME = 'ResourceStatusSystem/GridSiteWMSMonitoringAgent'
 
 class GridSiteWMSMonitoringAgent( AgentModule ):
   '''
+    Extracts information on the current Grid activity from the DIRAC WMS and 
+    publishes it to the web
+  
     GridSiteWMSMonitoringAgent, extracts information on the current Grid activity 
     from the DIRAC WMS and publishes it to the web 
   '''
