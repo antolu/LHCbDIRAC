@@ -318,7 +318,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
 
   externals = ''
 
-  if opsH.getValue( 'ExternalsPolicy/%s' % ( site ) ) != '':
+  if opsH.getValue( 'ExternalsPolicy/%s' % ( site ) ):
     externals = opsH.getValue( 'ExternalsPolicy/%s' % ( site ), [] )
     externals = ' '.join( externals )
     gLogger.info( 'Found externals policy for %s = %s' % ( site, externals ) )
