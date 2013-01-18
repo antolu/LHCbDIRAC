@@ -1,7 +1,7 @@
-# $HeadURL$
-''' ResourceManagementClient
+''' LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient
 
-  Extension for the DIRAC version of the ResourceManagementClient.
+   ResourceManagementClient.__bases__:
+     DIRAC.ResourceStatusSystem.Client.ResourceManagementClient.ResourceManagementClient
   
 '''
 
@@ -12,6 +12,8 @@ __RCSID__ = '$Id$'
 
 class ResourceManagementClient( DIRACResourceManagementClient ):
   """
+  Extension for the DIRAC version of the ResourceManagementClient.
+  
   The :class:`ResourceManagementClient` class extends the client on DIRAC.
 
   It has the 'direct-db-access' functions, the ones of the type:

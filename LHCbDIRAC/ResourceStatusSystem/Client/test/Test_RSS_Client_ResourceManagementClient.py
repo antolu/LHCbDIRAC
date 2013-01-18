@@ -1,4 +1,3 @@
-# $HeadURL: $
 ''' Test_RSS_Client_ResourceManagementClient
 '''
 
