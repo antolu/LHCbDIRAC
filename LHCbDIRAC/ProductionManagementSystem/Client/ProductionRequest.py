@@ -207,11 +207,13 @@ class ProductionRequest( object ):
       self.bkQueries = ['']
 
     if len( self.bkQueries ) != len( self.prodsTypeList ):
-      self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - 1 )
+      self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - len( self.bkQueries ) )
 
     if len( self.previousProds ) != len( self.prodsTypeList ):
       self.previousProds += range( 1, len( self.prodsTypeList ) )
 
+    if len( self.events ) != len( self.prodsTypeList ):
+      self.events += ['-1'] * ( len( self.prodsTypeList ) - len( self.events ) )
 
 
     #Checking if we need to split the merging step into many productions
