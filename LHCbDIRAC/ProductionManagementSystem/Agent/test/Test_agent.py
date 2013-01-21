@@ -21,7 +21,6 @@ class AgentTestCase( unittest2.TestCase ):
     pStarted = patcher.start()
     class AgentMocked():
       def __init__( self, *args, **kwargs ):
-        print self.__dict__
         for k,v in pStarted.__dict__.iteritems():
           setattr( self, k, v )
     
