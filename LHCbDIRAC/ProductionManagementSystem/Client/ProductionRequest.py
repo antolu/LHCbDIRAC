@@ -71,6 +71,7 @@ class ProductionRequest( object ):
     self.startRun = 0
     self.endRun = 0
     self.runsList = ''
+    self.visibility = ''
     self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
     self.previousProds = [None] #list of productions from which to take the inputs (the first is always None)
@@ -534,6 +535,10 @@ class ProductionRequest( object ):
 
       if self.runsList:
         bkQuery['RunNumbers'] = self.runsList.replace( ',', ';;;' ).replace( ' ', '' )
+
+      if self.visibility:
+        bkQuery['Visible'] = self.visibility
+
 
     elif mode.lower() == 'frompreviousprod':
       bkQuery = {

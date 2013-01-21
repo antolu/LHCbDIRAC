@@ -113,6 +113,7 @@ pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
+pr.visibility = 'Yes'
 
 if modulesList:
   pr.modulesList = modulesList.replace( ' ', '' ).split( ',' )

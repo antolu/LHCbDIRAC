@@ -104,6 +104,7 @@ pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
+pr.visibility = 'Yes'
 
 w1 = eval( w1 )
 w2 = eval( w2 )
