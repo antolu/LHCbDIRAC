@@ -7,21 +7,28 @@ if mock.__version__ < '1.0.1':
 import unittest2
 from DIRAC import gLogger
 
-import LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent as moduleTested
+import LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent as sut
 
 class AgentTestCase( unittest2.TestCase ):
   """ Base class for the Agent test cases
   """
   def setUp( self ):
 
-    #import DIRAC.Core.Base.AgentModule as moduleMocked
-    #moduleMocked.AgentModule = mockAgentModule
-    agentModule = mock.patch( 'DIRAC.Core.Base.AgentModule', autospec = True )
-    agentModule.start()
+    # reload SoftwareUnderTest to drop old patchers
+    reload( sut )
 
-    reload( moduleTested )
+    patcher  = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', autospec = True )
+    pStarted = patcher.start()
+    class AgentMocked():
+      def __init__( self, *args, **kwargs ):
+        print self.__dict__
+        for k,v in pStarted.__dict__.iteritems():
+          setattr( self, k, v )
+    
+    sut.AgentModule                     = AgentMocked
+    sut.ProductionStatusAgent.__bases__ = ( AgentMocked, )    
      
-    self.psa = moduleTested.ProductionStatusAgent( '', '' )
+    self.psa = sut.ProductionStatusAgent( '', '', '' )
     self.psa.log = gLogger
 
   def tearDown( self ):
