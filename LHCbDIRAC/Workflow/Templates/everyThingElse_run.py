@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
+import DIRAC
 from DIRAC import gLogger
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
@@ -111,8 +112,16 @@ pr.outConfigName = pr.configName
 pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
-if p1[0] == 1:
+if p1[0] == 1 and pr.prodsTypeList[0].lower() != 'mcsimulation':
   pr.bkFileType = '{{inFileType}}'
+  pr.bkQueries = ['Full']
+elif p1[0] == 1 and pr.prodsTypeList[0].lower() == 'mcsimulation':
+  pr.bkQueries = ['']
+elif p1[0] != 1 and pr.prodsTypeList[0].lower() != 'mcsimulation':
+  pr.bkQueries = ['fromPreviousProd']
+  if not pr.previousProdID:
+    gLogger.error( "Please specify an input production" )
+    DIRAC.exit( 2 )
 pr.eventType = '{{eventType}}'
 pr.visibility = 'Yes'
 

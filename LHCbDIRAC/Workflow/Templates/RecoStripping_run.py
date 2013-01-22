@@ -188,6 +188,7 @@ if w1:
   pr.plugins = [recoPlugin]
   pr.inputs = [recoInputDataList]
   pr.inputDataPolicies = [recoIDPolicy]
+  pr.bkQueries = ['Full']
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
@@ -200,6 +201,7 @@ elif w2:
   pr.plugins = [strippPlugin, mergingPlugin]
   pr.inputs = [strippInputDataList, []]
   pr.inputDataPolicies = [strippIDPolicy, mergingIDPolicy]
+  pr.bkQueries = ['Full', 'fromPreviousProd']
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
@@ -212,6 +214,7 @@ elif w3:
   pr.plugins = [recoPlugin, mergingPlugin]
   pr.inputs = [recoInputDataList, []]
   pr.inputDataPolicies = [recoIDPolicy, mergingIDPolicy]
+  pr.bkQueries = ['Full', 'fromPreviousProd']
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
@@ -225,5 +228,6 @@ elif w4:
   pr.plugins = [recoPlugin, strippPlugin, mergingPlugin]
   pr.inputs = [recoInputDataList, [], []]
   pr.inputDataPolicies = [recoIDPolicy, strippIDPolicy, mergingIDPolicy]
+  pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
 
 pr.buildAndLaunchRequest()

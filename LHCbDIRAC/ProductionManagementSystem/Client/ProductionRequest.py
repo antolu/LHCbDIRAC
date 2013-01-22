@@ -199,13 +199,6 @@ class ProductionRequest( object ):
   def _applyOptionalCorrections( self ):
     """ if needed, calls _splitIntoProductionSteps. It also applies other changes
     """
-
-    #determining the bk queries
-    if self.bkFileType:
-      self.bkQueries = ['Full']
-    else:
-      self.bkQueries = ['']
-
     if len( self.bkQueries ) != len( self.prodsTypeList ):
       self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - len( self.bkQueries ) )
 

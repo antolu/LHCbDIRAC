@@ -155,6 +155,7 @@ if w1:
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'protocol', 'download']
   pr.events = [events, '-1', '-1']
+  pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC_M-DST']
@@ -169,6 +170,7 @@ elif w2:
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'protocol']
   pr.events = [events, '-1']
+  pr.bkQueries = ['', 'fromPreviousProd']
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC_M-DST']
@@ -183,6 +185,7 @@ elif w3:
   pr.plugins = ['', mergingPlugin]
   pr.inputDataPolicies = ['', 'download']
   pr.events = [events, '-1']
+  pr.bkQueries = ['', 'fromPreviousProd']
 elif w4:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
@@ -196,6 +199,7 @@ elif w4:
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
   pr.events = [events]
+  pr.bkQueries = ['']
 
 pr.inputs = [[]] * len( pr.prodsTypeList )
 
