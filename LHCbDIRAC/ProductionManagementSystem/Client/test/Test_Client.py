@@ -196,6 +196,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [['aa'], []]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
+    pr.bkQueries = ['Full', 'fromPreviousProd']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -241,6 +242,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False, True]
     pr.inputDataPolicies = ['pr', 'dl']
     pr.events = [-1, -1]
+    pr.bkQueries = ['Full', 'fromPreviousProd']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -285,6 +287,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], ['aa']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
+    pr.bkQueries = ['fromPreviousProd', 'fromPreviousProd']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -294,7 +297,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
     groupSizesExpected = [1, 1, 1, 2]
-    bkQueriesExpected = ['', '', '', 'fromPreviousProd']
+    bkQueriesExpected = ['fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
     previousProdsExpected = [None, None, None, 1]
     removeInputsFlagExpected = [True, True, True, True]
     inputsExpected = [[], [], [], ['aa']]
@@ -330,6 +333,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[]]
     pr.inputDataPolicies = ['']
     pr.events = [-1]
+    pr.bkQueries = ['Full']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -374,6 +378,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.removeInputsFlags = [False, True, True]
     pr.inputs = [[], ['aa'], ['bb']]
     pr.inputDataPolicies = ['', 'dl', 'pr']
+    pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
     pr.events = [-1, -1, -1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
@@ -420,6 +425,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [-1, -1]
+    pr.bkQueries = ['Full', 'fromPreviousProd']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -465,6 +471,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[]]
     pr.inputDataPolicies = ['dl']
     pr.events = [-1]
+    pr.bkQueries = ['Full']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -509,6 +516,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [['aa'], ['bb']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
+    pr.bkQueries = ['Full', 'fromPreviousProd']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -518,7 +526,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
     groupSizesExpected = [1, 1, 1, 2]
-    bkQueriesExpected = ['', '', '', 'fromPreviousProd']
+    bkQueriesExpected = ['Full', 'Full', 'Full', 'fromPreviousProd']
     previousProdsExpected = [None, None, None, 1]
     removeInputsFlagExpected = [True, True, True, True]
     inputsExpected = [['aa'], ['aa'], ['aa'], ['bb']]
@@ -553,6 +561,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [100, -1]
+    pr.bkQueries = ['', 'fromPreviousProd']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
