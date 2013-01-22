@@ -800,8 +800,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not destSEs:
       destSEs = self.util.getPluginParam( 'MandatorySEs', [] )
     secondarySEs = self.util.getPluginParam( 'SecondarySEs', [] )
+    fromSEs = self.util.getPluginParam( 'FromSEs', [] )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 0 )
-    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies )
+    return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs )
 
   def _ArchiveDataset( self ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
@@ -823,7 +824,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       archive1SE = []
     return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
-  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0 ):
+  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = [] ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -843,6 +844,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     fileTargetSEs = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
       existingSEs = [se for se in replicaSE.split( ',' ) if not isFailover( se )]
+      # If a FromSEs parameter is given, only keep the files that are at one of those SEs, mark the others NotProcessed
+      if fromSEs:
+        if not [se for se in existingSEs if se in fromSEs]:
+          res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', lfnGroup )
+          if not res['OK']:
+            self.util.logError( 'Error setting files NotProcessed', res['Message'] )
+          else:
+            self.util.logVerbose( 'Found %d files that at not in %s, set NotProcessed' % ( len( lfnGroup ), fromSEs ) )
+          continue
+
       # If there is no choice on the SEs, send all files at once, otherwise make chunks
       if numberOfCopies >= len( mandatorySEs ) + len( activeSecondarySEs ):
         lfnChunks = [lfnGroup]
