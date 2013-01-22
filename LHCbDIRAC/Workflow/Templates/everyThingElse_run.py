@@ -111,7 +111,8 @@ pr.outConfigName = pr.configName
 pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
-pr.bkFileType = '{{inFileType}}'
+if p1[0] == 1:
+  pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
 pr.visibility = 'Yes'
 
