@@ -5,6 +5,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation import Transformation as DIRACTransformation
+from DIRAC.Core.Utilities.PromptUser                            import promptUser
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -53,7 +54,7 @@ class Transformation( DIRACTransformation ):
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
       default = parameterDefaults.get( parameter, 'All' )
-      res = self.promptUser( "Please enter %s" % parameter, choices = [], default = default )
+      res = promptUser( "Please enter %s" % parameter, choices = [], default = default )
       if not res['OK']:
         return res
       if res['Value'] != default:
@@ -174,12 +175,13 @@ class Transformation( DIRACTransformation ):
         self._prettyPrint( res )
       return res
     transID = res['Value']
-    res = self.transClient.getTransformationParameters( transID, ['BkQueryID'] )
-    if not res['OK']:
-      if printOutput:
-        self._prettyPrint( res )
-      return res
-    self.setBkQueryID( res['Value'] )
+    if self.paramValues['BkQuery']:
+      res = self.transClient.getTransformationParameters( transID, ['BkQueryID'] )
+      if not res['OK']:
+        if printOutput:
+          self._prettyPrint( res )
+        return res
+      self.setBkQueryID( res['Value'] )
     self.exists = True
     self.setTransformationID( transID )
     gLogger.info( "Created transformation %d" % transID )
