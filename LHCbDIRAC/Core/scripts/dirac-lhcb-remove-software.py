@@ -81,7 +81,7 @@ if not systemConfigs['OK']:
 for sc in systemConfigs['Value']:
   current = gConfig.getValue( '%s/%s' % ( softwareSection, sc ), [] )
   if packageNameVersion in current:
-    result = diracAdmin._promptUser( 'Do you want to remove %s %s for system configuration %s?' % ( args[0], args[1], sc ) )
+    result = diracAdmin.promptUser( 'Do you want to remove %s %s for system configuration %s?' % ( args[0], args[1], sc ) )
     if result['OK']:
       current.remove( packageNameVersion )
       print 'Removing %s for system configuration %s' % ( packageNameVersion, sc )
@@ -98,14 +98,14 @@ if not deprecatedList:
 
 if packageNameVersion in deprecatedList:
   print '==> %s is present in %s' % ( packageNameVersion, deprecatedSection )
-  result = diracAdmin._promptUser( 'Do you want to remove %s %s from the Deprecated software section?' % ( args[0], args[1] ) )
+  result = diracAdmin.promptUser( 'Do you want to remove %s %s from the Deprecated software section?' % ( args[0], args[1] ) )
   if result['OK']:
     deprecatedList.remove( packageNameVersion )
     changeCS( deprecatedSection, deprecatedList )
     modifiedCS = True
 else:
   print '==> %s is not present in %s' % ( packageNameVersion, deprecatedSection )
-  result = diracAdmin._promptUser( 'Do you want to add %s %s to the Deprecated software section?' % ( args[0], args[1] ) )
+  result = diracAdmin.promptUser( 'Do you want to add %s %s to the Deprecated software section?' % ( args[0], args[1] ) )
   if result['OK']:
     deprecatedList.append( packageNameVersion )
     changeCS( deprecatedSection, deprecatedList )

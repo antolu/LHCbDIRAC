@@ -53,7 +53,7 @@ class Transformation( DIRACTransformation ):
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
       default = parameterDefaults.get( parameter, 'All' )
-      res = self._promptUser( "Please enter %s" % parameter, choices = [], default = default )
+      res = self.promptUser( "Please enter %s" % parameter, choices = [], default = default )
       if not res['OK']:
         return res
       if res['Value'] != default:

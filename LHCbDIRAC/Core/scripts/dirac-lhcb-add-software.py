@@ -69,7 +69,7 @@ for sc in systemConfigs['Value']:
   current = gConfig.getValue( '%s/%s' % ( softwareSection, sc ), [] )
   if not packageNameVersion in current:
     question = 'Do you want to add %s %s for system configuration %s?' % ( args[0], args[1], sc )
-    result = diracAdmin._promptUser( question )
+    result = diracAdmin.promptUser( question )
     if result['OK']:
       current.append( packageNameVersion )
       print 'Adding %s for system configuration %s' % ( packageNameVersion, sc )
