@@ -90,7 +90,17 @@ if __name__ == '__main__':
 
     if cc.processedLFNsWithoutDescendants:
       gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!\n%s" \
-                      % ( len( cc.processedLFNsWithoutDescendants ), '\n'.join( cc.processedLFNsWithoutDescendants ) ) )
+                      % ( len( cc.processedLFNsWithoutDescendants ), '\n'.join( cc.processedLFNsWithoutDescendants.keys() ) ) )
+      if fixIt:
+        gLogger.always( "Resetting them 'Unused'" )
+        res = cc.transClient.setFileStatusForTransformation( id, 'Unused', cc.processedLFNsWithoutDescendants.keys(), force = True )
+        if not res['OK']:
+          gLogger.error( "Error resetting files to Unused", res['Message'] )
+        else:
+          if res['Value']['Failed']:
+            gLogger.error( "Those files could not be reset Unused:", '\n'.join( res['Value']['Failed'] ) )
+      else:
+        gLogger.always( "use --FixIt for fixing" )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
