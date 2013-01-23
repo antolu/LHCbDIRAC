@@ -3,12 +3,12 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.TransformationSystem.Client.Transformation import Transformation as DIRACTransformation
+from DIRAC                                                      import gLogger, S_OK, S_ERROR
+from DIRAC.TransformationSystem.Client.Transformation           import Transformation as DIRACTransformation
 from DIRAC.Core.Utilities.PromptUser                            import promptUser
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 
 COMPONENT_NAME = 'Transformation'
 

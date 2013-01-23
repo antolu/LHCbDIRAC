@@ -1,16 +1,10 @@
 #!/usr/bin/env python
-########################################################################
-# File :    dirac-lhcb-remove-software
-# Author :  Stuart Paterson
-########################################################################
 """
   Remove software version from the list of packages to be maintained by SAM jobs
 """
 
 __RCSID__ = "$Id$"
 
-
-import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -21,9 +15,12 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  Version:  Version of the LHCb software package' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
+
+import DIRAC
+from DIRAC                                               import gConfig
 from DIRAC.FrameworkSystem.Client.NotificationClient     import NotificationClient
-from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
-from DIRAC                                                   import gConfig
+from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
+from DIRAC.Core.Utilities.PromptUser                     import promptUser
 
 diracAdmin = DiracAdmin()
 modifiedCS = False
@@ -81,7 +78,7 @@ if not systemConfigs['OK']:
 for sc in systemConfigs['Value']:
   current = gConfig.getValue( '%s/%s' % ( softwareSection, sc ), [] )
   if packageNameVersion in current:
-    result = diracAdmin.promptUser( 'Do you want to remove %s %s for system configuration %s?' % ( args[0], args[1], sc ) )
+    result = promptUser( 'Do you want to remove %s %s for system configuration %s?' % ( args[0], args[1], sc ) )
     if result['OK']:
       current.remove( packageNameVersion )
       print 'Removing %s for system configuration %s' % ( packageNameVersion, sc )
@@ -98,14 +95,14 @@ if not deprecatedList:
 
 if packageNameVersion in deprecatedList:
   print '==> %s is present in %s' % ( packageNameVersion, deprecatedSection )
-  result = diracAdmin.promptUser( 'Do you want to remove %s %s from the Deprecated software section?' % ( args[0], args[1] ) )
+  result = promptUser( 'Do you want to remove %s %s from the Deprecated software section?' % ( args[0], args[1] ) )
   if result['OK']:
     deprecatedList.remove( packageNameVersion )
     changeCS( deprecatedSection, deprecatedList )
     modifiedCS = True
 else:
   print '==> %s is not present in %s' % ( packageNameVersion, deprecatedSection )
-  result = diracAdmin.promptUser( 'Do you want to add %s %s to the Deprecated software section?' % ( args[0], args[1] ) )
+  result = promptUser( 'Do you want to add %s %s to the Deprecated software section?' % ( args[0], args[1] ) )
   if result['OK']:
     deprecatedList.append( packageNameVersion )
     changeCS( deprecatedSection, deprecatedList )

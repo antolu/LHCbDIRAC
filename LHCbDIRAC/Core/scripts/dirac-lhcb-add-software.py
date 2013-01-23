@@ -1,14 +1,9 @@
 #!/usr/bin/env python
-########################################################################
-# File :    dirac-lhcb-add-software
-# Author :  Stuart Paterson
-########################################################################
 """
   Modify Configuration to add a new SW in the automatic installation list
 """
 __RCSID__ = "$Id$"
 
-import DIRAC
 from DIRAC.Core.Base import Script
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -19,8 +14,11 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  Version:  Version of the LHCb software package' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
-from DIRAC.Interfaces.API.DiracAdmin                         import DiracAdmin
-from DIRAC                                                   import gConfig
+
+import DIRAC
+from DIRAC                            import gConfig
+from DIRAC.Interfaces.API.DiracAdmin  import DiracAdmin
+from DIRAC.Core.Utilities.PromptUser  import promptUser
 
 diracAdmin = DiracAdmin()
 modifiedCS = False
@@ -69,7 +67,7 @@ for sc in systemConfigs['Value']:
   current = gConfig.getValue( '%s/%s' % ( softwareSection, sc ), [] )
   if not packageNameVersion in current:
     question = 'Do you want to add %s %s for system configuration %s?' % ( args[0], args[1], sc )
-    result = diracAdmin.promptUser( question )
+    result = promptUser( question )
     if result['OK']:
       current.append( packageNameVersion )
       print 'Adding %s for system configuration %s' % ( packageNameVersion, sc )
