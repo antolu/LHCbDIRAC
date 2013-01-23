@@ -124,10 +124,10 @@ pr.outConfigName = pr.configName
 if pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
-  pr.events = '3'
+  pr.events = ['3']
   pr.extend = '10'
   mergingGroupSize = '1'
-  MCCpu = '50000'
+  MCCpu = ['50000']
   pr.previousProdID = 0 #set this for, e.g., launching only merging
 
 if validationFlag:
