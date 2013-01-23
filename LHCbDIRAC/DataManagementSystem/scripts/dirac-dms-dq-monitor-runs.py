@@ -4,17 +4,51 @@
 # Author :  Adinolfi Mrco
 ########################################################################
 
-from DIRAC.Core.Base            import Script
-Script.parseCommandLine( ignoreErrors = True )
+"""
+Script to check the status of merged histograms for a given data taking configuration
+"""
+
+__RCSID__ = "$Id$"
 
 import DIRAC
-from DIRAC                      import S_OK, S_ERROR, gLogger
+
+from DIRAC.Core.Base            import Script
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                    'Usage:',
+                                    'dirac-dms-dq-monitor-runs --version Collision12',
+                                    'dirac-dms-dq-monitor-runs --list',
+                                    'Arguments:',
+                                    '  version:     Configuration version'])
+                      )
+Script.registerSwitch( '', 'version', '   Configuration version' )
+Script.registerSwitch( '', 'list', '   List available versions' )
+
+Script.parseCommandLine(ignoreErrors = True)
+    
+args = Script.getPositionalArgs()
+sw = Script.getUnprocessedSwitches()
+    
+if sw[0][0] not in ['version','list']:
+  Script.showHelp()
+if sw[0][0] == 'version' and len( args ) < 1 or len( args ) > 1:
+  Script.showHelp()
+
+
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Core.Utilities.List                                  import sortList,breakListIntoChunks
+from DIRAC                      import S_OK, S_ERROR, gLogger
+
+from DIRAC.Core.Utilities.List                                  import sortList
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-import sys, os, re, copy, time
+
+import sys
+import os
+import re
+import copy
+import time
+
+
 
 bkClient = BookkeepingClient()
 tfClient = TransformationClient()
@@ -139,7 +173,7 @@ def createDictionaryList(cfgName, cfgVesrionList):
   for cfgVersion in cfgVersionList:
     bkTree = {'ConfigName'    : cfgName,
               'ConfigVersion' : cfgVersion}
-    res = getRunningConditions(bkTree)
+    res = getRunningConditions(bkTree,cfgVersion)
     if not res['OK']:
       retVal['OK'] = False
       return retVal
@@ -335,13 +369,13 @@ def getProductionId(run, procPass):
 # Find all known running conditions for the selected configurations.           #
 #                                                                              #
 ################################################################################
-def getRunningConditions(bkTree):
+def getRunningConditions(bkTree,cfgVersion):
   retVal = {}
   retVal['OK']         = True
   retVal['bkDictList'] = []
   
   res = bkClient.getConditions(bkTree)
-
+  
   dtdList = {}
   
   if not res['OK']:
@@ -600,11 +634,20 @@ def processRuns(bkDict, runList):
 if __name__=="__main__":
   baseDir = '/afs/cern.ch/lhcb/group/dataquality/ROOT'
   homeDir = '/afs/cern.ch/lhcb/group/dataquality/ROOT/Collision12'
-
-  cfgName        = 'LHCb'
-  cfgVersionList = ['Collision12']
-
+  
   exitCode = 0
+  
+  cfgName        = 'LHCb'
+  if sw[0][0] == 'list':
+    res = bkClient.getConfigVersions({'ConfigName':cfgName})
+    for vers in res['Value']['Records']:
+      print vers[0]
+    DIRAC.exit(exitCode)
+    
+  cfgVersionList = [str(args[0])]
+  
+
+
 
   res      = createDictionaryList(cfgName, cfgVersionList)
   if not res:
