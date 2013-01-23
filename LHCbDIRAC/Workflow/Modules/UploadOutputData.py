@@ -406,8 +406,7 @@ class UploadOutputData( ModuleBase ):
 
     for inputDataFile, descendants in inputDataDescDict.items():
       if descendants:
-        self.log.warn( 'Input files: \n%s \nDescendents: %s' % ( '\n'.join( inputDataFile ),
-                                                                 '\n'.join( descendants ) ) )
+        self.log.warn( 'Input files: \n%s \nDescendents: %s' % ( inputDataFile, '\n'.join( descendants ) ) )
         descendantsList += descendants
 
     return S_OK( descendantsList )
