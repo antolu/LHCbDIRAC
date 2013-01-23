@@ -8,11 +8,6 @@ __RCSID__ = "$Id"
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.Core.Security.ProxyInfo import getProxyInfo
-from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
-from DIRAC import gLogger
-
 
 Script.registerSwitch( 'D:', 'days=', "Days requested" )
 Script.registerSwitch( '', 'noMail', "No mail option" )
@@ -21,6 +16,11 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  %s [option|cfgfile] --RequestType <type>' % Script.scriptName, ] ) )
 Script.parseCommandLine( ignoreErrors = True )
 switches = Script.getUnprocessedSwitches()
+
+from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
+from DIRAC import gLogger
 
 daysRequested = '1'
 

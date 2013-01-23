@@ -1,15 +1,10 @@
 #!/usr/bin/env python
-########################################################################
-# File :   dirac-production-list-all
-# Author : Stuart Paterson
-########################################################################
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision$"
-import DIRAC
 from DIRAC.Core.Base import Script
+Script.parseCommandLine( ignoreErrors = True )
+
+import DIRAC
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
-Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 diracProd = DiracProduction()

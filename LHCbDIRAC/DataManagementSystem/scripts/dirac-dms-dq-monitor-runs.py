@@ -3,23 +3,18 @@
 # File :    dirac-dq-monitor-runs.py
 # Author :  Adinolfi Mrco
 ########################################################################
-import DIRAC
 
 from DIRAC.Core.Base            import Script
-from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC                      import S_OK, S_ERROR, gLogger
+Script.parseCommandLine( ignoreErrors = True )
 
+import DIRAC
+from DIRAC                      import S_OK, S_ERROR, gLogger
+from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Utilities.List                                  import sortList,breakListIntoChunks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-import sys
-import os
-import re
-import copy
-import time
-
-Script.parseCommandLine(ignoreErrors = True)
+import sys, os, re, copy, time
 
 bkClient = BookkeepingClient()
 tfClient = TransformationClient()
