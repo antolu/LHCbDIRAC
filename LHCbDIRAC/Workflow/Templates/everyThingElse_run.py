@@ -1,7 +1,7 @@
 """ Moving toward a templates-less system
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: everyThingElse_run.py 53649 2012-06-25 12:23:13Z fstagni $"
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
@@ -57,7 +57,6 @@ localTestFlag = eval( '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = eval( '{{validationFlag#GENERAL: Set True for validation prod#False}}' )
 
 # workflow params for all productions
-pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 pr.startRun = int( '{{startRun#GENERAL: run start, to set the start run#0}}' )
 pr.endRun = int( '{{endRun#GENERAL: run end, to set the end of the range#0}}' )
 pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
@@ -78,6 +77,7 @@ p1GroupSize = '{{p1GroupSize#PROD-P1: Group size or number of files per job#1}}'
 p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
+p1sysConfig = '{{P1SystemConfig#PROD-P1: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 
 #p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -87,6 +87,7 @@ p2GroupSize = '{{p2GroupSize#PROD-P2: Group Size#1}}'
 p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
+p2sysConfig = '{{P2SystemConfig#PROD-P2: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 
 #p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -96,6 +97,7 @@ p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
 p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
+p3sysConfig = '{{P3SystemConfig#PROD-P3: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -177,5 +179,6 @@ pr.groupSizes = [p1GroupSize, p2GroupSize, p3GroupSize][0:len( pr.prodsTypeList 
 pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList, [], []]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
+pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig]
 
 pr.buildAndLaunchRequest()

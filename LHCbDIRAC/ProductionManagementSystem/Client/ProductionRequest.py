@@ -40,7 +40,7 @@ class ProductionRequest( object ):
     self.outConfigName = ''
     self.eventType = ''
     self.events = []
-    self.sysConfig = ''
+    self.sysConfig = []
     self.stepsList = []
     self.stepsListDict = []
     self.extraOptions = []
@@ -396,7 +396,7 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0,
                         events = -1,
-                        sysConfig ):
+                        sysConfig = '' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """

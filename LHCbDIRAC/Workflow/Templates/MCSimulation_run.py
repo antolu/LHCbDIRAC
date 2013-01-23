@@ -14,7 +14,7 @@
       - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: MCSimulation_run.py 53649 2012-06-25 12:23:13Z fstagni $"
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
@@ -62,24 +62,26 @@ outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
 events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
-pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
 MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
+MCSysConfig = '{{MCSystemConfig#PROD-1:MC System config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll use protocol access)#20}}'
 selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
+selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
 mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by default#8}}'
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
+mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
 
 pr.eventType = '{{eventType}}'
 #Often MC requests are defined with many subrequests but we want to retain
@@ -156,6 +158,7 @@ if w1:
   pr.inputDataPolicies = ['', 'protocol', 'download']
   pr.events = [events, '-1', '-1']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
+  pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC_M-DST']
@@ -171,6 +174,7 @@ elif w2:
   pr.inputDataPolicies = ['', 'protocol']
   pr.events = [events, '-1']
   pr.bkQueries = ['', 'fromPreviousProd']
+  pr.sysConfig = [MCSysConfig, selSysConfig]
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC_M-DST']
@@ -186,6 +190,7 @@ elif w3:
   pr.inputDataPolicies = ['', 'download']
   pr.events = [events, '-1']
   pr.bkQueries = ['', 'fromPreviousProd']
+  pr.sysConfig = [MCSysConfig, mergeSysConfig]
 elif w4:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
@@ -200,6 +205,7 @@ elif w4:
   pr.inputDataPolicies = ['']
   pr.events = [events]
   pr.bkQueries = ['']
+  pr.sysConfig = [MCSysConfig]
 
 pr.inputs = [[]] * len( pr.prodsTypeList )
 

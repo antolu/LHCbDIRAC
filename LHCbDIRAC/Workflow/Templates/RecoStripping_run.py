@@ -12,7 +12,7 @@
     * run only part of the request on the Grid:
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: RecoStripping_run.py 53649 2012-06-25 12:23:13Z fstagni $"
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
@@ -56,7 +56,6 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
 
 # workflow params for all productions
-pr.sysConfig = '{{WorkflowSystemConfig#GENERAL: Workflow system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 pr.startRun = '{{startRun#GENERAL: run start, to set the start run#0}}'
 pr.endRun = '{{endRun#GENERAL: run end, to set the end of the range#0}}'
 pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
@@ -75,6 +74,7 @@ recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number o
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
 recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
+recoSysConfig = '{{recoSystemConfig#PROD-1:RECO(Stripp): system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 
 #stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
@@ -83,6 +83,7 @@ strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
+strippSysConfig = '{{strippSystemConfig#PROD-2:Stripping: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 
 #merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
@@ -92,6 +93,7 @@ mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged f
 mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1_M-DST}}'
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
+mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{pDsc}}'
@@ -189,6 +191,7 @@ if w1:
   pr.inputs = [recoInputDataList]
   pr.inputDataPolicies = [recoIDPolicy]
   pr.bkQueries = ['Full']
+  pr.sysConfig = [recoSysConfig]
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
@@ -202,6 +205,7 @@ elif w2:
   pr.inputs = [strippInputDataList, []]
   pr.inputDataPolicies = [strippIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd']
+  pr.sysConfig = [strippSysConfig, mergeSysConfig]
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
@@ -215,6 +219,7 @@ elif w3:
   pr.inputs = [recoInputDataList, []]
   pr.inputDataPolicies = [recoIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd']
+  pr.sysConfig = [recoSysConfig, mergeSysConfig]
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
@@ -229,5 +234,6 @@ elif w4:
   pr.inputs = [recoInputDataList, [], []]
   pr.inputDataPolicies = [recoIDPolicy, strippIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
+  pr.sysConfig = [recoSysConfig, strippSysConfig, mergeSysConfig]
 
 pr.buildAndLaunchRequest()
