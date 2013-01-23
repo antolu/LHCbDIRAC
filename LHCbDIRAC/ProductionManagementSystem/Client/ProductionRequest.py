@@ -1,8 +1,6 @@
 """ Module for creating, describing and managing production requests objects
 """
 
-__RCSID__ = "$Id$"
-
 import itertools, copy
 from DIRAC import gLogger, S_OK
 
@@ -141,7 +139,7 @@ class ProductionRequest( object ):
     fromProd = copy.deepcopy( self.previousProdID )
     prodsLaunched = []
 
-    self.logger.verbose( prodsDict )
+    self.logger.debug( prodsDict )
     #now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
 
@@ -172,7 +170,8 @@ class ProductionRequest( object ):
                                     previousProdID = fromProd,
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'],
-                                    events = prodDict['events'] )
+                                    events = prodDict['events'],
+                                    sysConfig = prodDict['sysConfig'] )
       res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
@@ -232,6 +231,7 @@ class ProductionRequest( object ):
         idp = self.inputDataPolicies[index]
         stepID = self.stepsList[index]
         events = self.events[index]
+        sysConfig = self.sysConfig[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -248,6 +248,7 @@ class ProductionRequest( object ):
           self.inputDataPolicies.pop( index )
           self.stepsList.pop( index )
           self.events.pop( index )
+          self.sysConfig.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -268,6 +269,7 @@ class ProductionRequest( object ):
             self.stepsListDict.insert( index, newSteps[x] )
             self.stepsInProds.insert( index + x, [last + x] )
             self.events.insert( index, events )
+            self.sysConfig.insert( index, sysConfig )
 
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
@@ -297,9 +299,6 @@ class ProductionRequest( object ):
     if not self.targets:
       self.targets = [''] * len( self.prodsTypeList )
 
-    if not self.events:
-      self.events = ['-1'] * len( self.prodsTypeList )
-
     if not self.inputDataPolicies:
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
@@ -315,22 +314,23 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outFileMask, target, groupSize, plugin, idp, \
-    previousProd, events in itertools.izip( self.prodsTypeList,
-                                            self.stepsInProds,
-                                            self.bkQueries,
-                                            self.removeInputsFlags,
-                                            self.outputSEs,
-                                            self.priorities,
-                                            self.cpus,
-                                            self.inputs,
-                                            self.outputFileMasks,
-                                            self.targets,
-                                            self.groupSizes,
-                                            self.plugins,
-                                            self.inputDataPolicies,
-                                            self.previousProds,
-                                            self.events
-                                            ):
+    previousProd, events, sysConfig in itertools.izip( self.prodsTypeList,
+                                                       self.stepsInProds,
+                                                       self.bkQueries,
+                                                       self.removeInputsFlags,
+                                                       self.outputSEs,
+                                                       self.priorities,
+                                                       self.cpus,
+                                                       self.inputs,
+                                                       self.outputFileMasks,
+                                                       self.targets,
+                                                       self.groupSizes,
+                                                       self.plugins,
+                                                       self.inputDataPolicies,
+                                                       self.previousProds,
+                                                       self.events,
+                                                       self.sysConfig
+                                                       ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -356,7 +356,8 @@ class ProductionRequest( object ):
                                  'transformationFamily': transformationFamily,
                                  'previousProd': previousProd,
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
-                                 'events': events
+                                 'events': events,
+                                 'sysConfig': sysConfig
                                  }
       prodNumber += 1
 
@@ -394,7 +395,8 @@ class ProductionRequest( object ):
                         previousProdID = 0,
                         derivedProdID = 0,
                         transformationFamily = 0,
-                        events = -1 ):
+                        events = -1,
+                        sysConfig ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """
@@ -422,7 +424,7 @@ class ProductionRequest( object ):
     prod.jobFileGroupSize = groupSize
     if inputDataPolicy:
       prod.LHCbJob.setInputDataPolicy( inputDataPolicy )
-    if self.sysConfig:
+    if sysConfig:
       prod.setJobParameters( { 'SystemConfig': self.sysConfig } )
     prod.setOutputMode( outputMode )
     if outputFileMask:
