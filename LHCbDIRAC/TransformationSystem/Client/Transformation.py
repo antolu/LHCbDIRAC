@@ -54,11 +54,9 @@ class Transformation( DIRACTransformation ):
     parameterDefaults = queryDict.copy()
     for parameter in parameters:
       default = parameterDefaults.get( parameter, 'All' )
-      res = promptUser( "Please enter %s" % parameter, choices = [], default = default )
-      if not res['OK']:
-        return res
-      if res['Value'] != default:
-        queryDict[parameter] = res['Value']
+      res = raw_input( "Please enter %s value: " % parameter )
+      if res != default:
+        queryDict[parameter] = res
     if not queryDict:
       return S_ERROR( "At least one of the parameters must be set" )
     if ( queryDict.has_key( 'SimulationConditions' ) ) and ( queryDict.has_key( 'DataTakingConditions' ) ):

@@ -68,11 +68,15 @@ for sc in systemConfigs['Value']:
   if not packageNameVersion in current:
     question = 'Do you want to add %s %s for system configuration %s?' % ( args[0], args[1], sc )
     result = promptUser( question )
-    if result['OK']:
+    if not result['OK']:
+      return result
+    if result['Value'] == 'y':
       current.append( packageNameVersion )
       print 'Adding %s for system configuration %s' % ( packageNameVersion, sc )
       changeCS( '%s/%s' % ( softwareSection, sc ), current )
       modifiedCS = True
+    else:
+      print "Doing nothing"
   else:
     print '==> %s is already defined for system configuration %s' % ( packageNameVersion, sc )
 

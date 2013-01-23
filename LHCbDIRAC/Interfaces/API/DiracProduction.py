@@ -619,10 +619,13 @@ class DiracProduction( API ):
                                                                                 command.lower().capitalize() ) )
     if not disableCheck:
       result = promptUser( 'Do you wish to change production %s with command "%s"? ' % ( productionID,
-                                                                                                command.lower().capitalize() ) )
+                                                                                         command.lower().capitalize() ) )
       if not result['OK']:
         self.log.info( 'Action cancelled' )
         return S_OK( 'Action cancelled' )
+      if result['Value'] != 'y':
+        self.log.info( 'Doing nothing' )
+        return S_OK( 'Doing nothing' )
 
     actions = commands[command]
     self.log.info( 'Setting production status to %s and submission mode to %s for productionID %s' % ( actions[0],

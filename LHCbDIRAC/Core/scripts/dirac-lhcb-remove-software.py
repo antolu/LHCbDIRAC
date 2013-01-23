@@ -79,11 +79,15 @@ for sc in systemConfigs['Value']:
   current = gConfig.getValue( '%s/%s' % ( softwareSection, sc ), [] )
   if packageNameVersion in current:
     result = promptUser( 'Do you want to remove %s %s for system configuration %s?' % ( args[0], args[1], sc ) )
-    if result['OK']:
+    if not result['OK']:
+      return result
+    if result['Value'] == 'y':
       current.remove( packageNameVersion )
       print 'Removing %s for system configuration %s' % ( packageNameVersion, sc )
       changeCS( '%s/%s' % ( softwareSection, sc ), current )
       modifiedCS = True
+    else:
+      print "Doing nothing"
   else:
     print '==> %s is not present for system configuration %s' % ( packageNameVersion, sc )
 
@@ -96,17 +100,25 @@ if not deprecatedList:
 if packageNameVersion in deprecatedList:
   print '==> %s is present in %s' % ( packageNameVersion, deprecatedSection )
   result = promptUser( 'Do you want to remove %s %s from the Deprecated software section?' % ( args[0], args[1] ) )
-  if result['OK']:
+  if not result['OK']:
+    return result
+  if result['Value'] == 'y':
     deprecatedList.remove( packageNameVersion )
     changeCS( deprecatedSection, deprecatedList )
     modifiedCS = True
+  else:
+    print "Doing nothing"
 else:
   print '==> %s is not present in %s' % ( packageNameVersion, deprecatedSection )
   result = promptUser( 'Do you want to add %s %s to the Deprecated software section?' % ( args[0], args[1] ) )
-  if result['OK']:
+  if not result['OK']:
+    return result
+  if result['Value'] == 'y':
     deprecatedList.append( packageNameVersion )
     changeCS( deprecatedSection, deprecatedList )
     modifiedCS = True
+  else:
+    print "Doing nothing"
 
 #Commit the changes if nothing has failed and the CS has been modified
 if modifiedCS:
