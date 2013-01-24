@@ -69,7 +69,8 @@ for sc in systemConfigs['Value']:
     question = 'Do you want to add %s %s for system configuration %s?' % ( args[0], args[1], sc )
     result = promptUser( question )
     if not result['OK']:
-      return result
+      print result['Message']
+      DIRAC.exit( 255 )
     if result['Value'] == 'y':
       current.append( packageNameVersion )
       print 'Adding %s for system configuration %s' % ( packageNameVersion, sc )
