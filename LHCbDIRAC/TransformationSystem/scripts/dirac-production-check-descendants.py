@@ -54,7 +54,7 @@ if __name__ == '__main__':
     DIRAC.exit( 0 )
   else:
     ids = args[0].split( "," )
-    idList = []
+    idList = [] 
     for id in ids:
       r = id.split( ':' )
       if len( r ) > 1:
