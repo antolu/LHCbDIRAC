@@ -130,8 +130,8 @@ class ProductionStatusAgent( AgentModule ):
             self.log.info( 'Production %d is returned to Active status' % prod )
             self._updateProductionStatus( prod, 'ValidatingInput', 'Active', updatedProductions )
           else:
-            self.log.info( 'Production %d is put in Completed status' % prod )
-            self._updateProductionStatus( prod, 'ValidatingInput', 'Completed', updatedProductions )
+            self.log.info( 'Production %d is put in RemovingFiles status' % prod )
+            self._updateProductionStatus( prod, 'ValidatingInput', 'RemovingFiles', updatedProductions )
     except RuntimeError, error:
       self.log.error( error )
 
