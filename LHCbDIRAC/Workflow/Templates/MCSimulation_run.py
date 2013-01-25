@@ -127,7 +127,7 @@ if pr.testFlag:
   pr.events = ['3']
   pr.extend = '10'
   mergingGroupSize = '1'
-  MCCpu = ['50000']
+  MCCpu = '50000'
   pr.previousProdID = 0 #set this for, e.g., launching only merging
 
 if validationFlag:
