@@ -71,6 +71,7 @@ class Transformation( DIRACTransformation ):
     """
 
     if bkClient is None:
+      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bkClient = BookkeepingClient()
 
     res = bkClient.getFiles( bkQuery )
