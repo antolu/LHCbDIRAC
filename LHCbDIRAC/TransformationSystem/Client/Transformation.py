@@ -5,6 +5,7 @@ __RCSID__ = "$Id$"
 
 from DIRAC                                                      import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Client.Transformation           import Transformation as DIRACTransformation
+from DIRAC.Core.Utilities.PromptUser                            import promptUser
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
@@ -71,7 +72,6 @@ class Transformation( DIRACTransformation ):
     """
 
     if bkClient is None:
-      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       bkClient = BookkeepingClient()
 
     res = bkClient.getFiles( bkQuery )
