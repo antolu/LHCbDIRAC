@@ -367,8 +367,8 @@ for id in idList:
                     replicas = res['Value']['Successful']
                     notMissing = len( [lfn for lfn in lfns if lfn in replicas] )
                     if notMissing:
-                        if not kickRequest:
-                            print "%d files are %s but indeed are in the LFC - Use --KickRequest to reset them Unused" % ( notMissing, status )
+                        if not kickRequests:
+                            print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
                         else:
                             res = transClient.setFileStatusForTransformation( id, 'Unused', [lfn for lfn in lfns if lfn in replicas] )
                             if res['OK']:
@@ -460,7 +460,7 @@ for id in idList:
                                     if res['OK']:
                                         print "Task is failed: %d files reset Unused" % len( lfns )
                                 else:
-                                    print "Task is failed: %d files could be reset Unused: use --KickRequest option" % len( lfns )
+                                    print "Task is failed: %d files could be reset Unused: use --KickRequests option" % len( lfns )
                             if taskCompleted and ( task['ExternalStatus'] != 'Done' or status == 'Assigned' ):
                                 prString = "Task %s is completed: no %s replicas" % ( requestName, statComment )
                                 if kickRequests:
@@ -491,7 +491,7 @@ for id in idList:
                                 if 'Failed' in stats and statFiles['Failed'] == len( reqFiles ):
                                     prString = "All transfers failed for that request"
                                     if not kickRequests:
-                                        prString += ": it should be marked as Failed, use --KickRequest"
+                                        prString += ": it should be marked as Failed, use --KickRequests"
                                     else:
                                         failedFiles += reqFiles.keys()
                                         res = reqClient.setRequestStatus( requestName, 'Failed' )
