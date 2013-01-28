@@ -4,11 +4,14 @@ __RCSID__ = "$Id$"
 
 import sys
 
-def getFilesForRun( id, runID, status=None, lfnList=None, seList=None ):
+def getFilesForRun( id, runID, status = None, lfnList = None, seList = None ):
   #print id, runID, status, lfnList
   selectDict = {}
   if runID != None:
+    if runID:
       selectDict["RunNumber"] = runID
+    else:
+      selectDict["RunNumber"] = str( runID )
   if status:
       selectDict['Status'] = status
   if lfnList:
@@ -67,7 +70,7 @@ Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status
 Script.registerSwitch( '', 'FixRun', 'Fix the run number in transformation table' )
 Script.registerSwitch( 'v', 'Verbose', '' )
 
-Script.parseCommandLine( ignoreErrors=True )
+Script.parseCommandLine( ignoreErrors = True )
 import DIRAC
 #from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -174,11 +177,11 @@ reqClient = RequestClient()
 rm = ReplicaManager()
 dmTransTypes = ( "Replication", "Removal" )
 now = datetime.datetime.utcnow()
-timeLimit = now - datetime.timedelta( hours=2 )
+timeLimit = now - datetime.timedelta( hours = 2 )
 improperJobs = []
 
 for id in idList:
-    res = transClient.getTransformation( id, extraParams=False )
+    res = transClient.getTransformation( id, extraParams = False )
     if not res['OK']:
       print "Couldn't find transformation", id
       continue
@@ -374,7 +377,26 @@ for id in idList:
                             if res['OK']:
                                 print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
                     else:
-                        print "All files are really missing in LFC"
+                      from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+                      bkClient = BookkeepingClient()
+                      res = bkClient.getFileMetadata( lfns )
+                      if not res['OK']:
+                        print "ERROR getting metadata from BK"
+                      else:
+                        metadata = res['Value']
+                        lfnsWithReplicaFlag = [lfn for lfn in metadata if metadata[lfn]['GotReplica'] == 'Yes']
+                        if lfnsWithReplicaFlag:
+                          print "All files are really missing in LFC"
+                          if not kickRequests:
+                            print '%d files are not in the LFC but have a replica flag in BK, use --KickRequests to fix' % len( lfnsWithReplicaFlag )
+                          else:
+                            res = bkClient.removeFiles( lfnsWithReplicaFlag )
+                            if not res['OK']:
+                              print "ERROR removing replica flag:", res['Message']
+                            else:
+                              print "Replica flag removed from %d files" % len( lfnsWithReplicaFlag )
+                        else:
+                          print "All files are really missing in LFC and BK"
             if verbose: print "Tasks:", taskDict.keys()
             nbReplicasProblematic = {}
             problematicReplicas = {}
