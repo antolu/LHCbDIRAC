@@ -504,11 +504,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     nRunsLeft = len( res['Value'] )
     for run in sorted( res['Value'], cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
       runID = run['RunNumber']
-      self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
+      self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
-      runStatus = run['Status']
       if transStatus == 'Flush':
         runStatus = 'Flush'
+      else:
+        runStatus = run['Status']
       paramDict = runDict.get( runID, {} )
       targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
       for paramValue in sorted( paramDict ):
@@ -520,7 +521,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check if something was new since last time...
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
         newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
-        if len( newLfns ) == 0 and self.transID > 0 and runStatus != 'Flush':
+        if len( newLfns ) == 0 and self.transID > 0 and runStatus != 'Flush' and not self.util.cacheExpired( runID ):
           self.util.logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         self.util.logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ),
@@ -532,7 +533,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             res = self.util.getBookkeepingMetadata( [lfn], 'EventType' )
             if res['OK']:
               runEvtType[paramValue] = res['Value'].get( lfn, 90000000 )
-              self.util.logVerbose( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
+              self.util.logDebug( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
             else:
               self.util.logWarn( "Can't determine event type for transformation%s, can't flush" % paramStr,
                               res['Message'] )
