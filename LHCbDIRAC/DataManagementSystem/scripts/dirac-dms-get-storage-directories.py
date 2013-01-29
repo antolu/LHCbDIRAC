@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 ########################################################################
-
 __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 
-dir = ''
+folder = ''
 fileType = ''
 ses = []
 prods = []
-Script.registerSwitch( "d:", "Dir=", "   Dir to search [ALL]" )
+Script.registerSwitch( "f:", "Dir=", "   Dir to search [ALL]" )
 Script.registerSwitch( "t:", "Type=", "   File type to search [ALL]" )
 Script.registerSwitch( "S:", "SEs=", "  SEs to consider [ALL] (space or comma separated list)" )
 Script.registerSwitch( "p:", "Prod=", "   Production ID to search [ALL] (space or comma separated list)" )
@@ -23,27 +22,27 @@ Usage:
 
 Script.parseCommandLine()
 
-from DIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
+
 rpc = StorageUsageClient()
 
 from DIRAC.Core.Utilities.List import sortList
 
-prods = [int( x ) for x in Script.getPositionalArgs()]
+prods = [ int( x ) for x in Script.getPositionalArgs() ]
 
 for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower() == "d" or switch[0].lower() == "dir":
-    dir = switch[1]
-  if switch[0].lower() == "t" or switch[0].lower() == "type":
+  if switch[0].lower() in ( "f", "dir" ):
+    folder = switch[1]
+  if switch[0].lower() in ( "t", "type" ):
     fileType = switch[1]
-  if switch[0].lower() == "c" or switch[0].lower() == "ses":
+  if switch[0].lower() in ( "c",  "ses" ):
     ses = switch[1].replace( ',', ' ' ).split()
-  if switch[0].lower() == "p" or switch[0].lower() == "prod":
-    prods = switch[1].replace( ',', ' ' ).split()
-    prods = [int( x ) for x in prods]
+  if switch[0].lower() in ( "p", "prod" ):
+    prods = [ int( x.strip() ) for x in switch[1].split(",") if x.strip() ]
 
 allDirs = []
 if not prods:
-  res = rpc.getStorageDirectoryData( dir, fileType, '', ses )
+  res = rpc.getStorageDirectoryData( folder, fileType, '', ses )
   if not res['OK']:
     print "ERROR getting storage directories", res['Message']
   else:
@@ -51,7 +50,7 @@ if not prods:
       if resDir not in allDirs:
         allDirs.append( resDir )
 for prod in prods:
-  res = rpc.getStorageDirectoryData( dir, fileType, prod, ses )
+  res = rpc.getStorageDirectoryData( folder, fileType, prod, ses )
   if not res['OK']:
     print "ERROR getting storage directories", res['Message']
   else:
@@ -59,5 +58,5 @@ for prod in prods:
       if resDir not in allDirs:
         allDirs.append( resDir )
 
-for dir in sortList( allDirs ):
+for folder in sortList( allDirs ):
   print dir
