@@ -110,7 +110,7 @@ class ConsistencyChecks( object ):
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
       self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      self.existingLFNsWithBKKReplicaYES, self.nonexistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
+      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
       # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
