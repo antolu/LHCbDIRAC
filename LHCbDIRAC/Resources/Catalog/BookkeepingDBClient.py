@@ -13,7 +13,7 @@ import types, os
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
   """
-  def __init__( self, url=False ):
+  def __init__( self, url = False ):
     """ Constructor of the Bookkeeping catalogue client
     """
     self.splitSize = 1000
@@ -107,7 +107,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     resDict = {'Failed':{}, 'Successful':successful}
     return S_OK( resDict )
 
-  def removeDirectory( self, lfn, recursive=False ):
+  def removeDirectory( self, lfn, recursive = False ):
     res = self.__checkArgumentFormat( lfn )
     if not res['OK']:
       return res
@@ -208,8 +208,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Set replica flags on BKK
     '''
-    server = RPCClient( self.url, timeout=120 )
-    gLogger.info( "**** Set replica flag on %s" % self.url )
+    server = RPCClient( self.url, timeout = 120 )
+    gLogger.verbose( "**** Set replica flag on %s" % self.url )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -232,7 +232,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
     #FIXME: this method is VERY VERY similar to setHasReplicaFlag.. why not refactor
     # a little bit ?
-    server = RPCClient( self.url, timeout=120 )
+    server = RPCClient( self.url, timeout = 120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -255,7 +255,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
     #FIXME: what if the lfns returned by the service are different than the ones
     # we are asking for.. the output will be totally messed up.
-    server = RPCClient( self.url, timeout=120 )
+    server = RPCClient( self.url, timeout = 120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
@@ -274,7 +274,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Returns lfns metadata
     '''
-    server = RPCClient( self.url, timeout=120 )
+    server = RPCClient( self.url, timeout = 120 )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
