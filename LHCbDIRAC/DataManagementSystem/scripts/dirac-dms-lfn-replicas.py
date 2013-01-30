@@ -51,7 +51,12 @@ if __name__ == "__main__":
   from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
   rm = ReplicaManager()
 
-  res = rm.getCatalogReplicas( lfnList, allStatus=not active )
+  while True:
+    res = rm.getCatalogReplicas( lfnList, allStatus=not active )
+    if active and not res['Value']['Successful'] and not res['Value']['Failed']:
+      active = False
+    else:
+      break
   if res['OK']:
     if active:
       res = rm.checkActiveReplicas( res['Value'] )
