@@ -425,7 +425,7 @@ class ProductionRequest( object ):
     if inputDataPolicy:
       prod.LHCbJob.setInputDataPolicy( inputDataPolicy )
     if sysConfig:
-      prod.setJobParameters( { 'SystemConfig': self.sysConfig } )
+      prod.setJobParameters( { 'SystemConfig': sysConfig } )
     prod.setOutputMode( outputMode )
     if outputFileMask:
       maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
