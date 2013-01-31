@@ -466,7 +466,7 @@ def getLocalArea():
     else:
       try:
         os.mkdir( localArea )
-      except OSError:
+      except OSError, msg:
         DIRAC.gLogger.error( 'Cannot create:', localArea, msg )
         localArea = ''
   return localArea
