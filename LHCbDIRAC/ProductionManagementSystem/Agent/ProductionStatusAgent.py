@@ -251,9 +251,9 @@ class ProductionStatusAgent( AgentModule ):
         masterReq = request
       try:
         reqs = reqsMap[masterReq]
+        reqs.update( {request:progressSummary[request].keys()} )
       except KeyError:
         reqs = {}
-      reqs.update( {request:progressSummary[request].keys()} )
       reqsMap.update( {masterReq: reqs} )
 
     return reqsMap
