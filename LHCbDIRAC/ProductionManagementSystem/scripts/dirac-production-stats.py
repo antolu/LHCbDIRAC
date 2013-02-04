@@ -47,9 +47,9 @@ if __name__ == "__main__":
     Script.showHelp()
     DIRAC.exit( 2 )
   if daqConditions:
-      bkQueries = []
-      for cond in daqConditions:
-        bkQueries.append( BKQuery( bkQuery.setConditions( cond ) ) )
+    bkQueries = []
+    for cond in daqConditions:
+      bkQueries.append( BKQuery( bkQuery.setConditions( cond ) ) )
   else:
     bkQueries = [bkQuery]
 
