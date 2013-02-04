@@ -9,7 +9,7 @@ import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
-def intWithQuotes( val, quote="'" ):
+def intWithQuotes( val, quote = "'" ):
   chunks = []
   if not val:
     return 'None'
@@ -34,7 +34,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   for switch in Script.getUnprocessedSwitches():
     pass
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
   for prod in prodList:
     if prod:
-      res = transClient.getTransformation( prod, extraParams=False )
+      res = transClient.getTransformation( prod, extraParams = False )
       if not res['OK']: continue
       prodName = res['Value']['TransformationName']
       bkQuery.setOption( 'Production', prod )
@@ -150,6 +150,7 @@ if __name__ == "__main__":
     tab = 17
     sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
     lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
+    nfiles = nevts = evtsPerLumi = lumi = 0
     for name, value in zip( paramNames, records ):
       if name == 'NbofFiles':
         nfiles = value
@@ -182,13 +183,13 @@ if __name__ == "__main__":
           lumiUnit = ''
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
         print '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit )
+      elif name == 'EvtsPerLumi':
+        evtsPerLumi = value
       elif name == 'SizePerLumi':
         print "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. )
         if nDatasets != 1:
           sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
           print '%s: %.1f kB' % ( 'Avg size per evt'.ljust( tab ), sizePerEvt )
-      elif name == 'EvtsPerLumi':
-        evtsPerLumi = value
     if lumi:
       filesPerLumi = nfiles / lumi
       print "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi )
