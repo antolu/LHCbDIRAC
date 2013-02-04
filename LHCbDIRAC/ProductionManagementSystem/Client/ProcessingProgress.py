@@ -26,36 +26,36 @@ class HTMLProgressTable:
     self.table = Table()
     self.HTMLColumns = 0
     self.__titleRow( '' )
-    self.table.rows.append( [TableCell( processingPass, attribs={"colspan":self.htmlColumns}, header=True )] )
-    self.table.rows.append( [TableCell( time.ctime( time.time() ), attribs={"colspan":self.htmlColumns}, align='center' )] )
+    self.table.rows.append( [TableCell( processingPass, attribs = {"colspan":self.htmlColumns}, header = True )] )
+    self.table.rows.append( [TableCell( time.ctime( time.time() ), attribs = {"colspan":self.htmlColumns}, align = 'center' )] )
 
   def getTable( self ):
     return self.table
 
   def __titleRow( self, title ):
     titles = StatInfo().getTitles()
-    row1 = [TableCell( '<b>' + str( title ) + '</b>', align='left', attribs={'rowspan':2} )]
+    row1 = [TableCell( '<b>' + str( title ) + '</b>', align = 'left', attribs = {'rowspan':2} )]
     row2 = []
     for ( head, subs ) in titles:
       if type( subs ) == type( [] ):
         cols = len( subs )
       else:
         cols = 1
-      row1.append( TableCell( head, attribs={'colspan':cols}, align='center', header=True ) )
+      row1.append( TableCell( head, attribs = {'colspan':cols}, align = 'center', header = True ) )
       row2 += subs
     self.htmlColumns = len( row2 ) + 1
-    return [TableRow( row1, header=True ), TableRow( row2, header=True )]
+    return [TableRow( row1, header = True ), TableRow( row2, header = True )]
 
   def __tableRow( self, info ):
     row = [ info.getName() ]
     infoStrings = info.getItemsAsString()
     for infoString in infoStrings:
-      row.append( TableCell( infoString, align='right', char='.' ) )
+      row.append( TableCell( infoString, align = 'right', char = '.' ) )
     return row
 
   def writeHTML( self, conditions, prodStats ):
     titleRow = self.__titleRow( conditions )
-    self.table.rows.append( [TableCell( "", attribs={"colspan":self.HTMLColumns} )] )
+    self.table.rows.append( [TableCell( "", attribs = {"colspan":self.HTMLColumns} )] )
     self.table.rows += titleRow
     if not prodStats:
       self.table.rows.append( ["None"] )
@@ -64,7 +64,7 @@ class HTMLProgressTable:
 
   def writeHTMLSummary( self, summaryProdStats ):
     titleRow = self.__titleRow( 'Total' )
-    self.table.rows.append( [TableCell( "", attribs={"colspan":self.HTMLColumns} )] )
+    self.table.rows.append( [TableCell( "", attribs = {"colspan":self.HTMLColumns} )] )
     self.table.rows += titleRow
     prodStats = self.__sumProdStats( summaryProdStats )
     if prodStats:
@@ -104,8 +104,8 @@ class HTMLProgressTable:
     previousTime = previousProdStatsDict['Time']
     previousProdStats = previousProdStatsDict['ProdStats']
     titleRow = self.__titleRow( 'Progress' )
-    self.table.rows.append( [TableCell( "", attribs={"colspan":self.htmlColumns} )] )
-    self.table.rows.append( [TableCell( 'Progress since %s' % previousTime, align='center', attribs={"colspan":self.htmlColumns} )] )
+    self.table.rows.append( [TableCell( "", attribs = {"colspan":self.htmlColumns} )] )
+    self.table.rows.append( [TableCell( 'Progress since %s' % previousTime, align = 'center', attribs = {"colspan":self.htmlColumns} )] )
     self.table.rows += titleRow
     prodStats = self.__sumProdStats( summaryProdStats )
     prevProdStats = self.__sumProdStats( previousProdStats )
@@ -120,7 +120,7 @@ class HTMLProgressTable:
     #self.table.rows.append(row)
 
 class StatInfo:
-  def __init__( self, name='', info={} ):
+  def __init__( self, name = '', info = {} ):
     self.name = name
     self.items = ['BadFiles', 'BadRuns', 'BadLumi', 'OKFiles', 'OKRuns', 'OKLumi', 'Events', 'Files',
                   'Runs', 'Lumi', 'ratio,prev,Lumi', 'ratio,prev,OKLumi', 'ratio,raw,Lumi']
@@ -178,7 +178,7 @@ class StatInfo:
     return self.other['raw']
   def getName( self ):
     return self.name
-  def getItem( self, item, val=None ):
+  def getItem( self, item, val = None ):
     return self.contents.get( item, val )
   def getItemAsString( self, item ):
     val = self.getItem( item )
@@ -247,7 +247,7 @@ class StatInfo:
 
 class ProcessingProgress:
 
-  def __init__( self, cacheFile=None ):
+  def __init__( self, cacheFile = None ):
     if not cacheFile:
       self.prodStatFile = os.path.join( os.environ['HOME'], ".dirac/work", "dirac-production-stats.pkl" )
     else:
@@ -273,7 +273,7 @@ class ProcessingProgress:
     prodBKDict = res['Value']
     return prodBKDict
 
-  def getFullStats( self, bkQuery, printResult=False ):
+  def getFullStats( self, bkQuery, printResult = False ):
     processingPass = bkQuery.getProcessingPass()
     if printResult:
       gLogger.info( "\nStatistics for processing %s, condition %s\n" % ( processingPass, bkQuery.getConditions() ) )
@@ -286,7 +286,7 @@ class ProcessingProgress:
     #Get production numbers for the Reco
     recoBKQuery = BKQuery( bkQuery )
     recoBKQuery.setProcessingPass( '/'.join( processingPass[0:3] ) )
-    recoList = recoBKQuery.getBKProductions( visible=False )
+    recoList = recoBKQuery.getBKProductions( visible = False )
     recoRunRanges = {}
     recoDQFlags = []
     for prod in recoList:
@@ -301,7 +301,7 @@ class ProcessingProgress:
         recoRunRanges[prod] = [0, 0]
     # Sort productions by runs
     try:
-      recoList.sort( cmp=( lambda p1, p2: int( recoRunRanges[p1][0] - recoRunRanges[p2][1] ) ) )
+      recoList.sort( cmp = ( lambda p1, p2: int( recoRunRanges[p1][0] - recoRunRanges[p2][1] ) ) )
     except:
       print "Exception in sorting productions:"
       for p in recoList:
@@ -314,7 +314,7 @@ class ProcessingProgress:
     mergeStripProds = {}
     # Get stripping productions as parents of merging productions
     stripList = []
-    for prod in bkQuery.getBKProductions( visible=False ):
+    for prod in bkQuery.getBKProductions( visible = False ):
       prodBKDict = self.__getProdBkDict( prod )
       gLogger.verbose( "BK query for production %s: %s" % ( prod, str( prodBKDict ) ) )
       mergedTypes = prodBKDict.get( 'FileType' )
@@ -330,7 +330,7 @@ class ProcessingProgress:
       else:
         _msgTuple = ( str( bkQuery.getFileTypeList() ), prod, str( prodBKDict ) )
         gLogger.verbose( "Could not find production or filetype %s in BKquery of production %d (%s)" % _msgTuple )
-    mergeList.sort( cmp=( lambda p1, p2: int( mergeStripProds[p1][0] ) - int( mergeStripProds[p2][0] ) ) )
+    mergeList.sort( cmp = ( lambda p1, p2: int( mergeStripProds[p1][0] ) - int( mergeStripProds[p2][0] ) ) )
     gLogger.verbose( "Merging productions found: %s" % str( mergeList ) )
 
     # get list of stripping productions (from merging)
@@ -343,7 +343,7 @@ class ProcessingProgress:
         stripRunRanges[prod] = [0, 0]
     # Sort productions by runs
     try:
-      stripList.sort( cmp=( lambda p1, p2: int( stripRunRanges[p1][0] - stripRunRanges[p2][1] ) ) )
+      stripList.sort( cmp = ( lambda p1, p2: int( stripRunRanges[p1][0] - stripRunRanges[p2][1] ) ) )
     except:
       print "Error when sorting stripping productions:"
       for prodStrip in stripList:
@@ -414,7 +414,7 @@ class ProcessingProgress:
 
     prevInfo = rawInfo
     for prodSet in prodSets:
-      info = StatInfo( prodSet['Name'], self._getProdInfo( prodSet, runList, printResult=printResult ) )
+      info = StatInfo( prodSet['Name'], self._getProdInfo( prodSet, runList, printResult = printResult ) )
       info.setRawInfo( rawInfo )
       info.setPrevInfo( prevInfo )
       prevInfo = info
@@ -432,7 +432,7 @@ class ProcessingProgress:
           totInfo[inf][flag] = totInfo.setdefault( inf, {} ).setdefault( flag, 0 ) + info[inf][flag]
     return totInfo
 
-  def _getProdInfo( self, prodSet, runList, printResult=False ):
+  def _getProdInfo( self, prodSet, runList, printResult = False ):
     totInfo = {}
     if printResult:
       gLogger.info( "" )
@@ -538,7 +538,7 @@ class ProcessingProgress:
     newRuns = [ run for run in runList if clearCache
                 or run not in self.cachedInfo
                 or 'DQFlag' not in self.cachedInfo[run]
-                or ( now - self.cachedInfo[run]['Time'] ) < datetime.timedelta( days=2 )   ]
+                or ( now - self.cachedInfo[run]['Time'] ) < datetime.timedelta( days = 2 )   ]
     if newRuns:
       runFlags = self.__getRunsDQFlag( newRuns, evtType )
     else:
@@ -621,14 +621,16 @@ class ProcessingProgress:
     from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     bkQueryDict = { "ProductionID": prod, "FileType": fileType }
     bkStr = str( bkQueryDict )
-    bkQuery = BKQuery( bkQueryDict, visible=False )
+    bkQuery = BKQuery( bkQueryDict, visible = False )
     if allReplicas:
       bkQuery.setOption( 'ReplicaFlag', "All" )
     cached = self.cachedInfo.get( bkStr, {} )
     cachedTime = cached.get( 'Time', None )
     cachedLfns = cached.get( 'Lfns', {} )
-    if fileType in self.clearCache:
-      cachedTime = datetime.datetime.utcnow() - datetime.timedelta( days=8 )
+    if type( fileType ) == type( '' ):
+      fileType = [fileType]
+    if set( fileType ).intersection( set( self.clearCache ) ):
+      cachedTime = datetime.datetime.utcnow() - datetime.timedelta( days = 8 )
       cachedTime = None
       cachedLfns = {}
       gLogger.verbose( "Cleared cache for production %s, file type %s" % ( str( prod ), fileType ) )
@@ -652,7 +654,7 @@ class ProcessingProgress:
       bkQuery.setOption( 'StartDate', cachedTime.strftime( '%Y-%m-%d %H:%M:%S' ) )
     gLogger.verbose( "Getting files for BKQuery %s" % str( bkQuery ) )
     cachedTime = datetime.datetime.utcnow()
-    lfns = [lfn for lfn in bkQuery.getLFNs( printOutput=False ) if lfn not in cachedLfns]
+    lfns = [lfn for lfn in bkQuery.getLFNs( printOutput = False ) if lfn not in cachedLfns]
     gLogger.verbose( "Returned %d files" % len( lfns ) )
     cachedLfns.update( self.__getLfnsMetadata( lfns ) )
 
@@ -782,7 +784,7 @@ class FileLock( object ):
       compatible as it doesn't rely on msvcrt or fcntl for the locking.
   """
 
-  def __init__( self, file_name, timeout=10, delay=.05 ):
+  def __init__( self, file_name, timeout = 10, delay = .05 ):
     """ Prepare the file locker. Specify the file to lock and optionally
         the maximum timeout and the delay between each attempt to lock.
     """

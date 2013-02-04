@@ -11,6 +11,7 @@ if __name__ == "__main__":
   import DIRAC
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+  from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
   dmScript = DMScript()
   dmScript.registerBKSwitches()
@@ -47,9 +48,9 @@ if __name__ == "__main__":
     Script.showHelp()
     DIRAC.exit( 2 )
   if daqConditions:
-    bkQueries = []
-    for cond in daqConditions:
-      bkQueries.append( BKQuery( bkQuery.setConditions( cond ) ) )
+      bkQueries = []
+      for cond in daqConditions:
+        bkQueries.append( BKQuery( bkQuery.setConditions( cond ) ) )
   else:
     bkQueries = [bkQuery]
 
