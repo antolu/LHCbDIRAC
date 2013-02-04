@@ -269,8 +269,7 @@ def getProcessingPasses(bkDict):
   res = bkClient.getProcessingPass(bkDict, '/Real Data')
 
   if not res['OK']:
-    gLogger.error('Cannot load the processing passes for Version %s Data taking condition' %(
-      cfgVersion, dtd))
+    gLogger.error( 'Cannot load the processing passes for Version Data taking condition' )
     gLogger.error(res['Message'])
     retVal['OK'] = False
     return retVal
