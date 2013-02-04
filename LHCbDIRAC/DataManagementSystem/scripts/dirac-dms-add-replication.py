@@ -33,7 +33,7 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors=True )
+  Script.parseCommandLine( ignoreErrors = True )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     visible = False
 
   if not requestedLFNs:
-    bkQuery = pluginScript.getBKQuery( visible=visible )
+    bkQuery = pluginScript.getBKQuery( visible = visible )
     transBKQuery = bkQuery.getQueryDict()
     if transBKQuery.keys() in ( [], ['Visible'] ):
       print "No BK query was given..."
@@ -180,7 +180,7 @@ if __name__ == "__main__":
   if transBKQuery:
     print "Executing the BK query..."
     startTime = time.time()
-    lfns = bkQuery.getLFNs( printSEUsage=( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible=visible )
+    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
     bkTime = time.time() - startTime
     nfiles = len( lfns )
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
@@ -223,6 +223,11 @@ if __name__ == "__main__":
 
   # Prepare the transformation
   if transBKQuery:
+    print transBKQuery
+    #### !!!! Hack in order to remain compatible with hte BKQuery table...
+    if 'Production' in transBKQuery:
+      transBKQuery['ProductionID'] = transBKQuery['Production']
+      transBKQuery.pop( 'Production' )
     transformation.setBkQuery( transBKQuery )
 
   # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
@@ -267,7 +272,7 @@ if __name__ == "__main__":
           runID = metadata.get( 'RunNumber' )
           if runID:
             runDict.setdefault( int( runID ), [] ).append( lfn )
-        res = transformation.addFilesToTransformation( requestedLFNs, printOutput=False )
+        res = transformation.addFilesToTransformation( requestedLFNs, printOutput = False )
         if res['OK']:
           for runID, lfns in runDict.items():
             if lfns:
