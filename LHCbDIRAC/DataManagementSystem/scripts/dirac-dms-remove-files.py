@@ -21,16 +21,9 @@ if __name__ == "__main__":
 
   Script.parseCommandLine()
 
-  lfns = dmScript.getOption( 'LFNs', [] )
-  lfns += Script.getPositionalArgs()
-  lfnList = []
-  for lfn in lfns:
-    try:
-      f = open( lfn, 'r' )
-      lfnList += [l.split( 'LFN:' )[-1].strip().split()[0].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
-      f.close()
-    except:
-      lfnList.append( lfn )
+  for lfn in Script.getPositionalArgs():
+    dmScript.setLFNsFromFile( lfn )
+  lfnList = dmScript.getOption( 'LFNs', [] )
 
   fixTrans = False
   switches = Script.getUnprocessedSwitches()
@@ -54,7 +47,14 @@ if __name__ == "__main__":
   lfnsToSet = {}
   # Avoid spurious error messages
   gLogger.setLevel( 'FATAL' )
-  for lfnChunk in breakListIntoChunks( lfnList, 100 ):
+  chunkSize = 100
+  verbose = len( lfnList ) >= 5 * chunkSize
+  if verbose:
+    sys.stdout.write( "Removing %d files (chunks of %d)" % ( len( lfnList ), chunkSize ) )
+  for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+    if verbose:
+      sys.stdout.write( '.' )
+      sys.stdout.flush()
     res = rm.removeFile( lfnChunk )
     if not res['OK']:
       gLogger.fatal( "Failed to remove data", res['Message'] )

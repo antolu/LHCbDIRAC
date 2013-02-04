@@ -11,7 +11,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
 __RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
 
-def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory", depth=9999 ):
+def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory", depth = 9999 ):
   """ Dictionary pretty printing """
   key_max = 0
   value_max = 0
@@ -27,7 +27,7 @@ def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory", d
         value = value.keys()
       elif value != {}:
         print '%s%s : ' % ( offset * ' ', key )
-        __printDictionary( value, offset=newOffset, shift=shift, empty=empty, depth=depth - 1 )
+        __printDictionary( value, offset = newOffset, shift = shift, empty = empty, depth = depth - 1 )
       elif key not in ( 'Failed', 'Successful' ):
         print '%s%s : %s' % ( offset * ' ', key, empty )
     if type( value ) == type( [] ):
@@ -40,13 +40,13 @@ def __printDictionary( dictionary, offset=0, shift=0, empty="Empty directory", d
     elif type( value ) != type( {} ):
       print '%s : %s' % ( key.rjust( center ), str( value ) )
 
-def printDMResult( result, shift=4, empty="Empty directory", script=None, depth=999 ):
+def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
   if not script:
     script = Script.scriptName
   try:
     if result['OK']:
-      __printDictionary( result['Value'], shift=shift, empty=empty, depth=depth )
+      __printDictionary( result['Value'], shift = shift, empty = empty, depth = depth )
       return 0
     else:
       print "Error in", script, ":", result['Message']
@@ -206,7 +206,8 @@ class DMScript():
     return DIRAC.S_OK()
 
   def setLFNs( self, arg ):
-    self.options['LFNs'] = arg.split( ',' )
+    if arg:
+      self.options.setdefault( 'LFNs', [] ).extend( arg.split( ',' ) )
     return DIRAC.S_OK()
 
   def setLFNsFromFile( self, arg ):
@@ -214,21 +215,21 @@ class DMScript():
       f = open( arg, 'r' )
       lfns = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in f.read().splitlines()]
       lfns = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] for lfn in lfns]
-      self.options['LFNs'] = lfns
       f.close()
     except:
-      pass
+      lfns = [arg]
+    self.options.setdefault( 'LFNs', [] ).extend( lfns )
     return DIRAC.S_OK()
 
   def getOptions( self ):
     return self.options
 
-  def getOption( self, switch, default=None ):
+  def getOption( self, switch, default = None ):
     if switch == 'SEs':
       return convertSEs( self.options.get( switch, default ) )
     return self.options.get( switch, default )
 
-  def getBKQuery( self, visible=None ):
+  def getBKQuery( self, visible = None ):
     if self.bkQuery:
       return self.bkQuery
     if self.bkQueryDict:
@@ -249,7 +250,7 @@ class DMScript():
       self.bkQuery.setOption( 'EndDate', self.options['EndDate'] )
     return self.bkQuery
 
-  def getRequestID( self, prod=None ):
+  def getRequestID( self, prod = None ):
     """ Get the request ID for a single production """
     from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     if not prod:

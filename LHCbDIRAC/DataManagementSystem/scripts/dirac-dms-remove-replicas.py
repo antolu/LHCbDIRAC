@@ -36,25 +36,16 @@ if __name__ == "__main__":
   rm = ReplicaManager()
   import os, sys
 
-  lfns = dmScript.getOption( 'LFNs', [] )
-  args = Script.getPositionalArgs()
   # Expand list if comma separated args
-  args = [xx for arg in args for xx in arg.split( ',' )]
+  args = [xx for arg in Script.getPositionalArgs() for xx in arg.split( ',' )]
   storageElementNames, args = __checkSEs( args )
-  lfns += args
-
-  lfnList = []
-  for lfn in lfns:
-    try:
-      f = open( lfn, 'r' )
-      lfnList += [l.split( 'LFN:' )[-1].strip().split()[0].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
-      f.close()
-    except:
-      lfnList.append( lfn )
+  for lfn in args:
+    dmScript.setLFNsFromFile( lfn )
+  lfnList = dmScript.getOption( 'LFNs', [] )
 
   if not storageElementNames:
+    print "No SE list provided..."
     Script.showHelp()
-    DIRAC.exit( -1 )
 
   errorReasons = {}
   successfullyRemoved = {}

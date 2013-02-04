@@ -23,17 +23,10 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors=False )
-  lfns = dmScript.getOption( 'LFNs', [] )
-  lfns += Script.getPositionalArgs()
-  lfnList = []
-  for lfn in lfns:
-    try:
-      f = open( lfn, 'r' )
-      lfnList += [l.split( 'LFN:' )[-1].strip().split()[0].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
-      f.close()
-    except:
-      lfnList.append( lfn )
+  Script.parseCommandLine( ignoreErrors = False )
+  for lfn in Script.getPositionalArgs():
+    dmScript.setLFNsFromFile( lfn )
+  lfnList = dmScript.getOption( 'LFNs', [] )
 
   active = True
   switches = Script.getUnprocessedSwitches()
@@ -43,7 +36,6 @@ if __name__ == "__main__":
 
   if not lfnList or len( lfnList ) < 1:
     Script.showHelp()
-    DIRAC.exit( 2 )
 
   #from DIRAC.Interfaces.API.Dirac                         import Dirac
   #dirac = Dirac()
@@ -52,7 +44,7 @@ if __name__ == "__main__":
   rm = ReplicaManager()
 
   while True:
-    res = rm.getCatalogReplicas( lfnList, allStatus=not active )
+    res = rm.getCatalogReplicas( lfnList, allStatus = not active )
     if active and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
@@ -75,4 +67,4 @@ if __name__ == "__main__":
   #DIRAC.exit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
   #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
   DIRAC.exit( printDMResult( res,
-                             empty="No allowed replica found", script="dirac-dms-lfn-replicas" ) )
+                             empty = "No allowed replica found", script = "dirac-dms-lfn-replicas" ) )

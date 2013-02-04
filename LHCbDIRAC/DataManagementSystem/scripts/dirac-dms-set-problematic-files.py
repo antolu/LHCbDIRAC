@@ -25,7 +25,7 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   startTime = time.time()
 
@@ -49,28 +49,17 @@ if __name__ == "__main__":
     if not sites:
       print "Site or SE switch is mandatory"
       Script.showHelp()
-      DIRAC.exit( 1 )
     from DIRAC.Core.Utilities.SiteSEMapping                                import getSEsForSite
     targetSEs = []
     for site in sites:
       res = getSEsForSite( site )
       if not res['OK']:
         print "Can't get SEs associated to %s:" % site, res['Message']
-        DIRAC.exit( 1 )
+        Script.showHelp()
       targetSEs += res['Value']
-  lfns = dmScript.getOption( 'LFNs', [] )
-  lfns += Script.getPositionalArgs()
-  file = dmScript.getOption( 'File', '' )
-  if not file:
-    lfns.append( file )
-  lfnList = []
-  for lfn in lfns:
-    try:
-      f = open( lfn, 'r' )
-      lfnList += [l.split( 'LFN:' )[-1].strip().split()[-1].replace( '"', '' ).replace( ',', '' ) for l in f.read().splitlines()]
-      f.close()
-    except:
-      lfnList.append( lfn )
+  for lfn in Script.getPositionalArgs():
+    dmScript.setLFNsFromFile( lfn )
+  lfnList = dmScript.getOption( 'LFNs', [] )
 
   lfns = []
   userFiles = 0
@@ -100,7 +89,7 @@ if __name__ == "__main__":
   for chunk in breakListIntoChunks( lfns, chunkSize ):
     sys.stdout.write( '.' )
     sys.stdout.flush()
-    res = rm.getCatalogReplicas( chunk, allStatus=True )
+    res = rm.getCatalogReplicas( chunk, allStatus = True )
     if not res['OK']:
       gLogger.error( "Error getting file replicas:", res['Message'] )
       DIRAC.exit( 1 )
@@ -214,7 +203,7 @@ if __name__ == "__main__":
     gLogger.always( "\n%d files were set %s in the transformation system" % ( n, status ) )
     for transID in sorted( transDict ):
       lfns = transDict[transID]
-      res = tr.setFileStatusForTransformation( transID, status, lfns, force=True ) if action else {'OK':True}
+      res = tr.setFileStatusForTransformation( transID, status, lfns, force = True ) if action else {'OK':True}
       if not res['OK']:
         gLogger.error( "\tError setting %d files %s for transformation %s" % ( len( lfns ), status, transID ), res['Message'] )
       else:
