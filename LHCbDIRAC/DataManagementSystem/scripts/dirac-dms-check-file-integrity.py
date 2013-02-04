@@ -14,13 +14,13 @@ Usage:
 
 Script.parseCommandLine()
 
-from DIRAC import gLogger
+from DIRAC import gLogger, exit as DIRACExit
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
 import sys, os
 
 if len( sys.argv ) < 2:
   Script.showHelp()
-  DIRAC.exit( -1 )
+  DIRACExit( -1 )
 else:
   inputFileName = sys.argv[1]
 
