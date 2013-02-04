@@ -3,13 +3,18 @@ if mock.__version__ < '1.0.1':
   print 'Invalid Mock version %s !' % mock.__version__
   import sys
   sys.exit( 0 )
-  
-import unittest2
+
+import sys
+if sys.version_info < ( 2, 7 ):
+  import unittest2 as unittest  
+else:
+  import unittest
+
 from DIRAC import gLogger
 
 import LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent as sut
 
-class AgentTestCase( unittest2.TestCase ):
+class AgentTestCase( unittest.TestCase ):
   """ Base class for the Agent test cases
   """
   def setUp( self ):
@@ -105,8 +110,8 @@ class ProductionStatusSuccess( AgentTestCase ):
 #############################################################################
 
 if __name__ == '__main__':
-  suite = unittest2.defaultTestLoader.loadTestsFromTestCase( AgentTestCase )
-  suite.addTest( unittest2.defaultTestLoader.loadTestsFromTestCase( ProductionStatusSuccess ) )
-  testResult = unittest2.TextTestRunner( verbosity = 2 ).run( suite )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( AgentTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionStatusSuccess ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
