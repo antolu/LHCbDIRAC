@@ -107,6 +107,8 @@ from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition, addStepToWorkflow
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 class LHCbJob( Job ):
   """ LHCbJob class as extension of DIRAC Job class
@@ -120,7 +122,7 @@ class LHCbJob( Job ):
     super( LHCbJob, self ).__init__( script, stdout, stderr )
     self.gaudiStepCount = 0
     self.currentStepPrefix = ''
-    self.inputDataType = 'DATA' #Default, other options are MDF, ETC
+    self.inputDataType = 'DATA'  # Default, other options are MDF, ETC
     self.rootSection = 'SoftwareDistribution/LHCbRoot'
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
     self.opsHelper = Operations()
@@ -208,7 +210,7 @@ class LHCbJob( Job ):
       else:
         return self._reportError( 'Specified options file %s does not exist' % ( optsFile ), __name__, **kwargs )
 
-    #ensure optionsFile list is unique:
+    # ensure optionsFile list is unique:
     tmpList = optionsFile.split( ';' )
     optionsFile = ';'.join( uniqueElements( tmpList ) )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
@@ -466,7 +468,7 @@ class LHCbJob( Job ):
     if not type( numberOfEvents ) == type( 2 ):
       try:
         numberOfEvents = int( numberOfEvents )
-      except Exception, x:
+      except Exception, _x:
         return self._reportError( 'Number of events should be an integer or convertible to an integer', __name__, **kwargs )
     if type( inputData ) == type( " " ):
       inputData = [inputData]
@@ -491,7 +493,7 @@ class LHCbJob( Job ):
     self.log.verbose( 'Bender script is: %s/BenderScript.py' % tmpdir )
     fopen.write( '\n'.join( benderScript ) )
     fopen.close()
-    #should try all components of the PYTHONPATH before giving up...
+    # should try all components of the PYTHONPATH before giving up...
     userModule = '%s.py' % ( modulePath.split( '.' )[-1] )
     self.log.verbose( 'Looking for user module with name: %s' % userModule )
     if os.path.exists( userModule ):
@@ -600,8 +602,8 @@ class LHCbJob( Job ):
 
     self.addToInputSandbox.append( rootScript )
 
-    #Must check if ROOT version in available versions and define appName appVersion...
-    #rootVersions = gConfig.getOptions( self.rootSection, [] )
+    # Must check if ROOT version in available versions and define appName appVersion...
+    # rootVersions = gConfig.getOptions( self.rootSection, [] )
     rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
       return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
@@ -659,7 +661,7 @@ class LHCbJob( Job ):
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    #currentApp = gConfig.getValue( appRoot, '' )
+    # currentApp = gConfig.getValue( appRoot, '' )
     currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
@@ -735,7 +737,7 @@ class LHCbJob( Job ):
     if type( depth ) == type( " " ):
       try:
         self._addParameter( self.workflow, 'AncestorDepth', 'JDL', int( depth ), description )
-      except Exception, x:
+      except Exception, _x:
         return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
     elif type( depth ) == type( 1 ):
       self._addParameter( self.workflow, 'AncestorDepth', 'JDL', depth, description )
@@ -767,7 +769,7 @@ class LHCbJob( Job ):
     if not type( inputDataType ) == type( " " ):
       try:
         inputDataType = str( inputDataType )
-      except Exception, x:
+      except Exception, _x:
         return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
 
     self.inputDataType = inputDataType
@@ -801,7 +803,7 @@ class LHCbJob( Job ):
         db = str( db )
         tag = str( tag )
         conditions.append( '.'.join( [db, tag] ) )
-      except Exception, x:
+      except Exception, _x:
         return self._reportError( 'Expected string for conditions', __name__, **kwargs )
 
     condStr = ';'.join( conditions )
@@ -1001,8 +1003,8 @@ class LHCbJob( Job ):
       protocols = [protocols]
     protocols = ';'.join( protocols )
 
-    #Must check if ROOT version in available versions and define appName appVersion...
-    #rootVersions = gConfig.getOptions( self.rootSection, [] )
+    # Must check if ROOT version in available versions and define appName appVersion...
+    # rootVersions = gConfig.getOptions( self.rootSection, [] )
     rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
       return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
@@ -1044,7 +1046,7 @@ class LHCbJob( Job ):
 
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    #currentApp = gConfig.getValue( appRoot, '' )
+    # currentApp = gConfig.getValue( appRoot, '' )
     currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
@@ -1072,7 +1074,6 @@ class LHCbJob( Job ):
 
     if not runNumber or not persistencyType:
       if not bkClient:
-        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
         bkClient = BookkeepingClient()
 
     if not runNumber:
@@ -1142,33 +1143,33 @@ class LHCbJob( Job ):
     if DiracLHCb is not None:
       diracLHCb = DiracLHCb
     else:
-      from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
       diracLHCb = DiracLHCb()
 
     if self.workflow.parameters.find( 'AncestorDepth' ):
 
-      if bkkClientIn is not None:
-        bkClient = bkkClientIn
-      else:
-        from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-        bkClient = BookkeepingClient()
+      ancestorsDepth = int( self.workflow.parameters.find( 'AncestorDepth' ).getValue() )
 
-      lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
-      lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
-      ancestorsDepth = self.workflow.parameters.find( 'AncestorDepth' ).getValue()
-      ancestors = bkClient.getFileAncestors( lfns, int( ancestorsDepth ) )
-      if not ancestors['OK']:
-        return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
-      ancestorsLFNs = []
-      for ancestorsLFN in ancestors['Value']['Successful'].values():
-        ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
+      if ancestorsDepth:
+        if bkkClientIn is not None:
+          bkClient = bkkClientIn
+        else:
+          bkClient = BookkeepingClient()
 
-      ancestorsLFNsString = ""
-      for ancestorsLFN in ancestorsLFNs:
-        ancestorsLFNsString = 'LFN:' + ancestorsLFN + ';'
+        lfnsString = self.workflow.parameters.find( 'InputData' ).getValue()
+        lfns = [x.replace( 'LFN:', '' ) for x in lfnsString.split( ';' )]
+        ancestors = bkClient.getFileAncestors( lfns, ancestorsDepth )
+        if not ancestors['OK']:
+          return S_ERROR( "Can't get ancestors: %s" % ancestors['Message'] )
+        ancestorsLFNs = []
+        for ancestorsLFN in ancestors['Value']['Successful'].values():
+          ancestorsLFNs += [ i['FileName'] for i in ancestorsLFN]
 
-      self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
+        ancestorsLFNsString = ""
+        for ancestorsLFN in ancestorsLFNs:
+          ancestorsLFNsString = 'LFN:' + ancestorsLFN + ';'
+
+        self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
 
     return diracLHCb.submit( self, mode = 'local' )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
