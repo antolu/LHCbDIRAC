@@ -24,7 +24,7 @@ def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient =
     cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
     cc.prod = transID
     cc.fileType = []
-    cc.fileTypesExcluded = ['LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST']
+    cc.fileTypesExcluded = ['LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST']
 
     return cc.getDescendants( lfns )[0]
 
@@ -421,7 +421,7 @@ class ConsistencyChecks( object ):
             continue
           realDescendants = [pr for pr in desc if pr in present]
           descToCheck = self._selectByFileType( dict( [( pr, descWithDescendants[pr] ) for pr in set( desc ).intersection( setDescWithDescendants )] ),
-                                                 fileTypesExcluded = ['BOOLEHIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST'] )
+                                                 fileTypesExcluded = ['BOOLEHIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST'] )
           for lfn1 in descToCheck :
             # This daughter had descendants, therefore consider it
             realDescendants.append( lfn1 )
