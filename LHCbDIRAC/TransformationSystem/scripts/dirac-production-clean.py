@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
-########################################################################
+
 __RCSID__ = "$Id$"
 
 import sys
@@ -17,7 +17,9 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import
 from DIRAC                                                                import gLogger
 import DIRAC
 
-agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent', 'dirac-production-clean' )
+agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent',
+                                     'Transformation/TransformationCleaningAgent',
+                                     'dirac-production-clean' )
 agent.initialize()
 
 client = TransformationClient()

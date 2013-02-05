@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
-########################################################################
 __RCSID__ = "$Id$"
 
 import sys
@@ -16,7 +15,9 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient         import T
 from DIRAC import gLogger
 import DIRAC
 
-agent = ValidateOutputDataAgent( 'Transformation/ValidateOutputDataAgent', 'dirac-production-verify-outputdata' )
+agent = ValidateOutputDataAgent( 'Transformation/ValidateOutputDataAgent',
+                                 'Transformation/ValidateOutputDataAgent',
+                                 'dirac-production-verify-outputdata' )
 agent.initialize()
 
 client = TransformationClient()

@@ -14,7 +14,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
 
   #############################################################################
 
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     """ c'tor
 
     :param self: self reference
@@ -22,7 +22,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
     """
-    DIRACValidateOutputDataAgent.__init__( self, agentName, loadName, baseAgentName, properties )
+    DIRACValidateOutputDataAgent.__init__( self, *args, **kwargs )
 
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()

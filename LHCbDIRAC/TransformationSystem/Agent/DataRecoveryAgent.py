@@ -39,7 +39,7 @@ class DataRecoveryAgent( AgentModule ):
   """ Standard DIRAC agent class
   """
 
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     """ c'tor
 
     :param self: self reference
@@ -47,7 +47,7 @@ class DataRecoveryAgent( AgentModule ):
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
     """
-    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
+    AgentModule.__init__( self, *args, **kwargs )
 
     self.replicaManager = ReplicaManager()
     self.transClient = TransformationClient()

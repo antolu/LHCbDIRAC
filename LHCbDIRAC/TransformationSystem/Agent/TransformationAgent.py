@@ -19,7 +19,7 @@ class TransformationAgent( DIRACTransformationAgent ):
   """ Extends base class
   """
 
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     """ c'tor
 
     :param self: self reference
@@ -27,7 +27,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
     """
-    DIRACTransformationAgent.__init__( self, agentName, loadName, baseAgentName, properties )
+    DIRACTransformationAgent.__init__( self, *args, **kwargs )
 
     self.pluginLocation = self.am_getOption( 'PluginLocation',
                                              'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
