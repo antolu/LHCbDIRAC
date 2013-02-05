@@ -149,7 +149,7 @@ class XMLFilesReaderManager:
 
         if paramName == "EventStat":
           if param.getParamValue() == '' and \
-             outputfile.getFileType() in ['BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'BOOLEHIST']:
+             outputfile.getFileType().upper().endswith('HIST'):
             param.setParamValue(None) # default value
           elif param.getParamValue() == '':
             return S_ERROR('EventStat value is null')
