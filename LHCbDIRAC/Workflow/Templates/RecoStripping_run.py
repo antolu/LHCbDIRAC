@@ -192,6 +192,7 @@ if w1:
   pr.inputDataPolicies = [recoIDPolicy]
   pr.bkQueries = ['Full']
   pr.sysConfig = [recoSysConfig]
+  pr.targets = [targetSite]
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
@@ -206,6 +207,7 @@ elif w2:
   pr.inputDataPolicies = [strippIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd']
   pr.sysConfig = [strippSysConfig, mergeSysConfig]
+  pr.targets = [targetSite, targetSite]
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
@@ -220,6 +222,7 @@ elif w3:
   pr.inputDataPolicies = [recoIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd']
   pr.sysConfig = [recoSysConfig, mergeSysConfig]
+  pr.targets = [targetSite, targetSite]
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
@@ -235,5 +238,6 @@ elif w4:
   pr.inputDataPolicies = [recoIDPolicy, strippIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [recoSysConfig, strippSysConfig, mergeSysConfig]
+  pr.targets = [targetSite, targetSite, targetSite]
 
 pr.buildAndLaunchRequest()
