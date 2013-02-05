@@ -29,7 +29,7 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+  Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] ...  [LFN1[,LFN2,[...]]] Dest[,Dest2[,...]] [Source [Cache]]' % Script.scriptName,
                                        'Arguments:',
