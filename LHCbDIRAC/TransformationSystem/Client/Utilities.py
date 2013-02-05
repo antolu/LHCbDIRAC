@@ -600,7 +600,8 @@ class PluginUtilities:
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
-      lfns = [fileDict['LFN'] for fileDict in res['Value']]
+      excludedStatuses = ( 'Removed', 'MissingLFC', 'MissingInFC', 'Problematic' )
+      lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
       self.transRunFiles[runID] = lfns
 
     # Restrict to files with the required parameter
