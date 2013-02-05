@@ -1769,7 +1769,6 @@ class OracleBookkeepingDB:
         filesWithMetadata[fileName] = files
     logicalFileNames['Successful'] = ancestorList
     logicalFileNames['WithMetadata'] = filesWithMetadata
-    print logicalFileNames
     return S_OK(logicalFileNames)
 
 
