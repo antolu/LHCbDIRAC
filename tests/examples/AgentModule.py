@@ -71,7 +71,7 @@ class ExampleAgent( AgentModule ):
     return 'finalize'
  
 #...............................................................................
-# Now we can istantiate our agent without bothering what is AgentModule doing
+# Now we can instantiate our agent without bothering what is AgentModule doing
 # behind the scenes
 
 ea = ExampleAgent( 'agentName', 'loadName' )
