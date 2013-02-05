@@ -36,9 +36,9 @@ class UploadOutputData( ModuleBase ):
     if result['OK']:
       self.existingCatalogs = result['Value']
 
-    #List all parameters here
+    # List all parameters here
     self.outputDataFileMask = ''
-    self.outputMode = 'Any' #or 'Local' for reco case
+    self.outputMode = 'Any'  # or 'Local' for reco case
     self.outputList = []
     self.outputDataStep = ''
     self.request = None
@@ -62,7 +62,7 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'outputMode' ):
       self.outputMode = self.workflow_commons['outputMode']
 
-    #Use LHCb utility for local running via jobexec
+    # Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
       if not type( self.prodOutputLFNs ) == type( [] ):
@@ -112,8 +112,8 @@ class UploadOutputData( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK( 'No output data upload attempted' )
 
-      #Determine the final list of possible output files for the
-      #workflow and all the parameters needed to upload them.
+      # Determine the final list of possible output files for the
+      # workflow and all the parameters needed to upload them.
       self.log.verbose( 'Getting the list of candidate files' )
       result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
                                        self.outputDataFileMask, self.outputDataStep )
@@ -133,7 +133,7 @@ class UploadOutputData( ModuleBase ):
 
       fileMetadata = result['Value']
 
-      #Get final, resolved SE list for files
+      # Get final, resolved SE list for files
       final = {}
 
       for fileName, metadata in fileMetadata.items():
@@ -155,41 +155,41 @@ class UploadOutputData( ModuleBase ):
         for n, v in metadata.items():
           self.log.info( '%s = %s' % ( n, v ) )
 
-      #At this point can exit and see exactly what the module would have uploaded
+      # At this point can exit and see exactly what the module would have uploaded
       if not self._enableModule():
         self.log.info( 'Would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
         return S_OK()
 
-      #Prior to uploading any files must check (for productions with input data) that no descendent files
-      #already exist with replica flag in the BK.  The result structure is:
-      #{'OK': True,
+      # Prior to uploading any files must check (for productions with input data) that no descendent files
+      # already exist with replica flag in the BK.  The result structure is:
+      # {'OK': True,
       # 'Value': {
-      #'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim': 
-      #['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
-      #'Failed': [], 'NotProcessed': []}}
+      # 'Successful': {'/lhcb/certification/2009/SIM/00000048/0000/00000048_00000013_1.sim':
+      # ['/lhcb/certification/2009/DST/00000048/0000/00000048_00000013_3.dst']},
+      # 'Failed': [], 'NotProcessed': []}}
 
       if inputDataList:
         result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id )
         if not result['OK']:
           return result
 
-      #Disable the watchdog check in case the file uploading takes a long time
+      # Disable the watchdog check in case the file uploading takes a long time
       self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload' )
       fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
       fopen.write( '%s' % time.asctime() )
       fopen.close()
 
-      #Instantiate the failover transfer client with the global request object
+      # Instantiate the failover transfer client with the global request object
       if not ft:
         failoverTransfer = FailoverTransfer( self.request )
       else:
         failoverTransfer = ft
 
-      #Track which files are successfully uploaded (not to failover) via
+      # Track which files are successfully uploaded (not to failover) via
       performBKRegistration = []
-      #Failover replicas are always added to the BK when they become available
+      # Failover replicas are always added to the BK when they become available
 
-      #One by one upload the files with failover if necessary
+      # One by one upload the files with failover if necessary
       registrationFailure = False
       failover = {}
       for fileName, metadata in final.items():
@@ -233,9 +233,9 @@ class UploadOutputData( ModuleBase ):
           self.log.error( 'Could not transfer and register %s in failover with metadata:\n %s' % ( fileName,
                                                                                                    metadata ) )
           cleanUp = True
-          break #no point continuing if one completely fails
+          break  # no point continuing if one completely fails
 
-      #Now after all operations, retrieve potentially modified request object
+      # Now after all operations, retrieve potentially modified request object
       result = failoverTransfer.getRequestObject()
       if not result['OK']:
         self.log.error( result )
@@ -243,7 +243,7 @@ class UploadOutputData( ModuleBase ):
 
       self.request = result['Value']
 
-      #If some or all of the files failed to be saved to failover
+      # If some or all of the files failed to be saved to failover
       if cleanUp:
         lfns = []
         for fileName, metadata in final.items():
@@ -253,7 +253,7 @@ class UploadOutputData( ModuleBase ):
         self.workflow_commons['Request'] = self.request
         return S_ERROR( 'Failed to upload output data' )
 
-      #Now double-check prior to final BK replica flag setting that the input files are still not processed 
+      # Now double-check prior to final BK replica flag setting that the input files are still not processed
       if inputDataList:
         result = self.checkInputsNotAlreadyProcessed( inputDataList, self.production_id )
         if not result['OK']:
@@ -267,7 +267,7 @@ class UploadOutputData( ModuleBase ):
           self.workflow_commons['Request'] = self.request
           return result
 
-      #Finally can send the BK records for the steps of the job
+      # Finally can send the BK records for the steps of the job
       bkFileExtensions = ['bookkeeping*.xml']
       bkFiles = []
       for ext in bkFileExtensions:
@@ -278,9 +278,10 @@ class UploadOutputData( ModuleBase ):
             self.log.verbose( 'Found locally existing BK file record: %s' % check )
             bkFiles.append( check )
 
-      #Unfortunately we depend on the file names to order the BK records
+      # Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
       self.log.info( 'The following BK records will be sent: %s' % ( ', '.join( bkFiles ) ) )
+      execOrder = 0
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
@@ -291,11 +292,13 @@ class UploadOutputData( ModuleBase ):
         if result['OK']:
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )
         else:
-          self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
-          self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
+          self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
+          self.log.info( "Preparing DISET request for", bkFile )
+          self.request.setDISETRequest( result['rpcStub'], executionOrder = execOrder )
+          execOrder += 1
           self.workflow_commons['Request'] = self.request  # update each time, just in case
 
-      #Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
+      # Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
       if not performBKRegistration:
         self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
       else:
@@ -472,4 +475,4 @@ class UploadOutputData( ModuleBase ):
 
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

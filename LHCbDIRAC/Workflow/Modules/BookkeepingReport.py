@@ -496,6 +496,10 @@ class BookkeepingReport( ModuleBase ):
       if 'HIST' in typeName.upper():
         typeVersion = '0'
 
+      # PROTECTION for old production XMLs
+      if typeName.upper() == 'HIST':
+        typeName = '%sHIST' % ( self.applicationName.upper() )
+
       # Add Output to the XML file
       oFileAttributes = ( lfn, typeName, typeVersion )
       jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, oFileAttributes )
