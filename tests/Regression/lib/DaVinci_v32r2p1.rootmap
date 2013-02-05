@@ -1,0 +1,16 @@
+# --Beg Analysis.rootmap
+# --Date inserted: 2012-11-02 09:42:44.114508
+# ROOT map file generated automatically by genmap on Fri Nov  2 09:42:40 2012
+
+Library.__pf__@@TutorialAlgorithm: libAnalysis.so
+Library.__pf__@@DummyAnalysisAlg: libAnalysis.so
+# --End Analysis.rootmap
+
+
+# --Beg AnalysisTutorial.rootmap
+# --Date inserted: 2012-11-07 17:24:08.850964
+# ROOT map file generated automatically by genmap on Wed Nov  7 17:24:05 2012
+
+Library.__pf__@@TutorialAlgorithm: libAnalysisTutorial.so
+Library.__pf__@@DummyAnalysisAlg: libAnalysisTutorial.so
+# --End AnalysisTutorial.rootmap

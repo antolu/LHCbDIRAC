@@ -20,6 +20,7 @@ class RegressionTestCase( unittest.TestCase ):
 
     self.j_u_hello = LHCbJob( 'helloWorld.xml' )
     self.j_u_collision12 = LHCbJob( 'collision12.xml' )
+    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
   def tearDown( self ):
     for fileIn in os.listdir( '.' ):
@@ -42,6 +43,11 @@ class Collision12Success( RegressionTestCase ):
     res = self.j_u_collision12.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
+class RootMergerSuccess( RegressionTestCase ):
+  def test_execute( self ):
+    res = self.j_u_rootMerger.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
 
 #############################################################################
 # Test Suite run
@@ -51,4 +57,5 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RegressionTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Collision12Success ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergerSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

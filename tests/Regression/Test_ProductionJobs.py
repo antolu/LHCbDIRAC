@@ -1,7 +1,8 @@
-import unittest, os, shutil
-from DIRAC import gLogger
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
+
+import unittest, os, shutil
+from DIRAC import gLogger
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
@@ -31,7 +32,7 @@ class ProductionJobTestCase( unittest.TestCase ):
 class MCSuccess( ProductionJobTestCase ):
   def test_execute( self ):
 
-    #From request 9149
+    # From request 9149
     stepsInProd = [{'StepId': 124001, 'StepName': 'Sim05d', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v41r4',
                     'ExtraPackages': 'AppConfig.v3r151', 'ProcessingPass': 'Sim05d', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'MC2011-20120727', 'CONDDB': 'MC2011-20120727-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
@@ -65,10 +66,10 @@ class MCSuccess( ProductionJobTestCase ):
                    ]
 
     self.pr.events = 2
-    #First create the production object
+    # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
                                      outputFileMask = 'ALLSTREAMS.DST' )
-    #Then launch it
+    # Then launch it
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
 
     self.assertTrue( res['OK'] )
@@ -76,7 +77,7 @@ class MCSuccess( ProductionJobTestCase ):
 class RecoSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000296.raw']
-    #From request 8772
+    # From request 8772
     stepsInProd = [{'StepId': 38427, 'StepName': 'Reco14', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v43r2p2',
                     'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'Reco14', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': '',
@@ -100,7 +101,7 @@ class RecoSuccess( ProductionJobTestCase ):
 class StrippSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/LHCb/Collision12/FULL.DST/00020330/0004/00020330_00047632_1.full.dst']
-    #From request 8891
+    # From request 8891
     stepsInProd = [{'StepId': 123715, 'StepName': 'Stripping20', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r151', 'ProcessingPass': 'Stripping20', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120929', 'DQTag': '', 'OptionsFormat': '',
@@ -119,7 +120,7 @@ class MergeSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000280_1.fmdst',
             '/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000357_1.fmdst']
-    #From request 9085
+    # From request 9085
     stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v34r2',
                     'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'merge',
@@ -137,7 +138,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00006832_1.Dimuon.dst',
             '/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00006778_1.Dimuon.dst']
-    #From request 9085
+    # From request 9085
     stepsInProd = [{'StepId': 54132, 'StepName': 'Merging', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r150', 'ProcessingPass': 'Merging', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'merge',
@@ -159,7 +160,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/102360/102360_0000000031.raw',
             '/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/97887/097887_0000000013.raw']
-    #From request 9054
+    # From request 9054
     stepsInProd = [{'StepId': 123897, 'StepName': 'MergeMDF', 'ApplicationName': 'MergeMDF', 'ApplicationVersion': '',
                     'ExtraPackages': '', 'ProcessingPass': 'Merging', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
