@@ -86,7 +86,7 @@ class ProductionStatusAgent( AgentModule ):
           allProds = []
           for _req, prods in reqs.iteritems():
             allProds = allProds + prods
-          if set( allProds ) < set( prodsList ):
+          if allProds and ( set( allProds ) < set( prodsList ) ):
             self._updateRequestStatus( masterReq, 'Done', updatedRequests )
     except RuntimeError, error:
       self.log.error( error )
