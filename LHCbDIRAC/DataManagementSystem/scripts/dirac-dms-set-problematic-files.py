@@ -129,7 +129,7 @@ if __name__ == "__main__":
   if bkToggle:
     chunkSize = 100
     sys.stdout.write( 'Checking with Transformation system (chunks of %d): ' % chunkSize )
-    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
+    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProblInFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
     for chunk in breakListIntoChunks( bkToggle, chunkSize ):
       sys.stdout.write( '.' )
       sys.stdout.flush()

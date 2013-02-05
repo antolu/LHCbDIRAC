@@ -431,7 +431,7 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
 
   infoList = ["Files", "Runs", "Tasks", 'Jobs', 'Alltasks']
-  statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MaxReset", "Processed"]
+  statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed"]
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'Info=', "Specify what to print out from %s" % str( infoList ) )
