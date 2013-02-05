@@ -54,7 +54,7 @@ class ExampleAgent( AgentModule ):
   def __init__( self, agentName, loadName, baseAgentName = False, properties = {} ):
     ''' constructor
     '''   
-    #AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
+    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
   def initialize( self ):
     ''' intialize
     '''
