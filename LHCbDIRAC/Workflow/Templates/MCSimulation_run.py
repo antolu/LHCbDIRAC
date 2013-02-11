@@ -143,7 +143,7 @@ if not w1 and not w2 and not w3 and not w4:
 
 if w1:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping', 'Merge']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC_M-DST']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
                      range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
@@ -160,7 +160,7 @@ if w1:
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'DataStripping']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC_M-DST']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, removeInputSelection]
@@ -176,7 +176,7 @@ elif w2:
   pr.sysConfig = [MCSysConfig, selSysConfig]
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
-  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC_M-DST']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, removeInputMerge]
