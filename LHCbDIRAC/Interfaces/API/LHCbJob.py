@@ -1166,7 +1166,7 @@ class LHCbJob( Job ):
 
         ancestorsLFNsString = ""
         for ancestorsLFN in ancestorsLFNs:
-          ancestorsLFNsString = 'LFN:' + ancestorsLFN + ';'
+          ancestorsLFNsString += 'LFN:' + ancestorsLFN + ';'
 
         self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
 
