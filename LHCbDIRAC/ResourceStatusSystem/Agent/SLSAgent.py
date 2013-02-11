@@ -419,14 +419,14 @@ class DIRACTest( TestBase ):
     pinger = RPCClient( url )
     res = pinger.ping()
 
-    if system == "RequestManagement":
-      pingRes = pinger.getDBSummary()
-      if not pingRes[ 'OK' ]:
-        gLogger.error( pingRes[ 'Message' ] )
-        return pingRes
-      
-      #res2 = Utils.unpack( pinger.getDBSummary() )
-      res2 = pingRes[ 'Value' ]
+#    if system == "RequestManagement":
+#      pingRes = pinger.getDBSummary()
+#      if not pingRes[ 'OK' ]:
+#        gLogger.error( pingRes[ 'Message' ] )
+#        return pingRes
+#      
+#      #res2 = Utils.unpack( pinger.getDBSummary() )
+#      res2 = pingRes[ 'Value' ]
 
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + system )
@@ -454,22 +454,22 @@ class DIRACTest( TestBase ):
         gLogger.error( response[ 'Message' ] )
         return response
        
-      if system == "RequestManagement":
-        for k, v in res2.items():
-          xml_append( doc, "numericvalue", v["Assigned"], elt_ = elt,
-                     name = k + " - Assigned", desc = "Number of Assigned " + k + " requests" )
-          xml_append( doc, "numericvalue", v["Waiting"], elt_ = elt,
-                     name = k + " - Waiting", desc = "Number of Waiting " + k + " requests" )
-          xml_append( doc, "numericvalue", v["Done"], elt_ = elt,
-                     name = k + " - Done", desc = "Number of Done " + k + " requests" )
-
-          response = insert_slsrmstats( Site = site, System = system, Name = k,
-                                         Assigned = int( v["Assigned"] ),
-                                         Waiting = int( v["Waiting"] ),
-                                         Done = int( v["Done"] ) )
-          if not response[ 'OK' ]:
-            gLogger.error( response[ 'Message' ] )
-            return response
+#      if system == "RequestManagement":
+#        for k, v in res2.items():
+#          xml_append( doc, "numericvalue", v["Assigned"], elt_ = elt,
+#                     name = k + " - Assigned", desc = "Number of Assigned " + k + " requests" )
+#          xml_append( doc, "numericvalue", v["Waiting"], elt_ = elt,
+#                     name = k + " - Waiting", desc = "Number of Waiting " + k + " requests" )
+#          xml_append( doc, "numericvalue", v["Done"], elt_ = elt,
+#                     name = k + " - Done", desc = "Number of Done " + k + " requests" )
+#
+#          response = insert_slsrmstats( Site = site, System = system, Name = k,
+#                                         Assigned = int( v["Assigned"] ),
+#                                         Waiting = int( v["Waiting"] ),
+#                                         Done = int( v["Done"] ) )
+#          if not response[ 'OK' ]:
+#            gLogger.error( response[ 'Message' ] )
+#            return response
 
       gLogger.info( "%s/%s successfully pinged" % ( site, system ) )
 
