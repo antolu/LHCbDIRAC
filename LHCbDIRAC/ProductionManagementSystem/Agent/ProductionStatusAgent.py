@@ -145,7 +145,7 @@ class ProductionStatusAgent( AgentModule ):
         if not doneAndUsed:
           self.log.info( 'No productions have yet reached the necessary number of BK events' )
         else:
-          #Now have to update productions to ValidatingOutput / Input after cleaning jobs
+          # Now have to update productions to ValidatingOutput / Input after cleaning jobs
           for prod in prods:
             if prod in doneAndUsed:
               self._cleanActiveJobs( prod )
@@ -249,12 +249,13 @@ class ProductionStatusAgent( AgentModule ):
       masterReq = mData['master']
       if not masterReq:
         masterReq = request
+      reqs = {}
+      prods = progressSummary[request].keys()
+      reqs.setdefault( request, prods )
       try:
-        reqs = reqsMap[masterReq]
-        reqs.update( {request:progressSummary[request].keys()} )
-      except KeyError:
-        reqs = {}
-      reqsMap.update( {masterReq: reqs} )
+        reqsMap[masterReq].update( reqs )
+      except:
+        reqsMap.setdefault( masterReq, reqs )
 
     return reqsMap
 

@@ -80,7 +80,11 @@ class ProductionStatusSuccess( AgentTestCase ):
                       8744: {'bkTotal': 2090805L, 'master': 0, 'reqTotal': 2000000L},
                       9050: {'bkTotal': 1600993L, 'master': 9048, 'reqTotal': 500000L},
                       9051: {'bkTotal': 1600993L, 'master': 9048, 'reqTotal': 500000L},
-                      9237: {'bkTotal': 0L, 'master': 9235, 'reqTotal': 500000L}
+                      9237: {'bkTotal': 0L, 'master': 9235, 'reqTotal': 500000L},
+                      2: {'bkTotal': 600L, 'master': 1, 'reqTotal': 500L},
+                      4: {'bkTotal': 2600L, 'master': 3, 'reqTotal': 500L},
+                      5: {'bkTotal': 1600L, 'master': 3, 'reqTotal': 500L},
+                      6: {'bkTotal': 200L, 'master': 3, 'reqTotal': 500L},
                       }
 
     progressSummary = {
@@ -95,14 +99,23 @@ class ProductionStatusSuccess( AgentTestCase ):
                         9051L: {21036L: {'Events': 1616993L, 'Used': 0},
                                 21037L: {'Events': 1600993L, 'Used': 1}},
                         9237L: {21080L: {'Events': 0L, 'Used': 0},
-                                21081L: {'Events': 0L, 'Used': 1}}
+                                21081L: {'Events': 0L, 'Used': 1}},
+                        2L: {1000L: {'Events': 600L, 'Used': 1}},
+                        4L: {1001L: {'Events': 5600L, 'Used': 0},
+                             1002L: {'Events': 5600L, 'Used': 0},
+                             1003L: {'Events': 2600L, 'Used': 1}},
+                        5L: {1011L: {'Events': 1600L, 'Used': 1}},
+                        6L: {1021L: {'Events': 200L, 'Used': 1}}
                       }
 
     res = self.psa._getReqsMap( prodReqSummary, progressSummary )
-    self.assertEqual( res, {8733:{8733:[20940, 20941, 20942]},
-                            8744:{8744:[20140, 20141, 20142]},
-                            9048:{9050:[21034, 21035], 9051:[21036, 21037]},
-                            9235:{9237:[21080, 21081]}} )
+    self.assertEqual( res, {8733:{8733:[20940L, 20941L, 20942L]},
+                            8744:{8744:[20140L, 20141L, 20142L]},
+                            9048:{9050:[21034L, 21035L], 9051:[21036L, 21037L]},
+                            9235:{9237:[21080L, 21081L]},
+                            1:{2:[1000L]},
+                            3:{4:[1001L, 1002L, 1003L], 5:[1011L], 6:[1021L]}
+                            } )
 
 
 #############################################################################
