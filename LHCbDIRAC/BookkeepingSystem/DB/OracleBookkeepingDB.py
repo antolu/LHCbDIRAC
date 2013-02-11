@@ -737,7 +737,7 @@ class OracleBookkeepingDB:
 
       retVal = self.dbR_.query(command)
       if retVal['OK']:
-        eparameters = ['EventTypeId', 'Description']
+        eparameters = ['EventType', 'Description']
         for record in retVal['Value']:
           erecords += [list(record)]
       else:
@@ -2214,7 +2214,7 @@ class OracleBookkeepingDB:
   def getFileMetaDataForWeb(self, lfns):
     """returns the metadata information used by Web"""
     totalrecords = len(lfns)
-    parametersNames = ['Name', 'FileSize', 'FileType', 'CreationDate', 'EventTypeId', 'EventStat', 'GotReplica']
+    parametersNames = ['Name', 'FileSize', 'FileType', 'CreationDate', 'EventType', 'EventStat', 'GotReplica']
     records = []
     for lfn in lfns:
       res = self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getFileMetaData', [lfn])
@@ -2239,7 +2239,7 @@ class OracleBookkeepingDB:
   def getProductionFilesForWeb(self, prod, ftypeDict, sortDict, startItem, maxitems):
     """returns the production files to the WEB interface"""
     command = ''
-    parametersNames = ['Name', 'FileSize', 'FileType', 'CreationDate', 'EventTypeId', 'EventStat',
+    parametersNames = ['Name', 'FileSize', 'FileType', 'CreationDate', 'EventType', 'EventStat',
                        'GotReplica', 'InsertTimeStamp', 'Luminosity', 'InstLuminosity']
     records = []
     result = S_ERROR()
@@ -3852,7 +3852,7 @@ and files.qualityid= dataquality.qualityid'
     retVal = self.dbR_.query(command)
     records = []
     if retVal['OK']:
-      parameters = ['EventTypeId', 'Description']
+      parameters = ['EventType', 'Description']
       for record in retVal['Value']:
         records += [list(record)]
       result = S_OK({'ParameterNames':parameters, 'Records':records, 'TotalRecords':len(records)})

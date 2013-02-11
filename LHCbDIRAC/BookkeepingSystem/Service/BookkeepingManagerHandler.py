@@ -1,3 +1,4 @@
+
 ########################################################################
 # $Id$
 ########################################################################
@@ -618,7 +619,7 @@ class BookkeepingManagerHandler(RequestHandler):
       records = []
       parameters = ['Name', 'EventStat', 'FileSize',
                     'CreationDate', 'JobStart', 'JobEnd',
-                    'WorkerNode', 'FileType', 'EventTypeId',
+                    'WorkerNode', 'FileType', 'EventType',
                     'RunNumber', 'FillNumber', 'FullStat',
                     'DataqualityFlag','EventInputStat',
                     'TotalLuminosity', 'Luminosity',
@@ -1210,7 +1211,7 @@ class BookkeepingManagerHandler(RequestHandler):
     infos = []
     if value['OK']:
       records = value['Value']
-      parameters = ['Production', 'EventTypeId', 'FileType', 'NumberOfEvents', 'NumberOfFiles']
+      parameters = ['Production', 'EventType', 'FileType', 'NumberOfEvents', 'NumberOfFiles']
       for record in records:
         infos += [[record[0], record[1], record[2], record[3], record[4]]]
       result = S_OK({'ParameterNames':parameters, 'Records':infos})
@@ -1230,7 +1231,7 @@ class BookkeepingManagerHandler(RequestHandler):
       values = retVal['Value']
       parameterNames = ['FileId', 'FileName',
                         'ADLER32', 'CreationDate',
-                        'EventStat', 'EventtypeId',
+                        'EventStat', 'Eventtype',
                         'Gotreplica', 'GUI', 'JobId',
                         'md5sum', 'FileSize', 'FullStat',
                         'Dataquality', 'FileInsertDate',
