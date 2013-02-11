@@ -322,15 +322,15 @@ class XMLSummary:
     for filename, status in res:
 
       if status == 'fail':
-        self.log.error( 'Output File %s is on status %s.' % ( filename, status ) )
+        self.log.warn( 'Output File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
-        self.log.error( 'Output File %s is on status %s.' % ( filename, status ) )
+        self.log.warn( 'Output File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
-        self.log.error( 'Output File %s is on status %s.' % ( filename, status ) )
+        self.log.warn( 'Output File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
