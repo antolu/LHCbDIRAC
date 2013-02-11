@@ -21,18 +21,12 @@ class TransformationAgent( DIRACTransformationAgent ):
 
   def __init__( self, *args, **kwargs ):
     """ c'tor
-
-    :param self: self reference
-    :param str agentName: name of agent
-    :param bool baseAgentName: whatever
-    :param dict properties: whatever else
     """
     DIRACTransformationAgent.__init__( self, *args, **kwargs )
 
     self.pluginLocation = self.am_getOption( 'PluginLocation',
                                              'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
     self.workDirectory = self.am_getWorkDirectory()
-
     self.debug = self.am_getOption( 'verbosePlugin', False )
 
   def _getClients( self ):

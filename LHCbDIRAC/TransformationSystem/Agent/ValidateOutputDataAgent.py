@@ -1,3 +1,6 @@
+''' Simple extension of base class
+'''
+
 __RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger
@@ -11,17 +14,14 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
 class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
+  ''' Simple extension of base class
+  '''
 
   #############################################################################
 
   def __init__( self, *args, **kwargs ):
-    """ c'tor
-
-    :param self: self reference
-    :param str agentName: name of agent
-    :param bool baseAgentName: whatever
-    :param dict properties: whatever else
-    """
+    ''' c'tor
+    '''
     DIRACValidateOutputDataAgent.__init__( self, *args, **kwargs )
 
     self.integrityClient = DataIntegrityClient()
@@ -31,29 +31,9 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
 
   #############################################################################
 
-  def initialize( self ):
-    """Sets defaults
-    """
-    # This sets the Default Proxy
-    # the shifterProxy option in the Configuration can be used to change this default.
-    self.am_setOption( 'shifterProxy', 'DataManager' )
-
-    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', ['MCSimulation',
-                                                                                    'DataReconstruction',
-                                                                                    'DataStripping',
-                                                                                    'MCStripping',
-                                                                                    'Merge'] ) )
-    gLogger.info( "Will treat the following transformation types: %s" % str( self.transformationTypes ) )
-    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', ['TransformationDB',
-                                                                                  'StorageUsage'] ) )
-    gLogger.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
-    return S_OK()
-
-  #############################################################################
-
   def checkTransformationIntegrity( self, prodID ):
-    """ This method contains the real work
-    """
+    ''' This method contains the real work
+    '''
     gLogger.info( "-" * 40 )
     gLogger.info( "Checking the integrity of production %s" % prodID )
     gLogger.info( "-" * 40 )
@@ -120,11 +100,11 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     return S_OK()
 
   def getTransformationDirectories( self, transID ):
-    """ get the directories for the supplied transformation from the transformation system
+    ''' get the directories for the supplied transformation from the transformation system
 
     :param self: self reference
     :param int transID: transformation ID
-    """
+    '''
 
     res = DIRACValidateOutputDataAgent.getTransformationDirectories( self, transID )
 

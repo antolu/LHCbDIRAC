@@ -9,11 +9,11 @@
 
 __RCSID__ = "$Id $"
 
-from DIRAC import S_OK, S_ERROR
-from DIRAC.Core.Base.AgentModule import AgentModule
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC                                                        import S_OK, S_ERROR
+from DIRAC.Core.Base.AgentModule                                  import AgentModule
+from DIRAC.Core.DISET.RPCClient                                   import RPCClient
+from DIRAC.DataManagementSystem.Client.ReplicaManager             import ReplicaManager
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 
 AGENT_NAME = 'Transformation/MCReplicationCleaningAgent'
 
@@ -45,7 +45,6 @@ class MCReplicationCleaningAgent( AgentModule ):
 
     self.reqARCHIVE = 1
     self.reqDST = 3
-
 
   #############################################################################
 
@@ -94,7 +93,7 @@ class MCReplicationCleaningAgent( AgentModule ):
       if tfamily in masreqs:
         transfdone.append( tid )
 
-    #failedreplicas = 0
+    # failedreplicas = 0
 
     for tran in transfdone:
       res = self.checkReplicas( tran )

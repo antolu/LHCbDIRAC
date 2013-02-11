@@ -25,13 +25,13 @@ import datetime
 
 from DIRAC                                                       import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
-from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestClient
 from DIRAC.Core.Utilities.List                                   import uniqueElements
 from DIRAC.Core.Utilities.Time                                   import dateTime
+from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
+from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestClient
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
 AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
@@ -41,11 +41,6 @@ class DataRecoveryAgent( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
     """ c'tor
-
-    :param self: self reference
-    :param str agentName: name of agent
-    :param bool baseAgentName: whatever
-    :param dict properties: whatever else
     """
     AgentModule.__init__( self, *args, **kwargs )
 
@@ -53,15 +48,13 @@ class DataRecoveryAgent( AgentModule ):
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
     self.requestClient = RequestClient()
-    self.enableFlag = '' #defined below
+    self.enableFlag = ''  # defined below
 
   #############################################################################
 
   def initialize( self ):
     """Sets defaults
     """
-    self.am_setOption( 'PollingTime', 2 * 60 * 60 ) #no stalled jobs are considered so can be frequent
-
     # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
@@ -72,7 +65,7 @@ class DataRecoveryAgent( AgentModule ):
   def execute( self ):
     """ The main execution method.
     """
-    #Configuration settings
+    # Configuration settings
     self.enableFlag = self.am_getOption( 'EnableFlag', True )
     self.log.info( 'Enable flag is %s' % self.enableFlag )
     self.removalOKFlag = self.am_getOption( 'RemovalOKFlag', True )
@@ -84,9 +77,9 @@ class DataRecoveryAgent( AgentModule ):
     updateStatus = self.am_getOption( 'FileUpdateStatus', 'Unused' )
     wmsStatusList = self.am_getOption( 'WMSStatus', ['Failed'] )
 
-    #only worry about files > 12hrs since last update
-    selectDelay = self.am_getOption( 'SelectionDelay', 1 ) #hours
-    bkDepth = self.am_getOption( 'BKDepth', 9 ) #only looking at descendent files
+    # only worry about files > 12hrs since last update
+    selectDelay = self.am_getOption( 'SelectionDelay', 1 )  # hours
+    bkDepth = self.am_getOption( 'BKDepth', 9 )  # only looking at descendent files
 
     transformationDict = {}
     for transStatus in transformationStatus:
@@ -108,8 +101,8 @@ class DataRecoveryAgent( AgentModule ):
                                                                                        ', '.join( transformationDict.keys() ) ) )
 
     trans = []
-    #initially this was useful for restricting the considered list
-    #now we use the DataRecoveryAgent in setups where IDs are low
+    # initially this was useful for restricting the considered list
+    # now we use the DataRecoveryAgent in setups where IDs are low
     ignoreLessThan = '0'
 
     ########## Uncomment for debugging
@@ -135,7 +128,7 @@ class DataRecoveryAgent( AgentModule ):
                                                                                                  ignoreLessThan ) )
           continue
 
-      self.log.info( '='*len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
+      self.log.info( '=' * len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
       self.log.info( 'Looking at transformation %s:' % ( transformation ) )
 
       result = self._selectTransformationFiles( transformation, fileSelectionStatus )
@@ -280,8 +273,8 @@ class DataRecoveryAgent( AgentModule ):
   def _selectTransformationFiles( self, transformation, statusList ):
     """ Select files, production jobIDs in specified file status for a given transformation.
     """
-    #Until a query for files with timestamp can be obtained must rely on the
-    #WMS job last update
+    # Until a query for files with timestamp can be obtained must rely on the
+    # WMS job last update
     res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transformation, 'Status':statusList} )
     self.log.debug( res )
     if not res['OK']:
@@ -353,14 +346,14 @@ class DataRecoveryAgent( AgentModule ):
                                                                                                       job,
                                                                                                       lastUpdate,
                                                                                                       wmsStatus ) )
-      #Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
+      # Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
       if not wmsStatus in wmsStatusList:
         self.log.info( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
                                                                                ', '.join( wmsStatusList ) ) )
         continue
 
       finalJobData = []
-      #Must map unique files -> jobs in expected state
+      # Must map unique files -> jobs in expected state
       for lfn, prodID in fileDict.items():
         if int( prodID ) == int( job ):
           finalJobData.append( lfn )
@@ -411,7 +404,7 @@ class DataRecoveryAgent( AgentModule ):
       if not fileList:
         continue
       self.log.info( 'Checking BK descendents for job %s...' % job )
-      #check any input data has descendant files...
+      # check any input data has descendant files...
       result = self.bkClient.getFileDescendants( fileList,
                                                  depth = bkDepth,
                                                  production = int( transformation ),
@@ -437,7 +430,7 @@ class DataRecoveryAgent( AgentModule ):
             self.log.error( 'Problem obtaining metadata from BK for some files with result:\n%s' % ( metadata ) )
             continue
 
-          #need to take a decision based on any one descendent having a replica flag
+          # need to take a decision based on any one descendent having a replica flag
           descendentsWithReplicas = False
           for d in descendents:
             if metadata['Value'][d]['GotReplica'].lower() == 'yes':
@@ -459,7 +452,7 @@ class DataRecoveryAgent( AgentModule ):
     if hasReplicaFlag:
       self.log.info( 'Found %s jobs with descendent files that do have a BK replica flag' % ( len( hasReplicaFlag ) ) )
 
-    #Now resolve files that can be updated safely (e.g. even if the removalFlag is False these are updated as nothing is to be removed ;)
+    # Now resolve files that can be updated safely (e.g. even if the removalFlag is False these are updated as nothing is to be removed ;)
     problematic = {}
     for probJob in problematicJobs:
       if jobFileDict.has_key( probJob ):
@@ -467,7 +460,7 @@ class DataRecoveryAgent( AgentModule ):
         problematic[probJob] = pfiles
         del jobFileDict[probJob]
 
-    #Finally resolve the jobs and files for which a descendent has a replica flag
+    # Finally resolve the jobs and files for which a descendent has a replica flag
     replicaFlagProblematic = {}
     for probJob in hasReplicaFlag:
       if jobFileDict.has_key( probJob ):
@@ -475,7 +468,7 @@ class DataRecoveryAgent( AgentModule ):
         replicaFlagProblematic[probJob] = pfiles
         del jobFileDict[probJob]
 
-    #Remove files for which the BK could not be contacted from the jobFileDict
+    # Remove files for which the BK could not be contacted from the jobFileDict
     for removeMe in bkNotReachable:
       if jobFileDict.has_key( removeMe ):
         del jobFileDict[removeMe]
@@ -496,7 +489,7 @@ class DataRecoveryAgent( AgentModule ):
       return S_OK()
 
     self.log.info( 'Attempting to remove %s problematic files' % ( len( problematicFiles ) ) )
-    result = self.replicaManager.removeFile( problematicFiles ) #this does take a list ;)
+    result = self.replicaManager.removeFile( problematicFiles )  # this does take a list ;)
     if not result['OK']:
       self.log.error( result )
       return result

@@ -38,12 +38,9 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
     self.transClient = TransformationClient()
-    # Create the BK client
     self.bkClient = BookkeepingClient()
 
-    self.pollingTime = self.am_getOption( 'PollingTime', 120 )
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
-
     self.debug = self.am_getOption( 'verbose', False )
 
     self.transInThread = {}
@@ -134,7 +131,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     """ Real executor. This is what is executed by the single threads - so do not return here! Just continue
     """
 
-    while True:#not self.bkQueriesToBeChecked.empty():
+    while True:  # not self.bkQueriesToBeChecked.empty():
 
       transID = None
 

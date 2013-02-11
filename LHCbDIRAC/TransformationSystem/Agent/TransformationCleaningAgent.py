@@ -7,16 +7,16 @@
 
 __RCSID__ = "$Id$"
 
-## from DIRAC
+# # from DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
-## from LHCbDIRAC
+# # from LHCbDIRAC
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 
-## agent's name
+# # agent's name
 AGENT_NAME = 'Transformation/TransformationCleaningAgent'
 
 class TransformationCleaningAgent( DiracTCAgent ):
@@ -27,45 +27,32 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
   def __init__( self, *args, **kwargs ):
     """ c'tor
-
-    :param self: self reference
-    :param str agentName: name of agent
-    :param str loadName: name of module
-    :param bool baseAgentName: whatever
-    :param dict properties: whatever else
     """
     DiracTCAgent.__init__( self, *args, **kwargs )
-    ## LHCb bookkeeping client
     self.bkClient = BookkeepingClient()
-    ## LHCb transformation client 
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
+    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
+                                                                                   'StorageUsage' ] ) )
+    self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 )  # days
+
   #############################################################################
+
   def initialize( self ):
     """ initialize
 
     :param self: self reference
     """
-    ## shifter proxy
+    # # shifter proxy
     self.am_setOption( 'shifterProxy', 'DataManager' )
-    ## transformations types
-    self.transformationTypes = sortList( self.am_getOption( 'TransformationTypes', [ 'MCSimulation',
-                                                                                     'DataReconstruction',
-                                                                                     'DataStripping',
-                                                                                     'MCStripping',
-                                                                                     'Merge',
-                                                                                     'Replication'] ) )
     self.log.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
-    ## directory locations
-    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
-                                                                                   'StorageUsage' ] ) )
+
     self.log.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
-    self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 ) # days
     self.log.info( "Will archive Completed transformations after %d days" % self.archiveAfter )
     storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
     storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
-    ## what about RSS???
+    # # what about RSS???
     self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
     self.log.info( "Will check the following storage elements: %s" % str( self.activeStorages ) )
     self.logSE = self.am_getOption( 'TransformationLogSE', 'LogSE' )
