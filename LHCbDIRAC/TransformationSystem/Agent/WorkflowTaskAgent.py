@@ -5,8 +5,8 @@
   :synopsis:  Extension of the DIRAC WorkflowTaskAgent, to use LHCb clients.
 
 """
-from DIRAC import gConfig
 from DIRAC.TransformationSystem.Agent.WorkflowTaskAgent import WorkflowTaskAgent as DIRACWorkflowTaskAgent
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from LHCbDIRAC.TransformationSystem.Client.TaskManager import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -22,8 +22,8 @@ class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
     '''
     DIRACWorkflowTaskAgent.__init__( self, agentName, loadName, baseAgentName, properties )
     self.transClient = TransformationClient()
-    outputDataModule = gConfig.getValue( "/DIRAC/VOPolicy/OutputDataModule",
-                                         "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
+    outputDataModule = Operations().getValue( "Transformations/OutputDataModule",
+                                              "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
     self.taskManager = LHCbWorkflowTasks( transClient = self.transClient,
                                           outputDataModule = outputDataModule,
                                           jobClass = LHCbJob )
