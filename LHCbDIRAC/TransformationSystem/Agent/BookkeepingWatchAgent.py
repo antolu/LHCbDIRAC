@@ -45,12 +45,14 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.transInThread = {}
 
+    self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
+    self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
+
   def initialize( self ):
     """ Make the necessary initializations.
         The ThreadPool is created here, the _execute() method is what each thread will execute.
     """
 
-    self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
 
     try:
       pf = open( self.pickleFile, 'r' )
@@ -67,7 +69,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     maxNumberOfThreads = self.am_getOption( 'maxThreadsInPool', 1 )
     threadPool = ThreadPool( maxNumberOfThreads, maxNumberOfThreads )
-    self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
 
     for i in xrange( maxNumberOfThreads ):
       threadPool.generateJobAndQueueIt( self._execute, [i] )
