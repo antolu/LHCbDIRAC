@@ -37,9 +37,9 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
   
   __hrefPrefix = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory' 
   
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     
-    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties ) 
+    AgentModule.__init__( self, *args, **kwargs )
   
     # Members initialization
   

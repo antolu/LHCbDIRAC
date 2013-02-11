@@ -15,15 +15,10 @@ AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
 
 class RequestTrackingAgent( AgentModule ):
 
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     ''' c'tor
-
-    :param self: self reference
-    :param str agentName: name of agent
-    :param bool baseAgentName: whatever
-    :param dict properties: whatever else
     '''
-    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
+    AgentModule.__init__( self, *args, **kwargs )
 
     self.bkClient = BookkeepingClient()
     self.prodReq = RPCClient( "ProductionManagement/ProductionRequest" )

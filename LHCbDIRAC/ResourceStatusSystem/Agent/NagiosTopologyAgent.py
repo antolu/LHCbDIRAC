@@ -28,9 +28,9 @@ class NagiosTopologyAgent( AgentModule ):
   the tests.
   '''
   
-  def __init__( self, agentName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     
-    AgentModule.__init__( self, agentName, baseAgentName, properties )
+    AgentModule.__init__( self, *args, **kwargs )
 
     self.xmlPath = None
 

@@ -37,7 +37,7 @@ class ProductionStatusAgent( AgentModule ):
   ''' Usual DIRAC agent
   '''
 
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     ''' c'tor
 
     :param self: self reference
@@ -46,7 +46,7 @@ class ProductionStatusAgent( AgentModule ):
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
     '''
-    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties )
+    AgentModule.__init__( self, *args, **kwargs )
 
     self.dProd = DiracProduction()
     self.dirac = Dirac()

@@ -35,9 +35,9 @@ class ShiftDBAgent( AgentModule ):
   # preprod wdsl: 'https://preprodcra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
   __wsdl         = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
   
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     
-    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties ) 
+    AgentModule.__init__( self, *args, **kwargs )
 
     # Members initialization
 

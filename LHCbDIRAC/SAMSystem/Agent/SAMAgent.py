@@ -21,9 +21,9 @@ class SAMAgent( AgentModule ):
   # Max lifetime of jobs before being cleaned
   __days = 2
   
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = dict() ):
+  def __init__( self, *args, **kwargs ):
     
-    AgentModule.__init__( self, agentName, loadName, baseAgentName, properties ) 
+    AgentModule.__init__( self, *args, **kwargs )
     
     self.days = self.__days
     
