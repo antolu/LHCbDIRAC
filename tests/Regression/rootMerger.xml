@@ -14,7 +14,7 @@
 <Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
 <Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
 <Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>
-<Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of input data specified by LFNs"><value><![CDATA[LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000014.root;LFN:/lhcb/user/f/fstagni/2013_02/43484/43484852/GaussXGen_00000017.root]]></value></Parameter>
+<Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of input data specified by LFNs"><value><![CDATA[LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000017.root;LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000014.root]]></value></Parameter>
 <Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Logging Level"><value><![CDATA[info]]></value></Parameter>
 <Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
 <Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
@@ -26,7 +26,7 @@
 <Parameter name="MaxCPUTime" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="CPU time in secs"><value><![CDATA[86400]]></value></Parameter>
 <Parameter name="UserOutputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of output data files"><value><![CDATA[rootOutput_Step_2_00000001.root]]></value></Parameter>
 <Parameter name="UserOutputSE" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified Output SE"><value><![CDATA[CERN-USER]]></value></Parameter>
-<Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000014.root;LFN:/lhcb/user/f/fstagni/2013_02/43484/43484852/GaussXGen_00000017.root]]></value></Parameter>
+<Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000017.root;LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000014.root]]></value></Parameter>
 <ModuleDefinition>
 <body><![CDATA[
 from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
