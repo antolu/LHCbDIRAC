@@ -11,14 +11,18 @@ class ProductionJobTestCase( unittest.TestCase ):
   ''' Base class for the ProductionJob test cases
   '''
   def setUp( self ):
+    self._clean()
 
     gLogger.setLevel( 'DEBUG' )
 
     self.pr = ProductionRequest()
-
     self.diracProduction = DiracProduction()
 
   def tearDown( self ):
+    self._clean()
+
+
+  def _clean( self ):
     for fileIn in os.listdir( '.' ):
       if 'Local' in fileIn:
         shutil.rmtree( fileIn )
@@ -65,34 +69,36 @@ class MCSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['ALLSTREAMS.DST']},
                    ]
 
-    self.pr.events = 2
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
-                                     outputFileMask = 'ALLSTREAMS.DST' )
+                                     outputFileMask = 'ALLSTREAMS.DST', events = 2 )
     # Then launch it
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
 
     self.assertTrue( res['OK'] )
+
+    # Now checking for some outputs
+    # prodConf files
     for fileIn in os.listdir( '.' ):
-#      fd = os.open( './' + fileIn + '/prodConf_Gauss_00012345_00067890_1.py' )
-#      pConfGauss = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_Boole_00012345_00067890_1.py' )
-      pConfBoole = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_Moore_00012345_00067890_1.py' )
-      pConfMoore = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00067890_1.py' )
-      pConfBrunel = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00067890_1.py' )
-      pConfDavinci = fd.read()
+      if 'Local_' in fileIn:
+        fd = os.open( './' + fileIn + '/prodConf_Boole_00012345_00006789_2.py' )
+        pConfBoole = fd.read()
+        fd = os.open( './' + fileIn + '/prodConf_Moore_00012345_00006789_3.py' )
+        pConfMoore = fd.read()
+        fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00006789_4.py' )
+        pConfBrunel = fd.read()
+        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_5.py' )
+        pConfDaVinci = fd.read()
 
-#    pConfGaussExpected = []
-    pConfBooleExpected = ( os.open( 'pConfBooleExpected.txt' ) ).read()
+    pConfBooleExpected = ( open( 'pConfBooleExpected.txt' ) ).read()
+    pConfMooreExpected = ( open( 'pConfMooreExpected.txt' ) ).read()
+    pConfBrunelExpected = ( open( 'pConfBrunelExpected.txt' ) ).read()
+    pConfDaVinciExpected = ( open( 'pConfDaVinciExpected.txt' ) ).read()
 
-#    self.assertEqual( pConfGauss, pConfGaussExpected )
     self.assertEqual( pConfBoole, pConfBooleExpected )
-#    self.assertEqual( pConfMoore, pConfMooreExpected )
-#    self.assertEqual( pConfBrunel, pConfBrunelExpected )
-#    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+    self.assertEqual( pConfMoore, pConfMooreExpected )
+    self.assertEqual( pConfBrunel, pConfBrunelExpected )
+    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
 
 class RecoSuccess( ProductionJobTestCase ):
   def test_execute( self ):
@@ -118,6 +124,21 @@ class RecoSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
+    # Now checking for some outputs
+    # prodConf files
+    for fileIn in os.listdir( '.' ):
+      if 'Local_' in fileIn:
+        fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00006789_1.py' )
+        pConfBrunel = fd.read()
+        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_2.py' )
+        pConfDaVinci = fd.read()
+
+    pConfBrunelExpected = ( open( 'pConfBrunelRecoExpected.txt' ) ).read()
+    pConfDaVinciExpected = ( open( 'pConfDaVinciRecoExpected.txt' ) ).read()
+
+    self.assertEqual( pConfBrunel, pConfBrunelExpected )
+    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+
 class StrippSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/LHCb/Collision12/FULL.DST/00020330/0004/00020330_00047632_1.full.dst']
@@ -136,6 +157,17 @@ class StrippSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
+    # Now checking for some outputs
+    # prodConf files
+    for fileIn in os.listdir( '.' ):
+      if 'Local_' in fileIn:
+        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_1.py' )
+        pConfDaVinci = fd.read()
+
+    pConfDaVinciExpected = ( open( 'pConfDaVinciStrippExpected.txt' ) ).read()
+
+    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+
 class MergeSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000280_1.fmdst',
@@ -153,6 +185,17 @@ class MergeSuccess( ProductionJobTestCase ):
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
+
+    # Now checking for some outputs
+    # prodConf files
+    for fileIn in os.listdir( '.' ):
+      if 'Local_' in fileIn:
+        fd = os.open( './' + fileIn + '/prodConf_LHCb_00012345_00006789_1.py' )
+        pConfLHCb = fd.read()
+
+    pConfLHCbExpected = ( open( 'pConfLHCbExpected.txt' ) ).read()
+
+    self.assertEqual( pConfLHCb, pConfLHCbExpected )
 
 class MergeMultStreamsSuccess( ProductionJobTestCase ):
   def test_execute( self ):
@@ -175,6 +218,17 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
+
+    # Now checking for some outputs
+    # prodConf files
+    for fileIn in os.listdir( '.' ):
+      if 'Local_' in fileIn:
+        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_1.py' )
+        pConfDaVinci = fd.read()
+
+    pConfDaVinciExpected = ( open( 'pConfDaVinciMergeExpected.txt' ) ).read()
+
+    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
 
 class MergeMDFSuccess( ProductionJobTestCase ):
   def test_execute( self ):
