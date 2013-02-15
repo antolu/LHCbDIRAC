@@ -74,19 +74,25 @@ class MCSuccess( ProductionJobTestCase ):
 
     self.assertTrue( res['OK'] )
     for fileIn in os.listdir( '.' ):
-      fd = os.open( './' + fileIn + '/prodConf_Gauss_00012345_00012345_1.py' )
-      pConfGauss = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_Boole_00012345_00012345_1.py' )
+#      fd = os.open( './' + fileIn + '/prodConf_Gauss_00012345_00067890_1.py' )
+#      pConfGauss = fd.read()
+      fd = os.open( './' + fileIn + '/prodConf_Boole_00012345_00067890_1.py' )
       pConfBoole = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_Moore_00012345_00012345_1.py' )
+      fd = os.open( './' + fileIn + '/prodConf_Moore_00012345_00067890_1.py' )
       pConfMoore = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00012345_1.py' )
+      fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00067890_1.py' )
       pConfBrunel = fd.read()
-      fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00012345_1.py' )
+      fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00067890_1.py' )
       pConfDavinci = fd.read()
 
-    pConfGaussExpected = []
-    self.assertEqual( pConfGauss, pConfGaussExpected )
+#    pConfGaussExpected = []
+    pConfBooleExpected = ( os.open( 'pConfBooleExpected.txt' ) ).read()
+
+#    self.assertEqual( pConfGauss, pConfGaussExpected )
+    self.assertEqual( pConfBoole, pConfBooleExpected )
+#    self.assertEqual( pConfMoore, pConfMooreExpected )
+#    self.assertEqual( pConfBrunel, pConfBrunelExpected )
+#    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
 
 class RecoSuccess( ProductionJobTestCase ):
   def test_execute( self ):
