@@ -44,22 +44,24 @@ class SpaceTokenOccupancyPolicy( PolicyBase ):
       result[ 'Reason' ] = 'No values to take a decision'
       return S_OK( result )
 
-    if 'total' not in commandResult.keys(): 
+    commandResult = commandResult[ 0 ]
+
+    if 'Total' not in commandResult.keys(): 
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Key total missing'
       return S_OK( result )
 
-    if 'free' not in commandResult.keys(): 
+    if 'Free' not in commandResult.keys(): 
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Key free missing'
       return S_OK( result )
     
-    if 'guaranteed' not in commandResult.keys(): 
+    if 'Guaranteed' not in commandResult.keys(): 
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Key guaranteed missing'
       return S_OK( result )
     
-    percentage = ( commandResult[ 'free' ] / commandResult[ 'total' ] ) * 100
+    percentage = ( float(commandResult[ 'Free' ]) / commandResult[ 'Total' ] ) * 100
     
     # FIXME: Use threshold from SLS, put more meaningful comments.
     if percentage == 0: 
