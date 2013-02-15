@@ -74,7 +74,7 @@ class SpaceTokenOccupancyPolicy( PolicyBase ):
       result[ 'Status' ] = 'Active'
       comment            = 'SE has enough space left'
 
-    result[ 'Reason' ] = 'Space availability: %d (%s)' % ( percentage, comment )
+    result[ 'Reason' ] = 'Space availability: %d %% (%s)' % ( percentage, comment )
     return S_OK( result )
   
 ################################################################################
