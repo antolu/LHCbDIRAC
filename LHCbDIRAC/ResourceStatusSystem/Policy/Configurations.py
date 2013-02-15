@@ -42,7 +42,7 @@ POLICIESMETA_LHCB = {
       'description' : 'Space token occupancy',
       'module'      : 'SpaceTokenOccupancyPolicy',
       'command'     : ( 'SpaceTokenOccupancyCommand', 'SpaceTokenOccupancyCommand' ),
-      'args'        : None,
+      'args'        : { 'onlyCache' : True },
      },     
    'JobEfficiency' :
     { 
