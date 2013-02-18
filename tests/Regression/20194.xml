@@ -4,11 +4,11 @@
 <descr_short></descr_short>
 <version>0.0</version>
 <type></type>
-<name>00020194_00106359</name>
+<name>00012345_00006789</name>
 <Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified type"><value><![CDATA[DataReprocessing]]></value></Parameter>
 <Parameter name="Priority" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="UserPriority"><value><![CDATA[2]]></value></Parameter>
-<Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified job group"><value><![CDATA[00020194]]></value></Parameter>
-<Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified name"><value><![CDATA[00020194_00106359]]></value></Parameter>
+<Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified job group"><value><![CDATA[00012345]]></value></Parameter>
+<Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified name"><value><![CDATA[00012345_00006789]]></value></Parameter>
 <Parameter name="SystemConfig" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="User specified system configuration for job"><value><![CDATA[x86_64-slc5-gcc46-opt]]></value></Parameter>
 <Parameter name="Site" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="List of sites selected by user"><value><![CDATA[LCG.JINR.ru;LCG.Dortmund.de;LCG.KIAE.ru;LCG.GRIDKA.de;LCG.ITEP.ru;LCG.IHEP.su;LCG.DESY.de]]></value></Parameter>
 <Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
@@ -24,8 +24,8 @@
 <Parameter name="outputDataFileMask" type="string" linked_module="" linked_parameter="" in="True" out="False" description="outputDataFileMask"><value><![CDATA[full.dst;HIST]]></value></Parameter>
 <Parameter name="outputDataStep" type="string" linked_module="" linked_parameter="" in="True" out="False" description="outputDataStep Mask"><value><![CDATA[]]></value></Parameter>
 <Parameter name="productionVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdAPIVersion"><value><![CDATA[$Id: Production.py 55813 2012-09-04 16:48:03Z fstagni $]]></value></Parameter>
-<Parameter name="PRODUCTION_ID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProductionID"><value><![CDATA[00020194]]></value></Parameter>
-<Parameter name="JOB_ID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProductionJobID"><value><![CDATA[00106359]]></value></Parameter>
+<Parameter name="PRODUCTION_ID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProductionID"><value><![CDATA[00012345]]></value></Parameter>
+<Parameter name="JOB_ID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProductionJobID"><value><![CDATA[00006789]]></value></Parameter>
 <Parameter name="poolXMLCatName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="POOLXMLCatalogName"><value><![CDATA[pool_xml_catalog.xml]]></value></Parameter>
 <Parameter name="outputMode" type="string" linked_module="" linked_parameter="" in="True" out="False" description="SEResolutionPolicy"><value><![CDATA[Local]]></value></Parameter>
 <Parameter name="CondDBTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CondDBTag"><value><![CDATA[cond-20120831]]></value></Parameter>
@@ -48,13 +48,13 @@
 <Parameter name="persistency" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Persistency type of the inputs"><value><![CDATA[]]></value></Parameter>
 <Parameter name="runMetadata" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Input run metadata"><value><![CDATA[{'CondDb': 'head-20120420', 'DDDB': 'head-20120413', 'TCK': '0x94003d'}]]></value></Parameter>
 <Parameter name="Status" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[Created]]></value></Parameter>
-<Parameter name="TransformationID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[20194]]></value></Parameter>
+<Parameter name="TransformationID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[12345]]></value></Parameter>
 <Parameter name="TaskID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[106359]]></value></Parameter>
-<Parameter name="LogTargetPath" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/LOG/00020194/0010/00020194_00106359.tar]]></value></Parameter>
-<Parameter name="LogFilePath" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/LOG/00020194/0010/00106359]]></value></Parameter>
-<Parameter name="DebugLFNs" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/debug/Collision12/FULL.DST/00020194/0010/00020194_00106359_1.full.dst;/lhcb/debug/Collision12/HIST/00020194/0010/Brunel_00020194_00106359_1_Hist.root;/lhcb/debug/Collision12/HIST/00020194/0010/DaVinci_00020194_00106359_2_Hist.root;/lhcb/debug/Collision12/CORE/00020194/0010/00106359_core]]></value></Parameter>
-<Parameter name="BookkeepingLFNs" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/FULL.DST/00020194/0010/00020194_00106359_1.full.dst;/lhcb/LHCb/Collision12/HIST/00020194/0010/Brunel_00020194_00106359_1_Hist.root;/lhcb/LHCb/Collision12/HIST/00020194/0010/DaVinci_00020194_00106359_2_Hist.root]]></value></Parameter>
-<Parameter name="ProductionOutputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/FULL.DST/00020194/0010/00020194_00106359_1.full.dst;/lhcb/LHCb/Collision12/HIST/00020194/0010/Brunel_00020194_00106359_1_Hist.root;/lhcb/LHCb/Collision12/HIST/00020194/0010/DaVinci_00020194_00106359_2_Hist.root]]></value></Parameter>
+<Parameter name="LogTargetPath" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/LOG/00012345/0010/00012345_00006789.tar]]></value></Parameter>
+<Parameter name="LogFilePath" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/LOG/00012345/0010/00006789]]></value></Parameter>
+<Parameter name="DebugLFNs" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/debug/Collision12/FULL.DST/00012345/0010/00012345_00006789_1.full.dst;/lhcb/debug/Collision12/HIST/00012345/0010/Brunel_00012345_00006789_1_Hist.root;/lhcb/debug/Collision12/HIST/00012345/0010/DaVinci_00012345_00006789_2_Hist.root;/lhcb/debug/Collision12/CORE/00012345/0010/00006789_core]]></value></Parameter>
+<Parameter name="BookkeepingLFNs" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/FULL.DST/00012345/0010/00012345_00006789_1.full.dst;/lhcb/LHCb/Collision12/HIST/00012345/0010/Brunel_00012345_00006789_1_Hist.root;/lhcb/LHCb/Collision12/HIST/00012345/0010/DaVinci_00012345_00006789_2_Hist.root]]></value></Parameter>
+<Parameter name="ProductionOutputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/FULL.DST/00012345/0010/00012345_00006789_1.full.dst;/lhcb/LHCb/Collision12/HIST/00012345/0010/Brunel_00012345_00006789_1_Hist.root;/lhcb/LHCb/Collision12/HIST/00012345/0010/DaVinci_00012345_00006789_2_Hist.root]]></value></Parameter>
 <ModuleDefinition>
 <body><![CDATA[
 from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
@@ -291,7 +291,7 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[38427]]></value></Parameter>
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Reco14]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
-<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[None]]></value></Parameter>
+<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[]]></value></Parameter>
 </StepInstance>
 <StepInstance>
 <type>Gaudi_App_Step</type>
