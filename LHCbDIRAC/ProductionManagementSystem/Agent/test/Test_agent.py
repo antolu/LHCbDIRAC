@@ -78,6 +78,8 @@ class ProductionStatusSuccess( AgentTestCase ):
     prodReqSummary = {
                       8733: {'bkTotal': 1090805L, 'master': 0, 'reqTotal': 2000000L},
                       8744: {'bkTotal': 2090805L, 'master': 0, 'reqTotal': 2000000L},
+                      11: {'bkTotal': 2090805L, 'master': 12, 'reqTotal': 2000000L},
+                      13: {'bkTotal': 2090805L, 'master': 14, 'reqTotal': 2000000L},
                       9050: {'bkTotal': 1600993L, 'master': 9048, 'reqTotal': 500000L},
                       9051: {'bkTotal': 1600993L, 'master': 9048, 'reqTotal': 500000L},
                       9237: {'bkTotal': 0L, 'master': 9235, 'reqTotal': 500000L},
@@ -85,6 +87,7 @@ class ProductionStatusSuccess( AgentTestCase ):
                       4: {'bkTotal': 2600L, 'master': 3, 'reqTotal': 500L},
                       5: {'bkTotal': 1600L, 'master': 3, 'reqTotal': 500L},
                       6: {'bkTotal': 200L, 'master': 3, 'reqTotal': 500L},
+                      8: {'bkTotal': 2090805L, 'master': 0, 'reqTotal': 2000000L},
                       }
 
     progressSummary = {
@@ -105,7 +108,12 @@ class ProductionStatusSuccess( AgentTestCase ):
                              1002L: {'Events': 5600L, 'Used': 0},
                              1003L: {'Events': 2600L, 'Used': 1}},
                         5L: {1011L: {'Events': 1600L, 'Used': 1}},
-                        6L: {1021L: {'Events': 200L, 'Used': 1}}
+                        6L: {1021L: {'Events': 200L, 'Used': 1}},
+                        8L: {1031L: {'Events': 2090805L, 'Used': 1}},
+                        11L: {1101L: {'Events': 2090805L, 'Used': 0},
+                              1102L: {'Events': 2090805L, 'Used': 1}},
+                        13L: {1301L: {'Events': 2090805L, 'Used': 0},
+                              1302L: {'Events': 2090805L, 'Used': 1}},
                       }
 
     res = self.psa._getReqsMap( prodReqSummary, progressSummary )
@@ -114,7 +122,11 @@ class ProductionStatusSuccess( AgentTestCase ):
                             9048:{9050:[21034L, 21035L], 9051:[21036L, 21037L]},
                             9235:{9237:[21080L, 21081L]},
                             1:{2:[1000L]},
-                            3:{4:[1001L, 1002L, 1003L], 5:[1011L], 6:[1021L]}
+                            3:{4:[1001L, 1002L, 1003L], 5:[1011L], 6:[1021L]},
+                            8:{8:[1031L]},
+                            12: {11: [1101L, 1102L]},
+                            14: {13: [1301L, 1302L]}
+
                             } )
 
 

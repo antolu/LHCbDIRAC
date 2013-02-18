@@ -241,16 +241,16 @@ class ProductionStatusAgent( AgentModule ):
 
     return doneAndUsed, doneAndNotUsed, notDoneAndUsed, notDoneAndNotUsed
 
-  def _getReqsMap( self, prodReqSummary, progressSummary ):
-    ''' just create a dict with all the requests (master -> subRequets and
+  def _getReqsMap( self, prodReqS, progressS ):
+    ''' just create a dict with all the requests (master -> subRequets and the prods of each)
     '''
-    reqsMap = {}
-    for request, mData in prodReqSummary.iteritems():
+    reqsMap = dict()
+    for request, mData in dict( prodReqS ).iteritems():
       masterReq = mData['master']
       if not masterReq:
         masterReq = request
-      reqs = {}
-      prods = progressSummary[request].keys()
+      reqs = dict()
+      prods = progressS[request].keys()
       reqs.setdefault( request, prods )
       try:
         reqsMap[masterReq].update( reqs )
