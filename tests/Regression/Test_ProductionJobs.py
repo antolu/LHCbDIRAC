@@ -22,9 +22,6 @@ class ProductionJobTestCase( unittest.TestCase ):
     self.pr = ProductionRequest()
     self.diracProduction = DiracProduction()
 
-  def tearDown( self ):
-    cleanTestDir()
-
 
 class MCSuccess( ProductionJobTestCase ):
   def test_execute( self ):

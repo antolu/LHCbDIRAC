@@ -28,9 +28,6 @@ class RegressionTestCase( unittest.TestCase ):
     self.j_merge_21211 = LHCbJob( '21211.xml' )
     self.j_mergeMDF_20657 = LHCbJob( '20657.xml' )
 
-  def tearDown( self ):
-    cleanTestDir()
-
 class MCSuccess( RegressionTestCase ):
   def test_execute( self ):
     res = self.j_mc_20160.runLocal( self.diracLHCb, self.bkkClient )

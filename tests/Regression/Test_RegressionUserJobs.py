@@ -27,9 +27,6 @@ class RegressionTestCase( unittest.TestCase ):
     self.j_u_collision12 = LHCbJob( 'collision12.xml' )
     self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
-  def tearDown( self ):
-    cleanTestDir()
-
 class HelloWorldSuccess( RegressionTestCase ):
   def test_execute( self ):
     res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
