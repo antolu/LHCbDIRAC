@@ -177,8 +177,8 @@ pr.priorities = [p1Priority, p2Priority, p3Priority][0:len( pr.prodsTypeList )]
 pr.cpus = [p1CPU, p2CPU, p3CPU][0:len( pr.prodsTypeList )]
 pr.groupSizes = [p1GroupSize, p2GroupSize, p3GroupSize][0:len( pr.prodsTypeList )]
 pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
-pr.inputs = [inputDataList, [], []]
+pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
-pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig]
+pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig][0:len( pr.prodsTypeList )]
 
 pr.buildAndLaunchRequest()

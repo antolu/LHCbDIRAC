@@ -409,8 +409,9 @@ class ProductionRequest( object ):
     except IndexError:
       fTypeIn = []
     prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
-                                                                             self.prodGroup, self.eventType,
-                                                                             ';'.join( fTypeIn ), self.appendName ) )
+                                                                        self.prodGroup, self.eventType,
+                                                                        ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
+                                                                        self.appendName ) )
     prod.setBKParameters( self.outConfigName, self.configVersion, self.prodGroup, self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
