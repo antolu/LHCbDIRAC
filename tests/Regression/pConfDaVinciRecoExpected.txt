@@ -7,6 +7,7 @@ ProdConf(
   DDDBTag='dddb-20120831',
   CondDBTag='cond-20120831',
   AppVersion='v32r2',
+  OptionFormat='DQ',
   XMLSummaryFile='summaryDaVinci_00012345_00006789_2.xml',
   Application='DaVinci',
   OutputFilePrefix='00012345_00006789_2',

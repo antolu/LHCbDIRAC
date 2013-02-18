@@ -85,7 +85,7 @@ class RecoSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['BRUNELHIST', 'FULL.DST']},
                    {'StepId': 38510, 'StepName': 'DataQuality-FULL', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2',
                     'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': '',
+                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'DQ',
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
                     'fileTypesIn':['FULL.DST'],
                     'fileTypesOut':['DAVINCIHIST']}
@@ -105,7 +105,7 @@ class StrippSuccess( ProductionJobTestCase ):
     # From request 8891
     stepsInProd = [{'StepId': 123715, 'StepName': 'Stripping20', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r151', 'ProcessingPass': 'Stripping20', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120929', 'DQTag': '', 'OptionsFormat': '',
+                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120929', 'DQTag': '', 'OptionsFormat': 'Stripping',
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20-Stripping.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'fileTypesIn':['SDST'],
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'CHARMTOBESWUM.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
@@ -126,7 +126,7 @@ class MergeSuccess( ProductionJobTestCase ):
     # From request 9085
     stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v34r2',
                     'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'merge',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Merge',
                     'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py',
                     'fileTypesIn':['FMDST'],
                     'fileTypesOut':['FMDST']},
@@ -147,7 +147,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
     # From request 9085
     stepsInProd = [{'StepId': 54132, 'StepName': 'Merging', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r150', 'ProcessingPass': 'Merging', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'merge',
+                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'Merge',
                     'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping-Merging.py',
                     'fileTypesIn':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
                                    'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
