@@ -301,7 +301,7 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/L0/L0TCK-0x0037.py]]></value></Parameter>
 <Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
 <Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
-<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[-1]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[2]]></value></Parameter>
 <Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
 <Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'digi', 'outputDataSE': 'Tier1_MC-DST', 'outputDataName': '@{STEP_ID}.digi'}]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r140;ProdConf]]></value></Parameter>
@@ -331,7 +331,7 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/Moore/MooreSimProduction.py;$APPCONFIGOPTS/Conditions/TCK-0x40760037.py;$APPCONFIGOPTS/Moore/DataType-2011.py]]></value></Parameter>
 <Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
 <Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
-<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[-1]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[2]]></value></Parameter>
 <Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
 <Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'digi', 'outputDataSE': 'Tier1_MC-DST', 'outputDataName': '@{STEP_ID}.digi'}]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r140;ProdConf]]></value></Parameter>
@@ -361,7 +361,7 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/Brunel/DataType-2011.py;$APPCONFIGOPTS/Brunel/MC-WithTruth.py;$APPCONFIGOPTS/Brunel/MC11a_dedxCorrection.py;$APPCONFIGOPTS/Brunel/TrigMuonRawEventFix.py]]></value></Parameter>
 <Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
 <Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
-<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[-1]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[2]]></value></Parameter>
 <Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
 <Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'dst', 'outputDataSE': 'Tier1_MC-DST', 'outputDataName': '@{STEP_ID}.dst'}]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r140;ProdConf]]></value></Parameter>
@@ -391,7 +391,7 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/DaVinci/DV-Stripping17-Stripping-MC-NoPrescaling.py]]></value></Parameter>
 <Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
 <Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
-<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[-1]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[2]]></value></Parameter>
 <Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
 <Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'allstreams.dst', 'outputDataSE': 'Tier1_MC-DST', 'outputDataName': '@{STEP_ID}.allstreams.dst'}]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r140;ProdConf]]></value></Parameter>
