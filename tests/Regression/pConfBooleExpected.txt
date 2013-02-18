@@ -3,7 +3,7 @@ from ProdConf import ProdConf
 ProdConf(
   NOfEvents=2,
   DDDBTag='MC2011-20120727',
-  CondDBTag='MC2011-20120727-vc-md100',
+  CondDBTag='MC2011-20120727-vc-mu100',
   AppVersion='v23r1',
   XMLSummaryFile='summaryBoole_00012345_00006789_2.xml',
   Application='Boole',
