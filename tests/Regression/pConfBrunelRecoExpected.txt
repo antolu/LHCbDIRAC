@@ -1,7 +1,6 @@
 from ProdConf import ProdConf
 
 ProdConf(
-  TCK='0x94003d',
   NOfEvents=25,
   HistogramFile='Brunel_00012345_00006789_1_Hist.root',
   DDDBTag='dddb-20120831',
