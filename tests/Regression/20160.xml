@@ -279,7 +279,6 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[18086]]></value></Parameter>
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Sim05c]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
-<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[None]]></value></Parameter>
 </StepInstance>
 <StepInstance>
 <type>Gaudi_App_Step</type>
@@ -309,7 +308,6 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[17896]]></value></Parameter>
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Digi11]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
-<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[None]]></value></Parameter>
 </StepInstance>
 <StepInstance>
 <type>Gaudi_App_Step</type>
@@ -339,7 +337,6 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[17899]]></value></Parameter>
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Trig0x40760037Flagged]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
-<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[None]]></value></Parameter>
 </StepInstance>
 <StepInstance>
 <type>Gaudi_App_Step</type>
@@ -369,7 +366,6 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[17894]]></value></Parameter>
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Reco12a]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
-<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[None]]></value></Parameter>
 </StepInstance>
 <StepInstance>
 <type>Gaudi_App_Step</type>
@@ -399,7 +395,6 @@ from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[17902]]></value></Parameter>
 <Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Stripping17NoPrescalingFlagged]]></value></Parameter>
 <Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
-<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[None]]></value></Parameter>
 </StepInstance>
 <StepInstance>
 <type>Job_Finalization</type>
