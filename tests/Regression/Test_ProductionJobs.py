@@ -96,20 +96,8 @@ class RecoSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-    # Now checking for some outputs
-    # prodConf files
-    for fileIn in os.listdir( '.' ):
-      if 'Local_' in fileIn:
-        fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00006789_1.py' )
-        pConfBrunel = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_2.py' )
-        pConfDaVinci = fd.read()
-
-    pConfBrunelExpected = ( open( 'pConfBrunelRecoExpected.txt' ) ).read()
-    pConfDaVinciExpected = ( open( 'pConfDaVinciRecoExpected.txt' ) ).read()
-
-    self.assertEqual( pConfBrunel, pConfBrunelExpected )
-    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+    for found, expected in getOutput( 'Reco' ):
+      self.assertEqual( found, expected )
 
 class StrippSuccess( ProductionJobTestCase ):
   def test_execute( self ):
@@ -128,16 +116,8 @@ class StrippSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-    # Now checking for some outputs
-    # prodConf files
-    for fileIn in os.listdir( '.' ):
-      if 'Local_' in fileIn:
-        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_1.py' )
-        pConfDaVinci = fd.read()
-
-    pConfDaVinciExpected = ( open( 'pConfDaVinciStrippExpected.txt' ) ).read()
-
-    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+    for found, expected in getOutput( 'Stripp' ):
+      self.assertEqual( found, expected )
 
 class MergeSuccess( ProductionJobTestCase ):
   def test_execute( self ):
@@ -157,16 +137,8 @@ class MergeSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-    # Now checking for some outputs
-    # prodConf files
-    for fileIn in os.listdir( '.' ):
-      if 'Local_' in fileIn:
-        fd = os.open( './' + fileIn + '/prodConf_LHCb_00012345_00006789_1.py' )
-        pConfLHCb = fd.read()
-
-    pConfLHCbExpected = ( open( 'pConfLHCbExpected.txt' ) ).read()
-
-    self.assertEqual( pConfLHCb, pConfLHCbExpected )
+    for found, expected in getOutput( 'Merge' ):
+      self.assertEqual( found, expected )
 
 class MergeMultStreamsSuccess( ProductionJobTestCase ):
   def test_execute( self ):
@@ -190,16 +162,8 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-    # Now checking for some outputs
-    # prodConf files
-    for fileIn in os.listdir( '.' ):
-      if 'Local_' in fileIn:
-        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_1.py' )
-        pConfDaVinci = fd.read()
-
-    pConfDaVinciExpected = ( open( 'pConfDaVinciMergeExpected.txt' ) ).read()
-
-    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+    for found, expected in getOutput( 'MergeM' ):
+      self.assertEqual( found, expected )
 
 class MergeMDFSuccess( ProductionJobTestCase ):
   def test_execute( self ):
