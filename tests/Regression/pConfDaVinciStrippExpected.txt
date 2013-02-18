@@ -1,13 +1,12 @@
 from ProdConf import ProdConf
 
 ProdConf(
-  NOfEvents=1500,
-  DDDBTag='dddb-20120831',
-  CondDBTag='cond-20120929',
+  NOfEvents=500,
   AppVersion='v32r2p1',
   OptionFormat='Stripping',
   XMLSummaryFile='summaryDaVinci_00012345_00006789_1.xml',
   Application='DaVinci',
+  RunNumber=124653,
   OutputFilePrefix='00012345_00006789_1',
   XMLFileCatalog='pool_xml_catalog.xml',
   InputFiles=['LFN:/lhcb/LHCb/Collision12/FULL.DST/00020330/0004/00020330_00047632_1.full.dst'],

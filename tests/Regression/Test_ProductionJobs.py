@@ -112,7 +112,7 @@ class StrippSuccess( ProductionJobTestCase ):
                    ]
 
     prod = self.pr._buildProduction( 'Stripping', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 1500 )
+                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -147,7 +147,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
     # From request 9085
     stepsInProd = [{'StepId': 54132, 'StepName': 'Merging', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
                     'ExtraPackages': 'AppConfig.v3r150', 'ProcessingPass': 'Merging', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'Merge',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Merge',
                     'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping-Merging.py',
                     'fileTypesIn':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
                                    'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
