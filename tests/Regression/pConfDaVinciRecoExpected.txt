@@ -11,7 +11,7 @@ ProdConf(
   XMLSummaryFile='summaryDaVinci_00012345_00006789_2.xml',
   Application='DaVinci',
   OutputFilePrefix='00012345_00006789_2',
-  RunNumber=137247,
+  RunNumber=114753,
   XMLFileCatalog='pool_xml_catalog.xml',
   InputFiles=['LFN:00012345_00006789_1.full.dst'],
   OutputFileTypes=[],
