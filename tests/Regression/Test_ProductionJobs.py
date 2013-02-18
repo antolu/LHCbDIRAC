@@ -1,17 +1,21 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os, shutil
+import unittest, os
+
+from TestLHCbDIRAC.Regression.utils import cleanTestDir, getOutput
+
 from DIRAC import gLogger
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
+
 class ProductionJobTestCase( unittest.TestCase ):
   ''' Base class for the ProductionJob test cases
   '''
   def setUp( self ):
-    self._clean()
+    cleanTestDir()
 
     gLogger.setLevel( 'DEBUG' )
 
@@ -19,18 +23,7 @@ class ProductionJobTestCase( unittest.TestCase ):
     self.diracProduction = DiracProduction()
 
   def tearDown( self ):
-    self._clean()
-
-
-  def _clean( self ):
-    for fileIn in os.listdir( '.' ):
-      if 'Local' in fileIn:
-        shutil.rmtree( fileIn )
-      for fileToRemove in ['std.out', 'std.err']:
-        try:
-          os.remove( fileToRemove )
-        except OSError:
-          continue
+    cleanTestDir()
 
 
 class MCSuccess( ProductionJobTestCase ):
@@ -77,28 +70,8 @@ class MCSuccess( ProductionJobTestCase ):
 
     self.assertTrue( res['OK'] )
 
-    # Now checking for some outputs
-    # prodConf files
-    for fileIn in os.listdir( '.' ):
-      if 'Local_' in fileIn:
-        fd = os.open( './' + fileIn + '/prodConf_Boole_00012345_00006789_2.py' )
-        pConfBoole = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_Moore_00012345_00006789_3.py' )
-        pConfMoore = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00006789_4.py' )
-        pConfBrunel = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_5.py' )
-        pConfDaVinci = fd.read()
-
-    pConfBooleExpected = ( open( 'pConfBooleExpected.txt' ) ).read()
-    pConfMooreExpected = ( open( 'pConfMooreExpected.txt' ) ).read()
-    pConfBrunelExpected = ( open( 'pConfBrunelExpected.txt' ) ).read()
-    pConfDaVinciExpected = ( open( 'pConfDaVinciExpected.txt' ) ).read()
-
-    self.assertEqual( pConfBoole, pConfBooleExpected )
-    self.assertEqual( pConfMoore, pConfMooreExpected )
-    self.assertEqual( pConfBrunel, pConfBrunelExpected )
-    self.assertEqual( pConfDaVinci, pConfDaVinciExpected )
+    for found, expected in getOutput( 'MC' ):
+      self.assertEqual( found, expected )
 
 class RecoSuccess( ProductionJobTestCase ):
   def test_execute( self ):

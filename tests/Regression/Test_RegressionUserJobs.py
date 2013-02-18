@@ -2,6 +2,9 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 import unittest, os, shutil
+
+from TestLHCbDIRAC.Regression.utils import cleanTestDir
+
 from DIRAC import gLogger
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
@@ -14,6 +17,8 @@ class RegressionTestCase( unittest.TestCase ):
   '''
   def setUp( self ):
 
+    cleanTestDir()
+
     gLogger.setLevel( 'DEBUG' )
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
@@ -23,15 +28,7 @@ class RegressionTestCase( unittest.TestCase ):
     self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
   def tearDown( self ):
-    for fileIn in os.listdir( '.' ):
-      if 'Local' in fileIn:
-        shutil.rmtree( fileIn )
-      for fileToRemove in ['std.out', 'std.err']:
-        try:
-          os.remove( fileToRemove )
-        except OSError:
-          continue
-
+    cleanTestDir()
 
 class HelloWorldSuccess( RegressionTestCase ):
   def test_execute( self ):

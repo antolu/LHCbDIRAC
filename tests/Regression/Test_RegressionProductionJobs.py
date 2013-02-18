@@ -1,7 +1,9 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os, shutil
+from TestLHCbDIRAC.Regression.utils import cleanTestDir
+
+import unittest, os
 from DIRAC import gLogger
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
@@ -13,6 +15,7 @@ class RegressionTestCase( unittest.TestCase ):
   ''' Base class for the Regression test cases
   '''
   def setUp( self ):
+    cleanTestDir()
 
     gLogger.setLevel( 'DEBUG' )
     self.diracLHCb = DiracLHCb()
@@ -26,38 +29,12 @@ class RegressionTestCase( unittest.TestCase ):
     self.j_mergeMDF_20657 = LHCbJob( '20657.xml' )
 
   def tearDown( self ):
-    for fileIn in os.listdir( '.' ):
-      if 'Local' in fileIn:
-        shutil.rmtree( fileIn )
-      for fileToRemove in ['std.out', 'std.err']:
-        try:
-          os.remove( fileToRemove )
-        except OSError:
-          continue
-
+    cleanTestDir()
 
 class MCSuccess( RegressionTestCase ):
   def test_execute( self ):
     res = self.j_mc_20160.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
-
-    # Now checking for some outputs
-    # prodConf files
-    for fileIn in os.listdir( '.' ):
-      if 'Local_' in fileIn:
-        fd = os.open( './' + fileIn + '/prodConf_Boole_00012345_00006789_2.py' )
-        pConfBoole = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_Moore_00012345_00006789_3.py' )
-        pConfMoore = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_Brunel_00012345_00006789_4.py' )
-        pConfBrunel = fd.read()
-        fd = os.open( './' + fileIn + '/prodConf_DaVinci_00012345_00006789_5.py' )
-        pConfDaVinci = fd.read()
-
-    pConfBooleExpected = ( open( 'pConfBooleExpected.txt' ) ).read()
-    pConfMooreExpected = ( open( 'pConfMooreExpected.txt' ) ).read()
-    pConfBrunelExpected = ( open( 'pConfBrunelExpected.txt' ) ).read()
-    pConfDaVinciExpected = ( open( 'pConfDaVinciExpected.txt' ) ).read()
 
     self.assertEqual( pConfBoole, pConfBooleExpected )
     self.assertEqual( pConfMoore, pConfMooreExpected )
@@ -116,7 +93,7 @@ class MergeSuccess( RegressionTestCase ):
 
     self.assertEqual( pConfLHCb, pConfLHCbExpected )
 
-class MergeMultStreamsSuccess(RegressionTestCase):
+class MergeMultStreamsSuccess( RegressionTestCase ):
   def test_execute( self ):
     res = self.j_merge_21211.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
