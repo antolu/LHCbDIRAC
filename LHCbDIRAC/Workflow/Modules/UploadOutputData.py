@@ -384,7 +384,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def __checkDescendants( self, inputData, depth = 999, production = None, checkReplica = True ):
+  def __checkDescendants( self, inputData, depth = 999, production = 0, checkReplica = True ):
     """ Check for descendants
     """
     start = time.time()
