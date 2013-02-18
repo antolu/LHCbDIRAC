@@ -118,9 +118,8 @@ class RecoSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['DAVINCIHIST']}
                    ]
 
-    self.pr.events = 25
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -151,9 +150,8 @@ class StrippSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'CHARMTOBESWUM.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
                    ]
 
-    self.pr.events = 1500
     prod = self.pr._buildProduction( 'Stripping', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 1500 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
