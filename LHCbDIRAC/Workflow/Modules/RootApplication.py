@@ -4,12 +4,12 @@ __RCSID__ = "$Id$"
 
 import os, sys, fnmatch
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Subprocess import shellCall
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities.Subprocess                  import shellCall
+from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment   import getProjectEnvironment
+from LHCbDIRAC.Workflow.Modules.ModuleBase            import ModuleBase
 
 class RootApplication( ModuleBase ):
 
@@ -68,8 +68,6 @@ class RootApplication( ModuleBase ):
 
     print self.arguments
 
-    return S_OK()
-
   #############################################################################
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
@@ -125,7 +123,7 @@ class RootApplication( ModuleBase ):
       projectEnvironment = result['Value']
 
       if not os.path.exists( self.rootScript ):
-        self.log.info( 'rootScript not Found' )
+        self.log.error( 'rootScript not Found at %s' % os.path.abspath( '.' ) )
         return S_ERROR( 'rootScript not Found' )
 
       if self.rootType.lower() == 'c':

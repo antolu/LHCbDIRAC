@@ -310,7 +310,8 @@ class Production():
     gaudiStepInstance.setValue( 'listoutput', ( outputFilesDict ) )
 
     # now we have to tell DIRAC to install the necessary software
-    self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
+    if appName.lower() != 'mergemdf':
+      self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
     self.__addSoftwarePackages( extraPackages )
 
     #to construct the BK processing pass structure, starts from step '0'
