@@ -1,7 +1,7 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os, shutil
+import unittest
 
 from TestLHCbDIRAC.Regression.utils import cleanTestDir
 
@@ -24,23 +24,23 @@ class RegressionTestCase( unittest.TestCase ):
     self.bkkClient = BookkeepingClient()
 
     self.j_u_hello = LHCbJob( 'helloWorld.xml' )
-    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
-    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
+#    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
+#    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
 class HelloWorldSuccess( RegressionTestCase ):
   def test_execute( self ):
     res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-class Collision12Success( RegressionTestCase ):
-  def test_execute( self ):
-    res = self.j_u_collision12.runLocal( self.diracLHCb, self.bkkClient )
-    self.assertTrue( res['OK'] )
+# class Collision12Success( RegressionTestCase ):
+#  def test_execute( self ):
+#    res = self.j_u_collision12.runLocal( self.diracLHCb, self.bkkClient )
+#    self.assertTrue( res['OK'] )
 
-class RootMergerSuccess( RegressionTestCase ):
-  def test_execute( self ):
-    res = self.j_u_rootMerger.runLocal( self.diracLHCb, self.bkkClient )
-    self.assertTrue( res['OK'] )
+# class RootMergerSuccess( RegressionTestCase ):
+#  def test_execute( self ):
+#    res = self.j_u_rootMerger.runLocal( self.diracLHCb, self.bkkClient )
+#    self.assertTrue( res['OK'] )
 
 
 #############################################################################
@@ -50,6 +50,6 @@ class RootMergerSuccess( RegressionTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RegressionTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Collision12Success ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergerSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Collision12Success ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergerSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
