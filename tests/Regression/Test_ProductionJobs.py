@@ -123,7 +123,7 @@ class MergeSuccess( ProductionJobTestCase ):
     # From request 9085
     stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v34r2',
                     'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Merge',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py',
                     'fileTypesIn':['FMDST'],
                     'fileTypesOut':['FMDST']},

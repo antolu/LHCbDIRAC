@@ -44,9 +44,7 @@
 <Parameter name="TransformationFamily" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ParentRequestID"><value><![CDATA[9085]]></value></Parameter>
 <Parameter name="Owner" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified ID"><value><![CDATA[rgracian]]></value></Parameter>
 <Parameter name="OwnerGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified owner group."><value><![CDATA[lhcb_data]]></value></Parameter>
-<Parameter name="runNumber" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input run number"><value><![CDATA[132544]]></value></Parameter>
 <Parameter name="persistency" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Persistency type of the inputs"><value><![CDATA[]]></value></Parameter>
-<Parameter name="runMetadata" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Input run metadata"><value><![CDATA[{'Info': 'Not Completed', 'ProcessingPass': '/Real Data/Reco13g', 'DDDB': 'dddb-20120831', 'DQFlag': 'P', 'CondDb': 'cond-20120831', 'TCK': '0xab0046'}]]></value></Parameter>
 <Parameter name="Status" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[Created]]></value></Parameter>
 <Parameter name="TransformationID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[12345]]></value></Parameter>
 <Parameter name="TaskID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[94]]></value></Parameter>
