@@ -24,8 +24,8 @@ def getOutput( typeOut = 'MC' ):
                     ( 'prodConf_DaVinci_00012345_00006789_2.py', 'pConfDaVinciRecoExpected.txt' )
                     ]
   elif typeOut == 'Reco_old':
-    filesCouples = [( 'prodConf_Brunel_0020194_00106359_1.py', 'pConfBrunelRecoOldExpected.txt' ),
-                    ( 'prodConf_DaVinci_0020194_00106359_2.py', 'pConfDaVinciRecoOldExpected.txt' )
+    filesCouples = [( 'prodConf_Brunel_00020194_00106359_1.py', 'pConfBrunelRecoOldExpected.txt' ),
+                    ( 'prodConf_DaVinci_00020194_00106359_2.py', 'pConfDaVinciRecoOldExpected.txt' )
                     ]
   elif typeOut == 'Stripp':
     filesCouples = [( 'prodConf_DaVinci_00012345_00006789_1.py', 'pConfDaVinciStrippExpected.txt' )
