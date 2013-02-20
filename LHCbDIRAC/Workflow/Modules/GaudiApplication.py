@@ -66,8 +66,10 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
 
-    if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
-      self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
+    #if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+    if self.optionsLine or self.jobType.lower() == 'user':
+      #self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
+      self.log.debug( "Won't get any step outputs (USER jobs)" )
     else:
       self.log.debug( "Getting the step outputs" )
 
@@ -127,10 +129,11 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+      #if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+      if self.optionsLine or self.jobType.lower() == 'user':
 
         self.log.warn( 'OLD production, should not happen for newer productions \
-        (after LHCbDIRAC v7r5)! OK for user and SAM jobs' )
+        (after LHCbDIRAC v7r5)! OK for user jobs' )
         stepOutputs = []
         #Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
@@ -245,7 +248,8 @@ class GaudiApplication( ModuleBase ):
 
       gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 #      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
-      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+#      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+      if self.optionsLine or self.jobType.lower() == 'user':        
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
       else:
         if self.extraOptionsLine:
