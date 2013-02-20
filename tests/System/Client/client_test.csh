@@ -54,6 +54,12 @@ if $status != 0 then
    exit 0
 endif
 echo " "
+echo "======  dirac-dms-replicate-lfn /lhcb/user/j/joel/hlta0102.txt CNAF-USER"
+dirac-dms-replicate-lfn /lhcb/user/j/joel/hlta0102.txt CNAF-USER
+if $status != 0 then
+   exit 0
+endif
+echo " "
 echo "======  dirac-dms-check-directory-integrity /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81789"
 dirac-dms-check-directory-integrity /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81789
 if $status != 0 then
@@ -68,6 +74,12 @@ endif
 echo " "
 echo "======  dirac-monitoring-get-components-status"
 dirac-monitoring-get-components-status
+if $status != 0 then
+   exit 0
+endif
+echo " "
+echo "====== dirac-dms-remove-replicas /lhcb/user/j/joel/hlta0102.txt CNAF-USER"
+dirac-dms-remove-replicas /lhcb/user/j/joel/hlta0102.txt CNAF-USER
 if $status != 0 then
    exit 0
 endif
