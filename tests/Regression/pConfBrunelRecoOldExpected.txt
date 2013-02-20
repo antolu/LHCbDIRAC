@@ -12,6 +12,6 @@ ProdConf(
   OutputFilePrefix='00020194_00106359_1',
   RunNumber=114753,
   XMLFileCatalog='pool_xml_catalog.xml',
-  InputFiles=['LFN:/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000297.raw'],
+  InputFiles=['LFN:/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000296.raw'],
   OutputFileTypes=['full.dst'],
 )
