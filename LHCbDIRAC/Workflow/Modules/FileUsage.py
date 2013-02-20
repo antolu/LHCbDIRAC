@@ -30,7 +30,7 @@ class FileUsage( ModuleBase ):
     '''
     super( FileUsage, self )._resolveInputVariables()
 
-    inputDataList = []
+    inputDataList = ''
     if self.InputData:
       inputDataList = copy.deepcopy( self.InputData )
       if type( inputDataList ) != type( [] ):
