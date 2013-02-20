@@ -9,6 +9,13 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
+#...............................................................................
+#
+#
+# OBSOLETE CODE. TODO: refactor it !
+#
+#...............................................................................
+
 class SEQueuedTransfersPolicy( PolicyBase ):
   '''
   The SEQueuedTransfersPolicy class is a policy class satisfied when a SE has 

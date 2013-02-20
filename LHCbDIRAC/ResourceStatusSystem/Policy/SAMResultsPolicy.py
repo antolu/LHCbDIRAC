@@ -9,6 +9,13 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
+#...............................................................................
+#
+#
+# OBSOLETE CODE. TODO: refactor it !
+#
+#...............................................................................
+
 class SAMResultsPolicy( PolicyBase ):
   '''
   The SAMResultsPolicy class is a policy class that checks

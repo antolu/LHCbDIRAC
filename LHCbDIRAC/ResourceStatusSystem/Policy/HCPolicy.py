@@ -8,7 +8,14 @@
 #from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 #
 #__RCSID__ = '$Id$'
+
+#...............................................................................
 #
+#
+# OBSOLETE CODE. TODO: refactor it !
+#
+#...............................................................................
+
 #class HCPolicy( PolicyBase ):
 #
 #  def evaluate( self ): 

@@ -9,6 +9,13 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
+#...............................................................................
+#
+#
+# OBSOLETE CODE. TODO: refactor it !
+#
+#...............................................................................
+
 class SLSPolicy( PolicyBase ):
   '''
   The SLSPolicy class is a policy class satisfied when a SLS sensors 

@@ -9,6 +9,13 @@ from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
 __RCSID__ = '$Id$'
 
+#...............................................................................
+#
+#
+# OBSOLETE CODE. TODO: refactor it !
+#
+#...............................................................................
+
 class DownHillPropagationPolicy( PolicyBase ):
   '''
   The DownHillPropagationPolicy module is a policy module used to update the 
