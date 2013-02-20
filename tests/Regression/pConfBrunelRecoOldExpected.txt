@@ -1,12 +1,13 @@
 from ProdConf import ProdConf
 
 ProdConf(
-  TCK=0x94003d,
+  TCK='0x94003d',
   NOfEvents=25,
   HistogramFile='Brunel_00020194_00106359_1_Hist.root',
   DDDBTag='dddb-20120831',
   CondDBTag='cond-20120831',
   AppVersion='v43r2p2',
+  OptionFormat='None',
   XMLSummaryFile='summaryBrunel_00020194_00106359_1.xml',
   Application='Brunel',
   OutputFilePrefix='00020194_00106359_1',
