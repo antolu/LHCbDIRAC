@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+################################################################################
+#
+# DISCLAIMER: this is an old prototype. If used, needs to be rewritten properly!
+#
+################################################################################
+
 bccolors = {
 
              'purple': '\033[95m',
