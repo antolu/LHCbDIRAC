@@ -23,6 +23,7 @@ class RegressionTestCase( unittest.TestCase ):
 
     self.j_mc_20160 = LHCbJob( '20160.xml' )
     self.j_reco_20194 = LHCbJob( '20194.xml' )
+    self.j_reco_20194_old = LHCbJob( '20194_old.xml' )
     self.j_stripp_20349 = LHCbJob( '20349.xml' )
     self.j_merge_20752 = LHCbJob( '20752.xml' )
     self.j_merge_21211 = LHCbJob( '21211.xml' )
@@ -42,6 +43,12 @@ class RecoSuccess( RegressionTestCase ):
     self.assertTrue( res['OK'] )
 
     for found, expected in getOutput( 'Reco' ):
+      self.assertEqual( found, expected )
+
+    res = self.j_reco_20194_old.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
+    for found, expected in getOutput( 'Reco_old' ):
       self.assertEqual( found, expected )
 
 class StrippSuccess( RegressionTestCase ):

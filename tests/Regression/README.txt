@@ -2,25 +2,24 @@
 Regression Testing
 ==================
 
-Used as acceptance tests, once unit tests have finished, and before running the system tests.
+To be run after unit tests have finished and checked, and before running the system tests.
 
-Process (logging to lxplus after having installed the version under test):
+After having installed the client version on AFS, login on lxplus and issue:
 
-SetupProject LHCbDirac --dev
-lhcb-proxy-init -g lhcb_prmgr
+wget http://svnweb.cern.ch/world/wsvn/dirac/TestLHCbDIRAC/trunk/TestLHCbDIRAC/Regression/runRegression.csh
 
+This will do the following:
+
+SetupProject LHCbDirac --dev (by default this is the certification setup)
+lhcb-proxy-init -g lhcb_prmgr (will ask for your password)
 cd /tmp/yourId
-
 svn co svn+ssh://yourId@svn.cern.ch/reps/dirac/TestLHCbDIRAC/trunk/TestLHCbDIRAC
-
 setenv PYTHONPATH /tmp/yourId/:$PYTHONPATH
-
 cd TestLHCbDIRAC/Regression
 
-There are 3 test files to be run: 'Test_ProductionJobs.py', 'Test_RegressionProductionJobs.py' and 'Test_RegressionUserJobs.py'. 
-The example that follows is for the 'Test_ProductionJobs.py', and should be repeated also for the others.
-
-python Test_ProductionJobs.py -dd > test.txt &
-
-If some test fails, edit the Test_ProductionJobs.py file commenting the "tearDown" lines, then restart it. 
-This way you will not delete the output at the end of the test, so that you can debug the issue.
+Then, it will run the following 3 test files to run: 
+- 'Test_ProductionJobs.py'
+- 'Test_RegressionProductionJobs.py'
+- 'Test_RegressionUserJobs.py'
+ 
+and save the result in a txt file for each of them. Running these tests can take some time.
