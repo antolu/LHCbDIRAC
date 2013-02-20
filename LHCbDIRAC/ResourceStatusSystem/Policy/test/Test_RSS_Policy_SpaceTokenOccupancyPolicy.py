@@ -77,20 +77,20 @@ class SpaceTokenOccupancyPolicy_Success( SpaceTokenOccupancyPolicy_TestCase ):
                                                         'Guaranteed' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Banned', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Space availability: 0 (SE Full!)', res[ 'Value' ][ 'Reason' ] ) 
+    self.assertEquals( 'Space availability: 0 % (SE Full!)', res[ 'Value' ][ 'Reason' ] ) 
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 100, 'Free' : 9.0,
                                                         'Guaranteed' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Degraded', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Space availability: 9 (SE has not much space left)', 
+    self.assertEquals( 'Space availability: 9 % (SE has not much space left)', 
                        res[ 'Value' ][ 'Reason' ] ) 
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 100, 'Free' : 100,
                                                         'Guaranteed' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Active', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Space availability: 100 (SE has enough space left)', 
+    self.assertEquals( 'Space availability: 100 % (SE has enough space left)', 
                        res[ 'Value' ][ 'Reason' ] ) 
 
 
