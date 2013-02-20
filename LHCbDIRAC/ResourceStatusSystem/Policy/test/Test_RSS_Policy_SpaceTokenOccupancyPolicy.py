@@ -63,31 +63,31 @@ class SpaceTokenOccupancyPolicy_Success( SpaceTokenOccupancyPolicy_TestCase ):
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Key total missing', res[ 'Value' ][ 'Reason' ] )   
 
-    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'total' : 1 }] } )
+    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Key free missing', res[ 'Value' ][ 'Reason' ] ) 
 
-    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'total' : 100, 'free' : 0.0 }] } )
+    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 100, 'Free' : 0.0 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Key guaranteed missing', res[ 'Value' ][ 'Reason' ] ) 
 
-    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'total' : 100, 'free' : 0.0,
-                                                        'guaranteed' : 1 }] } )
+    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 100, 'Free' : 0.0,
+                                                        'Guaranteed' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Banned', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Space availability: 0 (SE Full!)', res[ 'Value' ][ 'Reason' ] ) 
 
-    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'total' : 100, 'free' : 9.0,
-                                                        'guaranteed' : 1 }] } )
+    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 100, 'Free' : 9.0,
+                                                        'Guaranteed' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Degraded', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Space availability: 9 (SE has not much space left)', 
                        res[ 'Value' ][ 'Reason' ] ) 
 
-    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'total' : 100, 'free' : 100,
-                                                        'guaranteed' : 1 }] } )
+    res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Total' : 100, 'Free' : 100,
+                                                        'Guaranteed' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Active', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'Space availability: 100 (SE has enough space left)', 
