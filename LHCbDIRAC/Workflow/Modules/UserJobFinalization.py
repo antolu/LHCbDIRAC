@@ -37,7 +37,7 @@ class UserJobFinalization( ModuleBase ):
     self.lastStep = False
     #Always allow any files specified by users
     self.outputDataFileMask = ''
-    self.userOutputData = ''
+    self.userOutputData = []
     self.userOutputSE = ''
     self.userOutputPath = ''
     self.jobReport = None
@@ -50,9 +50,10 @@ class UserJobFinalization( ModuleBase ):
 
     #Use LHCb utility for local running via dirac-jobexec
     if self.workflow_commons.has_key( 'UserOutputData' ):
-      self.userOutputData = self.workflow_commons['UserOutputData']
-      if not type( self.userOutputData ) == type( [] ):
-        self.userOutputData = [i.strip() for i in self.userOutputData.split( ';' )]
+      userOutputData = self.workflow_commons[ 'UserOutputData' ]
+      if not isinstance( userOutputData, list ): #type( userOutputData ) == type( [] ):
+        userOutputData = [ i.strip() for i in userOutputData.split( ';' ) ]
+      self.userOutputData = userOutputData
 
     if self.workflow_commons.has_key( 'UserOutputSE' ):
       specifiedSE = self.workflow_commons['UserOutputSE']
