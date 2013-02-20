@@ -409,12 +409,14 @@ class DIRACTest( TestBase ):
 
   def xml_t1_sensor( self, url ):
     parsed = urlparse.urlparse( url )
-    if sys.version_info >= ( 2, 6 ):
-      system, _service = parsed.path.strip( "/" ).split( "/" )
-      site = parsed.netloc.split( ":" )[0]
-    else:
-      site, system, _service = parsed[2].strip( "/" ).split( "/" )
-      site = site.split( ":" )[0]
+    #if sys.version_info >= ( 2, 6 ):
+    #  system, _service = parsed.path.strip( "/" ).split( "/" )
+    #  site = parsed.netloc.split( ":" )[0]
+    #else:
+    #site, system, _service = parsed[2].strip( "/" ).split( "/" )
+    #site = site.split( ":" )[0]
+    system, _service = parsed[2].strip( "/" ).split( "/" )
+    site             = parsed[1].split( ":" )[0]
 
     pinger = RPCClient( url )
     res = pinger.ping()
