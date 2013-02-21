@@ -120,17 +120,29 @@ class DiracSAM( Dirac ):
     if res[ 'OK' ]:
       # setDestinationCE
       res = job.setDestinationCE( ce )
+    else:
+      self.log.error( res['Message'] )
+      return res
     if res[ 'OK' ]:
       # setSharedAreaLock
       self.log.verbose( 'Flag to remove lock on shared area is %s' % ( removeLock ) )
       res = job.setSharedAreaLock( forceDeletion = removeLock, enableFlag = enable )
+    else:
+      self.log.error( res['Message'] )
+      return res
     if res[ 'OK' ]:
       # checkSystemConfiguration
       res = job.checkSystemConfiguration( enableFlag = enable )
+    else:
+      self.log.error( res['Message'] )
+      return res
     if res[ 'OK' ]:
       res = job.setSystemConfig( config )
 #    if res[ 'OK' ]:
 #      res = job.setPlatform( Operations().getValue( 'SAM/Platform', 'gLite' ) )  
+    else:
+      self.log.error( res['Message'] )
+      return res
     if res[ 'OK' ]:
       # installSoftware
       self.log.verbose( 'Flag to force deletion of shared area is %s' % ( deleteSharedArea ) )
@@ -138,9 +150,15 @@ class DiracSAM( Dirac ):
         self.log.verbose( 'Optional install_project URL is set to %s' % ( install_project ) )
       res = job.installSoftware( forceDeletion = deleteSharedArea, enableFlag = softwareEnable, 
                                  installProjectURL = install_project )
+    else:
+      self.log.error( res['Message'] )
+      return res
     if res[ 'OK' ]:
       # reportSoftware
       res = job.reportSoftware( enableFlag = reportEnable  )      
+    else:
+      self.log.error( res['Message'] )
+      return res
       
     if not res[ 'OK' ]:
       # runTestScript
