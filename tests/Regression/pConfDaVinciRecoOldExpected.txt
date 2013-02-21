@@ -1,7 +1,7 @@
 from ProdConf import ProdConf
 
 ProdConf(
-  TCK=0x94003d,
+  TCK='0x94003d',
   NOfEvents=25,
   HistogramFile='DaVinci_00020194_00106359_2_Hist.root',
   DDDBTag='dddb-20120831',
