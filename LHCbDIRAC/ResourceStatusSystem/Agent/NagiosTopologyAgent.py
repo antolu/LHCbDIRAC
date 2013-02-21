@@ -3,18 +3,17 @@
    NagiosTopologyAgent.__bases__:
      DIRAC.Core.Base.AgentModule.AgentModule
    xml_append
-     
+
 '''
 
 import os
 import time
 import xml.dom.minidom
 
-from DIRAC                                               import S_OK, rootPath, gLogger
+from DIRAC                                               import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                         import AgentModule
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-__RCSID__  = '$Id$'
+__RCSID__ = '$Id$'
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 class NagiosTopologyAgent( AgentModule ):
@@ -27,9 +26,9 @@ class NagiosTopologyAgent( AgentModule ):
   NagiosTopologyAgent, writes the xml topology consumed by Nagios to run
   the tests.
   '''
-  
+
   def __init__( self, *args, **kwargs ):
-    
+
     AgentModule.__init__( self, *args, **kwargs )
 
     self.xmlPath = None
@@ -44,7 +43,7 @@ class NagiosTopologyAgent( AgentModule ):
     try:
       os.makedirs( self.xmlPath )
     except OSError:
-      pass # The dirs exist already, or cannot be created: do nothing
+      pass  # The dirs exist already, or cannot be created: do nothing
 
     return S_OK()
 
@@ -61,11 +60,9 @@ class NagiosTopologyAgent( AgentModule ):
     # xml header info
     self.__writeHeaderInfo( xml_doc, xml_root )
 
-    opHelper = Operations()
-
     # loop over sites
 
-    sites = opHelper.getSections( 'Sites/LCG' )
+    sites = gConfig.getSections( 'Resources/Sites/LCG' )
     if not sites[ 'OK' ]:
       gLogger.error( sites[ 'Message' ] )
       return sites
@@ -73,7 +70,7 @@ class NagiosTopologyAgent( AgentModule ):
     for site in sites[ 'Value' ]:
 
       # Site config
-      site_opts = opHelper.getOptionsDict( 'Sites/LCG/%s' % site )
+      site_opts = gConfig.getOptionsDict( 'Resources/Sites/LCG/%s' % site )
       if not site_opts[ 'OK' ]:
         gLogger.error( site_opts[ 'Message' ] )
         return site_opts
@@ -85,7 +82,7 @@ class NagiosTopologyAgent( AgentModule ):
       xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
       # CE info
-      ces = opHelper.getSections( 'Sites/LCG/%s/CEs' % site )
+      ces = gConfig.getSections( 'Resources/Sites/LCG/%s/CEs' % site )
       if ces[ 'OK' ]:
         res = self.__writeCEInfo( xml_doc, xml_site, site, ces[ 'Value' ] )
         # Update has_grid_elem
@@ -98,7 +95,7 @@ class NagiosTopologyAgent( AgentModule ):
         has_grid_elem = res or has_grid_elem
 
       # FileCatalog info
-      sites = opHelper.getSections( 'FileCatalogs/LcgFileCatalogCombined' )
+      sites = gConfig.getSections( 'Resources/FileCatalogs/LcgFileCatalogCombined' )
       if sites[ 'OK' ] and site in sites[ 'Value' ]:
         res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
         # Update has_grid_elem
@@ -114,12 +111,12 @@ class NagiosTopologyAgent( AgentModule ):
           if int( site_tier ) == 2:
             xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
 
-          else: # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
+          else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
             # If site_type is None, then we go to the exception.
             xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
             xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
 
-        except ValueError: # Site tier is None, do nothing
+        except ValueError:  # Site tier is None, do nothing
           pass
 
       else :
@@ -163,13 +160,12 @@ class NagiosTopologyAgent( AgentModule ):
 
     has_grid_elem = False
 
-    opHelper = Operations()
 
     for site_ce_name in ces:
 
       has_grid_elem = True
 
-      site_ce_opts = opHelper.getOptionsDict( 'Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
+      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
       if not site_ce_opts[ 'OK' ]:
         gLogger.error( site_ce_opts[ 'Message' ] )
         continue
@@ -196,15 +192,13 @@ class NagiosTopologyAgent( AgentModule ):
     '''
     has_grid_elem = True
 
-    opHelper = Operations()
-
     splittedSite = site.split( "." )[ 1 ]
     if splittedSite != 'NIKHEF':
       real_site_name = splittedSite
     else:
       real_site_name = 'SARA'
 
-    site_se_opts = opHelper.getOptionsDict( 'StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )
+    site_se_opts = gConfig.getOptionsDict( 'Resources/StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )
 
     if not site_se_opts[ 'OK' ]:
       gLogger.error( site_se_opts[ 'Message' ] )
@@ -232,9 +226,7 @@ class NagiosTopologyAgent( AgentModule ):
 
     has_grid_elem = True
 
-    opHelper = Operations()
-
-    site_fc_opts = opHelper.getOptionsDict( 'FileCatalogs/LcgFileCatalogCombined/%s' % site )
+    site_fc_opts = gConfig.getOptionsDict( 'Resources/FileCatalogs/LcgFileCatalogCombined/%s' % site )
     if not site_fc_opts[ 'OK' ]:
       gLogger.error( site_fc_opts[ 'Message' ] )
       return False
@@ -268,4 +260,4 @@ def xml_append( doc, base, elem, cdata = None, **attrs ):
   return base.appendChild( new_elem )
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
