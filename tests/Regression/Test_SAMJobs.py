@@ -25,8 +25,8 @@ class SAMJobTestCase( unittest.TestCase ):
 class SAMSuccess( SAMJobTestCase ):
   def test_execute( self ):
 
-    result = self.diracSAM.submitSAMJob( ce = self.ce, mode = 'local' )
-    print result
+    res = self.diracSAM.submitSAMJob( ce = self.ce, mode = 'local' )
+    self.assertTrue( res['OK'] )
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( SAMJobTestCase )
