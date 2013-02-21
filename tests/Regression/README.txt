@@ -19,6 +19,7 @@ cd TestLHCbDIRAC/Regression
 
 Then, it will run the following 3 test files to run: 
 - 'Test_ProductionJobs.py'
+- 'Test_SAMJobs.py'
 - 'Test_RegressionProductionJobs.py'
 - 'Test_RegressionUserJobs.py'
  
