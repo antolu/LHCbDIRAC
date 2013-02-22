@@ -67,8 +67,6 @@ class BKQuery():
     else:
       bkQuery = {}
 
-    self.setVisible( visible )
-
     ###### Query given as a path /ConfigName/ConfigVersion/ConditionDescription/ProcessingPass/EventType/FileType ######
     # or if prefixed with evt: /ConfigName/ConfigVersion/EventType/ConditionDescription/ProcessingPass/FileType
     if bkPath:
@@ -220,6 +218,8 @@ class BKQuery():
         bkQuery.pop( i )
 
     self.__bkQueryDict = bkQuery.copy()
+    self.setVisible( visible )
+
     # Set both event type entries
     #print "Before setEventType",self.__bkQueryDict
     if not self.setEventType( bkQuery.get( 'EventType' ) ):
@@ -693,7 +693,7 @@ class BKQuery():
       return eventType
     res = self.__bkClient.getEventTypes( self.__bkQueryDict )['Value']
     ind = res['ParameterNames'].index( 'EventType' )
-    eventTypes = sortList( [f[ind] for f in res['Records']] )
+    eventTypes = sortList( [rec[ind] for rec in res['Records']] )
     return eventTypes
 
   def getBKFileTypes( self, bkDict = None ):
@@ -718,7 +718,7 @@ class BKQuery():
         if res['OK']:
           res = res['Value']
           ind = res['ParameterNames'].index( 'FileTypes' )
-          fileTypes = [f[ind] for f in res['Records'] if f[ind] not in self.__exceptFileTypes]
+          fileTypes = [rec[ind] for rec in res['Records'] if rec[ind] not in self.__exceptFileTypes]
     return self.__fileType( fileTypes, returnList = True )
 
   def getBKProcessingPasses( self, queryDict = None ):
@@ -729,20 +729,24 @@ class BKQuery():
     if not queryDict:
       queryDict = self.__bkQueryDict.copy()
     initialPP = queryDict.get( 'ProcessingPass', '/' )
-    #print initialPP, queryDict
+    #print "Start", initialPP, queryDict
     res = self.__bkClient.getProcessingPass( queryDict, initialPP )
     if not res['OK']:
+      print "ERROR getting processing passes for %s" % queryDict, res['Message']
       return {}
-    pocessingPasses = res['Value'][0]
-    if 'Name' in pocessingPasses['ParameterNames']:
-      ind = pocessingPasses['ParameterNames'].index( 'Name' )
-      passes = [os.path.join( initialPP, f[ind] ) for f in pocessingPasses['Records']]
+    ppRecords = res['Value'][0]
+    if 'Name' in ppRecords['ParameterNames']:
+      ind = ppRecords['ParameterNames'].index( 'Name' )
+      passes = sorted( [os.path.join( initialPP, rec[ind] ) for rec in ppRecords['Records']] )
     else:
       passes = []
-    pocessingPasses = res['Value'][1]
-    if 'EventType' in pocessingPasses['ParameterNames']:
-      ind = pocessingPasses['ParameterNames'].index( 'EventType' )
-      eventTypes = [str( f[ind] ) for f in pocessingPasses['Records']]
+    evtRecords = res['Value'][1]
+    if 'EventType' in evtRecords['ParameterNames']:
+      ind = evtRecords['ParameterNames'].index( 'EventType' )
+      eventTypes = [str( rec[ind] ) for rec in evtRecords['Records']]
+    elif 'EventTypeId' in evtRecords['ParameterNames']:
+      ind = evtRecords['ParameterNames'].index( 'EventTypeId' )
+      eventTypes = sorted( [str( rec[ind] ) for rec in evtRecords['Records']] )
     else:
       eventTypes = []
 
@@ -758,7 +762,7 @@ class BKQuery():
     for pName in ( '/Real Data', '/' ):
       if pName in processingPasses:
         processingPasses.pop( pName )
-    #print initialPP, [(key,processingPasses[key]) for key in sortList(processingPasses.keys())]
+    #print "End", initialPP, [( key, processingPasses[key] ) for key in sortList( processingPasses.keys() )]
     return processingPasses
 
   def browseBK( self ):
@@ -767,6 +771,7 @@ class BKQuery():
     """
     configuration = self.getConfiguration()
     conditions = self.getBKConditions()
+    #print conditions
     bkTree = {configuration : {}}
     requestedEventTypes = self.getEventTypeList()
     #requestedFileTypes = self.getFileTypeList()
