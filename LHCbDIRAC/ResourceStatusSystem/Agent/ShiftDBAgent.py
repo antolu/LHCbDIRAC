@@ -213,22 +213,27 @@ class ShiftDBAgent( AgentModule ):
     members = []
     if wgroup.result.Members:
       members = wgroup.result.Members[ 0 ]
-     
-    if len( members ) == 0:
+      
+    if len( members ) > 1:
+      self.log.info( 'More than one user in the eGroup - deleting all them' )
+      return self.__deleteMembers( client, wgroup )
+    
+    elif len( members ) == 0:
       self.log.info( 'eGroup is empty' )
-      
-    elif len( members ) > 1:
-      self.log.info( 'More than one user in the eGroup' )
-      
+
+    try:
+      lastShifterEmail = members[ 0 ].Email
+    except KeyError:
+      lastShifterEmail = '-there is no last shifter email-'  
+
+    if email is None:
+      self.log.warn( 'Get email returned None, deleting previous ... %s' % lastShifterEmail )
+      return self.__deleteMembers( client, wgroup )
+    elif lastShifterEmail.strip().lower() == email.strip().lower():
+      self.log.info( '%s has not changed as shifter, no changes needed' % email )      
+      return S_OK()
     else:
-      if email is None:
-        self.log.warn( 'Get email returned None, deleting previous ... %s' % members[ 0 ].Email )
-        return self.__deleteMembers( client, wgroup )
-      elif members[ 0 ].Email.strip().lower() == email.strip().lower():
-        self.log.info( '%s has not changed as shifter, no changes needed' % email )      
-        return S_OK()
-      else:
-        self.log.info( '%s is not anymore shifter, deleting ...' % members[ 0 ].Email )
+      self.log.info( '%s is not anymore shifter, deleting ...' % lastShifterEmail )
 
     # Adding a member means it will be the only one in the eGroup, as it is overwritten
     res = self.__addMember( email, client, wgroup )
