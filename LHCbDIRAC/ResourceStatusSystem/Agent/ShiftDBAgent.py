@@ -220,20 +220,21 @@ class ShiftDBAgent( AgentModule ):
     
     elif len( members ) == 0:
       self.log.info( 'eGroup is empty' )
-
-    try:
-      lastShifterEmail = members[ 0 ].Email
-    except KeyError:
       lastShifterEmail = '-there is no last shifter email-'  
+
+    else:
+      lastShifterEmail = members[ 0 ].Email
+    
+   
+    if lastShifterEmail.strip().lower() == email.strip().lower():
+      self.log.info( '%s has not changed as shifter, no changes needed' % email )      
+      return S_OK()
 
     if email is None:
       self.log.warn( 'Get email returned None, deleting previous ... %s' % lastShifterEmail )
-      return self.__deleteMembers( client, wgroup )
-    elif lastShifterEmail.strip().lower() == email.strip().lower():
-      self.log.info( '%s has not changed as shifter, no changes needed' % email )      
-      return S_OK()
-    else:
-      self.log.info( '%s is not anymore shifter, deleting ...' % lastShifterEmail )
+      return self.__deleteMembers( client, wgroup )      
+    
+    self.log.info( '%s is not anymore shifter, deleting ...' % lastShifterEmail )
 
     # Adding a member means it will be the only one in the eGroup, as it is overwritten
     res = self.__addMember( email, client, wgroup )
@@ -327,4 +328,4 @@ class ShiftDBAgent( AgentModule ):
     return res    
  
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF 
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
