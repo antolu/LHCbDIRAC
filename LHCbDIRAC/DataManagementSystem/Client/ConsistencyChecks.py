@@ -16,6 +16,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
@@ -24,7 +25,7 @@ def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient =
     cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
     cc.prod = transID
     cc.fileType = []
-    cc.fileTypesExcluded = ['LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST']
+    cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
 
     return cc.getDescendants( lfns )[0]
 
@@ -101,8 +102,8 @@ class ConsistencyChecks( object ):
       return S_ERROR( e )
 
 
-    lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
     lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
+    lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
 
     if self.transType not in prodsWithMerge:
       # Merging and Reconstruction
@@ -185,13 +186,19 @@ class ConsistencyChecks( object ):
     present = []
     notPresent = []
 
-    gLogger.info( "Checking replicas for %d files" % len( lfns ) )
-    for chunk in breakListIntoChunks( lfns, 1000 ):
-      gLogger.verbose( len( chunk ) / 1000 * '.' )
+    chunkSize = 1000
+    printProgress = ( len( lfns ) > 5 * chunkSize )
+    if printProgress:
+      self.__write( "Checking replicas for %d files (chunks of %d) " % ( len( lfns ), chunkSize ) )
+    for chunk in breakListIntoChunks( lfns, chunkSize ):
+      if printProgress:
+        self.__write( '.' )
       res = self.rm.getReplicas( chunk )
       if res['OK']:
         present += res['Value']['Successful'].keys()
         notPresent += res['Value']['Failed'].keys()
+    if printProgress:
+      self.__write( '\n' )
 
     gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
     return present, notPresent
@@ -232,14 +239,10 @@ class ConsistencyChecks( object ):
     startTime = time.time()
     gLogger.verbose( "Comparing list of %d LFNs with second list of %d" % ( len( lfns ), len( lfnsFound ) ) )
     if lfnsFound:
-      lfnsFound.sort()
-      for lfn in sorted( lfns ):
-        while lfnsFound and lfn > lfnsFound[0]:
-          lfnsFound.pop( 0 )
-        if lfnsFound and lfn == lfnsFound[0]:
-          present.append( lfn )
-          lfnsFound.pop( 0 )
-          lfns.remove( lfn )
+      setLfns = set( lfns )
+      setLfnsFound = set( lfnsFound )
+      present = list( setLfns - setLfnsFound )
+      lfns = list( setLfns & setLfnsFound )
     gLogger.verbose( "End of comparison: %.1f seconds" % ( time.time() - startTime ) )
     return present, lfns
 
@@ -350,6 +353,7 @@ class ConsistencyChecks( object ):
     filesWithDescendants = {}
     filesWithoutDescendants = {}
     filesWithMultipleDescendants = {}
+    fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
     descendants = []
     if not lfns:
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, descendants
@@ -421,7 +425,7 @@ class ConsistencyChecks( object ):
             continue
           realDescendants = [pr for pr in desc if pr in present]
           descToCheck = self._selectByFileType( dict( [( pr, descWithDescendants[pr] ) for pr in set( desc ).intersection( setDescWithDescendants )] ),
-                                                 fileTypesExcluded = ['BOOLEHIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST'] )
+                                                 fileTypesExcluded = fileTypesExcluded )
           for lfn1 in descToCheck :
             # This daughter had descendants, therefore consider it
             realDescendants.append( lfn1 )
