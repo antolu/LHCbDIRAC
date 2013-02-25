@@ -1012,13 +1012,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.logInfo( "Starting execution of plugin" )
 
     storageElementGroups = {}
+    notInKeepSEs = []
     for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
       replicaSE = replicaSE.split( ',' )
       if minKeep == 0 and keepSEs:
         # Check that the dataset exists at least at 1 keepSE
         if not [se for se in replicaSE if se in keepSEs]:
-          self.util.logInfo( "Found %d files that are not in aat least one keepSEs, no removal done" % len( lfns ) )
-          self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
+          notInKeepSEs.extend( lfns )
           continue
       existingSEs = [se for se in replicaSE if se not in keepSEs and not isFailover( se )]
       if minKeep == 0:
@@ -1063,6 +1063,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         self.util.logInfo( "Found %s files that don't need any replica deletion" % len( lfns ) )
         self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
+
+    if notInKeepSEs:
+      self.util.logInfo( "Found %d files not in at least one keepSE, no removal done, set Problematic" % len( notInKeepSEs ) )
+      self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', notInKeepSEs )
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
