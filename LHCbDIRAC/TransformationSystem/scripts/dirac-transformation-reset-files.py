@@ -56,7 +56,7 @@ if __name__ == "__main__":
         DIRAC.exit( 2 )
 
       selectDict = {'TransformationID':res['Value']['TransformationID'], 'Status':status}
-      res = transClient.getTransformationFiles( condDict=selectDict )
+      res = transClient.getTransformationFiles( condDict = selectDict )
       if not res['OK']:
         print "Failed to get files: %s" % res['Message']
         DIRAC.exit( 2 )
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     if not lfns:
       print "No files to be reset in transformation", transID
     else:
-      res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force=( status == 'MaxReset' ) )
+      res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force = ( status == 'MaxReset' ) or lfnsExplicit )
       if res['OK']:
         print "%d files were reset Unused in transformation %s" % ( len( lfns ), transID )
       else:
