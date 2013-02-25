@@ -4,10 +4,11 @@
 ########################################################################
 __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC import DIRAC, gConfig, gLogger
 
 def __checkSEs( args ):
+  """ Extract SE names from a list of arguments """
   seList = []
   res = gConfig.getSections( '/Resources/StorageElements' )
   if res['OK']:
@@ -23,7 +24,7 @@ if __name__ == "__main__":
   dmScript.registerSiteSwitches()
 
   Script.registerSwitch( "v", "Verbose", " use this option for verbose output [False]" )
-  Script.registerSwitch( "n", "NoLFC", " use this option to force the removal from storage of replicas not registered in FC [by default, replicas not registered are NOT removed from storage]" )
+  Script.registerSwitch( "n", "NoLFC", " use this option to force the removal from storage of replicas not in FC" )
   Script.setUsageMessage( """
   Remove the given file replica or a list of file replicas from the File Catalog
   and from the storage.
@@ -33,10 +34,10 @@ if __name__ == "__main__":
   """ % Script.scriptName )
 
   verbose = False
-  FCCheck = True
+  checkFC = True
   Script.parseCommandLine()
 
-  from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
+  from DIRAC.Core.Utilities.List                        import breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   rm = ReplicaManager()
 
@@ -44,7 +45,6 @@ if __name__ == "__main__":
 
   if not seList:
     sites = dmScript.getOption( 'Sites', [] )
-    from DIRAC import gConfig
     for site in sites:
       res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
       if not res['OK']:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     if switch[0] == "v" or switch[0].lower() == "verbose":
       verbose = True
     if switch[0] == "n" or switch[0].lower() == "nolfc":
-      FCCheck = False
+      checkFC = False
 
 
   errorReasons = {}
@@ -77,7 +77,7 @@ if __name__ == "__main__":
   notExisting = {}
   gLogger.setLevel( 'ERROR' )
 
-  if not FCCheck:
+  if not checkFC:
     ##################################
     # Try and remove PFNs if not in FC
     ##################################
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         else:
           if res['Value']['Successful']:
             gLogger.always( "%d files are in the FC, they will not be removed from %s" \
-              % ( len( res['Value']['Successful'] ), sename ) )
+              % ( len( res['Value']['Successful'] ), seName ) )
           lfnsToRemove += res['Value']['Failed'].keys()
         if not lfnsToRemove:
           continue
@@ -122,7 +122,7 @@ if __name__ == "__main__":
           continue
         res = se.removeFile( pfns )
         if not res['OK']:
-          gLogger.errpr( 'ERROR removing storage file: ', res['Message'] )
+          gLogger.error( 'ERROR removing storage file: ', res['Message'] )
         else:
           gLogger.verbose( "ReplicaManager.removeStorageFile returned: ", res )
           failed = res['Value']['Failed']
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     gLogger.setLevel( 'FATAL' )
     for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
       for seName in sorted( seList ):
-        res = rm.removeReplica( lfnChunk, seName, printOutput = True )
+        res = rm.removeReplica( lfnChunk, seName )
         if not res['OK']:
           gLogger.fatal( "Failed to remove replica", res['Message'] )
           DIRAC.exit( -2 )
@@ -162,7 +162,7 @@ if __name__ == "__main__":
       else:
         for lfn, reason in res['Value']['Failed'].items():
           errorReasons.setdefault( str( reason ), {} ).setdefault( se, [] ).append( lfn )
-          notExisting.pop( lfn )
+          notExisting.pop( lfn, None )
         replicas = res['Value']['Successful']
         for lfn in notExisting:
           for se in [se for se in notExisting[lfn] if se in replicas.get( lfn, [] )]:
@@ -173,7 +173,7 @@ if __name__ == "__main__":
             else:
               for lfn, reason in res['Value']['Failed'].items():
                 errorReasons.setdefault( str( reason ), {} ).setdefault( se, [] ).append( lfn )
-                notExisting.remove( lfn )
+                notExisting.pop( lfn, None )
         if notExisting:
           for lfn in notExisting:
             for se in notExisting[lfn]:
@@ -186,6 +186,6 @@ if __name__ == "__main__":
   for reason, seDict in errorReasons.items():
     for se, lfns in seDict.items():
       gLogger.always( "Failed to remove %d files from %s with error: %s" % ( len( lfns ), se, reason ) )
-  if not successfullyRemoved and not errorReasons and not FCCheck:
+  if not successfullyRemoved and not errorReasons and not checkFC:
     gLogger.always( "Files were found at no SE in %s" % str( seList ) )
   DIRAC.exit( 0 )
