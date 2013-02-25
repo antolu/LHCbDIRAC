@@ -1,5 +1,5 @@
-""" 
-    This is the Data Integrity Client which allows the simple reporting of problematic 
+"""
+    This is the Data Integrity Client which allows the simple reporting of problematic
     file and replicas to the IntegrityDB and their status correctly updated in the FileCatalog.
 """
 
@@ -110,7 +110,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
   #
 
   def catalogDirectoryToBK( self, lfnDir ):
-    """ This obtains the replica and metadata information from the catalog for 
+    """ This obtains the replica and metadata information from the catalog for
       the supplied directory and checks against the BK.
     """
     gLogger.info( "-" * 40 )
@@ -132,7 +132,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def catalogFileToBK( self, lfns ):
-    """ This obtains the replica and metadata information from the catalog and 
+    """ This obtains the replica and metadata information from the catalog and
       checks against the storage elements.
     """
     gLogger.info( "-" * 40 )
@@ -155,7 +155,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def __checkBKFiles( self, replicas, catalogMetadata ):
-    """ This takes the supplied replica and catalog metadata information and ensures 
+    """ This takes the supplied replica and catalog metadata information and ensures
       the files exist in the BK with the correct metadata.
     """
     gLogger.info( 'Checking the bookkeeping existence of %s files' % len( catalogMetadata ) )
@@ -255,3 +255,113 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if not res['OK']:
       return self.__returnProblematicError( fileID, res )
     return self.__updateCompletedFiles( 'BKReplicaNo', fileID )
+
+  def checkPhysicalFiles( self, replicas, catalogMetadata, ses = [], fixIt = False ):
+    """ This obtains takes the supplied replica and metadata information obtained from the catalog and checks against the storage elements.
+    """
+    gLogger.info( "-" * 40 )
+    gLogger.info( "Performing the LFC->SE check" )
+    gLogger.info( "-" * 40 )
+    return self.__checkPhysicalFiles( replicas, catalogMetadata, ses = ses, fixIt = fixIt )
+
+  def __checkPhysicalFiles( self, replicas, catalogMetadata, ses = [], fixIt = False ):
+    """ This obtains the physical file metadata and checks the metadata against the catalog entries
+    """
+    sePfns = {}
+    pfnLfns = {}
+    for lfn, replicaDict in replicas.items():
+      for se, pfn in replicaDict.items():
+        if ( ses ) and ( se not in ses ):
+          continue
+        if not sePfns.has_key( se ):
+          sePfns[se] = []
+        sePfns[se].append( pfn )
+        pfnLfns[pfn] = lfn
+    gLogger.info( '%s %s' % ( 'Storage Element'.ljust( 20 ), 'Replicas'.rjust( 20 ) ) )
+    for site in sorted( sePfns ):
+      files = len( sePfns[site] )
+      gLogger.info( '%s %s' % ( site.ljust( 20 ), str( files ).rjust( 20 ) ) )
+
+    for se in sorted( sePfns ):
+      pfns = sePfns[se]
+      pfnDict = {}
+      for pfn in pfns:
+        pfnDict[pfn] = pfnLfns[pfn]
+      sizeMismatch = []
+      checksumMismatch = []
+      checksumBadInFC = []
+      res = self.__checkPhysicalFileMetadata( pfnDict, se )
+      if not res['OK']:
+        gLogger.error( 'Failed to get physical file metadata.', res['Message'] )
+        return res
+      for pfn, metadata in res['Value'].items():
+        if pfnLfns[pfn] in catalogMetadata:
+          if ( metadata['Size'] != catalogMetadata[pfnLfns[pfn]]['Size'] ) and ( metadata['Size'] != 0 ):
+            sizeMismatch.append( ( pfnLfns[pfn], pfn, se, 'CatalogPFNSizeMismatch' ) )
+          if metadata['Checksum'] != catalogMetadata[pfnLfns[pfn]]['Checksum']:
+            if metadata['Checksum'].replace( 'x', '0' ) == catalogMetadata[pfnLfns[pfn]]['Checksum'].replace( 'x', '0' ):
+              checksumBadInFC.append( ( pfnLfns[pfn], pfn, se, "%s %s" % ( metadata['Checksum'], catalogMetadata[pfnLfns[pfn]]['Checksum'] ) ) )
+            else:
+              checksumMismatch.append( ( pfnLfns[pfn], pfn, se, "%s %s" % ( metadata['Checksum'], catalogMetadata[pfnLfns[pfn]]['Checksum'] ) ) )
+      if sizeMismatch:
+        self.__reportProblematicReplicas( sizeMismatch, se, 'CatalogPFNSizeMismatch', fixIt = fixIt )
+      if checksumMismatch:
+        self.__reportProblematicReplicas( checksumMismatch, se, 'CatalogChecksumMismatch', fixIt = fixIt )
+      if checksumBadInFC:
+        self.__reportProblematicReplicas( checksumBadInFC, se, 'CatalogChecksumToBeFixed', fixIt = fixIt )
+    return S_OK()
+
+  def __checkPhysicalFileMetadata( self, pfnLfns, se ):
+    """ Check obtain the physical file metadata and check the files are available
+    """
+    gLogger.info( 'Checking the integrity of %s physical files at %s' % ( len( pfnLfns ), se ) )
+
+    res = self.rm.getStorageFileMetadata( pfnLfns.keys(), se )
+    if not res['OK']:
+      gLogger.error( 'Failed to get metadata for pfns.', res['Message'] )
+      return res
+    pfnMetadataDict = res['Value']['Successful']
+    # If the replicas are completely missing
+    missingReplicas = []
+    for pfn, reason in res['Value']['Failed'].items():
+      if re.search( 'File does not exist', reason ):
+        missingReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNMissing' ) )
+    if missingReplicas:
+      self.__reportProblematicReplicas( missingReplicas, se, 'PFNMissing' )
+    lostReplicas = []
+    unavailableReplicas = []
+    zeroSizeReplicas = []
+    # If the files are not accessible
+    for pfn, pfnMetadata in pfnMetadataDict.items():
+      if pfnMetadata['Lost']:
+        lostReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNLost' ) )
+      if pfnMetadata['Unavailable']:
+        unavailableReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNUnavailable' ) )
+      if pfnMetadata['Size'] == 0:
+        zeroSizeReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNZeroSize' ) )
+    if lostReplicas:
+      self.__reportProblematicReplicas( lostReplicas, se, 'PFNLost' )
+    if unavailableReplicas:
+      self.__reportProblematicReplicas( unavailableReplicas, se, 'PFNUnavailable' )
+    if zeroSizeReplicas:
+      self.__reportProblematicReplicas( zeroSizeReplicas, se, 'PFNZeroSize' )
+    gLogger.info( 'Checking the integrity of physical files at %s complete' % se )
+    return S_OK( pfnMetadataDict )
+
+  def __reportProblematicReplicas( self, replicaTuple, se, reason, fixIt = False ):
+    """ Simple wrapper function around setReplicaProblematic """
+    gLogger.info( 'The following %s files had %s at %s' % ( len( replicaTuple ), reason, se ) )
+    for lfn, pfn, se, reason1 in sorted( replicaTuple ):
+      if reason1 == reason:
+        reason1 = ''
+      if lfn:
+        gLogger.info( lfn, reason1 )
+      else:
+        gLogger.info( pfn, reason1 )
+    if fixIt:
+      res = self.setReplicaProblematic( replicaTuple, sourceComponent = 'DataIntegrityClient' )
+      if not res['OK']:
+        gLogger.info( 'Failed to update integrity DB with replicas', res['Message'] )
+      else:
+        gLogger.info( 'Successfully updated integrity DB with replicas' )
+
