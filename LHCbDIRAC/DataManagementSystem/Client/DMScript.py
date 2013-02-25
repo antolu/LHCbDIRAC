@@ -54,6 +54,7 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
   except:
     print "Exception while printing results in", script, "- Results:"
     print result
+    return 2
 
 def convertSEs( ses ):
   seList = []
@@ -118,6 +119,7 @@ class DMScript():
     ''' File switches '''
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
+    Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
 
   def setProductions( self, arg ):
     prods = []
@@ -209,6 +211,9 @@ class DMScript():
     if arg:
       self.options.setdefault( 'LFNs', [] ).extend( arg.split( ',' ) )
     return DIRAC.S_OK()
+
+  def setLFNsFromTerm( self, arg ):
+    return self.setLFNsFromFile( '/dev/stdin' )
 
   def setLFNsFromFile( self, arg ):
     try:
