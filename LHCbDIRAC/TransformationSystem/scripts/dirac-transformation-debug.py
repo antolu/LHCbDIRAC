@@ -9,7 +9,7 @@ __RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z 
 import sys
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
-def __getFilesForRun( transID, runID, status = None, lfnList = None, seList = None ):
+def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None ):
   #print transID, runID, status, lfnList
   selectDict = {}
   if runID != None:
@@ -41,9 +41,17 @@ def __filesProcessed( transID, runID ):
           processed += 1
   return ( files, processed )
 
-def __getRuns( transID, runList, byRuns, seList ):
+def __getRuns( transID, runList, byRuns, seList, status = None ):
+  runs = []
+  if status and byRuns:
+    files = __getFilesForRun( transID, status = status )
+    runList = []
+    for fileDict in files:
+      run = fileDict['RunNumber']
+      if run not in runList:
+        runList.append( str( run ) )
+
   if runList:
-      runs = []
       for runRange in runList:
         runRange = runRange.split( ':' )
         if len( runRange ) == 1:
@@ -152,6 +160,7 @@ def __getTransformationInfo( transID ):
   else:
     print "No BKQuery for this transformation"
     queryProduction = None
+  print ""
   return transID, transType, taskType, queryProduction
 
 def __fixRunZero( filesWithRunZero, fixRun ):
@@ -337,8 +346,8 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
             print 'Request %d reset Waiting' % requestID
   return toBeKicked
 
-def __checkFilesProblematic( transID, nbReplicasProblematic, problematicReplicas, fixIt ):
-  print "\nStatistics for Problematic files:"
+def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt ):
+  print "\nStatistics for Problematic files in FC:"
   existingReplicas = {}
   lfns = []
   lfnsInFC = []
@@ -358,19 +367,31 @@ def __checkFilesProblematic( transID, nbReplicasProblematic, problematicReplicas
   for lfn in existingReplicas:
     nbReplicas = len( existingReplicas[lfn] )
     nbExistingReplicas[nbReplicas] = nbExistingReplicas.setdefault( nbReplicas, 0 ) + 1
+  nonExistingReplicas = {}
   if nbProblematic == len( lfns ):
       print "None of the %d problematic files actually have a replica" % len( lfns )
   else:
-    print "Out of %d problematic replicas, only %d do not have a replica" % ( len( lfns ), nbProblematic )
+    strMsg = "Out of %d problematic replicas" % len( lfns )
+    if nbProblematic:
+      strMsg += ", only %d do not have a physical replica" % nbProblematic
+    else:
+      strMsg += ", all have a physical replica"
+    print strMsg
     for n in sorted( nbExistingReplicas ):
       print "   %d replicas: %d files" % ( n, nbExistingReplicas[n] )
     for se in problematicReplicas:
       lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
+      str2Msg = ''
       if len( lfns ):
+        nonExistingReplicas.setdefault( se, [] ).extend( lfns )
+        if not fixIt:
+          str2Msg = ' Use --FixIt to remove them'
+        else:
+          str2Msg = ' Will be removed from FC'
         strMsg = '%d' % len( lfns )
       else:
-        strMsg = 'No'
-      print "   %s : %d replicas of problematic files, %s missing replicas" % ( se.ljust( 15 ), len( problematicReplicas[se] ), strMsg )
+        strMsg = 'none'
+      print "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( se.ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg )
     lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
     if lfns:
       prString = "Failed transfers but existing replicas"
@@ -396,6 +417,27 @@ def __checkFilesProblematic( transID, nbReplicasProblematic, problematicReplicas
         print "Successfully removed %d files from FC" % len( filesInFCNotExisting )
       else:
         print "ERROR when removing files from FC:", res['Message']
+  if fixIt and nonExistingReplicas:
+    nRemoved = 0
+    failures = {}
+    for se in nonExistingReplicas:
+      lfns = [lfn for lfn in nonExistingReplicas[se] if lfn not in filesInFCNotExisting]
+      res = rm.removeReplica( se, lfns )
+      if not res['OK']:
+        print "ERROR when removing replicas from FC at %s" % se, res['Message']
+      else:
+        failed = res['Value']['Failed']
+        if failed:
+          print "Failed to remove %d replicas at %s" % ( len( failed ), se )
+          print '\n'.join( sorted( failed ) )
+          for lfn in failed:
+            failures.setdefault( failed[lfn], [] ).append( lfn )
+        nRemoved += len( res['Value']['Successful'] )
+    print "Successfully removed %s replicas from FC" % nRemoved
+    if failures:
+      print "Failures:"
+      for error in failures:
+        print "%s: %d replicas" % ( error, len( failures[error] ) )
   print ""
 
 def __checkReplicasForProblematic( lfns, replicas ):
@@ -430,8 +472,8 @@ if __name__ == "__main__":
   fixIt = False
   from DIRAC.Core.Base import Script
 
-  infoList = ["Files", "Runs", "Tasks", 'Jobs', 'Alltasks']
-  statusList = ["Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed"]
+  infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks' )
+  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed" )
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'Info=', "Specify what to print out from %s" % str( infoList ) )
@@ -442,7 +484,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
   Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
   Script.registerSwitch( '', 'FixRun', 'Fix the run number in transformation table' )
-  Script.registerSwitch( '', 'fixIt', 'Fix the FC' )
+  Script.registerSwitch( '', 'FixIt', 'Fix the FC' )
   Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
   Script.registerSwitch( 'v', 'Verbose', '' )
   Script.setUsageMessage( '\n'.join( [ __doc__,
@@ -460,25 +502,27 @@ if __name__ == "__main__":
     if opt == 'Info' :
       infos = val.split( ',' )
       for val in infos:
-        val = val.capitalize()
+        val = val.lower()
         if val not in infoList:
           print "Unknown information... Select in %s" % str( infoList )
           DIRAC.exit( 0 )
-        elif val == "Files":
+        elif val == "files":
           byFiles = True
-        elif val == "Runs":
+        elif val == "runs":
           byRuns = True
-        elif val == "Tasks":
+        elif val == "tasks":
           byTasks = True
-        elif val == "Jobs":
+        elif val == "jobs":
           byJobs = True
-        elif val == "Alltasks":
+        elif val == "alltasks":
           allTasks = True
     elif opt == 'Status':
       if val not in statusList:
         print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
         Script.showHelp()
       status = val
+      if status in ( "MissingLFC", "MissingInFC" ):
+        status = ["MissingLFC", "MissingInFC"]
     elif opt == 'Runs' :
       runList = val.split( ',' )
     elif opt == 'SEs':
@@ -493,7 +537,7 @@ if __name__ == "__main__":
       dumpFiles = True
     elif opt == 'Statistics':
       justStats = True
-    elif opt == 'fixIt':
+    elif opt == 'FixIt':
       fixIt = True
     elif opt == 'FixRun':
       fixRun = True
@@ -539,7 +583,7 @@ if __name__ == "__main__":
       continue
     ################
     # Select runs, or all
-    runsDictList = __getRuns( transID, runList, byRuns, seList )
+    runsDictList = __getRuns( transID, runList, byRuns, seList, status )
     SEStat = {"Total":0}
     allFiles = []
     toBeKicked = 0
@@ -550,14 +594,14 @@ if __name__ == "__main__":
       runID = runDict['RunNumber']
       SEs = runDict.get( 'SelectedSite', 'None' ).split( ',' )
       runStatus = runDict.get( 'Status' )
-      if verbose and byRuns: print '\nRun:', runID, 'SelectedSite:', SEs, 'Status:', runStatus
 
       # Get all files from TransformationDB
       transFilesList = sorted( __getFilesForRun( transID, runID, status, lfnList, seList ) )
       if lfnList:
         notFoundFiles = [lfn for lfn in lfnList if lfn not in [fileDict['LFN'] for fileDict in transFilesList]]
-        print "Some requested files were not found in transformation (%d):" % len( notFoundFiles )
-        print '\n\t'.join( notFoundFiles )
+        if notFoundFiles:
+          print "Some requested files were not found in transformation (%d):" % len( notFoundFiles )
+          print '\n\t'.join( notFoundFiles )
 
       # No files found in transDB
       if not transFilesList:
@@ -566,9 +610,13 @@ if __name__ == "__main__":
         continue
 
       # Run display
-      if runID or verbose:
+      if ( byRuns and runID ) or verbose:
           files, processed = __filesProcessed( transID, runID )
-          print "Run:", runID, "- %d files (SelectedSite: %s), %d processed" % ( files, SEs, processed )
+          prString = "Run: %d" % runID
+          if runStatus:
+            prString += " (%s)" % runStatus
+          prString += " - %d files (SelectedSite: %s), %d processed" % ( files, SEs, processed )
+          print prString
 
       prString = "%d files found" % len( transFilesList )
       if status:
@@ -643,7 +691,7 @@ if __name__ == "__main__":
 
         #Collect statistics per SE
         for lfn in replicas:
-          taskCompleted = taskCompleted and __fillStatsPerSE( replicas[lfn], listSEs )
+          taskCompleted = __fillStatsPerSE( replicas[lfn], listSEs ) and taskCompleted
 
         # Print out task's information
         if byTasks:
@@ -663,7 +711,7 @@ if __name__ == "__main__":
           print ""
 
     if status == 'Problematic':
-      __checkFilesProblematic( transID, nbReplicasProblematic, problematicReplicas, fixIt )
+      __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
       if kickRequests:
         print "%d requests have been kicked" % toBeKicked
