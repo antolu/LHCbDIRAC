@@ -926,9 +926,9 @@ class PluginUtilities:
       startTime = time.time()
       res = self.rm.getCatalogFileSize( lfns )
       if not res['OK']:
-        return S_ERROR( "Failed to get sizes for files" )
+        return S_ERROR( "Failed to get sizes for all files: " % res['Message'] )
       if res['Value']['Failed']:
-        return S_ERROR( "Failed to get sizes for all files" )
+        self.logWarn( "Failed to get sizes for %d files" % len( res['Value']['Failed'] ) )
       fileSizes.update( res['Value']['Successful'] )
       self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
       self.logVerbose( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
