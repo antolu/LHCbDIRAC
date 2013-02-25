@@ -85,7 +85,7 @@ if __name__ == "__main__":
   transformation = Transformation()
   bk = BookkeepingClient()
 
-  visible = True
+  visible = not pluginScript.getOption( 'Invisible', False )
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
     visible = False
 
@@ -178,9 +178,9 @@ if __name__ == "__main__":
       DIRAC.exit( 0 )
 
   if transBKQuery:
-    print "Executing the BK query..."
+    print "Executing the BK query:", bkQuery
     startTime = time.time()
-    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), visible = visible )
+    lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ) )
     bkTime = time.time() - startTime
     nfiles = len( lfns )
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
@@ -223,11 +223,13 @@ if __name__ == "__main__":
 
   # Prepare the transformation
   if transBKQuery:
-    print transBKQuery
     #### !!!! Hack in order to remain compatible with hte BKQuery table...
     if 'Production' in transBKQuery:
       transBKQuery['ProductionID'] = transBKQuery['Production']
       transBKQuery.pop( 'Production' )
+    if 'RunNumber' in transBKQuery:
+      transBKQuery['RunNumbers'] = transBKQuery['RunNumber']
+      transBKQuery.pop( 'RunNumber' )
     transformation.setBkQuery( transBKQuery )
 
   # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
