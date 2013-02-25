@@ -34,7 +34,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'DumpWithArchives=', '   =<n>, print list of files with <n> archives' )
   Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print list of files with <n> replicas' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   getSize = False
   prNoReplicas = False
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     if not lfns:
       bkQuery = dmScript.getBKQuery()
       print "Executing BK query:", bkQuery
-      lfns = bkQuery.getLFNs()
+      lfns = bkQuery.getLFNs( visible = False )
     if lfns:
       res = rm.getReplicas( lfns )
       if not res['OK']:
@@ -175,7 +175,7 @@ if __name__ == "__main__":
   for se in orderSEs( repSEs.keys() ):
     if se.endswith( "-FAILOVER" ): continue
     if not se.endswith( "-ARCHIVE" ):
-      res = getSitesForSE( se, gridName='LCG' )
+      res = getSitesForSE( se, gridName = 'LCG' )
       if res['OK']:
         try:
           site = res['Value'][0]
