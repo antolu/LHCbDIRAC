@@ -402,7 +402,7 @@ class BKQuery():
       fileTypes = fileType
     else:
       fileTypes = fileType.split( ',' )
-    allRequested = False
+    allRequested = None
     if fileTypes[0].lower() == "all":
       allRequested = True
       bkTypes = self.getBKFileTypes()
@@ -412,15 +412,21 @@ class BKQuery():
       else:
         fileTypes = []
     expandedTypes = []
+    #print "Requested", fileTypes
     for fileType in fileTypes:
-      if fileType.lower().find( "all." ) == 0:
+      if fileType.lower() == 'all.hist':
+        allRequested = False
+        expandedTypes += [t for t in self.__exceptFileTypes + self.__bkFileTypes if t.endswith( 'HIST' )]
+      elif fileType.lower().find( "all." ) == 0:
         ext = '.' + fileType.split( '.' )[1]
         fileType = []
-        allRequested = True
+        if allRequested == None:
+          allRequested = True
         expandedTypes += [t for t in self.getBKFileTypes() if t.endswith( ext ) and t not in self.__exceptFileTypes]
       else:
         expandedTypes.append( fileType )
     # Remove __exceptFileTypes only if not explicitly required
+    #print "Obtained", fileTypes, expandedTypes
     gLogger.verbose( "BKQuery.__fileType: requested %s, expanded %s, except %s" % ( allRequested,
                                                                                     expandedTypes,
                                                                                     self.__exceptFileTypes ) )
