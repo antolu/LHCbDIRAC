@@ -2,44 +2,53 @@
 ########################################################################
 __RCSID__ = "$Id$"
 
+import DIRAC
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.Base import Script
 
-Script.setUsageMessage( """
-Check the integrity of the state of the storages and information in the File Catalogs
-for a given file or a collection of files.
+if __name__ == "__main__":
 
-Usage:
-   %s <lfn | fileContainingLfns> <SE> <status>
-""" % Script.scriptName )
+  dmScript = DMScript()
+  dmScript.registerBKSwitches()
+  dmScript.registerFileSwitches()
 
-Script.parseCommandLine()
+  fixIt = False
+  Script.registerSwitch( '', 'FixIt', 'Set replicas problematic if needed' )
+  Script.setUsageMessage( """
+  Check the integrity of the state of the storages and information in the File Catalogs
+  for a given file or a collection of files.
 
-from DIRAC import gLogger, exit as DIRACExit
-from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
-import sys, os
+  Usage:
+     %s <lfn | fileContainingLfns> <SE> <status>
+  """ % Script.scriptName )
 
-if len( sys.argv ) < 2:
-  Script.showHelp()
-  DIRACExit( -1 )
-else:
-  inputFileName = sys.argv[1]
+  Script.parseCommandLine()
 
-if os.path.exists( inputFileName ):
-  inputFile = open( inputFileName, 'r' )
-  stringIn = inputFile.read()
-  lfns = stringIn.splitlines()
-  inputFile.close()
-else:
-  lfns = [inputFileName]
+  for opt, val in Script.getUnprocessedSwitches():
+    if opt == 'FixIt':
+      fixIt = True
 
-integrityClient = DataIntegrityClient()
-res = integrityClient.catalogFileToBK( lfns )
-if not res['OK']:
-  gLogger.error( res['Message'] )
-  sys.exit()
-replicas = res['Value']['CatalogReplicas']
-metadata = res['Value']['CatalogMetadata']
-res = integrityClient.checkPhysicalFiles( replicas, metadata )
-if not res['OK']:
-  gLogger.error( res['Message'] )
-  sys.exit()
+  from DIRAC import gLogger
+  gLogger.setLevel( 'INFO' )
+  from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
+
+  for lfn in Script.getPositionalArgs():
+    dmScript.setLFNsFromFile( lfn )
+  lfns = dmScript.getOption( 'LFNs' )
+  if not lfns:
+    print "No LFNs given..."
+    Script.showHelp()
+    DIRAC.exit( 0 )
+
+  integrityClient = DataIntegrityClient()
+  res = integrityClient.catalogFileToBK( lfns )
+  if not res['OK']:
+    gLogger.error( res['Message'] )
+    DIRAC.exit( 1 )
+  replicas = res['Value']['CatalogReplicas']
+  metadata = res['Value']['CatalogMetadata']
+  res = integrityClient.checkPhysicalFiles( replicas, metadata, fixIt = fixIt )
+  if not res['OK']:
+    gLogger.error( res['Message'] )
+    DIRAC.exit( 1 )
+  DIRAC.exit( 0 )
