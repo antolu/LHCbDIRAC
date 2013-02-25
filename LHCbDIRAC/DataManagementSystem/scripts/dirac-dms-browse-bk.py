@@ -15,7 +15,7 @@ from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.Utilities.List                                         import uniqueElements, sortList
 
-def printTree( tree, tabs=0, depth=sys.maxint ):
+def printTree( tree, tabs = 0, depth = sys.maxint ):
   if type( tree ) == type( {} ):
     keys = tree.keys()
   elif type( tree ) == type( [] ):
@@ -29,19 +29,19 @@ def printTree( tree, tabs=0, depth=sys.maxint ):
   if type( tree ) == type( {} ) and tabs < depth:
     for key in keys:
       print prStr + str( key )
-      newTabs = printTree( tree[key], tabs=tabs, depth=depth )
+      newTabs = printTree( tree[key], tabs = tabs, depth = depth )
   else:
     print prStr + str( keys )
   return newTabs
 
-def makeDataset( configuration, condition, processingPass, eventTypes, separator='|' ):
+def makeDataset( configuration, condition, processingPass, eventTypes, separator = '|' ):
   if type( eventTypes ) == type( 0 ):
     eventTypes = [eventTypes]
   eventTypes = ','.join( uniqueElements( [str( evtType ) for evtType in eventTypes] ) )
   return separator.join( [configuration, condition, processingPass, eventTypes] )
 
 def makeBKPath( configuration, condition, processingPass, eventTypes ):
-  return makeDataset( configuration, condition, processingPass, eventTypes, separator='/' ).replace( '//', '/' )
+  return makeDataset( configuration, condition, processingPass, eventTypes, separator = '/' ).replace( '//', '/' )
 
 def makeTreeFromDatasets( datasets ):
   tree = {}
@@ -103,7 +103,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets that can be removed" )
   Script.registerSwitch( "", "Verbose", "   Print the current BK tree and the trees from the retention table" )
 
-  Script.parseCommandLine( ignoreErrors=True )
+  Script.parseCommandLine( ignoreErrors = True )
   #print "Start time: %.3f seconds" % (time.time() - startTime)
 
   toKeepFile = None
@@ -155,7 +155,12 @@ if __name__ == "__main__":
           tree = toRemoveTree
         else:
           tree = toKeepTree
-        conditions = [cond.replace( '2.5', '2,5' ) for cond in l[1].replace( '2,5', '2.5' ).replace( '!', '' ).strip().split( ',' )]
+        conditions = []
+        for cond in [cond.replace( '2.5', '2,5' ) for cond in l[1].replace( '2,5', '2.5' ).replace( '!', '' ).strip().split( ',' )]:
+          if 'Mag*' in cond:
+            conditions.extend( [cond.replace( '*', 'Down' ), cond.replace( '*', 'Up' )] )
+          else:
+            conditions.append( cond )
         processingPass = l[2].replace( confVersion + '-', '' ).strip()
         #print processingPass
         if processingPass.find( '/' ) == -1:
@@ -168,9 +173,9 @@ if __name__ == "__main__":
             processingPass = os.path.join( '/', processingPass[0:6], processingPass[6:] )
         if processingPass[0] != '/':
           processingPass = '/' + processingPass
-        eventType = int( l[3].strip() )
+        eventTypes = [int( evt ) for evt in l[3].strip().split( ',' )]
         for condition in conditions:
-          tree[configuration].setdefault( condition.strip(), {} ).setdefault( processingPass, [] ).append( eventType )
+          tree[configuration].setdefault( condition.strip(), {} ).setdefault( processingPass, [] ).extend( eventTypes )
   if toKeepTree:
     print "Datasets to ke kept:"
     depth = printTree( toKeepTree )
@@ -183,7 +188,7 @@ if __name__ == "__main__":
   print "Browsing BK..."
   bkTree = bkQuery.browseBK()
   if ( not toKeepFile and not printBKPath ) or verbose:
-    printTree( bkTree, depth=depth )
+    printTree( bkTree, depth = depth )
 
   if toKeepFile:
     # Get paths in toKeepTree that are not in bkTree
