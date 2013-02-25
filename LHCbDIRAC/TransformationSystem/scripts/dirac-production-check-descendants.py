@@ -8,7 +8,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
 Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
-Script.registerSwitch( '', 'RunStatus=', 'Specify a run status for selecting runs' )
+Script.registerSwitch( '', 'RunStatus=', 'Specify a (list of) run status for selecting runs (default: Active' )
 Script.registerSwitch( '', 'FromProduction=', 'Specify the production from which the runs should be derived' )
 Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
 Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
@@ -26,7 +26,7 @@ if __name__ == '__main__':
   fileType = []
   runsList = []
   fixIt = False
-  runStatus = None
+  runStatus = 'Active'
   fromProd = None
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
@@ -43,10 +43,6 @@ if __name__ == '__main__':
       except:
         gLogger.exception( "Wrong production number: %s" % switch[1] )
         DIRAC.exit( 0 )
-
-  if runStatus and not fromProd:
-    gLogger.error( "Please specify from which production the run ranges should be obtained (--FromProduction <prod>)" )
-    DIRAC.exit( 0 )
 
   args = Script.getPositionalArgs()
   if not len( args ):
