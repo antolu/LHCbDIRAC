@@ -365,3 +365,50 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       else:
         gLogger.info( 'Successfully updated integrity DB with replicas' )
 
+  ##########################################################################
+  #
+  # This section contains the specific methods for obtaining replica and metadata information from the catalog
+  #
+
+  def __getCatalogDirectoryContents( self, lfnDir ):
+    """ Obtain the contents of the supplied directory
+    """
+    gLogger.info( 'Obtaining the catalog contents for %s directories' % len( lfnDir ) )
+
+    activeDirs = lfnDir
+    allFiles = {}
+    while len( activeDirs ) > 0:
+      currentDir = activeDirs[0]
+      res = self.rm.getCatalogListDirectory( currentDir, verbose = True )
+      activeDirs.remove( currentDir )
+      if not res['OK']:
+        gLogger.error( 'Failed to get directory contents', res['Message'] )
+        return res
+      elif res['Value']['Failed'].has_key( currentDir ):
+        gLogger.error( 'Failed to get directory contents', '%s %s' % ( currentDir, res['Value']['Failed'][currentDir] ) )
+      else:
+        dirContents = res['Value']['Successful'][currentDir]
+        activeDirs.extend( dirContents['SubDirs'] )
+        allFiles.update( dirContents['Files'] )
+
+    zeroReplicaFiles = []
+    zeroSizeFiles = []
+    allReplicaDict = {}
+    allMetadataDict = {}
+    for lfn, lfnDict in allFiles.items():
+      lfnReplicas = {}
+      for se, replicaDict in lfnDict['Replicas'].items():
+        lfnReplicas[se] = replicaDict['PFN']
+      if not lfnReplicas:
+        zeroReplicaFiles.append( lfn )
+      allReplicaDict[lfn] = lfnReplicas
+      allMetadataDict[lfn] = lfnDict['MetaData']
+      if lfnDict['MetaData']['Size'] == 0:
+        zeroSizeFiles.append( lfn )
+    if zeroReplicaFiles:
+      self.__reportProblematicFiles( zeroReplicaFiles, 'LFNZeroReplicas' )
+    if zeroSizeFiles:
+      self.__reportProblematicFiles( zeroSizeFiles, 'LFNZeroSize' )
+    gLogger.info( 'Obtained at total of %s files for the supplied directories' % len( allMetadataDict ) )
+    resDict = {'Metadata':allMetadataDict, 'Replicas':allReplicaDict}
+    return S_OK( resDict )
