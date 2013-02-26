@@ -198,6 +198,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -214,6 +215,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['dl', 'pr', 'pr', 'pr']
     eventsExpected = [-1, -1, -1, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -229,6 +231,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -247,6 +250,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -263,6 +267,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['pr', 'dl']
     eventsExpected = [-1, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -278,6 +283,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -295,6 +301,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1]
     pr.bkQueries = ['fromPreviousProd', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -311,6 +318,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -326,6 +334,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -343,6 +352,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputDataPolicies = ['']
     pr.events = [-1]
     pr.bkQueries = ['Full']
+    pr.targets = ['Target1']
     pr._applyOptionalCorrections()
     pr.sysConfig = ['i686-slc5-gcc43-opt']
     prodsTypeListExpected = ['DataStripping']
@@ -360,6 +370,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['']
     eventsExpected = [-1]
     sysConfigExpected = ['i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -375,6 +386,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
@@ -393,6 +405,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
     pr.events = [-1, -1, -1]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2', 'Target3']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -409,6 +422,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt' ]
+    targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2', 'Target3']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -424,6 +438,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -442,6 +457,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -458,6 +474,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl']
     eventsExpected = [-1, -1, -1, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', ]
+    targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -473,6 +490,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -491,6 +509,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1]
     pr.bkQueries = ['Full']
     pr.sysConfig = ['i686-slc5-gcc43-opt']
+    pr.targets = ['Target1']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -507,6 +526,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['dl']
     eventsExpected = [-1]
     sysConfigExpected = ['i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -522,6 +542,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -539,6 +560,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -555,6 +577,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -570,6 +593,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['MCSimulation', 'Merge']
@@ -587,6 +611,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [100, -1]
     pr.bkQueries = ['', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.targets = ['Target1', 'Target2']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
@@ -603,6 +628,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputDataPoliciesExpected = ['', 'dl']
     eventsExpected = [100, -1]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    targetsExpected = ['Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -618,6 +644,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
+    self.assertEqual( pr.targets, targetsExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )

@@ -232,6 +232,7 @@ class ProductionRequest( object ):
         stepID = self.stepsList[index]
         events = self.events[index]
         sysConfig = self.sysConfig[index]
+        targets = self.targets[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -249,6 +250,7 @@ class ProductionRequest( object ):
           self.stepsList.pop( index )
           self.events.pop( index )
           self.sysConfig.pop( index )
+          self.targets.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -270,6 +272,7 @@ class ProductionRequest( object ):
             self.stepsInProds.insert( index + x, [last + x] )
             self.events.insert( index, events )
             self.sysConfig.insert( index, sysConfig )
+            self.targets.insert( index, targets )
 
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
