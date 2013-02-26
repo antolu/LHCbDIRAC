@@ -1,7 +1,7 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-from TestLHCbDIRAC.Regression.utils import cleanTestDir, getOutput
+from LHCbTestDirac.Regression.utils import cleanTestDir, getOutput
 
 import unittest
 from DIRAC import gLogger

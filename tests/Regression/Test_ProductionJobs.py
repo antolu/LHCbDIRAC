@@ -3,7 +3,7 @@ parseCommandLine()
 
 import unittest
 
-from TestLHCbDIRAC.Regression.utils import cleanTestDir, getOutput
+from LHCbTestDirac.Regression.utils import cleanTestDir, getOutput
 
 from DIRAC import gLogger
 
