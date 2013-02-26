@@ -66,6 +66,12 @@ if $status != 0 then
    exit 0
 endif
 echo " "
+echo "====== dirac-dms-check-file-integrity /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81789/081789_0000000044.raw"
+dirac-dms-check-file-integrity /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81789/081789_0000000044.raw
+if $status != 0 then
+   exit 0
+endif
+echo " "
 echo "======  dirac-wms-get-normalized-queue-length lcgce02.gridpp.rl.ac.uk:8443/cream-pbs-grid3000M"
 dirac-wms-get-normalized-queue-length lcgce02.gridpp.rl.ac.uk:8443/cream-pbs-grid3000M
 if $status != 0 then
