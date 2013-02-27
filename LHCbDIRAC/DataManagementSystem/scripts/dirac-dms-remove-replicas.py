@@ -39,7 +39,9 @@ if __name__ == "__main__":
 
   from DIRAC.Core.Utilities.List                        import breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   rm = ReplicaManager()
+  bk = BookkeepingClient()
 
   seList = dmScript.getOption( 'SEs', [] )
 
@@ -62,7 +64,7 @@ if __name__ == "__main__":
 
   for lfn in args:
     dmScript.setLFNsFromFile( lfn )
-  lfnList = dmScript.getOption( 'LFNs', [] )
+  lfnList = sorted( dmScript.getOption( 'LFNs', [] ) )
 
 
   for switch in Script.getUnprocessedSwitches():
@@ -75,39 +77,70 @@ if __name__ == "__main__":
   errorReasons = {}
   successfullyRemoved = {}
   notExisting = {}
-  gLogger.setLevel( 'ERROR' )
 
   if not checkFC:
     ##################################
     # Try and remove PFNs if not in FC
     ##################################
-    gLogger.always( 'Removing %d physical replica from %s, without removing entry in the FC' \
+    gLogger.always( 'Removing %d physical replica from %s, for replicas not in the FC' \
       % ( len( lfnList ), str( seList ) ) )
     from DIRAC.Resources.Storage.StorageElement         import StorageElement
-    for seName in seList:
-      se = None
-      for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
-        gLogger.verbose( 'Check if replica is registered in FC at %s..' % seName )
-        res = rm.getReplicaIsFile( lfnChunk, seName )
-        lfnsToRemove = []
+    # Remove the replica flag in BK just in case
+    gLogger.verbose( 'Removing replica flag in BK' )
+    notInFC = []
+    chunkSize = 500
+    showProgress = len( lfnList ) > 3 * chunkSize
+    if showProgress:
+      import sys
+      sys.stdout.write( 'Removing replica flag in BK for files not in FC (chunks of %d files): ' % chunkSize )
+    for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+      if showProgress:
+        sys.stdout.write( '.' )
+        sys.stdout.flush()
+      res = rm.getReplicas( lfnChunk )
+      if res['OK'] and res['Value']['Failed']:
+        notInFC += res['Value']['Failed'].keys()
+        res = bk.removeFiles( res['Value']['Failed'].keys() )
         if not res['OK']:
-          lfnsToRemove = lfnChunk
+          gLogger.error( "Error removing replica flag in BK for %d files", res['Message'] )
+    if showProgress:
+      gLogger.always( '' )
+    if notInFC:
+      gLogger.always( "Replica flag was removed in BK for %d files" % len( notInFC ) )
+    notInFC = set( notInFC )
+    for seName in seList:
+      se = StorageElement( seName )
+      if showProgress:
+        sys.stdout.write( 'Checking at %s (chunks of %d replicas): ' % ( seName, chunkSize ) )
+      for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+        if showProgress:
+          sys.stdout.write( '.' )
+          sys.stdout.flush()
         else:
-          if res['Value']['Successful']:
-            gLogger.always( "%d files are in the FC, they will not be removed from %s" \
-              % ( len( res['Value']['Successful'] ), seName ) )
-          lfnsToRemove += res['Value']['Failed'].keys()
+          gLogger.verbose( 'Check if replicas are registered in FC at %s..' % seName )
+        lfnChunk = set( lfnChunk )
+        lfnsToRemove = list( lfnChunk & notInFC )
+        toCheck = list( lfnChunk - notInFC )
+        if toCheck:
+          gLogger.setLevel( 'FATAL' )
+          res = rm.getReplicaIsFile( toCheck, seName )
+          gLogger.setLevel( 'ERROR' )
+          if not res['OK']:
+            lfnsToRemove += toCheck
+          else:
+            if res['Value']['Successful']:
+              gLogger.always( "%d replicas are in the FC, they will not be removed from %s" \
+                % ( len( res['Value']['Successful'] ), seName ) )
+            lfnsToRemove += res['Value']['Failed'].keys()
         if not lfnsToRemove:
           continue
-        if not se:
-          se = StorageElement( seName )
         pfnsToRemove = {}
         gLogger.verbose( '%d replicas NOT registered in FC: removing physical file at %s.. Get the PFNs' \
           % ( len( lfnsToRemove ), seName ) )
         for lfn in lfnsToRemove:
           res = se.getPfnForLfn( lfn )
           if not res['OK']:
-            gLogger.error( 'ERROR getting LFN:', lfn, res['Message'] )
+            gLogger.error( 'ERROR getting LFN: %s' % lfn, res['Message'] )
           else:
             pfnsToRemove[res['Value']] = lfn
         if not pfnsToRemove:
@@ -120,7 +153,9 @@ if __name__ == "__main__":
         pfns = [pfn for pfn, exists in res['Value']['Successful'].items() if exists]
         if not pfns:
           continue
+        gLogger.setLevel( 'FATAL' )
         res = se.removeFile( pfns )
+        gLogger.setLevel( 'ERROR' )
         if not res['OK']:
           gLogger.error( 'ERROR removing storage file: ', res['Message'] )
         else:
@@ -133,6 +168,8 @@ if __name__ == "__main__":
             else:
               errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
           successfullyRemoved.setdefault( seName, [] ).extend( [pfnsToRemove[pfn] for pfn in res['Value']['Successful']] )
+      if showProgress:
+        gLogger.always( '' )
 
   else:
     #########################
