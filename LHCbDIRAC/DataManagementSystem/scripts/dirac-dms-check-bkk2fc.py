@@ -69,8 +69,9 @@ if __name__ == '__main__':
                                        '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
   dmScript = DMScript()
   dmScript.registerBKSwitches()
+  dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
-  Script.parseCommandLine( ignoreErrors=True )
+  Script.parseCommandLine( ignoreErrors = True )
 
   fixIt = False
   production = 0
@@ -90,10 +91,11 @@ if __name__ == '__main__':
   rm = ReplicaManager()
   bk = BookkeepingClient()
 
-  cc = ConsistencyChecks( rm=rm, bkClient=bk )
+  cc = ConsistencyChecks( rm = rm, bkClient = bk )
   bkQuery = dmScript.getBKQuery()
   bkQuery.setVisible( False )
   cc.bkQuery = bkQuery
+  cc.lfns = dmScript.getOption( 'LFNs', [] )
   prods = dmScript.getOption( 'Productions', [] )
 
   if prods:
