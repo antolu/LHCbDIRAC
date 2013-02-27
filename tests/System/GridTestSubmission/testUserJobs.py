@@ -1,6 +1,8 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
+import os.path
+
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
@@ -8,71 +10,56 @@ from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 gLogger.setLevel( 'DEBUG' )
 
-gLogger.info( "Submitting hello world job" )
+cwd = os.path.realpath( '.' )
+
+########################################################################################
+
+gLogger.info( "Submitting hello world job banning T1s" )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
 
-helloJ.setName( "helloWorld-test" )
-helloJ.setInputSandbox( ['/afs/cern.ch/user/f/fstagni/userJobs/_inputHello.tgz',
-                         '/afs/cern.ch/user/f/fstagni/userJobs/hello-script.py'] )
+helloJ.setName( "helloWorld-test-T2s" )
+helloJ.setInputSandbox( [cwd + '/exe-script.py'] )
 
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 172800 )
-# helloJ.setBannedSites( ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de',
-# 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk',
-# 'LCG.SARA.nl'] )
-helloJ.setDestination( 'LCG.RAL.uk' )
+helloJ.setBannedSites( ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+                        'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl'] )
 result = dirac.submit( helloJ )
 gLogger.info( "Hello world job: ", result )
 
+########################################################################################
 
+gLogger.info( "Submitting hello world job targeting LCG.CERN.ch" )
 
-inputs = ['/lhcb/LHCb/Collision12/PID.MDST/00017968/0000/00017968_00000034_1.pid.mdst',
-          '/lhcb/LHCb/Collision12/PID.MDST/00017968/0000/00017968_00000008_1.pid.mdst',
-          '/lhcb/LHCb/Collision12/PID.MDST/00017968/0000/00017968_00000005_1.pid.mdst',
-          '/lhcb/LHCb/Collision12/PID.MDST/00017968/0000/00017968_00000014_1.pid.mdst']
+helloJ = LHCbJob()
+dirac = DiracLHCb()
 
-gLogger.info( "Submitting standard user job" )
+helloJ.setName( "helloWorld-test-CERN" )
+helloJ.setInputSandbox( [cwd + '/exe-script.py'] )
 
-j = LHCbJob()
+helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
+helloJ.setCPUTime( 172800 )
+helloJ.setDestination( 'LCG.CERN.ch' )
+result = dirac.submit( helloJ )
+gLogger.info( "Hello world job: ", result )
 
-j.setName( "Standard user job" )
-j.setInputSandbox( ['/afs/cern.ch/user/f/fstagni/userJobs/InputSandboxes/_input_sandbox_260_0.tgz',
-                   '/afs/cern.ch/user/f/fstagni/userJobs/InputSandboxes/_input_sandbox_260_master.tgz'] )
-j.setOutputSandbox( ['DVHistos.root'] )
-j.setApplicationScript( "DaVinci", "v30r4p1",
-                       "/afs/cern.ch/user/f/fstagni/userJobs/InputSandboxes/gaudi-script.py",
-                       logFile = "standardJob.log" )
-j.setInputData( inputs )
-j.setAncestorDepth( 2 )
-j.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
+########################################################################################
 
-j.setCPUTime( 172800 )
-
-result = dirac.submit( j )
-gLogger.info( 'Submission Result: ', result )
-
-
-
-gLogger.info( "Submitting job with parametric input data" )
-
-parametricJ = LHCbJob()
-
-listOfLists = breakListIntoChunks( inputs, 2 )
-parametricJ.setName( "parametric job" )
-parametricJ.setInputSandbox( ['/afs/cern.ch/user/f/fstagni/userJobs/InputSandboxes/_input_sandbox_260_0.tgz',
-                              '/afs/cern.ch/user/f/fstagni/userJobs/InputSandboxes/_input_sandbox_260_master.tgz'] )
-parametricJ.setOutputSandbox( ['DVHistos.root'] )
-parametricJ.setApplicationScript( "DaVinci", "v30r4p1",
-                                  "/afs/cern.ch/user/f/fstagni/userJobs/InputSandboxes/gaudi-script.py",
-                                  logFile = "prova.log" )
-parametricJ.setAncestorDepth( 0 )
-parametricJ.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
-
-parametricJ.setParametricInputData( listOfLists )
-
-result = dirac.submit( parametricJ )
-gLogger.info( 'Parametric job: ', result )
+# gLogger.info( "Submitting gaudiRun job (Gauss only)" )
+#
+# gaudiRunJ = LHCbJob()
+#
+# gaudiRunJ.setName( "gauss GaudiRun Job" )
+# gaudiRunJ.setInputSandbox()
+# gaudiRunJ.setOutputSandbox()
+# gaudiRunJ.setApplicationScript()
+# gaudiRunJ.setAncestorDepth( 0 )
+# gaudiRunJ.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
+# gaudiRunJ.setCPUTime( 172800 )
+#
+# result = dirac.submit( gaudiRunJ )
+# gLogger.info( 'Submission Result: ', result )
