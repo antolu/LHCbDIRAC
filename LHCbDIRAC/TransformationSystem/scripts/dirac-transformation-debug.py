@@ -371,14 +371,14 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
   if nbProblematic == len( lfns ):
       print "None of the %d problematic files actually have a replica" % len( lfns )
   else:
-    strMsg = "Out of %d problematic replicas" % len( lfns )
+    strMsg = "Out of %d problematic files" % len( lfns )
     if nbProblematic:
       strMsg += ", only %d do not have a physical replica" % nbProblematic
     else:
       strMsg += ", all have a physical replica"
     print strMsg
     for n in sorted( nbExistingReplicas ):
-      print "   %d replicas: %d files" % ( n, nbExistingReplicas[n] )
+      print "   %d physical replicas: %d files" % ( n, nbExistingReplicas[n] )
     for se in problematicReplicas:
       lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
       str2Msg = ''
