@@ -8,94 +8,95 @@
 """
 __RCSID__ = "$Id$"
 import  DIRAC.Core.Base.Script as Script
-Script.registerSwitch( '', 'Full', '   Print out all metadata' )
-Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                     'Usage:',
-                                     '  %s [option|cfgfile] ... LFN|File' % Script.scriptName,
-                                     'Arguments:',
-                                     '  LFN:      Logical File Name',
-                                     '  File:     Name of the file with a list of LFNs' ] ) )
-Script.parseCommandLine()
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
-import DIRAC
-from DIRAC.Core.DISET.RPCClient import RPCClient
 
-full = False
-switches = Script.getUnprocessedSwitches()
-for switch in switches:
-  if switch[0] == 'Full':
-    full = True
+if __name__ == "__main__":
+  dmScript = DMScript()
+  dmScript.registerFileSwitches()
+  Script.registerSwitch( '', 'Full', '   Print out all metadata' )
+  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                       'Usage:',
+                                       '  %s [option|cfgfile] ... LFN|File' % Script.scriptName,
+                                       'Arguments:',
+                                       '  LFN:      Logical File Name',
+                                       '  File:     Name of the file with a list of LFNs' ] ) )
+  Script.parseCommandLine()
 
-args = Script.getPositionalArgs()
+  import DIRAC
+  from DIRAC.Core.DISET.RPCClient import RPCClient
 
-if len( args ) == 0:
-  Script.showHelp()
+  full = False
+  switches = Script.getUnprocessedSwitches()
+  for switch in switches:
+    if switch[0] == 'Full':
+      full = True
 
-fileNames = args
-lfns = []
-for fileName in fileNames:
-  try:
-    files = open( fileName )
-    for f in files:
-      lfns += [f.strip()]
-  except Exception, ex:
-    lfns.append( fileName )
+  args = Script.getPositionalArgs()
+  for lfn in args:
+    dmScript.setLFNsFromFile( lfn )
+  lfnList = sorted( dmScript.getOption( 'LFNs', [] ) )
 
-client = RPCClient( 'Bookkeeping/BookkeepingManager' )
-res = client.getFileMetadata( lfns )
-if not res['OK']:
-  print 'ERROR: Failed to get file metadata: %s' % res['Message']
-  DIRAC.exit( 2 )
+  if len( lfnList ) == 0:
+    Script.showHelp()
+    DIRAC.exit( 0 )
 
-exitCode = 0
 
-lenName = 0
-for lfn in lfns:
-  lenName = max( lenName, len( lfn ) )
-lenName += 2
-lenGUID = 38
-lenItem = 15
-sep = ''
+  client = RPCClient( 'Bookkeeping/BookkeepingManager' )
+  res = client.getFileMetadata( lfnList )
+  if not res['OK']:
+    print 'ERROR: Failed to get file metadata: %s' % res['Message']
+    DIRAC.exit( 2 )
 
-if not full:
-  print '%s %s %s %s %s %s %s' % ( 'FileName'.ljust( lenName ),
-                                'Size'.ljust( 10 ),
-                                'GUID'.ljust( lenGUID ),
-                                'Replica'.ljust( 8 ),
-                                'DataQuality'.ljust( 12 ),
-                                'RunNumber'.ljust( 10 ),
-                                '#events'.ljust( 10 ) )
-for lfn in res['Value'].keys():
-  dict = res['Value'][lfn]
-  if full:
-    print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
-    sep = '\n'
-    for item in sorted( dict ):
-      print '%s %s' % ( item.ljust( lenItem ), dict[item] )
-  else:
-    size = dict['FileSize']
-    guid = dict['GUID']
-    gotReplica = dict['GotReplica']
-    dq = dict['DQFlag']
-    run = dict['RunNumber']
-    evtStat = dict['EventStat']
-    if not gotReplica:
-      gotReplica = 'No'
-    print  '%s %s %s %s %s %s %s' % ( lfn.ljust( lenName ),
-                                   str( size ).ljust( 10 ),
-                                   guid.ljust( lenGUID ),
-                                   gotReplica.ljust( 8 ),
-                                   dq.ljust( 12 ),
-                                   str( run ).ljust( 10 ),
-                                   str( evtStat ).ljust( 10 ) )
-  lfns.remove( lfn )
+  exitCode = 0
 
-if lfns:
-  print '\n'
-for lfn in lfns:
-  if lfn:
-    print '%s does not exist in the Bookkeeping.' % lfn
-    exitCode = 2
+  lenName = 0
+  for lfn in lfnList:
+    lenName = max( lenName, len( lfn ) )
+  lenName += 2
+  lenGUID = 38
+  lenItem = 15
+  sep = ''
 
-DIRAC.exit( exitCode )
+  if not full:
+    print '%s %s %s %s %s %s %s' % ( 'FileName'.ljust( lenName ),
+                                  'Size'.ljust( 10 ),
+                                  'GUID'.ljust( lenGUID ),
+                                  'Replica'.ljust( 8 ),
+                                  'DataQuality'.ljust( 12 ),
+                                  'RunNumber'.ljust( 10 ),
+                                  '#events'.ljust( 10 ) )
+  for lfn in res['Value']:
+    dict = res['Value'][lfn]
+    if full:
+      print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
+      sep = '\n'
+      for item in sorted( dict ):
+        print '%s %s' % ( item.ljust( lenItem ), dict[item] )
+    else:
+      size = dict['FileSize']
+      guid = dict['GUID']
+      gotReplica = dict['GotReplica']
+      dq = dict['DQFlag']
+      run = dict['RunNumber']
+      evtStat = dict['EventStat']
+      if not gotReplica:
+        gotReplica = 'No'
+      print  '%s %s %s %s %s %s %s' % ( lfn.ljust( lenName ),
+                                     str( size ).ljust( 10 ),
+                                     guid.ljust( lenGUID ),
+                                     gotReplica.ljust( 8 ),
+                                     dq.ljust( 12 ),
+                                     str( run ).ljust( 10 ),
+                                     str( evtStat ).ljust( 10 ) )
+    lfnList.remove( lfn )
+
+  if lfns:
+    print '\n'
+  for lfn in lfnList:
+    if lfn:
+      print '%s does not exist in the Bookkeeping.' % lfn
+      exitCode = 2
+
+  DIRAC.exit( exitCode )
 
