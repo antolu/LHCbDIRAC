@@ -96,16 +96,23 @@ class ConsistencyChecks( object ):
         Works either when the bkQuery is free, or when it is made using a transformation ID
     '''
 
-    try:
-      bkQuery = self.__getBKKQuery()
-    except ValueError, e:
-      return S_ERROR( e )
+    if self.lfns:
+      lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKKMetadata( self.lfns )
+      lfnsReplicaNo += lfnsNotInBK
+    else:
+      try:
+        bkQuery = self.__getBKKQuery()
+      except ValueError, e:
+        return S_ERROR( e )
+      lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
+      lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
 
-
-    lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
-    lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
-
-    if self.transType not in prodsWithMerge:
+    if self.lfns:
+      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
+      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
+      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
+      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
+    elif self.transType not in prodsWithMerge:
       # Merging and Reconstruction
       # In principle few files without replica flag, check them in FC
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
@@ -504,17 +511,25 @@ class ConsistencyChecks( object ):
         directories = self.__getDirectories()
       except RuntimeError, e:
         return S_ERROR( e )
-      self.lfns = self._getFilesFromDirectoryScan( directories )
+      present = self._getFilesFromDirectoryScan( directories )
+      prStr = ' are in the FC but'
+    else:
+      present, notPresent = self.getReplicasPresence( self.lfns )
+      gLogger.always( 'Out of %d files, %d are in the FC, %d are not' % ( len( self.lfns ), present, notPresent ) )
+      if not present:
+        gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
+        return
+      prStr = ''
 
-    res = self._getBKKMetadata( self.lfns )
+    res = self._getBKKMetadata( present )
     self.existingLFNsNotInBKK, self.existingLFNsWithBKKReplicaNO, self.existingLFNsWithBKKReplicaYES = res
     msg = ''
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.warn( "%s %d files are in the FC but have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ) ) )
+      gLogger.warn( "%s %d files%s have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ), prStr ) )
     if self.existingLFNsNotInBKK:
-      gLogger.warn( "%s %d files are in the FC but not in BKK" % ( msg, len( self.existingLFNsNotInBKK ) ) )
+      gLogger.warn( "%s %d files%s not in BKK" % ( msg, len( self.existingLFNsNotInBKK ), prStr ) )
 
   ################################################################################
 
