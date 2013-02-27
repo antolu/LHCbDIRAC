@@ -65,6 +65,16 @@ def convertSEs( ses ):
       #print seList
     else:
       seList.append( se )
+    res = gConfig.getSections( '/Resources/StorageElements' )
+    if not res['OK']:
+      gLogger.fatal( 'Error getting list of SEs from CS', res['Message'] )
+      DIRAC.exit( 1 )
+    for se in seList:
+      if se not in res['Value']:
+        gLogger.fatal( '%s is not a valid SE' % se )
+        seList = []
+        break
+
   return seList
 
 class DMScript():
