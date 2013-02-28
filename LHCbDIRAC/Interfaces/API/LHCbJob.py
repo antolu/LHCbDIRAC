@@ -130,7 +130,8 @@ class LHCbJob( Job ):
   #############################################################################
 
   def setApplication( self, appName, appVersion, optionsFiles, inputData = '',
-                      optionsLine = '', inputDataType = '', logFile = '', events = -1 ):
+                      optionsLine = '', inputDataType = '', logFile = '', events = -1,
+                      extraPackages = '' ):
     """Helper function.
 
        Specify application for DIRAC workflows.
@@ -243,7 +244,8 @@ class LHCbJob( Job ):
                       ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
                       ( 'inputDataType', 'string', '', 'Input Data Type' ),
                       ( 'inputData', 'string', '', 'Input Data' ),
-                      ( 'numberOfEvents', 'string', '', 'Events treated' )
+                      ( 'numberOfEvents', 'string', '', 'Events treated' ),
+                      ( 'extraPackages', 'string', '', 'ExtraPackages' )
                       ]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
@@ -261,18 +263,19 @@ class LHCbJob( Job ):
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
-    stepInstance.setValue( "applicationName", appName )
-    stepInstance.setValue( "applicationVersion", appVersion )
-    stepInstance.setValue( "applicationLog", logName )
+    stepInstance.setValue( 'applicationName', appName )
+    stepInstance.setValue( 'applicationVersion', appVersion )
+    stepInstance.setValue( 'applicationLog', logName )
     if optionsFile:
-      stepInstance.setValue( "optionsFile", optionsFile )
+      stepInstance.setValue( 'optionsFile', optionsFile )
     if optionsLine:
-      stepInstance.setValue( "extraOptionsLine", optionsLine )
+      stepInstance.setValue( 'extraOptionsLine', optionsLine )
     if inputDataType:
-      stepInstance.setValue( "inputDataType", inputDataType )
+      stepInstance.setValue( 'inputDataType', inputDataType )
     if inputData:
-      stepInstance.setValue( "inputData", ';'.join( inputData ) )
-    stepInstance.setValue( "numberOfEvents", str( events ) )
+      stepInstance.setValue( 'inputData', ';'.join( inputData ) )
+    stepInstance.setValue( 'numberOfEvents', str( events ) )
+    stepInstance.setValue( 'extraPackages', extraPackages )
 
     res = self.addPackage( appName, appVersion )
     if not res['OK']:
