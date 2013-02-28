@@ -286,7 +286,8 @@ class LHCbJob( Job ):
   #############################################################################
 
   def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '',
-                            inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '' ):
+                            inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '',
+                            extraPackages = '' ):
     """Helper function.
 
        Specify application environment and script to be executed.
@@ -387,6 +388,7 @@ class LHCbJob( Job ):
                       ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
                       ( 'inputDataType', 'string', '', 'Input Data Type' ),
                       ( 'inputData', 'string', '', 'Input Data' ),
+                      ( 'extraPackages', 'string', '', 'extraPackages' )
                       ]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
@@ -416,6 +418,7 @@ class LHCbJob( Job ):
       stepInstance.setValue( "inputData", ';'.join( inputData ) )
     if poolXMLCatalog:
       stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
+    stepInstance.setValue( 'extraPackages', extraPackages )
 
     res = self.addPackage( appName, appVersion )
     if not res['OK']:
