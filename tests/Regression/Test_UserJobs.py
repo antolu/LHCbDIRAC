@@ -40,8 +40,15 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob = LHCbJob()
 
     lhcbJob.setName( "gaudirun-test" )
+
+    optGauss = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/Beam3500GeV-md100-MC11-nu2.py;"
+    optDec = "$DECFILESROOT/options/12133041.py;"
+    optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
+    optOpts = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/G4PL_LHEP_EmNoCuts.py"
+    options = optGauss + optDec + optPythia + optOpts
+
     lhcbJob.setApplication( 'Gauss', 'v41r4',
-                            "$APPCONFIGOPTS/Gauss/Beam3500GeV-md100-MC11-nu2.py;$DECFILESROOT/options/12133041.py;$LBPYTHIAROOT/options/Pythia.py;$APPCONFIGOPTS/Gauss/G4PL_LHEP_EmNoCuts.py",
+                            options,
                             events = 2 )
 
     res = lhcbJob.runLocal( self.dLHCb )
