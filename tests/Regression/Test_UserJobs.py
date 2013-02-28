@@ -4,7 +4,7 @@ parseCommandLine()
 import os.path
 import unittest
 
-from TestLHCbDIRAC.Regression.utils import cleanTestDir, getOutput
+from LHCbTestDirac.Regression.utils import cleanTestDir
 
 from DIRAC import gLogger
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob

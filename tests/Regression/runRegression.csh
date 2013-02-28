@@ -5,6 +5,7 @@ svn co svn+ssh://$user@svn.cern.ch/reps/dirac/LHCbTestDirac/trunk/LHCbTestDirac
 setenv PYTHONPATH /tmp/$user/:$PYTHONPATH
 cd LHCbTestDirac/Regression
 python Test_ProductionJobs.py -dd > testProductionJobs.txt
+python Test_UserJobs.py -dd > testUserJobs.txt
 python Test_SAMJobs.py -dd > testSAMJobs.txt
 python Test_RegressionProductionJobs.py -dd > testRegressionProductionJobs.txt
 python Test_RegressionUserJobs.py -dd > testRegressionUserJobs.txt
