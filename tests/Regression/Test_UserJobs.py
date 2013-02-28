@@ -41,12 +41,12 @@ class GaudirunSuccess( UserJobTestCase ):
 
     lhcbJob.setName( "gaudirun-test" )
 
-    optGauss = "$cwd/Beam4000GeV-md100-JulSep2012-nu2.5.py"
-    optDec = "$cwd/options/15512012.py"
-    optPythia = "$cwd/Pythia.py"
-    optOpts = "$cwd/G4PL_LHEP_EmNoCuts.py"
-    optCompr = "$cwd/Compression-ZLIB-1.py"
-    optPConf = "$cwd/prodConf_Gauss_00023060_00002595_1.py"
+    optGauss = "$cwd/Beam4000GeV-md100-JulSep2012-nu2.5.py;"
+    optDec = "$cwd/options/15512012.py;"
+    optPythia = "$cwd/Pythia.py;"
+    optOpts = "$cwd/G4PL_LHEP_EmNoCuts.py;"
+    optCompr = "$cwd/Compression-ZLIB-1.py;"
+    optPConf = "$cwd/prodConf_Gauss_00023060_00002595_1.py;"
     options = optGauss + optDec + optPythia + optOpts + optCompr, optPConf
     lhcbJob.addPackage( 'AppConfig', 'v3r151' )
     lhcbJob.addPackage( 'DecFiles', 'v26r24' )
