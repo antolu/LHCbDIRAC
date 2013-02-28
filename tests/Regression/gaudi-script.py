@@ -15,4 +15,4 @@ if __name__ == '__main__':
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 
-  sys.exit( system( '''gaudirun -T %s''' % options ) / 256 )
+  sys.exit( system( '''gaudirun.py -T %s''' % options ) / 256 )
