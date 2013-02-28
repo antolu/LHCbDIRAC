@@ -48,7 +48,7 @@ class GaudirunSuccess( UserJobTestCase ):
     optCompr = "$cwd/Compression-ZLIB-1.py;"
     optPConf = "$cwd/prodConf_Gauss_00023060_00002595_1.py;"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-    lhcbJob.addPackage( 'AppConfig', 'v3r151' )
+    lhcbJob.addPackage( 'AppConfig', 'v3r160' )
     lhcbJob.addPackage( 'DecFiles', 'v26r24' )
     lhcbJob.addPackage( 'ProdConf', 'v1r9' )
 
@@ -58,7 +58,7 @@ class GaudirunSuccess( UserJobTestCase ):
 #    optOpts = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/G4PL_LHEP_EmNoCuts.py"
 #    options = optGauss + optDec + optPythia + optOpts
 
-    lhcbJob.setApplication( 'Gauss', 'v41r4', options, extraPackages = 'AppConfig.v3r151;DecFiles.v26r24;ProdConf.v1r9' )
+    lhcbJob.setApplication( 'Gauss', 'v42r4', options, extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
