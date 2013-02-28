@@ -41,7 +41,7 @@ class GaudirunSuccess( UserJobTestCase ):
 
     lhcbJob.setName( "gaudirun-test" )
 
-    optGauss = "$cwd/Beam4000GeV-md100-JulSep2012-nu2.5.py;"
+    optGauss = "$APPCONFIGOPTS/Gauss/Beam4000GeV-md100-JulSep2012-nu2.5.py;"
     optDec = "$cwd/options/15512012.py;"
     optPythia = "$cwd/Pythia.py;"
     optOpts = "$cwd/G4PL_LHEP_EmNoCuts.py;"
