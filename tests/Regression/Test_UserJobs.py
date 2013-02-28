@@ -33,3 +33,8 @@ class HelloWorldSuccess( UserJobTestCase ):
     helloJ.setExecutable( "exe-script.py" )
     res = helloJ.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
