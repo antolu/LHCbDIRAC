@@ -21,8 +21,8 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
       and when the job type is not 'user'.
   """
   optionsLines = []
-  optionsLines.append( '\n\n#//////////////////////////////////////////////////////' )
-  optionsLines.append( '# Dynamically generated options in a production or analysis job\n' )
+  optionsLines.append( '\n\n#////////////////////////////////////////////' )
+  optionsLines.append( '# Dynamically generated options in a gaudirun job\n' )
   if applicationName.lower() == 'davinci' or applicationName.lower() == 'lhcb':
     optionsLines.append( 'from Gaudi.Configuration import *' )
   else:
