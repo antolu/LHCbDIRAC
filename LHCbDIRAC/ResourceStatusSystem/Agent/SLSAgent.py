@@ -43,7 +43,6 @@ from DIRAC                                               import gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                         import AgentModule
 from DIRAC.Core.DISET.RPCClient                          import RPCClient
 from DIRAC.Core.Base.DB                                  import DB
-from DIRAC.Core.Utilities.Subprocess                     import pythonCall
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ResourceStatusSystem.Utilities                import CSHelpers
 
@@ -193,7 +192,7 @@ class SpaceTokenOccupancyTest( TestBase ):
     for site in self.storageElements:
       for st in CSHelpers.getSpaceTokens():
         try:
-          res = pythonCall( ( 120 ), self.generate_xml_and_dashboard, site, st, lcg_util )
+          res = self.generate_xml_and_dashboard( site, st, lcg_util )
           if not res[ 'OK' ]:
             gLogger.error( res[ 'Message' ] )
         except:
