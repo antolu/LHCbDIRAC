@@ -274,17 +274,10 @@ class LHCbJob( Job ):
       stepInstance.setValue( "inputData", ';'.join( inputData ) )
     stepInstance.setValue( "numberOfEvents", str( events ) )
 
-    # now we have to tell DIRAC to install the necessary software
-    currentApp = '%s.%s' % ( appName, appVersion )
-    swPackages = 'SoftwarePackages'
-    description = 'List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter( swPackages ):
-      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
-    else:
-      apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in apps.split( ';' ):
-        apps += ';' + currentApp
-      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
+    res = self.addPackage( appName, appVersion )
+    if not res['OK']:
+      return res
+
     return S_OK()
 
   #############################################################################
@@ -421,17 +414,10 @@ class LHCbJob( Job ):
     if poolXMLCatalog:
       stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
 
-    # now we have to tell DIRAC to install the necessary software
-    currentApp = '%s.%s' % ( appName, appVersion )
-    swPackages = 'SoftwarePackages'
-    description = 'List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter( swPackages ):
-      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
-    else:
-      apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in apps.split( ';' ):
-        apps += ';' + currentApp
-      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
+    res = self.addPackage( appName, appVersion )
+    if not res['OK']:
+      return res
+
     return S_OK()
 
   #############################################################################
@@ -665,15 +651,11 @@ class LHCbJob( Job ):
     currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
-    swPackages = 'SoftwarePackages'
-    description = 'List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter( swPackages ):
-      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
-    else:
-      apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in apps.split( ';' ):
-        apps += ';' + currentApp
-      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
+
+    res = self.addPackage( currentApp, rootVersion )
+    if not res['OK']:
+      return res
+
     return S_OK()
 
   #############################################################################
@@ -1054,15 +1036,12 @@ class LHCbJob( Job ):
     appVersion = currentApp.split( '.' )[1]
     stepInstance.setValue( "applicationVersion", appVersion )
     stepInstance.setValue( "rootVersion", rootVersion )
-    swPackages = 'SoftwarePackages'
-    description = 'List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter( swPackages ):
-      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
-    else:
-      apps = self.workflow.findParameter( swPackages ).getValue()
-      if not currentApp in apps.split( ';' ):
-        apps += ';' + currentApp
-      self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
+
+    res = self.addPackage( currentApp, appVersion )
+    if not res['OK']:
+      return res
+
+    return S_OK()
 
   #############################################################################
 
