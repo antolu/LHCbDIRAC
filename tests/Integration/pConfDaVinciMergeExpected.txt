@@ -1,0 +1,15 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  NOfEvents=-1,
+  DDDBTag='dddb-20120831',
+  CondDBTag='cond-20120831',
+  AppVersion='v32r2p1',
+  OptionFormat='Merge',
+  XMLSummaryFile='summaryDaVinci_00012345_00006789_1.xml',
+  Application='DaVinci',
+  OutputFilePrefix='00012345_00006789_1',
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00006832_1.Dimuon.dst','LFN:/lhcb/LHCb/Collision12/DIMUON.DST/00021210/0001/00021210_00006778_1.Dimuon.dst'],
+  OutputFileTypes=['dimuon.dst'],
+)
