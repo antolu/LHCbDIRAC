@@ -39,7 +39,7 @@ class GaudiApplication( ModuleBase ):
     self.runTimeProjectName = ''
     self.runTimeProjectVersion = ''
     self.inputDataType = 'MDF'
-    self.stepInputData = [] # to be resolved
+    self.stepInputData = []  # to be resolved
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.optionsFile = ''
     self.optionsLine = ''
@@ -66,9 +66,9 @@ class GaudiApplication( ModuleBase ):
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
 
-    #if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+    # if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
     if self.optionsLine or self.jobType.lower() == 'user':
-      #self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
+      # self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
       self.log.debug( "Won't get any step outputs (USER jobs)" )
     else:
       self.log.debug( "Getting the step outputs" )
@@ -101,14 +101,14 @@ class GaudiApplication( ModuleBase ):
                                                                                         os.getcwd() ) ) )
 
       if self.jobType.lower() == 'merge':
-        #Disable the watchdog check in case the file uploading takes a long time
+        # Disable the watchdog check in case the file uploading takes a long time
         self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to \
         disable the Watchdog for Merge production' )
         fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
         fopen.write( '%s' % time.asctime() )
         fopen.close()
 
-      #Resolve options files
+      # Resolve options files
       if self.optionsFile and not self.optionsFile == "None":
         for fileopt in self.optionsFile.split( ';' ):
           if os.path.exists( '%s/%s' % ( os.getcwd(), os.path.basename( fileopt ) ) ):
@@ -129,29 +129,27 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      #if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+      # if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
       if self.optionsLine or self.jobType.lower() == 'user':
 
-        self.log.warn( 'OLD production, should not happen for newer productions \
-        (after LHCbDIRAC v7r5)! OK for user jobs' )
         stepOutputs = []
-        #Prepare standard project run time options
+        # Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):
           os.remove( generatedOpts )
         inputDataOpts = getDataOptions( self.applicationName,
                                         self.stepInputData,
                                         self.inputDataType,
-                                        self.poolXMLCatName )['Value'] #always OK
+                                        self.poolXMLCatName )['Value']  # always OK
         projectOpts = getModuleOptions( self.applicationName,
                                         self.numberOfEvents,
                                         inputDataOpts,
                                         self.optionsLine,
                                         runNumberGauss,
                                         firstEventNumberGauss,
-                                        self.jobType )['Value'] #always OK
+                                        self.jobType )['Value']  # always OK
         self.log.info( 'Extra options generated for %s %s step:' % ( self.applicationName, self.applicationVersion ) )
-        print projectOpts #Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
+        print projectOpts  # Always useful to see in the logs (don't use gLogger as we often want to cut n' paste)
         options = open( generatedOpts, 'w' )
         options.write( projectOpts )
         options.close()
@@ -232,7 +230,7 @@ class GaudiApplication( ModuleBase ):
         prodConfFile.putOptionsIn( optionsDict )
 
       if not projectEnvironment:
-        #Now obtain the project environment for execution
+        # Now obtain the project environment for execution
         result = getProjectEnvironment( systemConfiguration = self.systemConfig,
                                         applicationName = self.applicationName,
                                         applicationVersion = self.applicationVersion,
@@ -243,13 +241,13 @@ class GaudiApplication( ModuleBase ):
 
         if not result['OK']:
           self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-          return result # this will distinguish between LbLogin / SetupProject / actual application failures
+          return result  # this will distinguish between LbLogin / SetupProject / actual application failures
         projectEnvironment = result['Value']
 
       gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 #      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
 #      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
-      if self.optionsLine or self.jobType.lower() == 'user':        
+      if self.optionsLine or self.jobType.lower() == 'user':
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
       else:
         if self.extraOptionsLine:
@@ -259,9 +257,9 @@ class GaudiApplication( ModuleBase ):
           command = '%s %s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFileName, 'gaudi_extra_options.py' )
         else:
           command = '%s %s %s' % ( gaudiRunFlags, self.optfile, prodConfFileName )
-      print 'Command = %s' % ( command )  #Really print here as this is useful to see
+      print 'Command = %s' % ( command )  # Really print here as this is useful to see
 
-      #Set some parameter names
+      # Set some parameter names
       dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
                                                             self.applicationVersion,
                                                             self.step_number )
@@ -271,17 +269,17 @@ class GaudiApplication( ModuleBase ):
       coreDumpName = '%s_Step%s' % ( self.applicationName,
                                      self.step_number )
 
-      #Wrap final execution command with defaults
+      # Wrap final execution command with defaults
       finalCommand = addCommandDefaults( command,
                                          envDump = dumpEnvName,
-                                         coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
+                                         coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
 
-      #Create debug shell script to reproduce the application execution
+      # Create debug shell script to reproduce the application execution
       debugResult = createDebugScript( scriptName,
                                        command,
                                        env = projectEnvironment,
                                        envLogFile = dumpEnvName,
-                                       coreDumpLog = coreDumpName ) #will add command defaults internally
+                                       coreDumpLog = coreDumpName )  # will add command defaults internally
       if debugResult['OK']:
         self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
@@ -311,8 +309,8 @@ class GaudiApplication( ModuleBase ):
       else:
         self.log.info( "%s execution completed succesfully" % self.applicationName )
 
-      #I want to have only files with lower case extension
-      #decided NOT to use it for the moment
+      # I want to have only files with lower case extension
+      # decided NOT to use it for the moment
   #    lowerExtension()
 
       self.log.info( "Going to manage %s output" % self.applicationName )
@@ -357,4 +355,4 @@ class GaudiApplication( ModuleBase ):
       if fd == 1:
         self.stdError += message
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
