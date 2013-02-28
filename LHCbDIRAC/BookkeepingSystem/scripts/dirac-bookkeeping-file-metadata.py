@@ -91,7 +91,7 @@ if __name__ == "__main__":
                                      str( evtStat ).ljust( 10 ) )
     lfnList.remove( lfn )
 
-  if lfns:
+  if lfnList:
     print '\n'
   for lfn in lfnList:
     if lfn:
