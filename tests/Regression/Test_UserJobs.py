@@ -41,15 +41,24 @@ class GaudirunSuccess( UserJobTestCase ):
 
     lhcbJob.setName( "gaudirun-test" )
 
-    optGauss = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/Beam3500GeV-md100-MC11-nu2.py;"
-    optDec = "$DECFILESROOT/options/12133041.py;"
-    optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-    optOpts = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/G4PL_LHEP_EmNoCuts.py"
-    options = optGauss + optDec + optPythia + optOpts
+    optGauss = "$cwd/Beam4000GeV-md100-JulSep2012-nu2.5.py"
+    optDec = "$cwd/options/15512012.py"
+    optPythia = "$cwd/Pythia.py"
+    optOpts = "$cwd/G4PL_LHEP_EmNoCuts.py"
+    optCompr = "$cwd/Compression-ZLIB-1.py"
+    optPConf = "$cwd/prodConf_Gauss_00023060_00002595_1.py"
+    options = optGauss + optDec + optPythia + optOpts + optCompr, optPConf
+    lhcbJob.addPackage( 'AppConfig', 'v3r151' )
+    lhcbJob.addPackage( 'DecFiles', 'v26r24' )
+    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
 
-    lhcbJob.setApplication( 'Gauss', 'v41r4',
-                            options,
-                            events = 2 )
+#    optGauss = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/Beam3500GeV-md100-MC11-nu2.py;"
+#    optDec = "$DECFILESROOT/options/12133041.py;"
+#    optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
+#    optOpts = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/G4PL_LHEP_EmNoCuts.py"
+#    options = optGauss + optDec + optPythia + optOpts
+
+    lhcbJob.setApplication( 'Gauss', 'v41r4', options )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
