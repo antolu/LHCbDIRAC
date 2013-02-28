@@ -53,20 +53,43 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob.addPackage( 'DecFiles', 'v26r24' )
     lhcbJob.addPackage( 'ProdConf', 'v1r9' )
 
-#    optGauss = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/Beam3500GeV-md100-MC11-nu2.py;"
-#    optDec = "$DECFILESROOT/options/12133041.py;"
-#    optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-#    optOpts = "/cvmfs/lhcb.cern.ch/lib/lhcb/DBASE/AppConfig/v3r151/options/Gauss/G4PL_LHEP_EmNoCuts.py"
-#    options = optGauss + optDec + optPythia + optOpts
-
-    lhcbJob.setApplication( 'Gauss', 'v42r4', options, extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+    lhcbJob.setApplication( 'Gauss', 'v42r4', options,
+                            extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
+
+class GaudiScriptSuccess( UserJobTestCase ):
+  def test_execute( self ):
+
+    lhcbJob = LHCbJob()
+
+    lhcbJob.setName( "gaudiScript-test" )
+    lhcbJob.setInputSandbox( 'prodConf_Gauss_00012345_00067890_1.py' )
+
+    optGauss = "$APPCONFIGOPTS/Gauss/Beam4000GeV-md100-JulSep2012-nu2.5.py;"
+    optDec = "$DECFILESROOT/options/15512012.py;"
+    optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
+    optOpts = " $APPCONFIGOPTS/Gauss/G4PL_LHEP_EmNoCuts.py;"
+    optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+    optPConf = "prodConf_Gauss_00012345_00067890_1.py"
+    options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
+    lhcbJob.addPackage( 'AppConfig', 'v3r160' )
+    lhcbJob.addPackage( 'DecFiles', 'v26r24' )
+    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
+    script = 'gaudirun.py -T ' + options
+
+    lhcbJob.setApplicationScript( 'Gauss', 'v42r4', script,
+                                  extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+
+    res = lhcbJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
+
 
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
