@@ -461,13 +461,13 @@ def getLocalArea():
       try:
         os.remove( localArea )
       except OSError, msg:
-        DIRAC.gLogger.error( 'Cannot remove: ', localArea, msg )
+        DIRAC.gLogger.error( 'Cannot remove: %s %s' % ( localArea, msg ) )
         localArea = ''
     else:
       try:
         os.mkdir( localArea )
       except OSError, msg:
-        DIRAC.gLogger.error( 'Cannot create:', localArea, msg )
+        DIRAC.gLogger.error( 'Cannot create: %s %s' % ( localArea, msg ) )
         localArea = ''
   return localArea
 
