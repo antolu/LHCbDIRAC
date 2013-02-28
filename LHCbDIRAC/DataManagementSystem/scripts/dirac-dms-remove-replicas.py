@@ -178,17 +178,19 @@ if __name__ == "__main__":
     gLogger.setLevel( 'FATAL' )
     for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
       for seName in sorted( seList ):
-        res = rm.removeReplica( lfnChunk, seName )
+        print lfnChunk, seName
+        res = rm.removeReplica( seName, lfnChunk )
+        print res
         if not res['OK']:
           gLogger.fatal( "Failed to remove replica", res['Message'] )
           DIRAC.exit( -2 )
         for lfn, reason in res['Value']['Failed'].items():
           reason = str( reason )
           if 'No such file or directory' in reason:
-            notExisting.setdefault( lfn, [] ).append( se )
+            notExisting.setdefault( lfn, [] ).append( seName )
           else:
-            errorReasons.setdefault( reason, {} ).setdefault( se, [] ).append( lfn )
-        successfullyRemoved.setdefault( se, [] ).extend( res['Value']['Successful'].keys() )
+            errorReasons.setdefault( reason, {} ).setdefault( seName, [] ).append( lfn )
+        successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
 
     gLogger.setLevel( 'ERROR' )
     if notExisting:
@@ -198,7 +200,7 @@ if __name__ == "__main__":
         errorReasons.setdefault( str( res['Message'] ), {} ).setdefault( 'getReplicas', [] ).extend( notExisting.keys() )
       else:
         for lfn, reason in res['Value']['Failed'].items():
-          errorReasons.setdefault( str( reason ), {} ).setdefault( se, [] ).append( lfn )
+          errorReasons.setdefault( str( reason ), {} ).setdefault( None, [] ).append( lfn )
           notExisting.pop( lfn, None )
         replicas = res['Value']['Successful']
         for lfn in notExisting:
