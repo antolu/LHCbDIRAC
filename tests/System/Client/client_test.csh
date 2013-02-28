@@ -72,6 +72,12 @@ if $status != 0 then
    exit 0
 endif
 echo " "
+echo "====== dirac-dms-show-fts-status"
+dirac-dms-show-fts-status
+if $status != 0 then
+   exit 0
+endif
+echo " "
 echo "======  dirac-wms-get-normalized-queue-length lcgce02.gridpp.rl.ac.uk:8443/cream-pbs-grid3000M"
 dirac-wms-get-normalized-queue-length lcgce02.gridpp.rl.ac.uk:8443/cream-pbs-grid3000M
 if $status != 0 then
