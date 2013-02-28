@@ -176,7 +176,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
                    ]
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
     prod = self.pr._buildProduction( 'Merge', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+                                     inputDataPolicy = 'download', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
