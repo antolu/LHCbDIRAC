@@ -59,11 +59,10 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.log.info( "Will remove logs found on storage element: %s" % self.logSE )
     return S_OK()
 
-  def cleanMetadataCatalogFiles( self, transID, directories ):
-    bkFlag = 'Yes'
-    if not directories:
-      bkFlag = ''
-    res = self.bkClient.getProductionFiles( transID, 'ALL', bkFlag )
+  def cleanMetadataCatalogFiles( self, transID ):
+    ''' clean the metadata using BKK and Replica Manager. Replace the one from base class
+    '''
+    res = self.bkClient.getProductionFiles( transID, 'ALL', 'Yes' )
     if not res['OK']:
       return res
     bkMetadata = res['Value']
