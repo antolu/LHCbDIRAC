@@ -229,6 +229,7 @@ class BookkeepingClient:
     'ConfigVersion', 'ConditionDescription', 'EventType',
     'ProcessingPass','Production','RunNumber', 'FileType', DataQuality, StartDate, EndDate
     """
+    in_dict = dict( in_dict )
     result = S_ERROR()
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
     savedbuffer = cPickle.dumps(in_dict)
