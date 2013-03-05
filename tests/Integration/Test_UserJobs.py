@@ -35,7 +35,7 @@ class HelloWorldSuccess( UserJobTestCase ):
     self.assertTrue( res['OK'] )
 
 class GaudirunSuccess( UserJobTestCase ):
-  def test_execute( self ):
+  def test_mc( self ):
 
     lhcbJob = LHCbJob()
 
@@ -59,24 +59,43 @@ class GaudirunSuccess( UserJobTestCase ):
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
-class GaudiScriptSuccess( UserJobTestCase ):
-  def test_execute( self ):
+  def test_boole( self ):
 
     lhcbJob = LHCbJob()
 
-    lhcbJob.setName( "gaudiScript-test" )
-    lhcbJob.setInputSandbox( ['prodConf_Gauss_00012345_00067890_1.py', 'gaudi-script.py'] )
+    lhcbJob.setName( "gaudirun-test-inputs" )
+    lhcbJob.setInputSandbox( 'prodConf_Boole_00012345_00067890_1.py' )
 
-    lhcbJob.addPackage( 'AppConfig', 'v3r160' )
-    lhcbJob.addPackage( 'DecFiles', 'v26r24' )
-    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
-    script = 'gaudi-script.py'
+    opts = "$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/L0/L0TCK-0x0042.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py"
+    optPConf = "prodConf_Boole_00012345_00067890_1.py"
+    options = opts + optPConf
+    lhcbJob.addPackage( 'AppConfig', 'v3r155' )
 
-    lhcbJob.setApplicationScript( 'Gauss', 'v42r4', script,
-                                  extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+    lhcbJob.setApplication( 'Boole', 'v24r0', options,
+                            inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                            extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
+
+# class GaudiScriptSuccess( UserJobTestCase ):
+#  def test_execute( self ):
+#
+#    lhcbJob = LHCbJob()
+#
+#    lhcbJob.setName( "gaudiScript-test" )
+#    lhcbJob.setInputSandbox( ['prodConf_Gauss_00012345_00067890_1.py', 'gaudi-script.py'] )
+#
+#    lhcbJob.addPackage( 'AppConfig', 'v3r160' )
+#    lhcbJob.addPackage( 'DecFiles', 'v26r24' )
+#    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
+#    script = 'gaudi-script.py'
+#
+#    lhcbJob.setApplicationScript( 'Gauss', 'v42r4', script,
+#                                  extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+#
+#    res = lhcbJob.runLocal( self.dLHCb )
+#    self.assertTrue( res['OK'] )
 
 
 
@@ -84,5 +103,5 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
