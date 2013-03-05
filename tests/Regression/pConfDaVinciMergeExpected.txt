@@ -1,6 +1,7 @@
 from ProdConf import ProdConf
 
 ProdConf(
+  TCK='0xab0046',
   NOfEvents=-1,
   DDDBTag='dddb-20120831',
   CondDBTag='cond-20120831',
