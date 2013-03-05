@@ -1326,6 +1326,7 @@ class BookkeepingClient:
     """
     It returns a list of files for a given condition.
     """
+    in_dict = dict( in_dict )
     result = S_ERROR()
     bkk = TransferClient('Bookkeeping/BookkeepingManager')
     in_dict['MethodName'] = 'getFiles'
