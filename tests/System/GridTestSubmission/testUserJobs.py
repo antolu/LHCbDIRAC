@@ -75,3 +75,31 @@ result = dirac.submit( gaudirunJob )
 gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
+
+gLogger.info( "Submitting gaudiRun job (Boole only)" )
+
+gaudirunJob = LHCbJob()
+
+gaudirunJob.setName( "gaudirun-Boole-test" )
+gaudirunJob.setInputSandbox( 'prodConf_Boole_00012345_00067890_1.py' )
+gaudirunJob.setOutputSandbox( '00012345_00067890_1.digi' )
+
+opts = "$APPCONFIGOPTS/Boole/Default.py;"
+optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
+optTCK = "$APPCONFIGOPTS/L0/L0TCK-0x0042.py;"
+optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+optPConf = "prodConf_Boole_00012345_00067890_1.py"
+options = opts + optDT + optTCK + optComp + optPConf
+
+gaudirunJob.addPackage( 'AppConfig', 'v3r155' )
+gaudirunJob.setApplication( 'Boole', 'v24r0', options,
+                            inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                            extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
+
+gaudirunJob.setSystemConfig( 'ANY' )
+gaudirunJob.setCPUTime( 172800 )
+
+result = dirac.submit( gaudirunJob )
+gLogger.info( 'Submission Result: ', result )
+
+########################################################################################
