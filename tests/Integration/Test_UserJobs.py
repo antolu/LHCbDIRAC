@@ -66,9 +66,12 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob.setName( "gaudirun-test-inputs" )
     lhcbJob.setInputSandbox( 'prodConf_Boole_00012345_00067890_1.py' )
 
-    opts = "$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/L0/L0TCK-0x0042.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py"
+    opts = "$APPCONFIGOPTS/Boole/Default.py;"
+    optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
+    optTCK = "$APPCONFIGOPTS/L0/L0TCK-0x0042.py;"
+    optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
     optPConf = "prodConf_Boole_00012345_00067890_1.py"
-    options = opts + optPConf
+    options = opts + optDT + optTCK + optComp + optPConf
     lhcbJob.addPackage( 'AppConfig', 'v3r155' )
 
     lhcbJob.setApplication( 'Boole', 'v24r0', options,
