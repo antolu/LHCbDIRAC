@@ -2,8 +2,6 @@ from ProdConf import ProdConf
 
 ProdConf(
   NOfEvents=-1,
-  DDDBTag='dddb-20120831',
-  CondDBTag='cond-20120831',
   AppVersion='v32r2p1',
   OptionFormat='Merge',
   XMLSummaryFile='summaryDaVinci_00012345_00006789_1.xml',
