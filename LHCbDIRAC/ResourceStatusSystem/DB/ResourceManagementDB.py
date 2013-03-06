@@ -27,6 +27,17 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
   '''
   
   _tablesDB    = DIRACResourceManagementDB._tablesDB
+  _tablesDB[ 'EnvironmentCache' ] = { 'Fields' : 
+                     {
+                       'HashKey'       : 'VARCHAR(64) NOT NULL',
+                       'Environment'   : 'TEXT',
+                       'SiteName'      : 'VARCHAR(64) NOT NULL',
+                       'Arguments'     : 'VARCHAR(512) NOT NULL',
+                       'DateEffective' : 'DATETIME NOT NULL',
+                       'LastCheckTime' : 'DATETIME NOT NULL'
+                     },
+                     'PrimaryKey' : [ 'Hash' ]
+                                }
   _tablesDB[ 'HammerCloudTest' ] = { 'Fields' : 
                      {
                        'TestID'            : 'INT UNSIGNED',
