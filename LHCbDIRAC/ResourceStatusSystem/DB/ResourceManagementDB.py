@@ -36,7 +36,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                        'DateEffective' : 'DATETIME NOT NULL',
                        'LastCheckTime' : 'DATETIME NOT NULL'
                      },
-                     'PrimaryKey' : [ 'Hash' ]
+                     'PrimaryKey' : [ 'HashKey' ]
                                 }
   _tablesDB[ 'HammerCloudTest' ] = { 'Fields' : 
                      {
