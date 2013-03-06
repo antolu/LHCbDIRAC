@@ -214,6 +214,9 @@ class DiracSAM( Dirac ):
     
     #LHCbJob definition
     samJob = LHCbJob( stdout = 'std.out', stderr =  'std.err' )
+    res = samJob.setName( 'SAM-%s' % ce )
+    if not res[ 'OK' ]:
+      return res
 
     res = samJob.setDestinationCE( ce )
     if not res[ 'OK' ]: 
