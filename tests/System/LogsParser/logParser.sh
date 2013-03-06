@@ -7,7 +7,8 @@ dirac-proxy-info
 if [ ! $? -eq 0 ]
 then
   echo Please get a valid proxy
-  exit 1
+  dirac-proxy-init
+#  exit 1
 fi
 
 matches=$( ls /opt/dirac/startup | awk -F _ '{print $1}' | sort -u )
