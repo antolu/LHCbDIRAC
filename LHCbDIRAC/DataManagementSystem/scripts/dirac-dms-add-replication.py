@@ -239,7 +239,7 @@ if __name__ == "__main__":
     if res['OK']:
       print "%d files were successfully set invisible in the BK" % len( lfns )
       if transBKQuery:
-        transBKQuery.pop( "Visible" )
+        transBKQuery.pop( "Visible", None )
         transformation.setBkQuery( transBKQuery )
     else:
       print "Failed to set the files invisible: %s" % res['Message']
