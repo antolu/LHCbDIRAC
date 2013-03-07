@@ -128,7 +128,7 @@ class ModuleBase( object ):
     """Wraps around setJobApplicationStatus of state update client
     """
     if not self._WMSJob():
-      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
+      return S_OK( 'JobID not defined' )  # e.g. running locally prior to submission
 
     self.log.verbose( 'setJobApplicationStatus(%s, %s)' % ( self.jobID, status ) )
 
@@ -143,28 +143,11 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def sendStoredStatusInfo( self, jr = None ):
-    """Wraps around sendStoredStatusInfo of state update client
-    """
-    if not self._WMSJob():
-      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
-
-    if not jr:
-      jr = self._getJobReporter()
-
-    sendStatus = jr.sendStoredStatusInfo()
-    if not sendStatus['OK']:
-      self.log.error( sendStatus['Message'] )
-
-    return sendStatus
-
-  #############################################################################
-
   def setJobParameter( self, name, value, sendFlag = True, jr = None ):
     """Wraps around setJobParameter of state update client
     """
     if not self._WMSJob():
-      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
+      return S_OK( 'JobID not defined' )  # e.g. running locally prior to submission
 
     self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
@@ -176,23 +159,6 @@ class ModuleBase( object ):
       self.log.warn( jobParam['Message'] )
 
     return jobParam
-
-  #############################################################################
-
-  def sendStoredJobParameters( self, jr = None ):
-    """Wraps around sendStoredJobParameters of state update client
-    """
-    if not self._WMSJob():
-      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
-
-    if not jr:
-      jr = self._getJobReporter()
-
-    sendStatus = jr.sendStoredJobParameters()
-    if not sendStatus['OK']:
-      self.log.error( sendStatus['Message'] )
-
-    return sendStatus
 
   #############################################################################
 
@@ -251,7 +217,7 @@ class ModuleBase( object ):
     if self.InputData == ';':
       self.InputData = ''
 
-    #only required until the stripping is the same for MC / data
+    # only required until the stripping is the same for MC / data
     if self.workflow_commons.has_key( 'configName' ):
       self.bkConfigName = self.workflow_commons['configName']
 
@@ -281,7 +247,7 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'gaudiSteps' ):
       self.gaudiSteps = self.workflow_commons['gaudiSteps']
 
-    #for older productions these are found the step parameters
+    # for older productions these are found the step parameters
     if self.workflow_commons.has_key( 'eventType' ):
       self.eventType = self.workflow_commons['eventType']
 
@@ -368,7 +334,7 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'optionsFormat' ):
       self.optionsFormat = self.step_commons['optionsFormat']
 
-    #for older productions these are found in the workflow parameters
+    # for older productions these are found in the workflow parameters
     if self.step_commons.has_key( 'DDDBTag' ):
       self.DDDBTag = self.step_commons['DDDBTag']
 
@@ -524,10 +490,10 @@ class ModuleBase( object ):
     except OSError:
       return S_ERROR( 'Output Data Not Found' )
 
-    #Select which files have to be uploaded: in principle all
+    # Select which files have to be uploaded: in principle all
     candidateFiles = self._applyMask( fileInfo, fileMask, stepMask )
 
-    #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
+    # Sanity check all final candidate metadata keys are present (return S_ERROR if not)
     try:
       self._checkSanity( candidateFiles )
     except ValueError:
@@ -563,10 +529,10 @@ class ModuleBase( object ):
 
     if fileMask and fileMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if ( ( metadata['type'].lower() not in fileMask ) ):#and ( fileName.split( '.' )[-1] not in fileMask ) ):
+        if ( ( metadata['type'].lower() not in fileMask ) ):  # and ( fileName.split( '.' )[-1] not in fileMask ) ):
           del( candidateFiles[fileName] )
           self.log.info( 'Output file %s was produced but will not be treated (fileMask is %s)' % ( fileName,
-                                                                                                    ', '.join( fileMask ) ) )
+                                                                                              ', '.join( fileMask ) ) )
     else:
       self.log.info( 'No outputDataFileMask provided, the files with all the extensions will be considered' )
 
@@ -575,7 +541,7 @@ class ModuleBase( object ):
         if fileName.split( '_' )[-1].split( '.' )[0] not in stepMask:
           del( candidateFiles[fileName] )
           self.log.info( 'Output file %s was produced but will not be treated (stepMask is %s)' % ( fileName,
-                                                                                                    ', '.join( stepMask ) ) )
+                                                                                              ', '.join( stepMask ) ) )
     else:
       self.log.info( 'No outputDataStep provided, the files output of all the steps will be considered' )
 
@@ -589,7 +555,7 @@ class ModuleBase( object ):
 
     notPresentKeys = []
 
-    mandatoryKeys = ['type', 'workflowSE', 'lfn'] #filedict is used for requests
+    mandatoryKeys = ['type', 'workflowSE', 'lfn']  # filedict is used for requests
     for fileName, metadata in candidateFiles.items():
       for key in mandatoryKeys:
         if not metadata.has_key( key ):
@@ -610,7 +576,7 @@ class ModuleBase( object ):
 
         this also assumes the files are in the current working directory.
     """
-    #Retrieve the POOL File GUID(s) for any final output files
+    # Retrieve the POOL File GUID(s) for any final output files
     self.log.info( 'Will search for POOL GUIDs for: %s' % ( ', '.join( candidateFiles.keys() ) ) )
     pfnGUID = getGUID( candidateFiles.keys() )
     if not pfnGUID['OK']:
@@ -626,7 +592,7 @@ class ModuleBase( object ):
     for pfn, guid in pfnGUID['Value'].items():
       candidateFiles[pfn]['guid'] = guid
 
-    #Get all additional metadata about the file necessary for requests
+    # Get all additional metadata about the file necessary for requests
     final = {}
     for fileName, metadata in candidateFiles.items():
       fileDict = {}
@@ -640,8 +606,8 @@ class ModuleBase( object ):
       final[fileName]['filedict'] = fileDict
       final[fileName]['localpath'] = '%s/%s' % ( os.getcwd(), fileName )
 
-    #Sanity check all final candidate metadata keys are present (return S_ERROR if not)
-    mandatoryKeys = ['guid', 'filedict'] #filedict is used for requests (this method adds guid and filedict)
+    # Sanity check all final candidate metadata keys are present (return S_ERROR if not)
+    mandatoryKeys = ['guid', 'filedict']  # filedict is used for requests (this method adds guid and filedict)
     for fileName, metadata in final.items():
       for key in mandatoryKeys:
         if not metadata.has_key( key ):
