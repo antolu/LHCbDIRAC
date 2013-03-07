@@ -90,7 +90,7 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkBKK2FC( self ):
+  def checkBKK2FC( self, checkAll ):
     ''' Starting from the BKK, check if the FileCatalog has consistent information (BK -> FileCatalog)
 
         Works either when the bkQuery is free, or when it is made using a transformation ID
@@ -104,7 +104,8 @@ class ConsistencyChecks( object ):
         bkQuery = self.__getBKKQuery()
       except ValueError, e:
         return S_ERROR( e )
-      lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
+      if checkAll:
+        lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
       lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
 
     if self.lfns:
@@ -115,20 +116,22 @@ class ConsistencyChecks( object ):
     elif self.transType not in prodsWithMerge:
       # Merging and Reconstruction
       # In principle few files without replica flag, check them in FC
-      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
+      if checkAll:
+        gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
+        self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
       self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
       # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
       # In principle most files have no replica flag, start from the File Catalog files with replicas
-      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
+      if checkAll:
+        gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
+        self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
       gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
       self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
 
-    if self.existingLFNsWithBKKReplicaNO:
+    if checkAll and self.existingLFNsWithBKKReplicaNO:
       msg = "%d files have ReplicaFlag = No, but %d are in the FC" % ( len( lfnsReplicaNo ),
                                                                     len( self.existingLFNsWithBKKReplicaNO ) )
       if self.transType:
@@ -246,10 +249,14 @@ class ConsistencyChecks( object ):
     startTime = time.time()
     gLogger.verbose( "Comparing list of %d LFNs with second list of %d" % ( len( lfns ), len( lfnsFound ) ) )
     if lfnsFound:
+      #print sorted( lfns )
+      #print sorted( lfnsFound )
       setLfns = set( lfns )
       setLfnsFound = set( lfnsFound )
-      present = list( setLfns - setLfnsFound )
-      lfns = list( setLfns & setLfnsFound )
+      present = list( setLfns & setLfnsFound )
+      lfns = list( setLfns - setLfnsFound )
+      #print sorted( present )
+      #print sorted( lfns )
     gLogger.verbose( "End of comparison: %.1f seconds" % ( time.time() - startTime ) )
     return present, lfns
 
@@ -257,9 +264,11 @@ class ConsistencyChecks( object ):
     ''' calls rm.getFilesFromDirectory
     '''
 
+    gLogger.setLevel( 'ERROR' )
     res = self.rm.getFilesFromDirectory( dirs )
+    gLogger.setLevel( 'INFO' )
     if not res['OK']:
-      gLogger.info( "Error getting files from directories %s:" % dirs, res['Message'] )
+      gLogger.error( "Error getting files from directories %s:" % dirs, res['Message'] )
       return
     if res['Value']:
       lfnsFound = res['Value']
