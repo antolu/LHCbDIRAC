@@ -13,28 +13,29 @@
 '''
 
 #Code
-def doCheck():
-  cc.checkBKK2FC()
+def doCheck( checkAll ):
+  cc.checkBKK2FC( checkAll )
   maxPrint = 20
 
-  if cc.existingLFNsWithBKKReplicaNO:
-    nFiles = len( cc.existingLFNsWithBKKReplicaNO )
-    if nFiles <= maxPrint:
-      comment = str( cc.existingLFNsWithBKKReplicaNO )
-    else:
-      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.existingLFNsWithBKKReplicaNO[:maxPrint] ) )
-    if fixIt:
-      gLogger.always( "Setting the replica flag to %d files: %s" % ( nFiles, comment ) )
-      res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
-      if not res['OK']:
-        gLogger.error( "Something wrong: %s" % res['Message'] )
+  if checkAll:
+    if cc.existingLFNsWithBKKReplicaNO:
+      nFiles = len( cc.existingLFNsWithBKKReplicaNO )
+      if nFiles <= maxPrint:
+        comment = str( cc.existingLFNsWithBKKReplicaNO )
       else:
-        gLogger.always( "Successfully set replica flag to %d files" % nFiles )
+        comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.existingLFNsWithBKKReplicaNO[:maxPrint] ) )
+      if fixIt:
+        gLogger.always( "Setting the replica flag to %d files: %s" % ( nFiles, comment ) )
+        res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
+        if not res['OK']:
+          gLogger.error( "Something wrong: %s" % res['Message'] )
+        else:
+          gLogger.always( "Successfully set replica flag to %d files" % nFiles )
+      else:
+        gLogger.error( "%d LFNs exist in the FC but have replicaFlag = No: %s" % ( nFiles, comment ) )
+        gLogger.always( "Use option --FixIt to fix it" )
     else:
-      gLogger.error( "%d LFNs exist in the FC but have replicaFlag = No: %s" % ( nFiles, comment ) )
-      gLogger.always( "Use option --FixIt to fix it" )
-  else:
-    gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BKK -> OK!" )
+      gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BKK -> OK!" )
 
   if cc.nonExistingLFNsWithBKKReplicaYES:
     nFiles = len( cc.nonExistingLFNsWithBKKReplicaYES )
@@ -51,7 +52,7 @@ def doCheck():
       else:
         gLogger.always( "Successfully removed replica flag to %d files" % nFiles )
     else:
-      gLogger.error( "%d LFNs have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
+      gLogger.error( "%d files have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
       gLogger.always( "Use option --FixIt to fix it" )
   else:
     gLogger.always( "No LFNs have replicaFlag = Yes but are not in the FC -> OK!" )
@@ -71,14 +72,18 @@ if __name__ == '__main__':
   dmScript.registerBKSwitches()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
+  Script.registerSwitch( '', 'CheckAllFlags', '   Consider also files with replica flag NO' )
   Script.parseCommandLine( ignoreErrors = True )
 
   fixIt = False
+  checkAll = False
   production = 0
   switches = Script.getUnprocessedSwitches()
   for opt, val in switches:
     if opt == 'FixIt':
       fixIt = True
+    elif opt == 'CheckAllFlags':
+      checkAll = True
 
   #imports
   import sys, os, time
@@ -102,7 +107,7 @@ if __name__ == '__main__':
     for prod in prods:
       cc.prod = prod
       gLogger.always( "Processing production %d" % cc.prod )
-      doCheck()
+      doCheck( checkAll )
       gLogger.always( "Processed production %d" % cc.prod )
   else:
-    doCheck()
+    doCheck( checkAll )
