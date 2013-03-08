@@ -1,4 +1,4 @@
-""" In general for data processing productions we need to completely abandon the 'by hand'
+''' In general for data processing productions we need to completely abandon the 'by hand'
     reschedule operation such that accidental reschedulings don't result in data being processed twice.
 
     For all above cases the following procedure should be used to achieve 100%:
@@ -17,7 +17,7 @@
       o if the data has a replica flag it means all was uploaded successfully - should be investigated by hand
       o if there is no replica flag can proceed with file removal from LFC / storage (can be disabled by flag)
     - Mark the recovered input file status as 'Unused' in the ProductionDB
-"""
+'''
 
 __RCSID__ = "$Id$"
 
@@ -38,12 +38,12 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import Transfor
 AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
 class DataRecoveryAgent( AgentModule ):
-  """ Standard DIRAC agent class
-  """
+  ''' Standard DIRAC agent class
+  '''
 
   def __init__( self, *args, **kwargs ):
-    """ c'tor
-    """
+    ''' c'tor
+    '''
     AgentModule.__init__( self, *args, **kwargs )
 
     self.replicaManager = ReplicaManager()
@@ -53,15 +53,14 @@ class DataRecoveryAgent( AgentModule ):
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
                                  rm = self.replicaManager, bkClient = self.bkClient )
 
-    self.enableFlag = ''  # defined below
     self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
     self.transformationTypes = list( set( self.transformationTypes ) - set( ['MCSimulation', 'Simulation'] ) )
 
   #############################################################################
 
   def initialize( self ):
-    """Sets defaults
-    """
+    '''Sets defaults
+    '''
     # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
@@ -70,11 +69,11 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def execute( self ):
-    """ The main execution method.
-    """
+    ''' The main execution method.
+    '''
     # Configuration settings
     self.enableFlag = self.am_getOption( 'EnableFlag', True )
-    self.log.info( 'Enable flag is %s' % self.enableFlag )
+    self.log.verbose( 'Enable flag is %s' % self.enableFlag )
 
     transformationStatus = self.am_getOption( 'TransformationStatus', ['Active', 'Completing'] )
     fileSelectionStatus = self.am_getOption( 'FileSelectionStatus', ['Assigned', 'MaxReset'] )
@@ -166,38 +165,30 @@ class DataRecoveryAgent( AgentModule ):
                                                                                    len( jobsThatProducedOutputs ) ) )
 
       filesToUpdate = []
-      jobsWithdescendantsInBK = []
+      filesWithdescendantsInBK = []
       for job, fileList in jobFileNoRequestsDict.items():
         if job in jobsThatDidntProduceOutputs:
           filesToUpdate += fileList
         elif job in jobsThatProducedOutputs:
-          jobsWithdescendantsInBK += fileList
+          filesWithdescendantsInBK += fileList
 
       if filesToUpdate:
         result = self._updateFileStatus( transformation, filesToUpdate, updateStatus )
         if not result['OK']:
           self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result ) )
           continue
-      else:
-        self.log.info( 'There are no files without problematic descendants to update for \
-        production %s in this cycle' % transformation )
 
-      if jobsWithdescendantsInBK:
+      if filesWithdescendantsInBK:
         self.log.warn( '!!!!!!!! Note that transformation %s has descendants with \
         BK replica flags for files that are not marked as processed !!!!!!!!' % ( transformation ) )
-        for jobID, files in jobsWithdescendantsInBK.items():
-          self.log.warn( 'Job %s, Files %s' % ( jobID, files ) )
-
-    if not self.enableFlag:
-      self.log.info( '%s is disabled by configuration option EnableFlag\ntherefore no \
-      "one-way" operations such as ProductionDB updates are performed.' % ( AGENT_NAME ) )
+        self.log.warn( 'Files: %s' % ';'.join( filesWithdescendantsInBK ) )
 
     return S_OK()
 
   #############################################################################
   def _getEligibleTransformations( self, status, typeList ):
-    """ Select transformations of given status and type.
-    """
+    ''' Select transformations of given status and type.
+    '''
     res = self.transClient.getTransformations( condDict = {'Status':status, 'Type':typeList} )
     self.log.debug( res )
     if not res['OK']:
@@ -210,8 +201,8 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _selectTransformationFiles( self, transformation, statusList ):
-    """ Select files, production jobIDs in specified file status for a given transformation.
-    """
+    ''' Select files, production jobIDs in specified file status for a given transformation.
+    '''
     # Until a query for files with timestamp can be obtained must rely on the
     # WMS job last update
     res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transformation, 'Status':statusList} )
@@ -233,13 +224,13 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _obtainWMSJobIDs( self, transformation, fileDict, selectDelay, wmsStatusList ):
-    """ Group files by the corresponding WMS jobIDs, check the corresponding
+    ''' Group files by the corresponding WMS jobIDs, check the corresponding
         jobs have not been updated for the delay time.  Can't get into any
         mess because we start from files only in MaxReset / Assigned and check
         corresponding jobs.  Mixtures of files for jobs in MaxReset and Assigned
         statuses only possibly include some files in Unused status (not Processed
         for example) that will not be touched.
-    """
+    '''
     prodJobIDs = uniqueElements( fileDict.values() )
     self.log.info( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
                                                                                              prodJobIDs ) )
@@ -304,9 +295,9 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _checkOutstandingRequests( self, jobFileDict ):
-    """ Before doing anything check that no outstanding requests are pending
+    ''' Before doing anything check that no outstanding requests are pending
         for the set of WMS jobIDs.
-    """
+    '''
     jobs = jobFileDict.keys()
     result = self.requestClient.getRequestForJobs( jobs )
     if not result['OK']:
@@ -332,9 +323,9 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _checkdescendants( self, transformation, jobFileDict ):
-    """ Check BK descendants for input files, prepare list of actions to be
+    ''' Check BK descendants for input files, prepare list of actions to be
         taken for recovery.
-    """
+    '''
 
     jobsThatDidntProduceOutputs = []
     jobsThatProducedOutputs = []
@@ -351,15 +342,15 @@ class DataRecoveryAgent( AgentModule ):
 
   ############################################################################
   def _updateFileStatus( self, transformation, fileList, fileStatus ):
-    """ Update file list to specified status.
-    """
+    ''' Update file list to specified status.
+    '''
     if not self.enableFlag:
-      self.log.info( 'Enable flag is False, would update  %s files to "%s" status for %s' % ( len( fileList ),
-                                                                                              fileStatus,
-                                                                                              transformation ) )
+      self.log.info( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
+                                                                                                   fileStatus,
+                                                                                                   transformation ) )
       return S_OK()
 
-    self.log.info( 'Updating %s files to "%s" status for %s' % ( len( fileList ),
+    self.log.info( "Updating %s files to '%s' status for %s" % ( len( fileList ),
                                                                  fileStatus,
                                                                  transformation ) )
     result = self.transClient.setFileStatusForTransformation( int( transformation ),
