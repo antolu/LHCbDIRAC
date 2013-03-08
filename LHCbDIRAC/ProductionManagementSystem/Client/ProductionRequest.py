@@ -43,7 +43,7 @@ class ProductionRequest( object ):
     self.sysConfig = []
     self.stepsList = []
     self.stepsListDict = []
-    self.extraOptions = []
+    self.extraOptions = {}
     self.prodsTypeList = []
     self.stepsInProds = [] #a list of lists
     self.bkQueries = [] #list of bk queries
