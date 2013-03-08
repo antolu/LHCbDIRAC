@@ -3,7 +3,7 @@ from ProdConf import ProdConf
 ProdConf(
   NOfEvents=-1,
   AppVersion='v32r2p1',
-  OptionFormat='Merge',
+  OptionFormat='merge',
   XMLSummaryFile='summaryDaVinci_00012345_00006789_1.xml',
   Application='DaVinci',
   OutputFilePrefix='00012345_00006789_1',
