@@ -142,7 +142,7 @@ def __getTransformationInfo( transID ):
     transBody = res['Value']['Body']
     transPlugin = res['Value']['Plugin']
     strPlugin = transPlugin
-    if transType in ( 'Merge', 'DataStripping' ):
+    if transType in ( 'Merge', 'DataStripping', 'MCStripping' ):
       strPlugin += ', GroupSize: %s' % str( res['Value']['GroupSize'] )
     if transType in dmTransTypes:
       taskType = "Request"

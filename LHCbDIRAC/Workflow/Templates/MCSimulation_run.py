@@ -142,7 +142,7 @@ if not w1 and not w2 and not w3 and not w4:
   DIRAC.exit( 2 )
 
 if w1:
-  pr.prodsTypeList = ['MCSimulation', 'DataStripping', 'Merge']
+  pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
                      range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
@@ -159,7 +159,7 @@ if w1:
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 elif w2:
-  pr.prodsTypeList = ['MCSimulation', 'DataStripping']
+  pr.prodsTypeList = ['MCSimulation', 'MCStripping']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
