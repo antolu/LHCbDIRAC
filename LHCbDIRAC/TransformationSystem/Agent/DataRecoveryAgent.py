@@ -68,7 +68,7 @@ class DataRecoveryAgent( AgentModule ):
     # Configuration settings
     self.enableFlag = self.am_getOption( 'EnableFlag', True )
     self.log.info( 'Enable flag is %s' % self.enableFlag )
-    self.removalOKFlag = self.am_getOption( 'RemovalOKFlag', True )
+    removalOKFlag = self.am_getOption( 'RemovalOKFlag', True )
 
     transformationTypes = self.am_getOption( 'TransformationTypes', ['DataReconstruction', 'DataStripping',
                                                                      'DataSwimming', 'Merge'] )
@@ -98,35 +98,10 @@ class DataRecoveryAgent( AgentModule ):
     self.log.info( 'Selected %s transformations of types %s' % ( len( transformationDict.keys() ),
                                                                  ', '.join( transformationTypes ) ) )
     self.log.verbose( 'The following transformations were selected out of %s:\n%s' % ( ', '.join( transformationTypes ),
-                                                                                       ', '.join( transformationDict.keys() ) ) )
+                                                                              ', '.join( transformationDict.keys() ) ) )
 
-    trans = []
-    # initially this was useful for restricting the considered list
-    # now we use the DataRecoveryAgent in setups where IDs are low
-    ignoreLessThan = '0'
-
-    ########## Uncomment for debugging
-#    self.enableFlag = False
-#    self.removalOKFlag = False
-#    trans.append('6357')
-#    trans.append('6361')
-#    trans.append('6362')
-#    trans.append('6338')
-#    trans.append('6314')
-    ########## Uncomment for debugging
-
-    if trans:
-      self.log.info( 'Skipping all transformations except %s' % ( ', '.join( trans ) ) )
 
     for transformation, typeName in transformationDict.items():
-      if trans:
-        if not transformation in trans:
-          continue
-      if ignoreLessThan:
-        if int( ignoreLessThan ) > int( transformation ):
-          self.log.verbose( 'Ignoring transformation %s ( is less than specified limit %s )' % ( transformation,
-                                                                                                 ignoreLessThan ) )
-          continue
 
       self.log.info( '=' * len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
       self.log.info( 'Looking at transformation %s:' % ( transformation ) )
@@ -179,7 +154,7 @@ class DataRecoveryAgent( AgentModule ):
         fileCount += len( lfnList )
 
       self.log.info( '%s files are selected after removing any relating to jobs with pending requests' % ( fileCount ) )
-      result = self._checkDescendents( transformation, jobFileNoRequestsDict, bkDepth )
+      result = self._checkdescendants( transformation, jobFileNoRequestsDict, bkDepth )
       if not result['OK']:
         self.log.error( result )
         continue
@@ -187,14 +162,14 @@ class DataRecoveryAgent( AgentModule ):
       problematicFiles = result['Value']['toremove']
       jobsWithFilesOKToUpdate = result['Value']['jobfiledictok']
       jobsWithProblematicFiles = result['Value']['jobfiledictproblematic']
-      jobsWithDescendentsInBK = result['Value']['replicaflagproblematic']
+      jobsWithdescendantsInBK = result['Value']['replicaflagproblematic']
 
       self.log.info( '====> Transformation %s total jobs that can be updated now: %s' % ( transformation,
-                                                                                          len( jobsWithFilesOKToUpdate.keys() ) ) )
+                                                                               len( jobsWithFilesOKToUpdate.keys() ) ) )
       self.log.info( '====> Transformation %s total jobs with problematic descendent \
       files but no replica flags: %s' % ( transformation, len( jobsWithProblematicFiles.keys() ) ) )
       self.log.info( '====> Transformation %s total jobs with problematic descendent \
-      files having BK replica flags: %s' % ( transformation, len( jobsWithDescendentsInBK.keys() ) ) )
+      files having BK replica flags: %s' % ( transformation, len( jobsWithdescendantsInBK.keys() ) ) )
 
       filesToUpdate = []
       for job, fileList in jobsWithFilesOKToUpdate.items():
@@ -206,11 +181,11 @@ class DataRecoveryAgent( AgentModule ):
           self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result ) )
           continue
       else:
-        self.log.info( 'There are no files without problematic descendents to update for \
+        self.log.info( 'There are no files without problematic descendants to update for \
         production %s in this cycle' % transformation )
 
       if problematicFiles:
-        if self.removalOKFlag:
+        if removalOKFlag:
           result = self._removeOutputs( problematicFiles )
           if not result['OK']:
             self.log.error( 'Could not remove all problematic files with result\n%s' % ( result ) )
@@ -243,11 +218,11 @@ class DataRecoveryAgent( AgentModule ):
         self.log.info( 'There are no problematic files without replica flags to \
         update for production %s in this cycle' % transformation )
 
-      if jobsWithDescendentsInBK:
-        self.log.info( '!!!!!!!! Note that transformation %s has descendents with \
+      if jobsWithdescendantsInBK:
+        self.log.warn( '!!!!!!!! Note that transformation %s has descendants with \
         BK replica flags for files that are not marked as processed !!!!!!!!' % ( transformation ) )
-        for n, v in jobsWithDescendentsInBK.items():
-          self.log.info( 'Job %s, Files %s' % ( n, v ) )
+        for jobID, files in jobsWithdescendantsInBK.items():
+          self.log.warn( 'Job %s, Files %s' % ( jobID, files ) )
 
     if not self.enableFlag:
       self.log.info( '%s is disabled by configuration option EnableFlag\ntherefore no \
@@ -392,8 +367,8 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK( jobFileDict )
 
   #############################################################################
-  def _checkDescendents( self, transformation, jobFileDict, bkDepth ):
-    """ Check BK descendents for input files, prepare list of actions to be
+  def _checkdescendants( self, transformation, jobFileDict, bkDepth ):
+    """ Check BK descendants for input files, prepare list of actions to be
         taken for recovery.
     """
     toRemove = []
@@ -403,26 +378,26 @@ class DataRecoveryAgent( AgentModule ):
     for job, fileList in jobFileDict.items():
       if not fileList:
         continue
-      self.log.info( 'Checking BK descendents for job %s...' % job )
+      self.log.info( 'Checking BK descendants for job %s...' % job )
       # check any input data has descendant files...
       result = self.bkClient.getFileDescendants( fileList,
                                                  depth = bkDepth,
                                                  production = int( transformation ),
                                                  checkreplica = False )
       if not result['OK']:
-        self.log.error( 'Could not obtain descendents for job %s with result:\n%s' % ( job, result ) )
+        self.log.error( 'Could not obtain descendants for job %s with result:\n%s' % ( job, result ) )
         bkNotReachable.append( job )
         continue
       if result['Value']['Failed']:
-        self.log.error( 'Problem obtaining some descendents for job %s with result:\n%s' % ( job, result['Value'] ) )
+        self.log.error( 'Problem obtaining some descendants for job %s with result:\n%s' % ( job, result['Value'] ) )
         bkNotReachable.append( job )
         continue
       jobFiles = result['Value']['Successful'].keys()
       for fname in jobFiles:
-        descendents = result['Value']['Successful'][fname]
-        # IMPORTANT: Descendents of input files can be found with or without replica flags
-        if descendents:
-          metadata = self.bkClient.getFileMetadata( descendents )
+        descendants = result['Value']['Successful'][fname]
+        # IMPORTANT: descendants of input files can be found with or without replica flags
+        if descendants:
+          metadata = self.bkClient.getFileMetadata( descendants )
           if not metadata['OK']:
             self.log.error( 'Could not get metadata from BK with result:\n%s' % ( metadata ) )
             continue
@@ -431,28 +406,29 @@ class DataRecoveryAgent( AgentModule ):
             continue
 
           # need to take a decision based on any one descendent having a replica flag
-          descendentsWithReplicas = False
-          for d in descendents:
+          descendantsWithReplicas = False
+          for d in descendants:
             if metadata['Value'][d]['GotReplica'].lower() == 'yes':
-              descendentsWithReplicas = True
-              self.log.verbose( 'Descendent file for %s has replica flag:\n%s => %s' % ( job, fname, d ) )
+              descendantsWithReplicas = True
+              self.log.verbose( 'Descendant file for %s has replica flag:\n%s => %s' % ( job, fname, d ) )
 
-          if descendentsWithReplicas:
+          if descendantsWithReplicas:
             #    With replica flag <====> Job could be OK and files processed, should investigate by hand
             hasReplicaFlag.append( job )
           else:
             #    Without replica flag <====> All data can be removed and a job recreated
             problematicJobs.append( job )
-            toRemove += descendents
+            toRemove += descendants
 
     if toRemove:
-      self.log.info( 'Found %s descendent files of transformation %s without \
+      self.log.info( 'Found %s descendant files of transformation %s without \
       BK replica flag to be removed:\n%s' % ( len( toRemove ), transformation, '\n'.join( toRemove ) ) )
 
     if hasReplicaFlag:
-      self.log.info( 'Found %s jobs with descendent files that do have a BK replica flag' % ( len( hasReplicaFlag ) ) )
+      self.log.info( 'Found %s jobs with descendant files that do have a BK replica flag' % ( len( hasReplicaFlag ) ) )
 
-    # Now resolve files that can be updated safely (e.g. even if the removalFlag is False these are updated as nothing is to be removed ;)
+    # Now resolve files that can be updated safely (e.g. even if the removalFlag is False
+    # these are updated as nothing is to be removed ;)
     problematic = {}
     for probJob in problematicJobs:
       if jobFileDict.has_key( probJob ):
@@ -498,7 +474,7 @@ class DataRecoveryAgent( AgentModule ):
       self.log.error( result )
       return S_ERROR( result['Value']['Failed'] )
 
-    self.log.info( 'The following problematic files were successfully removed:\n%s' % ( '\n'.join( problematicFiles ) ) )
+    self.log.info( 'The following problematic files were removed:\n%s' % ( '\n'.join( problematicFiles ) ) )
     return S_OK()
 
   #############################################################################
