@@ -210,6 +210,7 @@ class StorageHistoryAgent( AgentModule ):
     self.eventTypeDescription[ 'na' ] = 'na'
     self.eventTypeDescription[ 'notInBkk' ] = 'notInBkk'
     self.eventTypeDescription[ 'FailedBkkQuery' ] = 'FailedBkkQuery'
+    self.eventTypeDescription[ 'None' ] = 'None'
     # for debugging purposes build dictionaries with storage usage to compare with the accounting plots
     self.debug_seUsage = {}
     self.debug_seUsage_acc = {}
@@ -541,18 +542,14 @@ class StorageHistoryAgent( AgentModule ):
     # check that the event type description is in the cached dictionary, and otherwise query the Bkk
     if eventType not in self.eventTypeDescription.keys():
       gLogger.notice( "Event type description not available for eventTypeID %s, getting from Bkk" % eventType )
-      bkDict = {'ConfigName': configName, 'ConfigVersion': configVersion }
-      res = self.bkClient.getEventTypes( bkDict )
+      res = self.bkClient.getAvailableEventTypes()
       self.callsToBkkGetEvtType += 1
       if not res['OK']:
         gLogger.error( "Error querying the Bkk: %s" % res['Message'] )
       else:
         val = res['Value']
-        for record in val['Records']:
-          indexId = val['ParameterNames'].index( 'EventTypeId' )
-          indexDesc = val['ParameterNames'].index( 'Description' )
-          eventTypeID = record[ indexId ]
-          eventTypeDescription = record[ indexDesc ]
+        for v in val:
+          eventTypeID, eventTypeDescription = v
           self.eventTypeDescription[ str( eventTypeID ) ] = eventTypeDescription
       gLogger.info( "Updated  self.eventTypeDescription dict: %s " % self.eventTypeDescription )
 
@@ -601,4 +598,3 @@ class StorageHistoryAgent( AgentModule ):
     self.recordsToCommit += 1
 
     return S_OK()
-
