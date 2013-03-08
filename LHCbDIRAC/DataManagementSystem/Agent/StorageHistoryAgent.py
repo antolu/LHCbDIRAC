@@ -474,7 +474,7 @@ class StorageHistoryAgent( AgentModule ):
       gLogger.info( "/lhcb/%s - %d " % ( dd, directoriesNotInBookkeeping[ dd ] ) )
       totalDiscardedDirs += directoriesNotInBookkeeping[ dd ]
     gLogger.info( "total discarded directories: %d " % totalDiscardedDirs )
-    gLogger.info( "Retrieved %d dirs from StorageUsageDB containing prod files: %d " % len( self.dirDict.keys() ) )
+    gLogger.info( "Retrieved %d dirs from StorageUsageDB containing prod files" % len( self.dirDict.keys() ) )
     gLogger.info( "Getting the number of files and size from StorageUsage service" )
     for d in self.dirDict.keys():
       gLogger.verbose( "Get storage usage for directory %s " % d )
@@ -492,7 +492,7 @@ class StorageHistoryAgent( AgentModule ):
         gLogger.error( "Cannot retrieve LFN usage %s" % res['Message'] )
         continue
       if not res['Value']:
-        gLogger.error( "For dir % getSummary returned an empty value: %s " % ( d, res ) )
+        gLogger.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
         continue
       for retDir in res['Value'].keys():
         if retDir[-1] != '/':
