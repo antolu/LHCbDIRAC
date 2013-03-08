@@ -9,7 +9,7 @@
 import os, copy, ast, time
 
 from DIRAC import gLogger, S_ERROR
-from DIRAC.Core.Utilities.List import breakListIntoChunks, uniqueElements
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
@@ -19,7 +19,7 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
-prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction' )
+prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient = None ):
     cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
@@ -123,7 +123,7 @@ class ConsistencyChecks( object ):
       self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
-      # 'MCSimulation', 'DataStripping', 'DataSwimming', 'WGProduction'
+      # prodsWithMerge
       # In principle most files have no replica flag, start from the File Catalog files with replicas
       if checkAll:
         gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
