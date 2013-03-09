@@ -204,7 +204,7 @@ def __getTransformations( args ):
   return transList
 
 def __checkFilesMissingInFC( transFilesList, status, fixIt ):
-  if status in ( 'MissingLFC', 'MissingInFC' ):
+  if 'MissingLFC' in status or 'MissingInFC' in status:
     lfns = [fileDict['LFN'] for fileDict in transFilesList]
     res = rm.getReplicas( lfns )
     if res['OK']:
@@ -735,7 +735,7 @@ if __name__ == "__main__":
         found = True
       if not found:
         print "... None ..."
-    elif transType == "Removal":
+    elif transType == "Removal" and not ( 'MissingLFC' in status or 'MissingInFC' in status ):
       print "All files have been successfully removed!"
 
     # All files?
