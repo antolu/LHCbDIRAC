@@ -77,7 +77,7 @@ if __name__ == "__main__":
     if not lfns:
       bkQuery = dmScript.getBKQuery()
       print "Executing BK query:", bkQuery
-      lfns = bkQuery.getLFNs( visible = False )
+      lfns = bkQuery.getLFNs()
     if lfns:
       res = rm.getReplicas( lfns )
       if not res['OK']:
