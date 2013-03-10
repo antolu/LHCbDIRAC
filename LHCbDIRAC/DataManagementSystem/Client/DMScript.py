@@ -223,16 +223,20 @@ class DMScript():
     return DIRAC.S_OK()
 
   def setLFNsFromTerm( self, arg ):
-    return self.setLFNsFromFile( '/dev/stdin' )
+    return self.setLFNsFromFile( None )
 
   def setLFNsFromFile( self, arg ):
     try:
-      f = open( arg, 'r' )
+      import sys
+      f = open( arg, 'r' ) if arg else sys.stdin
       lfns = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in f.read().splitlines()]
-      lfns = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] for lfn in lfns]
-      f.close()
+      lfns = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfns]
+      lfns = [lfn for lfn in lfns if lfn]
+      if arg:
+        f.close()
     except:
       lfns = [arg]
+      print 'except', lfns
     self.options.setdefault( 'LFNs', [] ).extend( lfns )
     return DIRAC.S_OK()
 
