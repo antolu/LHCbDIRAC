@@ -178,9 +178,7 @@ if __name__ == "__main__":
     gLogger.setLevel( 'FATAL' )
     for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
       for seName in sorted( seList ):
-        print lfnChunk, seName
         res = rm.removeReplica( seName, lfnChunk )
-        print res
         if not res['OK']:
           gLogger.fatal( "Failed to remove replica", res['Message'] )
           DIRAC.exit( -2 )
