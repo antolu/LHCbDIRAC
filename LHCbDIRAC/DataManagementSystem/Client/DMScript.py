@@ -236,7 +236,6 @@ class DMScript():
         f.close()
     except:
       lfns = [arg]
-      print 'except', lfns
     self.options.setdefault( 'LFNs', [] ).extend( lfns )
     return DIRAC.S_OK()
 
