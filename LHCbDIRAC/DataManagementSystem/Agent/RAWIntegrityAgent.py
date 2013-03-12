@@ -45,7 +45,6 @@ class RAWIntegrityAgent( AgentModule ):
   dataLoggingClient = None
   gatewayUrl = None
 
-
   def initialize( self ):
     """ agent initialisation """
 
@@ -159,7 +158,7 @@ class RAWIntegrityAgent( AgentModule ):
     filesToTransfer = []
     filesMigrated = []
     for pfn, pfnMetadataDict in pfnMetadata['Successful'].items():
-      if pfnMetadataDict['Migrated']:
+      if pfnMetadataDict.get( 'Migrated', False ):
         lfn = pfnDict[pfn]
         filesMigrated.append( lfn )
         self.log.info( "%s is newly migrated." % lfn )
